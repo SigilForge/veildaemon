@@ -100,3 +100,5 @@ cd veildaemon
 ## 🖋️ **Manifesto**
 
 *"Every feature is a rite. Every override is sacred. The daemon yields, always, to your voice."*
+
+© 2025 Knoxmortis. VeilDaemon™ and The VEIL Protocol™ are trademarks of Knoxmortis.
