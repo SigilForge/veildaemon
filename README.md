@@ -1,7 +1,3 @@
-Here’s a **mythpunk README draft** tuned for your repo. It reads like a ritual scroll but includes the practical install and roadmap pieces:
-
----
-
 # 🜏 **VeilDaemon** 🜏
 
 **Resonance-Aware Companion for Neurodivergent Meltdown Management**
@@ -96,13 +92,3 @@ cd veildaemon
 ## 🖋️ **Manifesto**
 
 *"Every feature is a rite. Every override is sacred. The daemon yields, always, to your voice."*
-
----
-
-🔥 Want me to also generate:
-
-* `/docs/manifesto.md` (full lore declaration)?
-* **Example plugin pack** (logic + persona YAML for `/packs`)?
-* A **system architecture diagram** for `/docs`?
-
-Or **drop all three so you can commit today**?
