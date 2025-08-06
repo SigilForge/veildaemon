@@ -81,6 +81,14 @@ cd veildaemon
 
 ---
 
+## 🔮 Architecture
+
+![VeilDaemon Architecture](docs/architecture.png)
+
+[View Clear Diagram for Developers](docs/architecture-clear.png)
+
+---
+
 ## 🔐 **Licensing**
 
 * **Core Logic**: Apache 2.0
