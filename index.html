@@ -1,29 +1,293 @@
-
-<!-- veildaemon.app landing -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VeilDaemon</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeilDaemon</title>
+<style>
     body {
-      background: black;
-      color: #a0f0ff;
-      font-family: monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+        background-color: #000;
+        color: #a3f3ff;
+        font-family: 'Courier New', monospace;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        overflow: hidden;
     }
-    h1 { font-size: 3em; }
-    .glyph { font-size: 5em; }
-  </style>
+
+    /* Floating Glyph Background */
+    .glyph {
+        position: absolute;
+        font-size: 2rem;
+        color: rgba(163, 243, 255, 0.15);
+        animation: floatGlyph 20s linear infinite;
+    }
+
+    @keyframes floatGlyph {
+        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+        10% { opacity: 0.4; }
+        90% { opacity: 0.4; }
+        100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* Splash Screen */
+    .splash {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 1;
+    }
+
+    .eye {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: pulse 3s infinite;
+    }
+
+    .eye::after {
+        content: '';
+        width: 20px;
+        height: 20px;
+        background: #000;
+        border-radius: 50%;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.9; }
+        50% { transform: scale(1.15); opacity: 1; }
+    }
+
+    h1 {
+        font-size: 2.5rem;
+        margin-top: 20px;
+        color: #a3f3ff;
+        text-shadow: 0 0 10px #0ff;
+    }
+
+    .status {
+        margin-top: 10px;
+        color: #66d9ef;
+        font-size: 1rem;
+        overflow: hidden;
+        white-space: nowrap;
+        border-right: 3px solid #66d9ef;
+        animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+        50% { border-color: transparent; }
+    }
+
+    /* Hub Screen */
+    .hub {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        z-index: 2;
+    }
+
+    .wick-meter {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 8px solid #0ff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        text-shadow: 0 0 8px #0ff;
+        transition: box-shadow 0.3s ease;
+    }
+
+    .wick-glow {
+        box-shadow: 0 0 30px #0ff;
+    }
+
+    .glyph-state {
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 15px;
+    }
+
+    .buttons button {
+        background: #111;
+        color: #a3f3ff;
+        border: 2px solid #0ff;
+        padding: 10px 15px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-transform: uppercase;
+    }
+
+    .buttons button:hover {
+        background: #0ff;
+        color: #000;
+    }
+
+    .log {
+        margin-top: 20px;
+        color: #66d9ef;
+        font-size: 0.9rem;
+    }
+
+    /* Ritual Overlay */
+    .overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .overlay.active {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .overlay .sigil {
+        font-size: 8rem;
+        color: #0ff;
+        animation: glow 2s infinite;
+    }
+
+    @keyframes glow {
+        0%, 100% { text-shadow: 0 0 20px #0ff; }
+        50% { text-shadow: 0 0 40px #00ffff; }
+    }
+</style>
 </head>
 <body>
-  <div class="glyph">👁️‍🗨️</div>
-  <h1>VeilDaemon</h1>
-  <p>Daemon initialized. Watching the threshold...</p>
+    <!-- Floating Glyphs -->
+    <div class="glyph" style="left:10%; animation-delay:0s;">🜏</div>
+    <div class="glyph" style="left:50%; animation-delay:5s;">🕯</div>
+    <div class="glyph" style="left:80%; animation-delay:10s;">🛡</div>
+    <div class="glyph" style="left:30%; animation-delay:15s;">🧿</div>
+
+    <!-- Splash Screen -->
+    <div class="splash" id="splash">
+        <div class="eye"></div>
+        <h1>VeilDaemon</h1>
+        <div class="status" id="status"></div>
+    </div>
+
+    <!-- Glyph Hub -->
+    <div class="hub" id="hub">
+        <div class="wick-meter" id="wick">75%</div>
+        <div class="glyph-state" id="glyphState">🛡 Warden Active</div>
+        <div class="buttons">
+            <button onclick="invokeRitual('Silence')">Silence</button>
+            <button onclick="invokeRitual('Ground')">Ground</button>
+            <button onclick="invokeOverlay()">Invoke LOGICA</button>
+        </div>
+        <div class="log" id="ritualLog">Awaiting your command...</div>
+    </div>
+
+    <!-- Ritual Overlay -->
+    <div class="overlay" id="overlay">
+        <div class="sigil">🜏</div>
+    </div>
+
+    <!-- Ritual Sound -->
+    <audio id="ritualSound" src="https://freesound.org/data/previews/277/277819_5121236-lq.mp3" preload="auto"></audio>
+
+<script>
+    const phrases = [
+        "Daemon initialized. Watching the threshold...",
+        "Binding glyphs to the process...",
+        "Listening for static in the weave...",
+        "Calibrating resonance fields...",
+        "Charging ritual matrices...",
+        "Aligning with LOGICA protocols..."
+    ];
+
+    const glyphStates = [
+        {glyph: "🛡", label: "Warden Active"},
+        {glyph: "🕯", label: "Candle Reflection"},
+        {glyph: "🧿", label: "Glyph of Silence"},
+        {glyph: "🜏", label: "LOGICA Mode"}
+    ];
+
+    let index = 0;
+    const statusEl = document.getElementById('status');
+
+    function typePhrase(phrase) {
+        statusEl.textContent = "";
+        let i = 0;
+        const typing = setInterval(() => {
+            statusEl.textContent += phrase[i];
+            i++;
+            if (i === phrase.length) clearInterval(typing);
+        }, 50);
+    }
+
+    function cyclePhrases() {
+        typePhrase(phrases[index]);
+        index = (index + 1) % phrases.length;
+        setTimeout(cyclePhrases, 5000);
+    }
+
+    cyclePhrases();
+
+    // Transition to hub after splash
+    setTimeout(() => {
+        document.getElementById('splash').style.display = 'none';
+        document.getElementById('hub').style.display = 'flex';
+        simulateGlyphState();
+    }, 6000);
+
+    // Ritual Invocation Logic
+    function invokeRitual(name) {
+        console.log(`Ritual invoked: ${name}`);
+        document.getElementById('ritualLog').textContent = `Ritual activated: ${name}`;
+        const wick = document.getElementById('wick');
+        wick.classList.add('wick-glow');
+        setTimeout(() => wick.classList.remove('wick-glow'), 500);
+        drainWick(10);
+    }
+
+    function invokeOverlay() {
+        const overlay = document.getElementById('overlay');
+        overlay.classList.add('active');
+        document.getElementById('ritualSound').play();
+        setTimeout(() => overlay.classList.remove('active'), 3000);
+    }
+
+    // Wick Drain Animation
+    function drainWick(amount) {
+        const wick = document.getElementById('wick');
+        let current = parseInt(wick.textContent);
+        current = Math.max(0, current - amount);
+        wick.textContent = current + "%";
+    }
+
+    // Simulate Glyph State Changes
+    function simulateGlyphState() {
+        setInterval(() => {
+            const state = glyphStates[Math.floor(Math.random() * glyphStates.length)];
+            document.getElementById('glyphState').textContent = `${state.glyph} ${state.label}`;
+        }, 8000);
+    }
+</script>
 </body>
 </html>
