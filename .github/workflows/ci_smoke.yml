@@ -1,0 +1,39 @@
+name: CI Smoke
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      VD_ENFORCE_ROOT_CLEAN: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install package (editable)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./veildaemon[dev]
+      - name: Run import smoke
+        run: |
+          python - <<'PY'
+          import importlib
+          mods = [
+            'veildaemon.event_bus',
+            'veildaemon.stage_director',
+            'veildaemon.apps.bus',
+            'veildaemon.apps.stage',
+            'veildaemon.apps.safety',
+            'veildaemon.tts',
+          ]
+          for m in mods:
+            importlib.import_module(m)
+          print('import smoke OK')
+          PY
