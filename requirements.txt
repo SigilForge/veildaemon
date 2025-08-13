@@ -1,0 +1,14 @@
+pyqt5
+llama-cpp-python
+cryptography
+ctransformers
+openai
+edge-tts
+pydub
+simpleaudio
+sounddevice
+vosk
+transformers>=4.40.0
+datasets>=2.16.0
+peft>=0.11.0
+accelerate>=0.28.0

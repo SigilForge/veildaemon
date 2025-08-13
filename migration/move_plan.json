@@ -1,0 +1,45 @@
+[
+  {"src":"StreamDaemon/event_bus.py","dst":"veildaemon/event_bus/event_bus.py"},
+  {"src":"StreamDaemon/event_routes.yaml","dst":"veildaemon/event_bus/event_routes.yaml"},
+
+  {"src":"StreamDaemon/stage_director.py","dst":"veildaemon/stage_director/stage_director.py"},
+  {"src":"StreamDaemon/state_engine.py","dst":"veildaemon/stage_director/state_engine.py"},
+  {"src":"StreamDaemon/stream_convo_engine.py","dst":"veildaemon/stage_director/stream_convo_engine.py"},
+  {"src":"StreamDaemon/game_agent.py","dst":"veildaemon/stage_director/game_agent.py"},
+  {"src":"StreamDaemon/game_controller.py","dst":"veildaemon/stage_director/game_controller.py"},
+
+  {"src":"StreamDaemon/safety/normalize.py","dst":"veildaemon/safety/normalize.py"},
+  {"src":"StreamDaemon/safety/quip_bank.py","dst":"veildaemon/safety/quip_bank.py"},
+  {"src":"StreamDaemon/safety/rewrite.py","dst":"veildaemon/safety/rewrite.py"},
+  {"src":"StreamDaemon/safety/span_map.py","dst":"veildaemon/safety/span_map.py"},
+  {"src":"StreamDaemon/cooldowns.py","dst":"veildaemon/safety/cooldowns.py"},
+
+  {"src":"StreamDaemon/tts_budget.py","dst":"veildaemon/tts/wps_meter.py"},
+  {"src":"StreamDaemon/tts_audition.py","dst":"veildaemon/tts/tts_audition.py"},
+  {"src":"daemon_tts.py","dst":"veildaemon/tts/manager.py"},
+  {"src":"StreamDaemon/audio_state.py","dst":"veildaemon/tts/handles.py"},
+
+  {"src":"StreamDaemon/hrm_control_loop.py","dst":"veildaemon/hrm/control_loop.py"},
+  {"src":"StreamDaemon/hrm_moderation.py","dst":"veildaemon/hrm/moderation.py"},
+  {"src":"StreamDaemon/hrm_feedback.py","dst":"veildaemon/hrm/feedback.py"},
+  {"src":"StreamDaemon/hrm_memory.py","dst":"veildaemon/hrm/memory.py"},
+  {"src":"StreamDaemon/hrm_trainer.py","dst":"veildaemon/hrm/trainer.py"},
+  {"src":"StreamDaemon/hrm_local_llm.py","dst":"veildaemon/hrm/local_llm.py"},
+  {"src":"StreamDaemon/hrm_afk_trainer.py","dst":"veildaemon/hrm/afk_trainer.py"},
+  {"src":"StreamDaemon/hrm_metrics.py","dst":"veildaemon/hrm/metrics.py"},
+
+  {"src":"knowledge_store.py","dst":"veildaemon/persona/knowledge_store.py"},
+  {"src":"journal_manager.py","dst":"veildaemon/persona/journal_manager.py"},
+  {"src":"task_store.py","dst":"veildaemon/persona/task_store.py"},
+  {"src":"task_store_sqlite.py","dst":"veildaemon/persona/task_store_sqlite.py"},
+
+  {"src":"packs/stream_avatar.yaml","dst":"streamdaemon/configs/stream_avatar.yaml"},
+  {"src":"packs/meltdown_core.yaml","dst":"streamdaemon/configs/meltdown_core.yaml"},
+  {"src":"StreamDaemon/plugins","dst":"streamdaemon/plugins"},
+  {"src":"StreamDaemon/personas","dst":"streamdaemon/personas"},
+
+  {"src":"StreamDaemon/train.jsonl","dst":"data/datasets/streamdaemon_train.jsonl"},
+  {"src":"StreamDaemon/hrm_tasks.sqlite-wal","dst":"data/db/hrm_tasks.sqlite-wal"},
+  {"src":"StreamDaemon/hrm_tasks.sqlite-shm","dst":"data/db/hrm_tasks.sqlite-shm"},
+  {"src":"StreamDaemon/hrm_learned_rules.json","dst":"data/hrm/hrm_learned_rules.json"}
+]

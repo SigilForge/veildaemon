@@ -1,36 +1,34 @@
-# VoidDesk (Hybrid)
+# VeilDaemon
 
-Ultra-minimal Electron client with two modes:
+Moderation-first HRM assistant with Twitch ingestion, captions, shadow logging, and optional self-tuning.
 
-- **API Mode** — local streaming client for OpenAI-compatible chat
-- **Plus Mode** — embedded WebView of ChatGPT (uses your normal login & Plus features)
 
----
+## Quick start (workday unattended)
 
-## Setup
+Run the unattended loop that discovers channels, captures chat, merges captions (optional), seeds shadow, and mines training examples.
 
-1. Install **Node 18+**
-2. `npm i`
-3. `npm run start`
+Optional: end-of-rotation HRM fine-tune
 
----
+You can append HRM flags to the PowerShell runner to automatically:
 
-## Usage
+- Convert mined `hrm_training_examples.yaml` → HRM dataset (byte-level), and
+- Launch a short HRM pretrain on that dataset in WANDB offline mode.
 
-- Toggle top-left: **🜏 API ↔ ☁ Plus**
-- **Plus Mode** persists your login (uses `partition="persist:voiddesk-plus"`). Use **Logout Plus** to clear it.
-- **Send → Other** (Ctrl/Cmd+Shift+S) moves selected text between modes.
-- System prompt box applies only to API mode.
+Example (PowerShell):
 
-Config/history stored via `electron-store`.
+```powershell
+.\workday_runner.ps1 -HrmTrain -HrmProfile 3060ti -HrmSeqLen 384 -HrmBatch 24 -HrmEpochs 200 -HrmDataOut "data/text-sft-384"
+```
 
-**CSP** currently allows:  
-- `connect-src`: `https://api.openai.com`, `https://chat.openai.com`, `https://platform.openai.com`, `wss:`  
-- `frame-src`: `https://chat.openai.com`, `https://platform.openai.com`
+Notes:
 
-> If your account routes to `https://chatgpt.com`, add it to CSP `connect-src` and `frame-src`.
+- Requires a CUDA GPU. Start with small batch/epochs. Outputs under `hrm_core/checkpoints/`.
+- This is optional; the bot runs fine without it.
 
----
+### Enable self-tuning (optional)
 
-## Packaging
+- Install dev deps (once): `pip install -r requirements.txt`
+- Run with training after each mining step:
+	- Example command to pass: `python sft_lora_train.py --data hrm_training_examples.yaml --base gpt2 --out adapters/hrm-lora --epochs 1 --batch 2`
+	- Use `--train-cmd "python sft_lora_train.py --data hrm_training_examples.yaml --base gpt2 --out adapters/hrm-lora --epochs 1 --batch 2"` with `auto_train_loop.py`.
 

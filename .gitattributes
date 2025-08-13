@@ -1,0 +1,6 @@
+# Enforce text normalization
+* text=auto eol=lf
+
+# Treat StreamDaemon as binary to avoid diffs if stubs are accidentally added
+streamdaemon/** -diff
+StreamDaemon/** -diff

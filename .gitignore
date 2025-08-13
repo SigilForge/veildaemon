@@ -137,3 +137,152 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+###############################################
+# Python, data, and local artifacts (added)
+###############################################
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+venv*/
+env/
+env*/
+venv311/
+
+# Distribution / packaging
+.Python
+build/
+dist/
+sdist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+*.whl
+*.spec
+
+# Testing / coverage
+.pytest_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.hypothesis/
+
+# Type checkers / linters
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / OS
+.vscode/
+*.code-workspace
+.idea/
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Databases, logs, and runtime data
+logs/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+DB/
+wick_log.db
+wick_state.json
+daemon_chat_log.json
+memory_log.json*
+
+# Local config and persona/state files (keep examples tracked)
+veil.config
+current_persona.txt
+current_persona_profile.json
+*_*profile.json
+
+# Large model/artifact files
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.onnx
+*.gguf
+models/*.gguf
+vosk-model*/
+
+# Secrets (keep examples)
+*.key
+client_secret.json
+glyphkey.key
+*.pem
+*.crt
+*.pfx
+
+# Encrypted secrets store and local notes
+secrets.json.enc
+Hidden/
+Daemon Launch Process.txt
+
+# Monorepo split directories (keep out of git)
+/data/
+/outputs/
+
+# Global large artifacts and trainers
+/wandb/
+/checkpoints/
+/models/
+/model/
+
+# StreamDaemon voice models: ignore binaries but keep metadata JSON
+/StreamDaemon/piper_models/
+!/StreamDaemon/piper_models/*.json
+
+# HRM runtime DBs and logs
+**/hrm_tasks.sqlite*
+**/hrm_learned_rules.json
+hrm_shadow_log.json
+
+# Twitch logs
+twitch_multi_chat_log.json
+
+# Kaldi/Vosk large artifacts (prevent >100MB uploads)
+model/graph/*.fst
+model/rescore/*.carpa
+model/rnnlm/*.raw
+
+# Private paid pack (do not commit actual content)
+StreamDaemon/
+streamdaemon/
+!streamdaemon/pyproject.toml
+!streamdaemon/plugins/
+!streamdaemon/plugins/__init__.py
+!streamdaemon/README.md
+!streamdaemon/.gitkeep
+
+# Vendored Python deps (installable via pip; never commit)
+**/site-packages/
+**/dist-packages/
+**/*.dist-info/
+
+# Common ML/data caches obtainable via pip downloads
+.cache/huggingface/
+.cache/torch/
+huggingface/
+transformers_cache/
+datasets/
+

@@ -1,0 +1,12 @@
+# Minimal deps to run text interaction with OpenAI fallback and TTS
+openai>=1.30.0
+edge-tts>=6.1.15
+playsound==1.2.2
+simpleaudio>=1.0.4
+cryptography>=42.0.0
+mss>=9.0.1
+Pillow>=10.0.0
+aiohttp>=3.9.5
+sounddevice>=0.4.6
+pydub>=0.25.1
+numpy>=1.26.4
