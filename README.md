@@ -2,6 +2,8 @@
 
 Moderation-first HRM assistant with Twitch ingestion, captions, shadow logging, and optional self-tuning.
 
+> **Operational Guards:** see [ARCHITECTURE.md ▸ Operational Guards](ARCHITECTURE.md#operational-guards-a-quick-map-for-humans)
+
 ## Quick start (workday unattended)
 
 Run the unattended loop that discovers channels, captures chat, merges captions (optional), seeds shadow, and mines training examples.
