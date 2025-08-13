@@ -1,0 +1,40 @@
+name: Guard StreamDaemon Secrecy
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fail if StreamDaemon content present beyond allowed stubs
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Allowed paths under streamdaemon/
+          allowed=$(cat <<'EOF'
+^streamdaemon/pyproject\.toml$
+^streamdaemon/plugins/\Z
+^streamdaemon/plugins/__init__\.py$
+^streamdaemon/README\.md$
+^streamdaemon/\.gitkeep$
+EOF
+)
+          # Find any files under StreamDaemon or streamdaemon
+          mapfile -t files < <(git ls-files | grep -Ei '^(streamdaemon|StreamDaemon)/')
+          bad=0
+          for f in "${files[@]}"; do
+            if ! grep -Eq "$allowed" <<<"$f"; then
+              echo "Forbidden StreamDaemon file: $f"
+              bad=1
+            fi
+          done
+          if [[ $bad -ne 0 ]]; then
+            echo "StreamDaemon private content detected. Remove before merging."
+            exit 1
+          fi
