@@ -20,6 +20,9 @@ streamdaemon/**
 !StreamDaemon/.gitkeep
 !StreamDaemon/*.example
 
+# Quarantined files dumpster (never track)
+.trash/**
+
 # Secrets
 secrets.json
 *.key
