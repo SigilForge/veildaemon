@@ -1,4 +1,5 @@
 import asyncio
+import time
 import os
 import platform
 import pathlib
@@ -165,6 +166,10 @@ def _play_and_cleanup(path: str) -> None:
             pass
 
 
+from .handles import HandleRegistry, PlaybackHandle
+from .wps_meter import WPSMeter
+
+
 class TTSManager:
     """Orchestrate TTS with fallbacks: ElevenLabs -> Piper -> Edge.
     Configure via environment variables:
@@ -234,17 +239,22 @@ class TTSManager:
             self._lock = asyncio.Lock()
         except Exception:
             self._lock = None
+        self._handles = HandleRegistry()
+        self._wps = WPSMeter()
 
-    async def speak(self, text: str) -> None:
+    async def speak(self, text: str, utterance_id: str | None = None) -> PlaybackHandle | None:
         # Ensure sane text
         if not (text and str(text).strip()):
-            return
+            return None
+        if utterance_id is None:
+            utterance_id = f"utt-{int(asyncio.get_running_loop().time()*1000)}"
         lock = getattr(self, '_lock', None)
         if lock is not None:
             async with lock:
-                await self._speak_inner(text)
+                task = asyncio.create_task(self._speak_inner(text))
         else:
-            await self._speak_inner(text)
+            task = asyncio.create_task(self._speak_inner(text))
+        return await self._handles.register(utterance_id, task)
 
     async def _speak_inner(self, text: str) -> None:
         last_error = None
@@ -252,8 +262,10 @@ class TTSManager:
         prio = self.priority
         if (os.environ.get('VEIL_MODE','').strip().lower() == 'offline'):
             prio = [p for p in prio if p != 'elevenlabs']
+        words = len((text or '').split())
         for be in prio:
             try:
+                t0 = time.perf_counter()
                 if be == 'elevenlabs':
                     if not self.el_voice:
                         raise RuntimeError('ELEVENLABS_VOICE not set')
@@ -267,16 +279,22 @@ class TTSManager:
                     print(f"[TTS] backend=elevenlabs voice={self.el_voice}")
                     path = await asyncio.wait_for(_elevenlabs_to_file(text, self.el_voice, self.el_model), timeout=25.0)
                     _play_and_cleanup(path)
+                    dt = max(0.001, time.perf_counter() - t0)
+                    self._wps.update(words, dt)
                     return
                 if be == 'piper':
                     print('[TTS] backend=piper')
                     path = await asyncio.wait_for(_piper_to_file(text, self.piper_exe, self.piper_model), timeout=20.0)
                     _play_and_cleanup(path)
+                    dt = max(0.001, time.perf_counter() - t0)
+                    self._wps.update(words, dt)
                     return
                 if be == 'edge':
                     print('[TTS] backend=edge')
                     path = await asyncio.wait_for(_edge_tts_to_file(text, self.edge_voice, self.edge_rate), timeout=12.0)
                     _play_and_cleanup(path)
+                    dt = max(0.001, time.perf_counter() - t0)
+                    self._wps.update(words, dt)
                     return
             except Exception as e:
                 # Explain why a backend was skipped
@@ -295,15 +313,21 @@ class TTSManager:
 _manager = TTSManager()
 
 
-async def speak(text: str):
-    await _manager.speak(text)
+async def speak(text: str, utterance_id: str | None = None):
+    return await _manager.speak(text, utterance_id=utterance_id)
 
 
-def say(text: str):
+def say(text: str, utterance_id: str | None = None):
     print(f"[daemon] {text}")
     try:
-        asyncio.run(speak(text))
+        asyncio.run(speak(text, utterance_id=utterance_id))
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(speak(text))
+        loop.run_until_complete(speak(text, utterance_id=utterance_id))
+
+async def cancel(utterance_id: str) -> bool:
+    return await _manager._handles.cancel(utterance_id)
+
+def get_wps() -> float:
+    return _manager._wps.get()
