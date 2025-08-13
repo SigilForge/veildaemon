@@ -59,6 +59,8 @@ veildaemon-shell   # CLI entrypoint
 veildaemon-chat    # Chat-bound entrypoint
 ```
 
+> Planning a release? See the checklist: [docs/release-v0.0.3.md](docs/release-v0.0.3.md)
+
 ## Package map
 
 - Runtime brain: `veildaemon/apps/stage/` (StageDirector, stream engine)
