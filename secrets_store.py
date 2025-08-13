@@ -31,17 +31,20 @@ from typing import Any, Dict, Optional
 
 from cryptography.fernet import Fernet
 
-# Reuse key management from glyph_engine
+# Reuse key management from glyph_engine (prefer canonical package path)
 try:
-    from glyph_engine import load_key
+    from veildaemon.apps.memory.glyph_engine import load_key  # type: ignore
 except Exception:
-    # Fallback: local key file next to this module
-    def load_key() -> bytes:
-        key_path = Path("glyphkey.key")
-        if not key_path.exists():
-            key = Fernet.generate_key()
-            key_path.write_bytes(key)
-        return key_path.read_bytes()
+    try:
+        from glyph_engine import load_key  # type: ignore
+    except Exception:
+        # Fallback: local key file next to this module
+        def load_key() -> bytes:  # type: ignore
+            key_path = Path("glyphkey.key")
+            if not key_path.exists():
+                key = Fernet.generate_key()
+                key_path.write_bytes(key)
+            return key_path.read_bytes()
 
 
 SECRETS_PATH = Path("secrets.json.enc")
