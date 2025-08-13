@@ -44,15 +44,17 @@ def main():
         cap_ctx = e.get("caption_context") or e.get("caption")
         if cap_ctx:
             inp = f"[streamer] {cap_ctx}\n[chat] {msg}"
-        shadow.append({
-            "twitch_id": tid,
-            "input": inp,
-            "hrm": "",
-            "llm": "",
-            "final": "",
-            "feedback": "",
-            "meta": {"twitch": e},
-        })
+        shadow.append(
+            {
+                "twitch_id": tid,
+                "input": inp,
+                "hrm": "",
+                "llm": "",
+                "final": "",
+                "feedback": "",
+                "meta": {"twitch": e},
+            }
+        )
         seen.add(tid)
         added += 1
 

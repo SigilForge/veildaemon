@@ -5,18 +5,21 @@ Parses glyph history to extract emotional trends, energy ring imbalances, and sy
 
 import json
 from collections import Counter
-from cryptography.fernet import Fernet
-from datetime import datetime
 
-from veildaemon.apps.memory.glyph_engine import GLYPH_TOKENS, MODIFIERS, LOG_PATH, KEY_PATH
+from cryptography.fernet import Fernet
+
+from veildaemon.apps.memory.glyph_engine import KEY_PATH, LOG_PATH
 
 # Load the encryption key
+
 
 def load_key():
     with open(KEY_PATH, "rb") as key_file:
         return key_file.read()
 
+
 # Load and decrypt the glyph memory log
+
 
 def load_glyph_log():
     try:
@@ -28,7 +31,9 @@ def load_glyph_log():
         print(f"⚠️ Failed to load log: {e}")
         return []
 
+
 # Classify each glyph into a Ring (I, II, III, Combo)
+
 
 def classify_ring(glyph_token):
     if glyph_token.startswith("GLYPH_0") and int(glyph_token[-2:]) <= 11:
@@ -40,7 +45,9 @@ def classify_ring(glyph_token):
     else:
         return "Combo"
 
+
 # Analyze the last N glyph entries
+
 
 def analyze_glyphs(n=10):
     log = load_glyph_log()
@@ -76,10 +83,12 @@ def analyze_glyphs(n=10):
         "ring_counts": dict(ring_counts),
         "modifiers": dict(modifier_counts),
         "timeline": timeline,
-        "summary": summary
+        "summary": summary,
     }
 
+
 # Helper: Pretty print state
+
 
 def print_analysis(n=10):
     result = analyze_glyphs(n)

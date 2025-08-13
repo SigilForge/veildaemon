@@ -1,10 +1,15 @@
 from __future__ import annotations
-import json, os, time
-from typing import Dict, Any, Optional
+
+import json
+import os
+import time
+from typing import Any, Dict, Optional
 
 
 class KnowledgeStore:
-    def __init__(self, path: str = "StreamDaemon/hrm_knowledge.json", auto_save: bool = True) -> None:
+    def __init__(
+        self, path: str = "StreamDaemon/hrm_knowledge.json", auto_save: bool = True
+    ) -> None:
         self.path = path
         self.auto_save = auto_save
         self.facts: Dict[str, Dict[str, Any]] = {}
@@ -34,7 +39,9 @@ class KnowledgeStore:
     def get(self, key: str) -> Optional[Dict[str, Any]]:
         return self.facts.get(key)
 
-    def set_fact(self, key: str, value: Any, source: str = "owner", confidence: Optional[float] = None) -> Dict[str, Any]:
+    def set_fact(
+        self, key: str, value: Any, source: str = "owner", confidence: Optional[float] = None
+    ) -> Dict[str, Any]:
         base = {
             "owner": 0.95,
             "mod": 0.85,
@@ -47,13 +54,15 @@ class KnowledgeStore:
         if prev:
             # Replace if higher confidence or different value from a high-trust source
             if conf >= (prev.get("confidence") or 0) or source in ("owner", "mod"):
-                prev.update({
-                    "value": value,
-                    "source": source,
-                    "confidence": conf,
-                    "votes": 0,
-                    "ts": int(time.time()),
-                })
+                prev.update(
+                    {
+                        "value": value,
+                        "source": source,
+                        "confidence": conf,
+                        "votes": 0,
+                        "ts": int(time.time()),
+                    }
+                )
                 self._save()
                 return prev
             return prev

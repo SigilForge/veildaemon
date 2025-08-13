@@ -1,5 +1,10 @@
 from __future__ import annotations
-import json, os, time, uuid, re
+
+import json
+import os
+import re
+import time
+import uuid
 from typing import Any, Dict, List, Optional
 
 
@@ -7,7 +12,9 @@ class TaskStore:
     def __init__(self, path: str = "StreamDaemon/hrm_tasks.json", auto_save: bool = True) -> None:
         self.path = path
         self.auto_save = auto_save
-        self.tasks = []  # {id, text, tags[], game, character, quest, created, completed, completed_ts}
+        self.tasks = (
+            []
+        )  # {id, text, tags[], game, character, quest, created, completed, completed_ts}
         self.events = []  # {ts, text, tags[], game, character}
         self.current_task_id = None
         self._load()
@@ -32,16 +39,28 @@ class TaskStore:
         try:
             os.makedirs(os.path.dirname(self.path), exist_ok=True)
             with open(self.path, "w", encoding="utf-8") as f:
-                json.dump({
-                    "tasks": self.tasks,
-                    "events": self.events,
-                    "current_task_id": self.current_task_id,
-                }, f, indent=2, ensure_ascii=False)
+                json.dump(
+                    {
+                        "tasks": self.tasks,
+                        "events": self.events,
+                        "current_task_id": self.current_task_id,
+                    },
+                    f,
+                    indent=2,
+                    ensure_ascii=False,
+                )
         except Exception:
             pass
 
     # --- tasks ---
-    def add_task(self, text: str, tags: Optional[List[str]] = None, game: Optional[str] = None, character: Optional[str] = None, quest: Optional[str] = None) -> Dict[str, Any]:
+    def add_task(
+        self,
+        text: str,
+        tags: Optional[List[str]] = None,
+        game: Optional[str] = None,
+        character: Optional[str] = None,
+        quest: Optional[str] = None,
+    ) -> Dict[str, Any]:
         if not text:
             raise ValueError("Task text required")
         rec = {
@@ -87,7 +106,9 @@ class TaskStore:
             return None
         return self._find_task(self.current_task_id)
 
-    def list_tasks(self, active_only: bool = True, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    def list_tasks(
+        self, active_only: bool = True, limit: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         items = [t for t in self.tasks if (not active_only or not t.get("completed"))]
         items.sort(key=lambda x: (x.get("completed", False), x.get("created", 0)))
         if limit is not None:
@@ -120,7 +141,13 @@ class TaskStore:
         return None
 
     # --- events ---
-    def record_event(self, text: str, tags: Optional[List[str]] = None, game: Optional[str] = None, character: Optional[str] = None) -> Dict[str, Any]:
+    def record_event(
+        self,
+        text: str,
+        tags: Optional[List[str]] = None,
+        game: Optional[str] = None,
+        character: Optional[str] = None,
+    ) -> Dict[str, Any]:
         rec = {
             "ts": int(time.time()),
             "text": (text or "").strip(),
@@ -157,9 +184,12 @@ class TaskStore:
             f.write("## Active Tasks\n\n")
             for t in [x for x in tasks if not x.get("completed")]:
                 meta = []
-                if t.get("game"): meta.append(f"game: {t['game']}")
-                if t.get("character"): meta.append(f"character: {t['character']}")
-                if t.get("quest"): meta.append(f"quest: {t['quest']}")
+                if t.get("game"):
+                    meta.append(f"game: {t['game']}")
+                if t.get("character"):
+                    meta.append(f"character: {t['character']}")
+                if t.get("quest"):
+                    meta.append(f"quest: {t['quest']}")
                 meta_str = (" (" + ", ".join(meta) + ")") if meta else ""
                 f.write(f"- [ ] {t['text']}{meta_str}\n")
             f.write("\n## Completed\n\n")
@@ -180,8 +210,10 @@ class TaskStore:
                 # frontmatter with common values if any
                 games = sorted([str(i.get("game")) for i in items if i.get("game")])
                 chars = sorted([str(i.get("character")) for i in items if i.get("character")])
-                if games: f.write(f"game: {games[0]}\n")
-                if chars: f.write(f"character: {chars[0]}\n")
+                if games:
+                    f.write(f"game: {games[0]}\n")
+                if chars:
+                    f.write(f"character: {chars[0]}\n")
                 f.write("---\n\n")
                 f.write("## Tasks\n\n")
                 for t in items:
