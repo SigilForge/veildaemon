@@ -33,7 +33,7 @@ import tkinter.scrolledtext as scrolledtext
 import tkinter as tk
 from tkinter import messagebox
 try:
-    from daemon_tts import say as daemon_say  # unified TTS orchestrator
+    from veildaemon.tts.manager import say as daemon_say  # unified TTS orchestrator
 except Exception:
     daemon_say = None  # will import lazily in speak()
 from typing import Any, cast
@@ -484,10 +484,10 @@ class GlyphDaemonShell:
             say_fn = daemon_say
             if say_fn is None:
                 try:
-                    from daemon_tts import say as say_fn2  # type: ignore
+                    from veildaemon.tts.manager import say as say_fn2  # type: ignore
                     say_fn = say_fn2
                 except Exception as e:
-                    print(f"[TTS] daemon_tts not available: {e}")
+                    print(f"[TTS] veildaemon.tts.manager not available: {e}")
                     return
             try:
                 say_fn(text)

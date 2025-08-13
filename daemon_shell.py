@@ -3,7 +3,7 @@
 Menu-driven CLI for speaking to the daemon and analyzing glyph logs.
 """
 
-from daemon_tts import say
+from veildaemon.tts.manager import say
 from daemon_brain import ask_daemon
 from glyph_engine import encode_glyph, log_glyph
 
