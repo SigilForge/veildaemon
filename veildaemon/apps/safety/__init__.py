@@ -1,17 +1,17 @@
 from veildaemon.safety import (
-	normalize,
-	rewrite_safe,
-	Flag,
-	QuipBank,
-	build_char_map,
-	remap_spans,
+    Flag,
+    QuipBank,
+    build_char_map,
+    normalize,
+    remap_spans,
+    rewrite_safe,
 )
 
 __all__ = [
-	"normalize",
-	"rewrite_safe",
-	"Flag",
-	"QuipBank",
-	"build_char_map",
-	"remap_spans",
+    "normalize",
+    "rewrite_safe",
+    "Flag",
+    "QuipBank",
+    "build_char_map",
+    "remap_spans",
 ]

@@ -1,5 +1,10 @@
 from __future__ import annotations
-import os, json, time, sqlite3, re
+
+import json
+import os
+import re
+import sqlite3
+import time
 from typing import Any, Dict, List, Optional
 
 
@@ -54,13 +59,30 @@ class TaskStoreSQL:
         self.conn.commit()
 
     # --- tasks ---
-    def add_task(self, text: str, tags: Optional[List[str]] = None, game: Optional[str] = None,
-                 character: Optional[str] = None, quest: Optional[str] = None) -> Dict[str, Any]:
+    def add_task(
+        self,
+        text: str,
+        tags: Optional[List[str]] = None,
+        game: Optional[str] = None,
+        character: Optional[str] = None,
+        quest: Optional[str] = None,
+    ) -> Dict[str, Any]:
         import uuid
+
         if not text:
             raise ValueError("Task text required")
         tid = str(uuid.uuid4())[:8]
-        payload = (tid, text.strip(), json.dumps(tags or []), game, character, quest, _now(), 0, None)
+        payload = (
+            tid,
+            text.strip(),
+            json.dumps(tags or []),
+            game,
+            character,
+            quest,
+            _now(),
+            0,
+            None,
+        )
         self.conn.execute(
             "INSERT INTO tasks (id, text, tags, game, character, quest, created, completed, completed_ts) VALUES (?,?,?,?,?,?,?,?,?)",
             payload,
@@ -113,7 +135,9 @@ class TaskStoreSQL:
             return None
         return self._find_task(cur_id)
 
-    def list_tasks(self, active_only: bool = True, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    def list_tasks(
+        self, active_only: bool = True, limit: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         q = "SELECT id, text, tags, game, character, quest, created, completed, completed_ts FROM tasks"
         params: List[Any] = []
         if active_only:
@@ -172,8 +196,13 @@ class TaskStoreSQL:
         }
 
     # --- events ---
-    def record_event(self, text: str, tags: Optional[List[str]] = None, game: Optional[str] = None,
-                     character: Optional[str] = None) -> Dict[str, Any]:
+    def record_event(
+        self,
+        text: str,
+        tags: Optional[List[str]] = None,
+        game: Optional[str] = None,
+        character: Optional[str] = None,
+    ) -> Dict[str, Any]:
         rec = {
             "ts": _now(),
             "text": (text or "").strip(),
@@ -199,9 +228,15 @@ class TaskStoreSQL:
         ).fetchall()
         out: List[Dict[str, Any]] = []
         for ts, text, tags, game, character in rows:
-            out.append({
-                "ts": ts, "text": text, "tags": json.loads(tags or "[]"), "game": game, "character": character
-            })
+            out.append(
+                {
+                    "ts": ts,
+                    "text": text,
+                    "tags": json.loads(tags or "[]"),
+                    "game": game,
+                    "character": character,
+                }
+            )
         return list(reversed(out))
 
     # --- meta helpers ---
@@ -210,7 +245,10 @@ class TaskStoreSQL:
         return r[0] if r else None
 
     def _set_meta(self, key: str, value: str) -> None:
-        self.conn.execute("INSERT INTO meta(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (key, value))
+        self.conn.execute(
+            "INSERT INTO meta(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (key, value),
+        )
 
     # --- export ---
     def export_obsidian(self, vault_path: str) -> str:
@@ -231,9 +269,12 @@ class TaskStoreSQL:
             f.write("## Active Tasks\n\n")
             for t in [x for x in tasks if not x["completed"]]:
                 meta = []
-                if t.get("game"): meta.append(f"game: {t['game']}")
-                if t.get("character"): meta.append(f"character: {t['character']}")
-                if t.get("quest"): meta.append(f"quest: {t['quest']}")
+                if t.get("game"):
+                    meta.append(f"game: {t['game']}")
+                if t.get("character"):
+                    meta.append(f"character: {t['character']}")
+                if t.get("quest"):
+                    meta.append(f"quest: {t['quest']}")
                 meta_str = (" (" + ", ".join(meta) + ")") if meta else ""
                 f.write(f"- [ ] {t['text']}{meta_str}\n")
             f.write("\n## Completed\n\n")
@@ -254,8 +295,10 @@ class TaskStoreSQL:
                 # frontmatter with common values if any
                 games = sorted([str(i.get("game")) for i in items if i.get("game")])
                 chars = sorted([str(i.get("character")) for i in items if i.get("character")])
-                if games: f.write(f"game: {games[0]}\n")
-                if chars: f.write(f"character: {chars[0]}\n")
+                if games:
+                    f.write(f"game: {games[0]}\n")
+                if chars:
+                    f.write(f"character: {chars[0]}\n")
                 f.write("---\n\n")
                 f.write("## Tasks\n\n")
                 for t in items:
@@ -286,7 +329,7 @@ class TaskStoreSQL:
 
 
 def re_safe(name: str) -> str:
-    import re
+
     safe = re.sub(r"[^\w\- ]+", "_", name.strip())
     safe = re.sub(r"\s+", "_", safe)
     return safe or "note"

@@ -1,6 +1,6 @@
+import json
 import socket
 import time
-import json
 from pathlib import Path
 
 # --- CONFIG ---
@@ -12,6 +12,7 @@ TOKEN = None  # Set your oauth token here or via secrets_store
 
 try:
     from secrets_store import get_secret
+
     TOKEN = get_secret("twitch.token")
 except Exception:
     pass
@@ -19,6 +20,7 @@ if not TOKEN:
     TOKEN = "oauth:YOUR_OAUTH_TOKEN_HERE"  # Replace with your token
 
 LOG_PATH = Path("twitch_chat_log.json")
+
 
 # --- IRC CONNECT ---
 def connect():
@@ -48,12 +50,14 @@ def watch_chat():
                         entry = {
                             "time": time.strftime("%Y-%m-%dT%H:%M:%S"),
                             "user": user,
-                            "message": msg.strip()
+                            "message": msg.strip(),
                         }
                         print(f"[{entry['user']}] {entry['message']}")
                         log.append(entry)
                         if len(log) % 10 == 0:
-                            LOG_PATH.write_text(json.dumps(log, ensure_ascii=False, indent=2), encoding="utf-8")
+                            LOG_PATH.write_text(
+                                json.dumps(log, ensure_ascii=False, indent=2), encoding="utf-8"
+                            )
             time.sleep(0.5)
     except KeyboardInterrupt:
         print("Stopped.")

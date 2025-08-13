@@ -1,4 +1,4 @@
-from typing import List, Any
+from typing import Any, List
 
 
 def build_char_map(raw: str, normalized: str) -> List[int]:
@@ -25,8 +25,8 @@ def remap_spans(spans: List[Any], char_map: List[int]) -> List[Any]:
     n = len(char_map)
     for s in spans:
         try:
-            s_start = int(getattr(s, 'start', s.get('start')))  # type: ignore[attr-defined]
-            s_end = int(getattr(s, 'end', s.get('end')))        # type: ignore[attr-defined]
+            s_start = int(getattr(s, "start", s.get("start")))  # type: ignore[attr-defined]
+            s_end = int(getattr(s, "end", s.get("end")))  # type: ignore[attr-defined]
         except Exception:
             continue
         start_idx = char_map[min(max(0, s_start), n - 1)] if n else 0

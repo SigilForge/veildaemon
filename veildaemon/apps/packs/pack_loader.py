@@ -2,11 +2,13 @@
 
 Loads and validates Logic/Persona/AR packs from the repository packs/ folder.
 """
+
 from __future__ import annotations
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-import json
+
 try:
     import yaml  # type: ignore
 except Exception:

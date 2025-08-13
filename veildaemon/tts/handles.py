@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import asyncio
 import time
 from dataclasses import dataclass
@@ -29,13 +30,22 @@ class HandleRegistry:
         self._by_id: dict[str, PlaybackHandle] = {}
         self._lock = asyncio.Lock()
 
-    async def register(self, utterance_id: str, task: asyncio.Task | None, stopper: Optional[Callable[[], None]] = None) -> PlaybackHandle:
-        h = PlaybackHandle(utterance_id=utterance_id, started_at=time.perf_counter(), _task=task, _stopper=stopper)
+    async def register(
+        self,
+        utterance_id: str,
+        task: asyncio.Task | None,
+        stopper: Optional[Callable[[], None]] = None,
+    ) -> PlaybackHandle:
+        h = PlaybackHandle(
+            utterance_id=utterance_id, started_at=time.perf_counter(), _task=task, _stopper=stopper
+        )
         async with self._lock:
             self._by_id[utterance_id] = h
         if task is not None:
+
             def _done(_):
                 asyncio.create_task(self.remove(utterance_id))
+
             task.add_done_callback(_done)
         return h
 

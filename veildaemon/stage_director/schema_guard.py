@@ -2,10 +2,10 @@
 
 Validates shape and basic types to keep StageDirector robust.
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, Tuple, Union
-
 
 FieldType = Union[type, Tuple[type, ...]]
 REQUIRED_FIELDS: Dict[str, FieldType] = {

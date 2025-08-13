@@ -1,4 +1,5 @@
 import unicodedata as ud
+
 try:
     import regex as re  # type: ignore
 except Exception:  # pragma: no cover - fallback when 'regex' not installed
