@@ -45,3 +45,18 @@ if git diff --cached --name-only | xargs -r grep -IEn '(
 fi
 
 exit 0
+
+# Block .trash resurrection
+if git diff --cached --name-only | grep -E '^\.trash/' >/dev/null 2>&1; then
+  echo "Refusing to commit files under .trash/. Empty it or move assets to models/outputs/data." >&2
+  exit 1
+fi
+
+# Auto-format SDK
+changed_py=$(git diff --cached --name-only | grep -E '^veildaemon/.*\.py$' || true)
+if [ -n "$changed_py" ]; then
+  python -m ruff check --fix $changed_py || true
+  python -m isort $changed_py || true
+  python -m black $changed_py || true
+  echo "$changed_py" | xargs -r git add
+fi
