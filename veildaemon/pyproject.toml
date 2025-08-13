@@ -19,3 +19,19 @@ veildaemon-chat = "veildaemon.apps.orchestrator.chat_bound:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["veildaemon*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+src = ["veildaemon"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+py_version = 311
+known_first_party = ["veildaemon"]

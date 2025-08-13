@@ -1,0 +1,96 @@
+# Navigation
+
+Package file map (auto-generated).
+
+```
+- [__init__.py](veildaemon/__init__.py)
+- [__main__.py](veildaemon/__main__.py)
+  - `apps/`
+    - [__init__.py](veildaemon/apps/__init__.py)
+    - `api/`
+      - [__init__.py](veildaemon/apps/api/__init__.py)
+      - [wick_api_adapter.py](veildaemon/apps/api/wick_api_adapter.py)
+      - [wick_db.py](veildaemon/apps/api/wick_db.py)
+      - [wick_obsidian.py](veildaemon/apps/api/wick_obsidian.py)
+      - [wick_tracker.py](veildaemon/apps/api/wick_tracker.py)
+    - `bus/`
+      - [__init__.py](veildaemon/apps/bus/__init__.py)
+      - [event_bus.py](veildaemon/apps/bus/event_bus.py)
+    - `hrm/`
+      - [__init__.py](veildaemon/apps/hrm/__init__.py)
+      - [core_context.py](veildaemon/apps/hrm/core_context.py)
+    - `memory/`
+      - [__init__.py](veildaemon/apps/memory/__init__.py)
+      - [glyph_engine.py](veildaemon/apps/memory/glyph_engine.py)
+      - [glyph_logic.py](veildaemon/apps/memory/glyph_logic.py)
+      - [journal_manager.py](veildaemon/apps/memory/journal_manager.py)
+      - [knowledge_store.py](veildaemon/apps/memory/knowledge_store.py)
+      - [task_store.py](veildaemon/apps/memory/task_store.py)
+      - [task_store_sqlite.py](veildaemon/apps/memory/task_store_sqlite.py)
+    - `orchestrator/`
+      - [__init__.py](veildaemon/apps/orchestrator/__init__.py)
+      - [brain.py](veildaemon/apps/orchestrator/brain.py)
+      - [chat_bound.py](veildaemon/apps/orchestrator/chat_bound.py)
+      - [shell.py](veildaemon/apps/orchestrator/shell.py)
+    - `packs/`
+      - [__init__.py](veildaemon/apps/packs/__init__.py)
+      - [pack_loader.py](veildaemon/apps/packs/pack_loader.py)
+      - [packs_integration.py](veildaemon/apps/packs/packs_integration.py)
+    - `safety/`
+      - [__init__.py](veildaemon/apps/safety/__init__.py)
+      - [normalize.py](veildaemon/apps/safety/normalize.py)
+      - [quip_bank.py](veildaemon/apps/safety/quip_bank.py)
+      - [rewrite.py](veildaemon/apps/safety/rewrite.py)
+      - [span_map.py](veildaemon/apps/safety/span_map.py)
+    - `stage/`
+      - [__init__.py](veildaemon/apps/stage/__init__.py)
+      - [schema_guard.py](veildaemon/apps/stage/schema_guard.py)
+      - [stage_director.py](veildaemon/apps/stage/stage_director.py)
+      - [stream_convo_engine.py](veildaemon/apps/stage/stream_convo_engine.py)
+      - [veil_daemon_chat_bound.py](veildaemon/apps/stage/veil_daemon_chat_bound.py)
+    - `voice/`
+      - [__init__.py](veildaemon/apps/voice/__init__.py)
+      - [whisper_trigger.py](veildaemon/apps/voice/whisper_trigger.py)
+    - `watchers/`
+      - [__init__.py](veildaemon/apps/watchers/__init__.py)
+      - [discover_captioned_channels.py](veildaemon/apps/watchers/discover_captioned_channels.py)
+      - [twitch_auth.py](veildaemon/apps/watchers/twitch_auth.py)
+      - [twitch_chat_watcher.py](veildaemon/apps/watchers/twitch_chat_watcher.py)
+      - [twitch_chat_watcher_impl.py](veildaemon/apps/watchers/twitch_chat_watcher_impl.py)
+      - [twitch_multi_watcher.py](veildaemon/apps/watchers/twitch_multi_watcher.py)
+      - [twitch_to_shadow.py](veildaemon/apps/watchers/twitch_to_shadow.py)
+      - [twitch_vtt_watcher.py](veildaemon/apps/watchers/twitch_vtt_watcher.py)
+  - `event_bus/`
+    - [__init__.py](veildaemon/event_bus/__init__.py)
+  - `hrm/`
+    - [__init__.py](veildaemon/hrm/__init__.py)
+    - [engine.py](veildaemon/hrm/engine.py)
+    - [shadow_miner.py](veildaemon/hrm/shadow_miner.py)
+  - `persona/`
+    - [__init__.py](veildaemon/persona/__init__.py)
+    - [journal_manager.py](veildaemon/persona/journal_manager.py)
+    - [knowledge_store.py](veildaemon/persona/knowledge_store.py)
+    - [task_store.py](veildaemon/persona/task_store.py)
+    - [task_store_sqlite.py](veildaemon/persona/task_store_sqlite.py)
+  - `safety/`
+    - [__init__.py](veildaemon/safety/__init__.py)
+    - [normalize.py](veildaemon/safety/normalize.py)
+    - [quip_bank.py](veildaemon/safety/quip_bank.py)
+    - [rewrite.py](veildaemon/safety/rewrite.py)
+    - [span_map.py](veildaemon/safety/span_map.py)
+  - `scenes/`
+    - [__init__.py](veildaemon/scenes/__init__.py)
+  - `stage_director/`
+    - [__init__.py](veildaemon/stage_director/__init__.py)
+    - [schema_guard.py](veildaemon/stage_director/schema_guard.py)
+  - `tests/`
+    - [__init__.py](veildaemon/tests/__init__.py)
+    - [test_imports.py](veildaemon/tests/test_imports.py)
+    - [test_smoke.py](veildaemon/tests/test_smoke.py)
+  - `tts/`
+    - [__init__.py](veildaemon/tts/__init__.py)
+    - [handles.py](veildaemon/tts/handles.py)
+    - [manager.py](veildaemon/tts/manager.py)
+    - [wps_meter.py](veildaemon/tts/wps_meter.py)
+  - `veildaemon.egg-info/`
+```
