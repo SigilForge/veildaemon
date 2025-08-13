@@ -9,3 +9,4 @@ StreamDaemon/** -diff
 packs/** export-ignore
 streamdaemon/** export-ignore
 StreamDaemon/** export-ignore
+.trash/** export-ignore
