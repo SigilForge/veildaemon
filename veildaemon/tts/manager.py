@@ -10,6 +10,7 @@ import json
 import sys
 from urllib import request as urlrequest
 from urllib.error import URLError, HTTPError
+from typing import Callable
 
 try:
     from playsound import playsound  # type: ignore
@@ -24,10 +25,12 @@ RATE = os.environ.get("EDGE_RATE", "+0%")
 
 
 # ---- Backend helpers (adapted from StreamDaemon/tts_audition.py) ----
-async def _edge_tts_to_file(text: str, voice: str, rate: str) -> str:
+async def _edge_tts_to_file(text: str, voice: str, rate: str) -> tuple[str, list[dict], list[dict]]:
     from edge_tts import Communicate  # lazy import to avoid mandatory dep at import time
     with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp:
         out_path = tmp.name
+    visemes: list[dict] = []
+    words: list[dict] = []
     try:
         comm = Communicate(text=text, voice=voice, rate=rate)
         with open(out_path, "wb") as f:
@@ -35,13 +38,31 @@ async def _edge_tts_to_file(text: str, voice: str, rate: str) -> str:
                 ctype = (chunk.get("type") or chunk.get("Type") or "").lower()
                 if ctype == "audio":
                     f.write(chunk.get("data") or chunk.get("Data") or b"")
+                elif ctype == "viseme":
+                    try:
+                        offset = float(chunk.get("offset", 0))
+                        vid = int(chunk.get("viseme_id") or chunk.get("id") or 0)
+                        t_sec = offset / 10_000_000.0
+                        visemes.append({"t": t_sec, "id": vid})
+                    except Exception:
+                        pass
+                elif ctype == "wordboundary":
+                    try:
+                        offset = float(chunk.get("offset", 0))
+                        duration = float(chunk.get("duration", 0))
+                        word = str(chunk.get("text") or "")
+                        t_sec = offset / 10_000_000.0
+                        d_sec = duration / 10_000_000.0 if duration else 0.12
+                        words.append({"t": t_sec, "text": word, "dur": d_sec})
+                    except Exception:
+                        pass
     except Exception as e:
         try:
             os.remove(out_path)
         except Exception:
             pass
         raise RuntimeError(f"edge-tts failed: {e}")
-    return out_path
+    return out_path, visemes, words
 
 
 async def _elevenlabs_to_file(text: str, voice: str, model_id: str) -> str:
@@ -197,18 +218,22 @@ class TTSManager:
 
         # Try to load StreamDaemon/veil.config if present to fill gaps
         try:
-            cfg_path = Path(__file__).resolve().parent / 'StreamDaemon' / 'veil.config'
-            if not cfg_path.exists():
-                # Repo root relative path
-                cfg_path = Path(__file__).resolve().parent / 'StreamDaemon' / 'veil.config'
+            # Resolve repo root: <repo>/veildaemon/tts/manager.py -> parents[2] == <repo>
+            repo_root = Path(__file__).resolve().parents[2]
+            cfg_path = repo_root / 'StreamDaemon' / 'veil.config'
             if cfg_path.exists():
                 cp = configparser.ConfigParser()
                 cp.read(cfg_path, encoding='utf-8')
                 if cp.has_section('audio'):
                     if not self.piper_exe:
-                        self.piper_exe = (cp.get('audio', 'piper_exe', fallback='') or '').strip()
+                        val = (cp.get('audio', 'piper_exe', fallback='') or '').strip()
+                        if val:
+                            # Resolve relative to the config file directory if not absolute
+                            self.piper_exe = str((cfg_path.parent / val).resolve()) if not os.path.isabs(val) else val
                     if not self.piper_model:
-                        self.piper_model = (cp.get('audio', 'piper_model', fallback='') or '').strip()
+                        val = (cp.get('audio', 'piper_model', fallback='') or '').strip()
+                        if val:
+                            self.piper_model = str((cfg_path.parent / val).resolve()) if not os.path.isabs(val) else val
                     # voice id in config may be a name or id
                     if not self.el_voice:
                         self.el_voice = (cp.get('audio', 'elevenlabs_voice_id', fallback='') or '').strip()
@@ -241,22 +266,82 @@ class TTSManager:
             self._lock = None
         self._handles = HandleRegistry()
         self._wps = WPSMeter()
+        self._viseme_sink = None  # optional callable(utterance_id:str, event:dict)
+        self._mixer_ready = False
 
-    async def speak(self, text: str, utterance_id: str | None = None) -> PlaybackHandle | None:
+    def set_viseme_sink(self, sink):
+        self._viseme_sink = sink
+
+    def _ensure_mixer(self) -> None:
+        if self._mixer_ready:
+            return
+        try:
+            import pygame  # type: ignore
+            pygame.mixer.init()
+            self._mixer_ready = True
+        except Exception:
+            self._mixer_ready = False
+
+    def _play_file(self, path: str):
+        """Play audio with best-effort stoppable backend. Returns stopper callable."""
+        stopper = None
+        # Try pygame mixer first
+        self._ensure_mixer()
+        if self._mixer_ready:
+            try:
+                import pygame  # type: ignore
+                pygame.mixer.music.load(path)
+                pygame.mixer.music.play()
+                def _stop():
+                    try:
+                        pygame.mixer.music.stop()
+                    except Exception:
+                        pass
+                stopper = _stop
+                return stopper
+            except Exception:
+                pass
+        # Fallback: winsound/playsound (no real stop)
+        def _ps():
+            _play_and_cleanup(path)
+        # Launch in threadpool to avoid blocking task
+        loop = asyncio.get_running_loop()
+        loop.run_in_executor(None, _ps)
+        def _noop():
+            return
+        return _noop
+
+    async def speak(
+        self,
+        text: str,
+        utterance_id: str | None = None,
+        *,
+        voice: str | None = None,
+        on_viseme: Callable[[str, dict], None] | None = None,
+        on_done: Callable[[str, str, float], None] | None = None,
+    ) -> PlaybackHandle | None:
         # Ensure sane text
         if not (text and str(text).strip()):
             return None
         if utterance_id is None:
             utterance_id = f"utt-{int(asyncio.get_running_loop().time()*1000)}"
         lock = getattr(self, '_lock', None)
+        stopper_box: dict[str, Callable[[], None]] = {}
+        def dynamic_stopper():
+            try:
+                s = stopper_box.get('stopper')
+                if callable(s):
+                    s()
+            except Exception:
+                pass
         if lock is not None:
             async with lock:
-                task = asyncio.create_task(self._speak_inner(text))
+                task = asyncio.create_task(self._speak_inner(text, utterance_id, stopper_box, voice_override=voice, on_viseme=on_viseme, on_done=on_done))
         else:
-            task = asyncio.create_task(self._speak_inner(text))
-        return await self._handles.register(utterance_id, task)
+            task = asyncio.create_task(self._speak_inner(text, utterance_id, stopper_box, voice_override=voice, on_viseme=on_viseme, on_done=on_done))
+        return await self._handles.register(utterance_id, task, stopper=dynamic_stopper)
 
-    async def _speak_inner(self, text: str) -> None:
+    async def _speak_inner(self, text: str, utterance_id: str, stopper_box: dict, *, voice_override: str | None = None, on_viseme: Callable[[str, dict], None] | None = None, on_done: Callable[[str, str, float], None] | None = None) -> None:
         last_error = None
         # Skip network TTS when offline
         prio = self.priority
@@ -267,7 +352,8 @@ class TTSManager:
             try:
                 t0 = time.perf_counter()
                 if be == 'elevenlabs':
-                    if not self.el_voice:
+                    el_voice = (voice_override or self.el_voice)
+                    if not el_voice:
                         raise RuntimeError('ELEVENLABS_VOICE not set')
                     # Pre-check key to avoid misleading backend log
                     try:
@@ -276,25 +362,74 @@ class TTSManager:
                             raise RuntimeError('elevenlabs.api.key missing')
                     except Exception:
                         raise RuntimeError('elevenlabs.api.key missing')
-                    print(f"[TTS] backend=elevenlabs voice={self.el_voice}")
-                    path = await asyncio.wait_for(_elevenlabs_to_file(text, self.el_voice, self.el_model), timeout=25.0)
-                    _play_and_cleanup(path)
+                    print(f"[TTS] backend=elevenlabs voice={el_voice}")
+                    path = await asyncio.wait_for(_elevenlabs_to_file(text, el_voice, self.el_model), timeout=25.0)
+                    stopper = self._play_file(path)
+                    stopper_box['stopper'] = stopper
                     dt = max(0.001, time.perf_counter() - t0)
                     self._wps.update(words, dt)
+                    self._wps.update_for('elevenlabs', words, dt)
+                    try:
+                        if callable(on_done):
+                            on_done(utterance_id, text, dt)
+                    except Exception:
+                        pass
                     return
                 if be == 'piper':
                     print('[TTS] backend=piper')
                     path = await asyncio.wait_for(_piper_to_file(text, self.piper_exe, self.piper_model), timeout=20.0)
-                    _play_and_cleanup(path)
+                    stopper = self._play_file(path)
+                    stopper_box['stopper'] = stopper
                     dt = max(0.001, time.perf_counter() - t0)
                     self._wps.update(words, dt)
+                    self._wps.update_for('piper', words, dt)
+                    try:
+                        if callable(on_done):
+                            on_done(utterance_id, text, dt)
+                    except Exception:
+                        pass
                     return
                 if be == 'edge':
                     print('[TTS] backend=edge')
-                    path = await asyncio.wait_for(_edge_tts_to_file(text, self.edge_voice, self.edge_rate), timeout=12.0)
-                    _play_and_cleanup(path)
+                    edge_voice = (voice_override or self.edge_voice)
+                    path, visemes, word_events = await asyncio.wait_for(_edge_tts_to_file(text, edge_voice, self.edge_rate), timeout=12.0)
+                    stopper = self._play_file(path)
+                    stopper_box['stopper'] = stopper
+                    # Schedule viseme/word callbacks tagged with utterance_id
+                    sink = on_viseme or self._viseme_sink
+                    if callable(sink) and (visemes or word_events):
+                        loop = asyncio.get_running_loop()
+                        start_ts = loop.time() + 0.05
+                        async def _emit():
+                            try:
+                                # prefer visemes, fallback to words
+                                seq = visemes if visemes else word_events
+                                for ev in seq:
+                                    when = start_ts + float(ev.get('t') or 0.0)
+                                    await asyncio.sleep(max(0.0, when - loop.time()))
+                                    try:
+                                        payload = dict(ev)
+                                        payload['utterance_id'] = utterance_id
+                                        local_sink = sink
+                                        if callable(local_sink):
+                                            maybe = local_sink(utterance_id, payload)
+                                            if asyncio.iscoroutine(maybe):
+                                                await maybe
+                                    except Exception:
+                                        pass
+                            except asyncio.CancelledError:
+                                pass
+                            except Exception:
+                                pass
+                        asyncio.create_task(_emit())
                     dt = max(0.001, time.perf_counter() - t0)
                     self._wps.update(words, dt)
+                    self._wps.update_for('edge', words, dt)
+                    try:
+                        if callable(on_done):
+                            on_done(utterance_id, text, dt)
+                    except Exception:
+                        pass
                     return
             except Exception as e:
                 # Explain why a backend was skipped
@@ -329,5 +464,12 @@ def say(text: str, utterance_id: str | None = None):
 async def cancel(utterance_id: str) -> bool:
     return await _manager._handles.cancel(utterance_id)
 
+def mark_final(utterance_id: str) -> None:
+    # Placeholder: hook for future per-utterance finalization (metrics, cleanup)
+    pass
+
 def get_wps() -> float:
     return _manager._wps.get()
+
+def get_wps_for(backend: str) -> float:
+    return _manager._wps.get_for(backend)

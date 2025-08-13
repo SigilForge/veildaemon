@@ -1,7 +1,8 @@
 import time
 from typing import Any, Dict, Optional
 
-from veildaemon.event_bus import EventBus
+from veildaemon.apps.bus.event_bus import EventBus
+from .schema_guard import validate_utterance_plan
 
 
 class StageDirector:
@@ -19,7 +20,7 @@ class StageDirector:
 	RISK_OFF = 0.35
 	PRIO = {"raid": 5, "donation": 4, "near_miss": 3, "killstreak": 2, "banter": 1}
 
-	def __init__(self, bus: EventBus, risk_talk_threshold: float = 0.4) -> None:
+	def __init__(self, bus: EventBus, risk_talk_threshold: float = 0.4, tts_manager: Any | None = None) -> None:
 		self.bus = bus
 		self.risk_talk_threshold = float(risk_talk_threshold)
 		self._current: Optional[Dict[str, Any]] = None
@@ -27,6 +28,7 @@ class StageDirector:
 		self._speaking_blocked = False
 		# Track latest seq per utterance_id to drop stale chunks
 		self._latest_seq: Dict[str, int] = {}
+		self._tts_manager = tts_manager
 
 	def set_tts_cancel(self, cb):
 		self._tts_cancel_cb = cb
@@ -36,31 +38,7 @@ class StageDirector:
 		while True:
 			plan = await q.get()
 			# Basic schema validation
-			try:
-				if not isinstance(plan, dict):
-					continue
-				required = [
-					("utterance_id", str), ("seq", int), ("final", bool), ("priority", int),
-					("scene", str), ("budget_ms", int), ("expiry_ts", (float, int)),
-					("safe_mode", str), ("beats", (list, tuple)), ("text", str)
-				]
-				bad = False
-				for k, t in required:
-					v = plan.get(k, None)
-					if v is None:
-						bad = True
-						break
-					if isinstance(t, tuple):
-						if not isinstance(v, t):
-							bad = True
-							break
-					else:
-						if not isinstance(v, t):
-							bad = True
-							break
-				if bad:
-					continue
-			except Exception:
+			if not validate_utterance_plan(plan):
 				continue
 			# Validate schema and sequence
 			utt_id = str(plan.get("utterance_id") or "")
@@ -109,14 +87,24 @@ class StageDirector:
 			# Barge-in: cancel current if higher priority lands
 			if self._current is not None:
 				cur_prio = int(self._current.get("priority") or 1)
-				if prio > cur_prio and callable(self._tts_cancel_cb):
-					try:
-						uid = self._current.get("utterance_id") or None
-						if uid is not None:
-							self._tts_cancel_cb(uid)
-						else:
-							self._tts_cancel_cb()
-					except Exception:
-						pass
+				if prio > cur_prio:
+					uid = self._current.get("utterance_id") or None
+					# Prefer tts_manager.cancel(uid) if provided
+					if uid and self._tts_manager and hasattr(self._tts_manager, '_handles'):
+						try:
+							import asyncio
+							asyncio.create_task(self._tts_manager._handles.cancel(uid))
+						except Exception:
+							pass
+					elif callable(self._tts_cancel_cb):
+						try:
+							if uid is not None:
+								self._tts_cancel_cb(uid)
+							else:
+								self._tts_cancel_cb()
+						except Exception:
+							pass
 			self._current = plan
 			await self.bus.publish("speak", plan)
+
+__all__ = ["StageDirector"]

@@ -23,5 +23,5 @@ Text dataset builder
 - Input: hrm_training_examples.yaml from hrm_shadow_miner.py (list under key training_examples with fields input and desired_reply)
 - Output: data/text-sft-512/ with train/test splits in HRM format (inputs.npy, labels.npy, puzzle_identifiers.npy, puzzle_indices.npy, group_indices.npy, dataset.json)
 - Run:
-	- python -m hrm_core.dataset.build_text_dataset --source hrm_training_examples.yaml --output-dir data/text-sft-512 --seq-len 512
-	- Requires hrm_core requirements (see hrm_core/requirements.txt)
+  - python -m hrm_core.dataset.build_text_dataset --source hrm_training_examples.yaml --output-dir data/text-sft-512 --seq-len 512
+  - Requires hrm_core requirements (see hrm_core/requirements.txt)

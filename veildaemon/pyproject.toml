@@ -12,6 +12,10 @@ dependencies = []
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
 
+[project.scripts]
+veildaemon-shell = "veildaemon.apps.orchestrator.shell:main"
+veildaemon-chat = "veildaemon.apps.orchestrator.chat_bound:main"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["veildaemon*"]
