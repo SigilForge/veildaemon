@@ -222,6 +222,8 @@ current_persona_profile.json
 *.ckpt
 *.onnx
 *.gguf
+*.safetensors
+tokenizer.model
 models/*.gguf
 vosk-model*/
 
@@ -247,6 +249,13 @@ Daemon Launch Process.txt
 /checkpoints/
 /models/
 /model/
+
+# Local LLM model/tool folders (common names)
+/oobabooga/
+/text-generation-webui/
+/koboldai/
+/koboldcpp/
+/llama.cpp/
 
 # StreamDaemon voice models: ignore binaries but keep metadata JSON
 /StreamDaemon/piper_models/
@@ -278,6 +287,9 @@ streamdaemon/
 **/site-packages/
 **/dist-packages/
 **/*.dist-info/
+
+# Local HRM fork (managed separately; do not commit)
+hrm_core/
 
 # Common ML/data caches obtainable via pip downloads
 .cache/huggingface/
