@@ -4,3 +4,9 @@
 # Treat StreamDaemon as binary to avoid diffs if stubs are accidentally added
 streamdaemon/** -diff
 StreamDaemon/** -diff
+
+# Exclude private content from source exports (e.g., git archive)
+packs/** export-ignore
+streamdaemon/** export-ignore
+StreamDaemon/** export-ignore
+.trash/** export-ignore

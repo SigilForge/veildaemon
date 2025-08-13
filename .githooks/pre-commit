@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# 1) Guard against tabs / NBSP / ZWSP / BOM within staged markdown & yaml.
+pattern='[\t\u00A0\u200B\uFEFF]'
+files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(md|ya?ml)$' || true)
+if [ -n "$files" ]; then
+  bad=0
+  while IFS= read -r f; do
+    if grep -nP "$pattern" "$f" >/dev/null 2>&1; then
+      echo "Disallowed whitespace in $f" >&2
+      grep -nP "$pattern" "$f" >&2 || true
+      bad=1
+    fi
+  done <<<"$files"
+  if [ $bad -ne 0 ]; then
+    echo "Fix whitespace issues before committing (tabs/NBSP/ZWSP/BOM)." >&2
+    exit 1
+  fi
+fi
+
+# 2) Block accidental commits of private pack contents and obvious secrets.
+ALLOWED_RE='^(StreamDaemon|streamdaemon)/(README\.md|\.gitkeep|[^/]+\.example)$'
+
+blocked=()
+while IFS= read -r f; do
+  if [[ "$f" =~ ^(StreamDaemon|streamdaemon|packs)/ ]] && ! [[ "$f" =~ $ALLOWED_RE ]]; then
+    blocked+=("$f")
+  fi
+done < <(git diff --cached --name-only --diff-filter=AM)
+
+if (( ${#blocked[@]} > 0 )); then
+  echo "\n[HOOK] Blocking commit: private pack files staged:" >&2
+  for f in "${blocked[@]}"; do echo " - $f" >&2; done
+  echo "\nTo commit, either move these into the paid pack repo or mark as *.example." >&2
+  exit 1
+fi
+
+# Secret-looking content
+if git diff --cached --name-only | xargs -r grep -IEn '(
+  api[_-]?key|client[_-]?secret|authorization:\s*bearer|eyJhbGci|AKIA[0-9A-Z]{16}
+)' >/dev/null 2>&1; then
+  echo "[HOOK] Secret-looking content detected in staged changes. Fix it before committing." >&2
+  exit 1
+fi
+
+# Block .trash resurrection
+if git diff --cached --name-only | grep -E '^\.trash/' >/dev/null 2>&1; then
+  echo "Refusing to commit files under .trash/. Empty it or move assets to models/outputs/data." >&2
+  exit 1
+fi
+
+# Auto-format SDK
+changed_py=$(git diff --cached --name-only | grep -E '^veildaemon/.*\.py$' || true)
+if [ -n "$changed_py" ]; then
+  python -m ruff check --fix $changed_py || true
+  python -m isort $changed_py || true
+  python -m black $changed_py || true
+  echo "$changed_py" | xargs -r git add
+fi
+
+exit 0

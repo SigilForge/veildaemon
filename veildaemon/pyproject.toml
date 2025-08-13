@@ -12,6 +12,28 @@ dependencies = []
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
 
+[project.scripts]
+veildaemon-shell = "veildaemon.apps.orchestrator.shell:main"
+veildaemon-chat = "veildaemon.apps.orchestrator.chat_bound:main"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["veildaemon*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["veildaemon"]
+
+[tool.ruff.lint]
+extend-select = ["E", "F", "W", "I"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.isort]
+profile = "black"
+py_version = 311
+known_first_party = ["veildaemon"]
