@@ -1,1 +1,3 @@
-from veildaemon.event_bus import *  # re-export EventBus
+from veildaemon.event_bus import EventBus  # re-export EventBus
+
+__all__ = ["EventBus"]

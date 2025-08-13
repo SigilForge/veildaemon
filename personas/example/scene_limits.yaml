@@ -1,0 +1,8 @@
+# Human-facing tuning knobs for scene pacing and dialogue budgets.
+# Producers can tweak without touching Python.
+Gaming:
+  cap_ms: { default: 1200, high_risk: 500, dead_air: 2000 }
+  deflect_max_words: 5
+Chill:
+  cap_ms: { default: 1600, high_risk: 700, dead_air: 2500 }
+  deflect_max_words: 8

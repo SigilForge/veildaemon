@@ -1,10 +1,8 @@
-import edge_tts
-import asyncio
+import warnings
 
-
-async def test():
-    c = edge_tts.Communicate(
-        "If you hear this, your daemon is alive.", "en-US-JennyNeural")
-    await c.run()
-
-asyncio.run(test())
+warnings.warn(
+    "edge_tts_test moved to tools/edge_tts_test.py",
+    DeprecationWarning,
+    stacklevel=2,
+)
+from tools.edge_tts_test import *  # noqa: F401,F403
