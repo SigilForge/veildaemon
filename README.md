@@ -1,55 +1,28 @@
 # VeilDaemon
 
-Moderation-first HRM assistant with Twitch ingestion, captions, shadow logging, and optional self-tuning.
+VeilDaemon is a daemon core for cognition and presence—mythpunk on the surface, strict ops underneath. It runs locally, watches you and your world, and helps you steer without burning out.
 
-> **Operational Guards:** see [ARCHITECTURE.md ▸ Operational Guards](ARCHITECTURE.md#operational-guards-a-quick-map-for-humans)
+> See the guardrails in [ARCHITECTURE.md ▸ Operational Guards](ARCHITECTURE.md#operational-guards-a-quick-map-for-humans)
 
-## Quick start (workday unattended)
+## Core features
 
-Run the unattended loop that discovers channels, captures chat, merges captions (optional), seeds shadow, and mines training examples.
+- Meltdown detection and dampers (WARDEN/SCP‑27 gating)
+- Spoon counter and talk-budget pacing (WPS EMA + hysteresis)
+- Glyph language for compact routines and rituals
+- Local-first with encrypted journaling and shadow logs
+- Consent-first interfaces and safety filters
 
-Optional: end-of-rotation HRM fine-tune
+## Variants & extensions
 
-You can append HRM flags to the PowerShell runner to automatically:
+- StreamDaemon — co‑host layer for livestreams; reactive media and watcher orchestration on top of the daemon core.
+- VeilDaemon Desktop — full‑fat PC build.
+- VeilDaemon Mobile (planned) — Android/iOS with sensor‑aware features.
 
-- Convert mined `hrm_training_examples.yaml` → HRM dataset (byte-level), and
-- Launch a short HRM pretrain on that dataset in WANDB offline mode.
+## Core philosophy
 
-Example (PowerShell):
-
-```powershell
-./workday_runner.ps1 -HrmTrain -HrmProfile 3060ti -HrmSeqLen 384 -HrmBatch 24 -HrmEpochs 200 -HrmDataOut "data/text-sft-384"
-```
-
-Notes:
-
-- Requires a CUDA GPU. Start with small batch/epochs. Outputs under `hrm_core/checkpoints/`.
-- This is optional; the bot runs fine without it.
-
-### Configure Obsidian vault path
-
-Set VEIL_VAULT_PATH to control where Wick logs and journal/chat entries are written (defaults to `~/VeilVault/Wick Logs`). Example (PowerShell):
-
-```powershell
-$env:VEIL_VAULT_PATH = "$HOME/VeilVault/Wick Logs"; python your_script.py
-```
-
-### Enable self-tuning (optional)
-
-- Install dev deps (once): `pip install -r requirements.txt`
-- Run with training after each mining step.
-
-Example command to pass:
-
-```bash
-python sft_lora_train.py --data hrm_training_examples.yaml --base gpt2 --out adapters/hrm-lora --epochs 1 --batch 2
-```
-
-Use with the auto loop via:
-
-```bash
---train-cmd "python sft_lora_train.py --data hrm_training_examples.yaml --base gpt2 --out adapters/hrm-lora --epochs 1 --batch 2"
-```
+- Always consent‑first.
+- Local‑first, encrypted logs.
+- Every feature is a ritual, not just a toggle.
 
 ## Quickstart
 
@@ -61,7 +34,9 @@ veildaemon-chat    # Chat-bound entrypoint
 
 > Planning a release? See the checklist: [docs/release-v0.0.4.md](docs/release-v0.0.4.md)
 
-## Package map
+## For developers
+
+Repo structure and key modules:
 
 - Runtime brain: `veildaemon/apps/stage/` (StageDirector, stream engine)
 - Safety: `veildaemon/apps/safety/` (normalize, rewrite, quip bank)
@@ -70,15 +45,11 @@ veildaemon-chat    # Chat-bound entrypoint
 - Watchers/API/Memory: `veildaemon/apps/{watchers,api,memory}/`
 - HRM: `veildaemon/hrm/` (engine, core context)
 
-Shims at repo root exist for one release and warn once. Removal date: **2025-09-30**.
+Shims at repo root were removed; use canonical imports only. Root cleanliness is enforced by tests.
 
-## Scene caps & talk budgets
+### Scene caps & talk budgets
 
-Tune without touching code:
-
-```text
-personas/<name>/scene_limits.yaml
-```
+Tune without touching code via `personas/<name>/scene_limits.yaml`.
 
 Example:
 
@@ -88,21 +59,20 @@ Gaming:
   deflect_max_words: 5
 ```
 
-## Obsidian exports
+### Obsidian exports
 
-SQLite + journal are the source of truth. Obsidian `.md` files are generated **on-demand**. Set `VEIL_VAULT_PATH` to choose the vault.
+SQLite + journal are the source of truth. Obsidian `.md` files are generated on demand. Set `VEIL_VAULT_PATH` to select the vault.
 
-## Guards
-
-- Private packs are not tracked (`packs/`, `streamdaemon/` fenced by .gitignore/.gitattributes and CI).
-- Root cleanliness is enforced in CI (`tests/test_root_clean.py`; `VD_ENFORCE_ROOT_CLEAN=1`).
-- Import hygiene: use `veildaemon.apps.*` and `veildaemon.tts.*` paths only.
-
-## Dev sanity
+### Dev sanity
 
 ```bash
 python veildaemon/tests/test_imports.py
 pytest -q tests/test_root_clean.py
 python tools/gen_nav.py && git status    # NAV.md stays in sync
 ```
+
+## Docs
+
+- Extended docs and specs: `docs/`
+- StreamDaemon specifics: see the StreamDaemon pack README (private), or the integration test `tests/integration/test_streamdaemon_plugin.py` for the plugin contract.
 
