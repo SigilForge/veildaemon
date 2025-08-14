@@ -1,6 +1,10 @@
-"""Package entrypoint: runs the console shell."""
+from . import __version__
 
-from veildaemon.apps.orchestrator.shell import main
+
+def main() -> int:
+    print(f"veildaemon {__version__}")
+    return 0
+
 
 if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main())
