@@ -72,7 +72,7 @@ Root shims removal date: 2025-09-30 (event_bus.py, stage_director.py, daemon_tts
 
 # Operational Guards (a quick map for humans)
 
-_Policy version: v0.0.3 • Last updated: 2025-08-13_
+_Policy version: v0.0.4 • Last updated: 2025-08-13_
 
 This SDK is intentionally dull. The rules below keep it that way so add-ons (StreamDaemon, mobile VA, etc.) can plug in without the codebase turning into a garage sale.
 
@@ -112,6 +112,21 @@ Use the SDK surfaces:
 ## 5) StreamDaemon (paid pack) integration
 
 * StreamDaemon lives outside this repo. The SDK loads it dynamically via `plugins.register(...)`.
+* Plugin contract (documented and enforced by local integration smoke):
+
+  ```python
+  # streamdaemon/plugins.py
+  def register(app) -> dict:
+      """Return plugin hooks and optional content.
+      Must include at least:
+      - watchers: list[callable(bus)]
+      Optional keys:
+      - scenes: dict | list
+      - personas: dict | list
+      - banks: dict | list
+      """
+      return {"watchers": [], "scenes": {}, "personas": {}}
+  ```
 * Local dev convenience: lightweight shims may exist under `streamdaemon/` to satisfy imports during local smoke tests. These paths are **not** tracked by git.
 
 ## 6) Local pack smoke (optional, not in CI)
@@ -128,16 +143,16 @@ Expected: `ModuleNotFoundError` unless your private pack is on `PYTHONPATH`. Wit
 
 ## 7) Scene caps & budgets (knobs for producers)
 
-* Per-persona caps live in `personas/<name>/scene_limits.yaml`:
+- Per-persona caps live in `personas/<name>/scene_limits.yaml`:
 
-  * `cap_ms: { default: 1200, high_risk: 500, dead_air: 2000 }`
-  * `deflect_max_words: 5`
-* WPS EMA and StageDirector hysteresis (0.45/0.35) govern live talk timing and barge-ins.
+  - `cap_ms: { default: 1200, high_risk: 500, dead_air: 2000 }`
+  - `deflect_max_words: 5`
+- WPS EMA and StageDirector hysteresis (0.45/0.35) govern live talk timing and barge-ins.
 
 ## 8) Entry points
 
-* `veildaemon-shell` and `veildaemon-chat` (console scripts)
-* Or run the package: `python -m veildaemon`
+- `veildaemon-shell` and `veildaemon-chat` (console scripts)
+- Or run the package: `python -m veildaemon`
 
 ## 9) What never belongs at repo root
 

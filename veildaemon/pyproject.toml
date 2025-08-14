@@ -10,7 +10,13 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest", "ruff"]
+# Developer tooling (pin versions to keep local smoke deterministic)
+dev = [
+  "ruff==0.5.6",
+  "black==24.8.0",
+  "isort==5.13.2",
+  "pytest==8.3.1",
+]
 
 [project.scripts]
 veildaemon-shell = "veildaemon.apps.orchestrator.shell:main"
