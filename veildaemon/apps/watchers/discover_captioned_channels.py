@@ -99,7 +99,7 @@ def main():
     ap.add_argument("--limit", type=int, default=20)
     ap.add_argument("--language", type=str, default="en")
     ap.add_argument("--keywords", type=str, default="captions,closed captions,subtitles,cc")
-    ap.add_argument("--save", type=str, default="captioned_channels.json")
+    ap.add_argument("--save", type=str, default="data/captioned_channels.json")
     ap.add_argument("--emit-vtt-map", type=str, default="config/vtt_map.candidates.json")
     args = ap.parse_args()
 
@@ -113,11 +113,17 @@ def main():
 
     print(json.dumps(matches, indent=2, ensure_ascii=False))
     if args.save:
+        from pathlib import Path
+
+        Path(args.save).parent.mkdir(parents=True, exist_ok=True)
         with open(args.save, "w", encoding="utf-8") as f:
             json.dump(matches, f, indent=2, ensure_ascii=False)
         print(f"Saved {len(matches)} channels to {args.save}")
     if args.emit_vtt_map:
+        from pathlib import Path
+
         vtt_map = {m["channel"]: "" for m in matches}
+        Path(args.emit_vtt_map).parent.mkdir(parents=True, exist_ok=True)
         with open(args.emit_vtt_map, "w", encoding="utf-8") as f:
             json.dump(vtt_map, f, indent=2)
         print(f"Wrote starter VTT map to {args.emit_vtt_map}")

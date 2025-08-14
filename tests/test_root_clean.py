@@ -12,8 +12,6 @@ ALLOW = {
     "event_bus.py", "stage_director.py", "daemon_tts.py",
     "journal_manager.py", "knowledge_store.py", "task_store.py", "task_store_sqlite.py",
     "core_context.py", "hrm_engine.py", "daemon_shell.py", "veil_daemon_chat_bound.py",
-    # Temporary dev tool (to be moved under tools/ and removed from root):
-    "sft_lora_train.py",
 }
 
 def test_root_clean():

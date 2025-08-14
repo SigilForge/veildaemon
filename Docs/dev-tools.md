@@ -7,21 +7,27 @@ These helper scripts are for local data collection and experimentation only. The
 - twitch_chat_watcher.py — simple single-channel watcher
 - twitch_vtt_watcher.py — polls WebVTT caption URLs
 - merge_chat_and_captions.py — merges chat with caption context
-- twitch_to_shadow.py — converts twitch_multi_chat_log.json to hrm_shadow_log.json entries
-- hrm_shadow_miner.py — mines hrm_shadow_log.json into hrm_training_examples.yaml
-- hrm_shadow_bootstrap.py — seeds shadow log with synthetic examples
-- discover_captioned_channels.py — lists streams advertising captions via tags; emits VTT map candidates
-- hrm_core/dataset/build_text_dataset.py — converts hrm_training_examples.yaml into an HRM-compatible byte-level dataset
+- hrm_shadow_miner.py — mines hrm_shadow_log.json into data/hrm/hrm_training_examples.yaml
+- hrm_core/dataset/build_text_dataset.py — converts data/hrm/hrm_training_examples.yaml into an HRM-compatible byte-level dataset
 
-Notes
+Quick run
 
+- Input: data/hrm/hrm_training_examples.yaml from hrm_shadow_miner.py (list under key training_examples with fields input and desired_reply)
+- Command: python -m hrm_core.dataset.build_text_dataset --source data/hrm/hrm_training_examples.yaml --output-dir data/text-sft-512 --seq-len 512
+
+
+## Paths
+
+- HRM mined examples now default to data/hrm/hrm_training_examples.yaml (directory is created automatically).
+- discover_captioned_channels.py emits a starter captions map to config/vtt_map.candidates.json by default.
+- workday_runner.ps1 looks for a captions map at config\vtt_map.json by default; pass -VttMap to override.
 - These scripts expect credentials to come from secrets_store.py and/or environment variables.
 - Twitch OAuth tokens (twitch.access.token, twitch.refresh.token) are for the bot reading/rotating on the Knoxmortis account. The SigilForge broadcast Stream Key (twitch.stream.key) is unrelated to API/IRC.
 
-Text dataset builder
+## Text dataset builder
 
-- Input: hrm_training_examples.yaml from hrm_shadow_miner.py (list under key training_examples with fields input and desired_reply)
+- Input: data/hrm/hrm_training_examples.yaml from hrm_shadow_miner.py (list under key training_examples with fields input and desired_reply)
 - Output: data/text-sft-512/ with train/test splits in HRM format (inputs.npy, labels.npy, puzzle_identifiers.npy, puzzle_indices.npy, group_indices.npy, dataset.json)
 - Run:
-  - python -m hrm_core.dataset.build_text_dataset --source hrm_training_examples.yaml --output-dir data/text-sft-512 --seq-len 512
+  - python -m hrm_core.dataset.build_text_dataset --source data/hrm/hrm_training_examples.yaml --output-dir data/text-sft-512 --seq-len 512
   - Requires hrm_core requirements (see hrm_core/requirements.txt)
