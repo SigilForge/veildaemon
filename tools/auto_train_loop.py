@@ -135,9 +135,13 @@ def main():
         # Optional: HRM fine-tune using mined examples
         if args.hrm_train:
             try:
-                examples = Path("hrm_training_examples.yaml")
+                # Prefer new location under data/hrm; fall back to root for backward compat
+                examples = Path("data/hrm/hrm_training_examples.yaml")
                 if not examples.exists():
-                    print("[hrm-train] no hrm_training_examples.yaml yet; skipping this rotation")
+                    legacy = Path("hrm_training_examples.yaml")
+                    examples = legacy if legacy.exists() else examples
+                if not examples.exists():
+                    print("[hrm-train] no hrm_training_examples.yaml yet (checked data/hrm and root); skipping this rotation")
                 else:
                     # Build dataset
                     print("[hrm-train] building text dataset for HRM…")

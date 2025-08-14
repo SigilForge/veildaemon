@@ -100,7 +100,7 @@ def main():
     ap.add_argument("--language", type=str, default="en")
     ap.add_argument("--keywords", type=str, default="captions,closed captions,subtitles,cc")
     ap.add_argument("--save", type=str, default="captioned_channels.json")
-    ap.add_argument("--emit-vtt-map", type=str, default="vtt_map.candidates.json")
+    ap.add_argument("--emit-vtt-map", type=str, default="config/vtt_map.candidates.json")
     args = ap.parse_args()
 
     keywords = [k.strip().lower() for k in args.keywords.split(",") if k.strip()]
