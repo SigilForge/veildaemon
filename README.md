@@ -59,7 +59,7 @@ veildaemon-shell   # CLI entrypoint
 veildaemon-chat    # Chat-bound entrypoint
 ```
 
-> Planning a release? See the checklist: [docs/release-v0.0.3.md](docs/release-v0.0.3.md)
+> Planning a release? See the checklist: [docs/release-v0.0.4.md](docs/release-v0.0.4.md)
 
 ## Package map
 
