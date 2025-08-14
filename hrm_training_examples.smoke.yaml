@@ -1,3 +1,0 @@
-training_examples:
-  - input: "hi"
-    desired_reply: "hello"
