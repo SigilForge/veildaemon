@@ -7,24 +7,32 @@ Canonical imports live under this namespace, e.g.
 - veildaemon.apps.*
 """
 
-from . import apps  # re-export pkg
-from . import event_bus  # re-export pkg
-from . import hrm  # re-export pkg
-from . import persona  # re-export pkg
-from . import safety  # re-export pkg
-from . import scenes  # re-export pkg
-from . import stage_director  # re-export pkg
-from . import tts  # re-export pkg
+from . import (  # re-export pkgs
+    apps,
+    event_bus,
+    hrm,
+    persona,
+    safety,
+    scenes,
+    stage_director,
+    tts,
+)
 
 __all__ = [
+    "apps",
     "event_bus",
+    "hrm",
+    "persona",
+    "safety",
+    "scenes",
     "stage_director",
     "tts",
-    "apps",
-    "safety",
-    "persona",
-    "scenes",
-    "hrm",
 ]
 
-__version__ = "0.1.0"
+# Optional: package version for quick introspection / CLI printing
+try:  # Prefer installed metadata to avoid drifting from pyproject
+    from importlib.metadata import version as _pkg_version  # Python 3.11+
+
+    __version__ = _pkg_version("veildaemon")
+except Exception:  # pragma: no cover - during editable/dev, fallback to declared version
+    __version__ = "0.0.4"
