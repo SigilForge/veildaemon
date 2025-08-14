@@ -4,7 +4,8 @@ from pathlib import Path
 import yaml
 
 SHADOW_LOG = Path("hrm_shadow_log.json")
-OUTPUT_YAML = Path("hrm_training_examples.yaml")
+# Write mined examples under data/hrm by default (keeps repo root clean)
+OUTPUT_YAML = Path("data/hrm/hrm_training_examples.yaml")
 
 
 def mine_shadow_log():
@@ -39,6 +40,7 @@ def mine_shadow_log():
         print("No new training examples found.")
         return
     # Output as YAML for easy import
+    OUTPUT_YAML.parent.mkdir(parents=True, exist_ok=True)
     with OUTPUT_YAML.open("w", encoding="utf-8") as f:
         yaml.dump({"training_examples": examples}, f, allow_unicode=True, sort_keys=False)
     print(f"Wrote {len(examples)} training examples to {OUTPUT_YAML}")
