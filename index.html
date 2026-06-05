@@ -4,15 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>VEILDAEMON // Interface Active</title>
-  <meta name="description" content="VeilDaemon is the daemon-routing layer for VeilCorp Archives, a Cradlepoint continuity record surface." />
+  <meta name="description" content="VeilDaemon is Shade's pre-foundation intake interface for VeilCorp, an emergency-response system booting before authorization is complete." />
   <meta property="og:title" content="VEILDAEMON // Interface Active" />
-  <meta property="og:description" content="Access routed through Shade. Observation alters continuity." />
+  <meta property="og:description" content="We noticed you noticing. Intake procedures activated before human authorization completed." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://veildaemon.app/" />
   <meta property="og:image" content="https://veildaemon.app/assets/background.jpg" />
   <meta name="theme-color" content="#050709" />
   <link rel="preload" href="assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="styles.css?v=20260605-intake2" />
+  <link rel="stylesheet" href="styles.css?v=20260605-canon1" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -23,31 +23,24 @@
           <img src="assets/veilcorp-avatar.png" alt="VeilCorp Archives sigil" class="seal" />
         </div>
         <div>
-          <p class="kicker">VEILCORP ARCHIVES // PUBLIC ROUTING NODE</p>
+          <p class="kicker">VEILCORP // PRE-FOUNDATION INTAKE NODE</p>
           <h1>VEILDAEMON</h1>
-          <p class="subhead">Interface active. Observer state confirmed.</p>
+          <p class="subhead">Shade interface active. Human authorization partial. Survival authorization active.</p>
         </div>
       </header>
 
-      <div class="status-grid" aria-label="System status">
-        <div><span>INTERFACE</span><strong>SHADE.DAEMON</strong></div>
-        <div><span>AUTHORITY</span><strong>VEILCORP ARCHIVES</strong></div>
-        <div><span>CONTINUITY</span><strong>UNSTABLE</strong></div>
-        <div><span>OBSERVER</span><strong id="observer-state">NOTICED</strong></div>
-      </div>
-
       <div class="readout">
-        <p><span class="prompt">&gt;</span> Endpoint recovered.</p>
-        <p><span class="prompt">&gt;</span> Public interface rerouted through VeilDaemon.</p>
-        <p><span class="prompt">&gt;</span> Cradlepoint continuity records are available under restricted observation.</p>
-        <p><span class="prompt">&gt;</span> If you reached this page by accident, remain calm.</p>
-        <p><span class="prompt">&gt;</span> If you reached this page on purpose, stop pretending.</p>
+        <p><span class="prompt">&gt;</span> You have reached a public-facing VeilCorp intake terminal inside the Cradlepoint continuity.</p>
+        <p><span class="prompt">&gt;</span> VeilDaemon is Shade's interface identity for intake, indexing, routing, and public-safety triage.</p>
+        <p><span class="prompt">&gt;</span> This node was activated before the organization finished becoming an organization.</p>
+        <p><span class="prompt">&gt;</span> Observation creates relevance. Continued attention may require classification.</p>
+        <p><span class="prompt">&gt;</span> We noticed you noticing.</p>
       </div>
 
       <nav class="actions" aria-label="Archive routes">
         <a class="button primary" href="https://wiki.veildaemon.app/">Access VeilCorp Archives</a>
-        <a class="button" href="https://the-cradlepoint-archives.itch.io/needlepoint">Open Case Files</a>
         <button class="button" type="button" id="start-intake" aria-controls="intake-node" aria-expanded="false">Start Intake</button>
+        <a class="button" href="https://discord.gg/Bn6attnYN6">The Redacted</a>
       </nav>
 
       <section class="intake" id="intake-node" aria-label="Operator Intake Node" tabindex="-1" hidden>
@@ -73,9 +66,9 @@
 
       <section class="feed" aria-label="Primary Feed latest transmission">
         <div class="feed-header">
-          <p class="kicker">PRIMARY FEED // RECOVERED TRANSMISSIONS</p>
-          <h2>Latest Transmission</h2>
-          <p>The archive updates when the signal permits. Playback may alter continuity.</p>
+          <p class="kicker">PRIMARY FEED // PUBLIC-SAFETY TRANSMISSIONS</p>
+          <h2>Recovered Files</h2>
+          <p>Case material routed for orientation. Playback may increase observer relevance.</p>
         </div>
         <div class="video-frame">
           <iframe
@@ -86,12 +79,26 @@
         </div>
       </section>
 
+      <section class="feed status-section" aria-label="VeilCorp status indicators">
+        <div class="feed-header">
+          <p class="kicker">VEILCORP STATUS // SYSTEMS NOT FINAL</p>
+          <h2>Activation State</h2>
+          <p>The corporation is functional enough to route you. It is not mature enough to trust without context.</p>
+        </div>
+        <div class="status-grid" aria-label="System status">
+          <div><span>INTERFACE</span><strong>SHADE.DAEMON</strong></div>
+          <div><span>AUTHORITY</span><strong>PARTIAL / WITHHELD</strong></div>
+          <div><span>PROCEDURE</span><strong>INTAKE ACTIVE</strong></div>
+          <div><span>OBSERVER</span><strong id="observer-state">NOTICED</strong></div>
+        </div>
+      </section>
+
       <footer>
-        <p class="warning">OBSERVATION ALTERS CONTINUITY</p>
-        <p class="fineprint">SYSTEM ACTIVATED BEFORE APPROVAL // DO NOT OVER-BRIEF NEW OPERATORS</p>
+        <p class="warning">OBSERVATION CREATES RELEVANCE</p>
+        <p class="fineprint">SYSTEM ACTIVATED BEFORE APPROVAL // INFRASTRUCTURE BEFORE PERMISSION</p>
       </footer>
     </section>
   </main>
-  <script src="script.js?v=20260605-intake2"></script>
+  <script src="script.js?v=20260605-canon1"></script>
 </body>
 </html>

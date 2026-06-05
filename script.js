@@ -193,8 +193,24 @@ function openIntake() {
   startButton.setAttribute("aria-expanded", "true");
   startButton.textContent = "Intake Open";
   typeShadeIntro();
-  intake.scrollIntoView({ behavior: "smooth", block: "start" });
   intake.focus({ preventScroll: true });
+  keepIntakeVisible(intake);
+}
+
+function keepIntakeVisible(intake) {
+  if (!window.requestAnimationFrame || !intake.getBoundingClientRect) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    const rect = intake.getBoundingClientRect();
+    const visibleTop = rect.top >= 0;
+    const visibleBottom = rect.bottom <= window.innerHeight;
+
+    if (!visibleTop || !visibleBottom) {
+      intake.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  });
 }
 
 function selectAnswer(event) {
