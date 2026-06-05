@@ -50,6 +50,17 @@ function getChecked(name) {
   return document.querySelector(`input[name="${name}"]:checked`);
 }
 
+function openIntake() {
+  const intake = document.getElementById("intake-node");
+  const startButton = document.getElementById("start-intake");
+
+  intake.hidden = false;
+  startButton.setAttribute("aria-expanded", "true");
+  startButton.textContent = "Intake Open";
+  intake.scrollIntoView({ behavior: "smooth", block: "start" });
+  intake.focus({ preventScroll: true });
+}
+
 function runIntake() {
   const noticed = getChecked("noticed");
   const action = getChecked("action");
@@ -83,5 +94,6 @@ function resetIntake() {
   document.getElementById("intake-result").innerHTML = `<p><span class="prompt">&gt;</span> INTAKE STATUS: WAITING FOR OPERATOR INPUT</p>`;
 }
 
+document.getElementById("start-intake").addEventListener("click", openIntake);
 document.getElementById("run-intake").addEventListener("click", runIntake);
 document.getElementById("reset-intake").addEventListener("click", resetIntake);

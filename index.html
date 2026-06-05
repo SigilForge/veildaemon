@@ -47,10 +47,10 @@
       <nav class="actions" aria-label="Archive routes">
         <a class="button primary" href="https://wiki.veildaemon.app/">Access VeilCorp Archives</a>
         <a class="button" href="https://the-cradlepoint-archives.itch.io/needlepoint">Open Case Files</a>
-        <a class="button" href="#intake-node">Begin Operator Intake</a>
+        <button class="button" type="button" id="start-intake" aria-controls="intake-node" aria-expanded="false">Start Intake</button>
       </nav>
 
-      <section class="intake" id="intake-node" aria-label="Operator Intake Node">
+      <section class="intake" id="intake-node" aria-label="Operator Intake Node" tabindex="-1" hidden>
         <div class="feed-header">
           <p class="kicker">VEILDAEMON INTAKE NODE // LIMITED PUBLIC INTERFACE</p>
           <h2>Operator Intake</h2>
