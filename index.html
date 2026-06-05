@@ -57,42 +57,17 @@
           <p>Answer only what the system asks. Excess context increases signal visibility.</p>
         </div>
 
-        <div class="intake-grid">
-          <fieldset class="question">
-            <legend>01 // What did you notice first?</legend>
-            <label><input type="radio" name="noticed" value="Dream" data-warning="Do not correct delayed reflections."> A reflection moved wrong.</label>
-            <label><input type="radio" name="noticed" value="Empyrean" data-warning="Do not answer voices using your name twice."> A voice or signal answered back.</label>
-            <label><input type="radio" name="noticed" value="Stillness" data-warning="Do not trust clocks that agree too perfectly."> Time hesitated.</label>
-            <label><input type="radio" name="noticed" value="Hunger" data-warning="Do not follow warmth into an empty room."> Something wanted something from me.</label>
-            <label><input type="radio" name="noticed" value="Silence" data-warning="Do not fill every silence."> Something was missing.</label>
-            <label><input type="radio" name="noticed" value="Becoming" data-warning="Do not accept a better version of yourself from glass."> I felt less like myself.</label>
-          </fieldset>
-
-          <fieldset class="question">
-            <legend>02 // What did you do?</legend>
-            <label><input type="radio" name="action" value="ignored"> Ignored it.</label>
-            <label><input type="radio" name="action" value="recorded"> Recorded it.</label>
-            <label><input type="radio" name="action" value="told"> Told someone.</label>
-            <label><input type="radio" name="action" value="followed"> Followed it.</label>
-            <label><input type="radio" name="action" value="lied"> Lied about it.</label>
-          </fieldset>
-
-          <fieldset class="question">
-            <legend>03 // Did it notice you back?</legend>
-            <label><input type="radio" name="noticedBack" value="BRUSHED"> No.</label>
-            <label><input type="radio" name="noticedBack" value="NOTED"> I do not know.</label>
-            <label><input type="radio" name="noticedBack" value="MARKED"> Yes.</label>
-            <label><input type="radio" name="noticedBack" value="CLAIMED"> It answered before I asked.</label>
-          </fieldset>
+        <div class="intake-console" aria-live="polite">
+          <div class="ai-panel" id="ai-panel">
+            <p class="intake-step" id="intake-step">INTAKE STATUS: WAITING</p>
+            <p class="ai-line" id="ai-line"><span class="prompt">&gt;</span> Press Start Intake to open the question channel.</p>
+          </div>
+          <div class="answer-panel" id="answer-panel" aria-label="Answer choices"></div>
+          <div class="intake-result" id="intake-result"></div>
         </div>
 
         <div class="intake-actions">
-          <button class="button primary" type="button" id="run-intake">Run Intake</button>
-          <button class="button" type="button" id="reset-intake">Clear Response</button>
-        </div>
-
-        <div class="intake-result" id="intake-result" aria-live="polite">
-          <p><span class="prompt">&gt;</span> INTAKE STATUS: WAITING FOR OPERATOR INPUT</p>
+          <button class="button" type="button" id="reset-intake">Restart Intake</button>
         </div>
       </section>
 
