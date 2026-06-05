@@ -1,293 +1,122 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VeilDaemon</title>
-<style>
-    body {
-        background-color: #000;
-        color: #a3f3ff;
-        font-family: 'Courier New', monospace;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        overflow: hidden;
-    }
-
-    /* Floating Glyph Background */
-    .glyph {
-        position: absolute;
-        font-size: 2rem;
-        color: rgba(163, 243, 255, 0.15);
-        animation: floatGlyph 20s linear infinite;
-    }
-
-    @keyframes floatGlyph {
-        0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-        10% { opacity: 0.4; }
-        90% { opacity: 0.4; }
-        100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
-    }
-
-    /* Splash Screen */
-    .splash {
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        z-index: 1;
-    }
-
-    .eye {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        animation: pulse 3s infinite;
-    }
-
-    .eye::after {
-        content: '';
-        width: 20px;
-        height: 20px;
-        background: #000;
-        border-radius: 50%;
-    }
-
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 0.9; }
-        50% { transform: scale(1.15); opacity: 1; }
-    }
-
-    h1 {
-        font-size: 2.5rem;
-        margin-top: 20px;
-        color: #a3f3ff;
-        text-shadow: 0 0 10px #0ff;
-    }
-
-    .status {
-        margin-top: 10px;
-        color: #66d9ef;
-        font-size: 1rem;
-        overflow: hidden;
-        white-space: nowrap;
-        border-right: 3px solid #66d9ef;
-        animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-        50% { border-color: transparent; }
-    }
-
-    /* Hub Screen */
-    .hub {
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        z-index: 2;
-    }
-
-    .wick-meter {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        border: 8px solid #0ff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.2rem;
-        margin-bottom: 20px;
-        text-shadow: 0 0 8px #0ff;
-        transition: box-shadow 0.3s ease;
-    }
-
-    .wick-glow {
-        box-shadow: 0 0 30px #0ff;
-    }
-
-    .glyph-state {
-        font-size: 2rem;
-        margin-bottom: 20px;
-    }
-
-    .buttons {
-        display: flex;
-        gap: 15px;
-    }
-
-    .buttons button {
-        background: #111;
-        color: #a3f3ff;
-        border: 2px solid #0ff;
-        padding: 10px 15px;
-        font-family: inherit;
-        cursor: pointer;
-        transition: all 0.3s;
-        text-transform: uppercase;
-    }
-
-    .buttons button:hover {
-        background: #0ff;
-        color: #000;
-    }
-
-    .log {
-        margin-top: 20px;
-        color: #66d9ef;
-        font-size: 0.9rem;
-    }
-
-    /* Ritual Overlay */
-    .overlay {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.9);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 999;
-        visibility: hidden;
-        opacity: 0;
-        transition: opacity 0.5s ease, visibility 0.5s ease;
-    }
-
-    .overlay.active {
-        visibility: visible;
-        opacity: 1;
-    }
-
-    .overlay .sigil {
-        font-size: 8rem;
-        color: #0ff;
-        animation: glow 2s infinite;
-    }
-
-    @keyframes glow {
-        0%, 100% { text-shadow: 0 0 20px #0ff; }
-        50% { text-shadow: 0 0 40px #00ffff; }
-    }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VEILDAEMON // Interface Active</title>
+  <meta name="description" content="VeilDaemon is the daemon-routing layer for VeilCorp Archives, a Cradlepoint continuity record surface." />
+  <meta property="og:title" content="VEILDAEMON // Interface Active" />
+  <meta property="og:description" content="Access routed through Shade. Observation alters continuity." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://veildaemon.app/" />
+  <meta property="og:image" content="https://veildaemon.app/assets/background.jpg" />
+  <meta name="theme-color" content="#050709" />
+  <link rel="preload" href="assets/background.jpg" as="image" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <!-- Floating Glyphs -->
-    <div class="glyph" style="left:10%; animation-delay:0s;">🜏</div>
-    <div class="glyph" style="left:50%; animation-delay:5s;">🕯</div>
-    <div class="glyph" style="left:80%; animation-delay:10s;">🛡</div>
-    <div class="glyph" style="left:30%; animation-delay:15s;">🧿</div>
-
-    <!-- Splash Screen -->
-    <div class="splash" id="splash">
-        <div class="eye"></div>
-        <h1>VeilDaemon</h1>
-        <div class="status" id="status"></div>
-    </div>
-
-    <!-- Glyph Hub -->
-    <div class="hub" id="hub">
-        <div class="wick-meter" id="wick">75%</div>
-        <div class="glyph-state" id="glyphState">🛡 Warden Active</div>
-        <div class="buttons">
-            <button onclick="invokeRitual('Silence')">Silence</button>
-            <button onclick="invokeRitual('Ground')">Ground</button>
-            <button onclick="invokeOverlay()">Invoke LOGICA</button>
+  <div class="noise" aria-hidden="true"></div>
+  <main class="shell" aria-label="VeilDaemon interface">
+    <section class="terminal" data-state="awake">
+      <header class="topline">
+        <div class="seal-wrap">
+          <img src="assets/veilcorp-avatar.png" alt="VeilCorp Archives sigil" class="seal" />
         </div>
-        <div class="log" id="ritualLog">Awaiting your command...</div>
-    </div>
+        <div>
+          <p class="kicker">VEILCORP ARCHIVES // PUBLIC ROUTING NODE</p>
+          <h1>VEILDAEMON</h1>
+          <p class="subhead">Interface active. Observer state confirmed.</p>
+        </div>
+      </header>
 
-    <!-- Ritual Overlay -->
-    <div class="overlay" id="overlay">
-        <div class="sigil">🜏</div>
-    </div>
+      <div class="status-grid" aria-label="System status">
+        <div><span>INTERFACE</span><strong>SHADE.DAEMON</strong></div>
+        <div><span>AUTHORITY</span><strong>VEILCORP ARCHIVES</strong></div>
+        <div><span>CONTINUITY</span><strong>UNSTABLE</strong></div>
+        <div><span>OBSERVER</span><strong id="observer-state">NOTICED</strong></div>
+      </div>
 
-    <!-- Ritual Sound -->
-    <audio id="ritualSound" src="https://freesound.org/data/previews/277/277819_5121236-lq.mp3" preload="auto"></audio>
+      <div class="readout">
+        <p><span class="prompt">&gt;</span> Endpoint recovered.</p>
+        <p><span class="prompt">&gt;</span> Public interface rerouted through VeilDaemon.</p>
+        <p><span class="prompt">&gt;</span> Cradlepoint continuity records are available under restricted observation.</p>
+        <p><span class="prompt">&gt;</span> If you reached this page by accident, remain calm.</p>
+        <p><span class="prompt">&gt;</span> If you reached this page on purpose, stop pretending.</p>
+      </div>
 
-<script>
-    const phrases = [
-        "Daemon initialized. Watching the threshold...",
-        "Binding glyphs to the process...",
-        "Listening for static in the weave...",
-        "Calibrating resonance fields...",
-        "Charging ritual matrices...",
-        "Aligning with LOGICA protocols..."
-    ];
+      <nav class="actions" aria-label="Archive routes">
+        <a class="button primary" href="https://wiki.veildaemon.app/">Access VeilCorp Archives</a>
+        <a class="button" href="https://the-cradlepoint-archives.itch.io/needlepoint">Open Case Files</a>
+        <a class="button" href="#intake-node">Begin Operator Intake</a>
+      </nav>
 
-    const glyphStates = [
-        {glyph: "🛡", label: "Warden Active"},
-        {glyph: "🕯", label: "Candle Reflection"},
-        {glyph: "🧿", label: "Glyph of Silence"},
-        {glyph: "🜏", label: "LOGICA Mode"}
-    ];
+      <section class="intake" id="intake-node" aria-label="Operator Intake Node">
+        <div class="feed-header">
+          <p class="kicker">VEILDAEMON INTAKE NODE // LIMITED PUBLIC INTERFACE</p>
+          <h2>Operator Intake</h2>
+          <p>Answer only what the system asks. Excess context increases signal visibility.</p>
+        </div>
 
-    let index = 0;
-    const statusEl = document.getElementById('status');
+        <div class="intake-grid">
+          <fieldset class="question">
+            <legend>01 // What did you notice first?</legend>
+            <label><input type="radio" name="noticed" value="Dream" data-warning="Do not correct delayed reflections."> A reflection moved wrong.</label>
+            <label><input type="radio" name="noticed" value="Empyrean" data-warning="Do not answer voices using your name twice."> A voice or signal answered back.</label>
+            <label><input type="radio" name="noticed" value="Stillness" data-warning="Do not trust clocks that agree too perfectly."> Time hesitated.</label>
+            <label><input type="radio" name="noticed" value="Hunger" data-warning="Do not follow warmth into an empty room."> Something wanted something from me.</label>
+            <label><input type="radio" name="noticed" value="Silence" data-warning="Do not fill every silence."> Something was missing.</label>
+            <label><input type="radio" name="noticed" value="Becoming" data-warning="Do not accept a better version of yourself from glass."> I felt less like myself.</label>
+          </fieldset>
 
-    function typePhrase(phrase) {
-        statusEl.textContent = "";
-        let i = 0;
-        const typing = setInterval(() => {
-            statusEl.textContent += phrase[i];
-            i++;
-            if (i === phrase.length) clearInterval(typing);
-        }, 50);
-    }
+          <fieldset class="question">
+            <legend>02 // What did you do?</legend>
+            <label><input type="radio" name="action" value="ignored"> Ignored it.</label>
+            <label><input type="radio" name="action" value="recorded"> Recorded it.</label>
+            <label><input type="radio" name="action" value="told"> Told someone.</label>
+            <label><input type="radio" name="action" value="followed"> Followed it.</label>
+            <label><input type="radio" name="action" value="lied"> Lied about it.</label>
+          </fieldset>
 
-    function cyclePhrases() {
-        typePhrase(phrases[index]);
-        index = (index + 1) % phrases.length;
-        setTimeout(cyclePhrases, 5000);
-    }
+          <fieldset class="question">
+            <legend>03 // Did it notice you back?</legend>
+            <label><input type="radio" name="noticedBack" value="BRUSHED"> No.</label>
+            <label><input type="radio" name="noticedBack" value="NOTED"> I do not know.</label>
+            <label><input type="radio" name="noticedBack" value="MARKED"> Yes.</label>
+            <label><input type="radio" name="noticedBack" value="CLAIMED"> It answered before I asked.</label>
+          </fieldset>
+        </div>
 
-    cyclePhrases();
+        <div class="intake-actions">
+          <button class="button primary" type="button" id="run-intake">Run Intake</button>
+          <button class="button" type="button" id="reset-intake">Clear Response</button>
+        </div>
 
-    // Transition to hub after splash
-    setTimeout(() => {
-        document.getElementById('splash').style.display = 'none';
-        document.getElementById('hub').style.display = 'flex';
-        simulateGlyphState();
-    }, 6000);
+        <div class="intake-result" id="intake-result" aria-live="polite">
+          <p><span class="prompt">&gt;</span> INTAKE STATUS: WAITING FOR OPERATOR INPUT</p>
+        </div>
+      </section>
 
-    // Ritual Invocation Logic
-    function invokeRitual(name) {
-        console.log(`Ritual invoked: ${name}`);
-        document.getElementById('ritualLog').textContent = `Ritual activated: ${name}`;
-        const wick = document.getElementById('wick');
-        wick.classList.add('wick-glow');
-        setTimeout(() => wick.classList.remove('wick-glow'), 500);
-        drainWick(10);
-    }
+      <section class="feed" aria-label="Primary Feed latest transmission">
+        <div class="feed-header">
+          <p class="kicker">PRIMARY FEED // RECOVERED TRANSMISSIONS</p>
+          <h2>Latest Transmission</h2>
+          <p>The archive updates when the signal permits. Playback may alter continuity.</p>
+        </div>
+        <div class="video-frame">
+          <iframe
+            src="https://www.youtube.com/embed/videoseries?list=PLEoIdLPqOjeuJaD74EtiQWXScSqVtXJh4"
+            title="Primary Feed playlist"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowfullscreen></iframe>
+        </div>
+      </section>
 
-    function invokeOverlay() {
-        const overlay = document.getElementById('overlay');
-        overlay.classList.add('active');
-        document.getElementById('ritualSound').play();
-        setTimeout(() => overlay.classList.remove('active'), 3000);
-    }
-
-    // Wick Drain Animation
-    function drainWick(amount) {
-        const wick = document.getElementById('wick');
-        let current = parseInt(wick.textContent);
-        current = Math.max(0, current - amount);
-        wick.textContent = current + "%";
-    }
-
-    // Simulate Glyph State Changes
-    function simulateGlyphState() {
-        setInterval(() => {
-            const state = glyphStates[Math.floor(Math.random() * glyphStates.length)];
-            document.getElementById('glyphState').textContent = `${state.glyph} ${state.label}`;
-        }, 8000);
-    }
-</script>
+      <footer>
+        <p class="warning">OBSERVATION ALTERS CONTINUITY</p>
+        <p class="fineprint">SYSTEM ACTIVATED BEFORE APPROVAL // DO NOT OVER-BRIEF NEW OPERATORS</p>
+      </footer>
+    </section>
+  </main>
+  <script src="script.js"></script>
 </body>
 </html>
