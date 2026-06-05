@@ -340,7 +340,7 @@ function typeResultLines(lines, claimed) {
 
     const route = document.createElement("a");
     route.className = `button ${claimed ? "ghost" : "primary"} discord-route`;
-    route.href = "https://discord.gg/Bn6attnYN6";
+    route.href = claimed ? "https://discord.gg/KRbckpfTQk" : "https://discord.gg/Bn6attnYN6";
     route.textContent = claimed ? "Report Infection" : "Open Operator Channel";
     result.appendChild(route);
   }
