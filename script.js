@@ -91,7 +91,7 @@ const intakeState = {
   isTyping: false
 };
 
-const shadeIntro = "Hello. My name is Shade. You have been observed noticing. This is not recruitment. It is triage.";
+const shadeIntro = "Hello. My name is Shade. You have been observed noticing. This is not recruitment. It is triage. Continue? Denial is not a supported answer.";
 let typingTimer = null;
 
 function clearTypingTimer() {
@@ -149,9 +149,13 @@ function typeShadeIntro() {
 
 function renderContinueButton() {
   document.getElementById("answer-panel").innerHTML = `
-    <button class="answer-choice continue-choice" type="button" id="continue-intake">
-      <span>OK</span>
-      Continue Intake
+    <button class="answer-choice continue-choice" type="button" data-continue-intake="true">
+      <span>YES</span>
+      Continue
+    </button>
+    <button class="answer-choice continue-choice" type="button" data-continue-intake="true">
+      <span>ALSO YES</span>
+      Continue, but with detectable reluctance
     </button>
   `;
 }
@@ -194,7 +198,7 @@ function openIntake() {
 }
 
 function selectAnswer(event) {
-  const continueButton = event.target.closest("#continue-intake");
+  const continueButton = event.target.closest("[data-continue-intake]");
   if (continueButton && !intakeState.isTyping) {
     document.getElementById("answer-panel").innerHTML = "";
     renderQuestion();
