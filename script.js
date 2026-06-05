@@ -198,7 +198,7 @@ function openIntake() {
 }
 
 function selectAnswer(event) {
-  const continueButton = event.target.closest("[data-continue-intake]");
+  const continueButton = event.target.closest("[data-continue-intake], #continue-intake");
   if (continueButton && !intakeState.isTyping) {
     document.getElementById("answer-panel").innerHTML = "";
     renderQuestion();
