@@ -358,6 +358,11 @@ footer {
   background: rgba(6,18,18,.55);
   box-shadow: 0 0 20px rgba(102,255,220,.12), inset 0 0 22px rgba(185,84,255,.08);
 }
+.continue-choice {
+  grid-column: 1 / -1;
+  width: min(100%, 18rem);
+  justify-self: start;
+}
 .intake-actions {
   display: grid;
   grid-template-columns: minmax(11rem, .38fr);
