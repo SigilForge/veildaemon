@@ -143,11 +143,17 @@ function typeShadeIntro() {
   document.getElementById("intake-result").innerHTML = "";
 
   typeAiLine("SHADE.DAEMON // HANDSHAKE", shadeIntro, () => {
-    typingTimer = setTimeout(() => {
-      clearTypingTimer();
-      renderQuestion();
-    }, 520);
+    renderContinueButton();
   });
+}
+
+function renderContinueButton() {
+  document.getElementById("answer-panel").innerHTML = `
+    <button class="answer-choice continue-choice" type="button" id="continue-intake">
+      <span>OK</span>
+      Continue Intake
+    </button>
+  `;
 }
 
 function renderAnswerChoices(question) {
@@ -188,6 +194,13 @@ function openIntake() {
 }
 
 function selectAnswer(event) {
+  const continueButton = event.target.closest("#continue-intake");
+  if (continueButton && !intakeState.isTyping) {
+    document.getElementById("answer-panel").innerHTML = "";
+    renderQuestion();
+    return;
+  }
+
   const choice = event.target.closest(".answer-choice");
 
   if (!choice || intakeState.isTyping) {
