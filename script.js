@@ -2,8 +2,28 @@ const operatorRecordVersion = 1;
 const recordStorageKey = "veildaemon.operatorRecord.v2";
 const legacyRecordStorageKey = "veildaemon.operatorRecord.v1";
 const archiveUrl = "https://wiki.veildaemon.app/";
-const passDiscordUrl = "https://discord.gg/Bn6attnYN6";
-const triageDiscordUrl = "https://discord.gg/KRbckpfTQk";
+const frequencyDiscordRoutes = {
+  Dream: "https://discord.gg/3C6nXeWkjs",
+  Silence: "https://discord.gg/guB7VRgA8R",
+  Hunger: "https://discord.gg/Q8rRwetUhF",
+  Stillness: "https://discord.gg/ryrAX48e67",
+  Empyrean: "https://discord.gg/eHHyEupuHy",
+  Becoming: "https://discord.gg/3RCK9BGkZ5"
+};
+const unstableFrequencyDiscordRoutes = {
+  Dream: "https://discord.gg/db2QBYMMBa",
+  Silence: "https://discord.gg/xwsc8EbPeH",
+  Hunger: "https://discord.gg/NjZVEwMBMS",
+  Stillness: "https://discord.gg/jMBdvcSXAe",
+  Empyrean: "https://discord.gg/yWMwM7h6yF",
+  Becoming: "https://discord.gg/tGqacRrTqx"
+};
+const legacyDiscordRoutes = new Set(["https://discord.gg/Bn6attnYN6", "https://discord.gg/KRbckpfTQk"]);
+
+function getDiscordRoute(frequency, unstable = false) {
+  const routeMap = unstable ? unstableFrequencyDiscordRoutes : frequencyDiscordRoutes;
+  return routeMap[frequency] || frequencyDiscordRoutes.Dream;
+}
 
 const profiles = {
   Dream: {
@@ -307,7 +327,9 @@ function normalizeOperatorRecord(record) {
   const profile = profiles[primaryFrequency];
   const createdAt = record.createdAt || nowStamp();
   const updatedAt = record.updatedAt || createdAt;
-  const discordRoute = record.discordRoute || (record.attentionStatus === "DO NOT SUSTAIN EYE CONTACT" ? triageDiscordUrl : passDiscordUrl);
+  const unstableRoute = record.attentionStatus === "DO NOT SUSTAIN EYE CONTACT" || record.stabilityState === "TRIAGE RECOMMENDED" || record.accessLevel === "REDACTED";
+  const storedDiscordRoute = record.discordRoute && !legacyDiscordRoutes.has(record.discordRoute) ? record.discordRoute : null;
+  const discordRoute = storedDiscordRoute || getDiscordRoute(primaryFrequency, unstableRoute);
 
   return {
     operatorRecordVersion,
@@ -434,7 +456,7 @@ function buildIntakeResult() {
     attentionStatus: attentionCopy[risk],
     stabilityState: determineStabilityState({ frequency, action: action.value, risk }),
     accessLevel: determineAccessLevel({ frequency, action: action.value, risk }),
-    discordRoute: risk === "CLAIMED" ? triageDiscordUrl : passDiscordUrl
+    discordRoute: getDiscordRoute(frequency, risk === "CLAIMED")
   };
 }
 
