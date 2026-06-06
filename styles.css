@@ -552,8 +552,27 @@ footer {
   width: 100%;
   margin-top: 0;
 }
+.route-actions {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+.route-restart {
+  justify-self: end;
+  min-height: 2.35rem;
+  padding: .55rem .72rem;
+  font-size: .68rem;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
 @media (max-width: 900px) {
   .returning-actions,
-  .route-actions,
   .compact-record-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .route-actions {
+    grid-template-columns: 1fr auto;
+  }
+  .route-restart {
+    padding-inline: .62rem;
+  }
 }

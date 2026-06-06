@@ -927,6 +927,7 @@ function typeResultLines(lines, claimed, record) {
   function appendRouteButtons() {
     const routeWrap = document.createElement("div");
     const operatorRoute = document.createElement("a");
+    const restartButton = document.createElement("button");
 
     routeWrap.className = "route-actions";
     operatorRoute.className = `button ${claimed ? "ghost" : "primary"} discord-route`;
@@ -936,7 +937,14 @@ function typeResultLines(lines, claimed, record) {
     operatorRoute.textContent = claimed ? "Open Triage Channel" : "Open Operator Channel";
     operatorRoute.addEventListener("click", () => recordArchiveInteraction(claimed ? "triageChannel" : "operatorChannel"));
 
-    routeWrap.append(operatorRoute);
+    restartButton.className = "button ghost route-restart";
+    restartButton.type = "button";
+    restartButton.textContent = "Restart";
+    restartButton.setAttribute("aria-label", "Restart intake");
+    restartButton.title = "Restart intake";
+    restartButton.addEventListener("click", resetIntake);
+
+    routeWrap.append(operatorRoute, restartButton);
     result.appendChild(routeWrap);
   }
 
