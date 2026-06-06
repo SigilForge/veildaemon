@@ -217,6 +217,10 @@ h1 {
   background: rgba(0,0,0,.7);
   box-shadow: 0 0 30px rgba(102,255,220,.08);
 }
+.transmission-toggle {
+  width: min(100%, 22rem);
+  margin-bottom: .85rem;
+}
 .video-frame iframe {
   position: absolute;
   inset: 0;

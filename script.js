@@ -50,7 +50,7 @@ const intakeQuestions = [
   {
     id: "noticed",
     step: "01 // SIGNAL ORIGIN",
-    prompt: "What did you notice first?",
+    prompt: "You noticed reality behaving incorrectly. Otherwise you would not be here. What did you notice first?",
     options: [
       { label: "A reflection moved wrong.", value: "Dream", warning: "Do not correct delayed reflections." },
       { label: "A voice or signal answered back.", value: "Empyrean", warning: "Do not answer voices using your name twice." },
@@ -91,7 +91,7 @@ const intakeState = {
   isTyping: false
 };
 
-const shadeIntro = "Hello. My name is Shade. You have been observed noticing. This is not recruitment. It is triage. Continue? Denial is not a supported answer.";
+const shadeIntro = "Hello. My name is Shade. This intake routes new observers into the VeilCorp Archives. It is not a personality test. It is not about one video. You noticed reality behaving incorrectly. Otherwise you would not be here. Continue? Denial is not a supported answer.";
 let typingTimer = null;
 
 function clearTypingTimer() {
@@ -354,6 +354,16 @@ function resetIntake() {
   typeShadeIntro();
 }
 
+function openTransmissionViewer() {
+  const toggle = document.getElementById("open-transmission");
+  const video = document.getElementById("primary-feed-video");
+
+  video.hidden = false;
+  toggle.setAttribute("aria-expanded", "true");
+  toggle.textContent = "Transmission Viewer Open";
+}
+
 document.getElementById("start-intake").addEventListener("click", openIntake);
 document.getElementById("answer-panel").addEventListener("click", selectAnswer);
 document.getElementById("reset-intake").addEventListener("click", resetIntake);
+document.getElementById("open-transmission").addEventListener("click", openTransmissionViewer);
