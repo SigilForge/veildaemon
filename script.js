@@ -18,7 +18,10 @@ const unstableFrequencyDiscordRoutes = {
   Empyrean: "https://discord.gg/yWMwM7h6yF",
   Becoming: "https://discord.gg/tGqacRrTqx"
 };
-const legacyDiscordRoutes = new Set(["https://discord.gg/Bn6attnYN6", "https://discord.gg/KRbckpfTQk"]);
+const currentDiscordRoutes = new Set([
+  ...Object.values(frequencyDiscordRoutes),
+  ...Object.values(unstableFrequencyDiscordRoutes)
+]);
 
 function getDiscordRoute(frequency, unstable = false) {
   const routeMap = unstable ? unstableFrequencyDiscordRoutes : frequencyDiscordRoutes;
@@ -328,7 +331,7 @@ function normalizeOperatorRecord(record) {
   const createdAt = record.createdAt || nowStamp();
   const updatedAt = record.updatedAt || createdAt;
   const unstableRoute = record.attentionStatus === "DO NOT SUSTAIN EYE CONTACT" || record.stabilityState === "TRIAGE RECOMMENDED" || record.accessLevel === "REDACTED";
-  const storedDiscordRoute = record.discordRoute && !legacyDiscordRoutes.has(record.discordRoute) ? record.discordRoute : null;
+  const storedDiscordRoute = currentDiscordRoutes.has(record.discordRoute) ? record.discordRoute : null;
   const discordRoute = storedDiscordRoute || getDiscordRoute(primaryFrequency, unstableRoute);
 
   return {
@@ -881,7 +884,7 @@ function showIntakeResult() {
       { text: `ARCHIVE FLAGS: ${record.archiveFlags.slice(0, 3).join(" // ")}` },
       { text: `RELATED RECORDS AVAILABLE: ${record.relatedRecords.slice(0, 3).join(" // ")}` },
       { text: `RECOMMENDED TRAINING: ${record.recommendedTraining}` },
-      { text: "NEXT ROUTE: Continue to Archive" },
+      { text: result.claimed ? "NEXT ROUTE: Open Triage Channel" : "NEXT ROUTE: Open Operator Channel" },
       { text: `WARNING: ${result.warning}`, className: "risk" },
       {
         text: result.claimed
@@ -923,17 +926,9 @@ function typeResultLines(lines, claimed, record) {
 
   function appendRouteButtons() {
     const routeWrap = document.createElement("div");
-    const archiveRoute = document.createElement("a");
     const operatorRoute = document.createElement("a");
 
     routeWrap.className = "route-actions";
-    archiveRoute.className = "button primary discord-route";
-    archiveRoute.href = record.archiveRoute;
-    archiveRoute.target = "_blank";
-    archiveRoute.rel = "noopener noreferrer";
-    archiveRoute.textContent = "Continue to Archive";
-    archiveRoute.addEventListener("click", () => recordArchiveInteraction("archive"));
-
     operatorRoute.className = `button ${claimed ? "ghost" : "primary"} discord-route`;
     operatorRoute.href = record.discordRoute;
     operatorRoute.target = "_blank";
@@ -941,7 +936,7 @@ function typeResultLines(lines, claimed, record) {
     operatorRoute.textContent = claimed ? "Open Triage Channel" : "Open Operator Channel";
     operatorRoute.addEventListener("click", () => recordArchiveInteraction(claimed ? "triageChannel" : "operatorChannel"));
 
-    routeWrap.append(archiveRoute, operatorRoute);
+    routeWrap.append(operatorRoute);
     result.appendChild(routeWrap);
   }
 
