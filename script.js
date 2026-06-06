@@ -354,16 +354,17 @@ function resetIntake() {
   typeShadeIntro();
 }
 
-function openTransmissionViewer() {
+function toggleTransmissionViewer() {
   const toggle = document.getElementById("open-transmission");
   const video = document.getElementById("primary-feed-video");
+  const isOpen = !video.hidden;
 
-  video.hidden = false;
-  toggle.setAttribute("aria-expanded", "true");
-  toggle.textContent = "Transmission Viewer Open";
+  video.hidden = isOpen;
+  toggle.setAttribute("aria-expanded", String(!isOpen));
+  toggle.textContent = isOpen ? "Open Transmission Viewer" : "Collapse Transmission Viewer";
 }
 
 document.getElementById("start-intake").addEventListener("click", openIntake);
 document.getElementById("answer-panel").addEventListener("click", selectAnswer);
 document.getElementById("reset-intake").addEventListener("click", resetIntake);
-document.getElementById("open-transmission").addEventListener("click", openTransmissionViewer);
+document.getElementById("open-transmission").addEventListener("click", toggleTransmissionViewer);

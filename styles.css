@@ -153,6 +153,7 @@ h1 {
   margin-top: 1.5rem;
 }
 .button {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -168,14 +169,34 @@ h1 {
   border: 1px solid rgba(138,255,219,.34);
   background: rgba(0,0,0,.42);
   box-shadow: inset 0 0 22px rgba(102,255,220,.06);
-  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
   cursor: pointer;
   font: inherit;
+}
+.button::after {
+  content: "";
+  position: absolute;
+  inset: -35% -80%;
+  background: linear-gradient(100deg, transparent 35%, rgba(102,255,220,.24) 50%, transparent 65%);
+  transform: translateX(-55%) skewX(-14deg);
+  opacity: 0;
+  pointer-events: none;
 }
 .button:hover, .button:focus-visible {
   transform: translateY(-2px);
   border-color: rgba(102,255,220,.88);
   box-shadow: 0 0 22px rgba(102,255,220,.18), inset 0 0 22px rgba(185,84,255,.1);
+}
+.button:hover::after,
+.button:focus-visible::after {
+  animation: buttonScan .72s ease-out;
+  opacity: 1;
+}
+.button:active {
+  transform: translateY(0) scale(.985);
+  border-color: rgba(185,84,255,.72);
 }
 .button.primary {
   color: #03100d;
@@ -184,6 +205,10 @@ h1 {
   font-weight: 800;
 }
 .button.ghost { border-color: rgba(185,84,255,.42); color: #e8d5ff; }
+@keyframes buttonScan {
+  from { transform: translateX(-55%) skewX(-14deg); }
+  to { transform: translateX(55%) skewX(-14deg); }
+}
 
 .feed {
   margin-top: 1.5rem;
@@ -392,4 +417,17 @@ footer {
 @media (max-width: 900px) {
   .answer-panel { grid-template-columns: 1fr; }
   .intake-actions { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  .answer-choice,
+  .intake,
+  .type-cursor {
+    animation: none;
+    transition: none;
+  }
+  .button:hover::after,
+  .button:focus-visible::after {
+    animation: none;
+  }
 }
