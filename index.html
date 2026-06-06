@@ -13,7 +13,7 @@
   <meta name="theme-color" content="#050709" />
   <link rel="icon" type="image/png" href="Cradlepoint%20Flavicon.png" />
   <link rel="preload" href="assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="styles.css?v=20260605-toggle1" />
+  <link rel="stylesheet" href="styles.css?v=20260606-state1" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -39,9 +39,9 @@
       </div>
 
       <nav class="actions" aria-label="Archive routes">
-        <a class="button primary" href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer">Read The Archive</a>
+        <a class="button primary" id="archive-route" href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer">Read The Archive</a>
         <button class="button" type="button" id="start-intake" aria-controls="intake-node" aria-expanded="false">Begin Operator Intake</button>
-        <a class="button" href="https://the-cradlepoint-archives.itch.io/needlepoint" target="_blank" rel="noopener noreferrer">Play The Case File</a>
+        <a class="button" id="case-file-route" href="https://the-cradlepoint-archives.itch.io/needlepoint" target="_blank" rel="noopener noreferrer">Play The Case File</a>
       </nav>
 
       <section class="intake" id="intake-node" aria-label="Operator Intake Node" tabindex="-1" hidden>
@@ -58,13 +58,73 @@
             <p class="intake-step" id="intake-step">INTAKE STATUS: WAITING</p>
             <p class="ai-line" id="ai-line"><span class="prompt">&gt;</span> Press Start Intake to open the question channel.</p>
           </div>
+          <section class="returning-operator" id="returning-operator" aria-label="Returning operator record" hidden>
+            <div class="record-header">
+              <div>
+                <p class="kicker">RETURNING OPERATOR DETECTED</p>
+                <h3>LOCAL RECORD FOUND</h3>
+              </div>
+              <p class="record-badge">NO EXTERNAL ACCOUNT DETECTED</p>
+            </div>
+            <div class="record-grid compact-record-grid">
+              <div><span>DESIGNATION</span><strong id="returning-designation">PENDING</strong></div>
+              <div><span>PRIMARY FREQUENCY</span><strong id="returning-frequency">PENDING</strong></div>
+              <div><span>ATTENTION STATUS</span><strong id="returning-attention">PENDING</strong></div>
+              <div><span>ACCESS LEVEL</span><strong id="returning-access">PENDING</strong></div>
+              <div><span>FILES REVIEWED</span><strong id="returning-files">0</strong></div>
+              <div><span>INCIDENT REFERENCES</span><strong id="returning-incidents">0</strong></div>
+              <div><span>LAST ACTIVITY</span><strong id="returning-last-activity">PENDING</strong></div>
+            </div>
+            <p class="local-note">This browser remembers your intake state. Welcome back. Purge only removes the local browser record.</p>
+            <div class="returning-actions">
+              <button class="button primary" type="button" id="resume-record">Resume Record</button>
+              <button class="button" type="button" id="reclassify-record">Reclassify</button>
+              <button class="button ghost" type="button" id="returning-purge-record">Purge Local Record</button>
+            </div>
+          </section>
           <div class="answer-panel" id="answer-panel" aria-label="Answer choices"></div>
           <div class="intake-result" id="intake-result"></div>
+          <section class="operator-record" id="operator-record" aria-label="Operator record" hidden>
+            <div class="record-header">
+              <div>
+                <p class="kicker">OPERATOR RECORD // LOCAL NODE MEMORY</p>
+                <h3 id="record-designation">DESIGNATION PENDING</h3>
+              </div>
+              <p class="record-badge" id="record-access">ACCESS: UNASSIGNED</p>
+            </div>
+            <div class="record-grid" id="record-grid"></div>
+            <details class="record-details" open>
+              <summary>Drift / observed traits</summary>
+              <div class="record-log" id="record-drift-list"></div>
+            </details>
+            <details class="record-details">
+              <summary>Local state</summary>
+              <div class="record-grid compact-record-grid" id="record-meta"></div>
+            </details>
+            <details class="record-details" open>
+              <summary>Archive flags</summary>
+              <div class="record-log" id="record-flags-list"></div>
+            </details>
+            <details class="record-details">
+              <summary>Incident exposure</summary>
+              <div class="record-log" id="record-exposure-list"></div>
+            </details>
+            <details class="record-details">
+              <summary>Related records</summary>
+              <div class="record-log" id="record-related-list"></div>
+            </details>
+            <details class="record-details">
+              <summary>Classification history</summary>
+              <div class="record-log" id="record-history-list" aria-label="Classification history"></div>
+            </details>
+          </section>
         </div>
 
         <div class="intake-actions">
           <button class="button" type="button" id="reset-intake">Restart Intake</button>
+          <button class="button ghost" type="button" id="purge-record">Purge Local Record</button>
         </div>
+        <p class="local-note">Purge only removes the local browser record. No external account detected.</p>
       </section>
 
       <section class="feed" aria-label="Primary Feed latest transmission">
@@ -103,6 +163,6 @@
       </footer>
     </section>
   </main>
-  <script src="script.js?v=20260605-toggle1"></script>
+  <script src="script.js?v=20260606-state1"></script>
 </body>
 </html>
