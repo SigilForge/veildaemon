@@ -582,6 +582,8 @@ function formatDrift(record) {
 
 function renderOperatorRecord(record) {
   const recordPanel = document.getElementById("operator-record");
+  const purgeButton = document.getElementById("purge-record");
+  const purgeNote = document.getElementById("purge-record-note");
   const recordGrid = document.getElementById("record-grid");
   const recordMeta = document.getElementById("record-meta");
   const driftList = document.getElementById("record-drift-list");
@@ -592,6 +594,8 @@ function renderOperatorRecord(record) {
 
   if (!record) {
     recordPanel.hidden = true;
+    purgeButton.hidden = true;
+    purgeNote.hidden = true;
     return;
   }
 
@@ -636,6 +640,8 @@ function renderOperatorRecord(record) {
   });
 
   recordPanel.hidden = false;
+  purgeButton.hidden = false;
+  purgeNote.hidden = false;
 }
 
 function addRecordField(parent, label, value) {

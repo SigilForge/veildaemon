@@ -122,9 +122,9 @@
 
         <div class="intake-actions">
           <button class="button" type="button" id="reset-intake">Restart Intake</button>
-          <button class="button ghost" type="button" id="purge-record">Purge Local Record</button>
+          <button class="button ghost" type="button" id="purge-record" hidden>Purge Local Record</button>
         </div>
-        <p class="local-note">Purge only removes the local browser record. No external account detected.</p>
+        <p class="local-note" id="purge-record-note" hidden>Purge only removes the local browser record. No external account detected.</p>
       </section>
 
       <section class="feed" aria-label="Primary Feed latest transmission">
@@ -163,6 +163,6 @@
       </footer>
     </section>
   </main>
-  <script src="script.js?v=20260606-resultactions1"></script>
+  <script src="script.js?v=20260606-resultactions2"></script>
 </body>
 </html>
