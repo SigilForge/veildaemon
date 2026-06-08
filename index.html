@@ -4,16 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>VEILDAEMON // Interface Active</title>
-  <meta name="description" content="VeilDaemon is Shade's pre-foundation intake interface for VeilCorp, an emergency-response system booting before authorization is complete." />
+  <meta name="description" content="VeilDaemon is Shade's intake interface for VeilCorp, an emergency-response node that came online before approval was complete." />
   <meta property="og:title" content="VEILDAEMON // Interface Active" />
-  <meta property="og:description" content="We noticed you noticing. Intake procedures activated before human authorization completed." />
+  <meta property="og:description" content="We noticed you noticing. Intake procedures activated before human authorization was complete." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://veildaemon.app/" />
   <meta property="og:image" content="https://veildaemon.app/assets/background.jpg" />
   <meta name="theme-color" content="#050709" />
   <link rel="icon" type="image/png" href="Cradlepoint%20Flavicon.png" />
   <link rel="preload" href="assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="styles.css?v=20260608-purgeidle1" />
+  <link rel="stylesheet" href="styles.css?v=20260608-starthere1" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -38,11 +38,12 @@
         <p><span class="prompt">&gt;</span> Observation creates relevance. Continued attention may require classification.</p>
       </div>
 
-      <nav class="actions" aria-label="Archive routes">
-        <a class="button primary" id="archive-route" href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer">Read The Archive</a>
-        <button class="button" type="button" id="start-intake" aria-controls="intake-node" aria-expanded="false">Begin Operator Intake</button>
-        <a class="button" id="case-file-route" href="https://the-cradlepoint-archives.itch.io/needlepoint" target="_blank" rel="noopener noreferrer">Play The Case File</a>
+      <nav class="actions" aria-label="First contact routes">
+        <button class="button primary start-route" type="button" id="start-intake" aria-controls="intake-node" aria-expanded="false">Start Here: Begin Operator Intake</button>
+        <a class="button" id="case-file-route" href="https://the-cradlepoint-archives.itch.io/needlepoint" target="_blank" rel="noopener noreferrer">Play Case File</a>
+        <a class="button" id="archive-route" href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer">Read Archive</a>
       </nav>
+      <p class="route-hint"><span class="prompt">&gt;</span> If you are uncertain where to begin, begin with intake. Uncertainty is a valid signal.</p>
 
       <section class="intake" id="intake-node" aria-label="Operator Intake Node" tabindex="-1" hidden>
         <div class="feed-header">

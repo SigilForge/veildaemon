@@ -151,9 +151,19 @@ h1 {
 .prompt { color: var(--purple); }
 .actions {
   display: grid;
-  grid-template-columns: 1.35fr 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: .7rem;
   margin-top: 1.5rem;
+}
+.start-route {
+  grid-column: 1 / -1;
+  min-height: 3.8rem;
+}
+.route-hint {
+  margin: .75rem 0 0;
+  color: #d7fff4;
+  font-size: .88rem;
+  line-height: 1.45;
 }
 .button {
   --button-idle-border: rgba(138,255,219,.34);
