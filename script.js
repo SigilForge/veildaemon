@@ -794,9 +794,18 @@ function openIntake() {
   const intake = document.getElementById("intake-node");
   const startButton = document.getElementById("start-intake");
 
+  if (!intake.hidden) {
+    clearTypingTimer();
+    intakeState.isTyping = false;
+    intake.hidden = true;
+    startButton.setAttribute("aria-expanded", "false");
+    startButton.textContent = "Start Here: Begin Operator Intake";
+    return;
+  }
+
   intake.hidden = false;
   startButton.setAttribute("aria-expanded", "true");
-  startButton.textContent = "Intake Open";
+  startButton.textContent = "Collapse Operator Intake";
   intakeState.returningDecisionMade = false;
   intakeState.record = markRecordSeen(readOperatorRecord());
   typeShadeIntro();
@@ -816,6 +825,22 @@ function keepIntakeVisible(intake) {
 
     if (!visibleTop || !visibleBottom) {
       intake.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  });
+}
+
+function keepResultTailVisible(target) {
+  if (!window.requestAnimationFrame || !target || !target.getBoundingClientRect) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    const rect = target.getBoundingClientRect();
+    const safeBottom = window.innerHeight * 0.84;
+
+    if (rect.bottom > safeBottom || rect.top < 0) {
+      const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      target.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "end" });
     }
   });
 }
@@ -929,6 +954,7 @@ function typeResultLines(lines, claimed, record) {
 
     paragraph.append(prompt, text);
     result.appendChild(paragraph);
+    keepResultTailVisible(paragraph);
     return text;
   }
 
@@ -954,6 +980,7 @@ function typeResultLines(lines, claimed, record) {
 
     routeWrap.append(operatorRoute, restartButton);
     result.appendChild(routeWrap);
+    keepResultTailVisible(routeWrap);
   }
 
   function typeNextResultCharacter() {
@@ -971,6 +998,7 @@ function typeResultLines(lines, claimed, record) {
     }
 
     lineIndex += 1;
+    keepResultTailVisible(activeText.parentElement);
     activeText = null;
 
     if (lineIndex < lines.length) {
