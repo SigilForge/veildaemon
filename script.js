@@ -595,6 +595,7 @@ function renderOperatorRecord(record) {
   if (!record) {
     recordPanel.hidden = true;
     purgeButton.hidden = true;
+    purgeButton.disabled = true;
     purgeNote.hidden = true;
     return;
   }
@@ -641,6 +642,7 @@ function renderOperatorRecord(record) {
 
   recordPanel.hidden = false;
   purgeButton.hidden = false;
+  purgeButton.disabled = false;
   purgeNote.hidden = false;
 }
 

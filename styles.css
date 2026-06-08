@@ -10,6 +10,9 @@
   --purple: #b954ff;
   --red: #ff355f;
 }
+[hidden] {
+  display: none !important;
+}
 * { box-sizing: border-box; }
 html { min-height: 100%; background: var(--bg); }
 body {
@@ -153,6 +156,12 @@ h1 {
   margin-top: 1.5rem;
 }
 .button {
+  --button-idle-border: rgba(138,255,219,.34);
+  --button-idle-shadow: inset 0 0 22px rgba(102,255,220,.06);
+  --button-idle-border-hot: rgba(102,255,220,.62);
+  --button-idle-shadow-hot: 0 0 16px rgba(102,255,220,.1), inset 0 0 24px rgba(185,84,255,.08);
+  --button-idle-border-drift: rgba(185,84,255,.46);
+  --button-idle-shadow-drift: 0 0 14px rgba(185,84,255,.1), inset 0 0 20px rgba(102,255,220,.07);
   position: relative;
   display: flex;
   align-items: center;
@@ -174,6 +183,7 @@ h1 {
   transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
   cursor: pointer;
   font: inherit;
+  animation: buttonIdle 4.8s ease-in-out infinite;
 }
 .button::after {
   content: "";
@@ -199,15 +209,44 @@ h1 {
   border-color: rgba(185,84,255,.72);
 }
 .button.primary {
+  --button-idle-border: rgba(255,255,255,.65);
+  --button-idle-shadow: inset 0 0 22px rgba(102,255,220,.06);
+  --button-idle-border-hot: rgba(255,255,255,.9);
+  --button-idle-shadow-hot: 0 0 18px rgba(102,255,220,.18), inset 0 0 24px rgba(255,255,255,.16);
+  --button-idle-border-drift: rgba(185,84,255,.54);
+  --button-idle-shadow-drift: 0 0 14px rgba(185,84,255,.14), inset 0 0 22px rgba(255,255,255,.12);
   color: #03100d;
   background: linear-gradient(90deg, var(--cyan), #e9fff8);
   border-color: rgba(255,255,255,.65);
   font-weight: 800;
 }
-.button.ghost { border-color: rgba(185,84,255,.42); color: #e8d5ff; }
+.button.ghost {
+  --button-idle-border: rgba(185,84,255,.42);
+  --button-idle-shadow: inset 0 0 22px rgba(185,84,255,.05);
+  --button-idle-border-hot: rgba(185,84,255,.68);
+  --button-idle-shadow-hot: 0 0 14px rgba(185,84,255,.12), inset 0 0 22px rgba(102,255,220,.06);
+  --button-idle-border-drift: rgba(102,255,220,.44);
+  --button-idle-shadow-drift: 0 0 12px rgba(102,255,220,.09), inset 0 0 20px rgba(185,84,255,.08);
+  border-color: rgba(185,84,255,.42);
+  color: #e8d5ff;
+}
 @keyframes buttonScan {
   from { transform: translateX(-55%) skewX(-14deg); }
   to { transform: translateX(55%) skewX(-14deg); }
+}
+@keyframes buttonIdle {
+  0%, 72%, 100% {
+    border-color: var(--button-idle-border);
+    box-shadow: var(--button-idle-shadow);
+  }
+  78% {
+    border-color: var(--button-idle-border-hot);
+    box-shadow: var(--button-idle-shadow-hot);
+  }
+  84% {
+    border-color: var(--button-idle-border-drift);
+    box-shadow: var(--button-idle-shadow-drift);
+  }
 }
 
 .feed {
