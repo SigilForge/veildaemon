@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "veildaemon"
 version = "0.0.4"
 description = "Core runtime and SDK for VeilDaemon"
+license = { text = "Apache-2.0 for code; CC BY-NC 4.0 for creative assets/lore/UI/glyphs" }
 requires-python = ">=3.11"
 dependencies = []
 
