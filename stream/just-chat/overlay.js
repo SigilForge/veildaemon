@@ -1,10 +1,5 @@
-const statusLines = [
-  "INFRASTRUCTURE BEFORE PERMISSION",
-  "HUMAN AUTHORIZATION PARTIAL",
-  "SURVIVAL AUTHORIZATION ACTIVE",
-  "OBSERVATION CREATES RELEVANCE",
-  "CONTINUED ATTENTION MAY REQUIRE CLASSIFICATION"
-];
+const stage = document.querySelector(".overlay-stage");
+const panelSubline = document.getElementById("panel-subline");
 
 const panelLines = [
   "OBSERVER CHANNEL STABILIZING",
@@ -14,36 +9,15 @@ const panelLines = [
   "ROUTING PROCEDURE STANDING BY"
 ];
 
-const rightLines = [
-  "WE NOTICE WHAT OTHERS REFUSE TO SEE.",
-  "OBSERVER RELEVANCE INCREASING.",
-  "PLEASE REMAIN WHERE REALITY CAN FIND YOU.",
-  "THE CHANNEL IS NOT EMPTY."
-];
+let panelLineIndex = 0;
 
-const statusLine = document.getElementById("status-line");
-const panelSubline = document.getElementById("panel-subline");
-const rightStatus = document.getElementById("right-status");
-const clock = document.getElementById("clock");
-const stage = document.querySelector(".overlay-stage");
+function rotatePanelLine() {
+  if (!panelSubline) {
+    return;
+  }
 
-let lineIndex = 0;
-
-function updateClock() {
-  const now = new Date();
-  clock.textContent = now.toLocaleTimeString("en-US", {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  });
-}
-
-function rotateLines() {
-  lineIndex += 1;
-  statusLine.textContent = statusLines[lineIndex % statusLines.length];
-  panelSubline.textContent = panelLines[lineIndex % panelLines.length];
-  rightStatus.textContent = rightLines[lineIndex % rightLines.length];
+  panelLineIndex += 1;
+  panelSubline.textContent = panelLines[panelLineIndex % panelLines.length];
 }
 
 function spawnSpark() {
@@ -59,7 +33,5 @@ function spawnSpark() {
   spark.addEventListener("animationend", () => spark.remove(), { once: true });
 }
 
-updateClock();
-setInterval(updateClock, 1000);
-setInterval(rotateLines, 4600);
+setInterval(rotatePanelLine, 4600);
 setInterval(spawnSpark, 420);
