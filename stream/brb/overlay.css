@@ -274,25 +274,25 @@ body {
 .camera-sweep::after {
   content: "";
   position: absolute;
-  inset: 5%;
+  inset: 3%;
   border-radius: 50%;
   background:
-    radial-gradient(ellipse at 34% 54%, rgba(216, 180, 254, 0.36), transparent 30%),
-    radial-gradient(ellipse at 66% 40%, rgba(102, 247, 231, 0.22), transparent 28%),
-    radial-gradient(ellipse at 50% 68%, rgba(168, 85, 255, 0.24), transparent 26%),
-    conic-gradient(from 40deg, transparent 0 12%, rgba(168, 85, 255, 0.28) 24%, transparent 39% 51%, rgba(216, 180, 254, 0.24) 66%, transparent 84% 100%);
-  filter: blur(9px);
-  mix-blend-mode: screen;
-  opacity: 0.68;
-  animation: circleSmoke 11s ease-in-out infinite;
+    radial-gradient(ellipse at 32% 54%, rgba(216, 180, 254, 0.58), transparent 32%),
+    radial-gradient(ellipse at 66% 40%, rgba(102, 247, 231, 0.34), transparent 30%),
+    radial-gradient(ellipse at 50% 68%, rgba(168, 85, 255, 0.42), transparent 30%),
+    conic-gradient(from 40deg, transparent 0 10%, rgba(168, 85, 255, 0.42) 24%, transparent 40% 50%, rgba(216, 180, 254, 0.36) 66%, transparent 86% 100%);
+  filter: blur(6px);
+  mix-blend-mode: lighten;
+  opacity: 0.95;
+  animation: circleSmoke 8s ease-in-out infinite;
 }
 
 .camera-sweep::after {
-  inset: 11%;
-  opacity: 0.5;
-  filter: blur(14px);
+  inset: 8%;
+  opacity: 0.72;
+  filter: blur(10px);
   transform: scale(1.12);
-  animation: circleSmokeAlt 15s ease-in-out infinite reverse;
+  animation: circleSmokeAlt 11s ease-in-out infinite reverse;
 }
 
 .orbit {
@@ -710,14 +710,14 @@ body {
 }
 
 .brb-mode .node-standby {
-  left: 54.6%;
+  left: 54.5%;
   top: 7.7%;
   background: var(--violet-bright);
   box-shadow: 0 0 12px rgba(216, 180, 254, 0.86);
 }
 
 .brb-mode .pulse-two {
-  left: 73.53%;
+  left: 73.63%;
   top: 91.49%;
 }
 
