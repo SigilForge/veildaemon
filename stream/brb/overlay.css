@@ -101,10 +101,10 @@ body {
   left: 58.35%;
   top: -18%;
   width: 1.1%;
-  height: 104%;
+  height: 96%;
   background:
     linear-gradient(90deg, transparent, rgba(216, 180, 254, 0.82), rgba(102, 247, 231, 0.42), transparent),
-    linear-gradient(180deg, rgba(216, 180, 254, 0.12) 0%, rgba(216, 180, 254, 0.84) 26%, rgba(168, 85, 255, 0.3) 70%, transparent 100%);
+    linear-gradient(180deg, rgba(216, 180, 254, 0.12) 0%, rgba(216, 180, 254, 0.84) 26%, rgba(168, 85, 255, 0.26) 66%, transparent 100%);
   filter: blur(1px);
   mix-blend-mode: screen;
   opacity: 0.56;
@@ -673,7 +673,24 @@ body {
 
 .brb-mode .tower-beam {
   left: 58.15%;
-  top: -20%;
+  top: -18%;
   width: 1.18%;
-  height: 112%;
+  height: 96%;
+}
+
+.brb-mode .tower-stack {
+  border-bottom: 0;
+}
+
+.brb-mode .signal-load {
+  height: 4px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.brb-mode .signal-load::before {
+  inset: 0;
+  height: 2px;
+  top: 1px;
 }
