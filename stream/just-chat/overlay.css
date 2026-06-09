@@ -46,7 +46,6 @@ body {
 .tower-beam,
 .scanline,
 .glitch-band,
-.crossroads-blink,
 .left-signal,
 .text-glint,
 .camera-sweep,
@@ -162,21 +161,6 @@ body {
   animation: glitchBlink 9.5s steps(1, end) infinite reverse;
 }
 
-.crossroads-blink {
-  left: 5.8%;
-  top: 56.4%;
-  width: 12.6%;
-  height: 7.8%;
-  background:
-    radial-gradient(circle at 8% 18%, rgba(216, 180, 254, 0.95) 0 2px, transparent 6px),
-    radial-gradient(circle at 88% 72%, rgba(168, 85, 255, 0.9) 0 2px, transparent 6px),
-    linear-gradient(90deg, transparent, rgba(216, 180, 254, 0.28), transparent);
-  box-shadow: 0 0 18px rgba(168, 85, 255, 0.44);
-  mix-blend-mode: screen;
-  opacity: 0;
-  animation: signBlink 3.8s steps(1, end) infinite;
-}
-
 .left-signal {
   display: flex;
   align-items: end;
@@ -228,16 +212,9 @@ body {
   width: 15%;
 }
 
-.glint-crossroads {
-  left: 5.7%;
-  top: 59.6%;
-  width: 10.2%;
-  animation-delay: -1.7s;
-}
-
 .glint-header-a {
   left: 70.4%;
-  top: 16.6%;
+  top: 15.9%;
   width: 10%;
   animation-delay: -2.9s;
 }
@@ -349,10 +326,11 @@ body {
 }
 
 .red-dot {
-  display: inline-block;
-  width: 0.62em;
-  height: 0.62em;
-  margin-right: 0.75em;
+  position: absolute;
+  left: 6.5%;
+  top: 4.2%;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--red);
   box-shadow: 0 0 12px var(--red);
@@ -371,10 +349,10 @@ body {
 }
 
 .right-diagnostic {
-  left: 93.4%;
-  top: 18%;
-  width: 5%;
-  min-width: 62px;
+  left: 1.85%;
+  top: 28.8%;
+  width: 6.4%;
+  min-width: 0;
   display: grid;
   justify-items: center;
   gap: 2.1vh;
@@ -399,7 +377,7 @@ body {
   display: flex;
   align-items: end;
   gap: 4px;
-  height: 46px;
+  height: 28px;
 }
 
 .signal-stack span {
@@ -422,9 +400,9 @@ body {
 
 .status-pulse {
   position: absolute;
-  top: 18%;
-  width: 8px;
-  height: 8px;
+  top: 58%;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--cyan);
   box-shadow: 0 0 12px rgba(102, 247, 231, 0.8);
@@ -433,16 +411,18 @@ body {
 }
 
 .pulse-one {
-  left: 52.5%;
+  left: 50.5%;
+  background: var(--red);
+  box-shadow: 0 0 12px rgba(255, 51, 74, 0.86);
 }
 
 .pulse-two {
-  left: 64.8%;
+  left: 62.7%;
   animation-delay: -0.55s;
 }
 
 .pulse-three {
-  left: 79%;
+  left: 75.2%;
   background: var(--violet-bright);
   box-shadow: 0 0 12px rgba(216, 180, 254, 0.82);
   animation-delay: -1.1s;
@@ -531,14 +511,6 @@ body {
   84% { opacity: 0.88; transform: translateX(-1.4%); }
   85% { opacity: 0.16; transform: translateX(0.8%); }
   86% { opacity: 0.72; transform: translateX(0); }
-}
-
-@keyframes signBlink {
-  0%, 64%, 68%, 76%, 100% { opacity: 0; }
-  65% { opacity: 0.82; }
-  66% { opacity: 0.18; }
-  67% { opacity: 0.95; }
-  77% { opacity: 0.36; }
 }
 
 @keyframes signalRise {
