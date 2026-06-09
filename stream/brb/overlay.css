@@ -161,28 +161,28 @@ body {
 
 .barcode-header {
   left: 80%;
-  top: 7.4%;
+  top: 7.15%;
   width: 5.8%;
   height: 3%;
 }
 
 .barcode-left {
   left: 1.85%;
-  top: 29.35%;
+  top: 29.1%;
   width: 6.5%;
   height: 2.2%;
 }
 
 .barcode-right {
   left: 93.8%;
-  top: 70.5%;
+  top: 70.25%;
   width: 4.8%;
   height: 2.4%;
 }
 
 .barcode-bottom {
   left: 91.9%;
-  top: 7.8%;
+  top: 7.55%;
   width: 6.3%;
   height: 2.2%;
 }
@@ -235,28 +235,28 @@ body {
 
 .glint-header-a {
   left: 70.4%;
-  top: 15.9%;
+  top: 15.65%;
   width: 10%;
   animation-delay: -2.9s;
 }
 
 .glint-header-b {
   left: 86.9%;
-  top: 5.5%;
+  top: 5.25%;
   width: 9%;
   animation-delay: -4.1s;
 }
 
 .glint-bottom-a {
   left: 14.4%;
-  top: 88.9%;
+  top: 88.65%;
   width: 25%;
   animation-delay: -3.4s;
 }
 
 .glint-bottom-b {
   left: 88.8%;
-  top: 91%;
+  top: 90.75%;
   width: 6.8%;
   animation-delay: -5.2s;
 }
@@ -480,9 +480,21 @@ body {
 
 #ticker-track {
   display: inline-flex;
-  gap: 72px;
-  min-width: 200%;
-  animation: tickerMove 24s linear infinite, tickerGlitch 4.4s steps(1, end) infinite;
+  gap: 96px;
+  width: max-content;
+  min-width: 220%;
+  will-change: transform, filter;
+  animation: tickerMove 31s linear infinite, tickerGlitch 4.4s steps(1, end) infinite;
+}
+
+.ticker-burst #ticker-track {
+  animation-duration: 31s, 0.34s;
+  filter: brightness(1.8) hue-rotate(18deg);
+  text-shadow: -2px 0 rgba(102, 247, 231, 0.8), 2px 0 rgba(255, 51, 74, 0.54);
+}
+
+#ticker-track span {
+  flex: 0 0 auto;
 }
 
 .spark {
@@ -650,7 +662,7 @@ body {
 }
 
 .brb-mode .pulse-one {
-  left: 65.67%;
+  left: 65.77%;
   top: 91.49%;
   background: var(--violet-bright);
   box-shadow: 0 0 12px rgba(216, 180, 254, 0.86);
@@ -667,7 +679,7 @@ body {
 
 .brb-mode .glint-bottom-a {
   left: 13.8%;
-  top: 88.7%;
+  top: 88.45%;
   width: 25.5%;
 }
 
@@ -676,6 +688,11 @@ body {
   top: -18%;
   width: 1.18%;
   height: 96%;
+}
+
+.brb-mode .camera-sweep {
+  left: 18.72%;
+  top: 12.62%;
 }
 
 .brb-mode .tower-stack {
