@@ -25,9 +25,14 @@ streamdaemon/**
 
 # Secrets
 secrets.json
+secrets.json.enc
+client_secret.json
+veil.config
 *.key
 *.pem
-*.p12# Logs
+*.p12
+
+# Logs
 logs
 *.log
 npm-debug.log*
@@ -198,6 +203,10 @@ eggs/
 pip-wheel-metadata/
 *.whl
 *.spec
+*.zip
+*.7z
+*.tar
+*.tar.gz
 
 # Testing / coverage
 .pytest_cache/
@@ -320,4 +329,3 @@ hrm_core/
 huggingface/
 transformers_cache/
 datasets/
-

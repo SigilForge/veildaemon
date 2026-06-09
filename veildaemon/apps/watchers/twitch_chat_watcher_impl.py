@@ -6,9 +6,9 @@ from pathlib import Path
 # --- CONFIG ---
 HOST = "irc.chat.twitch.tv"
 PORT = 6667
-NICK = "sigilforge"  # Your Twitch username
+NICK = "sigilforge"  # Twitch username
 CHANNEL = "#sigilforge"  # Channel to watch (with #)
-TOKEN = None  # Set your oauth token here or via secrets_store
+TOKEN = None
 
 try:
     from secrets_store import get_secret
@@ -16,14 +16,15 @@ try:
     TOKEN = get_secret("twitch.token")
 except Exception:
     pass
-if not TOKEN:
-    TOKEN = "oauth:YOUR_OAUTH_TOKEN_HERE"  # Replace with your token
 
 LOG_PATH = Path("twitch_chat_log.json")
 
 
 # --- IRC CONNECT ---
 def connect():
+    if not TOKEN:
+        raise RuntimeError("Missing twitch.token; configure it in the local secrets store.")
+
     s = socket.socket()
     s.connect((HOST, PORT))
     s.send(f"PASS {TOKEN}\r\n".encode("utf-8"))

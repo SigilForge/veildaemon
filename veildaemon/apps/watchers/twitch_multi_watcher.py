@@ -12,7 +12,7 @@ from .twitch_auth import get_irc_token, get_nick, helix_get
 HOST = "irc.chat.twitch.tv"
 PORT = 6697  # TLS
 
-TOKEN = get_irc_token() or "oauth:YOUR_OAUTH_TOKEN_HERE"
+TOKEN = get_irc_token()
 NICK = get_nick() or os.getenv("TWITCH_NICK") or "sigilforge"
 
 CHANNELS = ["#xqc", "#pokimane", "#shroud", "#summit1g", "#ninja"]  # Fallback list
@@ -21,6 +21,9 @@ LOG_PATH = Path("twitch_multi_chat_log.json")
 
 
 def connect(channel):
+    if not TOKEN:
+        raise RuntimeError("Missing Twitch IRC token; configure twitch.token in the local secrets store.")
+
     raw = socket.create_connection((HOST, PORT))
     ctx = ssl.create_default_context()
     s = ctx.wrap_socket(raw, server_hostname=HOST)
