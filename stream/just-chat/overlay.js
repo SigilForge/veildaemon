@@ -78,8 +78,8 @@ function spawnSpark() {
   spark.className = "spark";
   spark.style.left = `${8 + Math.random() * 86}%`;
   spark.style.top = `${8 + Math.random() * 82}%`;
-  spark.style.setProperty("--spark-size", `${2 + Math.random() * 3}px`);
-  spark.style.setProperty("--spark-drift", `${18 + Math.random() * 28}px`);
+  spark.style.setProperty("--spark-size", `${3 + Math.random() * 4}px`);
+  spark.style.setProperty("--spark-drift", `${24 + Math.random() * 36}px`);
   stage.appendChild(spark);
   spark.addEventListener("animationend", () => spark.remove(), { once: true });
 }
@@ -88,4 +88,4 @@ refreshTicker();
 setInterval(rotatePanelLine, 4600);
 setInterval(refreshTicker, 7600);
 setInterval(glitchTicker, 2900 + Math.random() * 1400);
-setInterval(spawnSpark, 180);
+setInterval(spawnSpark, 90);
