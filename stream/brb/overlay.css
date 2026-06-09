@@ -710,7 +710,7 @@ body {
 }
 
 .brb-mode .node-standby {
-  left: 54.5%;
+  left: 54.45%;
   top: 7.7%;
   background: var(--violet-bright);
   box-shadow: 0 0 12px rgba(216, 180, 254, 0.86);
