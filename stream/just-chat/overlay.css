@@ -99,15 +99,15 @@ body {
 
 .tower-beam {
   left: 58.35%;
-  top: 8.5%;
+  top: -18%;
   width: 1.1%;
-  height: 68%;
+  height: 104%;
   background:
-    linear-gradient(90deg, transparent, rgba(216, 180, 254, 0.78), rgba(102, 247, 231, 0.38), transparent),
-    linear-gradient(180deg, transparent 0 7%, rgba(216, 180, 254, 0.9), rgba(168, 85, 255, 0.24) 56%, transparent 100%);
+    linear-gradient(90deg, transparent, rgba(216, 180, 254, 0.82), rgba(102, 247, 231, 0.42), transparent),
+    linear-gradient(180deg, rgba(216, 180, 254, 0.12) 0%, rgba(216, 180, 254, 0.84) 26%, rgba(168, 85, 255, 0.3) 70%, transparent 100%);
   filter: blur(1px);
   mix-blend-mode: screen;
-  opacity: 0.48;
+  opacity: 0.56;
   transform-origin: bottom center;
   animation: towerShine 4.8s ease-in-out infinite;
 }
@@ -399,53 +399,92 @@ body {
 
 .signal-strength-bars {
   position: absolute;
-  left: 89.05%;
-  top: 91.02%;
-  width: 6.6%;
-  height: 4.8%;
+  left: 88.9%;
+  top: 88.95%;
+  width: 6.9%;
+  height: 4.35%;
+  display: grid;
+  grid-template-columns: 46% 1fr;
+  align-items: end;
+  gap: 8px;
+  mix-blend-mode: screen;
+  padding: 4px 6px 5px;
+  background: linear-gradient(180deg, rgba(3, 2, 8, 0.12), rgba(102, 247, 231, 0.06));
+  box-shadow: inset 0 -8px 18px rgba(102, 247, 231, 0.08), 0 0 14px rgba(168, 85, 255, 0.12);
+}
+
+.tower-stack {
+  height: 100%;
   display: flex;
   align-items: end;
   justify-content: center;
-  gap: 6px;
-  mix-blend-mode: screen;
-  padding: 4px 5px 5px;
-  border-bottom: 1px solid rgba(102, 247, 231, 0.42);
-  background:
-    linear-gradient(180deg, transparent, rgba(102, 247, 231, 0.08)),
-    repeating-linear-gradient(90deg, transparent 0 8px, rgba(168, 85, 255, 0.12) 8px 9px);
-  box-shadow: inset 0 -8px 18px rgba(102, 247, 231, 0.08);
+  gap: 4px;
+  border-bottom: 1px solid rgba(102, 247, 231, 0.6);
 }
 
-.signal-strength-bars span {
+.tower-stack span {
   display: block;
   width: 7px;
   height: var(--bar);
-  min-height: 10px;
+  min-height: 8px;
   border-radius: 2px 2px 0 0;
   background: linear-gradient(180deg, var(--cyan), var(--violet-bright));
-  box-shadow: 0 0 12px rgba(102, 247, 231, 0.82), 0 0 18px rgba(168, 85, 255, 0.48);
-  opacity: 0.88;
+  box-shadow: 0 0 12px rgba(102, 247, 231, 0.82), 0 0 18px rgba(168, 85, 255, 0.5);
+  opacity: 0.9;
   animation: signalStrength 1.9s ease-in-out infinite;
   animation-delay: calc(var(--bar) * -0.012s);
 }
 
+.signal-load {
+  position: relative;
+  height: 8px;
+  align-self: center;
+  overflow: hidden;
+  border: 1px solid rgba(216, 180, 254, 0.28);
+  background: rgba(4, 2, 10, 0.48);
+  box-shadow: inset 0 0 9px rgba(168, 85, 255, 0.16);
+}
+
+.signal-load::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  width: 46%;
+  background: linear-gradient(90deg, rgba(102, 247, 231, 0.08), rgba(102, 247, 231, 0.82), rgba(216, 180, 254, 0.58));
+  box-shadow: 0 0 10px rgba(102, 247, 231, 0.72);
+  animation: signalLoad 2.2s ease-in-out infinite;
+}
+
 .ticker {
-  left: 1.8%;
-  right: 1.8%;
-  bottom: 0.25%;
-  height: 14px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 18px;
   overflow: hidden;
   color: rgba(216, 180, 254, 0.74);
-  font-size: clamp(7px, 0.52vw, 10px);
+  font-size: clamp(8px, 0.56vw, 11px);
   white-space: nowrap;
   text-shadow: 0 0 8px rgba(168, 85, 255, 0.8);
+  background: linear-gradient(90deg, rgba(5, 2, 10, 0.52), rgba(24, 8, 44, 0.24), rgba(5, 2, 10, 0.52));
+  mix-blend-mode: screen;
+}
+
+.ticker::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 72px, rgba(102, 247, 231, 0.14) 72px 73px),
+    linear-gradient(90deg, transparent, rgba(216, 180, 254, 0.28), transparent);
+  opacity: 0.4;
+  animation: tickerStatic 3.8s steps(2, end) infinite;
 }
 
 #ticker-track {
   display: inline-flex;
-  gap: 60px;
+  gap: 72px;
   min-width: 200%;
-  animation: tickerMove 26s linear infinite;
+  animation: tickerMove 24s linear infinite, tickerGlitch 4.4s steps(1, end) infinite;
 }
 
 .spark {
@@ -529,6 +568,13 @@ body {
   68% { transform: scaleY(0.86); opacity: 0.76; }
 }
 
+@keyframes signalLoad {
+  0% { transform: translateX(-112%); opacity: 0.25; }
+  16% { opacity: 0.92; }
+  72% { opacity: 0.7; }
+  100% { transform: translateX(228%); opacity: 0.2; }
+}
+
 @keyframes barcodeSweep {
   0%, 100% { transform: translateX(-140%); opacity: 0; }
   18% { opacity: 0.86; }
@@ -560,6 +606,18 @@ body {
 @keyframes tickerMove {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
+}
+
+@keyframes tickerGlitch {
+  0%, 76%, 100% { filter: none; text-shadow: 0 0 8px rgba(168, 85, 255, 0.8); }
+  77% { filter: brightness(1.8); text-shadow: -2px 0 rgba(102, 247, 231, 0.82), 2px 0 rgba(255, 51, 74, 0.5); }
+  78% { filter: hue-rotate(28deg); text-shadow: 2px 0 rgba(102, 247, 231, 0.62), -1px 0 rgba(216, 180, 254, 0.72); }
+  79% { filter: none; text-shadow: 0 0 8px rgba(168, 85, 255, 0.8); }
+}
+
+@keyframes tickerStatic {
+  0%, 100% { transform: translateX(-8%); opacity: 0.25; }
+  50% { transform: translateX(8%); opacity: 0.52; }
 }
 
 @keyframes sparkFade {
