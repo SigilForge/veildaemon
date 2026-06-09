@@ -376,7 +376,7 @@ body {
 
 .status-pulse {
   position: absolute;
-  top: 91.49%;
+  top: 91.74%;
   width: 12px;
   height: 12px;
   border-radius: 50%;
@@ -387,18 +387,19 @@ body {
 }
 
 .pulse-one {
-  left: 65.52%;
+  left: 65.62%;
   background: var(--red);
   box-shadow: 0 0 12px rgba(255, 51, 74, 0.86);
 }
 
 .pulse-two {
-  left: 73.63%;
+  left: 73.68%;
   animation-delay: -0.55s;
 }
 
 .pulse-three {
-  left: 87.25%;
+  left: 86.64%;
+  top: 91.86%;
   background: var(--violet-bright);
   box-shadow: 0 0 12px rgba(216, 180, 254, 0.82);
   animation-delay: -1.1s;
