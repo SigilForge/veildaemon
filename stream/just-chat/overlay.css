@@ -42,8 +42,13 @@ body {
 }
 
 .field-pulse,
+.sky-aurora,
+.tower-beam,
 .scanline,
 .glitch-band,
+.crossroads-blink,
+.left-signal,
+.text-glint,
 .camera-sweep,
 .live-panel,
 .right-diagnostic,
@@ -61,6 +66,71 @@ body {
   mix-blend-mode: screen;
   opacity: 0.75;
   animation: fieldBreath 8s ease-in-out infinite;
+}
+
+.sky-aurora {
+  top: 10%;
+  height: 39%;
+  width: 45%;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  filter: blur(18px);
+  opacity: 0.52;
+  pointer-events: none;
+}
+
+.aurora-one {
+  left: 40%;
+  background:
+    radial-gradient(ellipse at 22% 55%, rgba(102, 247, 231, 0.18), transparent 34%),
+    radial-gradient(ellipse at 54% 42%, rgba(216, 180, 254, 0.34), transparent 42%),
+    linear-gradient(95deg, transparent 0 18%, rgba(168, 85, 255, 0.34), transparent 68% 100%);
+  animation: auroraDrift 16s ease-in-out infinite alternate;
+}
+
+.aurora-two {
+  left: 57%;
+  top: 5%;
+  height: 48%;
+  background:
+    radial-gradient(ellipse at 44% 44%, rgba(216, 180, 254, 0.3), transparent 36%),
+    linear-gradient(108deg, transparent 0 28%, rgba(102, 247, 231, 0.14), rgba(168, 85, 255, 0.26), transparent 76% 100%);
+  opacity: 0.38;
+  animation: auroraDrift 22s ease-in-out infinite alternate-reverse;
+}
+
+.tower-beam {
+  left: 58.35%;
+  top: 8.5%;
+  width: 1.1%;
+  height: 68%;
+  background:
+    linear-gradient(90deg, transparent, rgba(216, 180, 254, 0.78), rgba(102, 247, 231, 0.38), transparent),
+    linear-gradient(180deg, transparent 0 7%, rgba(216, 180, 254, 0.9), rgba(168, 85, 255, 0.24) 56%, transparent 100%);
+  filter: blur(1px);
+  mix-blend-mode: screen;
+  opacity: 0.48;
+  transform-origin: bottom center;
+  animation: towerShine 4.8s ease-in-out infinite;
+}
+
+.tower-beam::before,
+.tower-beam::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 28%;
+  width: 720%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(216, 180, 254, 0.86), transparent);
+  transform: translateX(-50%);
+  box-shadow: 0 0 16px rgba(168, 85, 255, 0.78);
+}
+
+.tower-beam::after {
+  top: 62%;
+  width: 460%;
+  opacity: 0.42;
 }
 
 .scanline {
@@ -90,6 +160,107 @@ body {
 .band-b {
   top: 83.5%;
   animation: glitchBlink 9.5s steps(1, end) infinite reverse;
+}
+
+.crossroads-blink {
+  left: 5.8%;
+  top: 56.4%;
+  width: 12.6%;
+  height: 7.8%;
+  background:
+    radial-gradient(circle at 8% 18%, rgba(216, 180, 254, 0.95) 0 2px, transparent 6px),
+    radial-gradient(circle at 88% 72%, rgba(168, 85, 255, 0.9) 0 2px, transparent 6px),
+    linear-gradient(90deg, transparent, rgba(216, 180, 254, 0.28), transparent);
+  box-shadow: 0 0 18px rgba(168, 85, 255, 0.44);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: signBlink 3.8s steps(1, end) infinite;
+}
+
+.left-signal {
+  display: flex;
+  align-items: end;
+  gap: 3px;
+  opacity: 0.62;
+  mix-blend-mode: screen;
+}
+
+.left-signal span {
+  display: block;
+  width: 3px;
+  height: var(--h);
+  min-height: 4px;
+  background: linear-gradient(180deg, rgba(216, 180, 254, 0.95), rgba(168, 85, 255, 0.3));
+  box-shadow: 0 0 8px rgba(168, 85, 255, 0.72);
+  animation: signalRise 1.7s ease-in-out infinite;
+  animation-delay: calc(var(--h) * -0.012s);
+}
+
+.left-signal-primary {
+  left: 1.85%;
+  top: 29.6%;
+  width: 7%;
+  height: 3.2%;
+}
+
+.left-signal-secondary {
+  left: 1.8%;
+  top: 61.1%;
+  width: 6%;
+  height: 2.8%;
+  transform: rotate(90deg);
+  transform-origin: left top;
+  opacity: 0.48;
+}
+
+.text-glint {
+  height: 2.1%;
+  background: linear-gradient(90deg, transparent, rgba(242, 235, 255, 0.8), rgba(168, 85, 255, 0.18), transparent);
+  filter: blur(0.4px);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: textGlint 6.4s steps(1, end) infinite;
+}
+
+.glint-brand {
+  left: 7.2%;
+  top: 5.1%;
+  width: 15%;
+}
+
+.glint-crossroads {
+  left: 5.7%;
+  top: 59.6%;
+  width: 10.2%;
+  animation-delay: -1.7s;
+}
+
+.glint-header-a {
+  left: 70.4%;
+  top: 16.6%;
+  width: 10%;
+  animation-delay: -2.9s;
+}
+
+.glint-header-b {
+  left: 86.9%;
+  top: 5.5%;
+  width: 9%;
+  animation-delay: -4.1s;
+}
+
+.glint-bottom-a {
+  left: 12.4%;
+  top: 91.3%;
+  width: 20%;
+  animation-delay: -3.4s;
+}
+
+.glint-bottom-b {
+  left: 88.8%;
+  top: 91%;
+  width: 6.8%;
+  animation-delay: -5.2s;
 }
 
 .camera-sweep {
@@ -246,78 +417,47 @@ body {
   right: 1.9%;
   bottom: 3.2%;
   height: 12.4%;
-  display: grid;
-  grid-template-columns: 34% 1fr 25%;
-  align-items: center;
-  gap: 1.4%;
+  pointer-events: none;
 }
 
-.alert-brand,
-.alert-readout,
-.alert-flags span {
-  border: 1px solid rgba(168, 85, 255, 0.24);
-  background: rgba(5, 2, 10, 0.18);
-  box-shadow: inset 0 0 14px rgba(168, 85, 255, 0.12);
+.status-pulse {
+  position: absolute;
+  top: 18%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 12px rgba(102, 247, 231, 0.8);
+  opacity: 0.72;
+  animation: livePulse 1.8s ease-in-out infinite;
 }
 
-.alert-brand {
-  height: 100%;
-  display: grid;
-  grid-template-columns: 22% 1fr;
-  align-items: center;
-  padding: 0 5%;
+.pulse-one {
+  left: 52.5%;
 }
 
-.alert-brand img {
-  width: 72%;
-  opacity: 0.5;
-  filter: drop-shadow(0 0 8px rgba(168, 85, 255, 0.72));
+.pulse-two {
+  left: 64.8%;
+  animation-delay: -0.55s;
 }
 
-.alert-brand p,
-.alert-readout strong {
-  margin: 0;
-  font-size: clamp(13px, 1.28vw, 25px);
-  font-weight: 500;
-  color: rgba(242, 235, 255, 0.78);
-}
-
-.alert-brand span,
-.alert-readout span {
-  display: block;
-  margin-top: 0.34em;
-  color: var(--violet-bright);
-  font-size: clamp(9px, 0.82vw, 16px);
-}
-
-.alert-readout {
-  height: 100%;
-  padding: 2.5% 4%;
-}
-
-.alert-flags {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4.5%;
-  height: 100%;
-}
-
-.alert-flags span {
-  display: grid;
-  place-items: center;
-  color: rgba(232, 221, 255, 0.78);
-  font-size: clamp(10px, 0.9vw, 17px);
+.pulse-three {
+  left: 79%;
+  background: var(--violet-bright);
+  box-shadow: 0 0 12px rgba(216, 180, 254, 0.82);
+  animation-delay: -1.1s;
 }
 
 .ticker {
   left: 1.8%;
   right: 1.8%;
-  bottom: 0.8%;
-  height: 18px;
+  bottom: 0.25%;
+  height: 14px;
   overflow: hidden;
   color: rgba(216, 180, 254, 0.74);
-  font-size: clamp(8px, 0.58vw, 12px);
+  font-size: clamp(7px, 0.52vw, 10px);
   white-space: nowrap;
+  text-shadow: 0 0 8px rgba(168, 85, 255, 0.8);
 }
 
 #ticker-track {
@@ -373,11 +513,46 @@ body {
   to { transform: translateY(18%); }
 }
 
+@keyframes auroraDrift {
+  0% { transform: translateX(-5%) skewX(-8deg); opacity: 0.22; }
+  38% { opacity: 0.62; }
+  100% { transform: translateX(7%) skewX(10deg); opacity: 0.42; }
+}
+
+@keyframes towerShine {
+  0%, 100% { opacity: 0.22; transform: scaleY(0.96); }
+  42% { opacity: 0.72; transform: scaleY(1.02); }
+  44% { opacity: 0.28; }
+  48% { opacity: 0.88; }
+}
+
 @keyframes glitchBlink {
   0%, 83%, 100% { opacity: 0; transform: translateX(0); }
   84% { opacity: 0.88; transform: translateX(-1.4%); }
   85% { opacity: 0.16; transform: translateX(0.8%); }
   86% { opacity: 0.72; transform: translateX(0); }
+}
+
+@keyframes signBlink {
+  0%, 64%, 68%, 76%, 100% { opacity: 0; }
+  65% { opacity: 0.82; }
+  66% { opacity: 0.18; }
+  67% { opacity: 0.95; }
+  77% { opacity: 0.36; }
+}
+
+@keyframes signalRise {
+  0%, 100% { transform: scaleY(0.62); opacity: 0.46; }
+  48% { transform: scaleY(1.14); opacity: 1; }
+}
+
+@keyframes textGlint {
+  0%, 72%, 100% { opacity: 0; transform: translateX(-4%); }
+  73% { opacity: 0.18; }
+  74% { opacity: 0.76; transform: translateX(1%); }
+  75% { opacity: 0.22; }
+  76% { opacity: 0.54; transform: translateX(4%); }
+  78% { opacity: 0; }
 }
 
 @keyframes slowRotate {
