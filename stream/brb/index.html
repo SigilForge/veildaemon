@@ -6,40 +6,65 @@
   <title>VEILCORP // BRB Overlay</title>
   <meta name="robots" content="noindex" />
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
-  <link rel="stylesheet" href="overlay.css?v=20260609-brb2" />
+  <link rel="stylesheet" href="overlay.css?v=20260609-brb3" />
 </head>
-<body>
+<body class="brb-mode">
   <main class="overlay-stage" aria-label="VeilCorp intermission overlay">
-    <div class="wide-scan" aria-hidden="true"></div>
-    <div class="sky-wash wash-one" aria-hidden="true"></div>
-    <div class="sky-wash wash-two" aria-hidden="true"></div>
-    <div class="tower-column" aria-hidden="true"></div>
-    <div class="sigil-ring ring-primary" aria-hidden="true"></div>
-    <div class="sigil-ring ring-secondary" aria-hidden="true"></div>
-    <div class="right-panel-glow" aria-hidden="true"></div>
-    <div class="node-card-glitch" aria-hidden="true"></div>
-    <div class="barcode-sweep sweep-top" aria-hidden="true"></div>
-    <div class="barcode-sweep sweep-side" aria-hidden="true"></div>
-    <div class="barcode-sweep sweep-bottom" aria-hidden="true"></div>
-    <span class="status-light node-status"></span>
-    <span class="status-light archive-hold"></span>
-    <span class="status-light signal-flow"></span>
-    <div class="signal-monitor signal-top">
-      <span style="--bar: 34%"></span>
-      <span style="--bar: 48%"></span>
-      <span style="--bar: 62%"></span>
-      <span style="--bar: 84%"></span>
-      <span style="--bar: 72%"></span>
+    <div class="field-pulse" aria-hidden="true"></div>
+    <div class="sky-aurora aurora-one" aria-hidden="true"></div>
+    <div class="sky-aurora aurora-two" aria-hidden="true"></div>
+    <div class="tower-beam" aria-hidden="true"></div>
+    <div class="scanline" aria-hidden="true"></div>
+    <div class="barcode-scan barcode-header" aria-hidden="true"></div>
+    <div class="barcode-scan barcode-left" aria-hidden="true"></div>
+    <div class="barcode-scan barcode-right" aria-hidden="true"></div>
+    <div class="barcode-scan barcode-bottom" aria-hidden="true"></div>
+    <div class="glitch-band band-a" aria-hidden="true"></div>
+    <div class="glitch-band band-b" aria-hidden="true"></div>
+    <div class="text-glint glint-brand" aria-hidden="true"></div>
+    <div class="text-glint glint-header-a" aria-hidden="true"></div>
+    <div class="text-glint glint-header-b" aria-hidden="true"></div>
+    <div class="text-glint glint-bottom-a" aria-hidden="true"></div>
+    <div class="text-glint glint-bottom-b" aria-hidden="true"></div>
+
+    <section class="camera-sweep" aria-label="Primary observer aperture">
+      <div class="orbit orbit-one" aria-hidden="true"></div>
+      <div class="orbit orbit-two" aria-hidden="true"></div>
+      <div class="aperture-flare" aria-hidden="true"></div>
+    </section>
+
+    <section class="live-panel" aria-label="Intermission signal">
+      <div class="panel-corner corner-top-left" aria-hidden="true"></div>
+      <div class="panel-corner corner-top-right" aria-hidden="true"></div>
+      <div class="panel-corner corner-bottom-left" aria-hidden="true"></div>
+      <div class="panel-corner corner-bottom-right" aria-hidden="true"></div>
+      <p class="panel-subline" id="panel-subline">OBSERVER CHANNEL STABILIZING</p>
+    </section>
+
+    <section class="lower-alert" aria-hidden="true">
+      <span class="status-pulse pulse-one"></span>
+      <span class="status-pulse pulse-two"></span>
+      <div class="signal-strength-bars">
+        <div class="tower-stack">
+          <span style="--bar: 36%"></span>
+          <span style="--bar: 52%"></span>
+          <span style="--bar: 70%"></span>
+          <span style="--bar: 88%"></span>
+        </div>
+        <div class="signal-load"></div>
+      </div>
+    </section>
+
+    <div class="ticker" aria-hidden="true">
+      <div id="ticker-track">
+        <span>HUMAN AUTHORIZATION PARTIAL</span>
+        <span>SURVIVAL AUTHORIZATION ACTIVE</span>
+        <span>OBSERVATION CREATES RELEVANCE</span>
+        <span>CONTINUED ATTENTION MAY REQUIRE CLASSIFICATION</span>
+        <span>INFRASTRUCTURE BEFORE PERMISSION</span>
+      </div>
     </div>
-    <div class="signal-monitor signal-bottom">
-      <span style="--bar: 40%"></span>
-      <span style="--bar: 58%"></span>
-      <span style="--bar: 76%"></span>
-      <span style="--bar: 92%"></span>
-    </div>
-    <div class="hold-progress" aria-hidden="true"></div>
-    <p class="panel-cycle" id="panel-cycle">INTERMISSION NODE ACTIVE</p>
   </main>
-  <script src="overlay.js?v=20260609-brb2"></script>
+  <script src="overlay.js?v=20260609-brb3"></script>
 </body>
 </html>

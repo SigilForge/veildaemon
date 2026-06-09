@@ -1,37 +1,37 @@
 const stage = document.querySelector(".overlay-stage");
-const panelCycle = document.getElementById("panel-cycle");
+const panelSubline = document.getElementById("panel-subline");
 
-const cycleLines = [
-  "INTERMISSION NODE ACTIVE",
-  "OPERATOR TEMPORARILY AWAY",
-  "CHANNEL HOLD // REMAIN IN OBSERVATION",
-  "RETURN WINDOW UNDISCLOSED",
-  "SIGNAL INTEGRITY MAINTAINED"
+const panelLines = [
+  "OBSERVER CHANNEL STABILIZING",
+  "SIGNAL INTEGRITY NOMINAL",
+  "LIVE CONVERSATION INDEXED",
+  "ATTENTION VECTOR ACTIVE",
+  "ROUTING PROCEDURE STANDING BY"
 ];
 
-let cycleIndex = 0;
+let panelLineIndex = 0;
 
-function rotateCycle() {
-  if (!panelCycle) {
+function rotatePanelLine() {
+  if (!panelSubline) {
     return;
   }
 
-  cycleIndex += 1;
-  panelCycle.textContent = cycleLines[cycleIndex % cycleLines.length];
+  panelLineIndex += 1;
+  panelSubline.textContent = panelLines[panelLineIndex % panelLines.length];
 }
 
-function spawnTrace() {
+function spawnSpark() {
   if (!stage || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return;
   }
 
-  const trace = document.createElement("span");
-  trace.className = "trace";
-  trace.style.left = `${10 + Math.random() * 80}%`;
-  trace.style.top = `${8 + Math.random() * 78}%`;
-  stage.appendChild(trace);
-  trace.addEventListener("animationend", () => trace.remove(), { once: true });
+  const spark = document.createElement("span");
+  spark.className = "spark";
+  spark.style.left = `${8 + Math.random() * 86}%`;
+  spark.style.top = `${8 + Math.random() * 82}%`;
+  stage.appendChild(spark);
+  spark.addEventListener("animationend", () => spark.remove(), { once: true });
 }
 
-setInterval(rotateCycle, 4400);
-setInterval(spawnTrace, 520);
+setInterval(rotatePanelLine, 4600);
+setInterval(spawnSpark, 420);
