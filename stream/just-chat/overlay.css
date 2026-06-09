@@ -397,6 +397,38 @@ body {
   animation-delay: -0.55s;
 }
 
+.signal-strength-bars {
+  position: absolute;
+  left: 89.05%;
+  top: 91.02%;
+  width: 6.6%;
+  height: 4.8%;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 6px;
+  mix-blend-mode: screen;
+  padding: 4px 5px 5px;
+  border-bottom: 1px solid rgba(102, 247, 231, 0.42);
+  background:
+    linear-gradient(180deg, transparent, rgba(102, 247, 231, 0.08)),
+    repeating-linear-gradient(90deg, transparent 0 8px, rgba(168, 85, 255, 0.12) 8px 9px);
+  box-shadow: inset 0 -8px 18px rgba(102, 247, 231, 0.08);
+}
+
+.signal-strength-bars span {
+  display: block;
+  width: 7px;
+  height: var(--bar);
+  min-height: 10px;
+  border-radius: 2px 2px 0 0;
+  background: linear-gradient(180deg, var(--cyan), var(--violet-bright));
+  box-shadow: 0 0 12px rgba(102, 247, 231, 0.82), 0 0 18px rgba(168, 85, 255, 0.48);
+  opacity: 0.88;
+  animation: signalStrength 1.9s ease-in-out infinite;
+  animation-delay: calc(var(--bar) * -0.012s);
+}
+
 .ticker {
   left: 1.8%;
   right: 1.8%;
@@ -489,6 +521,12 @@ body {
   75% { opacity: 0.22; }
   76% { opacity: 0.54; transform: translateX(4%); }
   78% { opacity: 0; }
+}
+
+@keyframes signalStrength {
+  0%, 100% { transform: scaleY(0.62); opacity: 0.5; }
+  45% { transform: scaleY(1.12); opacity: 1; }
+  68% { transform: scaleY(0.86); opacity: 0.76; }
 }
 
 @keyframes barcodeSweep {
