@@ -259,7 +259,6 @@ const intakeQuestions = [
 const intakeState = {
   currentQuestion: 0,
   answers: {},
-  exchangeCount: 0,
   isTyping: false,
   record: null,
   returningDecisionMade: false
@@ -754,10 +753,42 @@ function renderReturningOperator(record) {
   returningPanel.hidden = false;
 }
 
-function writeAiLine(text, showCursor = false) {
-  const aiLine = document.getElementById("ai-line");
-  aiLine.innerHTML = `<span class="prompt">&gt;</span> <span id="typed-copy"></span>${showCursor ? '<span class="type-cursor" aria-hidden="true"></span>' : ""}`;
-  document.getElementById("typed-copy").textContent = text;
+function clearAiTranscript() {
+  document.querySelectorAll("#ai-panel .ai-line").forEach((line) => line.remove());
+}
+
+function createAiLine() {
+  const aiPanel = document.getElementById("ai-panel");
+  const line = document.createElement("p");
+  const prompt = document.createElement("span");
+  const copy = document.createElement("span");
+
+  line.className = "ai-line";
+  prompt.className = "prompt";
+  prompt.textContent = "> ";
+  copy.className = "typed-copy";
+  line.append(prompt, copy);
+  aiPanel.appendChild(line);
+  keepResultTailVisible(line);
+  return { line, copy };
+}
+
+function setAiLineText(line, copy, text, showCursor = false) {
+  let cursor = line.querySelector(".type-cursor");
+
+  copy.textContent = text;
+
+  if (showCursor && !cursor) {
+    cursor = document.createElement("span");
+    cursor.className = "type-cursor";
+    cursor.setAttribute("aria-hidden", "true");
+    line.appendChild(cursor);
+    return;
+  }
+
+  if (!showCursor && cursor) {
+    cursor.remove();
+  }
 }
 
 function typeAiLine(step, text, onComplete) {
@@ -765,10 +796,11 @@ function typeAiLine(step, text, onComplete) {
   intakeState.isTyping = true;
   document.getElementById("intake-step").textContent = step;
 
+  const { line, copy } = createAiLine();
   let index = 0;
 
   function typeNextCharacter() {
-    writeAiLine(text.slice(0, index), true);
+    setAiLineText(line, copy, text.slice(0, index), true);
 
     if (index < text.length) {
       index += 1;
@@ -776,9 +808,10 @@ function typeAiLine(step, text, onComplete) {
       return;
     }
 
-    writeAiLine(text);
+    setAiLineText(line, copy, text);
     intakeState.isTyping = false;
     typingTimer = null;
+    keepResultTailVisible(line);
 
     if (onComplete) {
       onComplete();
@@ -788,51 +821,13 @@ function typeAiLine(step, text, onComplete) {
   typeNextCharacter();
 }
 
-function resetIntakeExchangeLog() {
-  const log = document.getElementById("intake-exchange-log");
-
-  log.innerHTML = "";
-  log.hidden = true;
-  intakeState.exchangeCount = 0;
-}
-
-function appendIntakeExchange(answer, reaction) {
-  const log = document.getElementById("intake-exchange-log");
-  const exchange = document.createElement("section");
-  const answerField = document.createElement("div");
-  const reactionField = document.createElement("div");
-  const answerLabel = document.createElement("span");
-  const answerCopy = document.createElement("strong");
-  const reactionLabel = document.createElement("span");
-  const reactionCopy = document.createElement("p");
-
-  intakeState.exchangeCount += 1;
-  exchange.className = "intake-exchange";
-  exchange.setAttribute("aria-label", `Recorded intake exchange ${intakeState.exchangeCount}`);
-
-  answerField.className = "exchange-field";
-  answerLabel.textContent = "OPERATOR INPUT";
-  answerCopy.textContent = answer;
-  answerField.append(answerLabel, answerCopy);
-
-  reactionField.className = "exchange-field shade-field";
-  reactionLabel.textContent = "SHADE RESPONSE";
-  reactionCopy.textContent = reaction;
-  reactionField.append(reactionLabel, reactionCopy);
-
-  exchange.append(answerField, reactionField);
-  log.appendChild(exchange);
-  log.hidden = false;
-  keepResultTailVisible(exchange);
-}
-
 function typeShadeIntro() {
   intakeState.currentQuestion = 0;
   intakeState.answers = {};
   document.getElementById("observer-state").textContent = "NOTICED";
   document.getElementById("answer-panel").innerHTML = "";
   document.getElementById("intake-result").innerHTML = "";
-  resetIntakeExchangeLog();
+  clearAiTranscript();
   renderOperatorRecord(intakeState.record);
   renderReturningOperator(intakeState.record);
 
@@ -852,7 +847,6 @@ function renderContinueButton() {
       class="answer-choice continue-choice"
       type="button"
       data-continue-intake="true"
-      data-answer="YES"
       data-reaction="Consent signal accepted. Minimal hesitation detected. That is either confidence or poor pattern recognition. Proceeding.">
       <span>YES</span>
       Continue
@@ -861,7 +855,6 @@ function renderContinueButton() {
       class="answer-choice continue-choice"
       type="button"
       data-continue-intake="true"
-      data-answer="ALSO YES"
       data-reaction="Reluctance detected and preserved for the record. Good. Caution is not disobedience; it is load-bearing. Proceeding.">
       <span>ALSO YES</span>
       Continue, but with detectable reluctance
@@ -964,11 +957,10 @@ function keepResultTailVisible(target) {
 function selectAnswer(event) {
   const continueButton = event.target.closest("[data-continue-intake], #continue-intake");
   if (continueButton && !intakeState.isTyping) {
-    const answer = continueButton.dataset.answer || continueButton.textContent.trim();
     const reaction = continueButton.dataset.reaction || "Continuation accepted. Intake channel remains open.";
 
     document.getElementById("answer-panel").innerHTML = "";
-    appendIntakeExchange(answer, reaction);
+    clearAiTranscript();
     typeAiLine("SHADE.DAEMON // RESPONSE", reaction, () => {
       typingTimer = setTimeout(() => {
         clearTypingTimer();
@@ -995,23 +987,21 @@ function selectAnswer(event) {
   };
 
   document.getElementById("answer-panel").innerHTML = "";
-  appendIntakeExchange(option.label, option.reaction);
-  typeAiLine("OPERATOR INPUT // ACCEPTED", option.label, () => {
-    typeAiLine("SHADE.DAEMON // RESPONSE", option.reaction, () => {
-      if (intakeState.currentQuestion < intakeQuestions.length - 1) {
-        intakeState.currentQuestion += 1;
-        typingTimer = setTimeout(() => {
-          clearTypingTimer();
-          renderQuestion();
-        }, 360);
-        return;
-      }
-
+  clearAiTranscript();
+  typeAiLine("SHADE.DAEMON // RESPONSE", option.reaction, () => {
+    if (intakeState.currentQuestion < intakeQuestions.length - 1) {
+      intakeState.currentQuestion += 1;
       typingTimer = setTimeout(() => {
         clearTypingTimer();
-        showIntakeResult();
+        renderQuestion();
       }, 360);
-    });
+      return;
+    }
+
+    typingTimer = setTimeout(() => {
+      clearTypingTimer();
+      showIntakeResult();
+    }, 360);
   });
 }
 
