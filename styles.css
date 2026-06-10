@@ -390,6 +390,7 @@ footer {
   color: #d7fff4;
   font-size: clamp(1rem, 2.2vw, 1.24rem);
   line-height: 1.45;
+  white-space: pre-line;
 }
 .type-cursor {
   display: inline-block;
