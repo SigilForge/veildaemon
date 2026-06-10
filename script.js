@@ -981,8 +981,33 @@ function showIntakeResult(reaction = "") {
   const result = buildIntakeResult();
   const existingRecord = intakeState.record || readOperatorRecord();
   const record = existingRecord ? updateOperatorRecord(existingRecord, result) : createOperatorRecord(result);
-  const resultText = "Local record initialized. Observation path updated. Archive cross-reference pending.";
-  const composedText = reaction ? `${reaction}\n\n> ${resultText}` : resultText;
+  const lines = [
+    ...(reaction ? [{ text: reaction }] : []),
+    { text: "Local record initialized. Observation path updated. Archive cross-reference pending." },
+    { text: `DESIGNATION: ${record.designation}` },
+    { text: `ASSIGNMENT GROUP: ${record.assignmentGroup}` },
+    { text: `HANDLER SIGNAL: ${record.handlerSignal}` },
+    { text: `ARCHIVE AUTHORITY: ${record.archiveAuthority}` },
+    { text: `INTAKE NODE: ${record.intakeNode}` },
+    { text: `PRIMARY FREQUENCY: ${record.primaryFrequency}` },
+    { text: `STABILITY STATE: ${record.stabilityState}` },
+    { text: `ATTENTION STATUS: ${record.attentionStatus}` },
+    { text: `ACCESS LEVEL: ${record.accessLevel}` },
+    { text: `OBSERVED TRAITS: ${record.observedTraits.join(" // ")}` },
+    { text: `FREQUENCY DRIFT: ${formatDrift(record).join(" // ")}` },
+    { text: `KNOWN INCIDENT CROSS-REFERENCE: ${record.knownIncidents[0]}` },
+    { text: `ARCHIVE FLAGS: ${record.archiveFlags.slice(0, 3).join(" // ")}` },
+    { text: `RELATED RECORDS AVAILABLE: ${record.relatedRecords.slice(0, 3).join(" // ")}` },
+    { text: `RECOMMENDED TRAINING: ${record.recommendedTraining}` },
+    { text: result.claimed ? "NEXT ROUTE: Open Triage Channel" : "NEXT ROUTE: Open Operator Channel" },
+    { text: `WARNING: ${result.warning}`, className: "risk" },
+    {
+      text: result.claimed
+        ? "INTAKE STATUS: TRIAGE // The Redacted intake will resume after stabilization"
+        : "INTAKE STATUS: PASS // The Redacted operator channel available",
+      className: result.claimed ? "risk" : "pass"
+    }
+  ];
 
   intakeState.record = record;
   writeOperatorRecord(record);
@@ -991,35 +1016,9 @@ function showIntakeResult(reaction = "") {
   observerState.textContent = result.risk;
   answerPanel.innerHTML = "";
 
-  typeAiLine("OPERATOR FILE OPENED", composedText, () => {
-    const lines = [
-      { text: `DESIGNATION: ${record.designation}` },
-      { text: `ASSIGNMENT GROUP: ${record.assignmentGroup}` },
-      { text: `HANDLER SIGNAL: ${record.handlerSignal}` },
-      { text: `ARCHIVE AUTHORITY: ${record.archiveAuthority}` },
-      { text: `INTAKE NODE: ${record.intakeNode}` },
-      { text: `PRIMARY FREQUENCY: ${record.primaryFrequency}` },
-      { text: `STABILITY STATE: ${record.stabilityState}` },
-      { text: `ATTENTION STATUS: ${record.attentionStatus}` },
-      { text: `ACCESS LEVEL: ${record.accessLevel}` },
-      { text: `OBSERVED TRAITS: ${record.observedTraits.join(" // ")}` },
-      { text: `FREQUENCY DRIFT: ${formatDrift(record).join(" // ")}` },
-      { text: `KNOWN INCIDENT CROSS-REFERENCE: ${record.knownIncidents[0]}` },
-      { text: `ARCHIVE FLAGS: ${record.archiveFlags.slice(0, 3).join(" // ")}` },
-      { text: `RELATED RECORDS AVAILABLE: ${record.relatedRecords.slice(0, 3).join(" // ")}` },
-      { text: `RECOMMENDED TRAINING: ${record.recommendedTraining}` },
-      { text: result.claimed ? "NEXT ROUTE: Open Triage Channel" : "NEXT ROUTE: Open Operator Channel" },
-      { text: `WARNING: ${result.warning}`, className: "risk" },
-      {
-        text: result.claimed
-          ? "INTAKE STATUS: TRIAGE // The Redacted intake will resume after stabilization"
-          : "INTAKE STATUS: PASS // The Redacted operator channel available",
-        className: result.claimed ? "risk" : "pass"
-      }
-    ];
-
-    typeResultLines(lines, result.claimed, record);
-  });
+  document.getElementById("intake-step").textContent = "OPERATOR FILE OPENED";
+  writeAiLine("Operator file opening. Stand by.");
+  typeResultLines(lines, result.claimed, record);
 }
 
 function typeResultLines(lines, claimed, record) {
