@@ -845,12 +845,15 @@ function renderAnswerChoices(question) {
 
 function renderQuestion(reaction = "") {
   clearTypingTimer();
+  intakeState.isTyping = false;
   const question = intakeQuestions[intakeState.currentQuestion];
   const prompt = reaction ? `${reaction}\n\n> ${question.prompt}` : question.prompt;
 
+  document.getElementById("intake-step").textContent = question.step;
   document.getElementById("answer-panel").innerHTML = "";
   document.getElementById("intake-result").innerHTML = "";
-  typeAiLine(question.step, prompt, () => renderAnswerChoices(question));
+  writeAiLine(prompt);
+  renderAnswerChoices(question);
 }
 
 function markRecordSeen(record) {

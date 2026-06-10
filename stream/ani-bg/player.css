@@ -12,25 +12,21 @@ body {
 }
 
 body {
-  display: grid;
-  place-items: center;
-}
-
-.cutout-stage {
-  width: min(100vw, calc(100vh * 1472 / 608));
-  aspect-ratio: 1472 / 608;
-  overflow: hidden;
   background: transparent;
 }
 
-.canvas-3440 .cutout-stage {
-  width: min(100vw, calc(100vh * 3440 / 1440));
-  aspect-ratio: 3440 / 1440;
+.cutout-stage {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent;
 }
 
 .cutout-stage video {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: fill;
 }

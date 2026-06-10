@@ -9,4 +9,4 @@ Hosted OBS browser-source routes:
 
 Each route plays a silent looping WebM with the monitor screen removed from the frames.
 
-Use `3440 x 1440` for 70%, 85%, and 90%. The 80% route is left at its original known-good source sizing.
+Use `3440 x 1440` for all four routes. The player fills the browser-source canvas directly.
