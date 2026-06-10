@@ -460,6 +460,23 @@ footer {
 .intake-result strong { color: var(--cyan); }
 .intake-result .risk { color: var(--red); font-weight: 800; letter-spacing: .08em; }
 .intake-result .pass { color: var(--cyan); font-weight: 800; letter-spacing: .08em; }
+.result-section-label {
+  margin: 1rem 0 .45rem;
+  padding: .45rem .6rem;
+  border-top: 1px solid rgba(138,255,219,.28);
+  border-bottom: 1px solid rgba(185,84,255,.24);
+  color: var(--cyan);
+  background: rgba(0,0,0,.28);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.result-commentary {
+  padding: .75rem .85rem;
+  border-left: 3px solid var(--line-hot);
+  background: rgba(185,84,255,.08);
+}
 .discord-route {
   width: min(100%, 22rem);
   margin-top: 1rem;
