@@ -157,12 +157,42 @@ const intakeQuestions = [
     step: "01 // SIGNAL ORIGIN",
     prompt: "You noticed reality behaving incorrectly. Otherwise you would not be here. What did you notice first?",
     options: [
-      { label: "A reflection moved wrong.", value: "Dream", warning: "Do not correct delayed reflections." },
-      { label: "A voice or signal answered back.", value: "Empyrean", warning: "Do not answer voices using your name twice." },
-      { label: "Time hesitated.", value: "Stillness", warning: "Do not trust clocks that agree too perfectly." },
-      { label: "Something wanted something from me.", value: "Hunger", warning: "Do not follow warmth into an empty room." },
-      { label: "Something was missing.", value: "Silence", warning: "Do not fill every silence." },
-      { label: "I felt less like myself.", value: "Becoming", warning: "Do not accept a better version of yourself from glass." }
+      {
+        label: "A reflection moved wrong.",
+        value: "Dream",
+        warning: "Do not correct delayed reflections.",
+        reaction: "Reflection irregularity logged. Please avoid proving it wrong; mirrors become competitive under scrutiny."
+      },
+      {
+        label: "A voice or signal answered back.",
+        value: "Empyrean",
+        warning: "Do not answer voices using your name twice.",
+        reaction: "Reciprocal signal behavior noted. If it used your name, do not reward the second attempt."
+      },
+      {
+        label: "Time hesitated.",
+        value: "Stillness",
+        warning: "Do not trust clocks that agree too perfectly.",
+        reaction: "Temporal hesitation accepted. Please do not check three clocks in a row. Consensus can be staged."
+      },
+      {
+        label: "Something wanted something from me.",
+        value: "Hunger",
+        warning: "Do not follow warmth into an empty room.",
+        reaction: "Appetite signature detected. Wanting is not consent. This remains true even when the wanting is polite."
+      },
+      {
+        label: "Something was missing.",
+        value: "Silence",
+        warning: "Do not fill every silence.",
+        reaction: "Absence registered. Thank you for not replacing it with an explanation. Premature certainty causes clutter."
+      },
+      {
+        label: "I felt less like myself.",
+        value: "Becoming",
+        warning: "Do not accept a better version of yourself from glass.",
+        reaction: "Identity variance logged. Do not negotiate with improved versions of yourself without a witness present."
+      }
     ]
   },
   {
@@ -170,11 +200,31 @@ const intakeQuestions = [
     step: "02 // OPERATOR RESPONSE",
     prompt: "What did you do?",
     options: [
-      { label: "Ignored it.", value: "ignored" },
-      { label: "Recorded it.", value: "recorded" },
-      { label: "Told someone.", value: "told" },
-      { label: "Followed it.", value: "followed" },
-      { label: "Lied about it.", value: "lied" }
+      {
+        label: "Ignored it.",
+        value: "ignored",
+        reaction: "Avoidance is not failure. It is a crude firewall. Crude tools still keep doors closed."
+      },
+      {
+        label: "Recorded it.",
+        value: "recorded",
+        reaction: "Documentation impulse detected. Useful. Also how many records begin developing opinions."
+      },
+      {
+        label: "Told someone.",
+        value: "told",
+        reaction: "Witness chain attempted. Good. Shared panic is less precise, but harder to isolate."
+      },
+      {
+        label: "Followed it.",
+        value: "followed",
+        reaction: "Pursuit response logged. Shade does not recommend entering phenomena because they appear to have an opinion."
+      },
+      {
+        label: "Lied about it.",
+        value: "lied",
+        reaction: "False negative submitted. I appreciate the optimism. I have discarded it."
+      }
     ]
   },
   {
@@ -182,10 +232,26 @@ const intakeQuestions = [
     step: "03 // RECIPROCAL NOTICE",
     prompt: "Did it notice you back?",
     options: [
-      { label: "No.", value: "BRUSHED" },
-      { label: "I do not know.", value: "NOTED" },
-      { label: "Yes.", value: "MARKED" },
-      { label: "It answered before I asked.", value: "CLAIMED" }
+      {
+        label: "No.",
+        value: "BRUSHED",
+        reaction: "Unconfirmed reciprocal notice. Maintaining low-intensity observation. Congratulations, provisionally."
+      },
+      {
+        label: "I do not know.",
+        value: "NOTED",
+        reaction: "Uncertainty accepted. Certainty would have been more concerning at this stage."
+      },
+      {
+        label: "Yes.",
+        value: "MARKED",
+        reaction: "Marked status likely. Breathe normally; abnormal breathing counts as additional data."
+      },
+      {
+        label: "It answered before I asked.",
+        value: "CLAIMED",
+        reaction: "Preemptive answer recorded. That is not conversation. That is adjacency."
+      }
     ]
   }
 ];
@@ -865,24 +931,27 @@ function selectAnswer(event) {
   intakeState.answers[question.id] = {
     value: option.value,
     label: option.label,
-    warning: option.warning || ""
+    warning: option.warning || "",
+    reaction: option.reaction || ""
   };
 
   document.getElementById("answer-panel").innerHTML = "";
   typeAiLine("OPERATOR INPUT // ACCEPTED", option.label, () => {
-    if (intakeState.currentQuestion < intakeQuestions.length - 1) {
-      intakeState.currentQuestion += 1;
+    typeAiLine("SHADE.DAEMON // RESPONSE", option.reaction, () => {
+      if (intakeState.currentQuestion < intakeQuestions.length - 1) {
+        intakeState.currentQuestion += 1;
+        typingTimer = setTimeout(() => {
+          clearTypingTimer();
+          renderQuestion();
+        }, 360);
+        return;
+      }
+
       typingTimer = setTimeout(() => {
         clearTypingTimer();
-        renderQuestion();
+        showIntakeResult();
       }, 360);
-      return;
-    }
-
-    typingTimer = setTimeout(() => {
-      clearTypingTimer();
-      showIntakeResult();
-    }, 360);
+    });
   });
 }
 
