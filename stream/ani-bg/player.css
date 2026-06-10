@@ -23,6 +23,11 @@ body {
   background: transparent;
 }
 
+.canvas-3440 .cutout-stage {
+  width: min(100vw, calc(100vh * 3440 / 1440));
+  aspect-ratio: 3440 / 1440;
+}
+
 .cutout-stage video {
   display: block;
   width: 100%;
