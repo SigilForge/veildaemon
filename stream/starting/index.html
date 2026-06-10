@@ -6,11 +6,35 @@
   <title>VEILCORP // Starting Soon</title>
   <meta name="robots" content="noindex" />
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
-  <link rel="stylesheet" href="style.css?v=20260610-starting-static1" />
+  <link rel="stylesheet" href="style.css?v=20260610-starting-anim1" />
 </head>
 <body>
   <main class="starting-stage" aria-label="VeilCorp starting soon screen">
-    <img src="assets/starting-nested.png?v=20260610-starting-static1" alt="" />
+    <img class="starting-backdrop" src="assets/starting-nested.png?v=20260610-starting-static1" alt="" />
+    <div class="window-rain" aria-hidden="true"></div>
+    <div class="room-pulse" aria-hidden="true"></div>
+    <div class="monitor-field" aria-hidden="true"></div>
+    <div class="monitor-scan" aria-hidden="true"></div>
+    <div class="monitor-beam" aria-hidden="true"></div>
+    <div class="screen-glitch glitch-one" aria-hidden="true"></div>
+    <div class="screen-glitch glitch-two" aria-hidden="true"></div>
+    <div class="keyboard-glow" aria-hidden="true"></div>
+    <div class="desk-signal" aria-hidden="true">
+      <span style="--bar: 35%"></span>
+      <span style="--bar: 50%"></span>
+      <span style="--bar: 72%"></span>
+      <span style="--bar: 92%"></span>
+    </div>
+    <div class="ticker" aria-hidden="true">
+      <div id="ticker-track">
+        <span>OBSERVATION CREATES RELEVANCE</span>
+        <span>INITIALIZATION NODE ACTIVE</span>
+        <span>OPERATOR SIGNAL NOT YET STABLE</span>
+        <span>HUMAN AUTHORIZATION PENDING</span>
+        <span>VEILCORP ARCHIVES // KANSAS CITY FIELD OFFICE</span>
+      </div>
+    </div>
   </main>
+  <script src="overlay.js?v=20260610-starting-anim1"></script>
 </body>
 </html>

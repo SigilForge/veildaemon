@@ -614,9 +614,120 @@ footer {
   letter-spacing: .08em;
   white-space: nowrap;
 }
+.casefile-drawer {
+  position: fixed;
+  top: 12vh;
+  right: 0;
+  z-index: 20;
+  width: min(92vw, 430px);
+  transform: translateX(calc(100% - 2.8rem));
+  transition: transform .24s ease, filter .24s ease;
+}
+.casefile-drawer.is-open {
+  transform: translateX(0);
+}
+.casefile-drawer.has-record .casefile-tab {
+  border-color: rgba(102,255,220,.72);
+  box-shadow: 0 0 24px rgba(102,255,220,.22), inset 0 0 18px rgba(102,255,220,.08);
+}
+.casefile-drawer.casefile-pulse .casefile-tab {
+  animation: casefilePulse 1.25s ease;
+}
+.casefile-tab {
+  position: absolute;
+  left: -2.8rem;
+  top: 1.2rem;
+  display: grid;
+  place-items: center;
+  gap: .55rem;
+  width: 2.8rem;
+  min-height: 12rem;
+  padding: .7rem .28rem;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--panel-hard), rgba(3,5,7,.96));
+  color: var(--cyan);
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: .16em;
+  box-shadow: 0 0 22px rgba(102,255,220,.14);
+}
+.casefile-tab span {
+  font-weight: 800;
+}
+.casefile-tab strong {
+  color: var(--muted);
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.casefile-panel {
+  max-height: 76vh;
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--panel-hard), rgba(3,5,7,.96));
+  box-shadow: 0 0 55px rgba(102,255,220,.13), 0 0 90px rgba(0,0,0,.8);
+}
+.casefile-empty {
+  padding: 1rem;
+  border: 1px solid rgba(138,255,219,.2);
+  background: rgba(0,0,0,.28);
+}
+.casefile-empty p {
+  margin: .35rem 0 0;
+  color: var(--muted);
+}
+.casefile-panel .operator-record {
+  margin-top: 0;
+}
+.casefile-panel .compact-record-grid {
+  grid-template-columns: 1fr;
+}
+.first-contact-grid {
+  margin-top: .85rem;
+}
+@keyframes casefilePulse {
+  0%, 100% { filter: none; transform: translateX(0); }
+  35% { filter: drop-shadow(0 0 18px rgba(102,255,220,.42)); transform: translateX(-.55rem); }
+}
 @media (max-width: 900px) {
   .returning-actions,
   .compact-record-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .casefile-drawer {
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    transform: translateY(calc(100% - 3rem));
+  }
+  .casefile-drawer.is-open {
+    transform: translateY(0);
+  }
+  .casefile-tab {
+    left: 1rem;
+    top: -3rem;
+    width: auto;
+    min-height: 3rem;
+    padding: .65rem .9rem;
+    writing-mode: horizontal-tb;
+  }
+  .casefile-tab strong {
+    display: none;
+  }
+  .casefile-panel {
+    max-height: 72vh;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .casefile-drawer {
+    transition: none;
+  }
+  .casefile-drawer.casefile-pulse .casefile-tab {
+    animation: none;
+  }
 }
 @media (max-width: 520px) {
   .route-actions {

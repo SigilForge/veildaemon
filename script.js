@@ -647,10 +647,15 @@ function formatDrift(record) {
 }
 
 function renderOperatorRecord(record) {
+  const drawer = document.getElementById("casefile-drawer");
+  const casefileStatus = document.getElementById("casefile-status");
+  const casefileTabStatus = document.getElementById("casefile-tab-status");
+  const casefileEmpty = document.getElementById("casefile-empty");
   const recordPanel = document.getElementById("operator-record");
   const purgeButton = document.getElementById("purge-record");
   const purgeNote = document.getElementById("purge-record-note");
   const recordGrid = document.getElementById("record-grid");
+  const recordSheet = document.getElementById("record-sheet");
   const recordMeta = document.getElementById("record-meta");
   const driftList = document.getElementById("record-drift-list");
   const flagsList = document.getElementById("record-flags-list");
@@ -659,6 +664,10 @@ function renderOperatorRecord(record) {
   const historyList = document.getElementById("record-history-list");
 
   if (!record) {
+    drawer.classList.remove("has-record");
+    casefileStatus.textContent = "NO RECORD";
+    casefileTabStatus.textContent = "NO LOCAL RECORD";
+    casefileEmpty.hidden = false;
     recordPanel.hidden = true;
     purgeButton.hidden = true;
     purgeButton.disabled = true;
@@ -668,7 +677,12 @@ function renderOperatorRecord(record) {
 
   document.getElementById("record-designation").textContent = record.designation;
   document.getElementById("record-access").textContent = `ACCESS: ${record.accessLevel}`;
+  drawer.classList.add("has-record");
+  casefileStatus.textContent = "ACTIVE";
+  casefileTabStatus.textContent = "ACTIVE";
+  casefileEmpty.hidden = true;
   recordGrid.innerHTML = "";
+  recordSheet.innerHTML = "";
   recordMeta.innerHTML = "";
   driftList.innerHTML = "";
   flagsList.innerHTML = "";
@@ -688,6 +702,27 @@ function renderOperatorRecord(record) {
     ["INCIDENT REFERENCES", String(record.incidentExposure.length)],
     ["KNOWN INCIDENT", record.knownIncidents.join(" // ")]
   ].forEach(([label, value]) => addRecordField(recordGrid, label, value));
+
+  [
+    ["NAME", record.designation],
+    ["PRESENTATION", "FIRST CONTACT OPERATOR"],
+    ["PRIMARY FREQUENCY", record.primaryFrequency],
+    ["METHODOLOGY", record.recommendedTraining],
+    ["ATTRIBUTES", "UNASSESSED // FIELD INTAKE ONLY"],
+    ["SKILLS", "UNASSESSED // FIELD INTAKE ONLY"],
+    ["STABILITY", record.stabilityState],
+    ["HARM", "NONE RECORDED"],
+    ["CURRENT STATE", record.attentionStatus],
+    ["BLEED", formatDrift(record).join(" // ") || "NONE RECORDED"],
+    ["MISFIRE NOTES", record.archiveFlags.slice(0, 2).join(" // ")],
+    ["PIP 1 LEAKAGE", `${record.primaryFrequency} // MONITORING`],
+    ["PIP 2 EXPRESSION", `${record.primaryFrequency} // LOCKED PENDING AUTHORIZATION`],
+    ["ANCHOR", "UNDECLARED"],
+    ["ANCHOR STATE", "UNVERIFIED"],
+    ["ORDINARY-LIFE CONSEQUENCE", "PENDING HUMAN FOLLOW-UP"],
+    ["DOWNTIME ACTION", "STABILIZE // DOCUMENT // DO NOT ESCALATE ALONE"],
+    ["NOTES", "Generated from public intake. Local browser record only."]
+  ].forEach(([label, value]) => addRecordField(recordSheet, label, value));
 
   [
     ["RECOMMENDED TRAINING", record.recommendedTraining],
@@ -859,6 +894,33 @@ function politelyRevealChoices() {
   });
 }
 
+function setCasefileDrawerOpen(isOpen) {
+  const drawer = document.getElementById("casefile-drawer");
+  const toggle = document.getElementById("casefile-toggle");
+
+  drawer.classList.toggle("is-open", isOpen);
+  drawer.setAttribute("aria-hidden", String(!isOpen));
+  toggle.setAttribute("aria-expanded", String(isOpen));
+}
+
+function toggleCasefileDrawer() {
+  const drawer = document.getElementById("casefile-drawer");
+
+  setCasefileDrawerOpen(!drawer.classList.contains("is-open"));
+}
+
+function pulseCasefileDrawer() {
+  const drawer = document.getElementById("casefile-drawer");
+
+  drawer.classList.remove("casefile-pulse");
+  void drawer.offsetWidth;
+  drawer.classList.add("casefile-pulse");
+
+  window.setTimeout(() => {
+    drawer.classList.remove("casefile-pulse");
+  }, 1400);
+}
+
 function renderQuestion(reaction = "") {
   clearTypingTimer();
   const question = intakeQuestions[intakeState.currentQuestion];
@@ -1013,6 +1075,7 @@ function showIntakeResult(reaction = "") {
   writeOperatorRecord(record);
   renderReturningOperator(null);
   renderOperatorRecord(record);
+  pulseCasefileDrawer();
   observerState.textContent = result.risk;
   answerPanel.innerHTML = "";
 
@@ -1222,6 +1285,7 @@ document.getElementById("purge-record").addEventListener("click", purgeRecord);
 document.getElementById("resume-record").addEventListener("click", resumeRecord);
 document.getElementById("reclassify-record").addEventListener("click", reclassifyRecord);
 document.getElementById("returning-purge-record").addEventListener("click", purgeRecord);
+document.getElementById("casefile-toggle").addEventListener("click", toggleCasefileDrawer);
 document.getElementById("open-transmission").addEventListener("click", toggleTransmissionViewer);
 document.getElementById("archive-route").addEventListener("click", () => recordArchiveInteraction("archive"));
 document.getElementById("case-file-route").addEventListener("click", () => recordArchiveInteraction("caseFile"));
