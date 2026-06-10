@@ -2,4 +2,6 @@
 
 Use `stream/starting/index.html` as the browser source.
 
-The base art is `assets/starting-nested.png`, with `Starting2.png` composited into the monitor area of `Starting3.png`.
+The route is the animated big-monitor frame, with `assets/starting2-screen.png` layered under the transparent monitor hole and `assets/starting-frame-cutout.webm` looping above it.
+
+Use `3440 x 1440` in OBS.

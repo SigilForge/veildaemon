@@ -6,13 +6,24 @@
   <title>VEILCORP // Starting Soon</title>
   <meta name="robots" content="noindex" />
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
-  <link rel="stylesheet" href="style.css?v=20260610-starting-anim1" />
+  <link rel="stylesheet" href="style.css?v=20260610-starting-frame1" />
 </head>
 <body>
   <main class="starting-stage" aria-label="VeilCorp starting soon screen">
-    <img class="starting-backdrop" src="assets/starting-nested.png?v=20260610-starting-static1" alt="" />
-    <div class="window-rain" aria-hidden="true"></div>
-    <div class="room-pulse" aria-hidden="true"></div>
+    <div class="screen-fill" aria-hidden="true">
+      <img src="assets/starting2-screen.png?v=20260610-starting-frame1" alt="" />
+    </div>
+    <video
+      class="frame-pass"
+      src="assets/starting-frame-cutout.webm?v=20260610-starting-frame1"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+      aria-hidden="true"
+    ></video>
+    <div class="frame-glow" aria-hidden="true"></div>
     <div class="monitor-field" aria-hidden="true"></div>
     <div class="monitor-scan" aria-hidden="true"></div>
     <div class="monitor-beam" aria-hidden="true"></div>
@@ -35,6 +46,6 @@
       </div>
     </div>
   </main>
-  <script src="overlay.js?v=20260610-starting-anim1"></script>
+  <script src="overlay.js?v=20260610-starting-frame1"></script>
 </body>
 </html>
