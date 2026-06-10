@@ -9,4 +9,4 @@ Hosted OBS browser-source routes:
 
 Each route plays a silent looping WebM with the monitor screen removed from the frames.
 
-Use `3440 x 1440` for all four routes. The player fills the browser-source canvas directly.
+Use `3440 x 1440` for all four routes. The player fills the browser-source canvas directly. The static reinforcement is limited to four thin bezel strokes around the transparent screen hole.
