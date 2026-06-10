@@ -843,6 +843,22 @@ function renderAnswerChoices(question) {
   `).join("");
 }
 
+function politelyRevealChoices() {
+  const choices = document.querySelector("[data-choice-list]");
+
+  if (!choices) {
+    return;
+  }
+
+  const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  choices.scrollIntoView({
+    behavior: prefersReducedMotion ? "auto" : "smooth",
+    block: "nearest",
+    inline: "nearest"
+  });
+}
+
 function renderQuestion(reaction = "") {
   clearTypingTimer();
   const question = intakeQuestions[intakeState.currentQuestion];
@@ -850,7 +866,10 @@ function renderQuestion(reaction = "") {
 
   document.getElementById("answer-panel").innerHTML = "";
   document.getElementById("intake-result").innerHTML = "";
-  typeAiLine(question.step, prompt, () => renderAnswerChoices(question));
+  typeAiLine(question.step, prompt, () => {
+    renderAnswerChoices(question);
+    requestAnimationFrame(politelyRevealChoices);
+  });
 }
 
 function markRecordSeen(record) {
@@ -953,20 +972,17 @@ function selectAnswer(event) {
     return;
   }
 
-  typeAiLine("SHADE.DAEMON // RESPONSE", option.reaction, () => {
-    typingTimer = setTimeout(() => {
-      clearTypingTimer();
-      showIntakeResult();
-    }, 360);
-  });
+  showIntakeResult(option.reaction);
 }
 
-function showIntakeResult() {
+function showIntakeResult(reaction = "") {
   const answerPanel = document.getElementById("answer-panel");
   const observerState = document.getElementById("observer-state");
   const result = buildIntakeResult();
   const existingRecord = intakeState.record || readOperatorRecord();
   const record = existingRecord ? updateOperatorRecord(existingRecord, result) : createOperatorRecord(result);
+  const resultText = "Local record initialized. Observation path updated. Archive cross-reference pending.";
+  const composedText = reaction ? `${reaction}\n\n> ${resultText}` : resultText;
 
   intakeState.record = record;
   writeOperatorRecord(record);
@@ -975,7 +991,7 @@ function showIntakeResult() {
   observerState.textContent = result.risk;
   answerPanel.innerHTML = "";
 
-  typeAiLine("OPERATOR FILE OPENED", "Local record initialized. Observation path updated. Archive cross-reference pending.", () => {
+  typeAiLine("OPERATOR FILE OPENED", composedText, () => {
     const lines = [
       { text: `DESIGNATION: ${record.designation}` },
       { text: `ASSIGNMENT GROUP: ${record.assignmentGroup}` },
