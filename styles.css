@@ -616,15 +616,16 @@ footer {
 }
 .casefile-drawer {
   position: fixed;
-  top: 12vh;
+  top: 50%;
   right: 0;
-  z-index: 20;
+  z-index: 50;
   width: min(92vw, 430px);
-  transform: translateX(calc(100% - 2.8rem));
-  transition: transform .24s ease, filter .24s ease;
+  max-height: 78vh;
+  transform: translate(100%, -50%);
+  transition: transform .24s ease;
 }
 .casefile-drawer.is-open {
-  transform: translateX(0);
+  transform: translate(0, -50%);
 }
 .casefile-drawer.has-record .casefile-tab {
   border-color: rgba(102,255,220,.72);
@@ -635,35 +636,39 @@ footer {
 }
 .casefile-tab {
   position: absolute;
-  left: -2.8rem;
-  top: 1.2rem;
-  display: grid;
-  place-items: center;
-  gap: .55rem;
-  width: 2.8rem;
-  min-height: 12rem;
-  padding: .7rem .28rem;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
+  left: -8.75rem;
+  top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  width: 8.75rem;
+  height: 2.65rem;
   border: 1px solid var(--line);
-  background: linear-gradient(180deg, var(--panel-hard), rgba(3,5,7,.96));
+  border-right: 0;
+  border-radius: .55rem 0 0 .55rem;
+  background: var(--panel-hard);
   color: var(--cyan);
   cursor: pointer;
   font: inherit;
-  letter-spacing: .16em;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
   box-shadow: 0 0 22px rgba(102,255,220,.14);
 }
-.casefile-tab span {
-  font-weight: 800;
+.casefile-tab::after {
+  content: "▸";
+  color: var(--purple);
+}
+.casefile-drawer.is-open .casefile-tab::after {
+  content: "◂";
 }
 .casefile-tab strong {
-  color: var(--muted);
-  font-size: .58rem;
-  font-weight: 800;
-  letter-spacing: .12em;
+  display: none;
 }
 .casefile-panel {
-  max-height: 76vh;
+  max-height: 78vh;
   overflow: auto;
   padding: 1rem;
   border: 1px solid var(--line);
@@ -699,8 +704,10 @@ footer {
 @media (max-width: 760px) {
   .casefile-drawer {
     top: auto;
+    right: 0;
     bottom: 0;
     width: 100%;
+    max-height: 82vh;
     transform: translateY(calc(100% - 3rem));
   }
   .casefile-drawer.is-open {
@@ -709,16 +716,14 @@ footer {
   .casefile-tab {
     left: 1rem;
     top: -3rem;
-    width: auto;
-    min-height: 3rem;
-    padding: .65rem .9rem;
-    writing-mode: horizontal-tb;
-  }
-  .casefile-tab strong {
-    display: none;
+    width: 9rem;
+    height: 3rem;
+    border: 1px solid var(--line);
+    border-bottom: 0;
+    border-radius: .55rem .55rem 0 0;
   }
   .casefile-panel {
-    max-height: 72vh;
+    max-height: 82vh;
   }
 }
 @media (prefers-reduced-motion: reduce) {
