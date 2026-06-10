@@ -9,4 +9,4 @@ Hosted OBS browser-source routes:
 
 Each route plays a silent looping WebM with the monitor screen removed from the frames.
 
-Use `3440 x 1440` for all four routes. The player fills the browser-source canvas directly and uses the still PNG alpha as a browser mask, so the room, bezel, and lamp remain opaque while only the monitor screen is transparent.
+Use `3440 x 1440` for all four routes. The player fills the browser-source canvas directly and plays the rebuilt transparent cutout WebM for each zoom level.
