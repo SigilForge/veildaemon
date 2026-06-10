@@ -57,8 +57,8 @@ body {
 
 .room-pass {
   object-fit: cover;
-  -webkit-mask-image: url("assets/ani-bg-80-mask.png?v=20260609-starting3");
-  mask-image: url("assets/ani-bg-80-mask.png?v=20260609-starting3");
+  -webkit-mask-image: url("assets/ani-bg-80-mask.png?v=20260609-starting4");
+  mask-image: url("assets/ani-bg-80-mask.png?v=20260609-starting4");
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
   -webkit-mask-repeat: no-repeat;
