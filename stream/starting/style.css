@@ -21,11 +21,9 @@ body {
 
 .starting-stage {
   --hole-left: 9.51%;
-  --hole-top: 9.79%;
+  --hole-top: 9.72%;
   --hole-width: 81.08%;
-  --hole-height: 81.11%;
-  --feed-top: 1.1%;
-  --feed-height: 97.8%;
+  --hole-height: 80.21%;
   position: relative;
   width: min(100vw, calc(100vh * 3440 / 1440));
   aspect-ratio: 3440 / 1440;
@@ -60,35 +58,10 @@ body {
   z-index: 1;
 }
 
-.screen-fill::before,
-.screen-fill::after {
-  content: "";
-  position: absolute;
-  z-index: 2;
-  background: #020106;
-  box-shadow: 0 0 9px rgba(0, 0, 0, 0.9);
-}
-
-.screen-fill::before {
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--feed-top);
-}
-
-.screen-fill::after {
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: calc(100% - var(--feed-top) - var(--feed-height));
-}
-
 .screen-fill img {
-  position: absolute;
-  left: 0;
-  top: var(--feed-top);
+  display: block;
   width: 100%;
-  height: var(--feed-height);
+  height: 100%;
   object-fit: fill;
   filter: brightness(0.78) contrast(1.08) saturate(0.98);
   transform: none;
@@ -116,9 +89,9 @@ body {
 
 .monitor-field {
   left: var(--hole-left);
-  top: calc(var(--hole-top) + (var(--hole-height) * var(--feed-top) / 100));
+  top: var(--hole-top);
   width: var(--hole-width);
-  height: calc(var(--hole-height) * var(--feed-height) / 100);
+  height: var(--hole-height);
   overflow: hidden;
   z-index: 5;
   mix-blend-mode: screen;
@@ -146,9 +119,9 @@ body {
 
 .monitor-scan {
   left: var(--hole-left);
-  top: calc(var(--hole-top) + (var(--hole-height) * var(--feed-top) / 100));
+  top: var(--hole-top);
   width: var(--hole-width);
-  height: calc(var(--hole-height) * var(--feed-height) / 100);
+  height: var(--hole-height);
   overflow: hidden;
   z-index: 6;
   mix-blend-mode: screen;
