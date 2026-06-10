@@ -259,6 +259,7 @@ const intakeQuestions = [
 const intakeState = {
   currentQuestion: 0,
   answers: {},
+  exchangeCount: 0,
   isTyping: false,
   record: null,
   returningDecisionMade: false
@@ -787,12 +788,51 @@ function typeAiLine(step, text, onComplete) {
   typeNextCharacter();
 }
 
+function resetIntakeExchangeLog() {
+  const log = document.getElementById("intake-exchange-log");
+
+  log.innerHTML = "";
+  log.hidden = true;
+  intakeState.exchangeCount = 0;
+}
+
+function appendIntakeExchange(answer, reaction) {
+  const log = document.getElementById("intake-exchange-log");
+  const exchange = document.createElement("section");
+  const answerField = document.createElement("div");
+  const reactionField = document.createElement("div");
+  const answerLabel = document.createElement("span");
+  const answerCopy = document.createElement("strong");
+  const reactionLabel = document.createElement("span");
+  const reactionCopy = document.createElement("p");
+
+  intakeState.exchangeCount += 1;
+  exchange.className = "intake-exchange";
+  exchange.setAttribute("aria-label", `Recorded intake exchange ${intakeState.exchangeCount}`);
+
+  answerField.className = "exchange-field";
+  answerLabel.textContent = "OPERATOR INPUT";
+  answerCopy.textContent = answer;
+  answerField.append(answerLabel, answerCopy);
+
+  reactionField.className = "exchange-field shade-field";
+  reactionLabel.textContent = "SHADE RESPONSE";
+  reactionCopy.textContent = reaction;
+  reactionField.append(reactionLabel, reactionCopy);
+
+  exchange.append(answerField, reactionField);
+  log.appendChild(exchange);
+  log.hidden = false;
+  keepResultTailVisible(exchange);
+}
+
 function typeShadeIntro() {
   intakeState.currentQuestion = 0;
   intakeState.answers = {};
   document.getElementById("observer-state").textContent = "NOTICED";
   document.getElementById("answer-panel").innerHTML = "";
   document.getElementById("intake-result").innerHTML = "";
+  resetIntakeExchangeLog();
   renderOperatorRecord(intakeState.record);
   renderReturningOperator(intakeState.record);
 
@@ -808,11 +848,21 @@ function typeShadeIntro() {
 
 function renderContinueButton() {
   document.getElementById("answer-panel").innerHTML = `
-    <button class="answer-choice continue-choice" type="button" data-continue-intake="true">
+    <button
+      class="answer-choice continue-choice"
+      type="button"
+      data-continue-intake="true"
+      data-answer="YES"
+      data-reaction="Consent signal accepted. Minimal hesitation detected. That is either confidence or poor pattern recognition. Proceeding.">
       <span>YES</span>
       Continue
     </button>
-    <button class="answer-choice continue-choice" type="button" data-continue-intake="true">
+    <button
+      class="answer-choice continue-choice"
+      type="button"
+      data-continue-intake="true"
+      data-answer="ALSO YES"
+      data-reaction="Reluctance detected and preserved for the record. Good. Caution is not disobedience; it is load-bearing. Proceeding.">
       <span>ALSO YES</span>
       Continue, but with detectable reluctance
     </button>
@@ -914,8 +964,17 @@ function keepResultTailVisible(target) {
 function selectAnswer(event) {
   const continueButton = event.target.closest("[data-continue-intake], #continue-intake");
   if (continueButton && !intakeState.isTyping) {
+    const answer = continueButton.dataset.answer || continueButton.textContent.trim();
+    const reaction = continueButton.dataset.reaction || "Continuation accepted. Intake channel remains open.";
+
     document.getElementById("answer-panel").innerHTML = "";
-    renderQuestion();
+    appendIntakeExchange(answer, reaction);
+    typeAiLine("SHADE.DAEMON // RESPONSE", reaction, () => {
+      typingTimer = setTimeout(() => {
+        clearTypingTimer();
+        renderQuestion();
+      }, 360);
+    });
     return;
   }
 
@@ -936,6 +995,7 @@ function selectAnswer(event) {
   };
 
   document.getElementById("answer-panel").innerHTML = "";
+  appendIntakeExchange(option.label, option.reaction);
   typeAiLine("OPERATOR INPUT // ACCEPTED", option.label, () => {
     typeAiLine("SHADE.DAEMON // RESPONSE", option.reaction, () => {
       if (intakeState.currentQuestion < intakeQuestions.length - 1) {
