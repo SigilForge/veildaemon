@@ -1044,29 +1044,24 @@ function showIntakeResult(reaction = "") {
   const existingRecord = intakeState.record || readOperatorRecord();
   const record = existingRecord ? updateOperatorRecord(existingRecord, result) : createOperatorRecord(result);
   const lines = [
-    ...(reaction ? [{ text: reaction }] : []),
-    { text: "Local record initialized. Observation path updated. Archive cross-reference pending." },
+    ...(reaction
+      ? [
+          { text: "SHADE COMMENTARY", className: "result-section-label", noPrompt: true },
+          { text: reaction, className: "result-commentary" },
+          { text: "ASSESSMENT", className: "result-section-label", noPrompt: true }
+        ]
+      : [{ text: "ASSESSMENT", className: "result-section-label", noPrompt: true }]),
+    { text: "Local record initialized. Case file tab updated." },
     { text: `DESIGNATION: ${record.designation}` },
-    { text: `ASSIGNMENT GROUP: ${record.assignmentGroup}` },
-    { text: `HANDLER SIGNAL: ${record.handlerSignal}` },
-    { text: `ARCHIVE AUTHORITY: ${record.archiveAuthority}` },
-    { text: `INTAKE NODE: ${record.intakeNode}` },
     { text: `PRIMARY FREQUENCY: ${record.primaryFrequency}` },
-    { text: `STABILITY STATE: ${record.stabilityState}` },
     { text: `ATTENTION STATUS: ${record.attentionStatus}` },
     { text: `ACCESS LEVEL: ${record.accessLevel}` },
-    { text: `OBSERVED TRAITS: ${record.observedTraits.join(" // ")}` },
-    { text: `FREQUENCY DRIFT: ${formatDrift(record).join(" // ")}` },
-    { text: `KNOWN INCIDENT CROSS-REFERENCE: ${record.knownIncidents[0]}` },
-    { text: `ARCHIVE FLAGS: ${record.archiveFlags.slice(0, 3).join(" // ")}` },
-    { text: `RELATED RECORDS AVAILABLE: ${record.relatedRecords.slice(0, 3).join(" // ")}` },
-    { text: `RECOMMENDED TRAINING: ${record.recommendedTraining}` },
     { text: result.claimed ? "NEXT ROUTE: Open Triage Channel" : "NEXT ROUTE: Open Operator Channel" },
     { text: `WARNING: ${result.warning}`, className: "risk" },
     {
       text: result.claimed
-        ? "INTAKE STATUS: TRIAGE // The Redacted intake will resume after stabilization"
-        : "INTAKE STATUS: PASS // The Redacted operator channel available",
+        ? "INTAKE STATUS: TRIAGE // Stabilization recommended before further exposure"
+        : "INTAKE STATUS: PASS // Operator channel available",
       className: result.claimed ? "risk" : "pass"
     }
   ];
@@ -1096,15 +1091,23 @@ function typeResultLines(lines, claimed, record) {
 
   function buildLine(line) {
     const paragraph = document.createElement("p");
+
+    if (line.className) {
+      paragraph.className = line.className;
+    }
+
+    if (line.noPrompt) {
+      paragraph.textContent = line.text;
+      result.appendChild(paragraph);
+      keepResultTailVisible(paragraph);
+      return paragraph;
+    }
+
     const prompt = document.createElement("span");
     const text = document.createElement("span");
 
     prompt.className = "prompt";
     prompt.textContent = "> ";
-    if (line.className) {
-      paragraph.className = line.className;
-    }
-
     paragraph.append(prompt, text);
     result.appendChild(paragraph);
     keepResultTailVisible(paragraph);
@@ -1137,6 +1140,21 @@ function typeResultLines(lines, claimed, record) {
   }
 
   function typeNextResultCharacter() {
+    if (lines[lineIndex].noPrompt) {
+      buildLine(lines[lineIndex]);
+      lineIndex += 1;
+
+      if (lineIndex < lines.length) {
+        typingTimer = setTimeout(typeNextResultCharacter, 160);
+        return;
+      }
+
+      intakeState.isTyping = false;
+      typingTimer = null;
+      appendRouteButtons();
+      return;
+    }
+
     if (!activeText) {
       activeText = buildLine(lines[lineIndex]);
       charIndex = 0;
