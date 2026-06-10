@@ -134,40 +134,6 @@
           </section>
           <div class="answer-panel" id="answer-panel" aria-label="Answer choices" data-choice-list></div>
           <div class="intake-result" id="intake-result"></div>
-          <section class="operator-record" id="operator-record" aria-label="Operator record" hidden>
-            <div class="record-header">
-              <div>
-                <p class="kicker">OPERATOR RECORD // LOCAL NODE MEMORY</p>
-                <h3 id="record-designation">DESIGNATION PENDING</h3>
-              </div>
-              <p class="record-badge" id="record-access">ACCESS: UNASSIGNED</p>
-            </div>
-            <div class="record-grid" id="record-grid"></div>
-            <details class="record-details" open>
-              <summary>Drift / observed traits</summary>
-              <div class="record-log" id="record-drift-list"></div>
-            </details>
-            <details class="record-details">
-              <summary>Local state</summary>
-              <div class="record-grid compact-record-grid" id="record-meta"></div>
-            </details>
-            <details class="record-details" open>
-              <summary>Archive flags</summary>
-              <div class="record-log" id="record-flags-list"></div>
-            </details>
-            <details class="record-details">
-              <summary>Incident exposure</summary>
-              <div class="record-log" id="record-exposure-list"></div>
-            </details>
-            <details class="record-details">
-              <summary>Related records</summary>
-              <div class="record-log" id="record-related-list"></div>
-            </details>
-            <details class="record-details">
-              <summary>Classification history</summary>
-              <div class="record-log" id="record-history-list" aria-label="Classification history"></div>
-            </details>
-          </section>
         </div>
 
         <div class="intake-actions">
@@ -213,6 +179,66 @@
       </footer>
     </section>
   </main>
-  <script src="script.js?v=20260610-finalresult1"></script>
+  <aside class="casefile-drawer" id="casefile-drawer" aria-label="Operator case file" aria-hidden="true">
+    <button class="casefile-tab" type="button" id="casefile-toggle" aria-expanded="false">
+      <span>CASE FILE</span>
+      <strong id="casefile-tab-status">NO LOCAL RECORD</strong>
+    </button>
+
+    <section class="casefile-panel">
+      <div class="record-header">
+        <div>
+          <p class="kicker">VEILCORP CASE FILE</p>
+          <h3>LOCAL OPERATOR RECORD</h3>
+        </div>
+        <p class="record-badge" id="casefile-status">NO RECORD</p>
+      </div>
+
+      <div class="casefile-empty" id="casefile-empty">
+        <p class="kicker">NO OPERATOR RECORD FOUND</p>
+        <p>Begin intake to initialize local case file.</p>
+      </div>
+
+      <section class="operator-record" id="operator-record" aria-label="Operator record" hidden>
+        <div class="record-header">
+          <div>
+            <p class="kicker">OPERATOR SNAPSHOT</p>
+            <h3 id="record-designation">DESIGNATION PENDING</h3>
+          </div>
+          <p class="record-badge" id="record-access">ACCESS: UNASSIGNED</p>
+        </div>
+        <div class="record-grid" id="record-grid"></div>
+        <details class="record-details" open>
+          <summary>First Contact Sheet</summary>
+          <div class="record-grid compact-record-grid first-contact-grid" id="record-sheet"></div>
+        </details>
+        <details class="record-details" open>
+          <summary>Drift / observed traits</summary>
+          <div class="record-log" id="record-drift-list"></div>
+        </details>
+        <details class="record-details">
+          <summary>Local state</summary>
+          <div class="record-grid compact-record-grid" id="record-meta"></div>
+        </details>
+        <details class="record-details" open>
+          <summary>Archive flags</summary>
+          <div class="record-log" id="record-flags-list"></div>
+        </details>
+        <details class="record-details">
+          <summary>Incident exposure</summary>
+          <div class="record-log" id="record-exposure-list"></div>
+        </details>
+        <details class="record-details">
+          <summary>Related records</summary>
+          <div class="record-log" id="record-related-list"></div>
+        </details>
+        <details class="record-details">
+          <summary>Classification history</summary>
+          <div class="record-log" id="record-history-list" aria-label="Classification history"></div>
+        </details>
+      </section>
+    </section>
+  </aside>
+  <script src="script.js?v=20260610-casefiledrawer1"></script>
 </body>
 </html>
