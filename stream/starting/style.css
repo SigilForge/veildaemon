@@ -20,10 +20,10 @@ body {
 }
 
 .starting-stage {
-  --hole-left: 9.51%;
-  --hole-top: 9.79%;
-  --hole-width: 81.08%;
-  --hole-height: 81.11%;
+  --hole-left: 10.03%;
+  --hole-top: 9.24%;
+  --hole-width: 80%;
+  --hole-height: 81.67%;
   position: relative;
   width: min(100vw, calc(100vh * 3440 / 1440));
   aspect-ratio: 3440 / 1440;
