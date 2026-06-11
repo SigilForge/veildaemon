@@ -18,5 +18,5 @@ Use `3440 x 1440` for all three OBS browser-source routes. The player fills the 
 - Do not use semi-transparent frame alpha. The rebuilt WebM should have alpha `0` inside the screen box and `255` outside it.
 - Encode cutouts from the original `1472 x 608` animation frames and let the browser source scale them to the `3440 x 1440` OBS canvas. Do not export full-canvas alpha videos unless there is a specific visual reason.
 - If the right inner bezel needs repair, mirror only a narrow strip from the left silver/white inner bezel line. Do not copy a wide side strip; that pulls in the rainy background.
-- The `90%` overlay uses a tighter bottom cut than the pure aspect-ratio math because the physical monitor opening exposes desk/stand bleed at that zoom. Keep its lower black bar broad enough to cover the right-side desk spill.
+- The `90%` overlay is a scaled/cropped copy of the clean `80%` cutout so the inner bezel edges stay consistent.
 - Bump the query string in each HTML route after rebuilding a WebM so OBS and browser sources reload the new asset.
