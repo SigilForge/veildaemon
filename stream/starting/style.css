@@ -60,11 +60,11 @@ body {
 
 .screen-fill img {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 104%;
+  height: 106%;
   object-fit: fill;
   filter: brightness(0.78) contrast(1.08) saturate(0.98);
-  transform: none;
+  transform: translate(-1.9%, -2.8%);
 }
 
 .frame-pass {
