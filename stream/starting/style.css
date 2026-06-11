@@ -21,9 +21,9 @@ body {
 
 .starting-stage {
   --hole-left: 9.51%;
-  --hole-top: 9.72%;
+  --hole-top: 9.79%;
   --hole-width: 81.08%;
-  --hole-height: 80.21%;
+  --hole-height: 81.11%;
   position: relative;
   width: min(100vw, calc(100vh * 3440 / 1440));
   aspect-ratio: 3440 / 1440;
