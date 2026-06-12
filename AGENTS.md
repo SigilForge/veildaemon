@@ -52,6 +52,13 @@
 - Keep favicon and image paths browser-safe; encode spaces in URLs when referencing filenames with spaces.
 - Preserve mobile usability without yanking desktop users around. Scroll only when an opened panel would otherwise be off-screen.
 
+## Stream Overlay Notes
+- Treat `stream/` as hosted OBS browser-source material, not local-only production scraps.
+- Prefer adding a route with an `index.html` for stream overlays and utility layers instead of requiring OBS to point directly at local image or video files.
+- Keep hosted stream routes `noindex`, transparent by default, and sized for the intended OBS canvas.
+- Bump cache query strings in stream route HTML after changing referenced CSS, JS, image, or video assets.
+- Keep OBS-facing assets small enough for hosted use; avoid full-canvas video exports when browser scaling or static image layers solve the problem.
+
 ## Validation
 - Run `node --check script.js` after JavaScript edits.
 - Run `git diff --check` before handing back changes.
