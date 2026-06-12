@@ -30,3 +30,111 @@ body {
   height: 100%;
   object-fit: fill;
 }
+
+.redaction-stage span {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.redaction-animated .redaction-stage {
+  animation: redactionJitter 7s steps(1, end) infinite;
+}
+
+.redaction-scan {
+  background:
+    linear-gradient(90deg, transparent 0 18%, rgba(102, 247, 231, 0.18), rgba(216, 180, 254, 0.28), transparent 35% 100%),
+    linear-gradient(180deg, transparent 0 42%, rgba(232, 221, 255, 0.22), transparent 57% 100%);
+  mix-blend-mode: screen;
+  opacity: 0.65;
+  transform: translateX(-42%);
+  animation: redactionSweep 5.8s ease-in-out infinite;
+}
+
+.redaction-signal {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 46px, rgba(102, 247, 231, 0.18) 47px 49px, transparent 50px 92px),
+    radial-gradient(ellipse at 50% 65%, rgba(168, 85, 255, 0.18), transparent 30%);
+  mix-blend-mode: screen;
+  opacity: 0.42;
+  animation: redactionPulse 2.4s ease-in-out infinite;
+}
+
+.redaction-noise {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, transparent 0 13px, rgba(216, 180, 254, 0.05) 13px 14px, transparent 14px 29px);
+  mix-blend-mode: screen;
+  opacity: 0.24;
+  animation: redactionNoise 0.42s steps(2, end) infinite;
+}
+
+@keyframes redactionSweep {
+  0%, 16% {
+    transform: translateX(-46%);
+    opacity: 0;
+  }
+
+  28% {
+    opacity: 0.68;
+  }
+
+  48% {
+    transform: translateX(44%);
+    opacity: 0.18;
+  }
+
+  100% {
+    transform: translateX(44%);
+    opacity: 0;
+  }
+}
+
+@keyframes redactionPulse {
+  0%, 100% {
+    opacity: 0.3;
+    filter: hue-rotate(0deg);
+  }
+
+  42% {
+    opacity: 0.54;
+    filter: hue-rotate(16deg);
+  }
+
+  76% {
+    opacity: 0.38;
+  }
+}
+
+@keyframes redactionNoise {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(-0.18%, 1px);
+  }
+
+  100% {
+    transform: translate(0.14%, -1px);
+  }
+}
+
+@keyframes redactionJitter {
+  0%, 82%, 100% {
+    transform: translateX(0);
+  }
+
+  84% {
+    transform: translateX(1px);
+  }
+
+  86% {
+    transform: translateX(-1px);
+  }
+
+  88% {
+    transform: translateX(0);
+  }
+}
