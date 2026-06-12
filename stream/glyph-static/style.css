@@ -1,0 +1,206 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+body {
+  background: transparent;
+}
+
+.glyph-static-stage,
+.glyph-static-stage video,
+.glyph-static-stage span,
+.glyph-ripple {
+  position: fixed;
+  pointer-events: none;
+}
+
+.glyph-static-stage {
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent;
+}
+
+.glyph-static-source {
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.14;
+  mix-blend-mode: screen;
+  filter: brightness(4) contrast(1.6) saturate(0.9) hue-rotate(8deg);
+  animation: glyphStaticGround 11s steps(1, end) infinite;
+}
+
+.glyph-ripple {
+  left: -8vw;
+  width: 116vw;
+  overflow: hidden;
+  opacity: 0;
+  filter: hue-rotate(10deg) blur(0.15px);
+}
+
+.glyph-ripple video {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 720%;
+  object-fit: cover;
+  opacity: 0.95;
+  mix-blend-mode: screen;
+  filter: brightness(8) contrast(1.8) saturate(0.9);
+}
+
+.ripple-a video {
+  transform: translate(-50%, -18%);
+}
+
+.ripple-b video {
+  transform: translate(-50%, -42%);
+}
+
+.ripple-c video {
+  transform: translate(-50%, -68%);
+}
+
+.ripple-a {
+  top: 18%;
+  height: 12%;
+  clip-path: polygon(0 24%, 11% 8%, 27% 28%, 42% 12%, 62% 33%, 79% 14%, 100% 25%, 100% 76%, 82% 91%, 64% 69%, 43% 88%, 23% 66%, 0 82%);
+  animation: glyphRippleA 8.5s steps(1, end) infinite;
+}
+
+.ripple-b {
+  top: 47%;
+  height: 9%;
+  clip-path: polygon(0 36%, 16% 25%, 31% 44%, 52% 21%, 71% 45%, 100% 28%, 100% 66%, 73% 84%, 51% 62%, 32% 78%, 14% 57%, 0 73%);
+  animation: glyphRippleB 12s steps(1, end) infinite;
+}
+
+.ripple-c {
+  top: 72%;
+  height: 14%;
+  clip-path: polygon(0 18%, 12% 30%, 26% 15%, 47% 39%, 68% 12%, 86% 31%, 100% 18%, 100% 82%, 88% 70%, 69% 90%, 48% 65%, 28% 86%, 9% 67%, 0 78%);
+  animation: glyphRippleC 10.5s steps(1, end) infinite;
+}
+
+.glyph-static-scan {
+  inset: 0;
+  background:
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 7px),
+    linear-gradient(90deg, transparent 0 12%, rgba(168, 85, 255, 0.05), transparent 30% 72%, rgba(102, 247, 231, 0.04), transparent);
+  mix-blend-mode: screen;
+  opacity: 0.2;
+  animation: glyphStaticScan 6s linear infinite;
+}
+
+@keyframes glyphStaticGround {
+  0%, 68%, 100% {
+    opacity: 0.03;
+  }
+
+  69% {
+    opacity: 0.09;
+    transform: translateX(1px);
+  }
+
+  70% {
+    opacity: 0.025;
+    transform: translateX(-2px);
+  }
+}
+
+@keyframes glyphRippleA {
+  0%, 12%, 25%, 100% {
+    opacity: 0;
+    transform: translateX(-5%) skewX(-8deg);
+  }
+
+  13% {
+    opacity: 0.88;
+    transform: translateX(-1%) skewX(-8deg);
+  }
+
+  14% {
+    opacity: 0.42;
+    transform: translateX(2%) skewX(7deg);
+  }
+
+  15% {
+    opacity: 0.72;
+    transform: translateX(0) skewX(-3deg);
+  }
+
+  20% {
+    opacity: 0.24;
+    transform: translateX(4%) skewX(2deg);
+  }
+}
+
+@keyframes glyphRippleB {
+  0%, 44%, 51%, 100% {
+    opacity: 0;
+    transform: translateX(6%) skewX(6deg);
+  }
+
+  45% {
+    opacity: 0.7;
+    transform: translateX(2%) skewX(6deg);
+  }
+
+  46% {
+    opacity: 0.34;
+    transform: translateX(-3%) skewX(-9deg);
+  }
+
+  48% {
+    opacity: 0.58;
+    transform: translateX(0) skewX(4deg);
+  }
+}
+
+@keyframes glyphRippleC {
+  0%, 76%, 84%, 100% {
+    opacity: 0;
+    transform: translateX(-4%) skewX(4deg);
+  }
+
+  77% {
+    opacity: 0.72;
+    transform: translateX(-2%) skewX(4deg);
+  }
+
+  78% {
+    opacity: 0.36;
+    transform: translateX(3%) skewX(-7deg);
+  }
+
+  80% {
+    opacity: 0.55;
+    transform: translateX(0) skewX(1deg);
+  }
+}
+
+@keyframes glyphStaticScan {
+  from {
+    transform: translateY(-10px);
+  }
+
+  to {
+    transform: translateY(24px);
+  }
+}
