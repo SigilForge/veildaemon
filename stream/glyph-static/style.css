@@ -2,6 +2,12 @@
   box-sizing: border-box;
 }
 
+@property --wave-top {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: -28%;
+}
+
 html,
 body {
   width: 100%;
@@ -17,8 +23,7 @@ body {
 
 .glyph-static-stage,
 .glyph-static-stage video,
-.glyph-static-stage span,
-.glyph-ripple {
+.glyph-static-stage span {
   position: fixed;
   pointer-events: none;
 }
@@ -37,74 +42,45 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.18;
-  mix-blend-mode: screen;
-  filter: brightness(3.2) contrast(1.45) saturate(0.92) hue-rotate(8deg);
-  animation: glyphStaticGround 11s steps(1, end) infinite;
-}
-
-.glyph-ripple {
-  left: -8vw;
-  width: 116vw;
-  overflow: hidden;
   opacity: 0;
-  filter: hue-rotate(10deg) blur(0.15px);
-}
-
-.glyph-ripple video {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  display: block;
-  width: 100%;
-  height: auto;
-  min-height: 720%;
-  object-fit: cover;
-}
-
-.ripple-shadow {
-  opacity: 0.58;
-  mix-blend-mode: multiply;
-  filter: brightness(1.65) contrast(2.5) saturate(0.75) hue-rotate(12deg);
-}
-
-.ripple-glyphs {
-  opacity: 1;
   mix-blend-mode: screen;
-  filter: brightness(6.5) contrast(1.7) saturate(0.95);
+  filter: brightness(2.15) contrast(1.3);
+  mask-image:
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent var(--wave-top, 0%),
+      rgba(0, 0, 0, 0.18) calc(var(--wave-top, 0%) + 4%),
+      #000 calc(var(--wave-top, 0%) + 8%),
+      #000 calc(var(--wave-top, 0%) + 13%),
+      rgba(0, 0, 0, 0.2) calc(var(--wave-top, 0%) + 17%),
+      transparent calc(var(--wave-top, 0%) + 23%),
+      transparent 100%
+    );
+  -webkit-mask-image:
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent var(--wave-top, 0%),
+      rgba(0, 0, 0, 0.18) calc(var(--wave-top, 0%) + 4%),
+      #000 calc(var(--wave-top, 0%) + 8%),
+      #000 calc(var(--wave-top, 0%) + 13%),
+      rgba(0, 0, 0, 0.2) calc(var(--wave-top, 0%) + 17%),
+      transparent calc(var(--wave-top, 0%) + 23%),
+      transparent 100%
+    );
+  animation: glyphWaveReveal 9s ease-in-out infinite;
 }
 
-.ripple-a video {
-  transform: translate(-50%, -30%);
-}
-
-.ripple-b video {
-  transform: translate(-50%, -50%);
-}
-
-.ripple-c video {
-  transform: translate(-50%, -72%);
-}
-
-.ripple-a {
-  top: 16%;
-  height: 16%;
-  clip-path: polygon(0 24%, 11% 8%, 27% 28%, 42% 12%, 62% 33%, 79% 14%, 100% 25%, 100% 76%, 82% 91%, 64% 69%, 43% 88%, 23% 66%, 0 82%);
-  animation: glyphRippleA 8.5s steps(1, end) infinite;
-}
-
-.ripple-b {
-  top: 43%;
-  height: 14%;
-  clip-path: polygon(0 36%, 16% 25%, 31% 44%, 52% 21%, 71% 45%, 100% 28%, 100% 66%, 73% 84%, 51% 62%, 32% 78%, 14% 57%, 0 73%);
-  animation: glyphRippleB 12s steps(1, end) infinite;
-}
-
-.ripple-c {
-  top: 68%;
-  height: 18%;
-  clip-path: polygon(0 18%, 12% 30%, 26% 15%, 47% 39%, 68% 12%, 86% 31%, 100% 18%, 100% 82%, 88% 70%, 69% 90%, 48% 65%, 28% 86%, 9% 67%, 0 78%);
-  animation: glyphRippleC 10.5s steps(1, end) infinite;
+.glyph-wave {
+  inset: -12% 0;
+  background:
+    linear-gradient(180deg, transparent 0 38%, rgba(232, 244, 255, 0.08) 44%, rgba(216, 180, 254, 0.12) 50%, rgba(102, 247, 231, 0.06) 56%, transparent 64% 100%),
+    radial-gradient(ellipse at 50% 50%, rgba(216, 180, 254, 0.12), transparent 55%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  filter: blur(10px);
+  animation: glyphWaveGlow 9s ease-in-out infinite;
 }
 
 .glyph-static-scan {
@@ -113,94 +89,55 @@ body {
     repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 7px),
     linear-gradient(90deg, transparent 0 12%, rgba(168, 85, 255, 0.05), transparent 30% 72%, rgba(102, 247, 231, 0.04), transparent);
   mix-blend-mode: screen;
-  opacity: 0.2;
+  opacity: 0.14;
   animation: glyphStaticScan 6s linear infinite;
 }
 
-@keyframes glyphStaticGround {
-  0%, 68%, 100% {
-    opacity: 0.03;
+@keyframes glyphWaveReveal {
+  0%, 20%, 100% {
+    --wave-top: -28%;
+    opacity: 0;
+    transform: translateX(0);
   }
 
-  69% {
-    opacity: 0.09;
+  24% {
+    --wave-top: 0%;
+    opacity: 0.1;
     transform: translateX(1px);
   }
 
-  70% {
-    opacity: 0.025;
+  34% {
+    --wave-top: 24%;
+    opacity: 0.42;
     transform: translateX(-2px);
   }
-}
 
-@keyframes glyphRippleA {
-  0%, 8%, 34%, 100% {
-    opacity: 0;
-    transform: translateX(-5%) skewX(-8deg);
-  }
-
-  9% {
-    opacity: 0.95;
-    transform: translateX(-1%) skewX(-8deg);
-  }
-
-  12% {
-    opacity: 0.62;
-    transform: translateX(2%) skewX(7deg);
-  }
-
-  16% {
-    opacity: 0.86;
+  46% {
+    --wave-top: 58%;
+    opacity: 0.34;
     transform: translateX(0) skewX(-3deg);
   }
 
-  28% {
-    opacity: 0.34;
-    transform: translateX(4%) skewX(2deg);
+  58% {
+    --wave-top: 104%;
+    opacity: 0;
+    transform: translateX(0);
   }
 }
 
-@keyframes glyphRippleB {
-  0%, 38%, 58%, 100% {
+@keyframes glyphWaveGlow {
+  0%, 20%, 60%, 100% {
     opacity: 0;
-    transform: translateX(6%) skewX(6deg);
+    transform: translateY(-72%);
   }
 
-  39% {
-    opacity: 0.82;
-    transform: translateX(2%) skewX(6deg);
+  30% {
+    opacity: 0.42;
   }
 
-  43% {
-    opacity: 0.48;
-    transform: translateX(-3%) skewX(-9deg);
-  }
-
-  49% {
-    opacity: 0.72;
-    transform: translateX(0) skewX(4deg);
-  }
-}
-
-@keyframes glyphRippleC {
-  0%, 68%, 90%, 100% {
-    opacity: 0;
-    transform: translateX(-4%) skewX(4deg);
-  }
-
-  69% {
-    opacity: 0.86;
-    transform: translateX(-2%) skewX(4deg);
-  }
-
-  73% {
-    opacity: 0.52;
-    transform: translateX(3%) skewX(-7deg);
-  }
-
-  80% {
-    opacity: 0.7;
-    transform: translateX(0) skewX(1deg);
+  48% {
+    opacity: 0.2;
+    transform: translateY(72%);
   }
 }
 
