@@ -2,31 +2,35 @@ const operatorRecordVersion = 1;
 const recordStorageKey = "veildaemon.operatorRecord.v2";
 const legacyRecordStorageKey = "veildaemon.operatorRecord.v1";
 const archiveUrl = "https://wiki.veildaemon.app/";
-const frequencyDiscordRoutes = {
-  Dream: "https://discord.gg/3C6nXeWkjs",
-  Silence: "https://discord.gg/guB7VRgA8R",
-  Hunger: "https://discord.gg/Q8rRwetUhF",
-  Stillness: "https://discord.gg/ryrAX48e67",
-  Empyrean: "https://discord.gg/eHHyEupuHy",
-  Becoming: "https://discord.gg/3RCK9BGkZ5"
-};
-const unstableFrequencyDiscordRoutes = {
-  Dream: "https://discord.gg/db2QBYMMBa",
-  Silence: "https://discord.gg/xwsc8EbPeH",
-  Hunger: "https://discord.gg/NjZVEwMBMS",
-  Stillness: "https://discord.gg/jMBdvcSXAe",
-  Empyrean: "https://discord.gg/yWMwM7h6yF",
-  Becoming: "https://discord.gg/tGqacRrTqx"
-};
+const caseFileUrl = "https://the-cradlepoint-archives.itch.io/needlepoint";
+const passDiscordRoute = "https://discord.gg/Bn6attnYN6";
+const claimedDiscordRoute = "https://discord.gg/KRbckpfTQk";
 const currentDiscordRoutes = new Set([
-  ...Object.values(frequencyDiscordRoutes),
-  ...Object.values(unstableFrequencyDiscordRoutes)
+  passDiscordRoute,
+  claimedDiscordRoute
 ]);
 
 function getDiscordRoute(frequency, unstable = false) {
-  const routeMap = unstable ? unstableFrequencyDiscordRoutes : frequencyDiscordRoutes;
-  return routeMap[frequency] || frequencyDiscordRoutes.Dream;
+  return unstable ? claimedDiscordRoute : passDiscordRoute;
 }
+
+const observerAdvisories = [
+  "Observation creates relevance. Continued attention may require classification.",
+  "Human authorization partial. Survival authorization active.",
+  "Infrastructure before permission. Intake remains available.",
+  "Do not approach recursive landmarks without a second witness.",
+  "If a familiar voice gives unfamiliar instructions, document the exact wording.",
+  "Transmission playback is separate. Support channels are separate. This is triage."
+];
+
+const operatorTasks = [
+  "Review one archive entry. Stop before certainty becomes decorative.",
+  "Open the Needlepoint case file. Note the first procedure you would have ignored.",
+  "Record one impossible detail without correcting it.",
+  "Compare your local file against the archive. Disagreement is signal, not failure.",
+  "Check whether the transmission changed. Do not ask it to repeat itself.",
+  "Return later. Persistence is data; panic is noisy data."
+];
 
 const profiles = {
   Dream: {
@@ -396,7 +400,10 @@ function normalizeOperatorRecord(record) {
   const profile = profiles[primaryFrequency];
   const createdAt = record.createdAt || nowStamp();
   const updatedAt = record.updatedAt || createdAt;
-  const unstableRoute = record.attentionStatus === "DO NOT SUSTAIN EYE CONTACT" || record.stabilityState === "TRIAGE RECOMMENDED" || record.accessLevel === "REDACTED";
+  const stabilityState = record.stabilityState || record.stability || "NOMINAL";
+  const attentionStatus = record.attentionStatus || record.attention || "LOW";
+  const accessLevel = record.accessLevel || record.access || "PROVISIONAL";
+  const unstableRoute = attentionStatus === "DO NOT SUSTAIN EYE CONTACT" || stabilityState === "TRIAGE RECOMMENDED" || accessLevel === "REDACTED";
   const storedDiscordRoute = currentDiscordRoutes.has(record.discordRoute) ? record.discordRoute : null;
   const discordRoute = storedDiscordRoute || getDiscordRoute(primaryFrequency, unstableRoute);
 
@@ -404,9 +411,10 @@ function normalizeOperatorRecord(record) {
     operatorRecordVersion,
     designation: record.designation || generateDesignation(primaryFrequency),
     primaryFrequency,
-    stabilityState: record.stabilityState || record.stability || "NOMINAL",
-    attentionStatus: record.attentionStatus || record.attention || "LOW",
-    accessLevel: record.accessLevel || record.access || "PROVISIONAL",
+    stabilityState,
+    attentionStatus,
+    accessLevel,
+    observerClassification: record.observerClassification || (attentionStatus === "DO NOT SUSTAIN EYE CONTACT" ? "CLAIMED" : "POTENTIAL OPERATOR"),
     assignmentGroup: record.assignmentGroup || "THE REDACTED",
     handlerSignal: record.handlerSignal || "SHADE",
     archiveAuthority: record.archiveAuthority || "VEILCORP",
@@ -506,6 +514,22 @@ function determineAccessLevel(result) {
   return "INTAKE ACCEPTED";
 }
 
+function determineObserverClassification(result) {
+  if (result.risk === "CLAIMED") {
+    return "CLAIMED";
+  }
+
+  if (result.risk === "MARKED" && (result.action === "followed" || result.action === "lied")) {
+    return "MISROUTED ASSET";
+  }
+
+  if (result.risk === "NOTED" || result.risk === "MARKED") {
+    return "CIVILIAN SIGNAL";
+  }
+
+  return "POTENTIAL OPERATOR";
+}
+
 function buildIntakeResult() {
   const noticed = intakeState.answers.noticed;
   const action = intakeState.answers.action;
@@ -525,6 +549,7 @@ function buildIntakeResult() {
     attentionStatus: attentionCopy[risk],
     stabilityState: determineStabilityState({ frequency, action: action.value, risk }),
     accessLevel: determineAccessLevel({ frequency, action: action.value, risk }),
+    observerClassification: determineObserverClassification({ frequency, action: action.value, risk }),
     discordRoute: getDiscordRoute(frequency, risk === "CLAIMED")
   };
 }
@@ -538,6 +563,7 @@ function createOperatorRecord(result) {
     stabilityState: result.stabilityState,
     attentionStatus: result.attentionStatus,
     accessLevel: result.accessLevel,
+    observerClassification: result.observerClassification,
     assignmentGroup: "THE REDACTED",
     handlerSignal: "SHADE",
     archiveAuthority: "VEILCORP",
@@ -583,6 +609,7 @@ function updateOperatorRecord(record, result) {
   nextRecord.stabilityState = result.stabilityState;
   nextRecord.attentionStatus = result.attentionStatus;
   nextRecord.accessLevel = result.accessLevel;
+  nextRecord.observerClassification = result.observerClassification;
   nextRecord.assignmentGroup = "THE REDACTED";
   nextRecord.handlerSignal = "SHADE";
   nextRecord.archiveAuthority = "VEILCORP";
@@ -616,6 +643,7 @@ function updateOperatorRecord(record, result) {
 
   appendHistory(nextRecord, "INTAKE COMPLETED");
   appendHistory(nextRecord, `PRIMARY FREQUENCY ASSIGNED: ${result.frequency.toUpperCase()}`);
+  appendHistory(nextRecord, `OBSERVER CLASSIFICATION UPDATED: ${result.observerClassification}`);
   appendHistory(nextRecord, `ATTENTION STATUS UPDATED: ${result.attentionStatus}`);
   appendHistory(nextRecord, "ARCHIVE CROSS-REFERENCE PENDING");
   appendHistory(nextRecord, result.claimed ? "TRIAGE ROUTE OFFERED" : "OPERATOR CHANNEL OFFERED");
@@ -672,6 +700,7 @@ function renderOperatorRecord(record) {
     purgeButton.hidden = true;
     purgeButton.disabled = true;
     purgeNote.hidden = true;
+    renderOperatorTasking(null);
     return;
   }
 
@@ -695,6 +724,7 @@ function renderOperatorRecord(record) {
     ["HANDLER SIGNAL", record.handlerSignal],
     ["ARCHIVE AUTHORITY", record.archiveAuthority],
     ["INTAKE NODE", record.intakeNode],
+    ["OBSERVER CLASSIFICATION", record.observerClassification],
     ["PRIMARY FREQUENCY", record.primaryFrequency],
     ["STABILITY STATE", record.stabilityState],
     ["ATTENTION STATUS", record.attentionStatus],
@@ -745,6 +775,7 @@ function renderOperatorRecord(record) {
   purgeButton.hidden = false;
   purgeButton.disabled = false;
   purgeNote.hidden = false;
+  renderOperatorTasking(record);
 }
 
 function addRecordField(parent, label, value) {
@@ -955,18 +986,29 @@ function openIntake() {
     intakeState.isTyping = false;
     intake.hidden = true;
     startButton.setAttribute("aria-expanded", "false");
-    startButton.textContent = "Start Here: Begin Operator Intake";
+    setButtonLabel(startButton, "Begin Operator Intake");
     return;
   }
 
   intake.hidden = false;
   startButton.setAttribute("aria-expanded", "true");
-  startButton.textContent = "Collapse Operator Intake";
+  setButtonLabel(startButton, "Collapse Operator Intake");
   intakeState.returningDecisionMade = false;
   intakeState.record = markRecordSeen(readOperatorRecord());
   typeShadeIntro();
   intake.focus({ preventScroll: true });
   keepIntakeVisible(intake);
+}
+
+function setButtonLabel(button, label) {
+  const labelNode = button.querySelector("span:last-child");
+
+  if (labelNode) {
+    labelNode.textContent = label;
+    return;
+  }
+
+  button.textContent = label;
 }
 
 function keepIntakeVisible(intake) {
@@ -1054,6 +1096,7 @@ function showIntakeResult(reaction = "") {
     { text: "Local record initialized. Case file tab updated." },
     { text: `DESIGNATION: ${record.designation}` },
     { text: `PRIMARY FREQUENCY: ${record.primaryFrequency}` },
+    { text: `OBSERVER CLASSIFICATION: ${record.observerClassification}` },
     { text: `ATTENTION STATUS: ${record.attentionStatus}` },
     { text: `ACCESS LEVEL: ${record.accessLevel}` },
     { text: result.claimed ? "NEXT ROUTE: Open Triage Channel" : "NEXT ROUTE: Open Operator Channel" },
@@ -1242,6 +1285,26 @@ function resetIntake() {
   typeShadeIntro();
 }
 
+function renderObserverAdvisory() {
+  const advisory = document.getElementById("observer-advisory-line");
+
+  if (!advisory) {
+    return;
+  }
+
+  const date = new Date();
+  const index = (date.getDay() + date.getHours()) % observerAdvisories.length;
+  advisory.innerHTML = "";
+
+  const prompt = document.createElement("span");
+  const text = document.createElement("span");
+
+  prompt.className = "prompt";
+  prompt.textContent = "> ";
+  text.textContent = observerAdvisories[index];
+  advisory.append(prompt, text);
+}
+
 function updateAttentionFromActivity(record) {
   if (record.attentionStatus === "DO NOT SUSTAIN EYE CONTACT" || record.attentionStatus === "MARKED") {
     return;
@@ -1249,14 +1312,28 @@ function updateAttentionFromActivity(record) {
 
   if (record.filesReviewed >= 7 || record.incidentExposure.length >= 5) {
     record.attentionStatus = "MARKED";
+    record.observerClassification = updateObserverClassification(record, "CIVILIAN SIGNAL");
     appendHistory(record, "ATTENTION STATUS UPDATED: MARKED");
     return;
   }
 
   if (record.filesReviewed >= 3 || record.incidentExposure.length >= 3) {
     record.attentionStatus = "NOTED";
+    record.observerClassification = updateObserverClassification(record, "CIVILIAN SIGNAL");
     appendHistory(record, "ATTENTION STATUS UPDATED: NOTED");
   }
+}
+
+function updateObserverClassification(record, nextClassification) {
+  if (record.observerClassification === "CLAIMED" || record.observerClassification === "MISROUTED ASSET") {
+    return record.observerClassification;
+  }
+
+  if (record.observerClassification !== nextClassification) {
+    appendHistory(record, `OBSERVER CLASSIFICATION UPDATED: ${nextClassification}`);
+  }
+
+  return nextClassification;
 }
 
 function recordArchiveInteraction(type) {
@@ -1280,6 +1357,52 @@ function recordArchiveInteraction(type) {
   renderOperatorRecord(record);
 }
 
+function renderOperatorTasking(record) {
+  const taskPanel = document.getElementById("operator-tasking");
+
+  if (!taskPanel) {
+    return;
+  }
+
+  if (!record) {
+    taskPanel.hidden = true;
+    return;
+  }
+
+  const taskIndex = (new Date().getDate() + (record.filesReviewed || 0)) % operatorTasks.length;
+  const title = document.getElementById("operator-task-title");
+  const badge = document.getElementById("operator-task-badge");
+  const copy = document.getElementById("operator-task-copy");
+  const archiveRoute = document.getElementById("task-archive-route");
+  const caseFileRoute = document.getElementById("task-case-file-route");
+  const discordRoute = document.getElementById("task-discord-route");
+
+  if (!title || !badge || !copy || !archiveRoute || !caseFileRoute || !discordRoute) {
+    taskPanel.hidden = true;
+    return;
+  }
+
+  const claimed = record.discordRoute === claimedDiscordRoute || record.observerClassification === "CLAIMED";
+
+  title.textContent = record.observerClassification || "POTENTIAL OPERATOR";
+  badge.textContent = record.attentionStatus || "NOTED";
+  archiveRoute.href = record.archiveRoute || archiveUrl;
+  caseFileRoute.href = caseFileUrl;
+  discordRoute.href = record.discordRoute || getDiscordRoute(record.primaryFrequency, claimed);
+  discordRoute.classList.toggle("primary", !claimed);
+  discordRoute.classList.toggle("ghost", claimed);
+  setButtonLabel(discordRoute, claimed ? "Open Triage Channel" : "Open Operator Channel");
+  copy.innerHTML = "";
+  const prompt = document.createElement("span");
+  const text = document.createElement("span");
+
+  prompt.className = "prompt";
+  prompt.textContent = "> ";
+  text.textContent = operatorTasks[taskIndex];
+  copy.append(prompt, text);
+  taskPanel.hidden = false;
+}
+
 function toggleTransmissionViewer() {
   const toggle = document.getElementById("open-transmission");
   const video = document.getElementById("primary-feed-video");
@@ -1287,7 +1410,7 @@ function toggleTransmissionViewer() {
 
   video.hidden = isOpen;
   toggle.setAttribute("aria-expanded", String(!isOpen));
-  toggle.textContent = isOpen ? "Open Transmission Viewer" : "Collapse Transmission Viewer";
+  setButtonLabel(toggle, isOpen ? "Open Transmission Viewer" : "Collapse Transmission Viewer");
 
   if (isOpen === false) {
     recordArchiveInteraction("transmission");
@@ -1295,6 +1418,7 @@ function toggleTransmissionViewer() {
 }
 
 intakeState.record = readOperatorRecord();
+renderObserverAdvisory();
 renderOperatorRecord(intakeState.record);
 document.getElementById("start-intake").addEventListener("click", openIntake);
 document.getElementById("answer-panel").addEventListener("click", selectAnswer);
@@ -1307,3 +1431,11 @@ document.getElementById("casefile-toggle").addEventListener("click", toggleCasef
 document.getElementById("open-transmission").addEventListener("click", toggleTransmissionViewer);
 document.getElementById("archive-route").addEventListener("click", () => recordArchiveInteraction("archive"));
 document.getElementById("case-file-route").addEventListener("click", () => recordArchiveInteraction("caseFile"));
+document.getElementById("task-archive-route").addEventListener("click", () => recordArchiveInteraction("archive"));
+document.getElementById("task-case-file-route").addEventListener("click", () => recordArchiveInteraction("caseFile"));
+document.getElementById("task-discord-route").addEventListener("click", () => {
+  const record = intakeState.record || readOperatorRecord();
+  const claimed = record && (record.discordRoute === claimedDiscordRoute || record.observerClassification === "CLAIMED");
+
+  recordArchiveInteraction(claimed ? "triageChannel" : "operatorChannel");
+});
