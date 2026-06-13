@@ -199,6 +199,22 @@ h1 {
   font-size: .88rem;
   line-height: 1.45;
 }
+.observer-advisory {
+  margin-top: 1rem;
+  padding: .9rem 1rem;
+  border: 1px solid rgba(185,84,255,.3);
+  background: linear-gradient(135deg, rgba(0,0,0,.36), rgba(26,4,37,.26));
+  box-shadow: inset 0 0 22px rgba(185,84,255,.07);
+}
+.observer-advisory p {
+  margin: .32rem 0 0;
+  color: #d7fff4;
+  line-height: 1.45;
+}
+.observer-advisory .kicker {
+  margin-top: 0;
+  color: var(--purple);
+}
 .button {
   --button-idle-border: rgba(138,255,219,.34);
   --button-idle-shadow: inset 0 0 22px rgba(102,255,220,.06);
@@ -633,6 +649,24 @@ footer {
 .returning-operator[hidden] {
   display: none;
 }
+.operator-tasking {
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(138,255,219,.24);
+  background: linear-gradient(135deg, rgba(0,0,0,.46), rgba(8,30,32,.28));
+  box-shadow: inset 0 0 24px rgba(102,255,220,.055);
+}
+.operator-tasking[hidden] {
+  display: none;
+}
+.operator-tasking > p {
+  margin: .45rem 0 0;
+  color: #d7fff4;
+  line-height: 1.45;
+}
+.operator-tasking .route-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 .returning-actions,
 .route-actions {
   display: grid;
@@ -807,8 +841,9 @@ footer {
 }
 @media (max-width: 520px) {
   .route-actions {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr;
   }
+  .operator-tasking .route-actions { grid-template-columns: 1fr; }
   .route-restart {
     padding-inline: .62rem;
   }

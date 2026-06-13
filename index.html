@@ -25,7 +25,7 @@
   <link rel="icon" type="image/png" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="apple-touch-icon" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="styles.css?v=20260612-glyphs1" />
+  <link rel="stylesheet" href="styles.css?v=20260613-tasking1" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -201,11 +201,16 @@
       </div>
 
       <nav class="actions" aria-label="First contact routes">
-        <button class="button primary start-route" type="button" id="start-intake" aria-controls="intake-node" aria-expanded="false"><img class="button-glyph" src="assets/glyphs/operation-intake.png" alt="" aria-hidden="true" /> <span>Start Here: Begin Operator Intake</span></button>
-        <a class="button" id="case-file-route" href="https://the-cradlepoint-archives.itch.io/needlepoint" target="_blank" rel="noopener noreferrer"><img class="button-glyph" src="assets/glyphs/case-file.png" alt="" aria-hidden="true" /> <span>Play Case File</span></a>
         <a class="button" id="archive-route" href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer"><img class="button-glyph" src="assets/glyphs/archive-index.png" alt="" aria-hidden="true" /> <span>Read Archive</span></a>
+        <button class="button primary start-route" type="button" id="start-intake" aria-controls="intake-node" aria-expanded="false"><img class="button-glyph" src="assets/glyphs/operation-intake.png" alt="" aria-hidden="true" /> <span>Begin Operator Intake</span></button>
+        <a class="button" id="case-file-route" href="https://the-cradlepoint-archives.itch.io/needlepoint" target="_blank" rel="noopener noreferrer"><img class="button-glyph" src="assets/glyphs/case-file.png" alt="" aria-hidden="true" /> <span>Play Case File</span></a>
       </nav>
       <p class="route-hint"><span class="prompt">&gt;</span> If you are uncertain where to begin, begin with intake. Uncertainty is a valid signal.</p>
+
+      <section class="observer-advisory" aria-label="Public safety advisory" aria-live="polite">
+        <p class="kicker">PUBLIC SAFETY ADVISORY</p>
+        <p id="observer-advisory-line"><span class="prompt">&gt;</span> Observation creates relevance. Continued attention may require classification.</p>
+      </section>
 
       <section class="intake" id="intake-node" aria-label="Operator Intake Node" tabindex="-1" data-nosnippet hidden>
         <div class="feed-header">
@@ -247,6 +252,21 @@
           </section>
           <div class="answer-panel" id="answer-panel" aria-label="Answer choices" data-choice-list></div>
           <div class="intake-result" id="intake-result"></div>
+          <section class="operator-tasking" id="operator-tasking" aria-label="Operator tasking" hidden>
+            <div class="record-header">
+              <div>
+                <p class="kicker">NEXT PROCEDURE</p>
+                <h3 id="operator-task-title">ROUTING PENDING</h3>
+              </div>
+              <p class="record-badge" id="operator-task-badge">UNASSIGNED</p>
+            </div>
+            <p id="operator-task-copy"><span class="prompt">&gt;</span> Complete intake to receive routing.</p>
+            <div class="route-actions">
+              <a class="button" href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer" id="task-archive-route"><img class="button-glyph" src="assets/glyphs/archive-index.png" alt="" aria-hidden="true" /> <span>Read Archive</span></a>
+              <a class="button" href="https://the-cradlepoint-archives.itch.io/needlepoint" target="_blank" rel="noopener noreferrer" id="task-case-file-route"><img class="button-glyph" src="assets/glyphs/case-file.png" alt="" aria-hidden="true" /> <span>Play Case File</span></a>
+              <a class="button primary discord-route" href="https://discord.gg/Bn6attnYN6" target="_blank" rel="noopener noreferrer" id="task-discord-route"><span>Open Operator Channel</span></a>
+            </div>
+          </section>
         </div>
 
         <div class="intake-actions">
@@ -352,6 +372,6 @@
       </section>
     </section>
   </aside>
-  <script src="script.js?v=20260610-resultsections1"></script>
+  <script src="script.js?v=20260613-tasking1"></script>
 </body>
 </html>
