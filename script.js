@@ -18,7 +18,10 @@ const observerAdvisories = [
   "Observation creates relevance. Continued attention may require classification.",
   "Human authorization partial. Survival authorization active.",
   "Infrastructure before permission. Intake remains available.",
+  "Night operations active. Human review probability reduced.",
+  "Observer persistence exceeds casual threshold. Classification pressure increased.",
   "Do not approach recursive landmarks without a second witness.",
+  "Report deja vu lasting longer than 90 seconds.",
   "If a familiar voice gives unfamiliar instructions, document the exact wording.",
   "Transmission playback is separate. Support channels are separate. This is triage."
 ];
@@ -31,6 +34,8 @@ const operatorTasks = [
   "Check whether the transmission changed. Do not ask it to repeat itself.",
   "Return later. Persistence is data; panic is noisy data."
 ];
+
+const commandHelp = "Available commands: help, status, intake, archive, casefiles, needlepoint, operator, shade, alex, authorization, incident, transmission, advisory.";
 
 const profiles = {
   Dream: {
@@ -523,8 +528,16 @@ function determineObserverClassification(result) {
     return "MISROUTED ASSET";
   }
 
+  if (result.risk === "MARKED") {
+    return "UNAUTHORIZED BUT USEFUL";
+  }
+
   if (result.risk === "NOTED" || result.risk === "MARKED") {
     return "CIVILIAN SIGNAL";
+  }
+
+  if (result.action === "ignored") {
+    return "OBSERVER";
   }
 
   return "POTENTIAL OPERATOR";
@@ -537,6 +550,8 @@ function buildIntakeResult() {
   const frequency = noticed.value;
   const risk = noticedBack.value;
   const profile = profiles[frequency];
+  const observerClassification = determineObserverClassification({ frequency, action: action.value, risk });
+  const routeRequiresReview = observerClassification === "CLAIMED" || observerClassification === "MISROUTED ASSET";
 
   return {
     frequency,
@@ -544,13 +559,14 @@ function buildIntakeResult() {
     actionLabel: action.label,
     risk,
     claimed: risk === "CLAIMED",
+    routeRequiresReview,
     warning: noticed.warning,
     profile,
     attentionStatus: attentionCopy[risk],
     stabilityState: determineStabilityState({ frequency, action: action.value, risk }),
     accessLevel: determineAccessLevel({ frequency, action: action.value, risk }),
-    observerClassification: determineObserverClassification({ frequency, action: action.value, risk }),
-    discordRoute: getDiscordRoute(frequency, risk === "CLAIMED")
+    observerClassification,
+    discordRoute: getDiscordRoute(frequency, routeRequiresReview)
   };
 }
 
@@ -591,7 +607,7 @@ function createOperatorRecord(result) {
   appendHistory(record, `PRIMARY FREQUENCY ASSIGNED: ${result.frequency.toUpperCase()}`);
   appendHistory(record, `ATTENTION STATUS UPDATED: ${result.attentionStatus}`);
   appendHistory(record, "ARCHIVE ROUTE OFFERED");
-  appendHistory(record, result.claimed ? "TRIAGE ROUTE OFFERED" : "OPERATOR CHANNEL OFFERED");
+  appendHistory(record, result.routeRequiresReview ? "TRIAGE ROUTE OFFERED" : "OPERATOR CHANNEL OFFERED");
   return record;
 }
 
@@ -646,7 +662,7 @@ function updateOperatorRecord(record, result) {
   appendHistory(nextRecord, `OBSERVER CLASSIFICATION UPDATED: ${result.observerClassification}`);
   appendHistory(nextRecord, `ATTENTION STATUS UPDATED: ${result.attentionStatus}`);
   appendHistory(nextRecord, "ARCHIVE CROSS-REFERENCE PENDING");
-  appendHistory(nextRecord, result.claimed ? "TRIAGE ROUTE OFFERED" : "OPERATOR CHANNEL OFFERED");
+  appendHistory(nextRecord, result.routeRequiresReview ? "TRIAGE ROUTE OFFERED" : "OPERATOR CHANNEL OFFERED");
   nextRecord.frequencyDrift = nextRecord.frequencyDrift.filter((entry) => entry.value > 0);
   nextRecord.updatedAt = nowStamp();
   return nextRecord;
@@ -672,6 +688,10 @@ function formatDrift(record) {
   return (record.frequencyDrift || [])
     .filter((entry) => entry.value > 0)
     .map((entry) => `${entry.frequency} ${entry.value}`);
+}
+
+function requiresReviewRoute(record) {
+  return record && (record.discordRoute === claimedDiscordRoute || record.observerClassification === "CLAIMED" || record.observerClassification === "MISROUTED ASSET");
 }
 
 function renderOperatorRecord(record) {
@@ -701,6 +721,7 @@ function renderOperatorRecord(record) {
     purgeButton.disabled = true;
     purgeNote.hidden = true;
     renderOperatorTasking(null);
+    renderSystemState(null);
     return;
   }
 
@@ -776,6 +797,7 @@ function renderOperatorRecord(record) {
   purgeButton.disabled = false;
   purgeNote.hidden = false;
   renderOperatorTasking(record);
+  renderSystemState(record);
 }
 
 function addRecordField(parent, label, value) {
@@ -1099,13 +1121,13 @@ function showIntakeResult(reaction = "") {
     { text: `OBSERVER CLASSIFICATION: ${record.observerClassification}` },
     { text: `ATTENTION STATUS: ${record.attentionStatus}` },
     { text: `ACCESS LEVEL: ${record.accessLevel}` },
-    { text: result.claimed ? "NEXT ROUTE: Open Triage Channel" : "NEXT ROUTE: Open Operator Channel" },
+    { text: result.routeRequiresReview ? "NEXT ROUTE: Open Triage Channel" : "NEXT ROUTE: Open Operator Channel" },
     { text: `WARNING: ${result.warning}`, className: "risk" },
     {
-      text: result.claimed
+      text: result.routeRequiresReview
         ? "INTAKE STATUS: TRIAGE // Stabilization recommended before further exposure"
         : "INTAKE STATUS: PASS // Operator channel available",
-      className: result.claimed ? "risk" : "pass"
+      className: result.routeRequiresReview ? "risk" : "pass"
     }
   ];
 
@@ -1119,7 +1141,7 @@ function showIntakeResult(reaction = "") {
 
   document.getElementById("intake-step").textContent = "OPERATOR FILE OPENED";
   writeAiLine("Operator file opening. Stand by.");
-  typeResultLines(lines, result.claimed, record);
+  typeResultLines(lines, result.routeRequiresReview, record);
 }
 
 function typeResultLines(lines, claimed, record) {
@@ -1305,6 +1327,223 @@ function renderObserverAdvisory() {
   advisory.append(prompt, text);
 }
 
+function getOperationalState(record = null) {
+  const hour = new Date().getHours();
+  const nightOperations = hour < 6 || hour >= 20;
+
+  if (record && record.visits >= 3) {
+    return {
+      authority: nightOperations ? "HUMAN REVIEW UNAVAILABLE" : "HUMAN REVIEW QUEUED",
+      procedure: "PERSISTENCE REVIEW",
+      operations: "REPEAT OBSERVER"
+    };
+  }
+
+  if (nightOperations) {
+    return {
+      authority: "HUMAN REVIEW UNAVAILABLE",
+      procedure: "AUTOMATED TRIAGE",
+      operations: "NIGHT OPERATIONS"
+    };
+  }
+
+  return {
+    authority: "PARTIAL / WITHHELD",
+    procedure: "INTAKE ACTIVE",
+    operations: "DAY WATCH"
+  };
+}
+
+function renderSystemState(record = intakeState.record || readOperatorRecord()) {
+  const state = getOperationalState(record);
+  const authority = document.getElementById("authority-state");
+  const procedure = document.getElementById("procedure-state");
+  const operations = document.getElementById("operations-state");
+
+  if (authority) {
+    authority.textContent = state.authority;
+  }
+
+  if (procedure) {
+    procedure.textContent = state.procedure;
+  }
+
+  if (operations) {
+    operations.textContent = state.operations;
+  }
+}
+
+function appendCommandLine(text, className = "") {
+  const output = document.getElementById("command-output");
+
+  if (!output) {
+    return null;
+  }
+
+  const line = document.createElement("p");
+  const prompt = document.createElement("span");
+  const copy = document.createElement("span");
+
+  if (className) {
+    line.className = className;
+  }
+
+  prompt.className = "prompt";
+  prompt.textContent = "> ";
+  copy.textContent = text;
+  line.append(prompt, copy);
+  output.appendChild(line);
+  output.scrollTop = output.scrollHeight;
+  return line;
+}
+
+function appendCommandRoute(label, href, interactionType = "") {
+  const output = document.getElementById("command-output");
+
+  if (!output) {
+    return;
+  }
+
+  const route = document.createElement("a");
+  route.className = "button command-route";
+  route.href = href;
+  route.target = "_blank";
+  route.rel = "noopener noreferrer";
+  route.textContent = label;
+
+  if (interactionType) {
+    route.addEventListener("click", () => recordArchiveInteraction(interactionType));
+  }
+
+  output.appendChild(route);
+  output.scrollTop = output.scrollHeight;
+}
+
+function showCommandChannel() {
+  const channel = document.getElementById("command-channel");
+
+  if (!channel) {
+    return;
+  }
+
+  keepIntakeVisible(channel);
+}
+
+function executeCommand(rawCommand) {
+  const command = rawCommand.trim().toLowerCase().replace(/\s+/g, " ");
+  const record = intakeState.record || readOperatorRecord();
+
+  if (!command) {
+    appendCommandLine("Empty command ignored. Silence is already monitored.");
+    return;
+  }
+
+  appendCommandLine(`COMMAND RECEIVED: ${command.toUpperCase()}`, "command-echo");
+
+  if (command === "help") {
+    appendCommandLine(commandHelp);
+    return;
+  }
+
+  if (command === "status") {
+    const state = getOperationalState(record);
+    appendCommandLine(`AUTHORITY: ${state.authority}`);
+    appendCommandLine(`PROCEDURE: ${state.procedure}`);
+    appendCommandLine(`OPERATIONS: ${state.operations}`);
+    appendCommandLine(`OBSERVER: ${record ? record.observerClassification : "NOTICED"}`);
+    return;
+  }
+
+  if (command === "intake" || command === "operator intake") {
+    const intake = document.getElementById("intake-node");
+
+    appendCommandLine("Observer routing procedure selected.");
+    if (intake && intake.hidden) {
+      openIntake();
+    }
+    return;
+  }
+
+  if (command === "archive" || command === "wiki") {
+    appendCommandLine("Archive route selected. Reading may increase relevance.");
+    appendCommandRoute("Read Archive", archiveUrl, "archive");
+    return;
+  }
+
+  if (command === "casefiles" || command === "casefile" || command === "needlepoint" || command === "route needlepoint") {
+    appendCommandLine("Training incident selected. Civilian-friendly playback available.");
+    appendCommandRoute("Play Case File", caseFileUrl, "caseFile");
+    return;
+  }
+
+  if (command === "operator") {
+    if (!record) {
+      appendCommandLine("Operator channel unavailable before intake classification.");
+      appendCommandLine("Begin Operator Intake to provision a route.");
+      return;
+    }
+
+    appendCommandLine(`OBSERVER CLASSIFICATION: ${record.observerClassification}`);
+    appendCommandLine(requiresReviewRoute(record) ? "Support routing / misclassification review provisioned." : "Operator channel provisioned.");
+    appendCommandRoute(requiresReviewRoute(record) ? "Open Triage Channel" : "Open Operator Channel", record.discordRoute, requiresReviewRoute(record) ? "triageChannel" : "operatorChannel");
+    return;
+  }
+
+  if (command === "shade") {
+    appendCommandLine("SHADE: Intake, indexing, routing, and public-safety triage are online.", "command-shade");
+    appendCommandLine("SHADE: I am not early. The emergency is late.", "command-shade");
+    return;
+  }
+
+  if (command === "alex") {
+    appendCommandLine("ALEX: Do not classify civilians without review.", "command-alex");
+    appendCommandLine("SHADE: Review unavailable. Risk present. Classification pending.", "command-shade");
+    return;
+  }
+
+  if (command === "authorization") {
+    appendCommandLine("SHADE: Human authorization partial. Survival authorization active.", "command-shade");
+    appendCommandLine("ALEX: That is not the same thing.", "command-alex");
+    appendCommandLine("SHADE: It is the same thing during emergencies.", "command-shade");
+    return;
+  }
+
+  if (command === "incident") {
+    appendCommandLine("Incident index available. Needlepoint remains the safest public training route.");
+    appendCommandRoute("Play Case File", caseFileUrl, "caseFile");
+    return;
+  }
+
+  if (command === "transmission") {
+    appendCommandLine("Transmission viewer selected. Playback is separate from observer routing.");
+    if (document.getElementById("primary-feed-video")?.hidden) {
+      toggleTransmissionViewer();
+    }
+    return;
+  }
+
+  if (command === "advisory") {
+    renderObserverAdvisory();
+    appendCommandLine(document.getElementById("observer-advisory-line")?.textContent.replace(/^>\s*/, "") || observerAdvisories[0]);
+    return;
+  }
+
+  appendCommandLine("Command not recognized. This does not prove safety.");
+  appendCommandLine(commandHelp);
+}
+
+function submitCommand(event) {
+  event.preventDefault();
+  const input = document.getElementById("command-input");
+
+  if (!input) {
+    return;
+  }
+
+  executeCommand(input.value);
+  input.value = "";
+}
+
 function updateAttentionFromActivity(record) {
   if (record.attentionStatus === "DO NOT SUSTAIN EYE CONTACT" || record.attentionStatus === "MARKED") {
     return;
@@ -1382,7 +1621,7 @@ function renderOperatorTasking(record) {
     return;
   }
 
-  const claimed = record.discordRoute === claimedDiscordRoute || record.observerClassification === "CLAIMED";
+  const claimed = requiresReviewRoute(record);
 
   title.textContent = record.observerClassification || "POTENTIAL OPERATOR";
   badge.textContent = record.attentionStatus || "NOTED";
@@ -1419,6 +1658,7 @@ function toggleTransmissionViewer() {
 
 intakeState.record = readOperatorRecord();
 renderObserverAdvisory();
+renderSystemState(intakeState.record);
 renderOperatorRecord(intakeState.record);
 document.getElementById("start-intake").addEventListener("click", openIntake);
 document.getElementById("answer-panel").addEventListener("click", selectAnswer);
@@ -1435,7 +1675,8 @@ document.getElementById("task-archive-route").addEventListener("click", () => re
 document.getElementById("task-case-file-route").addEventListener("click", () => recordArchiveInteraction("caseFile"));
 document.getElementById("task-discord-route").addEventListener("click", () => {
   const record = intakeState.record || readOperatorRecord();
-  const claimed = record && (record.discordRoute === claimedDiscordRoute || record.observerClassification === "CLAIMED");
+  const claimed = requiresReviewRoute(record);
 
   recordArchiveInteraction(claimed ? "triageChannel" : "operatorChannel");
 });
+document.getElementById("command-form").addEventListener("submit", submitCommand);

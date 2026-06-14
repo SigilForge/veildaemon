@@ -25,7 +25,7 @@
   <link rel="icon" type="image/png" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="apple-touch-icon" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="styles.css?v=20260613-tasking1" />
+  <link rel="stylesheet" href="styles.css?v=20260613-commands1" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -202,7 +202,7 @@
 
       <nav class="actions" aria-label="First contact routes">
         <a class="button" id="archive-route" href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer"><img class="button-glyph" src="assets/glyphs/archive-index.png" alt="" aria-hidden="true" /> <span>Read Archive</span></a>
-        <button class="button primary start-route" type="button" id="start-intake" aria-controls="intake-node" aria-expanded="false"><img class="button-glyph" src="assets/glyphs/operation-intake.png" alt="" aria-hidden="true" /> <span>Begin Operator Intake</span></button>
+        <button class="button primary start-route" type="button" id="start-intake" aria-controls="intake-node command-channel" aria-expanded="false"><img class="button-glyph" src="assets/glyphs/operation-intake.png" alt="" aria-hidden="true" /> <span>Begin Operator Intake</span></button>
         <a class="button" id="case-file-route" href="https://the-cradlepoint-archives.itch.io/needlepoint" target="_blank" rel="noopener noreferrer"><img class="button-glyph" src="assets/glyphs/case-file.png" alt="" aria-hidden="true" /> <span>Play Case File</span></a>
       </nav>
       <p class="route-hint"><span class="prompt">&gt;</span> If you are uncertain where to begin, begin with intake. Uncertainty is a valid signal.</p>
@@ -224,7 +224,7 @@
         <div class="intake-console" aria-live="polite">
           <div class="ai-panel" id="ai-panel">
             <p class="intake-step" id="intake-step">INTAKE STATUS: WAITING</p>
-            <p class="ai-line" id="ai-line"><span class="prompt">&gt;</span> Press Start Intake to open the question channel.</p>
+            <p class="ai-line" id="ai-line"><span class="prompt">&gt;</span> Press Begin Operator Intake to open the question channel.</p>
           </div>
           <section class="returning-operator" id="returning-operator" aria-label="Returning operator record" hidden>
             <div class="record-header">
@@ -300,10 +300,27 @@
         </div>
         <div class="status-grid" aria-label="System status">
           <div><span>INTERFACE</span><strong>SHADE.DAEMON</strong></div>
-          <div><span>AUTHORITY</span><strong>PARTIAL / WITHHELD</strong></div>
-          <div><span>PROCEDURE</span><strong>INTAKE ACTIVE</strong></div>
+          <div><span>AUTHORITY</span><strong id="authority-state">PARTIAL / WITHHELD</strong></div>
+          <div><span>PROCEDURE</span><strong id="procedure-state">INTAKE ACTIVE</strong></div>
+          <div><span>OPERATIONS</span><strong id="operations-state">CHECKING</strong></div>
           <div><span>OBSERVER</span><strong id="observer-state">NOTICED</strong></div>
         </div>
+      </section>
+
+      <section class="feed command-channel" id="command-channel" aria-label="VeilDaemon command channel">
+        <div class="feed-header">
+          <p class="kicker">VEILDAEMON COMMAND CHANNEL // LIMITED PUBLIC INTERFACE</p>
+          <h2>Command Channel</h2>
+          <p>Useful commands route observers. Unhelpful commands increase confidence in automation.</p>
+        </div>
+        <div class="command-output" id="command-output" aria-live="polite">
+          <p><span class="prompt">&gt;</span> Command channel listening. Try help.</p>
+        </div>
+        <form class="command-form" id="command-form">
+          <label for="command-input">&gt;</label>
+          <input id="command-input" type="text" autocomplete="off" spellcheck="false" placeholder="help, status, intake, archive, needlepoint, shade, alex" />
+          <button class="button ghost" type="submit">Send</button>
+        </form>
       </section>
 
       <footer>
@@ -372,6 +389,6 @@
       </section>
     </section>
   </aside>
-  <script src="script.js?v=20260613-tasking1"></script>
+  <script src="script.js?v=20260613-commands1"></script>
 </body>
 </html>
