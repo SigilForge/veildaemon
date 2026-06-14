@@ -1635,6 +1635,7 @@ function unlockCommandNode(state, nodeId) {
   if (commandNodes[nodeId] && !state.unlockedNodes.includes(nodeId)) {
     state.unlockedNodes.push(nodeId);
     appendCommandLine(`NODE UNLOCKED: ${commandNodes[nodeId].label}`);
+    appendCommandLine(`NEXT NODE READY: open ${nodeId}`);
   }
 }
 
@@ -1691,7 +1692,13 @@ function openCommandTarget(command, state) {
     return true;
   }
 
-  const requestedNode = commandNodeOrder.find((nodeId) => nodeId === target || commandNodes[nodeId].label === target);
+  const requestedNode = commandNodeOrder.find((nodeId) => {
+    const compactNodeId = nodeId.replace(/_/g, "");
+    const compactLabel = commandNodes[nodeId].label.replace(/[_-]/g, "");
+    const compactTarget = target.replace(/_/g, "");
+
+    return nodeId === target || commandNodes[nodeId].label === target || compactNodeId.includes(compactTarget) || compactLabel.includes(compactTarget);
+  });
 
   if (!requestedNode) {
     appendCommandLine("Requested node not found in public routing table.");
@@ -1719,6 +1726,12 @@ function handleCommandLayer(command) {
     appendCommandLine(`STATUS: ${node.status}`);
     appendCommandLine(`SIGNAL: ${node.signal}`);
     node.scan.forEach((line) => appendCommandLine(line));
+
+    if (node.requiresAnchor) {
+      appendCommandLine("REQUIRES: one mundane anchor.");
+      appendCommandLine("Example accepted format: anchor cheesecake");
+    }
+
     writeCommandLayerState(state);
     return true;
   }
