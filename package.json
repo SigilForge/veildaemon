@@ -1,0 +1,13 @@
+{
+  "name": "veildaemon-public-surface",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "check": "node --check script.js && node --check stream/alerts/overlay.js && node --check admin/alerts/admin.js && node --check api/alerts/next.js && node --check api/alerts/test.js && node --check api/twitch/eventsub.js && node --check api/_alertQueue.js && node --check scripts/twitch-subscribe.mjs",
+    "twitch:subscribe": "node scripts/twitch-subscribe.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

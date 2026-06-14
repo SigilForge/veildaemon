@@ -1,0 +1,58 @@
+{
+  "durationMs": 7200,
+  "pollMs": 1800,
+  "sound": {
+    "enabled": false,
+    "src": ""
+  },
+  "types": {
+    "follow": {
+      "eyebrow": "NEW OBSERVER DETECTED",
+      "headline": "{user} has begun noticing.",
+      "detail": "Observation creates relevance.",
+      "stamp": "WATCHLIST ENTRY"
+    },
+    "sub": {
+      "eyebrow": "SUPPORT SIGNAL STABILIZED",
+      "headline": "{user} has reinforced the live node.",
+      "detail": "Human authorization partial. Survival authorization active.",
+      "stamp": "NODE REINFORCED"
+    },
+    "resub": {
+      "eyebrow": "RETURNING SUPPORT SIGNAL",
+      "headline": "{user} has maintained contact for {months} cycles.",
+      "detail": "Continued attention may require classification.",
+      "stamp": "CONTACT RETAINED"
+    },
+    "gift_sub": {
+      "eyebrow": "ACCESS TRANSFER RECORDED",
+      "headline": "{user} assigned {count} observer channel(s).",
+      "detail": "Infrastructure before permission.",
+      "stamp": "TRANSFER LOGGED"
+    },
+    "raid": {
+      "eyebrow": "INBOUND CROWD EVENT",
+      "headline": "{user} redirected {count} observers.",
+      "detail": "Containment bandwidth rising.",
+      "stamp": "CROWD INGRESS"
+    },
+    "bits": {
+      "eyebrow": "CHEER SIGNAL CAPTURED",
+      "headline": "{user} transmitted {count} signal fragment(s).",
+      "detail": "Signal accepted. Motive pending.",
+      "stamp": "FRAGMENT INDEXED"
+    },
+    "hype_train": {
+      "eyebrow": "COLLECTIVE MOMENTUM DETECTED",
+      "headline": "Chat contamination rising at level {level}.",
+      "detail": "Please remain useful while the system adapts.",
+      "stamp": "MOMENTUM EVENT"
+    },
+    "donation": {
+      "eyebrow": "EXTERNAL SUPPORT SIGNAL",
+      "headline": "{user} supplied {amount}.",
+      "detail": "Ledger accepted pending human doctrine.",
+      "stamp": "SUPPORT LOGGED"
+    }
+  }
+}

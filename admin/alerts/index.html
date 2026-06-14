@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VEILCORP // Alert Console</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
+  <link rel="stylesheet" href="/admin/alerts/style.css?v=20260614-alerts1" />
+</head>
+<body>
+  <main class="console-shell">
+    <header>
+      <p>VEILCORP ARCHIVES // LIVE NODE</p>
+      <h1>Attention Event Console</h1>
+    </header>
+
+    <section class="token-panel" aria-label="Console access">
+      <label for="token">Access token</label>
+      <div class="token-row">
+        <input id="token" type="password" autocomplete="off" placeholder="Required" />
+        <button type="button" id="save-token">Hold</button>
+      </div>
+    </section>
+
+    <section class="button-grid" aria-label="Attention event tests">
+      <button type="button" data-type="follow">Test Follow</button>
+      <button type="button" data-type="sub">Test Sub</button>
+      <button type="button" data-type="resub">Test Resub</button>
+      <button type="button" data-type="gift_sub">Test Gift Sub</button>
+      <button type="button" data-type="raid">Test Raid</button>
+      <button type="button" data-type="bits">Test Bits</button>
+      <button type="button" data-type="hype_train">Test Hype Train</button>
+      <button type="button" data-type="donation">Test Donation</button>
+    </section>
+
+    <section class="custom-panel" aria-label="Custom event">
+      <label for="user">Observer</label>
+      <input id="user" type="text" value="SomeWitness" />
+      <label for="count">Count</label>
+      <input id="count" type="number" min="1" value="7" />
+    </section>
+
+    <p class="status-line" id="status-line" role="status">Console awaiting useful intent.</p>
+  </main>
+  <script src="/admin/alerts/admin.js?v=20260614-alerts1"></script>
+</body>
+</html>
