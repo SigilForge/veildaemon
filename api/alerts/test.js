@@ -11,8 +11,13 @@ module.exports = async function handler(req, res) {
   try {
     const body = await readBody(req);
     const payload = body ? JSON.parse(body) : {};
-    const alert = await enqueue(payload);
-    return json(res, 200, { ok: true, alert });
+    const result = await enqueue(payload);
+    return json(res, 200, {
+      ok: true,
+      pushed: true,
+      alert: result.alert,
+      diagnostics: result.diagnostics,
+    });
   } catch (error) {
     return json(res, 400, { ok: false, error: error.message });
   }

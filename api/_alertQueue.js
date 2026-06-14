@@ -1,5 +1,6 @@
 const memoryQueue = [];
 const MAX_QUEUE_LENGTH = 80;
+const QUEUE_KEY = "veildaemon:stream-alerts";
 
 function json(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -52,6 +53,20 @@ function createAlert(input) {
   };
 }
 
+function envStatus() {
+  return {
+    upstashUrl: Boolean(process.env.UPSTASH_REDIS_REST_URL),
+    upstashToken: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN),
+    adminToken: Boolean(process.env.ALERT_ADMIN_TOKEN),
+    twitchSecret: Boolean(process.env.TWITCH_EVENTSUB_SECRET),
+  };
+}
+
+function queueBackend() {
+  const env = envStatus();
+  return env.upstashUrl && env.upstashToken ? "upstash" : "memory";
+}
+
 async function redisCommand(command) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -71,41 +86,81 @@ async function redisCommand(command) {
   return payload.result;
 }
 
+async function queueLength() {
+  if (queueBackend() === "upstash") {
+    return Number(await redisCommand(["LLEN", QUEUE_KEY]));
+  }
+
+  return memoryQueue.length;
+}
+
+async function queueDiagnostics(extra = {}) {
+  const backend = queueBackend();
+  const diagnostics = {
+    backend,
+    env: envStatus(),
+    readFromUpstash: backend === "upstash",
+    queueLength: null,
+    ...extra,
+  };
+
+  try {
+    diagnostics.queueLength = await queueLength();
+  } catch (error) {
+    diagnostics.queueLengthError = error.message;
+  }
+
+  return diagnostics;
+}
+
 async function enqueue(alert) {
   const record = createAlert(alert);
   const serialized = JSON.stringify(record);
 
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    await redisCommand(["LPUSH", "veildaemon:stream-alerts", serialized]);
-    await redisCommand(["LTRIM", "veildaemon:stream-alerts", "0", String(MAX_QUEUE_LENGTH - 1)]);
-    return record;
+  if (queueBackend() === "upstash") {
+    await redisCommand(["LPUSH", QUEUE_KEY, serialized]);
+    await redisCommand(["LTRIM", QUEUE_KEY, "0", String(MAX_QUEUE_LENGTH - 1)]);
+    return {
+      alert: record,
+      diagnostics: await queueDiagnostics({ pushed: true }),
+    };
   }
 
   memoryQueue.unshift(record);
   memoryQueue.splice(MAX_QUEUE_LENGTH);
-  return record;
+  return {
+    alert: record,
+    diagnostics: await queueDiagnostics({ pushed: true }),
+  };
 }
 
 async function dequeue(count = 1) {
   const safeCount = Math.max(1, Math.min(Number(count) || 1, 6));
 
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  if (queueBackend() === "upstash") {
     const alerts = [];
     for (let index = 0; index < safeCount; index += 1) {
-      const item = await redisCommand(["RPOP", "veildaemon:stream-alerts"]);
+      const item = await redisCommand(["RPOP", QUEUE_KEY]);
       if (!item) break;
       alerts.push(JSON.parse(item));
     }
-    return alerts;
+    return {
+      alerts,
+      diagnostics: await queueDiagnostics({ requested: safeCount }),
+    };
   }
 
-  return memoryQueue.splice(-safeCount).reverse();
+  return {
+    alerts: memoryQueue.splice(-safeCount).reverse(),
+    diagnostics: await queueDiagnostics({ requested: safeCount }),
+  };
 }
 
 module.exports = {
   createAlert,
   dequeue,
   enqueue,
+  queueDiagnostics,
   json,
   readBody,
   requireAdmin,

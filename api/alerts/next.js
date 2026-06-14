@@ -8,8 +8,12 @@ module.exports = async function handler(req, res) {
 
   try {
     const count = req.query && req.query.count ? req.query.count : 1;
-    const alerts = await dequeue(count);
-    return json(res, 200, { ok: true, alerts });
+    const result = await dequeue(count);
+    return json(res, 200, {
+      ok: true,
+      alerts: result.alerts,
+      diagnostics: result.diagnostics,
+    });
   } catch (error) {
     return json(res, 500, { ok: false, error: error.message });
   }
