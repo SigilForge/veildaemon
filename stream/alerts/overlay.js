@@ -1,4 +1,8 @@
 (function () {
+  const POLL_MS = 1000;
+  const API_PATH = "/api/alerts/next";
+  const params = new URLSearchParams(window.location.search);
+  const debugEnabled = params.get("debug") === "1";
   const stage = document.querySelector(".alert-stage");
   const card = document.getElementById("alert-card");
   const eyebrow = document.getElementById("alert-eyebrow");
@@ -7,13 +11,55 @@
   const stamp = document.getElementById("alert-stamp");
   const clock = document.getElementById("alert-time");
   const sound = document.getElementById("alert-sound");
+  const debugPanel = document.getElementById("debug-panel");
+  const debugFields = {
+    apiUrl: document.getElementById("debug-api-url"),
+    polling: document.getElementById("debug-polling"),
+    lastPoll: document.getElementById("debug-last-poll"),
+    status: document.getElementById("debug-status"),
+    error: document.getElementById("debug-error"),
+    alert: document.getElementById("debug-alert"),
+    display: document.getElementById("debug-display"),
+  };
 
   const state = {
     config: null,
     queue: [],
     playing: false,
+    polling: false,
     seen: new Set(),
+    lastAlert: null,
+    lastError: "",
+    lastStatus: "pending",
+    lastPoll: "never",
+    display: "idle",
   };
+
+  if (debugEnabled && debugPanel) {
+    debugPanel.hidden = false;
+  }
+
+  function debugValue(value) {
+    if (value === undefined || value === null || value === "") return "none";
+    if (typeof value === "string") return value;
+    return JSON.stringify(value);
+  }
+
+  function setDisplay(display) {
+    state.display = display;
+    updateDebug();
+  }
+
+  function updateDebug() {
+    if (!debugEnabled) return;
+    debugFields.apiUrl.textContent = `${API_PATH}?ts=${Date.now()}`;
+    debugFields.polling.textContent = String(state.polling);
+    debugFields.lastPoll.textContent = state.lastPoll;
+    debugFields.status.textContent = String(state.lastStatus);
+    debugFields.error.textContent = debugValue(state.lastError);
+    debugFields.alert.textContent = debugValue(state.lastAlert);
+    debugFields.display.textContent = state.display;
+  }
 
   function text(template, payload) {
     return String(template || "").replace(/\{(\w+)\}/g, (_, key) => {
@@ -54,7 +100,7 @@
   }
 
   async function loadConfig() {
-    const response = await fetch("../../config/stream-alerts.json", { cache: "no-store" });
+    const response = await fetch("/config/stream-alerts.json", { cache: "no-store" });
     state.config = await response.json();
 
     if (state.config.sound && state.config.sound.enabled && state.config.sound.src) {
@@ -63,21 +109,49 @@
   }
 
   async function poll() {
+    const apiUrl = `${API_PATH}?ts=${Date.now()}`;
+    state.polling = true;
+    state.lastPoll = new Date().toISOString();
+    state.lastError = "";
+    updateDebug();
+    console.log("[VeilCorp alerts] polling", apiUrl);
+
     try {
-      const response = await fetch("/api/alerts/next", { cache: "no-store" });
-      if (!response.ok) return;
+      const response = await fetch(apiUrl, { cache: "no-store" });
+      state.lastStatus = response.status;
+      updateDebug();
+      if (!response.ok) {
+        state.lastError = `HTTP ${response.status}`;
+        console.warn("[VeilCorp alerts] poll failed", response.status);
+        updateDebug();
+        return;
+      }
 
       const payload = await response.json();
       const alerts = Array.isArray(payload.alerts) ? payload.alerts : [];
+      console.log("[VeilCorp alerts] poll response", {
+        status: response.status,
+        alerts: alerts.length,
+        diagnostics: payload.diagnostics || null,
+      });
+
       alerts.forEach((alert) => {
         const normalized = normalizeAlert(alert);
         if (!state.seen.has(normalized.id)) {
           state.seen.add(normalized.id);
           state.queue.push(normalized);
+          state.lastAlert = normalized;
+          console.log("[VeilCorp alerts] received alert", normalized);
         }
       });
+      if (alerts.length > 0) {
+        updateDebug();
+      }
       playNext();
     } catch (error) {
+      state.lastError = error && error.message ? error.message : String(error);
+      state.lastStatus = "error";
+      updateDebug();
       console.warn("Alert queue unreachable", error);
     }
   }
@@ -87,6 +161,7 @@
 
     const alert = state.queue.shift();
     state.playing = true;
+    setDisplay(`playing ${alert.id}`);
     eyebrow.textContent = alert.eyebrow;
     headline.textContent = alert.headline;
     detail.textContent = alert.detail;
@@ -108,12 +183,17 @@
       card.classList.remove("is-active");
       stage.classList.remove("is-active");
       state.playing = false;
+      setDisplay(state.queue.length > 0 ? "queued" : "idle");
       window.setTimeout(playNext, 450);
     }, alert.durationMs);
   }
 
   window.veilAlert = function veilAlert(alert) {
-    state.queue.push(normalizeAlert(alert || { type: "follow" }));
+    const normalized = normalizeAlert(alert || { type: "follow" });
+    state.queue.push(normalized);
+    state.lastAlert = normalized;
+    console.log("[VeilCorp alerts] manual alert", normalized);
+    updateDebug();
     playNext();
   };
 
@@ -124,6 +204,7 @@
     })
     .finally(() => {
       poll();
-      window.setInterval(poll, Number((state.config && state.config.pollMs) || 1800));
+      window.setInterval(poll, POLL_MS);
+      updateDebug();
     });
 })();

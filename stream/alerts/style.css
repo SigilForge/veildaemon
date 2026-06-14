@@ -176,6 +176,55 @@ h1 {
   line-height: 1.35;
 }
 
+.debug-panel {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  z-index: 5;
+  width: min(420px, calc(100vw - 36px));
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgba(241, 192, 95, 0.58);
+  border-radius: 6px;
+  background: rgba(7, 16, 14, 0.92);
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.35;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38);
+}
+
+.debug-panel h2 {
+  margin: 0 0 10px;
+  color: var(--amber);
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.debug-panel dl,
+.debug-panel dd {
+  margin: 0;
+}
+
+.debug-panel div {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 8px;
+  padding: 5px 0;
+  border-top: 1px solid rgba(244, 255, 248, 0.1);
+}
+
+.debug-panel dt {
+  color: var(--muted);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.debug-panel dd {
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+
 @keyframes cardIn {
   0% {
     opacity: 0;

@@ -3,13 +3,13 @@
 OBS browser source:
 
 ```txt
-https://veildaemon.app/stream/alerts
+https://YOUR_ALERT_DEPLOYMENT/stream/alerts
 ```
 
 Control surface:
 
 ```txt
-https://veildaemon.app/admin/alerts
+https://YOUR_ALERT_DEPLOYMENT/admin/alerts
 ```
 
 Required deployment variables:
