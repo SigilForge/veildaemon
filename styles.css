@@ -119,7 +119,7 @@ h1 {
 }
 .status-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: .65rem;
   margin: 1.4rem 0;
 }
@@ -347,6 +347,65 @@ h1 {
 .feed-header p {
   margin: 0;
   color: var(--muted);
+}
+.command-channel {
+  border-color: rgba(138,255,219,.24);
+  box-shadow: inset 0 0 28px rgba(102,255,220,.055);
+}
+.command-output {
+  display: grid;
+  gap: .4rem;
+  max-height: 13rem;
+  overflow: auto;
+  padding: .85rem .95rem;
+  border-left: 3px solid var(--line);
+  background: rgba(0,0,0,.36);
+}
+.command-output p {
+  margin: 0;
+  color: #d7fff4;
+  line-height: 1.45;
+}
+.command-echo {
+  color: var(--muted) !important;
+}
+.command-shade span:last-child {
+  color: var(--cyan);
+}
+.command-alex span:last-child {
+  color: #ffdca8;
+}
+.command-route {
+  width: min(100%, 18rem);
+  min-height: 2.6rem;
+  margin-top: .35rem;
+}
+.command-form {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: .65rem;
+  align-items: center;
+  margin-top: .85rem;
+}
+.command-form label {
+  color: var(--purple);
+  font-weight: 800;
+}
+.command-form input {
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: .65rem .75rem;
+  color: var(--text);
+  border: 1px solid rgba(138,255,219,.24);
+  background: rgba(0,0,0,.36);
+  font: inherit;
+}
+.command-form input:focus {
+  outline: 1px solid rgba(102,255,220,.62);
+  outline-offset: 2px;
+}
+.command-form input::placeholder {
+  color: rgba(140,167,161,.78);
 }
 .video-frame {
   position: relative;
@@ -805,6 +864,8 @@ footer {
 @media (max-width: 900px) {
   .returning-actions,
   .compact-record-grid { grid-template-columns: 1fr; }
+  .command-form { grid-template-columns: auto minmax(0, 1fr); }
+  .command-form button { grid-column: 2; }
 }
 @media (max-width: 760px) {
   .casefile-drawer {
