@@ -32,6 +32,8 @@ UPSTASH_REDIS_REST_TOKEN
 
 Without Upstash, the queue uses process memory. That is useful for local testing and warm serverless instances, but Redis is the durable production path.
 
+Alert card art is copied from the Cradlepoint marketing repository into `stream/alerts/assets` as small local derivatives for hosted OBS use.
+
 After the deployed callback is live, run:
 
 ```txt
