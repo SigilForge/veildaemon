@@ -1,17 +1,38 @@
 const operatorRecordVersion = 1;
 const recordStorageKey = "veildaemon.operatorRecord.v2";
 const legacyRecordStorageKey = "veildaemon.operatorRecord.v1";
+const commandLayerStorageKey = "veildaemon.commandLayer.v1";
 const archiveUrl = "https://wiki.veildaemon.app/";
 const caseFileUrl = "https://the-cradlepoint-archives.itch.io/needlepoint";
-const passDiscordRoute = "https://discord.gg/Bn6attnYN6";
-const claimedDiscordRoute = "https://discord.gg/KRbckpfTQk";
+const frequencyDiscordRoutes = {
+  Dream: "https://discord.gg/3C6nXeWkjs",
+  Silence: "https://discord.gg/guB7VRgA8R",
+  Hunger: "https://discord.gg/Q8rRwetUhF",
+  Stillness: "https://discord.gg/ryrAX48e67",
+  Empyrean: "https://discord.gg/eHHyEupuHy",
+  Becoming: "https://discord.gg/3RCK9BGkZ5"
+};
+const unstableFrequencyDiscordRoutes = {
+  Dream: "https://discord.gg/db2QBYMMBa",
+  Silence: "https://discord.gg/xwsc8EbPeH",
+  Hunger: "https://discord.gg/NjZVEwMBMS",
+  Stillness: "https://discord.gg/jMBdvcSXAe",
+  Empyrean: "https://discord.gg/yWMwM7h6yF",
+  Becoming: "https://discord.gg/tGqacRrTqx"
+};
+const legacyGenericDiscordRoutes = new Set([
+  "https://discord.gg/Bn6attnYN6",
+  "https://discord.gg/KRbckpfTQk"
+]);
+const threadbreakerRoute = "https://discord.gg/Bn6attnYN6";
 const currentDiscordRoutes = new Set([
-  passDiscordRoute,
-  claimedDiscordRoute
+  ...Object.values(frequencyDiscordRoutes),
+  ...Object.values(unstableFrequencyDiscordRoutes)
 ]);
 
 function getDiscordRoute(frequency, unstable = false) {
-  return unstable ? claimedDiscordRoute : passDiscordRoute;
+  const routeMap = unstable ? unstableFrequencyDiscordRoutes : frequencyDiscordRoutes;
+  return routeMap[frequency] || frequencyDiscordRoutes.Dream;
 }
 
 const observerAdvisories = [
@@ -35,7 +56,112 @@ const operatorTasks = [
   "Return later. Persistence is data; panic is noisy data."
 ];
 
-const commandHelp = "Available commands: help, status, intake, archive, casefiles, needlepoint, operator, shade, alex, authorization, incident, transmission, advisory.";
+const commandHelp = "Available commands: help, scan, ping, trace, decrypt, stabilize, reroute, quarantine, open, status, intake, archive, casefiles, needlepoint, operator.";
+
+const commandNodeOrder = [
+  "INTAKE_NODE",
+  "PLAZA_DRIFT",
+  "NEEDLEPOINT_LOBBY",
+  "MIRROR_ERROR",
+  "SIGNAL_RELAY"
+];
+
+const commandNodes = {
+  INTAKE_NODE: {
+    label: "INTAKE_NODE",
+    status: "AWAKE",
+    signal: "OBSERVER / ROUTING / PERMISSION",
+    file: "INTAKE NODE // PRE-FOUNDATION NOTICE",
+    clearance: 1,
+    unlocks: ["PLAZA_DRIFT"],
+    scan: [
+      "Observer route active before doctrine completion.",
+      "Human authorization partial. Survival authorization active.",
+      "Recommended procedure: stabilize."
+    ],
+    ping: "SHADE.DAEMON responds before the second pulse completes.",
+    actions: {
+      stabilize: "Intake handshake stabilized. Observer routing can continue."
+    },
+    completeActions: ["stabilize"]
+  },
+  PLAZA_DRIFT: {
+    label: "PLAZA_06-13-26",
+    status: "DRIFTING",
+    signal: "FAMILY / OVERWATCH / MARKET RITUAL",
+    file: "STATUS REPORT // 06-13-26",
+    clearance: 2,
+    unlocks: ["NEEDLEPOINT_LOBBY"],
+    requiresAnchor: true,
+    scan: [
+      "Atmospheric geometry noncompliant.",
+      "Civilians unaware.",
+      "Operator fatigue elevated."
+    ],
+    ping: "Public camera mesh returns seven extra shadows.",
+    actions: {
+      stabilize: "Reality drift reduced by 12%."
+    },
+    completeActions: ["stabilize"]
+  },
+  NEEDLEPOINT_LOBBY: {
+    label: "NEEDLEPOINT_LOBBY",
+    status: "WAITING",
+    signal: "TRAINING / FIRST CONTACT / REPLAY",
+    file: "NEEDLEPOINT // LOBBY HANDOFF",
+    clearance: 3,
+    unlocks: ["MIRROR_ERROR"],
+    scan: [
+      "Training incident prepared for civilian-safe playback.",
+      "Playback and intake remain separate.",
+      "Recommended procedure: reroute."
+    ],
+    ping: "The lobby answers with a door that was not drawn yet.",
+    actions: {
+      trace: "Trace confirms Needlepoint as public-safe training path.",
+      reroute: "Case-file route stabilized. Playback can proceed."
+    },
+    completeActions: ["reroute"]
+  },
+  MIRROR_ERROR: {
+    label: "MIRROR_ERROR",
+    status: "RECURSIVE",
+    signal: "REFLECTION / DELAY / IDENTITY",
+    file: "MIRROR ERROR // DELAYED RESPONSE",
+    clearance: 4,
+    unlocks: ["SIGNAL_RELAY"],
+    scan: [
+      "Reflection latency exceeds tolerable variance.",
+      "Identity echo attempting helpful imitation.",
+      "Recommended procedure: quarantine."
+    ],
+    ping: "Ping returns twice. The second response is more polite.",
+    actions: {
+      decrypt: "Reflection key exposed: DO NOT CORRECT THE DELAY.",
+      quarantine: "Mirror recursion contained behind witness protocol."
+    },
+    completeActions: ["quarantine"]
+  },
+  SIGNAL_RELAY: {
+    label: "SIGNAL_RELAY",
+    status: "MISROUTED",
+    signal: "THREADBREAKER / OPERATOR / REVIEW",
+    file: "SIGNAL RELAY // MISROUTING NOTE",
+    clearance: 5,
+    unlocks: [],
+    scan: [
+      "Two valid routes detected.",
+      "One route follows classification.",
+      "One route exists because the thread broke cleanly enough to survive."
+    ],
+    ping: "Relay returns: infrastructure before permission.",
+    actions: {
+      trace: "Threadbreaker route confirmed as unlisted but valid.",
+      reroute: "Signal relay stabilized. Clearance path complete."
+    },
+    completeActions: ["reroute"]
+  }
+};
 
 const profiles = {
   Dream: {
@@ -157,6 +283,13 @@ const archiveInteractionProfiles = {
     incident: "Triage Channel Offer",
     related: ["Stabilization Queue", "Attention Bloom"],
     event: "TRIAGE CHANNEL OPENED"
+  },
+  threadbreaker: {
+    file: "Threadbreaker Route",
+    flag: "OBSERVED: Threadbreaker signal",
+    incident: "Threadbreaker Route",
+    related: ["The Redacted Intake", "Misrouting Review", "Handler Signal Shade"],
+    event: "THREADBREAKER ROUTE OPENED"
   }
 };
 
@@ -409,7 +542,7 @@ function normalizeOperatorRecord(record) {
   const attentionStatus = record.attentionStatus || record.attention || "LOW";
   const accessLevel = record.accessLevel || record.access || "PROVISIONAL";
   const unstableRoute = attentionStatus === "DO NOT SUSTAIN EYE CONTACT" || stabilityState === "TRIAGE RECOMMENDED" || accessLevel === "REDACTED";
-  const storedDiscordRoute = currentDiscordRoutes.has(record.discordRoute) ? record.discordRoute : null;
+  const storedDiscordRoute = currentDiscordRoutes.has(record.discordRoute) && !legacyGenericDiscordRoutes.has(record.discordRoute) ? record.discordRoute : null;
   const discordRoute = storedDiscordRoute || getDiscordRoute(primaryFrequency, unstableRoute);
 
   return {
@@ -464,6 +597,59 @@ function removeOperatorRecord() {
   try {
     window.localStorage.removeItem(recordStorageKey);
     window.localStorage.removeItem(legacyRecordStorageKey);
+  } catch (error) {
+    // Local state is helpful, not load-bearing.
+  }
+}
+
+function createCommandLayerState() {
+  return {
+    activeNode: "INTAKE_NODE",
+    unlockedNodes: ["INTAKE_NODE"],
+    stabilizedNodes: [],
+    unlockedFiles: [],
+    clearance: 0,
+    anchors: {}
+  };
+}
+
+function normalizeCommandLayerState(state) {
+  const fallback = createCommandLayerState();
+
+  if (!state || typeof state !== "object") {
+    return fallback;
+  }
+
+  const activeNode = commandNodes[state.activeNode] ? state.activeNode : fallback.activeNode;
+  const unlockedNodes = Array.isArray(state.unlockedNodes)
+    ? state.unlockedNodes.filter((nodeId) => commandNodes[nodeId])
+    : fallback.unlockedNodes;
+
+  if (!unlockedNodes.includes("INTAKE_NODE")) {
+    unlockedNodes.unshift("INTAKE_NODE");
+  }
+
+  return {
+    activeNode: unlockedNodes.includes(activeNode) ? activeNode : "INTAKE_NODE",
+    unlockedNodes,
+    stabilizedNodes: Array.isArray(state.stabilizedNodes) ? state.stabilizedNodes.filter((nodeId) => commandNodes[nodeId]) : [],
+    unlockedFiles: Array.isArray(state.unlockedFiles) ? state.unlockedFiles : [],
+    clearance: Number(state.clearance) || 0,
+    anchors: state.anchors && typeof state.anchors === "object" ? state.anchors : {}
+  };
+}
+
+function readCommandLayerState() {
+  try {
+    return normalizeCommandLayerState(JSON.parse(window.localStorage.getItem(commandLayerStorageKey)));
+  } catch (error) {
+    return createCommandLayerState();
+  }
+}
+
+function writeCommandLayerState(state) {
+  try {
+    window.localStorage.setItem(commandLayerStorageKey, JSON.stringify(state));
   } catch (error) {
     // Local state is helpful, not load-bearing.
   }
@@ -691,7 +877,19 @@ function formatDrift(record) {
 }
 
 function requiresReviewRoute(record) {
-  return record && (record.discordRoute === claimedDiscordRoute || record.observerClassification === "CLAIMED" || record.observerClassification === "MISROUTED ASSET");
+  return record && (Object.values(unstableFrequencyDiscordRoutes).includes(record.discordRoute) || record.observerClassification === "CLAIMED" || record.observerClassification === "MISROUTED ASSET");
+}
+
+function getOperatorRouteLabel(record) {
+  if (!record) {
+    return "Open Operator Channel";
+  }
+
+  if (requiresReviewRoute(record)) {
+    return "Open Triage Channel";
+  }
+
+  return `Open ${record.primaryFrequency} Channel`;
 }
 
 function renderOperatorRecord(record) {
@@ -1189,7 +1387,7 @@ function typeResultLines(lines, claimed, record) {
     operatorRoute.href = record.discordRoute;
     operatorRoute.target = "_blank";
     operatorRoute.rel = "noopener noreferrer";
-    operatorRoute.textContent = claimed ? "Open Triage Channel" : "Open Operator Channel";
+    operatorRoute.textContent = getOperatorRouteLabel(record);
     operatorRoute.addEventListener("click", () => recordArchiveInteraction(claimed ? "triageChannel" : "operatorChannel"));
 
     restartButton.className = "button ghost route-restart";
@@ -1429,6 +1627,159 @@ function showCommandChannel() {
   keepIntakeVisible(channel);
 }
 
+function getActiveCommandNode(state) {
+  return commandNodes[state.activeNode] || commandNodes.INTAKE_NODE;
+}
+
+function unlockCommandNode(state, nodeId) {
+  if (commandNodes[nodeId] && !state.unlockedNodes.includes(nodeId)) {
+    state.unlockedNodes.push(nodeId);
+    appendCommandLine(`NODE UNLOCKED: ${commandNodes[nodeId].label}`);
+  }
+}
+
+function unlockCommandFile(state, node) {
+  if (!state.unlockedFiles.includes(node.file)) {
+    state.unlockedFiles.push(node.file);
+    appendCommandLine(`FILE UNLOCKED: ${node.file}`);
+  }
+}
+
+function completeCommandNode(state, node, completionLine) {
+  if (completionLine) {
+    appendCommandLine(completionLine);
+  }
+
+  if (!state.stabilizedNodes.includes(state.activeNode)) {
+    state.stabilizedNodes.push(state.activeNode);
+    unlockCommandFile(state, node);
+    state.clearance = Math.max(state.clearance, node.clearance);
+    appendCommandLine(`CLEARANCE UPDATED: LEVEL ${state.clearance}`);
+    node.unlocks.forEach((nodeId) => unlockCommandNode(state, nodeId));
+  } else {
+    appendCommandLine("Node already stabilized. Redundant procedure logged.");
+  }
+
+  writeCommandLayerState(state);
+}
+
+function listCommandNodes(state) {
+  appendCommandLine(`ACTIVE NODE: ${getActiveCommandNode(state).label}`);
+  appendCommandLine(`CLEARANCE: LEVEL ${state.clearance}`);
+  appendCommandLine(`UNLOCKED NODES: ${state.unlockedNodes.map((nodeId) => commandNodes[nodeId].label).join(" // ")}`);
+
+  if (state.unlockedFiles.length > 0) {
+    appendCommandLine(`UNLOCKED FILES: ${state.unlockedFiles.join(" // ")}`);
+  }
+}
+
+function openCommandTarget(command, state) {
+  const target = command.replace(/^open\s*/, "").trim().replace(/[\s-]+/g, "_").toUpperCase();
+
+  if (!target) {
+    listCommandNodes(state);
+    return true;
+  }
+
+  if (target === "FILE" || target === "FILES") {
+    if (state.unlockedFiles.length === 0) {
+      appendCommandLine("No files unlocked. Scan and stabilize an active node.");
+      return true;
+    }
+
+    state.unlockedFiles.forEach((file) => appendCommandLine(`FILE AVAILABLE: ${file}`));
+    return true;
+  }
+
+  const requestedNode = commandNodeOrder.find((nodeId) => nodeId === target || commandNodes[nodeId].label === target);
+
+  if (!requestedNode) {
+    appendCommandLine("Requested node not found in public routing table.");
+    return true;
+  }
+
+  if (!state.unlockedNodes.includes(requestedNode)) {
+    appendCommandLine("Node locked. Complete current procedure to open next route.");
+    return true;
+  }
+
+  state.activeNode = requestedNode;
+  writeCommandLayerState(state);
+  appendCommandLine(`NODE OPENED: ${commandNodes[requestedNode].label}`);
+  appendCommandLine(`STATUS: ${commandNodes[requestedNode].status}`);
+  return true;
+}
+
+function handleCommandLayer(command) {
+  const state = readCommandLayerState();
+  const node = getActiveCommandNode(state);
+
+  if (command === "scan") {
+    appendCommandLine(`NODE: ${node.label}`);
+    appendCommandLine(`STATUS: ${node.status}`);
+    appendCommandLine(`SIGNAL: ${node.signal}`);
+    node.scan.forEach((line) => appendCommandLine(line));
+    writeCommandLayerState(state);
+    return true;
+  }
+
+  if (command === "ping") {
+    appendCommandLine(node.ping);
+    return true;
+  }
+
+  if (command.startsWith("open")) {
+    return openCommandTarget(command, state);
+  }
+
+  if (command.startsWith("anchor ")) {
+    const anchor = command.replace(/^anchor\s+/, "").trim();
+
+    if (!node.requiresAnchor) {
+      appendCommandLine("Anchor not required for active node.");
+      return true;
+    }
+
+    if (!anchor) {
+      appendCommandLine("Anchor rejected. Mundane reference required.");
+      return true;
+    }
+
+    state.anchors[state.activeNode] = anchor;
+    writeCommandLayerState(state);
+    appendCommandLine(`ANCHOR ACCEPTED: ${anchor.toUpperCase()}`);
+    appendCommandLine("Mundane reference stored. Stabilize may proceed.");
+    return true;
+  }
+
+  if (["trace", "decrypt", "stabilize", "reroute", "quarantine"].includes(command)) {
+    const response = node.actions[command];
+
+    if (!response) {
+      appendCommandLine(`Procedure ${command.toUpperCase()} not authorized for ${node.label}.`);
+      appendCommandLine("Use scan to inspect current requirements.");
+      return true;
+    }
+
+    if (node.requiresAnchor && command === "stabilize" && !state.anchors[state.activeNode]) {
+      appendCommandLine("REQUIRES: one mundane anchor.");
+      appendCommandLine("Example accepted format: anchor cheesecake");
+      return true;
+    }
+
+    if (node.completeActions.includes(command)) {
+      completeCommandNode(state, node, response);
+      return true;
+    }
+
+    appendCommandLine(response);
+    writeCommandLayerState(state);
+    return true;
+  }
+
+  return false;
+}
+
 function executeCommand(rawCommand) {
   const command = rawCommand.trim().toLowerCase().replace(/\s+/g, " ");
   const record = intakeState.record || readOperatorRecord();
@@ -1445,12 +1796,20 @@ function executeCommand(rawCommand) {
     return;
   }
 
+  if (handleCommandLayer(command)) {
+    return;
+  }
+
   if (command === "status") {
     const state = getOperationalState(record);
+    const commandState = readCommandLayerState();
+    const node = getActiveCommandNode(commandState);
     appendCommandLine(`AUTHORITY: ${state.authority}`);
     appendCommandLine(`PROCEDURE: ${state.procedure}`);
     appendCommandLine(`OPERATIONS: ${state.operations}`);
     appendCommandLine(`OBSERVER: ${record ? record.observerClassification : "NOTICED"}`);
+    appendCommandLine(`ACTIVE NODE: ${node.label}`);
+    appendCommandLine(`CLEARANCE: LEVEL ${commandState.clearance}`);
     return;
   }
 
@@ -1478,14 +1837,29 @@ function executeCommand(rawCommand) {
 
   if (command === "operator") {
     if (!record) {
-      appendCommandLine("Operator channel unavailable before intake classification.");
-      appendCommandLine("Begin Operator Intake to provision a route.");
+      const intake = document.getElementById("intake-node");
+
+      appendCommandLine("Operator channel requires intake classification.");
+      appendCommandLine("Opening observer routing procedure.");
+
+      if (intake && intake.hidden) {
+        openIntake();
+      } else if (intake) {
+        keepIntakeVisible(intake);
+      }
       return;
     }
 
     appendCommandLine(`OBSERVER CLASSIFICATION: ${record.observerClassification}`);
-    appendCommandLine(requiresReviewRoute(record) ? "Support routing / misclassification review provisioned." : "Operator channel provisioned.");
-    appendCommandRoute(requiresReviewRoute(record) ? "Open Triage Channel" : "Open Operator Channel", record.discordRoute, requiresReviewRoute(record) ? "triageChannel" : "operatorChannel");
+    appendCommandLine(requiresReviewRoute(record) ? "Support routing / misclassification review provisioned." : `${record.primaryFrequency} channel provisioned.`);
+    appendCommandRoute(getOperatorRouteLabel(record), record.discordRoute, requiresReviewRoute(record) ? "triageChannel" : "operatorChannel");
+    return;
+  }
+
+  if (command === "threadbreaker" || command === "thread breaker") {
+    appendCommandLine("Unlisted route acknowledged.");
+    appendCommandLine("Misrouting can be useful when the thread was already broken.");
+    appendCommandRoute("Open Threadbreaker Route", threadbreakerRoute, "threadbreaker");
     return;
   }
 
@@ -1628,9 +2002,11 @@ function renderOperatorTasking(record) {
   archiveRoute.href = record.archiveRoute || archiveUrl;
   caseFileRoute.href = caseFileUrl;
   discordRoute.href = record.discordRoute || getDiscordRoute(record.primaryFrequency, claimed);
+  discordRoute.target = "_blank";
+  discordRoute.rel = "noopener noreferrer";
   discordRoute.classList.toggle("primary", !claimed);
   discordRoute.classList.toggle("ghost", claimed);
-  setButtonLabel(discordRoute, claimed ? "Open Triage Channel" : "Open Operator Channel");
+  setButtonLabel(discordRoute, getOperatorRouteLabel(record));
   copy.innerHTML = "";
   const prompt = document.createElement("span");
   const text = document.createElement("span");
