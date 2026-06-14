@@ -1,0 +1,117 @@
+:root {
+  color-scheme: dark;
+  --bg: #07100e;
+  --panel: #101d19;
+  --ink: #f4fff8;
+  --muted: #a8beb4;
+  --line: rgba(114, 255, 190, 0.28);
+  --hot: #72ffbe;
+  --amber: #f1c05f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(rgba(114, 255, 190, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(114, 255, 190, 0.04) 1px, transparent 1px),
+    var(--bg);
+  background-size: 42px 42px;
+  color: var(--ink);
+  font-family: "Segoe UI", "Inter", Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+.console-shell {
+  width: min(940px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 56px 0;
+}
+
+header p {
+  margin: 0 0 10px;
+  color: var(--hot);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+h1 {
+  margin: 0 0 28px;
+  font-size: clamp(34px, 5vw, 64px);
+  line-height: 1;
+}
+
+.token-panel,
+.custom-panel {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 22px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: rgba(16, 29, 25, 0.86);
+}
+
+.token-row {
+  display: flex;
+  gap: 10px;
+}
+
+label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+input,
+button {
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+}
+
+input {
+  width: 100%;
+  padding: 0 14px;
+  background: #07100e;
+  color: var(--ink);
+}
+
+button {
+  padding: 0 18px;
+  background: rgba(114, 255, 190, 0.12);
+  color: var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  border-color: var(--hot);
+  background: rgba(114, 255, 190, 0.2);
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.status-line {
+  min-height: 28px;
+  margin: 18px 0 0;
+  color: var(--amber);
+  font-weight: 700;
+}
+
+@media (max-width: 560px) {
+  .token-row {
+    flex-direction: column;
+  }
+}

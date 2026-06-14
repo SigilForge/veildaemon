@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VEILCORP // Alert Overlay</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
+  <link rel="stylesheet" href="style.css?v=20260614-alerts1" />
+</head>
+<body>
+  <main class="alert-stage" aria-label="VeilCorp alert overlay">
+    <div class="signal-grid" aria-hidden="true"></div>
+    <div class="scanline" aria-hidden="true"></div>
+    <section class="alert-card" id="alert-card" aria-live="polite" aria-atomic="true">
+      <div class="alert-primer">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>VEILCORP ARCHIVES // LIVE NODE</span>
+      </div>
+      <div class="alert-body">
+        <p class="alert-eyebrow" id="alert-eyebrow">ATTENTION EVENT DETECTED</p>
+        <h1 id="alert-headline">Observer channel standing by.</h1>
+        <p class="alert-detail" id="alert-detail">Human authorization partial. Survival authorization active.</p>
+      </div>
+      <div class="alert-footer">
+        <span id="alert-stamp">PASSIVE MONITOR</span>
+        <span id="alert-time">00:00:00</span>
+      </div>
+    </section>
+    <audio id="alert-sound" preload="auto"></audio>
+  </main>
+  <script src="overlay.js?v=20260614-alerts1"></script>
+</body>
+</html>

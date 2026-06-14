@@ -1,0 +1,32 @@
+{
+  "rewrites": [
+    {
+      "source": "/admin/alerts",
+      "destination": "/api/admin/alerts-page"
+    },
+    {
+      "source": "/admin/alerts/",
+      "destination": "/api/admin/alerts-page"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/stream/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    },
+    {
+      "source": "/admin/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex"
+        }
+      ]
+    }
+  ]
+}
