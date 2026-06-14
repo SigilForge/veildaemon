@@ -54,22 +54,40 @@ function createAlert(input) {
 }
 
 function envStatus() {
+  const redis = redisEnv();
   return {
     upstashUrl: Boolean(process.env.UPSTASH_REDIS_REST_URL),
     upstashToken: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN),
+    kvUrl: Boolean(process.env.KV_REST_API_URL),
+    kvToken: Boolean(process.env.KV_REST_API_TOKEN),
+    redisUrlSource: redis.urlSource,
+    redisTokenSource: redis.tokenSource,
     adminToken: Boolean(process.env.ALERT_ADMIN_TOKEN),
     twitchSecret: Boolean(process.env.TWITCH_EVENTSUB_SECRET),
   };
 }
 
 function queueBackend() {
-  const env = envStatus();
-  return env.upstashUrl && env.upstashToken ? "upstash" : "memory";
+  const redis = redisEnv();
+  return redis.url && redis.token ? "upstash" : "memory";
+}
+
+function redisEnv() {
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const kvUrl = process.env.KV_REST_API_URL;
+  const kvToken = process.env.KV_REST_API_TOKEN;
+
+  return {
+    url: upstashUrl || kvUrl || "",
+    token: upstashToken || kvToken || "",
+    urlSource: upstashUrl ? "UPSTASH_REDIS_REST_URL" : kvUrl ? "KV_REST_API_URL" : "",
+    tokenSource: upstashToken ? "UPSTASH_REDIS_REST_TOKEN" : kvToken ? "KV_REST_API_TOKEN" : "",
+  };
 }
 
 async function redisCommand(command) {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const { url, token } = redisEnv();
   if (!url || !token) return null;
 
   const response = await fetch(`${url.replace(/\/$/, "")}/${command.map(encodeURIComponent).join("/")}`, {
