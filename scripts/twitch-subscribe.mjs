@@ -86,17 +86,17 @@ function subscriptionPlans() {
     },
     {
       type: "channel.hype_train.begin",
-      version: "1",
+      version: "2",
       condition: { broadcaster_user_id: broadcaster },
     },
     {
       type: "channel.hype_train.progress",
-      version: "1",
+      version: "2",
       condition: { broadcaster_user_id: broadcaster },
     },
     {
       type: "channel.hype_train.end",
-      version: "1",
+      version: "2",
       condition: { broadcaster_user_id: broadcaster },
     },
   ];
@@ -127,9 +127,19 @@ const results = [];
 for (const plan of subscriptionPlans()) {
   try {
     const result = await createSubscription(token, plan);
-    results.push({ type: plan.type, ok: true, status: result.data && result.data[0] && result.data[0].status });
+    results.push({
+      type: plan.type,
+      version: plan.version,
+      ok: true,
+      status: result.data && result.data[0] && result.data[0].status,
+    });
   } catch (error) {
-    results.push({ type: plan.type, ok: false, error: error.message });
+    results.push({
+      type: plan.type,
+      version: plan.version,
+      ok: false,
+      error: error.message,
+    });
   }
 }
 
