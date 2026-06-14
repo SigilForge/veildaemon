@@ -6,7 +6,7 @@
   <title>VEILCORP // Alert Overlay</title>
   <meta name="robots" content="noindex" />
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
-  <link rel="stylesheet" href="style.css?v=20260614-alerts1" />
+  <link rel="stylesheet" href="/stream/alerts/style.css?v=20260614-alerts3" />
 </head>
 <body>
   <main class="alert-stage" aria-label="VeilCorp alert overlay">
@@ -27,8 +27,20 @@
         <span id="alert-time">00:00:00</span>
       </div>
     </section>
+    <aside class="debug-panel" id="debug-panel" aria-label="Alert overlay diagnostics" hidden>
+      <h2>Alert Debug</h2>
+      <dl>
+        <div><dt>API URL</dt><dd id="debug-api-url">/api/alerts/next</dd></div>
+        <div><dt>Polling</dt><dd id="debug-polling">false</dd></div>
+        <div><dt>Last poll</dt><dd id="debug-last-poll">never</dd></div>
+        <div><dt>HTTP</dt><dd id="debug-status">pending</dd></div>
+        <div><dt>Error</dt><dd id="debug-error">none</dd></div>
+        <div><dt>Last alert</dt><dd id="debug-alert">none</dd></div>
+        <div><dt>Display</dt><dd id="debug-display">idle</dd></div>
+      </dl>
+    </aside>
     <audio id="alert-sound" preload="auto"></audio>
   </main>
-  <script src="overlay.js?v=20260614-alerts1"></script>
+  <script src="/stream/alerts/overlay.js?v=20260614-alerts3"></script>
 </body>
 </html>
