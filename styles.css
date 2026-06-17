@@ -878,32 +878,33 @@ footer {
 }
 .casefile-tab {
   position: absolute;
-  left: -9.4rem;
-  top: 1rem;
+  left: -3.15rem;
+  top: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: .42rem;
-  width: 9.1rem;
-  height: 3.45rem;
+  gap: .5rem;
+  width: 3.15rem;
+  height: 9.15rem;
   border: 1px solid rgba(216,210,189,.42);
   border-right: 0;
   border-radius: .28rem 0 0 .28rem;
-  padding: .46rem .62rem .42rem .78rem;
+  padding: .65rem .42rem;
   background:
-    linear-gradient(90deg, rgba(54,61,50,.96), rgba(26,32,28,.98)),
-    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 5px);
+    linear-gradient(90deg, rgba(47,55,48,.98), rgba(24,30,27,.98)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 6px);
   color: var(--dossier-ink);
   cursor: pointer;
   font: inherit;
-  font-size: .7rem;
+  font-size: .68rem;
   font-weight: 800;
-  letter-spacing: .11em;
+  letter-spacing: .12em;
   text-transform: uppercase;
   box-shadow: -12px 18px 34px rgba(0,0,0,.36), inset 0 1px rgba(255,255,255,.07);
-  clip-path: polygon(0 0, calc(100% - .7rem) 0, 100% .7rem, 100% 100%, 0 100%);
-  text-align: left;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, .7rem 100%, 0 calc(100% - .7rem));
+  text-align: center;
   line-height: 1.1;
+  writing-mode: vertical-rl;
 }
 .casefile-tab::after {
   content: "";
@@ -918,7 +919,7 @@ footer {
   content: "";
 }
 .casefile-tab strong {
-  display: block;
+  display: none;
   color: rgba(216,210,189,.66);
   font-size: .53rem;
   font-weight: 700;
@@ -1029,8 +1030,6 @@ footer {
   .casefile-tab {
     left: 0;
     top: clamp(1rem, 11vh, 4rem);
-    flex-direction: column;
-    gap: .5rem;
     width: 2.75rem;
     height: 8.6rem;
     border: 1px solid rgba(216,210,189,.42);
@@ -1040,6 +1039,9 @@ footer {
     letter-spacing: .12em;
     writing-mode: vertical-rl;
     box-shadow: 0 14px 28px rgba(0,0,0,.38), inset -.35rem 0 0 rgba(216,210,189,.08);
+  }
+  .casefile-drawer:not(.is-open) .casefile-tab {
+    transform: rotate(180deg);
   }
   .casefile-tab::after {
     content: "";
