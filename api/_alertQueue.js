@@ -1,6 +1,9 @@
 const memoryQueue = [];
+const memoryFeed = [];
 const MAX_QUEUE_LENGTH = 80;
+const MAX_FEED_LENGTH = 120;
 const QUEUE_KEY = "veildaemon:stream-alerts";
+const FEED_KEY = "veildaemon:stream-alerts-feed";
 
 function json(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -112,20 +115,38 @@ async function queueLength() {
   return memoryQueue.length;
 }
 
-async function queueDiagnostics(extra = {}) {
+async function feedLength() {
+  if (queueBackend() === "upstash") {
+    return Number(await redisCommand(["LLEN", FEED_KEY]));
+  }
+
+  return memoryFeed.length;
+}
+
+async function queueDiagnostics(extra = {}, options = {}) {
   const backend = queueBackend();
+  const includeLengths = options.includeLengths !== false;
   const diagnostics = {
     backend,
     env: envStatus(),
     readFromUpstash: backend === "upstash",
     queueLength: null,
+    feedLength: null,
     ...extra,
   };
 
-  try {
-    diagnostics.queueLength = await queueLength();
-  } catch (error) {
-    diagnostics.queueLengthError = error.message;
+  if (includeLengths) {
+    try {
+      diagnostics.queueLength = await queueLength();
+    } catch (error) {
+      diagnostics.queueLengthError = error.message;
+    }
+
+    try {
+      diagnostics.feedLength = await feedLength();
+    } catch (error) {
+      diagnostics.feedLengthError = error.message;
+    }
   }
 
   return diagnostics;
@@ -138,6 +159,8 @@ async function enqueue(alert) {
   if (queueBackend() === "upstash") {
     await redisCommand(["LPUSH", QUEUE_KEY, serialized]);
     await redisCommand(["LTRIM", QUEUE_KEY, "0", String(MAX_QUEUE_LENGTH - 1)]);
+    await redisCommand(["LPUSH", FEED_KEY, serialized]);
+    await redisCommand(["LTRIM", FEED_KEY, "0", String(MAX_FEED_LENGTH - 1)]);
     return {
       alert: record,
       diagnostics: await queueDiagnostics({ pushed: true }),
@@ -146,6 +169,8 @@ async function enqueue(alert) {
 
   memoryQueue.unshift(record);
   memoryQueue.splice(MAX_QUEUE_LENGTH);
+  memoryFeed.unshift(record);
+  memoryFeed.splice(MAX_FEED_LENGTH);
   return {
     alert: record,
     diagnostics: await queueDiagnostics({ pushed: true }),
@@ -174,10 +199,36 @@ async function dequeue(count = 1) {
   };
 }
 
+async function recentAlerts(options = {}) {
+  const safeCount = Math.max(1, Math.min(Number(options.count) || 30, MAX_FEED_LENGTH));
+  const sinceMs = options.since ? Date.parse(options.since) : 0;
+  const source = queueBackend() === "upstash"
+    ? await redisCommand(["LRANGE", FEED_KEY, "0", String(safeCount - 1)])
+    : memoryFeed.slice(0, safeCount);
+
+  const alerts = (source || [])
+    .map((item) => (typeof item === "string" ? JSON.parse(item) : item))
+    .filter((alert) => {
+      if (!sinceMs) return true;
+      const createdAt = Date.parse(alert.createdAt || "");
+      return Number.isFinite(createdAt) && createdAt >= sinceMs;
+    })
+    .sort((first, second) => Date.parse(first.createdAt || "") - Date.parse(second.createdAt || ""));
+
+  return {
+    alerts,
+    diagnostics: await queueDiagnostics(
+      { requested: safeCount, feedSince: options.since || "" },
+      { includeLengths: false },
+    ),
+  };
+}
+
 module.exports = {
   createAlert,
   dequeue,
   enqueue,
+  recentAlerts,
   queueDiagnostics,
   json,
   readBody,

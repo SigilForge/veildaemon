@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VEILCORP // Alert FX Layer</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="/stream/alerts/fx/style.css?v=20260617-fx1" />
+</head>
+<body>
+  <main class="fx-stage" aria-label="VeilCorp alert effects layer">
+    <div class="fx-grid" aria-hidden="true"></div>
+    <div class="fx-scan" aria-hidden="true"></div>
+    <div class="fx-tear fx-tear-a" aria-hidden="true"></div>
+    <div class="fx-tear fx-tear-b" aria-hidden="true"></div>
+    <div class="fx-glyph fx-glyph-a" aria-hidden="true"></div>
+    <div class="fx-glyph fx-glyph-b" aria-hidden="true"></div>
+    <div class="fx-stamp" id="fx-stamp" aria-hidden="true">ATTENTION EVENT DETECTED</div>
+    <aside class="fx-debug" id="fx-debug" hidden>
+      <h2>FX Debug</h2>
+      <dl>
+        <div><dt>API</dt><dd id="fx-debug-api">pending</dd></div>
+        <div><dt>Polling</dt><dd id="fx-debug-polling">false</dd></div>
+        <div><dt>HTTP</dt><dd id="fx-debug-status">pending</dd></div>
+        <div><dt>Last poll</dt><dd id="fx-debug-last-poll">never</dd></div>
+        <div><dt>Last alert</dt><dd id="fx-debug-alert">none</dd></div>
+        <div><dt>Effect</dt><dd id="fx-debug-effect">idle</dd></div>
+        <div><dt>Error</dt><dd id="fx-debug-error">none</dd></div>
+      </dl>
+    </aside>
+  </main>
+  <script src="/stream/alerts/fx/fx.js?v=20260617-fx1"></script>
+</body>
+</html>
