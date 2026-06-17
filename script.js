@@ -25,6 +25,7 @@ const legacyGenericDiscordRoutes = new Set([
   "https://discord.gg/Bn6attnYN6",
   "https://discord.gg/KRbckpfTQk"
 ]);
+const observerLogEndpoint = "/api/observe";
 const threadbreakerRoute = "https://discord.gg/Bn6attnYN6";
 const currentDiscordRoutes = new Set([
   ...Object.values(frequencyDiscordRoutes),
@@ -34,6 +35,52 @@ const currentDiscordRoutes = new Set([
 function getDiscordRoute(frequency, unstable = false) {
   const routeMap = unstable ? unstableFrequencyDiscordRoutes : frequencyDiscordRoutes;
   return routeMap[frequency] || frequencyDiscordRoutes.Dream;
+}
+
+function observerReferrerHost() {
+  try {
+    return document.referrer ? new URL(document.referrer).host : "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function observerLogPayload(event, details = {}) {
+  const record = details.record || intakeState.record || readOperatorRecord();
+  const commandState = readCommandLayerState();
+
+  return {
+    event,
+    routeType: details.routeType || "",
+    path: window.location.pathname || "/",
+    referrerHost: observerReferrerHost(),
+    primaryFrequency: record ? record.primaryFrequency : "",
+    observerClassification: record ? record.observerClassification : "",
+    attentionStatus: record ? record.attentionStatus : "",
+    accessLevel: record ? record.accessLevel : "",
+    filesReviewed: record ? record.filesReviewed : 0,
+    commandLayerClearance: commandState ? commandState.clearance : ""
+  };
+}
+
+function recordObserverEvent(event, details = {}) {
+  if (!window.fetch && !navigator.sendBeacon) {
+    return;
+  }
+
+  const body = JSON.stringify(observerLogPayload(event, details));
+
+  if (navigator.sendBeacon) {
+    const sent = navigator.sendBeacon(observerLogEndpoint, new Blob([body], { type: "application/json" }));
+    if (sent) return;
+  }
+
+  fetch(observerLogEndpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true
+  }).catch(() => {});
 }
 
 const observerAdvisories = [
@@ -1417,6 +1464,7 @@ function openIntake() {
   setButtonLabel(startButton, "Collapse Operator Intake");
   intakeState.returningDecisionMade = false;
   intakeState.record = markRecordSeen(readOperatorRecord());
+  recordObserverEvent("intake_opened", { record: intakeState.record });
   typeShadeIntro();
   intake.focus({ preventScroll: true });
   keepIntakeVisible(intake);
@@ -1533,6 +1581,7 @@ function showIntakeResult(reaction = "") {
 
   intakeState.record = record;
   writeOperatorRecord(record);
+  recordObserverEvent("intake_completed", { record });
   renderReturningOperator(null);
   renderOperatorRecord(record);
   pulseCasefileDrawer();
@@ -2182,6 +2231,7 @@ function recordArchiveInteraction(type) {
   appendHistory(record, interaction.event);
   appendHistory(record, "ARCHIVE CROSS-REFERENCE DETECTED");
   writeOperatorRecord(record);
+  recordObserverEvent("route_opened", { routeType: type, record });
   intakeState.record = record;
   renderOperatorRecord(record);
 }
