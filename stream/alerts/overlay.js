@@ -1,8 +1,15 @@
 (function () {
-  const POLL_MS = 1000;
   const API_PATH = "/api/alerts/next";
+  const FAST_POLL_MS = 1000;
+  const IDLE_POLL_MS = 5000;
+  const DEEP_IDLE_POLL_MS = 15000;
+  const FAST_WINDOW_MS = 30000;
+  const DEEP_IDLE_AFTER_MS = 300000;
   const params = new URLSearchParams(window.location.search);
   const debugEnabled = params.get("debug") === "1";
+  const paused = params.get("paused") === "1";
+  const pollOverride = Number(params.get("poll"));
+  const forcedPollMs = Number.isFinite(pollOverride) && pollOverride > 0 ? pollOverride : null;
   const stage = document.querySelector(".alert-stage");
   const card = document.getElementById("alert-card");
   const eyebrow = document.getElementById("alert-eyebrow");
@@ -15,6 +22,7 @@
   const debugFields = {
     apiUrl: document.getElementById("debug-api-url"),
     polling: document.getElementById("debug-polling"),
+    interval: document.getElementById("debug-interval"),
     lastPoll: document.getElementById("debug-last-poll"),
     status: document.getElementById("debug-status"),
     error: document.getElementById("debug-error"),
@@ -27,6 +35,12 @@
     queue: [],
     playing: false,
     polling: false,
+    pollInFlight: false,
+    pollTimer: null,
+    startedAt: Date.now(),
+    lastAlertAt: null,
+    currentPollInterval: paused ? 0 : forcedPollMs || FAST_POLL_MS,
+    paused,
     seen: new Set(),
     lastAlert: null,
     lastError: "",
@@ -53,12 +67,48 @@
   function updateDebug() {
     if (!debugEnabled) return;
     debugFields.apiUrl.textContent = `${API_PATH}?ts=${Date.now()}`;
-    debugFields.polling.textContent = String(state.polling);
+    debugFields.polling.textContent = String(!state.paused);
+    debugFields.interval.textContent = state.paused ? "paused" : `${state.currentPollInterval}ms`;
     debugFields.lastPoll.textContent = state.lastPoll;
     debugFields.status.textContent = String(state.lastStatus);
     debugFields.error.textContent = debugValue(state.lastError);
     debugFields.alert.textContent = debugValue(state.lastAlert);
     debugFields.display.textContent = state.display;
+  }
+
+  function getCurrentPollInterval() {
+    if (forcedPollMs) return forcedPollMs;
+
+    const now = Date.now();
+    const lastActivityAt = state.lastAlertAt || state.startedAt;
+    if (now - state.startedAt < FAST_WINDOW_MS) return FAST_POLL_MS;
+    if (now - lastActivityAt < FAST_WINDOW_MS) return FAST_POLL_MS;
+    if (now - lastActivityAt < DEEP_IDLE_AFTER_MS) return IDLE_POLL_MS;
+    return DEEP_IDLE_POLL_MS;
+  }
+
+  function scheduleNextPoll(delayMs) {
+    if (state.paused) {
+      state.polling = false;
+      state.currentPollInterval = 0;
+      updateDebug();
+      console.log("[VeilCorp alerts] polling paused");
+      return;
+    }
+
+    if (state.pollTimer) {
+      window.clearTimeout(state.pollTimer);
+      state.pollTimer = null;
+    }
+
+    const delay = Number.isFinite(delayMs) ? delayMs : getCurrentPollInterval();
+    state.currentPollInterval = delay;
+    updateDebug();
+    console.log("[VeilCorp alerts] next poll scheduled", { delay });
+    state.pollTimer = window.setTimeout(() => {
+      state.pollTimer = null;
+      poll();
+    }, delay);
   }
 
   function text(template, payload) {
@@ -109,15 +159,27 @@
   }
 
   async function poll() {
+    if (state.paused) {
+      scheduleNextPoll();
+      return;
+    }
+
+    if (state.pollInFlight) {
+      console.log("[VeilCorp alerts] poll skipped; request already in flight");
+      scheduleNextPoll();
+      return;
+    }
+
     const apiUrl = `${API_PATH}?ts=${Date.now()}`;
     state.polling = true;
+    state.pollInFlight = true;
     state.lastPoll = new Date().toISOString();
     state.lastError = "";
     updateDebug();
     console.log("[VeilCorp alerts] polling", apiUrl);
 
     try {
-      const response = await fetch(apiUrl, { cache: "no-store" });
+      const response = await fetch("/api/alerts/next?ts=" + Date.now(), { cache: "no-store" });
       state.lastStatus = response.status;
       updateDebug();
       if (!response.ok) {
@@ -141,6 +203,7 @@
           state.seen.add(normalized.id);
           state.queue.push(normalized);
           state.lastAlert = normalized;
+          state.lastAlertAt = Date.now();
           console.log("[VeilCorp alerts] received alert", normalized);
         }
       });
@@ -153,6 +216,10 @@
       state.lastStatus = "error";
       updateDebug();
       console.warn("Alert queue unreachable", error);
+    } finally {
+      state.polling = false;
+      state.pollInFlight = false;
+      scheduleNextPoll();
     }
   }
 
@@ -192,6 +259,7 @@
     const normalized = normalizeAlert(alert || { type: "follow" });
     state.queue.push(normalized);
     state.lastAlert = normalized;
+    state.lastAlertAt = Date.now();
     console.log("[VeilCorp alerts] manual alert", normalized);
     updateDebug();
     playNext();
@@ -203,8 +271,11 @@
       state.config = {};
     })
     .finally(() => {
-      poll();
-      window.setInterval(poll, POLL_MS);
+      if (state.paused) {
+        setDisplay("paused");
+      } else {
+        poll();
+      }
       updateDebug();
     });
 })();
