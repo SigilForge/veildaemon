@@ -140,13 +140,13 @@ body {
 
 .monitor-beam {
   left: 49.7%;
-  top: 10.3%;
+  top: 14.6%;
   width: 0.55%;
-  height: 78.8%;
+  height: 57.4%;
   z-index: 7;
   background:
     linear-gradient(90deg, transparent, rgba(216, 180, 254, 0.68), rgba(102, 247, 231, 0.28), transparent),
-    linear-gradient(180deg, rgba(216, 180, 254, 0.05), rgba(216, 180, 254, 0.72), rgba(168, 85, 255, 0.18), transparent);
+    linear-gradient(0deg, rgba(216, 180, 254, 0.76), rgba(216, 180, 254, 0.5) 26%, rgba(168, 85, 255, 0.2) 62%, transparent 100%);
   filter: blur(0.9px);
   mix-blend-mode: screen;
   opacity: 0.42;
