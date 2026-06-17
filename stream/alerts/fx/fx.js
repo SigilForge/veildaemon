@@ -5,11 +5,12 @@
   const DEEP_IDLE_POLL_MS = 15000;
   const FAST_WINDOW_MS = 30000;
   const DEEP_IDLE_AFTER_MS = 300000;
-  const EFFECT_MS = 1900;
+  const EFFECT_MS = 3600;
   const params = new URLSearchParams(window.location.search);
   const debugEnabled = params.get("debug") === "1";
   const paused = params.get("paused") === "1";
   const boundsEnabled = params.get("bounds") === "1";
+  const boostEnabled = params.get("boost") === "1";
   const testType = params.get("test");
   const pollOverride = Number(params.get("poll"));
   const forcedPollMs = Number.isFinite(pollOverride) && pollOverride > 0 ? pollOverride : null;
@@ -48,6 +49,10 @@
 
   if (boundsEnabled) {
     stage.classList.add("show-bounds");
+  }
+
+  if (boostEnabled) {
+    stage.classList.add("fx-boost");
   }
 
   function debugValue(value) {
