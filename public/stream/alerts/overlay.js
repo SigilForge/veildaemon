@@ -9,6 +9,8 @@
   const debugEnabled = params.get("debug") === "1";
   const paused = params.get("paused") === "1";
   const muted = params.get("mute") === "1";
+  const soundTest = params.get("soundtest") === "1";
+  const soundTestType = params.get("sound") || "follow";
   const pollOverride = Number(params.get("poll"));
   const forcedPollMs = Number.isFinite(pollOverride) && pollOverride > 0 ? pollOverride : null;
   const volumeOverride = Number(params.get("volume"));
@@ -20,7 +22,6 @@
   const detail = document.getElementById("alert-detail");
   const stamp = document.getElementById("alert-stamp");
   const clock = document.getElementById("alert-time");
-  const sound = document.getElementById("alert-sound");
   const debugPanel = document.getElementById("debug-panel");
   const debugFields = {
     apiUrl: document.getElementById("debug-api-url"),
@@ -59,6 +60,7 @@
     lastAudioError: "",
     display: "idle",
   };
+  const activeAudio = new Set();
 
   if (debugEnabled && debugPanel) {
     debugPanel.hidden = false;
@@ -296,39 +298,62 @@
     state.lastAudioError = "";
 
     if (muted || !state.selectedSoundFile) {
-      if (debugEnabled && muted) console.log("[VeilCorp alerts] sound muted", state.selectedSoundFile);
+      if (muted) {
+        state.lastAudioError = "Muted by ?mute=1";
+        console.log("[VeilCorp alerts] sound muted", state.selectedSoundFile);
+      }
       updateDebug();
       return;
     }
 
-    sound.oncanplaythrough = () => {
+    const player = new Audio();
+    activeAudio.add(player);
+
+    const cleanup = () => {
+      activeAudio.delete(player);
+    };
+
+    player.preload = "auto";
+    player.muted = false;
+    player.volume = state.soundVolume;
+    player.src = state.selectedSoundFile;
+
+    player.addEventListener("canplaythrough", () => {
       state.soundLoaded = true;
       updateDebug();
-    };
-    sound.onerror = () => {
+    }, { once: true });
+    player.addEventListener("error", () => {
       state.soundLoaded = false;
       state.lastAudioError = `Unable to load ${state.selectedSoundFile}`;
-      if (debugEnabled) console.warn("[VeilCorp alerts] sound unavailable", state.selectedSoundFile);
+      console.warn("[VeilCorp alerts] sound unavailable", state.selectedSoundFile);
       updateDebug();
-    };
-    sound.src = state.selectedSoundFile;
-    sound.volume = state.soundVolume;
+      cleanup();
+    }, { once: true });
+    player.addEventListener("ended", cleanup, { once: true });
+
+    console.log("[VeilCorp alerts] sound play attempt", {
+      src: state.selectedSoundFile,
+      volume: state.soundVolume,
+    });
+
     try {
-      sound.currentTime = 0;
+      player.load();
     } catch (error) {
       state.lastAudioError = error && error.message ? error.message : String(error);
-      if (debugEnabled) console.warn("[VeilCorp alerts] sound seek skipped", state.lastAudioError);
+      console.warn("[VeilCorp alerts] sound load skipped", state.lastAudioError);
     }
     updateDebug();
-    sound.play()
+    player.play()
       .then(() => {
         state.soundLoaded = true;
+        console.log("[VeilCorp alerts] sound playing", state.selectedSoundFile);
         updateDebug();
       })
       .catch((error) => {
         state.lastAudioError = error && error.message ? error.message : String(error);
-        if (debugEnabled) console.warn("[VeilCorp alerts] sound play failed", state.lastAudioError);
+        console.warn("[VeilCorp alerts] sound play failed", state.lastAudioError);
         updateDebug();
+        cleanup();
       });
   }
 
@@ -342,6 +367,14 @@
         setDisplay("paused");
       } else {
         poll();
+      }
+      if (soundTest) {
+        window.setTimeout(() => {
+          const testAlert = normalizeAlert({ type: soundTestType, id: `soundtest-${Date.now()}` });
+          state.lastAlert = testAlert;
+          console.log("[VeilCorp alerts] sound test", testAlert);
+          playSound(testAlert);
+        }, 750);
       }
       updateDebug();
     });
