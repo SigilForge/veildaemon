@@ -904,7 +904,14 @@ footer {
   clip-path: polygon(0 0, 100% 0, 100% 100%, .7rem 100%, 0 calc(100% - .7rem));
   text-align: center;
   line-height: 1.1;
-  writing-mode: vertical-rl;
+  overflow: hidden;
+}
+.casefile-tab > span:first-child {
+  display: block;
+  min-width: 6.4rem;
+  transform: rotate(90deg);
+  transform-origin: center;
+  white-space: nowrap;
 }
 .casefile-tab::after {
   content: "";
@@ -1033,16 +1040,14 @@ footer {
     width: 2.75rem;
     height: 8.6rem;
     border: 1px solid rgba(216,210,189,.42);
-    border-left: 0;
-    border-radius: 0 .42rem .42rem 0;
+    border-right: 0;
+    border-radius: .42rem 0 0 .42rem;
     font-size: .64rem;
     letter-spacing: .12em;
-    writing-mode: vertical-rl;
-    box-shadow: 0 14px 28px rgba(0,0,0,.38), inset -.35rem 0 0 rgba(216,210,189,.08);
+    box-shadow: -10px 14px 28px rgba(0,0,0,.4), inset .35rem 0 0 rgba(216,210,189,.08);
   }
   .casefile-tab::after {
     content: "";
-    writing-mode: horizontal-tb;
   }
   .casefile-drawer.is-open .casefile-tab::after {
     content: "";
