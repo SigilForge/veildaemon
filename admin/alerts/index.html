@@ -6,7 +6,7 @@
   <title>VEILCORP // Alert Console</title>
   <meta name="robots" content="noindex" />
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
-  <link rel="stylesheet" href="/admin/alerts/style.css?v=20260614-alerts1" />
+  <link rel="stylesheet" href="/admin/alerts/style.css?v=20260616-eventsub1" />
 </head>
 <body>
   <main class="console-shell">
@@ -41,8 +41,23 @@
       <input id="count" type="number" min="1" value="7" />
     </section>
 
+    <section class="diagnostic-panel" aria-label="EventSub configuration diagnostics">
+      <div class="diagnostic-header">
+        <h2>EventSub Configuration</h2>
+        <button type="button" id="refresh-eventsub-config">Check</button>
+      </div>
+      <dl class="diagnostic-grid">
+        <div><dt>Callback URL present</dt><dd id="diag-callback-present">unknown</dd></div>
+        <div><dt>Callback looks like URL</dt><dd id="diag-callback-url">unknown</dd></div>
+        <div><dt>Secret present</dt><dd id="diag-secret-present">unknown</dd></div>
+        <div><dt>Secret looks like URL</dt><dd id="diag-secret-url">unknown</dd></div>
+        <div><dt>Secret length</dt><dd id="diag-secret-length">unknown</dd></div>
+      </dl>
+      <p class="warning-line" id="eventsub-warning" hidden>This looks like a URL, not an EventSub secret.</p>
+    </section>
+
     <p class="status-line" id="status-line" role="status">Console awaiting useful intent.</p>
   </main>
-  <script src="/admin/alerts/admin.js?v=20260614-alerts1"></script>
+  <script src="/admin/alerts/admin.js?v=20260616-eventsub1"></script>
 </body>
 </html>

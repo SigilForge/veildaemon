@@ -4,6 +4,15 @@
   const userInput = document.getElementById("user");
   const countInput = document.getElementById("count");
   const statusLine = document.getElementById("status-line");
+  const refreshEventsubConfig = document.getElementById("refresh-eventsub-config");
+  const eventsubWarning = document.getElementById("eventsub-warning");
+  const diagnostics = {
+    callbackPresent: document.getElementById("diag-callback-present"),
+    callbackLooksLikeUrl: document.getElementById("diag-callback-url"),
+    secretPresent: document.getElementById("diag-secret-present"),
+    secretLooksLikeUrl: document.getElementById("diag-secret-url"),
+    secretLength: document.getElementById("diag-secret-length"),
+  };
   const storageKey = "veildaemon.alertConsole.token";
 
   tokenInput.value = window.localStorage.getItem(storageKey) || "";
@@ -47,12 +56,55 @@
     }
   }
 
+  function setDiagnosticValue(element, value) {
+    element.textContent = String(value);
+    element.dataset.state = value === true ? "ok" : value === false ? "warn" : "neutral";
+  }
+
+  async function loadEventsubConfig() {
+    const token = tokenInput.value.trim();
+    if (!token) {
+      setStatus("Access token required before EventSub diagnostics.");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/twitch/eventsub-config", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        cache: "no-store",
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "EventSub diagnostics rejected.");
+
+      const data = result.diagnostics || {};
+      setDiagnosticValue(diagnostics.callbackPresent, Boolean(data.callbackPresent));
+      setDiagnosticValue(diagnostics.callbackLooksLikeUrl, Boolean(data.callbackLooksLikeUrl));
+      setDiagnosticValue(diagnostics.secretPresent, Boolean(data.secretPresent));
+      setDiagnosticValue(diagnostics.secretLooksLikeUrl, Boolean(data.secretLooksLikeUrl));
+      diagnostics.secretLength.textContent = String(Number(data.secretLength || 0));
+      diagnostics.secretLength.dataset.state = data.secretLength > 0 ? "ok" : "warn";
+      eventsubWarning.hidden = !data.secretLooksLikeUrl;
+      setStatus("EventSub configuration checked.");
+    } catch (error) {
+      setStatus(`EventSub diagnostics rejected: ${error.message}`);
+    }
+  }
+
   saveToken.addEventListener("click", () => {
     window.localStorage.setItem(storageKey, tokenInput.value.trim());
     setStatus("Access token held locally.");
+    loadEventsubConfig();
   });
+
+  refreshEventsubConfig.addEventListener("click", loadEventsubConfig);
 
   document.querySelectorAll("[data-type]").forEach((button) => {
     button.addEventListener("click", () => sendAlert(button.dataset.type));
   });
+
+  if (tokenInput.value.trim()) {
+    loadEventsubConfig();
+  }
 })();
