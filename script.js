@@ -183,15 +183,21 @@ const commandRewards = {
     file: "assets/rewards/relic-access.png",
     text: "Relic access card indexed."
   },
-  SIGNAL_RELAY: {
+  MIRROR_ERROR: {
     id: "threadbreaker",
     title: "THREADBREAKER",
     file: "assets/rewards/threadbreaker.png",
     text: "Threadbreaker artifact unsealed."
+  },
+  SIGNAL_RELAY: {
+    id: "route-index",
+    title: "ROUTE INDEX",
+    file: "assets/rewards/route-index.png",
+    text: "Pathfinder capstone indexed."
   }
 };
 
-const commandRewardOrder = ["signal-wake", "witness-key", "relic-access", "threadbreaker"];
+const commandRewardOrder = ["signal-wake", "witness-key", "relic-access", "threadbreaker", "route-index"];
 
 const profiles = {
   Dream: {
