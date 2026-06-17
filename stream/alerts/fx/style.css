@@ -30,6 +30,37 @@ body {
   pointer-events: none;
 }
 
+.fx-stage.show-bounds {
+  outline: 2px solid rgba(25, 240, 209, 0.82);
+  outline-offset: -2px;
+  background:
+    linear-gradient(90deg, rgba(25, 240, 209, 0.1), transparent 18%, transparent 82%, rgba(25, 240, 209, 0.1)),
+    linear-gradient(180deg, rgba(138, 57, 255, 0.1), transparent 18%, transparent 82%, rgba(138, 57, 255, 0.1));
+}
+
+.fx-stage.show-bounds .fx-grid {
+  opacity: 0.42;
+}
+
+.fx-stage.show-bounds .fx-glyph {
+  opacity: 0.16;
+}
+
+.fx-stage.show-bounds .fx-stamp {
+  opacity: 0.78;
+  border-color: rgba(25, 240, 209, 0.72);
+  color: rgba(25, 240, 209, 0.92);
+  transform: translate(-50%, -50%) rotate(-4deg) scale(0.72);
+}
+
+.fx-stage.show-bounds::before {
+  opacity: 0.16;
+}
+
+.fx-stage.show-bounds::after {
+  opacity: 0.22;
+}
+
 .fx-stage::before,
 .fx-stage::after,
 .fx-grid,
@@ -46,9 +77,9 @@ body {
   inset: -12%;
   opacity: 0;
   background:
-    radial-gradient(circle at 50% 50%, rgba(25, 240, 209, 0.26), transparent 24%),
-    radial-gradient(circle at 20% 82%, rgba(138, 57, 255, 0.22), transparent 28%),
-    radial-gradient(circle at 82% 22%, rgba(255, 40, 40, 0.2), transparent 24%);
+    radial-gradient(circle at 50% 50%, rgba(25, 240, 209, 0.36), transparent 24%),
+    radial-gradient(circle at 20% 82%, rgba(138, 57, 255, 0.3), transparent 28%),
+    radial-gradient(circle at 82% 22%, rgba(255, 40, 40, 0.28), transparent 24%);
   mix-blend-mode: screen;
 }
 
@@ -106,7 +137,7 @@ body {
   aspect-ratio: 420 / 630;
   opacity: 0;
   background: url("/stream/alerts/assets/witness-key.png") center / contain no-repeat;
-  filter: drop-shadow(0 0 22px rgba(138, 57, 255, 0.85));
+  filter: drop-shadow(0 0 34px rgba(138, 57, 255, 0.95));
   mix-blend-mode: screen;
 }
 
@@ -128,13 +159,13 @@ body {
   opacity: 0;
   padding: 0.58em 0.86em;
   border: 2px solid rgba(255, 40, 40, 0.8);
-  color: rgba(255, 40, 40, 0.9);
+  color: rgba(255, 40, 40, 0.96);
   font-size: clamp(24px, 5vw, 86px);
   font-weight: 950;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   transform: translate(-50%, -50%) rotate(-4deg) scale(0.8);
-  text-shadow: 0 0 18px rgba(255, 40, 40, 0.45);
+  text-shadow: 0 0 28px rgba(255, 40, 40, 0.72);
   white-space: nowrap;
 }
 
@@ -283,7 +314,7 @@ body {
     transform: perspective(760px) rotateX(58deg) translateY(28vh) scale(0.96);
   }
   28% {
-    opacity: 0.85;
+    opacity: 1;
   }
   100% {
     opacity: 0;
@@ -311,7 +342,7 @@ body {
     transform: translateX(0) scaleY(0.5);
   }
   18%, 48% {
-    opacity: 0.9;
+    opacity: 1;
     transform: translateX(-4vw) scaleY(1);
   }
   30%, 64% {
@@ -325,7 +356,7 @@ body {
     opacity: 0;
   }
   18%, 52% {
-    opacity: 0.42;
+    opacity: 0.68;
   }
   34% {
     opacity: 0.12;
@@ -338,7 +369,7 @@ body {
     transform: translate(-50%, -50%) rotate(-4deg) scale(1.35);
   }
   22% {
-    opacity: 0.9;
+    opacity: 1;
     transform: translate(-50%, -50%) rotate(-4deg) scale(1);
   }
   100% {

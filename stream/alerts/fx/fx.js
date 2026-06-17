@@ -9,6 +9,7 @@
   const params = new URLSearchParams(window.location.search);
   const debugEnabled = params.get("debug") === "1";
   const paused = params.get("paused") === "1";
+  const boundsEnabled = params.get("bounds") === "1";
   const testType = params.get("test");
   const pollOverride = Number(params.get("poll"));
   const forcedPollMs = Number.isFinite(pollOverride) && pollOverride > 0 ? pollOverride : null;
@@ -43,6 +44,10 @@
 
   if (debugEnabled && debugPanel) {
     debugPanel.hidden = false;
+  }
+
+  if (boundsEnabled) {
+    stage.classList.add("show-bounds");
   }
 
   function debugValue(value) {
