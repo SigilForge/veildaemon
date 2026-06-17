@@ -36,10 +36,10 @@ Alert card art is copied from the Cradlepoint marketing repository into `stream/
 
 ## Alert Sound Map
 
-Sound files should be placed under:
+Sound files are served from:
 
 ```txt
-public/assets/alerts/sfx/
+assets/alerts/sfx/
 ```
 
 The overlay references them from `/assets/alerts/sfx/...`. Use original, generated, royalty-free, or otherwise cleared files only. If a file is missing, the overlay logs a debug warning and plays the alert silently.
