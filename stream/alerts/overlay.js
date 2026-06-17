@@ -14,7 +14,8 @@
   const pollOverride = Number(params.get("poll"));
   const forcedPollMs = Number.isFinite(pollOverride) && pollOverride > 0 ? pollOverride : null;
   const volumeOverride = Number(params.get("volume"));
-  const globalVolumeScale = Number.isFinite(volumeOverride) ? Math.max(0, Math.min(volumeOverride, 1)) : 1;
+  const requestedVolumeScale = Number.isFinite(volumeOverride) && volumeOverride > 1 ? volumeOverride / 100 : volumeOverride;
+  const globalVolumeScale = Number.isFinite(requestedVolumeScale) ? Math.max(0, Math.min(requestedVolumeScale, 1)) : 1;
   const stage = document.querySelector(".alert-stage");
   const card = document.getElementById("alert-card");
   const eyebrow = document.getElementById("alert-eyebrow");
@@ -34,7 +35,8 @@
     display: document.getElementById("debug-display"),
     soundFile: document.getElementById("debug-sound-file"),
     soundLoaded: document.getElementById("debug-sound-loaded"),
-    volume: document.getElementById("debug-volume"),
+    globalVolume: document.getElementById("debug-global-volume"),
+    alertVolume: document.getElementById("debug-alert-volume"),
     audioError: document.getElementById("debug-audio-error"),
   };
 
@@ -89,7 +91,8 @@
     debugFields.display.textContent = state.display;
     debugFields.soundFile.textContent = debugValue(state.selectedSoundFile);
     debugFields.soundLoaded.textContent = String(state.soundLoaded);
-    debugFields.volume.textContent = String(state.soundVolume);
+    debugFields.globalVolume.textContent = muted ? "muted" : String(globalVolumeScale);
+    debugFields.alertVolume.textContent = state.selectedSoundFile ? String(state.soundVolume) : "waiting for alert";
     debugFields.audioError.textContent = debugValue(state.lastAudioError);
   }
 
