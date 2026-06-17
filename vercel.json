@@ -9,6 +9,22 @@
       "destination": "/stream/alerts/index.html"
     },
     {
+      "source": "/stream/sigilforge/glyph-static",
+      "destination": "/stream/sigilforge/glyph-static/index.html"
+    },
+    {
+      "source": "/stream/sigilforge/glyph-static/",
+      "destination": "/stream/sigilforge/glyph-static/index.html"
+    },
+    {
+      "source": "/stream/sigilforge/cam-frame",
+      "destination": "/stream/sigilforge/cam-frame/index.html"
+    },
+    {
+      "source": "/stream/sigilforge/cam-frame/",
+      "destination": "/stream/sigilforge/cam-frame/index.html"
+    },
+    {
       "source": "/admin/alerts",
       "destination": "/api/admin/alerts-page"
     },
