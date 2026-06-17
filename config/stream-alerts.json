@@ -2,57 +2,110 @@
   "durationMs": 7200,
   "pollMs": 1800,
   "sound": {
-    "enabled": false,
-    "src": ""
+    "enabled": true,
+    "fallback": {
+      "src": "/assets/alerts/sfx/archive-ping.wav",
+      "volume": 0.45
+    }
   },
   "types": {
     "follow": {
       "eyebrow": "NEW OBSERVER DETECTED",
       "headline": "{user} has begun noticing.",
       "detail": "Observation creates relevance.",
-      "stamp": "WATCHLIST ENTRY"
+      "stamp": "WATCHLIST ENTRY",
+      "sound": {
+        "src": "/assets/alerts/sfx/observer-detected.wav",
+        "volume": 0.45
+      }
     },
     "sub": {
       "eyebrow": "SUPPORT SIGNAL STABILIZED",
       "headline": "{user} has reinforced the live node.",
       "detail": "Human authorization partial. Survival authorization active.",
-      "stamp": "NODE REINFORCED"
+      "stamp": "NODE REINFORCED",
+      "sound": {
+        "src": "/assets/alerts/sfx/clearance-upgraded.wav",
+        "volume": 0.65
+      }
     },
     "resub": {
       "eyebrow": "RETURNING SUPPORT SIGNAL",
       "headline": "{user} has maintained contact for {months} cycles.",
       "detail": "Continued attention may require classification.",
-      "stamp": "CONTACT RETAINED"
+      "stamp": "CONTACT RETAINED",
+      "sound": {
+        "src": "/assets/alerts/sfx/continuity-confirmed.wav",
+        "volume": 0.55
+      }
     },
     "gift_sub": {
       "eyebrow": "ACCESS TRANSFER RECORDED",
       "headline": "{user} assigned {count} observer channel(s).",
       "detail": "Infrastructure before permission.",
-      "stamp": "TRANSFER LOGGED"
+      "stamp": "TRANSFER LOGGED",
+      "sound": {
+        "src": "/assets/alerts/sfx/exposure-transferred.wav",
+        "volume": 0.6
+      }
     },
     "raid": {
       "eyebrow": "INBOUND CROWD EVENT",
       "headline": "{user} redirected {count} observers.",
       "detail": "Containment bandwidth rising.",
-      "stamp": "CROWD INGRESS"
+      "stamp": "CROWD INGRESS",
+      "sound": {
+        "src": "/assets/alerts/sfx/mass-arrival-event.wav",
+        "volume": 0.75
+      }
     },
     "bits": {
       "eyebrow": "CHEER SIGNAL CAPTURED",
       "headline": "{user} transmitted {count} signal fragment(s).",
       "detail": "Signal accepted. Motive pending.",
-      "stamp": "FRAGMENT INDEXED"
+      "stamp": "FRAGMENT INDEXED",
+      "sound": {
+        "src": "/assets/alerts/sfx/signal-offering.wav",
+        "volume": 0.5
+      }
     },
     "hype_train": {
       "eyebrow": "COLLECTIVE MOMENTUM DETECTED",
       "headline": "Chat contamination rising at level {level}.",
       "detail": "Please remain useful while the system adapts.",
-      "stamp": "MOMENTUM EVENT"
+      "stamp": "MOMENTUM EVENT",
+      "sound": {
+        "src": "/assets/alerts/sfx/cascade-rising.wav",
+        "volume": 0.65
+      }
+    },
+    "hype_train.begin": {
+      "sound": {
+        "src": "/assets/alerts/sfx/cascade-initiated.wav",
+        "volume": 0.75
+      }
+    },
+    "hype_train.progress": {
+      "sound": {
+        "src": "/assets/alerts/sfx/cascade-rising.wav",
+        "volume": 0.65
+      }
+    },
+    "hype_train.end": {
+      "sound": {
+        "src": "/assets/alerts/sfx/cascade-contained.wav",
+        "volume": 0.6
+      }
     },
     "donation": {
       "eyebrow": "EXTERNAL SUPPORT SIGNAL",
       "headline": "{user} supplied {amount}.",
       "detail": "Ledger accepted pending human doctrine.",
-      "stamp": "SUPPORT LOGGED"
+      "stamp": "SUPPORT LOGGED",
+      "sound": {
+        "src": "/assets/alerts/sfx/field-funding-received.wav",
+        "volume": 0.55
+      }
     }
   }
 }
