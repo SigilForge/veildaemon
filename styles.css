@@ -837,7 +837,7 @@ footer {
   right: 0;
   z-index: 50;
   width: min(92vw, 430px);
-  max-height: 78vh;
+  max-height: min(78vh, 680px);
   transform: translate(100%, -50%);
   transition: transform .24s ease;
 }
@@ -863,7 +863,7 @@ footer {
   height: 2.65rem;
   border: 1px solid var(--line);
   border-right: 0;
-  border-radius: .55rem 0 0 .55rem;
+  border-radius: .42rem 0 0 .42rem;
   background: var(--panel-hard);
   color: var(--cyan);
   cursor: pointer;
@@ -885,7 +885,7 @@ footer {
   display: none;
 }
 .casefile-panel {
-  max-height: 78vh;
+  max-height: min(78vh, 680px);
   overflow: auto;
   padding: 1rem;
   border: 1px solid var(--line);
@@ -923,27 +923,52 @@ footer {
 }
 @media (max-width: 760px) {
   .casefile-drawer {
-    top: auto;
+    top: 50%;
     right: 0;
-    bottom: 0;
-    width: 100%;
-    max-height: 82vh;
-    transform: translateY(calc(100% - 3rem));
+    bottom: auto;
+    width: min(88vw, 390px);
+    max-height: 78vh;
+    transform: translate(calc(100% - 2.75rem), -50%);
+    transition: transform .24s ease;
   }
   .casefile-drawer.is-open {
-    transform: translateY(0);
+    transform: translate(0, -50%);
   }
   .casefile-tab {
-    left: 1rem;
-    top: -3rem;
-    width: 9rem;
-    height: 3rem;
+    left: 0;
+    top: clamp(1rem, 11vh, 4rem);
+    flex-direction: column;
+    gap: .5rem;
+    width: 2.75rem;
+    height: 8.6rem;
     border: 1px solid var(--line);
-    border-bottom: 0;
-    border-radius: .55rem .55rem 0 0;
+    border-left: 0;
+    border-radius: 0 .42rem .42rem 0;
+    font-size: .64rem;
+    letter-spacing: .12em;
+    writing-mode: vertical-rl;
+    box-shadow: 0 0 20px rgba(102,255,220,.18), inset -.35rem 0 0 rgba(240,45,255,.16);
+  }
+  .casefile-tab::after {
+    content: "<";
+    writing-mode: horizontal-tb;
+  }
+  .casefile-drawer.is-open .casefile-tab::after {
+    content: ">";
+  }
+  .casefile-drawer.is-open .casefile-tab {
+    left: -2.75rem;
+    border: 1px solid var(--line);
+    border-right: 0;
+    border-radius: .42rem 0 0 .42rem;
+    box-shadow: 0 0 20px rgba(102,255,220,.18), inset .35rem 0 0 rgba(240,45,255,.16);
   }
   .casefile-panel {
-    max-height: 82vh;
+    max-height: 78vh;
+    padding: .85rem;
+  }
+  .casefile-drawer:not(.is-open) .casefile-panel {
+    visibility: hidden;
   }
 }
 @media (prefers-reduced-motion: reduce) {
