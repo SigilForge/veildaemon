@@ -4,7 +4,7 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "check": "node --check script.js && node --check stream/alerts/overlay.js && node --check admin/alerts/admin.js && node --check api/alerts/health.js && node --check api/alerts/next.js && node --check api/alerts/test.js && node --check api/debug/ping.js && node --check api/twitch/eventsub.js && node --check api/_alertQueue.js && node --check scripts/twitch-auth-code.mjs && node --check scripts/twitch-auth-url.mjs && node --check scripts/twitch-list-subscriptions.mjs && node --check scripts/twitch-subscribe.mjs",
+    "check": "node --check script.js && node --check stream/alerts/overlay.js && node --check admin/alerts/admin.js && node --check api/alerts/health.js && node --check api/alerts/next.js && node --check api/alerts/test.js && node --check api/debug/ping.js && node --check api/twitch/eventsub-config.js && node --check api/twitch/eventsub.js && node --check api/_alertQueue.js && node --check scripts/twitch-auth-code.mjs && node --check scripts/twitch-auth-url.mjs && node --check scripts/twitch-list-subscriptions.mjs && node --check scripts/twitch-subscribe.mjs",
     "twitch:auth-url": "node scripts/twitch-auth-url.mjs",
     "twitch:auth-code": "node scripts/twitch-auth-code.mjs",
     "twitch:list-subscriptions": "node scripts/twitch-list-subscriptions.mjs",

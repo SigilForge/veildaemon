@@ -24,6 +24,15 @@ if (missing.length) {
   process.exit(1);
 }
 
+function looksLikeUrl(value) {
+  return /^https?:\/\//i.test(String(value || "").trim());
+}
+
+if (looksLikeUrl(TWITCH_EVENTSUB_SECRET)) {
+  console.error("Refusing to create EventSub subscriptions: TWITCH_EVENTSUB_SECRET looks like a URL, not an EventSub secret.");
+  process.exit(1);
+}
+
 async function requestJson(url, options) {
   const response = await fetch(url, options);
   const text = await response.text();
