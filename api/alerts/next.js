@@ -1,4 +1,4 @@
-const { dequeue, json } = require("../_alertQueue");
+const { currentAlert, json } = require("../_alertQueue");
 
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") {
@@ -7,11 +7,16 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const count = req.query && req.query.count ? req.query.count : 1;
-    const result = await dequeue(count);
+    const result = await currentAlert({
+      holdMs: req.query && req.query.holdMs,
+      maxAgeMs: req.query && req.query.maxAgeMs,
+    });
     return json(res, 200, {
       ok: true,
-      alerts: result.alerts,
+      alerts: result.alert ? [result.alert] : [],
+      currentId: result.currentId,
+      expiresAt: result.expiresAt,
+      promoted: result.promoted,
       diagnostics: result.diagnostics,
     });
   } catch (error) {

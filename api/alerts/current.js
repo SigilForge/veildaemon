@@ -9,6 +9,7 @@ module.exports = async function handler(req, res) {
   try {
     const result = await currentAlert({
       holdMs: req.query && req.query.holdMs,
+      maxAgeMs: req.query && req.query.maxAgeMs,
     });
     return json(res, 200, {
       ok: true,
