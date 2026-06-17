@@ -24,6 +24,7 @@
   const stamp = document.getElementById("alert-stamp");
   const clock = document.getElementById("alert-time");
   const debugPanel = document.getElementById("debug-panel");
+  const debugTestSound = document.getElementById("debug-test-sound");
   const debugFields = {
     apiUrl: document.getElementById("debug-api-url"),
     polling: document.getElementById("debug-polling"),
@@ -294,6 +295,13 @@
     playNext();
   };
 
+  function playSoundTest() {
+    const testAlert = normalizeAlert({ type: soundTestType, id: `soundtest-${Date.now()}` });
+    state.lastAlert = testAlert;
+    console.log("[VeilCorp alerts] sound test", testAlert);
+    playSound(testAlert);
+  }
+
   function playSound(alert) {
     state.selectedSoundFile = alert.soundSrc || "";
     state.soundVolume = muted ? 0 : Math.max(0, Math.min(Number(alert.soundVolume || 0), 1)) * globalVolumeScale;
@@ -373,11 +381,11 @@
       }
       if (soundTest) {
         window.setTimeout(() => {
-          const testAlert = normalizeAlert({ type: soundTestType, id: `soundtest-${Date.now()}` });
-          state.lastAlert = testAlert;
-          console.log("[VeilCorp alerts] sound test", testAlert);
-          playSound(testAlert);
+          playSoundTest();
         }, 750);
+      }
+      if (debugTestSound) {
+        debugTestSound.addEventListener("click", playSoundTest);
       }
       updateDebug();
     });
