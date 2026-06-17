@@ -1,6 +1,14 @@
 {
   "rewrites": [
     {
+      "source": "/stream/alerts",
+      "destination": "/stream/alerts/index.html"
+    },
+    {
+      "source": "/stream/alerts/",
+      "destination": "/stream/alerts/index.html"
+    },
+    {
       "source": "/admin/alerts",
       "destination": "/api/admin/alerts-page"
     },
