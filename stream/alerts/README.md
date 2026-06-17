@@ -44,6 +44,8 @@ public/assets/alerts/sfx/
 
 The overlay references them from `/assets/alerts/sfx/...`. Use original, generated, royalty-free, or otherwise cleared files only. If a file is missing, the overlay logs a debug warning and plays the alert silently.
 
+The checked-in WAV files are original procedural placeholder sounds generated locally for this overlay. They are intentionally simple and can be replaced with polished final audio using the same filenames.
+
 Expected files:
 
 ```txt
