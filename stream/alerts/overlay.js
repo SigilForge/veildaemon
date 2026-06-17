@@ -1,5 +1,5 @@
 (function () {
-  const API_PATH = "/api/alerts/next";
+  const API_PATH = "/api/alerts/feed";
   const FAST_POLL_MS = 1000;
   const IDLE_POLL_MS = 5000;
   const DEEP_IDLE_POLL_MS = 15000;
@@ -17,6 +17,7 @@
   const volumeOverride = Number(params.get("volume"));
   const requestedVolumeScale = Number.isFinite(volumeOverride) && volumeOverride > 1 ? volumeOverride / 100 : volumeOverride;
   const globalVolumeScale = Number.isFinite(requestedVolumeScale) ? Math.max(0, Math.min(requestedVolumeScale, 1)) : 1;
+  const feedStartedAt = new Date().toISOString();
   const stage = document.querySelector(".alert-stage");
   const card = document.getElementById("alert-card");
   const eyebrow = document.getElementById("alert-eyebrow");
@@ -86,7 +87,7 @@
 
   function updateDebug() {
     if (!debugEnabled) return;
-    debugFields.apiUrl.textContent = `${API_PATH}?ts=${Date.now()}`;
+    debugFields.apiUrl.textContent = `${API_PATH}?since=${encodeURIComponent(feedStartedAt)}&client=card&ts=${Date.now()}`;
     debugFields.polling.textContent = String(!state.paused);
     debugFields.interval.textContent = state.paused ? "paused" : `${state.currentPollInterval}ms`;
     debugFields.lastPoll.textContent = state.lastPoll;
@@ -207,7 +208,7 @@
       return;
     }
 
-    const apiUrl = `${API_PATH}?ts=${Date.now()}`;
+    const apiUrl = `${API_PATH}?since=${encodeURIComponent(feedStartedAt)}&client=card&ts=${Date.now()}`;
     state.polling = true;
     state.pollInFlight = true;
     state.lastPoll = new Date().toISOString();
@@ -216,7 +217,7 @@
     console.log("[VeilCorp alerts] polling", apiUrl);
 
     try {
-      const response = await fetch("/api/alerts/next?ts=" + Date.now(), { cache: "no-store" });
+      const response = await fetch(apiUrl, { cache: "no-store" });
       state.lastStatus = response.status;
       updateDebug();
       if (!response.ok) {

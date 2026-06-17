@@ -1,0 +1,348 @@
+:root {
+  --violet: #8a39ff;
+  --teal: #19f0d1;
+  --red: #ff2828;
+  --white: #e6e8ef;
+  --event-scan: rgba(25, 240, 209, 0.52);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: transparent;
+  font-family: "Segoe UI", "Inter", Arial, sans-serif;
+}
+
+.fx-stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: transparent;
+  color: var(--white);
+  pointer-events: none;
+}
+
+.fx-stage::before,
+.fx-stage::after,
+.fx-grid,
+.fx-scan,
+.fx-tear,
+.fx-glyph,
+.fx-stamp {
+  position: absolute;
+  pointer-events: none;
+}
+
+.fx-stage::before {
+  content: "";
+  inset: -12%;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(25, 240, 209, 0.26), transparent 24%),
+    radial-gradient(circle at 20% 82%, rgba(138, 57, 255, 0.22), transparent 28%),
+    radial-gradient(circle at 82% 22%, rgba(255, 40, 40, 0.2), transparent 24%);
+  mix-blend-mode: screen;
+}
+
+.fx-stage::after {
+  content: "";
+  inset: 0;
+  opacity: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 5px, rgba(230, 232, 239, 0.12) 5px 6px),
+    linear-gradient(90deg, transparent, rgba(25, 240, 209, 0.18), transparent);
+  mix-blend-mode: screen;
+}
+
+.fx-grid {
+  inset: -20%;
+  opacity: 0;
+  background:
+    linear-gradient(rgba(138, 57, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(25, 240, 209, 0.1) 1px, transparent 1px);
+  background-size: 56px 56px;
+  transform: perspective(760px) rotateX(58deg) translateY(22vh);
+  transform-origin: bottom;
+}
+
+.fx-scan {
+  inset: -30vh 0 auto;
+  height: 26vh;
+  opacity: 0;
+  background: linear-gradient(180deg, transparent, rgba(25, 240, 209, 0.34), transparent);
+  mix-blend-mode: screen;
+}
+
+.fx-tear {
+  left: -8vw;
+  right: -8vw;
+  height: 16vh;
+  opacity: 0;
+  background:
+    linear-gradient(90deg, transparent 0 8%, rgba(255, 40, 40, 0.3) 8% 14%, transparent 14% 56%, rgba(25, 240, 209, 0.28) 56% 62%, transparent 62%),
+    repeating-linear-gradient(0deg, transparent 0 9px, rgba(230, 232, 239, 0.14) 9px 10px);
+  filter: blur(0.4px);
+  mix-blend-mode: screen;
+}
+
+.fx-tear-a {
+  top: 24vh;
+}
+
+.fx-tear-b {
+  top: 64vh;
+}
+
+.fx-glyph {
+  width: clamp(180px, 24vw, 420px);
+  aspect-ratio: 420 / 630;
+  opacity: 0;
+  background: url("/stream/alerts/assets/witness-key.png") center / contain no-repeat;
+  filter: drop-shadow(0 0 22px rgba(138, 57, 255, 0.85));
+  mix-blend-mode: screen;
+}
+
+.fx-glyph-a {
+  left: 6vw;
+  top: 14vh;
+  transform: rotate(-8deg);
+}
+
+.fx-glyph-b {
+  right: 7vw;
+  bottom: 8vh;
+  transform: rotate(7deg) scale(0.72);
+}
+
+.fx-stamp {
+  left: 50%;
+  top: 50%;
+  opacity: 0;
+  padding: 0.58em 0.86em;
+  border: 2px solid rgba(255, 40, 40, 0.8);
+  color: rgba(255, 40, 40, 0.9);
+  font-size: clamp(24px, 5vw, 86px);
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: translate(-50%, -50%) rotate(-4deg) scale(0.8);
+  text-shadow: 0 0 18px rgba(255, 40, 40, 0.45);
+  white-space: nowrap;
+}
+
+.fx-debug {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  z-index: 20;
+  width: min(420px, calc(100vw - 36px));
+  padding: 14px;
+  border: 1px solid rgba(25, 240, 209, 0.5);
+  border-radius: 6px;
+  background: rgba(10, 8, 15, 0.92);
+  color: var(--white);
+  font-size: 12px;
+  line-height: 1.35;
+  pointer-events: auto;
+}
+
+.fx-debug h2 {
+  margin: 0 0 10px;
+  color: var(--teal);
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.fx-debug dl,
+.fx-debug dd {
+  margin: 0;
+}
+
+.fx-debug div {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 8px;
+  padding: 5px 0;
+  border-top: 1px solid rgba(230, 232, 239, 0.1);
+}
+
+.fx-debug dt {
+  color: rgba(230, 232, 239, 0.62);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.fx-debug dd {
+  overflow-wrap: anywhere;
+}
+
+.fx-stage.is-firing::before {
+  animation: fxPulse 1500ms ease-out both;
+}
+
+.fx-stage.is-firing::after {
+  animation: fxStatic 1200ms steps(2, end) both;
+}
+
+.fx-stage.is-firing .fx-grid {
+  animation: fxGrid 1700ms ease-out both;
+}
+
+.fx-stage.is-firing .fx-scan {
+  animation: fxScan 1250ms ease-out both;
+}
+
+.fx-stage.is-firing .fx-tear-a {
+  animation: fxTear 980ms steps(2, end) 80ms both;
+}
+
+.fx-stage.is-firing .fx-tear-b {
+  animation: fxTear 1100ms steps(2, end) 170ms both reverse;
+}
+
+.fx-stage.is-firing .fx-glyph-a {
+  animation: fxGlyph 1200ms steps(3, end) 90ms both;
+}
+
+.fx-stage.is-firing .fx-glyph-b {
+  animation: fxGlyph 1450ms steps(3, end) 220ms both reverse;
+}
+
+.fx-stage.is-firing .fx-stamp {
+  animation: fxStamp 980ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms both;
+}
+
+.fx-stage.fx-follow {
+  --event-color: var(--teal);
+  --event-scan: rgba(25, 240, 209, 0.52);
+}
+
+.fx-stage.fx-sub,
+.fx-stage.fx-resub,
+.fx-stage.fx-gift-sub {
+  --event-color: var(--violet);
+  --event-scan: rgba(138, 57, 255, 0.52);
+}
+
+.fx-stage.fx-raid,
+.fx-stage.fx-hype-train {
+  --event-color: var(--red);
+  --event-scan: rgba(255, 40, 40, 0.52);
+}
+
+.fx-stage.fx-bits,
+.fx-stage.fx-donation {
+  --event-color: var(--teal);
+  --event-scan: rgba(25, 240, 209, 0.52);
+}
+
+.fx-stage.is-firing .fx-scan {
+  background: linear-gradient(180deg, transparent, var(--event-scan), transparent);
+}
+
+@keyframes fxPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes fxStatic {
+  0%, 100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  18%, 42% {
+    opacity: 0.86;
+    transform: translateX(-18px);
+  }
+  28%, 58% {
+    opacity: 0.48;
+    transform: translateX(22px);
+  }
+}
+
+@keyframes fxGrid {
+  0% {
+    opacity: 0;
+    transform: perspective(760px) rotateX(58deg) translateY(28vh) scale(0.96);
+  }
+  28% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    transform: perspective(760px) rotateX(58deg) translateY(8vh) scale(1.04);
+  }
+}
+
+@keyframes fxScan {
+  0% {
+    opacity: 0;
+    transform: translateY(-22vh);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(136vh);
+  }
+}
+
+@keyframes fxTear {
+  0%, 100% {
+    opacity: 0;
+    transform: translateX(0) scaleY(0.5);
+  }
+  18%, 48% {
+    opacity: 0.9;
+    transform: translateX(-4vw) scaleY(1);
+  }
+  30%, 64% {
+    opacity: 0.52;
+    transform: translateX(6vw) scaleY(0.7);
+  }
+}
+
+@keyframes fxGlyph {
+  0%, 100% {
+    opacity: 0;
+  }
+  18%, 52% {
+    opacity: 0.42;
+  }
+  34% {
+    opacity: 0.12;
+  }
+}
+
+@keyframes fxStamp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-4deg) scale(1.35);
+  }
+  22% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) rotate(-4deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(-4deg) scale(0.88);
+  }
+}

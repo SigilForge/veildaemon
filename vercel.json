@@ -9,6 +9,14 @@
       "destination": "/stream/alerts/index.html"
     },
     {
+      "source": "/stream/alerts/fx",
+      "destination": "/stream/alerts/fx/index.html"
+    },
+    {
+      "source": "/stream/alerts/fx/",
+      "destination": "/stream/alerts/fx/index.html"
+    },
+    {
       "source": "/stream/sigilforge/glyph-static",
       "destination": "/stream/sigilforge/glyph-static/index.html"
     },
