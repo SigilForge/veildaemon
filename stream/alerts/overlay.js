@@ -1,5 +1,5 @@
 (function () {
-  const API_PATH = "/api/alerts/feed";
+  const API_PATH = "/api/alerts/current";
   const FAST_POLL_MS = 1000;
   const IDLE_POLL_MS = 5000;
   const DEEP_IDLE_POLL_MS = 15000;
@@ -17,7 +17,6 @@
   const volumeOverride = Number(params.get("volume"));
   const requestedVolumeScale = Number.isFinite(volumeOverride) && volumeOverride > 1 ? volumeOverride / 100 : volumeOverride;
   const globalVolumeScale = Number.isFinite(requestedVolumeScale) ? Math.max(0, Math.min(requestedVolumeScale, 1)) : 1;
-  const feedStartedAt = new Date().toISOString();
   const stage = document.querySelector(".alert-stage");
   const card = document.getElementById("alert-card");
   const eyebrow = document.getElementById("alert-eyebrow");
@@ -87,7 +86,7 @@
 
   function updateDebug() {
     if (!debugEnabled) return;
-    debugFields.apiUrl.textContent = `${API_PATH}?since=${encodeURIComponent(feedStartedAt)}&client=card&ts=${Date.now()}`;
+    debugFields.apiUrl.textContent = `${API_PATH}?client=card&holdMs=9000&ts=${Date.now()}`;
     debugFields.polling.textContent = String(!state.paused);
     debugFields.interval.textContent = state.paused ? "paused" : `${state.currentPollInterval}ms`;
     debugFields.lastPoll.textContent = state.lastPoll;
@@ -208,7 +207,7 @@
       return;
     }
 
-    const apiUrl = `${API_PATH}?since=${encodeURIComponent(feedStartedAt)}&client=card&ts=${Date.now()}`;
+    const apiUrl = `${API_PATH}?client=card&holdMs=9000&ts=${Date.now()}`;
     state.polling = true;
     state.pollInFlight = true;
     state.lastPoll = new Date().toISOString();
@@ -228,10 +227,12 @@
       }
 
       const payload = await response.json();
-      const alerts = Array.isArray(payload.alerts) ? payload.alerts : [];
+      const alerts = payload.alert ? [payload.alert] : [];
       console.log("[VeilCorp alerts] poll response", {
         status: response.status,
         alerts: alerts.length,
+        currentId: payload.currentId || "",
+        promoted: Boolean(payload.promoted),
         diagnostics: payload.diagnostics || null,
       });
 
