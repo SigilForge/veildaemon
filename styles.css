@@ -9,6 +9,10 @@
   --cyan: #66ffdc;
   --purple: #b954ff;
   --red: #ff355f;
+  --dossier: #171d1a;
+  --dossier-edge: #4b5650;
+  --dossier-paper: rgba(12, 16, 15, .97);
+  --dossier-ink: #d8d2bd;
 }
 [hidden] {
   display: none !important;
@@ -21,9 +25,7 @@ body {
   color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   background:
-    radial-gradient(circle at 20% 30%, rgba(102,255,220,.12), transparent 28rem),
-    radial-gradient(circle at 80% 20%, rgba(185,84,255,.18), transparent 30rem),
-    linear-gradient(90deg, rgba(5,7,9,.55), rgba(5,7,9,.08), rgba(5,7,9,.55)),
+    linear-gradient(90deg, rgba(5,7,9,.62), rgba(5,7,9,.16), rgba(5,7,9,.62)),
     url("assets/background.jpg") center top / cover no-repeat fixed;
   overflow-x: hidden;
 }
@@ -56,7 +58,7 @@ body::before {
   width: min(980px, 100%);
   border: 1px solid var(--line);
   background: linear-gradient(180deg, var(--panel), rgba(2,4,7,.88));
-  box-shadow: 0 0 0 1px rgba(185,84,255,.14), 0 0 55px rgba(102,255,220,.13), 0 0 120px rgba(0,0,0,.72);
+  box-shadow: 0 0 0 1px rgba(185,84,255,.11), 0 24px 80px rgba(0,0,0,.76);
   backdrop-filter: blur(10px) saturate(115%);
   padding: clamp(1rem, 2.6vw, 2.35rem);
   position: relative;
@@ -844,58 +846,121 @@ footer {
 .casefile-drawer.is-open {
   transform: translate(0, -50%);
 }
+.casefile-drawer.is-open::before {
+  content: "LOCAL CASE FILE";
+  position: absolute;
+  top: -2.2rem;
+  left: 1.05rem;
+  width: 13rem;
+  height: 2.25rem;
+  padding: .52rem .78rem 0;
+  color: rgba(216,210,189,.82);
+  border: 1px solid rgba(216,210,189,.34);
+  border-bottom: 0;
+  border-radius: .32rem .32rem 0 0;
+  background:
+    linear-gradient(180deg, rgba(49,57,49,.98), rgba(25,31,27,.98)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 7px);
+  box-shadow: -12px -10px 30px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.06);
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .13em;
+  pointer-events: none;
+  clip-path: polygon(0 0, calc(100% - .85rem) 0, 100% .85rem, 100% 100%, 0 100%);
+}
 .casefile-drawer.has-record .casefile-tab {
-  border-color: rgba(102,255,220,.72);
-  box-shadow: 0 0 24px rgba(102,255,220,.22), inset 0 0 18px rgba(102,255,220,.08);
+  color: var(--dossier-ink);
+  border-color: rgba(216,210,189,.62);
+  box-shadow: -12px 18px 34px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.08);
 }
 .casefile-drawer.casefile-pulse .casefile-tab {
   animation: casefilePulse 1.25s ease;
 }
 .casefile-tab {
   position: absolute;
-  left: -8.75rem;
+  left: -9.4rem;
   top: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: .35rem;
-  width: 8.75rem;
-  height: 2.65rem;
-  border: 1px solid var(--line);
+  gap: .42rem;
+  width: 9.1rem;
+  height: 3.45rem;
+  border: 1px solid rgba(216,210,189,.42);
   border-right: 0;
-  border-radius: .42rem 0 0 .42rem;
-  background: var(--panel-hard);
-  color: var(--cyan);
+  border-radius: .28rem 0 0 .28rem;
+  padding: .46rem .62rem .42rem .78rem;
+  background:
+    linear-gradient(90deg, rgba(54,61,50,.96), rgba(26,32,28,.98)),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 5px);
+  color: var(--dossier-ink);
   cursor: pointer;
   font: inherit;
-  font-size: .72rem;
+  font-size: .7rem;
   font-weight: 800;
-  letter-spacing: .13em;
+  letter-spacing: .11em;
   text-transform: uppercase;
-  box-shadow: 0 0 22px rgba(102,255,220,.14);
+  box-shadow: -12px 18px 34px rgba(0,0,0,.36), inset 0 1px rgba(255,255,255,.07);
+  clip-path: polygon(0 0, calc(100% - .7rem) 0, 100% .7rem, 100% 100%, 0 100%);
+  text-align: left;
+  line-height: 1.1;
 }
 .casefile-tab::after {
-  content: "▸";
-  color: var(--purple);
+  content: "";
+  position: absolute;
+  left: .45rem;
+  right: .65rem;
+  bottom: .35rem;
+  height: 1px;
+  background: rgba(216,210,189,.34);
 }
 .casefile-drawer.is-open .casefile-tab::after {
-  content: "◂";
+  content: "";
 }
 .casefile-tab strong {
-  display: none;
+  display: block;
+  color: rgba(216,210,189,.66);
+  font-size: .53rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.1;
 }
 .casefile-panel {
   max-height: min(78vh, 680px);
   overflow: auto;
-  padding: 1rem;
-  border: 1px solid var(--line);
-  background: linear-gradient(180deg, var(--panel-hard), rgba(3,5,7,.96));
-  box-shadow: 0 0 55px rgba(102,255,220,.13), 0 0 90px rgba(0,0,0,.8);
+  padding: 1.05rem 1rem;
+  border: 1px solid rgba(216,210,189,.34);
+  border-right: 0;
+  background:
+    linear-gradient(180deg, rgba(25,31,27,.98), rgba(10,13,12,.98)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 7px);
+  box-shadow: -22px 28px 70px rgba(0,0,0,.72), inset 0 0 0 1px rgba(0,0,0,.52), inset 0 1px rgba(255,255,255,.05);
+  color: var(--dossier-ink);
+  position: relative;
+}
+.casefile-panel::before {
+  content: "";
+  position: absolute;
+  inset: .55rem;
+  border: 1px solid rgba(216,210,189,.13);
+  pointer-events: none;
+}
+.casefile-panel::after {
+  content: "SHADE DOSSIER";
+  position: absolute;
+  right: .85rem;
+  top: .62rem;
+  color: rgba(216,210,189,.28);
+  font-size: .56rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  transform: rotate(.5deg);
+  pointer-events: none;
 }
 .casefile-empty {
   padding: 1rem;
-  border: 1px solid rgba(138,255,219,.2);
-  background: rgba(0,0,0,.28);
+  border: 1px solid rgba(216,210,189,.22);
+  background: rgba(0,0,0,.22);
 }
 .casefile-empty p {
   margin: .35rem 0 0;
@@ -903,6 +968,30 @@ footer {
 }
 .casefile-panel .operator-record {
   margin-top: 0;
+  border-color: rgba(216,210,189,.24);
+  background: rgba(0,0,0,.18);
+  box-shadow: inset 0 0 22px rgba(0,0,0,.22);
+}
+.casefile-panel .record-header h3,
+.casefile-panel .record-grid strong,
+.casefile-panel .record-log p {
+  color: var(--dossier-ink);
+}
+.casefile-panel .kicker,
+.casefile-panel .record-grid span {
+  color: rgba(216,210,189,.62);
+}
+.casefile-panel .record-badge {
+  color: #171b17;
+  background: linear-gradient(90deg, rgba(216,210,189,.92), rgba(114,131,112,.86));
+  border-color: rgba(216,210,189,.42);
+}
+.casefile-panel .record-grid div {
+  border-color: rgba(216,210,189,.18);
+  background: rgba(0,0,0,.2);
+}
+.casefile-panel .record-log {
+  border-top-color: rgba(216,210,189,.22);
 }
 .casefile-panel .compact-record-grid {
   grid-template-columns: 1fr;
@@ -912,7 +1001,7 @@ footer {
 }
 @keyframes casefilePulse {
   0%, 100% { filter: none; transform: translateX(0); }
-  35% { filter: drop-shadow(0 0 18px rgba(102,255,220,.42)); transform: translateX(-.55rem); }
+  35% { filter: drop-shadow(-8px 12px 18px rgba(0,0,0,.5)); transform: translateX(-.45rem); }
 }
 @media (max-width: 900px) {
   .returning-actions,
@@ -922,6 +1011,9 @@ footer {
   .artifact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
+  .casefile-drawer.is-open::before {
+    display: none;
+  }
   .casefile-drawer {
     top: 50%;
     right: 0;
@@ -941,27 +1033,27 @@ footer {
     gap: .5rem;
     width: 2.75rem;
     height: 8.6rem;
-    border: 1px solid var(--line);
+    border: 1px solid rgba(216,210,189,.42);
     border-left: 0;
     border-radius: 0 .42rem .42rem 0;
     font-size: .64rem;
     letter-spacing: .12em;
     writing-mode: vertical-rl;
-    box-shadow: 0 0 20px rgba(102,255,220,.18), inset -.35rem 0 0 rgba(240,45,255,.16);
+    box-shadow: 0 14px 28px rgba(0,0,0,.38), inset -.35rem 0 0 rgba(216,210,189,.08);
   }
   .casefile-tab::after {
-    content: "<";
+    content: "";
     writing-mode: horizontal-tb;
   }
   .casefile-drawer.is-open .casefile-tab::after {
-    content: ">";
+    content: "";
   }
   .casefile-drawer.is-open .casefile-tab {
     left: -2.75rem;
-    border: 1px solid var(--line);
+    border: 1px solid rgba(216,210,189,.42);
     border-right: 0;
     border-radius: .42rem 0 0 .42rem;
-    box-shadow: 0 0 20px rgba(102,255,220,.18), inset .35rem 0 0 rgba(240,45,255,.16);
+    box-shadow: -10px 14px 28px rgba(0,0,0,.4), inset .35rem 0 0 rgba(216,210,189,.08);
   }
   .casefile-panel {
     max-height: 78vh;
