@@ -1040,9 +1040,6 @@ footer {
     writing-mode: vertical-rl;
     box-shadow: 0 14px 28px rgba(0,0,0,.38), inset -.35rem 0 0 rgba(216,210,189,.08);
   }
-  .casefile-drawer:not(.is-open) .casefile-tab {
-    transform: rotate(180deg);
-  }
   .casefile-tab::after {
     content: "";
     writing-mode: horizontal-tb;
