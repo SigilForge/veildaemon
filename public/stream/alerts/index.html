@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VEILCORP // Alert Overlay</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
+  <link rel="stylesheet" href="/stream/alerts/style.css?v=20260617-alerts9" />
+</head>
+<body>
+  <main class="alert-stage" aria-label="VeilCorp alert overlay">
+    <div class="signal-grid" aria-hidden="true"></div>
+    <div class="scanline" aria-hidden="true"></div>
+    <section class="alert-card" id="alert-card" aria-live="polite" aria-atomic="true">
+      <div class="alert-primer">
+        <span class="brand-lockup">
+          <img class="brand-seal" src="/stream/alerts/assets/veilcorp-archive-seal.png" alt="" aria-hidden="true" />
+          <span>VEILCORP ARCHIVES // LIVE NODE</span>
+        </span>
+        <span class="status-dot" aria-hidden="true"></span>
+      </div>
+      <div class="alert-body">
+        <p class="alert-eyebrow" id="alert-eyebrow">ATTENTION EVENT DETECTED</p>
+        <h1 id="alert-headline">Observer channel standing by.</h1>
+        <p class="alert-detail" id="alert-detail">Human authorization partial. Survival authorization active.</p>
+      </div>
+      <div class="alert-footer">
+        <span id="alert-stamp">PASSIVE MONITOR</span>
+        <span id="alert-time">00:00:00</span>
+      </div>
+    </section>
+    <aside class="debug-panel" id="debug-panel" aria-label="Alert overlay diagnostics" hidden>
+      <h2>Alert Debug</h2>
+      <dl>
+        <div><dt>API URL</dt><dd id="debug-api-url">/api/alerts/next</dd></div>
+        <div><dt>Polling</dt><dd id="debug-polling">false</dd></div>
+        <div><dt>Interval</dt><dd id="debug-interval">pending</dd></div>
+        <div><dt>Last poll</dt><dd id="debug-last-poll">never</dd></div>
+        <div><dt>HTTP</dt><dd id="debug-status">pending</dd></div>
+        <div><dt>Error</dt><dd id="debug-error">none</dd></div>
+        <div><dt>Last alert</dt><dd id="debug-alert">none</dd></div>
+        <div><dt>Display</dt><dd id="debug-display">idle</dd></div>
+        <div><dt>Sound file</dt><dd id="debug-sound-file">none</dd></div>
+        <div><dt>Sound loaded</dt><dd id="debug-sound-loaded">false</dd></div>
+        <div><dt>Volume</dt><dd id="debug-volume">0</dd></div>
+        <div><dt>Audio error</dt><dd id="debug-audio-error">none</dd></div>
+      </dl>
+    </aside>
+    <audio id="alert-sound" preload="auto"></audio>
+  </main>
+  <script src="/stream/alerts/overlay.js?v=20260617-alerts9"></script>
+</body>
+</html>
