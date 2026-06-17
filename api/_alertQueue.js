@@ -4,6 +4,10 @@ const MAX_QUEUE_LENGTH = 80;
 const MAX_FEED_LENGTH = 120;
 const QUEUE_KEY = "veildaemon:stream-alerts";
 const FEED_KEY = "veildaemon:stream-alerts-feed";
+const CURRENT_KEY = "veildaemon:stream-alerts-current";
+const CURRENT_LOCK_KEY = "veildaemon:stream-alerts-current-lock";
+let memoryCurrent = null;
+let memoryLockUntil = 0;
 
 function json(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -107,6 +111,22 @@ async function redisCommand(command) {
   return payload.result;
 }
 
+async function redisGetJson(key) {
+  const value = await redisCommand(["GET", key]);
+  return value ? JSON.parse(value) : null;
+}
+
+async function redisSetJson(key, value, ttlSeconds) {
+  const command = ["SET", key, JSON.stringify(value)];
+  if (ttlSeconds) command.push("EX", String(ttlSeconds));
+  return redisCommand(command);
+}
+
+async function redisAcquireLock(key, ttlMs) {
+  const result = await redisCommand(["SET", key, String(Date.now()), "NX", "PX", String(ttlMs)]);
+  return result === "OK";
+}
+
 async function queueLength() {
   if (queueBackend() === "upstash") {
     return Number(await redisCommand(["LLEN", QUEUE_KEY]));
@@ -159,8 +179,6 @@ async function enqueue(alert) {
   if (queueBackend() === "upstash") {
     await redisCommand(["LPUSH", QUEUE_KEY, serialized]);
     await redisCommand(["LTRIM", QUEUE_KEY, "0", String(MAX_QUEUE_LENGTH - 1)]);
-    await redisCommand(["LPUSH", FEED_KEY, serialized]);
-    await redisCommand(["LTRIM", FEED_KEY, "0", String(MAX_FEED_LENGTH - 1)]);
     return {
       alert: record,
       diagnostics: await queueDiagnostics({ pushed: true }),
@@ -169,8 +187,6 @@ async function enqueue(alert) {
 
   memoryQueue.unshift(record);
   memoryQueue.splice(MAX_QUEUE_LENGTH);
-  memoryFeed.unshift(record);
-  memoryFeed.splice(MAX_FEED_LENGTH);
   return {
     alert: record,
     diagnostics: await queueDiagnostics({ pushed: true }),
@@ -196,6 +212,109 @@ async function dequeue(count = 1) {
   return {
     alerts: memoryQueue.splice(-safeCount).reverse(),
     diagnostics: await queueDiagnostics({ requested: safeCount }),
+  };
+}
+
+async function popOneQueuedAlert() {
+  if (queueBackend() === "upstash") {
+    const item = await redisCommand(["RPOP", QUEUE_KEY]);
+    return item ? JSON.parse(item) : null;
+  }
+
+  return memoryQueue.pop() || null;
+}
+
+function isActiveCurrent(record, now = Date.now()) {
+  return record && record.alert && Date.parse(record.expiresAt || "") > now;
+}
+
+async function getStoredCurrent() {
+  if (queueBackend() === "upstash") {
+    return redisGetJson(CURRENT_KEY);
+  }
+
+  return memoryCurrent;
+}
+
+async function setStoredCurrent(record, holdMs) {
+  if (queueBackend() === "upstash") {
+    return redisSetJson(CURRENT_KEY, record, Math.max(1, Math.ceil(holdMs / 1000) + 2));
+  }
+
+  memoryCurrent = record;
+  return "OK";
+}
+
+async function currentAlert(options = {}) {
+  const holdMs = Math.max(1500, Math.min(Number(options.holdMs) || 9000, 30000));
+  const now = Date.now();
+  const current = await getStoredCurrent();
+  if (isActiveCurrent(current, now)) {
+    return {
+      alert: current.alert,
+      currentId: current.id,
+      expiresAt: current.expiresAt,
+      promoted: false,
+      diagnostics: await queueDiagnostics({ holdMs, currentActive: true }, { includeLengths: false }),
+    };
+  }
+
+  let locked = true;
+  if (queueBackend() === "upstash") {
+    locked = await redisAcquireLock(CURRENT_LOCK_KEY, 1800);
+  } else if (memoryLockUntil > now) {
+    locked = false;
+  } else {
+    memoryLockUntil = now + 1800;
+  }
+
+  if (!locked) {
+    const lockedCurrent = await getStoredCurrent();
+    return {
+      alert: isActiveCurrent(lockedCurrent) ? lockedCurrent.alert : null,
+      currentId: lockedCurrent && lockedCurrent.id ? lockedCurrent.id : "",
+      expiresAt: lockedCurrent && lockedCurrent.expiresAt ? lockedCurrent.expiresAt : "",
+      promoted: false,
+      diagnostics: await queueDiagnostics({ holdMs, dispatcherLocked: true }, { includeLengths: false }),
+    };
+  }
+
+  const refreshed = await getStoredCurrent();
+  if (isActiveCurrent(refreshed)) {
+    return {
+      alert: refreshed.alert,
+      currentId: refreshed.id,
+      expiresAt: refreshed.expiresAt,
+      promoted: false,
+      diagnostics: await queueDiagnostics({ holdMs, currentActive: true }, { includeLengths: false }),
+    };
+  }
+
+  const alert = await popOneQueuedAlert();
+  if (!alert) {
+    return {
+      alert: null,
+      currentId: "",
+      expiresAt: "",
+      promoted: false,
+      diagnostics: await queueDiagnostics({ holdMs, queueEmpty: true }, { includeLengths: false }),
+    };
+  }
+
+  const record = {
+    id: alert.id,
+    alert,
+    createdAt: new Date(now).toISOString(),
+    expiresAt: new Date(now + holdMs).toISOString(),
+  };
+  await setStoredCurrent(record, holdMs);
+
+  return {
+    alert: record.alert,
+    currentId: record.id,
+    expiresAt: record.expiresAt,
+    promoted: true,
+    diagnostics: await queueDiagnostics({ holdMs, currentActive: true }, { includeLengths: false }),
   };
 }
 
@@ -226,6 +345,7 @@ async function recentAlerts(options = {}) {
 
 module.exports = {
   createAlert,
+  currentAlert,
   dequeue,
   enqueue,
   recentAlerts,

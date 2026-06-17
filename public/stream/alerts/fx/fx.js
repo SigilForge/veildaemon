@@ -1,5 +1,5 @@
 (function () {
-  const API_PATH = "/api/alerts/feed";
+  const API_PATH = "/api/alerts/current";
   const FAST_POLL_MS = 1000;
   const IDLE_POLL_MS = 5000;
   const DEEP_IDLE_POLL_MS = 15000;
@@ -12,7 +12,6 @@
   const testType = params.get("test");
   const pollOverride = Number(params.get("poll"));
   const forcedPollMs = Number.isFinite(pollOverride) && pollOverride > 0 ? pollOverride : null;
-  const feedStartedAt = new Date().toISOString();
   const stage = document.querySelector(".fx-stage");
   const stamp = document.getElementById("fx-stamp");
   const debugPanel = document.getElementById("fx-debug");
@@ -53,7 +52,7 @@
   }
 
   function apiUrl() {
-    return `${API_PATH}?since=${encodeURIComponent(feedStartedAt)}&client=fx&count=24&ts=${Date.now()}`;
+    return `${API_PATH}?client=fx&holdMs=9000&ts=${Date.now()}`;
   }
 
   function updateDebug() {
@@ -171,7 +170,7 @@
       }
 
       const payload = await response.json();
-      const alerts = Array.isArray(payload.alerts) ? payload.alerts : [];
+      const alerts = payload.alert ? [payload.alert] : [];
       alerts.forEach(enqueue);
     } catch (error) {
       state.lastError = error && error.message ? error.message : String(error);
