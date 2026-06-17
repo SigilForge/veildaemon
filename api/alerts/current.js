@@ -9,7 +9,9 @@ module.exports = async function handler(req, res) {
   try {
     const result = await currentAlert({
       holdMs: req.query && req.query.holdMs,
+      minHoldMs: req.query && req.query.minHoldMs,
       maxAgeMs: req.query && req.query.maxAgeMs,
+      client: req.query && req.query.client,
     });
     return json(res, 200, {
       ok: true,
@@ -17,6 +19,7 @@ module.exports = async function handler(req, res) {
       currentId: result.currentId,
       expiresAt: result.expiresAt,
       promoted: result.promoted,
+      seenBy: result.seenBy,
       diagnostics: result.diagnostics,
     });
   } catch (error) {
