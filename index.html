@@ -25,7 +25,7 @@
   <link rel="icon" type="image/png" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="apple-touch-icon" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="styles.css?v=20260613-commands1" />
+  <link rel="stylesheet" href="styles.css?v=20260617-artifacts1" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -303,6 +303,13 @@
           <input id="command-input" type="text" autocomplete="off" spellcheck="false" placeholder="scan, ping, trace, decrypt, stabilize, open, help" />
           <button class="button ghost" type="submit">Send</button>
         </form>
+        <section class="artifact-drawer" id="artifact-drawer" aria-label="Recovered artifacts">
+          <div class="artifact-drawer-header">
+            <p class="kicker">RECOVERED ARTIFACTS // LOCAL CACHE</p>
+            <p id="artifact-status">0 / 4 UNSEALED</p>
+          </div>
+          <div class="artifact-grid" id="artifact-grid"></div>
+        </section>
       </section>
 
       <footer>
@@ -371,6 +378,6 @@
       </section>
     </section>
   </aside>
-  <script src="script.js?v=20260613-nodes1"></script>
+  <script src="script.js?v=20260617-artifacts1"></script>
 </body>
 </html>

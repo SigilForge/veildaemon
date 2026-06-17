@@ -373,6 +373,85 @@ h1 {
 .command-form input::placeholder {
   color: rgba(140,167,161,.78);
 }
+.artifact-drawer {
+  margin-top: 1rem;
+  padding: .85rem;
+  border: 1px solid rgba(138,255,219,.18);
+  background:
+    linear-gradient(135deg, rgba(138,59,255,.08), transparent 36%),
+    rgba(0,0,0,.26);
+}
+.artifact-drawer-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .75rem;
+}
+.artifact-drawer-header p {
+  margin: 0;
+}
+#artifact-status {
+  color: var(--cyan);
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.artifact-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .65rem;
+}
+.artifact-card {
+  display: grid;
+  gap: .45rem;
+  min-width: 0;
+  padding: .45rem;
+  border: 1px solid rgba(138,255,219,.18);
+  background: rgba(0,0,0,.32);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+button.artifact-card {
+  cursor: pointer;
+}
+.artifact-card.is-unsealed {
+  border-color: rgba(102,255,220,.46);
+  box-shadow: 0 0 18px rgba(102,255,220,.08);
+}
+.artifact-card.is-locked {
+  color: rgba(140,167,161,.74);
+}
+.artifact-frame {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.1);
+  background:
+    repeating-linear-gradient(135deg, rgba(138,255,219,.08) 0 4px, transparent 4px 10px),
+    rgba(0,0,0,.46);
+  color: rgba(102,255,220,.72);
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+.artifact-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.artifact-label {
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.artifact-card.is-unsealed .artifact-label {
+  color: #d7fff4;
+}
 .video-frame {
   position: relative;
   width: 100%;
@@ -828,6 +907,7 @@ footer {
   .compact-record-grid { grid-template-columns: 1fr; }
   .command-form { grid-template-columns: auto minmax(0, 1fr); }
   .command-form button { grid-column: 2; }
+  .artifact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
   .casefile-drawer {
@@ -865,6 +945,10 @@ footer {
 @media (max-width: 520px) {
   .route-actions {
     grid-template-columns: 1fr;
+  }
+  .artifact-drawer-header {
+    align-items: start;
+    flex-direction: column;
   }
   .operator-tasking .route-actions { grid-template-columns: 1fr; }
   .route-restart {
