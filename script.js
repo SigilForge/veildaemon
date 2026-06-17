@@ -166,38 +166,45 @@ const commandNodes = {
 
 const commandRewards = {
   INTAKE_NODE: {
-    id: "signal-wake",
-    title: "SIGNAL WAKE",
-    file: "assets/rewards/signal-wake.png",
-    text: "Observation artifact unsealed."
-  },
-  PLAZA_DRIFT: {
     id: "witness-key",
     title: "WITNESS KEY",
     file: "assets/rewards/witness-key.png",
     text: "Witness key recovered."
   },
+  PLAZA_DRIFT: {
+    id: "signal-wake",
+    title: "SIGNAL WAKE",
+    file: "assets/rewards/signal-wake.png",
+    text: "Observation artifact unsealed."
+  },
   NEEDLEPOINT_LOBBY: {
+    id: "observer-mark",
+    title: "OBSERVER MARK",
+    file: "assets/rewards/observer-mark.png",
+    text: "Observer mark impressed."
+  },
+  MIRROR_ERROR: {
     id: "relic-access",
     title: "RELIC ACCESS",
     file: "assets/rewards/relic-access.png",
     text: "Relic access card indexed."
   },
-  MIRROR_ERROR: {
+  SIGNAL_RELAY: {
     id: "threadbreaker",
     title: "THREADBREAKER",
     file: "assets/rewards/threadbreaker.png",
     text: "Threadbreaker artifact unsealed."
-  },
-  SIGNAL_RELAY: {
-    id: "route-index",
-    title: "ROUTE INDEX",
-    file: "assets/rewards/route-index.png",
-    text: "Pathfinder capstone indexed."
   }
 };
 
-const commandRewardOrder = ["signal-wake", "witness-key", "relic-access", "threadbreaker", "route-index"];
+const commandRewardOrder = ["witness-key", "signal-wake", "observer-mark", "relic-access", "threadbreaker"];
+const commandCapstoneReward = {
+  id: "route-index",
+  title: "ROUTE INDEX",
+  file: "assets/rewards/route-index.png",
+  text: "Pathfinder capstone indexed."
+};
+const commandRewardIds = [...commandRewardOrder, commandCapstoneReward.id];
 
 const profiles = {
   Dream: {
@@ -696,7 +703,7 @@ function readRewardState() {
     const parsed = JSON.parse(window.localStorage.getItem(rewardStorageKey));
     return {
       unlocked: Array.isArray(parsed && parsed.unlocked)
-        ? parsed.unlocked.filter((rewardId) => commandRewardOrder.includes(rewardId))
+        ? parsed.unlocked.filter((rewardId) => commandRewardIds.includes(rewardId))
         : []
     };
   } catch (error) {
@@ -713,7 +720,24 @@ function writeRewardState(state) {
 }
 
 function findRewardById(rewardId) {
-  return Object.values(commandRewards).find((reward) => reward.id === rewardId);
+  return Object.values(commandRewards).find((reward) => reward.id === rewardId) || (commandCapstoneReward.id === rewardId ? commandCapstoneReward : null);
+}
+
+function hasAllCoreRewards(state) {
+  return commandRewardOrder.every((rewardId) => state.unlocked.includes(rewardId));
+}
+
+function unlockCapstoneReward(state, announce = true) {
+  if (!hasAllCoreRewards(state) || state.unlocked.includes(commandCapstoneReward.id)) {
+    return false;
+  }
+
+  state.unlocked.push(commandCapstoneReward.id);
+  if (announce) {
+    appendCommandLine(`ROUTE INDEX RELEASED: ${commandCapstoneReward.title}`);
+    appendCommandLine(commandCapstoneReward.text);
+  }
+  return true;
 }
 
 function renderArtifactDrawer() {
@@ -760,6 +784,29 @@ function renderArtifactDrawer() {
     card.append(frame, label);
     grid.appendChild(card);
   });
+
+  if (state.unlocked.includes(commandCapstoneReward.id)) {
+    const capstone = document.createElement("button");
+    capstone.className = "artifact-card artifact-capstone is-unsealed";
+    capstone.type = "button";
+    capstone.setAttribute("aria-label", `Inspect artifact ${commandCapstoneReward.title}`);
+    capstone.addEventListener("click", () => inspectArtifact(commandCapstoneReward));
+
+    const frame = document.createElement("span");
+    frame.className = "artifact-frame";
+    const image = document.createElement("img");
+    image.src = commandCapstoneReward.file;
+    image.alt = "";
+    image.loading = "lazy";
+    frame.appendChild(image);
+
+    const label = document.createElement("span");
+    label.className = "artifact-label";
+    label.textContent = "PATHFINDER CAPSTONE // ROUTE INDEX";
+
+    capstone.append(frame, label);
+    grid.appendChild(capstone);
+  }
 }
 
 function syncRewardsFromCommandState() {
@@ -774,6 +821,10 @@ function syncRewardsFromCommandState() {
       changed = true;
     }
   });
+
+  if (unlockCapstoneReward(rewardState, false)) {
+    changed = true;
+  }
 
   if (changed) {
     writeRewardState(rewardState);
@@ -791,11 +842,12 @@ function unlockCommandReward(nodeId) {
   const state = readRewardState();
   if (!state.unlocked.includes(reward.id)) {
     state.unlocked.push(reward.id);
-    writeRewardState(state);
     appendCommandLine(`ARTIFACT UNSEALED: ${reward.title}`);
     appendCommandLine(reward.text);
   }
 
+  unlockCapstoneReward(state);
+  writeRewardState(state);
   renderArtifactDrawer();
 }
 

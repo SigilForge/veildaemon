@@ -452,6 +452,18 @@ button.artifact-card {
 .artifact-card.is-unsealed .artifact-label {
   color: #d7fff4;
 }
+.artifact-capstone {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(6.5rem, 10rem) minmax(0, 1fr);
+  align-items: center;
+}
+.artifact-capstone .artifact-frame {
+  aspect-ratio: 4 / 5;
+}
+.artifact-capstone .artifact-label {
+  color: var(--cyan);
+  font-size: .86rem;
+}
 .video-frame {
   position: relative;
   width: 100%;
@@ -949,6 +961,9 @@ footer {
   .artifact-drawer-header {
     align-items: start;
     flex-direction: column;
+  }
+  .artifact-capstone {
+    grid-template-columns: 1fr;
   }
   .operator-tasking .route-actions { grid-template-columns: 1fr; }
   .route-restart {
