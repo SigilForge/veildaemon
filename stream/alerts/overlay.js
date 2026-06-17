@@ -86,7 +86,7 @@
 
   function updateDebug() {
     if (!debugEnabled) return;
-    debugFields.apiUrl.textContent = `${API_PATH}?client=card&holdMs=9000&ts=${Date.now()}`;
+    debugFields.apiUrl.textContent = `${API_PATH}?client=card&holdMs=9000&maxAgeMs=120000&ts=${Date.now()}`;
     debugFields.polling.textContent = String(!state.paused);
     debugFields.interval.textContent = state.paused ? "paused" : `${state.currentPollInterval}ms`;
     debugFields.lastPoll.textContent = state.lastPoll;
@@ -207,7 +207,7 @@
       return;
     }
 
-    const apiUrl = `${API_PATH}?client=card&holdMs=9000&ts=${Date.now()}`;
+    const apiUrl = `${API_PATH}?client=card&holdMs=9000&maxAgeMs=120000&ts=${Date.now()}`;
     state.polling = true;
     state.pollInFlight = true;
     state.lastPoll = new Date().toISOString();

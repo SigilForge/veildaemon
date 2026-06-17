@@ -224,8 +224,17 @@ async function popOneQueuedAlert() {
   return memoryQueue.pop() || null;
 }
 
-function isActiveCurrent(record, now = Date.now()) {
-  return record && record.alert && Date.parse(record.expiresAt || "") > now;
+function isFreshAlert(alert, maxAgeMs, now = Date.now()) {
+  if (!alert || !maxAgeMs) return Boolean(alert);
+  const createdAt = Date.parse(alert.createdAt || "");
+  return Number.isFinite(createdAt) && now - createdAt <= maxAgeMs;
+}
+
+function isActiveCurrent(record, now = Date.now(), maxAgeMs = 0) {
+  return record
+    && record.alert
+    && Date.parse(record.expiresAt || "") > now
+    && isFreshAlert(record.alert, maxAgeMs, now);
 }
 
 async function getStoredCurrent() {
@@ -247,15 +256,16 @@ async function setStoredCurrent(record, holdMs) {
 
 async function currentAlert(options = {}) {
   const holdMs = Math.max(1500, Math.min(Number(options.holdMs) || 9000, 30000));
+  const maxAgeMs = Math.max(0, Math.min(Number(options.maxAgeMs) || 120000, 900000));
   const now = Date.now();
   const current = await getStoredCurrent();
-  if (isActiveCurrent(current, now)) {
+  if (isActiveCurrent(current, now, maxAgeMs)) {
     return {
       alert: current.alert,
       currentId: current.id,
       expiresAt: current.expiresAt,
       promoted: false,
-      diagnostics: await queueDiagnostics({ holdMs, currentActive: true }, { includeLengths: false }),
+      diagnostics: await queueDiagnostics({ holdMs, maxAgeMs, currentActive: true }, { includeLengths: false }),
     };
   }
 
@@ -271,33 +281,44 @@ async function currentAlert(options = {}) {
   if (!locked) {
     const lockedCurrent = await getStoredCurrent();
     return {
-      alert: isActiveCurrent(lockedCurrent) ? lockedCurrent.alert : null,
+      alert: isActiveCurrent(lockedCurrent, Date.now(), maxAgeMs) ? lockedCurrent.alert : null,
       currentId: lockedCurrent && lockedCurrent.id ? lockedCurrent.id : "",
       expiresAt: lockedCurrent && lockedCurrent.expiresAt ? lockedCurrent.expiresAt : "",
       promoted: false,
-      diagnostics: await queueDiagnostics({ holdMs, dispatcherLocked: true }, { includeLengths: false }),
+      diagnostics: await queueDiagnostics({ holdMs, maxAgeMs, dispatcherLocked: true }, { includeLengths: false }),
     };
   }
 
   const refreshed = await getStoredCurrent();
-  if (isActiveCurrent(refreshed)) {
+  if (isActiveCurrent(refreshed, Date.now(), maxAgeMs)) {
     return {
       alert: refreshed.alert,
       currentId: refreshed.id,
       expiresAt: refreshed.expiresAt,
       promoted: false,
-      diagnostics: await queueDiagnostics({ holdMs, currentActive: true }, { includeLengths: false }),
+      diagnostics: await queueDiagnostics({ holdMs, maxAgeMs, currentActive: true }, { includeLengths: false }),
     };
   }
 
-  const alert = await popOneQueuedAlert();
+  let alert = null;
+  let discardedStale = 0;
+  for (let index = 0; index < MAX_QUEUE_LENGTH; index += 1) {
+    const candidate = await popOneQueuedAlert();
+    if (!candidate) break;
+    if (isFreshAlert(candidate, maxAgeMs, now)) {
+      alert = candidate;
+      break;
+    }
+    discardedStale += 1;
+  }
+
   if (!alert) {
     return {
       alert: null,
       currentId: "",
       expiresAt: "",
       promoted: false,
-      diagnostics: await queueDiagnostics({ holdMs, queueEmpty: true }, { includeLengths: false }),
+      diagnostics: await queueDiagnostics({ holdMs, maxAgeMs, queueEmpty: true, discardedStale }, { includeLengths: false }),
     };
   }
 
@@ -314,7 +335,7 @@ async function currentAlert(options = {}) {
     currentId: record.id,
     expiresAt: record.expiresAt,
     promoted: true,
-    diagnostics: await queueDiagnostics({ holdMs, currentActive: true }, { includeLengths: false }),
+    diagnostics: await queueDiagnostics({ holdMs, maxAgeMs, currentActive: true, discardedStale }, { includeLengths: false }),
   };
 }
 
