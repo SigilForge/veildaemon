@@ -52,7 +52,7 @@
   }
 
   function apiUrl() {
-    return `${API_PATH}?client=fx&holdMs=9000&maxAgeMs=120000&ts=${Date.now()}`;
+    return `${API_PATH}?client=fx&holdMs=30000&minHoldMs=8000&maxAgeMs=120000&ts=${Date.now()}`;
   }
 
   function updateDebug() {

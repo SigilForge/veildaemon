@@ -6,6 +6,7 @@ const QUEUE_KEY = "veildaemon:stream-alerts";
 const FEED_KEY = "veildaemon:stream-alerts-feed";
 const CURRENT_KEY = "veildaemon:stream-alerts-current";
 const CURRENT_LOCK_KEY = "veildaemon:stream-alerts-current-lock";
+const CURRENT_CLIENTS = ["card", "fx"];
 let memoryCurrent = null;
 let memoryLockUntil = 0;
 
@@ -237,6 +238,31 @@ function isActiveCurrent(record, now = Date.now(), maxAgeMs = 0) {
     && isFreshAlert(record.alert, maxAgeMs, now);
 }
 
+function normalizeClient(client) {
+  const value = String(client || "").toLowerCase();
+  return CURRENT_CLIENTS.includes(value) ? value : "";
+}
+
+function markClientSeen(record, client) {
+  const normalized = normalizeClient(client);
+  if (!record || !normalized) return record;
+  const seenBy = Array.isArray(record.seenBy) ? record.seenBy : [];
+  if (!seenBy.includes(normalized)) {
+    record.seenBy = [...seenBy, normalized];
+  }
+  return record;
+}
+
+function allClientsSeen(record) {
+  const seenBy = Array.isArray(record && record.seenBy) ? record.seenBy : [];
+  return CURRENT_CLIENTS.every((client) => seenBy.includes(client));
+}
+
+function currentAgeMs(record, now = Date.now()) {
+  const createdAt = Date.parse(record && record.currentCreatedAt ? record.currentCreatedAt : record && record.createdAt ? record.createdAt : "");
+  return Number.isFinite(createdAt) ? now - createdAt : 0;
+}
+
 async function getStoredCurrent() {
   if (queueBackend() === "upstash") {
     return redisGetJson(CURRENT_KEY);
@@ -255,17 +281,39 @@ async function setStoredCurrent(record, holdMs) {
 }
 
 async function currentAlert(options = {}) {
-  const holdMs = Math.max(1500, Math.min(Number(options.holdMs) || 9000, 30000));
+  const holdMs = Math.max(1500, Math.min(Number(options.holdMs) || 30000, 30000));
+  const minHoldMs = Math.max(1000, Math.min(Number(options.minHoldMs) || 8000, holdMs));
   const maxAgeMs = Math.max(0, Math.min(Number(options.maxAgeMs) || 120000, 900000));
+  const client = normalizeClient(options.client);
   const now = Date.now();
   const current = await getStoredCurrent();
   if (isActiveCurrent(current, now, maxAgeMs)) {
+    markClientSeen(current, client);
+    await setStoredCurrent(current, Math.max(1000, Date.parse(current.expiresAt) - now));
+    if (allClientsSeen(current) && currentAgeMs(current, now) >= minHoldMs) {
+      current.expiresAt = new Date(now - 1).toISOString();
+      await setStoredCurrent(current, 1);
+    } else {
+      return {
+        alert: current.alert,
+        currentId: current.id,
+        expiresAt: current.expiresAt,
+        promoted: false,
+        seenBy: current.seenBy || [],
+        diagnostics: await queueDiagnostics({ holdMs, minHoldMs, maxAgeMs, currentActive: true }, { includeLengths: false }),
+      };
+    }
+  }
+
+  const afterSeenCurrent = await getStoredCurrent();
+  if (isActiveCurrent(afterSeenCurrent, now, maxAgeMs)) {
     return {
-      alert: current.alert,
-      currentId: current.id,
-      expiresAt: current.expiresAt,
+      alert: afterSeenCurrent.alert,
+      currentId: afterSeenCurrent.id,
+      expiresAt: afterSeenCurrent.expiresAt,
       promoted: false,
-      diagnostics: await queueDiagnostics({ holdMs, maxAgeMs, currentActive: true }, { includeLengths: false }),
+      seenBy: afterSeenCurrent.seenBy || [],
+      diagnostics: await queueDiagnostics({ holdMs, minHoldMs, maxAgeMs, currentActive: true }, { includeLengths: false }),
     };
   }
 
@@ -285,18 +333,22 @@ async function currentAlert(options = {}) {
       currentId: lockedCurrent && lockedCurrent.id ? lockedCurrent.id : "",
       expiresAt: lockedCurrent && lockedCurrent.expiresAt ? lockedCurrent.expiresAt : "",
       promoted: false,
-      diagnostics: await queueDiagnostics({ holdMs, maxAgeMs, dispatcherLocked: true }, { includeLengths: false }),
+      seenBy: lockedCurrent && lockedCurrent.seenBy ? lockedCurrent.seenBy : [],
+      diagnostics: await queueDiagnostics({ holdMs, minHoldMs, maxAgeMs, dispatcherLocked: true }, { includeLengths: false }),
     };
   }
 
   const refreshed = await getStoredCurrent();
   if (isActiveCurrent(refreshed, Date.now(), maxAgeMs)) {
+    markClientSeen(refreshed, client);
+    await setStoredCurrent(refreshed, Math.max(1000, Date.parse(refreshed.expiresAt) - Date.now()));
     return {
       alert: refreshed.alert,
       currentId: refreshed.id,
       expiresAt: refreshed.expiresAt,
       promoted: false,
-      diagnostics: await queueDiagnostics({ holdMs, maxAgeMs, currentActive: true }, { includeLengths: false }),
+      seenBy: refreshed.seenBy || [],
+      diagnostics: await queueDiagnostics({ holdMs, minHoldMs, maxAgeMs, currentActive: true }, { includeLengths: false }),
     };
   }
 
@@ -318,15 +370,17 @@ async function currentAlert(options = {}) {
       currentId: "",
       expiresAt: "",
       promoted: false,
-      diagnostics: await queueDiagnostics({ holdMs, maxAgeMs, queueEmpty: true, discardedStale }, { includeLengths: false }),
+      seenBy: [],
+      diagnostics: await queueDiagnostics({ holdMs, minHoldMs, maxAgeMs, queueEmpty: true, discardedStale }, { includeLengths: false }),
     };
   }
 
   const record = {
     id: alert.id,
     alert,
-    createdAt: new Date(now).toISOString(),
+    currentCreatedAt: new Date(now).toISOString(),
     expiresAt: new Date(now + holdMs).toISOString(),
+    seenBy: client ? [client] : [],
   };
   await setStoredCurrent(record, holdMs);
 
@@ -335,7 +389,8 @@ async function currentAlert(options = {}) {
     currentId: record.id,
     expiresAt: record.expiresAt,
     promoted: true,
-    diagnostics: await queueDiagnostics({ holdMs, maxAgeMs, currentActive: true, discardedStale }, { includeLengths: false }),
+    seenBy: record.seenBy,
+    diagnostics: await queueDiagnostics({ holdMs, minHoldMs, maxAgeMs, currentActive: true, discardedStale }, { includeLengths: false }),
   };
 }
 
