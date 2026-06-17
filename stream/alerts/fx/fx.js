@@ -194,8 +194,19 @@
   }
 
   function clearEffectClasses() {
+    const eventClasses = [
+      "fx-follow",
+      "fx-sub",
+      "fx-resub",
+      "fx-gift-sub",
+      "fx-raid",
+      "fx-bits",
+      "fx-hype-train",
+      "fx-donation",
+      "fx-generic",
+    ];
     Array.from(stage.classList)
-      .filter((name) => name === "is-firing" || name.startsWith("fx-"))
+      .filter((name) => name === "is-firing" || eventClasses.includes(name))
       .forEach((name) => stage.classList.remove(name));
   }
 
