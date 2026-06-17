@@ -2,6 +2,7 @@ const operatorRecordVersion = 1;
 const recordStorageKey = "veildaemon.operatorRecord.v2";
 const legacyRecordStorageKey = "veildaemon.operatorRecord.v1";
 const commandLayerStorageKey = "veildaemon.commandLayer.v1";
+const rewardStorageKey = "veildaemon.artifactCache.v1";
 const archiveUrl = "https://wiki.veildaemon.app/";
 const caseFileUrl = "https://the-cradlepoint-archives.itch.io/needlepoint";
 const frequencyDiscordRoutes = {
@@ -162,6 +163,35 @@ const commandNodes = {
     completeActions: ["reroute"]
   }
 };
+
+const commandRewards = {
+  INTAKE_NODE: {
+    id: "signal-wake",
+    title: "SIGNAL WAKE",
+    file: "assets/rewards/signal-wake.png",
+    text: "Observation artifact unsealed."
+  },
+  PLAZA_DRIFT: {
+    id: "witness-key",
+    title: "WITNESS KEY",
+    file: "assets/rewards/witness-key.png",
+    text: "Witness key recovered."
+  },
+  NEEDLEPOINT_LOBBY: {
+    id: "relic-access",
+    title: "RELIC ACCESS",
+    file: "assets/rewards/relic-access.png",
+    text: "Relic access card indexed."
+  },
+  SIGNAL_RELAY: {
+    id: "threadbreaker",
+    title: "THREADBREAKER",
+    file: "assets/rewards/threadbreaker.png",
+    text: "Threadbreaker artifact unsealed."
+  }
+};
+
+const commandRewardOrder = ["signal-wake", "witness-key", "relic-access", "threadbreaker"];
 
 const profiles = {
   Dream: {
@@ -653,6 +683,120 @@ function writeCommandLayerState(state) {
   } catch (error) {
     // Local state is helpful, not load-bearing.
   }
+}
+
+function readRewardState() {
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(rewardStorageKey));
+    return {
+      unlocked: Array.isArray(parsed && parsed.unlocked)
+        ? parsed.unlocked.filter((rewardId) => commandRewardOrder.includes(rewardId))
+        : []
+    };
+  } catch (error) {
+    return { unlocked: [] };
+  }
+}
+
+function writeRewardState(state) {
+  try {
+    window.localStorage.setItem(rewardStorageKey, JSON.stringify(state));
+  } catch (error) {
+    // Artifact cache is local convenience, not infrastructure.
+  }
+}
+
+function findRewardById(rewardId) {
+  return Object.values(commandRewards).find((reward) => reward.id === rewardId);
+}
+
+function renderArtifactDrawer() {
+  const grid = document.getElementById("artifact-grid");
+  const status = document.getElementById("artifact-status");
+
+  if (!grid || !status) {
+    return;
+  }
+
+  const state = readRewardState();
+  grid.innerHTML = "";
+  status.textContent = `${state.unlocked.length} / ${commandRewardOrder.length} UNSEALED`;
+
+  commandRewardOrder.forEach((rewardId, index) => {
+    const reward = findRewardById(rewardId);
+    const unlocked = state.unlocked.includes(rewardId);
+    const card = document.createElement(unlocked ? "button" : "article");
+    card.className = `artifact-card${unlocked ? " is-unsealed" : " is-locked"}`;
+
+    if (unlocked) {
+      card.type = "button";
+      card.setAttribute("aria-label", `Inspect artifact ${reward.title}`);
+      card.addEventListener("click", () => inspectArtifact(reward));
+    }
+
+    const frame = document.createElement("span");
+    frame.className = "artifact-frame";
+
+    if (unlocked && reward) {
+      const image = document.createElement("img");
+      image.src = reward.file;
+      image.alt = "";
+      image.loading = "lazy";
+      frame.appendChild(image);
+    } else {
+      frame.textContent = String(index + 1).padStart(2, "0");
+    }
+
+    const label = document.createElement("span");
+    label.className = "artifact-label";
+    label.textContent = unlocked && reward ? reward.title : "SEALED";
+
+    card.append(frame, label);
+    grid.appendChild(card);
+  });
+}
+
+function syncRewardsFromCommandState() {
+  const rewardState = readRewardState();
+  const commandState = readCommandLayerState();
+  let changed = false;
+
+  commandState.stabilizedNodes.forEach((nodeId) => {
+    const reward = commandRewards[nodeId];
+    if (reward && !rewardState.unlocked.includes(reward.id)) {
+      rewardState.unlocked.push(reward.id);
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    writeRewardState(rewardState);
+  }
+}
+
+function unlockCommandReward(nodeId) {
+  const reward = commandRewards[nodeId];
+
+  if (!reward) {
+    renderArtifactDrawer();
+    return;
+  }
+
+  const state = readRewardState();
+  if (!state.unlocked.includes(reward.id)) {
+    state.unlocked.push(reward.id);
+    writeRewardState(state);
+    appendCommandLine(`ARTIFACT UNSEALED: ${reward.title}`);
+    appendCommandLine(reward.text);
+  }
+
+  renderArtifactDrawer();
+}
+
+function inspectArtifact(reward) {
+  appendCommandLine(`ARTIFACT INSPECTION: ${reward.title}`);
+  appendCommandLine("Local cache image opened for observer review.");
+  window.open(reward.file, "_blank", "noopener,noreferrer");
 }
 
 function generateDesignation(frequency) {
@@ -1654,6 +1798,7 @@ function completeCommandNode(state, node, completionLine) {
   if (!state.stabilizedNodes.includes(state.activeNode)) {
     state.stabilizedNodes.push(state.activeNode);
     unlockCommandFile(state, node);
+    unlockCommandReward(state.activeNode);
     state.clearance = Math.max(state.clearance, node.clearance);
     appendCommandLine(`CLEARANCE UPDATED: LEVEL ${state.clearance}`);
     node.unlocks.forEach((nodeId) => unlockCommandNode(state, nodeId));
@@ -2069,3 +2214,5 @@ document.getElementById("task-discord-route").addEventListener("click", () => {
   recordArchiveInteraction(claimed ? "triageChannel" : "operatorChannel");
 });
 document.getElementById("command-form").addEventListener("submit", submitCommand);
+syncRewardsFromCommandState();
+renderArtifactDrawer();
