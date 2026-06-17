@@ -7,7 +7,8 @@
   const DEEP_IDLE_AFTER_MS = 300000;
   const params = new URLSearchParams(window.location.search);
   const debugEnabled = params.get("debug") === "1";
-  const paused = params.get("paused") === "1";
+  const debugPoll = params.get("debugPoll") === "1";
+  const paused = params.get("paused") === "1" || (debugEnabled && !debugPoll);
   const muted = params.get("mute") === "1";
   const soundTest = params.get("soundtest") === "1";
   const soundTestType = params.get("sound") || "follow";
@@ -64,6 +65,9 @@
     display: "idle",
   };
   const activeAudio = new Set();
+  const audioBuffers = new Map();
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  let audioContext = null;
 
   if (debugEnabled && debugPanel) {
     debugPanel.hidden = false;
@@ -302,7 +306,28 @@
     playSound(testAlert);
   }
 
-  function playSound(alert) {
+  function getAudioContext() {
+    if (!AudioContextClass) return null;
+    if (!audioContext) audioContext = new AudioContextClass();
+    return audioContext;
+  }
+
+  async function loadAudioBuffer(src) {
+    if (audioBuffers.has(src)) return audioBuffers.get(src);
+
+    const response = await fetch(`${src}?ts=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`Sound fetch failed with HTTP ${response.status}`);
+
+    const arrayBuffer = await response.arrayBuffer();
+    const context = getAudioContext();
+    if (!context) throw new Error("Web Audio is unavailable in this browser.");
+
+    const buffer = await context.decodeAudioData(arrayBuffer.slice(0));
+    audioBuffers.set(src, buffer);
+    return buffer;
+  }
+
+  async function playSound(alert) {
     state.selectedSoundFile = alert.soundSrc || "";
     state.soundVolume = muted ? 0 : Math.max(0, Math.min(Number(alert.soundVolume || 0), 1)) * globalVolumeScale;
     state.soundLoaded = false;
@@ -315,6 +340,37 @@
       }
       updateDebug();
       return;
+    }
+
+    if (AudioContextClass) {
+      try {
+        const context = getAudioContext();
+        if (context.state === "suspended") {
+          await context.resume();
+        }
+
+        const buffer = await loadAudioBuffer(state.selectedSoundFile);
+        const source = context.createBufferSource();
+        const gain = context.createGain();
+        source.buffer = buffer;
+        gain.gain.value = state.soundVolume;
+        source.connect(gain);
+        gain.connect(context.destination);
+        source.start(0);
+        state.soundLoaded = true;
+        state.lastAudioError = "";
+        console.log("[VeilCorp alerts] web audio playing", {
+          src: state.selectedSoundFile,
+          volume: state.soundVolume,
+          contextState: context.state,
+        });
+        updateDebug();
+        return;
+      } catch (error) {
+        state.lastAudioError = `Web Audio failed: ${error && error.message ? error.message : String(error)}`;
+        console.warn("[VeilCorp alerts] web audio failed; trying HTML audio", state.lastAudioError);
+        updateDebug();
+      }
     }
 
     const player = new Audio();
