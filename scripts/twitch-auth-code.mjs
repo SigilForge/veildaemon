@@ -75,6 +75,7 @@ try {
   console.log("Twitch broadcaster authorization validated.");
   console.log(`Login: ${validation.login || "unknown"}`);
   console.log(`User ID: ${validation.user_id || "unknown"}`);
+  console.log(`Client ID: ${validation.client_id || "unknown"}`);
   console.log(`Required scopes granted: ${missingScopes.length === 0 ? "true" : "false"}`);
   console.log(`Granted scopes: ${grantedScopes.sort().join(", ") || "none"}`);
 
