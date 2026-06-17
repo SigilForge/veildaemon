@@ -6,7 +6,7 @@
   <title>VEILCORP // Alert Overlay</title>
   <meta name="robots" content="noindex" />
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
-  <link rel="stylesheet" href="/stream/alerts/style.css?v=20260617-alerts11" />
+  <link rel="stylesheet" href="/stream/alerts/style.css?v=20260617-alerts12" />
 </head>
 <body>
   <main class="alert-stage" aria-label="VeilCorp alert overlay">
@@ -32,6 +32,7 @@
     </section>
     <aside class="debug-panel" id="debug-panel" aria-label="Alert overlay diagnostics" hidden>
       <h2>Alert Debug</h2>
+      <button class="debug-test-sound" id="debug-test-sound" type="button">Test sound</button>
       <dl>
         <div><dt>API URL</dt><dd id="debug-api-url">/api/alerts/next</dd></div>
         <div><dt>Polling</dt><dd id="debug-polling">false</dd></div>
@@ -50,6 +51,6 @@
     </aside>
     <audio id="alert-sound" preload="auto"></audio>
   </main>
-  <script src="/stream/alerts/overlay.js?v=20260617-alerts11"></script>
+  <script src="/stream/alerts/overlay.js?v=20260617-alerts12"></script>
 </body>
 </html>
