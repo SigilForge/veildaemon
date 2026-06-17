@@ -8,8 +8,11 @@
   const params = new URLSearchParams(window.location.search);
   const debugEnabled = params.get("debug") === "1";
   const paused = params.get("paused") === "1";
+  const muted = params.get("mute") === "1";
   const pollOverride = Number(params.get("poll"));
   const forcedPollMs = Number.isFinite(pollOverride) && pollOverride > 0 ? pollOverride : null;
+  const volumeOverride = Number(params.get("volume"));
+  const globalVolumeScale = Number.isFinite(volumeOverride) ? Math.max(0, Math.min(volumeOverride, 1)) : 1;
   const stage = document.querySelector(".alert-stage");
   const card = document.getElementById("alert-card");
   const eyebrow = document.getElementById("alert-eyebrow");
@@ -28,6 +31,10 @@
     error: document.getElementById("debug-error"),
     alert: document.getElementById("debug-alert"),
     display: document.getElementById("debug-display"),
+    soundFile: document.getElementById("debug-sound-file"),
+    soundLoaded: document.getElementById("debug-sound-loaded"),
+    volume: document.getElementById("debug-volume"),
+    audioError: document.getElementById("debug-audio-error"),
   };
 
   const state = {
@@ -46,6 +53,10 @@
     lastError: "",
     lastStatus: "pending",
     lastPoll: "never",
+    selectedSoundFile: "",
+    soundLoaded: false,
+    soundVolume: 0,
+    lastAudioError: "",
     display: "idle",
   };
 
@@ -74,6 +85,10 @@
     debugFields.error.textContent = debugValue(state.lastError);
     debugFields.alert.textContent = debugValue(state.lastAlert);
     debugFields.display.textContent = state.display;
+    debugFields.soundFile.textContent = debugValue(state.selectedSoundFile);
+    debugFields.soundLoaded.textContent = String(state.soundLoaded);
+    debugFields.volume.textContent = String(state.soundVolume);
+    debugFields.audioError.textContent = debugValue(state.lastAudioError);
   }
 
   function getCurrentPollInterval() {
@@ -118,6 +133,19 @@
     });
   }
 
+  function soundForAlert(alertType, explicitSoundKey) {
+    const config = state.config || {};
+    const types = config.types || {};
+    const soundConfig = config.sound || {};
+    const soundKey = explicitSoundKey || alertType;
+    const typeConfig = types[soundKey] || types[alertType] || {};
+    const fallback = soundConfig.fallback || {};
+    return {
+      src: typeConfig.sound && typeConfig.sound.src ? typeConfig.sound.src : fallback.src || "",
+      volume: Number(typeConfig.sound && typeConfig.sound.volume !== undefined ? typeConfig.sound.volume : fallback.volume || 0.45),
+    };
+  }
+
   function nowStamp() {
     return new Date().toLocaleTimeString("en-US", {
       hour12: false,
@@ -131,6 +159,7 @@
     const config = state.config || {};
     const types = config.types || {};
     const typeConfig = types[alert.type] || types.follow || {};
+    const sound = soundForAlert(alert.type, alert.soundKey);
     const payload = {
       user: alert.user || alert.username || alert.from || "UNKNOWN OBSERVER",
       count: alert.count || alert.viewers || alert.bits || 1,
@@ -146,16 +175,14 @@
       detail: text(alert.detail || typeConfig.detail, payload),
       stamp: text(alert.stamp || typeConfig.stamp, payload),
       durationMs: Number(alert.durationMs || config.durationMs || 7200),
+      soundSrc: alert.soundSrc || sound.src,
+      soundVolume: Number(alert.soundVolume !== undefined ? alert.soundVolume : sound.volume),
     };
   }
 
   async function loadConfig() {
     const response = await fetch("/config/stream-alerts.json", { cache: "no-store" });
     state.config = await response.json();
-
-    if (state.config.sound && state.config.sound.enabled && state.config.sound.src) {
-      sound.src = state.config.sound.src;
-    }
   }
 
   async function poll() {
@@ -234,16 +261,13 @@
     detail.textContent = alert.detail;
     stamp.textContent = alert.stamp;
     clock.textContent = nowStamp();
+    playSound(alert);
 
     card.classList.remove("is-active");
     stage.classList.remove("is-active");
     window.requestAnimationFrame(() => {
       card.classList.add("is-active");
       stage.classList.add("is-active");
-      if (sound.src) {
-        sound.currentTime = 0;
-        sound.play().catch(() => {});
-      }
     });
 
     window.setTimeout(() => {
@@ -264,6 +288,49 @@
     updateDebug();
     playNext();
   };
+
+  function playSound(alert) {
+    state.selectedSoundFile = alert.soundSrc || "";
+    state.soundVolume = muted ? 0 : Math.max(0, Math.min(Number(alert.soundVolume || 0), 1)) * globalVolumeScale;
+    state.soundLoaded = false;
+    state.lastAudioError = "";
+
+    if (muted || !state.selectedSoundFile) {
+      if (debugEnabled && muted) console.log("[VeilCorp alerts] sound muted", state.selectedSoundFile);
+      updateDebug();
+      return;
+    }
+
+    sound.oncanplaythrough = () => {
+      state.soundLoaded = true;
+      updateDebug();
+    };
+    sound.onerror = () => {
+      state.soundLoaded = false;
+      state.lastAudioError = `Unable to load ${state.selectedSoundFile}`;
+      if (debugEnabled) console.warn("[VeilCorp alerts] sound unavailable", state.selectedSoundFile);
+      updateDebug();
+    };
+    sound.src = state.selectedSoundFile;
+    sound.volume = state.soundVolume;
+    try {
+      sound.currentTime = 0;
+    } catch (error) {
+      state.lastAudioError = error && error.message ? error.message : String(error);
+      if (debugEnabled) console.warn("[VeilCorp alerts] sound seek skipped", state.lastAudioError);
+    }
+    updateDebug();
+    sound.play()
+      .then(() => {
+        state.soundLoaded = true;
+        updateDebug();
+      })
+      .catch((error) => {
+        state.lastAudioError = error && error.message ? error.message : String(error);
+        if (debugEnabled) console.warn("[VeilCorp alerts] sound play failed", state.lastAudioError);
+        updateDebug();
+      });
+  }
 
   loadConfig()
     .catch((error) => {

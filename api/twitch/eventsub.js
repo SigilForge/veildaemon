@@ -68,6 +68,7 @@ function mapEvent(subscriptionType, event) {
     case "channel.hype_train.end":
       return {
         type: "hype_train",
+        soundKey: subscriptionType.replace("channel.", ""),
         user: "Collective Attention",
         level: numberValue(event.level),
       };
