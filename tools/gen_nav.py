@@ -18,7 +18,11 @@ def gather() -> list[str]:
 	for dirpath, dirnames, filenames in os.walk(PKG):
 		p = Path(dirpath)
 		# Skip caches
-		dirnames[:] = [d for d in dirnames if d != "__pycache__" and not d.startswith('.')]
+		dirnames[:] = [
+			d
+			for d in dirnames
+			if d != "__pycache__" and not d.startswith(".") and not d.endswith(".egg-info")
+		]
 		indent = len(p.relative_to(PKG).parts)
 		if p != PKG:
 			lines.append(f"{'  ' * indent}- `{p.name}/`")
