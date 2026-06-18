@@ -23,6 +23,8 @@ jobs:
 ^streamdaemon/plugins/__init__\.py$
 ^streamdaemon/README\.md$
 ^streamdaemon/\.gitkeep$
+^StreamDaemon/README\.md$
+^StreamDaemon/\.gitkeep$
 EOF
 )
           # Find any files under StreamDaemon or streamdaemon

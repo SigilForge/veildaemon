@@ -92,5 +92,4 @@ Package file map (auto-generated).
     - [handles.py](veildaemon/tts/handles.py)
     - [manager.py](veildaemon/tts/manager.py)
     - [wps_meter.py](veildaemon/tts/wps_meter.py)
-  - `veildaemon.egg-info/`
 ```
