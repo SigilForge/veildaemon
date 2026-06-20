@@ -37,6 +37,11 @@ module.exports = async function handler(req, res) {
     return json(res, 204, {});
   }
 
+  if (req.method !== "GET" && req.method !== "PATCH") {
+    res.setHeader("Allow", "GET, PATCH");
+    return json(res, 405, { ok: false, error: "Method not allowed." });
+  }
+
   if (!requireReportAdmin(req, res)) return;
 
   try {
@@ -47,11 +52,6 @@ module.exports = async function handler(req, res) {
         ok: true,
         reports: reports.map(adminReport),
       });
-    }
-
-    if (req.method !== "PATCH") {
-      res.setHeader("Allow", "GET, PATCH");
-      return json(res, 405, { ok: false, error: "Method not allowed." });
     }
 
     const rawBody = await readBody(req);
