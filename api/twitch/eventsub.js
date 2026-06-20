@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { enqueue, json, readBody } = require("../_alertQueue");
+const { enqueue, json, readBody } = require("../../lib/alertQueue");
 
 const SIGNATURE_PREFIX = "sha256=";
 

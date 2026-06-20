@@ -1,4 +1,4 @@
-const { json, requireAdmin } = require("../_alertQueue");
+const { json, requireAdmin } = require("../../lib/alertQueue");
 
 function looksLikeUrl(value) {
   return /^https?:\/\//i.test(String(value || "").trim());

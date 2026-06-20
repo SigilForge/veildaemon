@@ -14,8 +14,12 @@
     secretLength: document.getElementById("diag-secret-length"),
   };
   const storageKey = "veildaemon.alertConsole.token";
+  const queryToken = new URLSearchParams(window.location.search).get("token") || "";
 
-  tokenInput.value = window.localStorage.getItem(storageKey) || "";
+  tokenInput.value = queryToken || window.localStorage.getItem(storageKey) || "";
+  if (queryToken) {
+    window.localStorage.setItem(storageKey, queryToken);
+  }
 
   function setStatus(message) {
     statusLine.textContent = message;

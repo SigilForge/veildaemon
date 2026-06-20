@@ -1,4 +1,4 @@
-const { json } = require("./_alertQueue");
+const { json } = require("../lib/alertQueue");
 
 const allowedEvents = new Set([
   "intake_opened",

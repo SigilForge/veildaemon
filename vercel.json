@@ -50,11 +50,11 @@
     },
     {
       "source": "/admin/alerts",
-      "destination": "/api/admin/alerts-page"
+      "destination": "/admin/alerts/index.html"
     },
     {
       "source": "/admin/alerts/",
-      "destination": "/api/admin/alerts-page"
+      "destination": "/admin/alerts/index.html"
     },
     {
       "source": "/admin/reports",
