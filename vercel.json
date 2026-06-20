@@ -58,11 +58,11 @@
     },
     {
       "source": "/admin/reports",
-      "destination": "/api/admin/reports-page"
+      "destination": "/admin/reports/index.html"
     },
     {
       "source": "/admin/reports/",
-      "destination": "/api/admin/reports-page"
+      "destination": "/admin/reports/index.html"
     }
   ],
   "headers": [
