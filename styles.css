@@ -1145,6 +1145,53 @@ footer {
   letter-spacing: .08em;
   line-height: 1.1;
 }
+.recovered-reports-tab {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  width: 3.15rem;
+  height: 11.4rem;
+  border: 1px solid rgba(216,210,189,.42);
+  border-left: 0;
+  border-radius: 0 .28rem .28rem 0;
+  padding: .65rem .42rem;
+  background:
+    linear-gradient(90deg, rgba(24,30,27,.98), rgba(47,55,48,.98)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 6px);
+  color: var(--dossier-ink);
+  text-decoration: none;
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  box-shadow: 12px 18px 34px rgba(0,0,0,.36), inset 0 1px rgba(255,255,255,.07);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - .7rem), calc(100% - .7rem) 100%, 0 100%);
+  transform: translateY(-50%);
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.recovered-reports-tab > span {
+  display: block;
+  min-width: 9.2rem;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  white-space: nowrap;
+  text-align: center;
+}
+.recovered-reports-tab strong {
+  display: none;
+}
+.recovered-reports-tab:hover,
+.recovered-reports-tab:focus-visible {
+  transform: translate(.35rem, -50%);
+  border-color: rgba(216,210,189,.68);
+  outline: none;
+  box-shadow: 14px 20px 38px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.09);
+}
 .casefile-panel {
   max-height: min(78vh, 680px);
   overflow: auto;
@@ -1274,6 +1321,16 @@ footer {
   .casefile-panel {
     max-height: 78vh;
     padding: .85rem;
+  }
+  .recovered-reports-tab {
+    top: calc(50% + 1rem);
+    width: 2.75rem;
+    height: 10.65rem;
+    font-size: .62rem;
+    letter-spacing: .1em;
+  }
+  .recovered-reports-tab > span {
+    min-width: 8.55rem;
   }
   .casefile-drawer:not(.is-open) .casefile-panel {
     visibility: hidden;
