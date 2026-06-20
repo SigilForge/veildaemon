@@ -9,6 +9,9 @@
   };
 
   if (!index) return;
+  const apiBase = window.location.hostname === "veildaemon.app" || window.location.hostname === "www.veildaemon.app"
+    ? "https://api.veildaemon.app"
+    : "";
 
   function setText(node, value) {
     if (node) node.textContent = String(value || 0);
@@ -55,8 +58,14 @@
 
   async function loadReports() {
     try {
-      const response = await fetch("/api/reports/public");
-      const result = await response.json();
+      const response = await fetch(`${apiBase}/api/reports/public`);
+      const text = await response.text();
+      let result;
+      try {
+        result = text ? JSON.parse(text) : {};
+      } catch (error) {
+        throw new Error(`HTTP ${response.status}: ${text.replace(/\s+/g, " ").replace(/[<>{}]/g, "").trim().slice(0, 160) || "Recovery index returned non-JSON."}`);
+      }
 
       if (!response.ok || !result.ok) {
         throw new Error(result.error || "Recovery index unavailable.");

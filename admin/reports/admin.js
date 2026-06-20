@@ -6,6 +6,9 @@
   const statusLine = document.getElementById("status-line");
   const tokenKey = "veildaemon.reportAdminToken";
   const queryToken = new URLSearchParams(window.location.search).get("token") || "";
+  const apiBase = window.location.hostname === "veildaemon.app" || window.location.hostname === "www.veildaemon.app"
+    ? "https://api.veildaemon.app"
+    : "";
 
   if (!tokenInput || !reportList || !statusLine) return;
 
@@ -57,7 +60,7 @@
   }
 
   async function api(path, options) {
-    const response = await fetch(path, {
+    const response = await fetch(`${apiBase}${path}`, {
       ...options,
       headers: {
         "Content-Type": "application/json",
@@ -65,7 +68,13 @@
         ...(options && options.headers ? options.headers : {}),
       },
     });
-    const result = await response.json();
+    const text = await response.text();
+    let result;
+    try {
+      result = text ? JSON.parse(text) : {};
+    } catch (error) {
+      throw new Error(`HTTP ${response.status}: ${text.replace(/\s+/g, " ").replace(/[<>{}]/g, "").trim().slice(0, 160) || "Queue request returned non-JSON."}`);
+    }
     if (!response.ok || !result.ok) {
       throw new Error(result.error || "Queue request failed.");
     }
