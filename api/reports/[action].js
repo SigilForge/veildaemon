@@ -37,7 +37,7 @@ function adminReport(record) {
     fullFeedback: record.fullFeedback,
     handle: record.handle,
     email: record.email,
-    consentPublic: record.consentPublic,
+    consentPublic: Boolean(record.consentPublic || record.publicDraftApproved),
     publicDraftApproved: Boolean(record.publicDraftApproved),
     submitterApprovedDraft: record.submitterApprovedDraft || null,
     publicDraft: record.publicDraft || generatePublicDraft(record),
@@ -96,7 +96,7 @@ async function handlePublic(req, res) {
 
   const reports = await readReports();
   const publicReports = reports
-    .filter((report) => report.status === "approved" && report.consentPublic && report.publicDraftApproved)
+    .filter((report) => report.status === "approved" && report.publicDraftApproved)
     .map(publicReport)
     .sort((first, second) => Date.parse(second.publishedAt || "") - Date.parse(first.publishedAt || ""));
 
@@ -139,13 +139,14 @@ async function handleAdmin(req, res) {
     record.publicDraft = sanitizePublicDraft(input.publicDraft, record);
     record.updatedAt = new Date().toISOString();
   } else if (input.action === "approve") {
-    if (!record.consentPublic || !record.publicDraftApproved) {
+    if (!record.publicDraftApproved) {
       return json(res, 409, {
         ok: false,
         error: "Submitter redaction approval was not granted for this report.",
       });
     }
 
+    record.consentPublic = true;
     record.publicDraft = sanitizePublicDraft(input.publicDraft || record.publicDraft, record);
     record.status = "approved";
     record.publishedAt = new Date().toISOString();
