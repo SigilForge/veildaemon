@@ -4,7 +4,6 @@
   const generateDraft = document.getElementById("generate-draft");
   const draftPreview = document.getElementById("public-draft-preview");
   const draftApproved = document.getElementById("draft-approved");
-  const consentPublic = document.getElementById("consent-public");
 
   if (!form || !statusLine) return;
   let approvedDraft = null;
@@ -104,7 +103,7 @@
       fullFeedback: fieldValue(formData, "fullFeedback"),
       handle: fieldValue(formData, "handle"),
       email: fieldValue(formData, "email"),
-      consentPublic: formData.get("consentPublic") === "on" && formData.get("publicDraftApproved") === "on",
+      consentPublic: formData.get("publicDraftApproved") === "on",
       publicDraftApproved: formData.get("publicDraftApproved") === "on",
     };
   }
@@ -114,10 +113,6 @@
     if (draftApproved) {
       draftApproved.checked = false;
       draftApproved.disabled = true;
-    }
-    if (consentPublic) {
-      consentPublic.checked = false;
-      consentPublic.disabled = true;
     }
     if (draftPreview) {
       draftPreview.hidden = true;
@@ -163,7 +158,6 @@
     approvedDraft = result.publicDraft;
     renderDraft(approvedDraft);
     if (draftApproved) draftApproved.disabled = false;
-    if (consentPublic) consentPublic.disabled = false;
     setStatus("Review the redacted version before granting public recovery permission.");
   }
 
@@ -174,7 +168,7 @@
   }
 
   form.addEventListener("input", (event) => {
-    if (event.target === draftApproved || event.target === consentPublic) return;
+    if (event.target === draftApproved) return;
     resetDraftApproval();
   });
 
@@ -192,8 +186,8 @@
       publicDraft: approvedDraft,
     };
 
-    if (payload.consentPublic && (!payload.publicDraftApproved || !approvedDraft)) {
-      setStatus("Public recovery permission requires redaction review approval.", true);
+    if (payload.publicDraftApproved && !approvedDraft) {
+      setStatus("Generate and review the redacted archive version before approving recovery.", true);
       return;
     }
 

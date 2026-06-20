@@ -111,7 +111,7 @@
     meta.append(field("ROLE", report.role));
     meta.append(field("NEEDLEPOINT", report.needlepoint));
     meta.append(field("OPERATOR COUNT", report.playerCount));
-    meta.append(field("PUBLIC PERMISSION", report.consentPublic ? "GRANTED" : "NOT GRANTED"));
+    meta.append(field("PUBLIC PERMISSION", report.publicDraftApproved ? "GRANTED BY REDACTION APPROVAL" : "NOT GRANTED"));
     meta.append(field("HANDLE", report.handle));
     meta.append(field("EMAIL", report.email));
     meta.append(field("REDACTION APPROVAL", report.publicDraftApproved ? "APPROVED BY SUBMITTER" : "NOT APPROVED"));
@@ -149,7 +149,7 @@
     reject.addEventListener("click", () => updateReport(report.id, "reject", card).catch((error) => setStatus(error.message, true)));
     review.addEventListener("click", () => updateReport(report.id, "review", card).catch((error) => setStatus(error.message, true)));
 
-    approve.disabled = !report.consentPublic || !report.publicDraftApproved;
+    approve.disabled = !report.publicDraftApproved;
     actions.append(save, approve, reject, review);
     card.append(actions);
 
