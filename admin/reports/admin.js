@@ -5,6 +5,7 @@
   const reportList = document.getElementById("report-list");
   const statusLine = document.getElementById("status-line");
   const tokenKey = "veildaemon.reportAdminToken";
+  const queryToken = new URLSearchParams(window.location.search).get("token") || "";
 
   if (!tokenInput || !reportList || !statusLine) return;
 
@@ -164,7 +165,10 @@
     setStatus(`Queue refreshed. ${reports.length} report records present.`);
   }
 
-  tokenInput.value = window.localStorage.getItem(tokenKey) || "";
+  tokenInput.value = queryToken || window.localStorage.getItem(tokenKey) || "";
+  if (queryToken) {
+    window.localStorage.setItem(tokenKey, queryToken);
+  }
   saveToken.addEventListener("click", () => {
     window.localStorage.setItem(tokenKey, token());
     setStatus("Token held locally.");
