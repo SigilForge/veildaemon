@@ -1145,11 +1145,23 @@ footer {
   letter-spacing: .08em;
   line-height: 1.1;
 }
-.recovered-reports-tab {
+.recovered-reports-drawer {
   position: fixed;
   left: 0;
   top: 50%;
   z-index: 45;
+  width: min(94vw, 620px);
+  max-height: min(82vh, 760px);
+  transform: translate(-100%, -50%);
+  transition: transform .24s ease;
+}
+.recovered-reports-drawer.is-open {
+  transform: translate(0, -50%);
+}
+.recovered-reports-tab {
+  position: absolute;
+  right: -3.15rem;
+  top: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1164,14 +1176,14 @@ footer {
     linear-gradient(90deg, rgba(24,30,27,.98), rgba(47,55,48,.98)),
     repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 6px);
   color: var(--dossier-ink);
-  text-decoration: none;
+  cursor: pointer;
+  font: inherit;
   font-size: .66rem;
   font-weight: 800;
   letter-spacing: .11em;
   text-transform: uppercase;
   box-shadow: 12px 18px 34px rgba(0,0,0,.36), inset 0 1px rgba(255,255,255,.07);
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - .7rem), calc(100% - .7rem) 100%, 0 100%);
-  transform: translateY(-50%);
   transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
 }
 .recovered-reports-tab > span {
@@ -1187,10 +1199,72 @@ footer {
 }
 .recovered-reports-tab:hover,
 .recovered-reports-tab:focus-visible {
-  transform: translate(.35rem, -50%);
+  transform: translateX(.35rem);
   border-color: rgba(216,210,189,.68);
   outline: none;
   box-shadow: 14px 20px 38px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.09);
+}
+.recovered-reports-panel {
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  padding: 1.05rem 1rem;
+  border: 1px solid rgba(216,210,189,.34);
+  border-left: 0;
+  background:
+    linear-gradient(180deg, rgba(25,31,27,.98), rgba(10,13,12,.98)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 7px);
+  box-shadow: 22px 28px 70px rgba(0,0,0,.72), inset 0 0 0 1px rgba(0,0,0,.52), inset 0 1px rgba(255,255,255,.05);
+  color: var(--dossier-ink);
+  position: relative;
+}
+.recovered-reports-panel::before {
+  content: "";
+  position: absolute;
+  inset: .55rem;
+  border: 1px solid rgba(216,210,189,.13);
+  pointer-events: none;
+}
+.recovered-reports-panel .record-header {
+  align-items: start;
+  gap: .85rem;
+}
+.recovered-reports-panel .record-header h3 {
+  margin: .2rem 0 0;
+  color: var(--dossier-ink);
+  font-size: 1rem;
+  letter-spacing: .06em;
+}
+.drawer-route {
+  min-height: 2.35rem;
+  padding: .55rem .7rem;
+  font-size: .66rem;
+  white-space: nowrap;
+}
+.drawer-report-stats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 1rem 0;
+}
+.drawer-report-stats div,
+.drawer-report-index .public-report {
+  background: rgba(0,0,0,.2);
+  border-color: rgba(216,210,189,.18);
+}
+.drawer-report-index {
+  display: grid;
+  gap: .75rem;
+}
+.drawer-report-index .public-report {
+  padding: .85rem;
+}
+.drawer-report-index .public-report h2 {
+  font-size: .86rem;
+}
+.drawer-report-index .public-report p,
+.drawer-report-index .public-report blockquote {
+  font-size: .72rem;
+}
+.drawer-actions {
+  margin-top: .95rem;
 }
 .casefile-panel {
   max-height: min(78vh, 680px);
@@ -1322,22 +1396,46 @@ footer {
     max-height: 78vh;
     padding: .85rem;
   }
-  .recovered-reports-tab {
+  .recovered-reports-drawer {
     top: calc(50% + 1rem);
+    width: min(90vw, 420px);
+    max-height: 78vh;
+    transform: translate(calc(-100% + 2.75rem), -50%);
+  }
+  .recovered-reports-drawer.is-open {
+    transform: translate(0, -50%);
+  }
+  .recovered-reports-tab {
+    right: 0;
+    top: clamp(1rem, 11vh, 4rem);
     width: 2.75rem;
     height: 10.65rem;
     font-size: .62rem;
     letter-spacing: .1em;
   }
+  .recovered-reports-drawer.is-open .recovered-reports-tab {
+    right: -2.75rem;
+  }
   .recovered-reports-tab > span {
     min-width: 8.55rem;
+  }
+  .recovered-reports-panel {
+    max-height: 78vh;
+    padding: .85rem;
+  }
+  .drawer-report-stats {
+    grid-template-columns: 1fr;
   }
   .casefile-drawer:not(.is-open) .casefile-panel {
     visibility: hidden;
   }
+  .recovered-reports-drawer:not(.is-open) .recovered-reports-panel {
+    visibility: hidden;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .casefile-drawer {
+  .casefile-drawer,
+  .recovered-reports-drawer {
     transition: none;
   }
   .casefile-drawer.casefile-pulse .casefile-tab {
