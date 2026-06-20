@@ -15,6 +15,9 @@
   };
   const storageKey = "veildaemon.alertConsole.token";
   const queryToken = new URLSearchParams(window.location.search).get("token") || "";
+  const apiBase = window.location.hostname === "veildaemon.app" || window.location.hostname === "www.veildaemon.app"
+    ? "https://api.veildaemon.app"
+    : "";
 
   tokenInput.value = queryToken || window.localStorage.getItem(storageKey) || "";
   if (queryToken) {
@@ -44,7 +47,7 @@
     setStatus(`Transmitting ${type.replace("_", " ")} event.`);
 
     try {
-      const response = await fetch("/api/alerts/test", {
+      const response = await fetch(`${apiBase}/api/alerts/test`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -73,7 +76,7 @@
     }
 
     try {
-      const response = await fetch("/api/twitch/eventsub-config", {
+      const response = await fetch(`${apiBase}/api/twitch/eventsub-config`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
