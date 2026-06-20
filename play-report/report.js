@@ -12,8 +12,11 @@
   const params = new URLSearchParams(window.location.search);
   const suppliedApiBase = params.get("api") || "";
   const sameOriginApiAvailable = window.location.hostname !== "veildaemon.app" && window.location.hostname !== "www.veildaemon.app";
+  const defaultApiBase = window.location.hostname === "veildaemon.app" || window.location.hostname === "www.veildaemon.app"
+    ? "https://api.veildaemon.app"
+    : "";
   const storedApiBase = window.localStorage.getItem(apiBaseStorageKey) || "";
-  const apiBase = normalizeApiBase(suppliedApiBase || storedApiBase || (sameOriginApiAvailable ? window.location.origin : ""));
+  const apiBase = normalizeApiBase(suppliedApiBase || storedApiBase || defaultApiBase || (sameOriginApiAvailable ? window.location.origin : ""));
 
   if (suppliedApiBase && apiBase) {
     window.localStorage.setItem(apiBaseStorageKey, apiBase);
@@ -40,14 +43,14 @@
 
   function apiUrl(path) {
     if (!apiBase) {
-      throw new Error("Report API route not configured. Use the Vercel deployment URL with ?api=https://YOUR-DEPLOYMENT.vercel.app.");
+      throw new Error("Report API route unavailable. Confirm api.veildaemon.app is assigned to the Vercel deployment.");
     }
 
     return `${apiBase}${path}`;
   }
 
   if (!apiBase) {
-    setStatus("Report API route not configured. Add ?api=https://YOUR-DEPLOYMENT.vercel.app to this page URL.", true);
+    setStatus("Report API route unavailable. Confirm api.veildaemon.app is assigned to the Vercel deployment.", true);
   }
 
   function fieldValue(formData, name) {
