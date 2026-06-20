@@ -1409,6 +1409,23 @@ function toggleCasefileDrawer() {
   setCasefileDrawerOpen(!drawer.classList.contains("is-open"));
 }
 
+function setRecoveredReportsDrawerOpen(isOpen) {
+  const drawer = document.getElementById("recovered-reports-drawer");
+  const toggle = document.getElementById("recovered-reports-toggle");
+  if (!drawer || !toggle) return;
+
+  drawer.classList.toggle("is-open", isOpen);
+  drawer.setAttribute("aria-hidden", String(!isOpen));
+  toggle.setAttribute("aria-expanded", String(isOpen));
+}
+
+function toggleRecoveredReportsDrawer() {
+  const drawer = document.getElementById("recovered-reports-drawer");
+  if (!drawer) return;
+
+  setRecoveredReportsDrawerOpen(!drawer.classList.contains("is-open"));
+}
+
 function pulseCasefileDrawer() {
   const drawer = document.getElementById("casefile-drawer");
 
@@ -2310,6 +2327,10 @@ document.getElementById("resume-record").addEventListener("click", resumeRecord)
 document.getElementById("reclassify-record").addEventListener("click", reclassifyRecord);
 document.getElementById("returning-purge-record").addEventListener("click", purgeRecord);
 document.getElementById("casefile-toggle").addEventListener("click", toggleCasefileDrawer);
+const recoveredReportsToggle = document.getElementById("recovered-reports-toggle");
+if (recoveredReportsToggle) {
+  recoveredReportsToggle.addEventListener("click", toggleRecoveredReportsDrawer);
+}
 document.getElementById("open-transmission").addEventListener("click", toggleTransmissionViewer);
 document.getElementById("archive-route").addEventListener("click", () => recordArchiveInteraction("archive"));
 document.getElementById("case-file-route").addEventListener("click", () => recordArchiveInteraction("caseFile"));

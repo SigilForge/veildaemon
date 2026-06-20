@@ -25,7 +25,7 @@
   <link rel="icon" type="image/png" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="apple-touch-icon" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="styles.css?v=20260620-reporttab1" />
+  <link rel="stylesheet" href="styles.css?v=20260620-reportdrawer1" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -378,10 +378,39 @@
       </section>
     </section>
   </aside>
-  <a class="recovered-reports-tab" href="/recovered-operator-reports/" aria-label="Recovered Operator Reports">
-    <span>RECOVERED REPORTS</span>
-    <strong>PUBLIC INDEX</strong>
-  </a>
-  <script src="script.js?v=20260617-observerlog1"></script>
+  <aside class="recovered-reports-drawer" id="recovered-reports-drawer" aria-label="Recovered operator reports" aria-hidden="true" data-nosnippet>
+    <button class="recovered-reports-tab" type="button" id="recovered-reports-toggle" aria-expanded="false">
+      <span>RECOVERED REPORTS</span>
+      <strong>PUBLIC INDEX</strong>
+    </button>
+
+    <section class="recovered-reports-panel">
+      <div class="record-header">
+        <div>
+          <p class="kicker">VEILCORP // RECOVERY INDEX</p>
+          <h3>RECOVERED OPERATOR REPORTS</h3>
+        </div>
+        <a class="button ghost drawer-route" href="/recovered-operator-reports/"><span>Open Index</span></a>
+      </div>
+
+      <section class="report-stats drawer-report-stats" aria-label="Archive stats">
+        <div><span>Recovered Reports</span><strong id="stat-recovered">0</strong></div>
+        <div><span>Approved For Publication</span><strong id="stat-approved">0</strong></div>
+        <div><span>Containment Restricted</span><strong id="stat-restricted">0</strong></div>
+        <div><span>Under Review</span><strong id="stat-review">0</strong></div>
+        <div><span>Redacted Beyond Recovery</span><strong id="stat-redacted">0</strong></div>
+      </section>
+
+      <div class="report-index drawer-report-index" id="report-index" aria-live="polite">
+        <p class="local-note">Recovery index loading.</p>
+      </div>
+
+      <nav class="route-actions drawer-actions" aria-label="Report routes">
+        <a class="button primary" href="/play-report/"><span>Submit Debrief</span></a>
+      </nav>
+    </section>
+  </aside>
+  <script src="script.js?v=20260620-reportdrawer1"></script>
+  <script src="/recovered-operator-reports/public-reports.js?v=20260620-reportdrawer1"></script>
 </body>
 </html>
