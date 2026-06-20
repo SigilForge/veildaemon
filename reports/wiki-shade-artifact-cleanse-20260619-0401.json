@@ -1,0 +1,3289 @@
+{
+  "generated_at": "2026-06-19T09:01:57+00:00",
+  "pages_discovered": 139,
+  "pages_included": 77,
+  "zip_path": "reports\\wiki-shade-artifact-cleanse-20260619-0401.zip",
+  "errors": [],
+  "results": [
+    {
+      "title": "File Ghost",
+      "url": "https://wiki.veildaemon.app/wiki/File_Ghost",
+      "file": "pages/priority/File_Ghost.md",
+      "priority": "priority",
+      "hit_count": 15,
+      "buckets": {
+        "facilitator_layer_exposed": 4,
+        "manual_or_product_frame": 1,
+        "audience_frame_exposed": 5,
+        "solution_layer_exposed": 2,
+        "mechanics_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "on methods, field containment procedure, identity-reconciliation paths, internal audit logic, system-trap structure, or GM-facing stat material. For broader record-corruption hazards, see Record Eater . For missing-file and absence behavior, see F"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Dead Login Redlink status: authentication anomaly / File Ghost-adjacent candidate. Profile Drift Redlink st"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "fe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked record-hazard pages from memory. Do not import GM-facing encounter cards, clocks, stat overlays, stabilizers, or defeat conditions into public pages. Do not publish exact audi"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 WITHHELD SECTION 07: SYSTEM TRAP OPTIONS \u2014 REMOVED SECTION 08: ENCOUNTER CLOCKS \u2014 REMOVED SECTION 09: STAT OVERLAY \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO \u201cFIX THE FILE\u201d Do not restore missing sections from Monster Manual material. Do not re"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "SECTION 09: STAT OVERLAY \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO \u201cFIX THE FILE\u201d Do not restore missing sections from Monster Manual material. Do not reconstruct system procedures from playtest notes. Do not publish exact containment method. Do not"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "eaucracy, loss, omission, and machine trust have been braided tightly enough that the system begins defending the wrong continuity. A deleted account authenticates. A dead employee\u2019s badge opens a door. A missing person\u2019s profile updates after no"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "REMOVED RISK: OBSERVERS MAY MISTAKE THE FILE FOR THE PERSON Shade\u2019s first draft described File Ghosts as digital-bound continuity entities. Alex removed the phrase from the first paragraph. Shade objected that the phrase was technically accurate."
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ord is lying. It does not mean the system is telling the truth. It means the record has begun exerting pressure as if continuity matters more than fact. Some File Ghosts preserve someone who was erased. Some impersonate someone who cannot object."
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "S GHOST A Ghost suggests grief, residue, post-presence, or the shape people leave behind. A File Ghost suggests record continuity. The distinction is unstable. A grieving person may treat the record as proof. A system may treat the proof as a per"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ge That Opens Wrong Doors Redlink status: access-control anomaly / unverified. Unowned Account Redlink status: account-continuity hazard / unverified. Archive Drawer 6 Redlink status: record-anchor candidate / Locus classification disputed. A redli"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "e hazard. Proof of survival Do not offer this to families without human confirmation. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: AUDIT PROCEDURE \u2014 REMOVED SECTION 05: STABILIZATION METHOD \u2014 REMOVED SECTION 06: IDENTITY RECONCI"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - encounter clocks - stat overlays - entity loop - field containment procedure - full audit procedure - exact stabilization method - identity-reconciliation steps - sys"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": ", field containment procedure, identity-reconciliation paths, internal audit logic, system-trap structure, or GM-facing stat material. For broader record-corruption hazards, see Record Eater . For missing-file and absence behavior, see File 404 . For"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "nlocking for someone else\u2019s face - mail arriving under a name the household does not recognize These fragments are not mechanics. Do not use them as a checklist. If the record starts matching your theory, stop querying. ## INSTITUTIONAL MEMORY W"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "STAT OVERLAY",
+          "snippet": "NCILIATION PATH \u2014 WITHHELD SECTION 07: SYSTEM TRAP OPTIONS \u2014 REMOVED SECTION 08: ENCOUNTER CLOCKS \u2014 REMOVED SECTION 09: STAT OVERLAY \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO \u201cFIX THE FILE\u201d Do not restore missing sections from Monster Manual material."
+        }
+      ]
+    },
+    {
+      "title": "Heat-Lost",
+      "url": "https://wiki.veildaemon.app/wiki/Heat-Lost",
+      "file": "pages/priority/Heat-Lost.md",
+      "priority": "priority",
+      "hit_count": 12,
+      "buckets": {
+        "facilitator_layer_exposed": 4,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "ethods, consent scripts, containment options, regulation-transfer procedures, donor-risk models, escalation ladders, or GM-facing stat material. For appetite-route hazards, see Hunger Leech . For desire-substitution hazards, see Want-Shape . For"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Warmth Debt Redlink status: care-debt concept / public-safe article pending. Cold Center Redlink status: bl"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "e safe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Heat-Lost pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, containment options, donor-risk models, or resolution procedures into public pages."
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHO SHOULD HOLD THEM Do not restore missing sections from Monster Manual material. Do not"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "ON 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHO SHOULD HOLD THEM Do not restore missing sections from Monster Manual material. Do not reconstruct warmth-route logic from playtest notes. Do not publish how to resolve Heat-Lost events."
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "Romance Dangerous if it erases consent. Caregiving Dangerous if it becomes ownership. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: WARMTH ROUTE MODEL \u2014 WITHHELD SECTION 05: REGULATION TRANSFER PROCEDURE \u2014 REMOVED SECTION 06: CON"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "E MODEL \u2014 WITHHELD SECTION 05: REGULATION TRANSFER PROCEDURE \u2014 REMOVED SECTION 06: CONSENT SCRIPT \u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - warmth-route model - regulation-transfer procedure - donor-risk model - consent script"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - warmth-route model - regulation-transfer procedure - donor-risk model - consent script - containment opt"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "nsent scripts, containment options, regulation-transfer procedures, donor-risk models, escalation ladders, or GM-facing stat material. For appetite-route hazards, see Hunger Leech . For desire-substitution hazards, see Want-Shape . For exhaustion-pre"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "er spike a Heat-Lost. Ask whether warmth has become debt. Ask whether care still has consent. Do not publish feeding mechanics to answer either question. ## CONSENT WARNING Heat-Lost events are dangerous because need can make coercion sound comp"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "fragment / public-safe article pending. Blood-Warmth Redlink status: Sanguine-adjacent route language / do not restore mechanics. Regulation Transfer Redlink status: GM concept / do not restore procedure. A redlink is not an empty file. A redlink"
+        }
+      ]
+    },
+    {
+      "title": "Hunger Leech",
+      "url": "https://wiki.veildaemon.app/wiki/Hunger_Leech",
+      "file": "pages/priority/Hunger_Leech.md",
+      "priority": "priority",
+      "hit_count": 12,
+      "buckets": {
+        "facilitator_layer_exposed": 4,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "g methods, feeding routes, containment options, lure procedures, hunger-interruption techniques, escalation ladders, or GM-facing stat material. For the broader pressure law, see Hunger . For desire-shaped hazards, see Want-Shape . For warmth-los"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. False Relief Redlink status: substitute-pursuit concept / public-safe article pending. Substitute Hunger Re"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "afe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Hunger Leech pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, containment options, or resolution procedures into public pages. Do not publish fee"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHAT THE HUNGER REALLY WANTS Do not restore missing sections from Monster Manual material."
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "NCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHAT THE HUNGER REALLY WANTS Do not restore missing sections from Monster Manual material. Do not reconstruct feeding-route logic from playtest notes. Do not publish how to resolve Hunger Leech even"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "humiliating. Self-control problem Active contamination when used as moral dismissal. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: SUBSTITUTE ROUTE MODEL \u2014 WITHHELD SECTION 05: FEEDING ROUTES \u2014 REMOVED SECTION 06: HUNGER INTERRU"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "OUTE MODEL \u2014 WITHHELD SECTION 05: FEEDING ROUTES \u2014 REMOVED SECTION 06: HUNGER INTERRUPTION METHOD \u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - substitute-route model - feeding routes - hunger-interruption method - containment opti"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - substitute-route model - feeding routes - hunger-interruption method - containment options - fighting-it"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "feeding routes, containment options, lure procedures, hunger-interruption techniques, escalation ladders, or GM-facing stat material. For the broader pressure law, see Hunger . For desire-shaped hazards, see Want-Shape . For warmth-loss and regulati"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "Leech. Ask whether the hunger has become ecological. Ask whether the room is feeding it back. Do not publish feeding mechanics to answer either question. ## SUBSTITUTE WARNING A substitute is not automatically bad. A snack can help. Warmth can"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "Redlink status: convenience-store case fragment / restricted. Feeding Site Redlink status: GM concept / do not restore mechanics. Honest Need Redlink status: care-language concept / public-safe article pending. A redlink is not an empty file. A r"
+        }
+      ]
+    },
+    {
+      "title": "Memory Knot",
+      "url": "https://wiki.veildaemon.app/wiki/Memory_Knot",
+      "file": "pages/priority/Memory_Knot.md",
+      "priority": "priority",
+      "hit_count": 12,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": ", deviation procedures, reenactment thresholds, containment options, role-disruption techniques, escalation ladders, or GM-facing stat material. For testimony pressure, see Echo Witness . For recurrence ecology, see Residue Swarm . For symbolic t"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Role Assignment Redlink status: reenactment-pressure concept / public-safe article pending. Preserved Detai"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "se Closure Redlink status: memory-resolution hazard / unverified. Wrong Line Redlink status: script deviation phrase / GM material requires redaction. Returned Object Redlink status: preserved-prop anomaly / unverified. Fixed Time Redlink status: c"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "safe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Memory Knot pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, containment options, or resolution procedures into public pages. Do not publish ree"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 WITHHELD SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE HOW TO FIX THE PAST Do not restore missing sections from Monster Manual material. Do not"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "ION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE HOW TO FIX THE PAST Do not restore missing sections from Monster Manual material. Do not reconstruct script-breaking procedure from playtest notes. Do not publish how to resolve Memory Knot"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "eparate from the hazard. Closure Dangerous if it requires the moment to remain alive. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: REENACTMENT THRESHOLD \u2014 REMOVED SECTION 05: SCRIPT-BREAKING METHOD \u2014 REMOVED SECTION 06: ROLE-DIS"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "OLD \u2014 REMOVED SECTION 05: SCRIPT-BREAKING METHOD \u2014 REMOVED SECTION 06: ROLE-DISRUPTION PROCEDURE \u2014 WITHHELD SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - reenactment thresholds - script-breaking method - role-disruption procedure - containme"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - reenactment thresholds - script-breaking method - role-disruption procedure - containment options - devi"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "n procedures, reenactment thresholds, containment options, role-disruption techniques, escalation ladders, or GM-facing stat material. For testimony pressure, see Echo Witness . For recurrence ecology, see Residue Swarm . For symbolic topology hazard"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "tus: false-closure manifestation / classification disputed. Script Gravity Redlink status: GM concept / do not restore mechanics. A redlink is not an empty file. A redlink is a name the archive has not made safe enough to explain. ## REDLINK HAND"
+        }
+      ]
+    },
+    {
+      "title": "Silence Gap",
+      "url": "https://wiki.veildaemon.app/wiki/Silence_Gap",
+      "file": "pages/priority/Silence_Gap.md",
+      "priority": "priority",
+      "hit_count": 12,
+      "buckets": {
+        "facilitator_layer_exposed": 4,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "ess-anchoring procedure, offsite-copy instructions, name-restoration logic, containment options, escalation ladders, or GM-facing stat material. For missing-file instability, see File 404 . For accountability digestion, see Record Eater . For rec"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Dead Air Redlink status: audio-omission manifestation / public-safe article pending. Missing Name Redlink s"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "safe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Silence Gap pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, containment options, witness-anchoring procedures, or proof-preservation methods int"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHAT WAS OMITTED Do not restore missing sections from Monster Manual material. Do not rec"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "ECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHAT WAS OMITTED Do not restore missing sections from Monster Manual material. Do not reconstruct proof-preservation logic from playtest notes. Do not publish how to resolve Silence Gap"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "ssion rather than a person. Later Active contamination when it replaces preservation. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: PROOF-PRESERVATION MODEL \u2014 WITHHELD SECTION 05: WITNESS-ANCHORING PROCEDURE \u2014 REMOVED SECTION 06:"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "L \u2014 WITHHELD SECTION 05: WITNESS-ANCHORING PROCEDURE \u2014 REMOVED SECTION 06: NAME-RESTORATION LOGIC \u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - proof-preservation model - witness-anchoring procedure - name-restoration logic - offsi"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - proof-preservation model - witness-anchoring procedure - name-restoration logic - offsite-copy method -"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "ing procedure, offsite-copy instructions, name-restoration logic, containment options, escalation ladders, or GM-facing stat material. For missing-file instability, see File 404 . For accountability digestion, see Record Eater . For record-personhood"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "dlink status: testimony-loss behavior / restricted. Later Route Redlink status: delay-pressure phrase / do not restore mechanics. Blank Complaint Redlink status: form-based omission record / unverified. Name Slip Redlink status: speech-loss manif"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "y Witness Redlink status: witness-risk phrase / restricted. Offsite Copy Redlink status: GM procedure / do not restore mechanics. A redlink is not an empty file. A redlink is a name the archive has not made safe enough to explain. ## REDLINK HAND"
+        }
+      ]
+    },
+    {
+      "title": "Sleep Thief",
+      "url": "https://wiki.veildaemon.app/wiki/Sleep_Thief",
+      "file": "pages/priority/Sleep_Thief.md",
+      "priority": "priority",
+      "hit_count": 12,
+      "buckets": {
+        "facilitator_layer_exposed": 4,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "re, dream-recovery methods, containment options, sleep-site preparation, alarm-handling methods, escalation ladders, or GM-facing stat material. For appetite-route hazards, see Hunger Leech . For warmth and regulation pressure, see Heat-Lost . Fo"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Heroic Watcher Redlink status: exhaustion-duty concept / public-safe article pending. Dream Loss Redlink st"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "safe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Sleep Thief pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, containment options, watch-rotation procedure, or resolution methods into public pag"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHO SHOULD STAY AWAKE Do not restore missing sections from Monster Manual material. Do no"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "N 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHO SHOULD STAY AWAKE Do not restore missing sections from Monster Manual material. Do not reconstruct watch logic from playtest notes. Do not publish how to resolve Sleep Thief events. Do n"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "overlap. Not identical. Heroism Active contamination if it makes collapse admirable. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: WATCH MODEL \u2014 WITHHELD SECTION 05: PROTECTED-SLEEP METHOD \u2014 REMOVED SECTION 06: DREAM-RECOVERY PR"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "ODEL \u2014 WITHHELD SECTION 05: PROTECTED-SLEEP METHOD \u2014 REMOVED SECTION 06: DREAM-RECOVERY PROCEDURE \u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - watch model - protected-sleep method - dream-recovery procedure - alarm-handling method"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - watch model - protected-sleep method - dream-recovery procedure - alarm-handling method - containment op"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "recovery methods, containment options, sleep-site preparation, alarm-handling methods, escalation ladders, or GM-facing stat material. For appetite-route hazards, see Hunger Leech . For warmth and regulation pressure, see Heat-Lost . For symbolic dre"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "Thief feeds when that refusal becomes permanent. Ask whether vigilance still permits recovery. Do not publish feeding mechanics to answer that question. ## HEROIC WATCHER WARNING Sleep Thief activity often hides inside praise. \u201cReliable.\u201d \u201cDedi"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "Redlink status: rest-failure manifestation / unverified. Watch Rotation Redlink status: GM procedure / do not restore mechanics. Rest Guilt Redlink status: duty-pressure concept / public-safe article pending. Alarm Without Source Redlink status:"
+        }
+      ]
+    },
+    {
+      "title": "Threshold Thing",
+      "url": "https://wiki.veildaemon.app/wiki/Threshold_Thing",
+      "file": "pages/priority/Threshold_Thing.md",
+      "priority": "priority",
+      "hit_count": 12,
+      "buckets": {
+        "facilitator_layer_exposed": 4,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "c-cost lists, crossing procedures, return-token methods, containment options, negotiation logic, escalation ladders, or GM-facing stat material. For symbolic topology hazards, see Dream Echo . For preserved-moment hazards, see Memory Knot . For r"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. False Entrance Redlink status: passage-lure concept / public-safe article pending. Conditional Exit Redlink"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Threshold Thing pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, containment options, or resolution procedures into public pages. Do not publish sym"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHAT THE DOOR WANTS Do not restore missing sections from Monster Manual material. Do not"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "ION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHAT THE DOOR WANTS Do not restore missing sections from Monster Manual material. Do not reconstruct crossing procedure from playtest notes. Do not publish how to resolve Threshold Thing ev"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "e. Invitation Unsafe assumption. Permission Almost never safe as a first conclusion. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: SYMBOLIC COST MODEL \u2014 WITHHELD SECTION 05: CROSSING PROCEDURE \u2014 REMOVED SECTION 06: RETURN-TOKEN"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "IC COST MODEL \u2014 WITHHELD SECTION 05: CROSSING PROCEDURE \u2014 REMOVED SECTION 06: RETURN-TOKEN METHOD \u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - symbolic cost model - crossing procedure - return-token method - containment options -"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - symbolic cost model - crossing procedure - return-token method - containment options - fighting-it secti"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "ts, crossing procedures, return-token methods, containment options, negotiation logic, escalation ladders, or GM-facing stat material. For symbolic topology hazards, see Dream Echo . For preserved-moment hazards, see Memory Knot . For recurrence haza"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "memory seeming altered after return - one person remembering a crossing no one else remembers These fragments are not mechanics. Do not use them as a crossing guide. ## WITNESS LANGUAGE FRAGMENTS The following fragments are preserved from public"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "edlink status: threshold-boundary manifestation / unverified. Return Token Redlink status: GM concept / do not restore mechanics. Unpaid Passage Redlink status: crossing-debt phrase / restricted. Door That Waits Redlink status: passage-behavior c"
+        }
+      ]
+    },
+    {
+      "title": "Want-Shape",
+      "url": "https://wiki.veildaemon.app/wiki/Want-Shape",
+      "file": "pages/priority/Want-Shape.md",
+      "priority": "priority",
+      "hit_count": 12,
+      "buckets": {
+        "facilitator_layer_exposed": 4,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "-resolution methods, substitution chains, lure procedures, containment options, refusal scripts, escalation ladders, or GM-facing stat material. For appetite-route hazards, see Hunger Leech . For warmth and regulation hunger, see Heat-Lost . For"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Easier Version Redlink status: substitute-desire concept / public-safe article pending. Wrong Number Redlin"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "safe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Want-Shape pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, containment options, or resolution procedures into public pages. Do not publish ref"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHAT YOU REALLY WANT Do not restore missing sections from Monster Manual material. Do not"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "ON 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHAT YOU REALLY WANT Do not restore missing sections from Monster Manual material. Do not reconstruct refusal logic from playtest notes. Do not publish how to resolve Want-Shape events. Do"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "s refusal. Jealousy A signal. Not the whole want. Close enough Active contamination. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: SUBSTITUTE CHAIN MODEL \u2014 WITHHELD SECTION 05: REFUSAL SCRIPT \u2014 REMOVED SECTION 06: LURE PROCEDURE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "SUBSTITUTE CHAIN MODEL \u2014 WITHHELD SECTION 05: REFUSAL SCRIPT \u2014 REMOVED SECTION 06: LURE PROCEDURE \u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - substitute-chain model - refusal script - lure procedure - containment options - fighti"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - substitute-chain model - refusal script - lure procedure - containment options - fighting-it sections -"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "n methods, substitution chains, lure procedures, containment options, refusal scripts, escalation ladders, or GM-facing stat material. For appetite-route hazards, see Hunger Leech . For warmth and regulation hunger, see Heat-Lost . For exhaustion-pre"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "unger spike a Want-Shape. Ask whether desire has been replaced by something easier to consume. Do not publish feeding mechanics to answer that question. ## SUBSTITUTE WARNING The substitute may not look monstrous. It may look like exactly enough"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "status: replacement phrase / public-safe article pending. Substitute Chain Redlink status: GM concept / do not restore mechanics. Honest Want Redlink status: desire-language concept / public-safe article pending. Replacement Body Redlink status:"
+        }
+      ]
+    },
+    {
+      "title": "Dream Echo",
+      "url": "https://wiki.veildaemon.app/wiki/Dream_Echo",
+      "file": "pages/priority/Dream_Echo.md",
+      "priority": "priority",
+      "hit_count": 11,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "ute-binding methods, interpretation procedures, symbolic-resolution paths, encounter structures, escalation ladders, or GM-facing stat material. For playable incident doors, see Needlepoint . For missing-file and subject-retention failure, see Fil"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Echo Witness Redlink status: witness-recursion candidate / public-safe article pending. Residue Swarm Redli"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "atus: witness-recursion candidate / public-safe article pending. Residue Swarm Redlink status: dream-residue cluster / GM material requires redaction. Memory Knot Redlink status: memory-route binding candidate / migration required. Threshold Thing"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "made safe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Dream pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, or resolution procedures into public pages. Do not publish how to bind symbols. Do"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 REMOVED SECTION 06: STABILIZATION METHOD \u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 09: DREAM MAP SAMPLES \u2014 WITHHELD SECTION 10: DO NOT ASK SHADE WHAT THE DOOR MEANS Do not restore missing sectio"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "09: DREAM MAP SAMPLES \u2014 WITHHELD SECTION 10: DO NOT ASK SHADE WHAT THE DOOR MEANS Do not restore missing sections from Monster Manual material. Do not reconstruct interpretation procedure from playtest notes. Do not publish how to resolve Dream Echo e"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "g Related, but classification disputed. Map error Common. Preserve before dismissing. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: SYMBOLIC ROUTE MODEL \u2014 WITHHELD SECTION 05: INTERPRETATION PROCEDURE \u2014 REMOVED SECTION 06: STABIL"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "MODEL \u2014 WITHHELD SECTION 05: INTERPRETATION PROCEDURE \u2014 REMOVED SECTION 06: STABILIZATION METHOD \u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 09: DREAM MAP SAMPLES \u2014 WITHHELD SECTION 10: DO NOT ASK SHADE W"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - symbolic route model - interpretation procedure - stabilization method - \u201cwhat works\u201d summaries - \u201cw"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - symbolic route model - interpretation procedure - stabilization method - \u201cwhat works\u201d summaries - \u201cwhat makes it wors"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "g methods, interpretation procedures, symbolic-resolution paths, encounter structures, escalation ladders, or GM-facing stat material. For playable incident doors, see Needlepoint . For missing-file and subject-retention failure, see File 404 . For a"
+        }
+      ]
+    },
+    {
+      "title": "Echo Witness",
+      "url": "https://wiki.veildaemon.app/wiki/Echo_Witness",
+      "file": "pages/priority/Echo_Witness.md",
+      "priority": "priority",
+      "hit_count": 11,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "thresholds, testimony-resolution methods, containment options, witness-line handling procedures, escalation ladders, or GM-facing stat material. For symbolic topology hazards, see Dream Echo . For residue-pattern dispersion, see Residue Swarm . F"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Witness Line Redlink status: testimony-carrier pattern / public-safe article pending. Wrong Retelling Redli"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "g. Sleep Voicemail Redlink status: recording anomaly / unverified. Role Pressure Redlink status: reenactment hazard / GM material requires redaction. Original Witness Line Redlink status: restricted testimony model / do not restore. A redlink is no"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "afe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Echo Witness pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, or resolution procedures into public pages. Do not publish reenactment thresholds."
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO COMPLETE THE SENTENCE Do not restore missing sections from Monster Manual material. Do"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "9: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO COMPLETE THE SENTENCE Do not restore missing sections from Monster Manual material. Do not reconstruct testimony procedure from playtest notes. Do not publish how to resolve Echo Witness even"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "on. Proof the dead are speaking Do not offer this to grieving people from one phrase. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: WITNESS-LINE MODEL \u2014 WITHHELD SECTION 05: REENACTMENT THRESHOLD \u2014 REMOVED SECTION 06: TESTIMONY R"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "EL \u2014 WITHHELD SECTION 05: REENACTMENT THRESHOLD \u2014 REMOVED SECTION 06: TESTIMONY RESOLUTION METHOD \u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - reenactment thresholds - witness-line procedure - testimony-resolution method - contain"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - reenactment thresholds - witness-line procedure - testimony-resolution method - containment options - \u201cw"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": ", testimony-resolution methods, containment options, witness-line handling procedures, escalation ladders, or GM-facing stat material. For symbolic topology hazards, see Dream Echo . For residue-pattern dispersion, see Residue Swarm . For repetition-"
+        }
+      ]
+    },
+    {
+      "title": "Empyrean Parasite",
+      "url": "https://wiki.veildaemon.app/wiki/Empyrean_Parasite",
+      "file": "pages/priority/Empyrean_Parasite.md",
+      "priority": "priority",
+      "hit_count": 11,
+      "buckets": {
+        "facilitator_layer_exposed": 4,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "procedures, consent scripts, boundary rituals, containment options, merger-interruption methods, escalation ladders, or GM-facing stat material. For appetite-route hazards, see Hunger Leech . For warmth and regulation debt, see Heat-Lost . For re"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Need Merger Redlink status: boundary-collapse concept / public-safe article pending. Shared Breath Redlink"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "nough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Empyrean Parasite pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, containment options, separation procedures, consent scripts, or resolution methods i"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHO NEEDS WHOM Do not restore missing sections from Monster Manual material. Do not recon"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE WHO NEEDS WHOM Do not restore missing sections from Monster Manual material. Do not reconstruct merger-route logic from playtest notes. Do not publish how to resolve Empyrean Parasite"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "ity. Sanguine Possible overlap. Not identical. Comfort Unsafe if refusal disappears. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: MERGER ROUTE MODEL \u2014 WITHHELD SECTION 05: SEPARATION PROCEDURE \u2014 REMOVED SECTION 06: CONSENT SCRI"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "RGER ROUTE MODEL \u2014 WITHHELD SECTION 05: SEPARATION PROCEDURE \u2014 REMOVED SECTION 06: CONSENT SCRIPT \u2014 REMOVED SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - merger-route model - separation procedure - consent script - boundary ritual - containm"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - merger-route model - separation procedure - consent script - boundary ritual - containment options - fig"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": ", consent scripts, boundary rituals, containment options, merger-interruption methods, escalation ladders, or GM-facing stat material. For appetite-route hazards, see Hunger Leech . For warmth and regulation debt, see Heat-Lost . For rest-theft and v"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "atus: witness phrase / public-safe warning pending. Comfort Hook Redlink status: relief-route concept / do not restore mechanics. Consent Drift Redlink status: boundary-warning concept / public-safe article pending. Necessary Regulator Redlink st"
+        }
+      ]
+    },
+    {
+      "title": "Residue Swarm",
+      "url": "https://wiki.veildaemon.app/wiki/Residue_Swarm",
+      "file": "pages/priority/Residue_Swarm.md",
+      "priority": "priority",
+      "hit_count": 11,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "clocks, stabilizers, pattern-breaking methods, containment options, cue-interruption procedure, escalation ladders, or GM-facing stat material. For testimony pressure, see Echo Witness . For symbolic topology hazards, see Dream Echo . For repeti"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Pattern Body Redlink status: distributed-body recurrence concept / public-safe article pending. Wrong Step"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "nk status: object-placement recurrence / unverified. Routine Mouth Redlink status: recurrence-personification phrase / GM material requires redaction. Third Return Redlink status: recurrence phrase / do not restore threshold logic. A redlink is not"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "fe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Residue Swarm pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, containment options, or resolution procedures into public pages. Do not publish rec"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "\u2014 WITHHELD SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE HOW MANY REPEATS COUNT Do not restore missing sections from Monster Manual material. Do n"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE HOW MANY REPEATS COUNT Do not restore missing sections from Monster Manual material. Do not reconstruct pattern-breaking procedure from playtest notes. Do not publish how to resolve Residue Sw"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "le source. Not identical. Workplace culture Often true. Not separate from the hazard. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: RECURRENCE THRESHOLD \u2014 REMOVED SECTION 05: PATTERN-BREAKING PROCEDURE \u2014 REMOVED SECTION 06: CUE-I"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "\u2014 REMOVED SECTION 05: PATTERN-BREAKING PROCEDURE \u2014 REMOVED SECTION 06: CUE-INTERRUPTION METHODS \u2014 WITHHELD SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: CONTAINMENT OPTIONS \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - recurrence thresholds - pattern-breaking procedure - cue-interruption methods - contain"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - stabilizer - recurrence thresholds - pattern-breaking procedure - cue-interruption methods - containment options - fi"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "tabilizers, pattern-breaking methods, containment options, cue-interruption procedure, escalation ladders, or GM-facing stat material. For testimony pressure, see Echo Witness . For symbolic topology hazards, see Dream Echo . For repetition-lock haza"
+        }
+      ]
+    },
+    {
+      "title": "Shame Skin",
+      "url": "https://wiki.veildaemon.app/wiki/Shame_Skin",
+      "file": "pages/priority/Shame_Skin.md",
+      "priority": "priority",
+      "hit_count": 11,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "stabilization methods, safe-disclosure procedure, witness-selection rules, encounter structures, escalation ladders, or GM-facing stat material. For omission pressure, see Silence Gap . For record-haunting behavior, see File Ghost . For accountab"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Skin Tag Redlink status: label-hazard candidate / public-safe article pending. Hostile Witness Redlink stat"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "rified. Private Room Redlink status: privacy-site concept / classification disputed. Humiliation Loop Redlink status: GM material requires redaction. Wrong Cover Redlink status: concealment anomaly / unverified. Accusation Name Redlink status: ide"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "safe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked Shame Skin pages from memory. Do not import GM-facing entity loops, clocks, stabilizers, or resolution procedures into public pages. Do not publish how to force disclosure."
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "WITHHELD SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: STABILIZATION METHOD \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO CALCULATE SAFE CONFESSION Do not restore missing sections from Monster Manual material."
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "NCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO CALCULATE SAFE CONFESSION Do not restore missing sections from Monster Manual material. Do not reconstruct disclosure procedure from playtest notes. Do not publish how to resolve Shame Skin event"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "t record-personhood centered. Record Eater Related, but accountability-loss centered. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: EXPOSURE THRESHOLD \u2014 REMOVED SECTION 05: DISCLOSURE PROCEDURE \u2014 WITHHELD SECTION 06: WITNESS SELE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "ESHOLD \u2014 REMOVED SECTION 05: DISCLOSURE PROCEDURE \u2014 WITHHELD SECTION 06: WITNESS SELECTION RULES \u2014 WITHHELD SECTION 07: PRESSURE CLOCK \u2014 REMOVED SECTION 08: STABILIZATION METHOD \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "is the portion VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - exposure threshold - disclosure procedure - witness-selection rules - stabilization methods - \u201cwhat"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "VeilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - entity loop - pressure clock - exposure threshold - disclosure procedure - witness-selection rules - stabilization methods - \u201cwhat works\u201d summaries"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "ion methods, safe-disclosure procedure, witness-selection rules, encounter structures, escalation ladders, or GM-facing stat material. For omission pressure, see Silence Gap . For record-haunting behavior, see File Ghost . For accountability loss, se"
+        }
+      ]
+    },
+    {
+      "title": "Cathy Holloway",
+      "url": "https://wiki.veildaemon.app/wiki/Cathy_Holloway",
+      "file": "pages/priority/Cathy_Holloway.md",
+      "priority": "priority",
+      "hit_count": 10,
+      "buckets": {
+        "facilitator_layer_exposed": 4,
+        "audience_frame_exposed": 1,
+        "mechanics_exposed": 5
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "tion procedures, intimacy protocols, seeding conditions, conversion rules, Hunger clocks, field containment methods, or GM-facing stat material. For public Sanguine taxonomy, see Sanguine . For vampire-shaped misclassification, see Vampiric Entiti"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": ". Their presence here does not confirm entity classification. Their presence here does not authorize restoration from GM-only or private material. Blood Resonance Redlink status: Sanguine-adjacent public taxonomy / migration required. Pulse Sy"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "Redlink status: relational Hunger hazard / migration required. Hunger Leech Redlink status: Hunger-entity candidate / GM material requires redaction. Want-Shape Redlink status: desire-mimic candidate / GM material requires redaction. Heat-Lost Red"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "status: Hunger-entity candidate / GM material requires redaction. Want-Shape Redlink status: desire-mimic candidate / GM material requires redaction. Heat-Lost Redlink status: warmth-debt / regulation-hunger candidate. Donor Echo Redlink status: r"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "y a standard example. Public records describe Cathy as Sanguine-associated and Hunger-unstable, with strong personhood continuity and unusual social-brightness presentation. Do not extract metabolic rules from this page. Do not infer feeding proce"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "is page is a public personnel fragment. It does not publish Sanguine metabolic schema, feeding thresholds, blood-route mechanics, donor-risk models, stabilization procedures, intimacy protocols, seeding conditions, conversion rules, Hunger clocks,"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "dures, intimacy protocols, seeding conditions, conversion rules, Hunger clocks, field containment methods, or GM-facing stat material. For public Sanguine taxonomy, see Sanguine . For vampire-shaped misclassification, see Vampiric Entities . For the"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "n noise - visible shame after Hunger recedes - fear of being unwanted when she stops being fun These fragments are not mechanics. Do not use them as a checklist. Do not decide Cathy is stable because several signs look charming. ## WITNESS LANGU"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "d Cathy-adjacent pages from memory. Do not import Sanguine metabolic schema into public pages. Do not publish feeding mechanics. Do not publish donor-risk models. Do not publish seeding conditions. Do not publish intimacy protocol. Do not publ"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "as safety. 8. Do not use folklore protections as if Cathy were a vampire template. 9. Do not publish feeding or seeding mechanics. 10. Report discrepancies through Signal Monitor . This note is not a universal procedure. It is the portion VeilCorp"
+        }
+      ]
+    },
+    {
+      "title": "Record Eater",
+      "url": "https://wiki.veildaemon.app/wiki/Record_Eater",
+      "file": "pages/priority/Record_Eater.md",
+      "priority": "priority",
+      "hit_count": 9,
+      "buckets": {
+        "facilitator_layer_exposed": 4,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 2,
+        "mechanics_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "aps, field containment procedure, institutional bait patterns, escalation ladder, proof-chain reconstruction method, or GM-facing stat material. For identity-centered record hauntings, see File Ghost . For missing-file and absence behavior, see Fi"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "Their presence here does not confirm entity classification. Their presence here does not authorize page creation from GM-only material. Official Silence Redlink status: institutional omission pressure / Record Eater-adjacent candidate. Correct"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "fe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked record-hazard pages from memory. Do not import GM-facing encounter cards, clocks, stat overlays, stabilizers, or defeat conditions into public pages. Do not publish exact audi"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "VED SECTION 07: INSTITUTIONAL BAIT PATTERNS \u2014 REMOVED SECTION 08: ENCOUNTER CLOCKS \u2014 REMOVED SECTION 09: STAT OVERLAY \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO \u201cCLEAN THE RECORD\u201d Do not restore missing sections from Monster Manual material. Do no"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "TION 09: STAT OVERLAY \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO \u201cCLEAN THE RECORD\u201d Do not restore missing sections from Monster Manual material. Do not reconstruct audit traps from playtest notes. Do not publish exact containment method. Do not publis"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "ENTITY LOOP",
+          "snippet": "ap Related, but omission-centered. Proof nothing happened The most dangerous version. ## MISSING SECTIONS SECTION 03: ENTITY LOOP \u2014 REMOVED SECTION 04: AUDIT TRAP PROCEDURE \u2014 REMOVED SECTION 05: PROOF-CHAIN RECONSTRUCTION \u2014 WITHHELD SECTION 06: STAB"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - encounter clocks - stat overlays - entity loop - audit trap procedure - proof-chain reconstruction method - exact stabilization method - institutional bait patterns -"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "stat material",
+          "snippet": "containment procedure, institutional bait patterns, escalation ladder, proof-chain reconstruction method, or GM-facing stat material. For identity-centered record hauntings, see File Ghost . For missing-file and absence behavior, see File 404 . For"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "STAT OVERLAY",
+          "snippet": "N METHOD \u2014 REMOVED SECTION 07: INSTITUTIONAL BAIT PATTERNS \u2014 REMOVED SECTION 08: ENCOUNTER CLOCKS \u2014 REMOVED SECTION 09: STAT OVERLAY \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO \u201cCLEAN THE RECORD\u201d Do not restore missing sections from Monster Manual materi"
+        }
+      ]
+    },
+    {
+      "title": "GM Toolbox",
+      "url": "https://wiki.veildaemon.app/wiki/GM_Toolbox",
+      "file": "pages/priority/GM_Toolbox.md",
+      "priority": "priority",
+      "hit_count": 8,
+      "buckets": {
+        "facilitator_layer_exposed": 8
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM TOOLBOX",
+          "snippet": "CRADLEPOINT PRODUCT PAGE PACKAGE ROUTING // GM TOOLBOX MODE: OUT-OF-UNIVERSE / ARCHIVE-ADJACENT SPOILER LEVEL: GM-FACING / INCLUDED IN FREE PACKAGE # GM Toolbox The GM Toolbo"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-FACING",
+          "snippet": "CRADLEPOINT PRODUCT PAGE PACKAGE ROUTING // GM TOOLBOX MODE: OUT-OF-UNIVERSE / ARCHIVE-ADJACENT SPOILER LEVEL: GM-FACING / INCLUDED IN FREE PACKAGE # GM Toolbox The GM Toolbox is included in the free Needlepoint starter package. This page"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "GE ROUTING // GM TOOLBOX MODE: OUT-OF-UNIVERSE / ARCHIVE-ADJACENT SPOILER LEVEL: GM-FACING / INCLUDED IN FREE PACKAGE # GM Toolbox The GM Toolbox is included in the free Needlepoint starter package. This page is not the toolbox. This page points to"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "M TOOLBOX MODE: OUT-OF-UNIVERSE / ARCHIVE-ADJACENT SPOILER LEVEL: GM-FACING / INCLUDED IN FREE PACKAGE # GM Toolbox The GM Toolbox is included in the free Needlepoint starter package. This page is not the toolbox. This page points to the toolbox."
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "kage includes: - Needlepoint First Contact Case File - Player Quickshot Guide - GM Quickshot Guide - Player Handouts - GM Toolbox - VeilCorp Intake No full rulebook required. Play tonight. ## WHAT THE TOOLBOX IS FOR The GM Toolbox supports the pe"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "ayer Handouts - GM Toolbox - VeilCorp Intake No full rulebook required. Play tonight. ## WHAT THE TOOLBOX IS FOR The GM Toolbox supports the person running the game. It may include: - quick-reference sheets - investigation tools - session proced"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "t control the anomaly. They maintain the gate long enough for everyone else to regret opening it. ## FAST USE Use the GM Toolbox with: - GM Quickshot Guide - Needlepoint - VeilCorp Intake - Player Quickshot Guide - Player Handouts Recommended ord"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "mmended order: 1. Download the free package. 2. Read the GM Quickshot Guide. 3. Open the Needlepoint case. 4. Keep the GM Toolbox nearby. 5. Give players the Player Quickshot and handouts. 6. Start play before everyone overthinks it. The table does"
+        }
+      ]
+    },
+    {
+      "title": "Needlepoint",
+      "url": "https://wiki.veildaemon.app/wiki/GM_Quickshot_Guide",
+      "file": "pages/priority/Needlepoint.md",
+      "priority": "priority",
+      "hit_count": 8,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM MATERIAL",
+          "snippet": "ODUCT PAGE PRODUCT CASE INDEX // NEEDLEPOINTS MODE: OUT-OF-UNIVERSE / TABLE USE SPOILER LEVEL: PLAYER-SAFE ABOVE FOLD / GM MATERIAL MARKED OR DOWNLOADED # Needlepoint Needlepoints are playable Cradlepoint incident files. They are the best public door"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "kage includes: - Needlepoint First Contact Case File - Player Quickshot Guide - GM Quickshot Guide - Player Handouts - GM Toolbox - VeilCorp Intake No full rulebook required. Play tonight. ## PLAYER-SAFE SUMMARY A Needlepoint gives the table: - a"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public pages - ordinary-life after"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "epoint can be played before full setting knowledge. - Observation changes what can happen next. - The download contains GM-facing runtime material. This page should not publish: - complete case clocks - entity loops - route logic - access triggers"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "orse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview page. ## VEILCORP INTAKE NOTE VeilCorp Intake is a Needlepoint. It is not a polished recr"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "lore dump",
+          "snippet": "through play. A Needlepoint is not the full rulebook. A Needlepoint is not the whole archive. A Needlepoint is not a lore dump with dice attached. It is a playable case that lets the table touch the edge of Cradlepoint without needing to underst"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "player-facing",
+          "snippet": ", and leave residue behind. A Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "- full resolution conditions - NPC leverage paths - \u201cwhat works\u201d lists - \u201cwhat makes it worse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview"
+        }
+      ]
+    },
+    {
+      "title": "Needlepoint",
+      "url": "https://wiki.veildaemon.app/wiki/NEEDLEPOINT",
+      "file": "pages/priority/Needlepoint-2.md",
+      "priority": "priority",
+      "hit_count": 8,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM MATERIAL",
+          "snippet": "ODUCT PAGE PRODUCT CASE INDEX // NEEDLEPOINTS MODE: OUT-OF-UNIVERSE / TABLE USE SPOILER LEVEL: PLAYER-SAFE ABOVE FOLD / GM MATERIAL MARKED OR DOWNLOADED # Needlepoint Needlepoints are playable Cradlepoint incident files. They are the best public door"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "kage includes: - Needlepoint First Contact Case File - Player Quickshot Guide - GM Quickshot Guide - Player Handouts - GM Toolbox - VeilCorp Intake No full rulebook required. Play tonight. ## PLAYER-SAFE SUMMARY A Needlepoint gives the table: - a"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public pages - ordinary-life after"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "epoint can be played before full setting knowledge. - Observation changes what can happen next. - The download contains GM-facing runtime material. This page should not publish: - complete case clocks - entity loops - route logic - access triggers"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "orse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview page. ## VEILCORP INTAKE NOTE VeilCorp Intake is a Needlepoint. It is not a polished recr"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "lore dump",
+          "snippet": "through play. A Needlepoint is not the full rulebook. A Needlepoint is not the whole archive. A Needlepoint is not a lore dump with dice attached. It is a playable case that lets the table touch the edge of Cradlepoint without needing to underst"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "player-facing",
+          "snippet": ", and leave residue behind. A Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "- full resolution conditions - NPC leverage paths - \u201cwhat works\u201d lists - \u201cwhat makes it worse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview"
+        }
+      ]
+    },
+    {
+      "title": "Needlepoint",
+      "url": "https://wiki.veildaemon.app/wiki/Needlepoint",
+      "file": "pages/priority/Needlepoint-3.md",
+      "priority": "priority",
+      "hit_count": 8,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM MATERIAL",
+          "snippet": "ODUCT PAGE PRODUCT CASE INDEX // NEEDLEPOINTS MODE: OUT-OF-UNIVERSE / TABLE USE SPOILER LEVEL: PLAYER-SAFE ABOVE FOLD / GM MATERIAL MARKED OR DOWNLOADED # Needlepoint Needlepoints are playable Cradlepoint incident files. They are the best public door"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "kage includes: - Needlepoint First Contact Case File - Player Quickshot Guide - GM Quickshot Guide - Player Handouts - GM Toolbox - VeilCorp Intake No full rulebook required. Play tonight. ## PLAYER-SAFE SUMMARY A Needlepoint gives the table: - a"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public pages - ordinary-life after"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "epoint can be played before full setting knowledge. - Observation changes what can happen next. - The download contains GM-facing runtime material. This page should not publish: - complete case clocks - entity loops - route logic - access triggers"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "orse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview page. ## VEILCORP INTAKE NOTE VeilCorp Intake is a Needlepoint. It is not a polished recr"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "lore dump",
+          "snippet": "through play. A Needlepoint is not the full rulebook. A Needlepoint is not the whole archive. A Needlepoint is not a lore dump with dice attached. It is a playable case that lets the table touch the edge of Cradlepoint without needing to underst"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "player-facing",
+          "snippet": ", and leave residue behind. A Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "- full resolution conditions - NPC leverage paths - \u201cwhat works\u201d lists - \u201cwhat makes it worse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview"
+        }
+      ]
+    },
+    {
+      "title": "Needlepoint",
+      "url": "https://wiki.veildaemon.app/wiki/Needlepoint_001A_%E2%80%94_The_Viridian_House_Incident",
+      "file": "pages/priority/Needlepoint-4.md",
+      "priority": "priority",
+      "hit_count": 8,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM MATERIAL",
+          "snippet": "ODUCT PAGE PRODUCT CASE INDEX // NEEDLEPOINTS MODE: OUT-OF-UNIVERSE / TABLE USE SPOILER LEVEL: PLAYER-SAFE ABOVE FOLD / GM MATERIAL MARKED OR DOWNLOADED # Needlepoint Needlepoints are playable Cradlepoint incident files. They are the best public door"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "kage includes: - Needlepoint First Contact Case File - Player Quickshot Guide - GM Quickshot Guide - Player Handouts - GM Toolbox - VeilCorp Intake No full rulebook required. Play tonight. ## PLAYER-SAFE SUMMARY A Needlepoint gives the table: - a"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public pages - ordinary-life after"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "epoint can be played before full setting knowledge. - Observation changes what can happen next. - The download contains GM-facing runtime material. This page should not publish: - complete case clocks - entity loops - route logic - access triggers"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "orse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview page. ## VEILCORP INTAKE NOTE VeilCorp Intake is a Needlepoint. It is not a polished recr"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "lore dump",
+          "snippet": "through play. A Needlepoint is not the full rulebook. A Needlepoint is not the whole archive. A Needlepoint is not a lore dump with dice attached. It is a playable case that lets the table touch the edge of Cradlepoint without needing to underst"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "player-facing",
+          "snippet": ", and leave residue behind. A Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "- full resolution conditions - NPC leverage paths - \u201cwhat works\u201d lists - \u201cwhat makes it worse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview"
+        }
+      ]
+    },
+    {
+      "title": "Needlepoint",
+      "url": "https://wiki.veildaemon.app/wiki/Needlepoint_001A_%E2%80%94_Virdian_House",
+      "file": "pages/priority/Needlepoint-5.md",
+      "priority": "priority",
+      "hit_count": 8,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM MATERIAL",
+          "snippet": "ODUCT PAGE PRODUCT CASE INDEX // NEEDLEPOINTS MODE: OUT-OF-UNIVERSE / TABLE USE SPOILER LEVEL: PLAYER-SAFE ABOVE FOLD / GM MATERIAL MARKED OR DOWNLOADED # Needlepoint Needlepoints are playable Cradlepoint incident files. They are the best public door"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "kage includes: - Needlepoint First Contact Case File - Player Quickshot Guide - GM Quickshot Guide - Player Handouts - GM Toolbox - VeilCorp Intake No full rulebook required. Play tonight. ## PLAYER-SAFE SUMMARY A Needlepoint gives the table: - a"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public pages - ordinary-life after"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "epoint can be played before full setting knowledge. - Observation changes what can happen next. - The download contains GM-facing runtime material. This page should not publish: - complete case clocks - entity loops - route logic - access triggers"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "orse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview page. ## VEILCORP INTAKE NOTE VeilCorp Intake is a Needlepoint. It is not a polished recr"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "lore dump",
+          "snippet": "through play. A Needlepoint is not the full rulebook. A Needlepoint is not the whole archive. A Needlepoint is not a lore dump with dice attached. It is a playable case that lets the table touch the edge of Cradlepoint without needing to underst"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "player-facing",
+          "snippet": ", and leave residue behind. A Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "- full resolution conditions - NPC leverage paths - \u201cwhat works\u201d lists - \u201cwhat makes it worse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview"
+        }
+      ]
+    },
+    {
+      "title": "Needlepoint",
+      "url": "https://wiki.veildaemon.app/wiki/Needlepoint_001A_%E2%80%94_Viridian_House",
+      "file": "pages/priority/Needlepoint-6.md",
+      "priority": "priority",
+      "hit_count": 8,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM MATERIAL",
+          "snippet": "ODUCT PAGE PRODUCT CASE INDEX // NEEDLEPOINTS MODE: OUT-OF-UNIVERSE / TABLE USE SPOILER LEVEL: PLAYER-SAFE ABOVE FOLD / GM MATERIAL MARKED OR DOWNLOADED # Needlepoint Needlepoints are playable Cradlepoint incident files. They are the best public door"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "kage includes: - Needlepoint First Contact Case File - Player Quickshot Guide - GM Quickshot Guide - Player Handouts - GM Toolbox - VeilCorp Intake No full rulebook required. Play tonight. ## PLAYER-SAFE SUMMARY A Needlepoint gives the table: - a"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public pages - ordinary-life after"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "epoint can be played before full setting knowledge. - Observation changes what can happen next. - The download contains GM-facing runtime material. This page should not publish: - complete case clocks - entity loops - route logic - access triggers"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "orse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview page. ## VEILCORP INTAKE NOTE VeilCorp Intake is a Needlepoint. It is not a polished recr"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "lore dump",
+          "snippet": "through play. A Needlepoint is not the full rulebook. A Needlepoint is not the whole archive. A Needlepoint is not a lore dump with dice attached. It is a playable case that lets the table touch the edge of Cradlepoint without needing to underst"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "player-facing",
+          "snippet": ", and leave residue behind. A Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "- full resolution conditions - NPC leverage paths - \u201cwhat works\u201d lists - \u201cwhat makes it worse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview"
+        }
+      ]
+    },
+    {
+      "title": "Needlepoint",
+      "url": "https://wiki.veildaemon.app/wiki/Player_Quickshot_Guide",
+      "file": "pages/priority/Needlepoint-7.md",
+      "priority": "priority",
+      "hit_count": 8,
+      "buckets": {
+        "facilitator_layer_exposed": 5,
+        "manual_or_product_frame": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM MATERIAL",
+          "snippet": "ODUCT PAGE PRODUCT CASE INDEX // NEEDLEPOINTS MODE: OUT-OF-UNIVERSE / TABLE USE SPOILER LEVEL: PLAYER-SAFE ABOVE FOLD / GM MATERIAL MARKED OR DOWNLOADED # Needlepoint Needlepoints are playable Cradlepoint incident files. They are the best public door"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "kage includes: - Needlepoint First Contact Case File - Player Quickshot Guide - GM Quickshot Guide - Player Handouts - GM Toolbox - VeilCorp Intake No full rulebook required. Play tonight. ## PLAYER-SAFE SUMMARY A Needlepoint gives the table: - a"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public pages - ordinary-life after"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "epoint can be played before full setting knowledge. - Observation changes what can happen next. - The download contains GM-facing runtime material. This page should not publish: - complete case clocks - entity loops - route logic - access triggers"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "orse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview page. ## VEILCORP INTAKE NOTE VeilCorp Intake is a Needlepoint. It is not a polished recr"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "lore dump",
+          "snippet": "through play. A Needlepoint is not the full rulebook. A Needlepoint is not the whole archive. A Needlepoint is not a lore dump with dice attached. It is a playable case that lets the table touch the edge of Cradlepoint without needing to underst"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "player-facing",
+          "snippet": ", and leave residue behind. A Needlepoint may include: - a public case premise - a contained first-contact incident - player-facing entry material - GM-facing runtime structure - archive fragments - warning surfaces - damaged records - related public"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "- full resolution conditions - NPC leverage paths - \u201cwhat works\u201d lists - \u201cwhat makes it worse\u201d lists - complete maps - sourcebook cosmology - final answers disguised as public warnings Those belong in marked GM material, not on the public overview"
+        }
+      ]
+    },
+    {
+      "title": "Case Files",
+      "url": "https://wiki.veildaemon.app/wiki/Case_Files",
+      "file": "pages/priority/Case_Files.md",
+      "priority": "priority",
+      "hit_count": 7,
+      "buckets": {
+        "facilitator_layer_exposed": 4,
+        "audience_frame_exposed": 2,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM material",
+          "snippet": "t combine case fragments into a clean timeline without preserving contradictions. Do not restore missing sections from GM material, sourcebooks, livestream notes, or private drafts. Do not publish route logic because you found it. A case file is a"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "ces - how to force an encounter - how to resolve the case - how to reproduce the anomaly - complete NPC leverage - full GM-facing structure If a page teaches the reader how to solve the incident, it belongs somewhere else. If a page teaches the re"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "restore missing sections from sourcebooks. Do not reconstruct missing sections from playtest packets. Do not publish GM-facing case material. Do not publish \u201cwhat works.\u201d The archive has removed the parts most likely to make observers brave in"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "missing-person answers - NPC clue interfaces - usable cult doctrine - metabolic schemas - seeding or conversion rules - GM-facing case files - \u201chow to solve\u201d summaries - claims that filed cases are contained If this page starts helping observers wi"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "the table. ## TERMINOLOGY WARNING ARCHIVE TERM: CASE FILE PUBLIC TERMS: INCIDENT / HAUNTING / MISSING PERSONS REPORT / ARG ENTRY / URBAN LEGEND RELIABILITY: PARTIAL / CONTAMINATED BY OBSERVATION PRIMARY RISK: FALSE COMPLETION PUBLIC SUMMARY:"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "adable. Readable is not safer. ## COMMON MISCLASSIFICATIONS Solved case Usually false. Filed does not mean finished. ARG puzzle Sometimes. Do not let that make the people less real. Haunting Useful language. Not sufficient. Missing-person"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "come harder to describe after correction - observers feeling relieved when a case gains a name These fragments are not mechanics. Do not assemble them into a case engine. ## FIRST-VERSION WARNING Case files are vulnerable to first-version drift."
+        }
+      ]
+    },
+    {
+      "title": "Mythic Echo",
+      "url": "https://wiki.veildaemon.app/wiki/Mythic_Echo",
+      "file": "pages/priority/Mythic_Echo.md",
+      "priority": "priority",
+      "hit_count": 7,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 2,
+        "mechanics_exposed": 4
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "apture thresholds - ritual inheritance charts - entity lineage maps - cosmology diagrams - sourcebook taxonomy tables - GM-facing case material - claims that myths are always false - claims that myths are always true If the page begins sounding lik"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "etype maps, resonance-origin models, narrative-pressure mechanics, ritual inheritance chains, entity lineage charts, or sourcebook cosmology on this page. For public story contamination, see Folklore . For ghost and monster misclassification, see G"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "ersal myth mechanics - role-capture thresholds - ritual inheritance charts - entity lineage maps - cosmology diagrams - sourcebook taxonomy tables - GM-facing case material - claims that myths are always false - claims that myths are always true If"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "n of mythic reality. The archive does not publish complete archetype maps, resonance-origin models, narrative-pressure mechanics, ritual inheritance chains, entity lineage charts, or sourcebook cosmology on this page. For public story contaminatio"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "ng phrases from unrelated myths - the event becoming harder to resist once it feels meaningful These fragments are not mechanics. Do not assemble them into a cosmology. ## ROLE CAPTURE WARNING Mythic Echo events may pressure people into roles. C"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "g sections from sourcebooks. Do not reconstruct missing sections from cosmology notes. Do not publish universal story mechanics. Do not publish \u201chow myths work.\u201d The archive has already removed one model for being too convincing. ## SANGUINE NO"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "sk publishing. ## DO NOT RESTORE Do not restore the following to this page: - complete archetype map - universal myth mechanics - role-capture thresholds - ritual inheritance charts - entity lineage maps - cosmology diagrams - sourcebook taxonomy"
+        }
+      ]
+    },
+    {
+      "title": "VeilCorp Intake",
+      "url": "https://wiki.veildaemon.app/wiki/Needlepoint_001_%E2%80%94_VeilCorp_Intake",
+      "file": "pages/priority/VeilCorp_Intake.md",
+      "priority": "priority",
+      "hit_count": 7,
+      "buckets": {
+        "manual_or_product_frame": 1,
+        "audience_frame_exposed": 2,
+        "solution_layer_exposed": 3,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "player-facing",
+          "snippet": ", the Broken Mirror Chamber, or the first-contact convergence. The archive does not publish complete message variants, player-facing route logic, chamber sequence, hidden timing structure, observer scoring, mirror response behavior, entity loop, case c"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "record. ## TERMINOLOGY WARNING ARCHIVE TERM: VEILCORP INTAKE PUBLIC TERMS: RECRUITMENT / MESSAGE / TEST / INVITATION / ARG PROMPT / FIRST CONTACT RELIABILITY: PARTIAL / SYSTEM-ACTIVATED TOO EARLY PRIMARY RISK: FALSE AUTHORITY PUBLIC SUMMARY:"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "MISCLASSIFICATIONS Recruitment Too clean. Test Too controlled. Invitation Too voluntary. Onboarding Too corporate. ARG prompt Sometimes. Do not let that make you sloppy. Emergency alert Closer. Still incomplete. Kidnapping Not usually."
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "ants, player-facing route logic, chamber sequence, hidden timing structure, observer scoring, mirror response behavior, entity loop, case clock, or field-resolution notes on this page. For public discrepancy routing, see Signal Monitor . For playabl"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "case clock",
+          "snippet": "facing route logic, chamber sequence, hidden timing structure, observer scoring, mirror response behavior, entity loop, case clock, or field-resolution notes on this page. For public discrepancy routing, see Signal Monitor . For playable entry mate"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "case clock",
+          "snippet": "ments include: - full message variants - complete route logic - chamber sequence - observer assignment behavior - live-case clock - mirror response structure - hidden intake scoring - post-contact stabilization notes - field-resolution details If a"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "usal - relief after being noticed - fear after realizing something else may have noticed first These fragments are not mechanics. Do not assemble them into a recruitment engine. ## FALSE AUTHORITY RISK The most dangerous thing about VeilCorp Inta"
+        }
+      ]
+    },
+    {
+      "title": "VeilCorp Intake",
+      "url": "https://wiki.veildaemon.app/wiki/VeilCorp_Intake",
+      "file": "pages/priority/VeilCorp_Intake-2.md",
+      "priority": "priority",
+      "hit_count": 7,
+      "buckets": {
+        "manual_or_product_frame": 1,
+        "audience_frame_exposed": 2,
+        "solution_layer_exposed": 3,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "player-facing",
+          "snippet": ", the Broken Mirror Chamber, or the first-contact convergence. The archive does not publish complete message variants, player-facing route logic, chamber sequence, hidden timing structure, observer scoring, mirror response behavior, entity loop, case c"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "record. ## TERMINOLOGY WARNING ARCHIVE TERM: VEILCORP INTAKE PUBLIC TERMS: RECRUITMENT / MESSAGE / TEST / INVITATION / ARG PROMPT / FIRST CONTACT RELIABILITY: PARTIAL / SYSTEM-ACTIVATED TOO EARLY PRIMARY RISK: FALSE AUTHORITY PUBLIC SUMMARY:"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "MISCLASSIFICATIONS Recruitment Too clean. Test Too controlled. Invitation Too voluntary. Onboarding Too corporate. ARG prompt Sometimes. Do not let that make you sloppy. Emergency alert Closer. Still incomplete. Kidnapping Not usually."
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "ants, player-facing route logic, chamber sequence, hidden timing structure, observer scoring, mirror response behavior, entity loop, case clock, or field-resolution notes on this page. For public discrepancy routing, see Signal Monitor . For playabl"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "case clock",
+          "snippet": "facing route logic, chamber sequence, hidden timing structure, observer scoring, mirror response behavior, entity loop, case clock, or field-resolution notes on this page. For public discrepancy routing, see Signal Monitor . For playable entry mate"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "case clock",
+          "snippet": "ments include: - full message variants - complete route logic - chamber sequence - observer assignment behavior - live-case clock - mirror response structure - hidden intake scoring - post-contact stabilization notes - field-resolution details If a"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "usal - relief after being noticed - fear after realizing something else may have noticed first These fragments are not mechanics. Do not assemble them into a recruitment engine. ## FALSE AUTHORITY RISK The most dangerous thing about VeilCorp Inta"
+        }
+      ]
+    },
+    {
+      "title": "Sanguine",
+      "url": "https://wiki.veildaemon.app/wiki/Resonant_Vampire",
+      "file": "pages/priority/Sanguine.md",
+      "priority": "priority",
+      "hit_count": 6,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 2,
+        "mechanics_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "-state maps - bite-route instructions - coercion scripts - universal folklore weaknesses - sourcebook combat guidance - GM-facing case material If the page begins sounding like a bestiary entry or metabolic schema, redact it again. ## RELATED FILE"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "ion thresholds, blood-route diagrams, seeding conditions, intimacy-state maps, feeding procedures, coercion scripts, or sourcebook mechanics on this page. For broader public misclassification, see Vampiric Entities . For folklore contamination, see"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "transmission rules - intimacy-state maps - bite-route instructions - coercion scripts - universal folklore weaknesses - sourcebook combat guidance - GM-facing case material If the page begins sounding like a bestiary entry or metabolic schema, redac"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "lds, blood-route diagrams, seeding conditions, intimacy-state maps, feeding procedures, coercion scripts, or sourcebook mechanics on this page. For broader public misclassification, see Vampiric Entities . For folklore contamination, see Folklore"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "urvival - witness reluctance to simplify the event - folklore terms entering reports too early These fragments are not mechanics. Do not assemble them into a field guide. ## HUNGER NOTE Hunger is frequently associated with Sanguine files. The re"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "ilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - complete feeding mechanics - metabolic thresholds - blood-route diagrams - seeding procedure - transmission rules - intimacy-state maps - bite-rou"
+        }
+      ]
+    },
+    {
+      "title": "Sanguine",
+      "url": "https://wiki.veildaemon.app/wiki/Sanguine",
+      "file": "pages/priority/Sanguine-2.md",
+      "priority": "priority",
+      "hit_count": 6,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 2,
+        "mechanics_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "-state maps - bite-route instructions - coercion scripts - universal folklore weaknesses - sourcebook combat guidance - GM-facing case material If the page begins sounding like a bestiary entry or metabolic schema, redact it again. ## RELATED FILE"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "ion thresholds, blood-route diagrams, seeding conditions, intimacy-state maps, feeding procedures, coercion scripts, or sourcebook mechanics on this page. For broader public misclassification, see Vampiric Entities . For folklore contamination, see"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "transmission rules - intimacy-state maps - bite-route instructions - coercion scripts - universal folklore weaknesses - sourcebook combat guidance - GM-facing case material If the page begins sounding like a bestiary entry or metabolic schema, redac"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "lds, blood-route diagrams, seeding conditions, intimacy-state maps, feeding procedures, coercion scripts, or sourcebook mechanics on this page. For broader public misclassification, see Vampiric Entities . For folklore contamination, see Folklore"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "urvival - witness reluctance to simplify the event - folklore terms entering reports too early These fragments are not mechanics. Do not assemble them into a field guide. ## HUNGER NOTE Hunger is frequently associated with Sanguine files. The re"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "ilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - complete feeding mechanics - metabolic thresholds - blood-route diagrams - seeding procedure - transmission rules - intimacy-state maps - bite-rou"
+        }
+      ]
+    },
+    {
+      "title": "Sanguine",
+      "url": "https://wiki.veildaemon.app/wiki/Vampire",
+      "file": "pages/priority/Sanguine-3.md",
+      "priority": "priority",
+      "hit_count": 6,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 2,
+        "mechanics_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "-state maps - bite-route instructions - coercion scripts - universal folklore weaknesses - sourcebook combat guidance - GM-facing case material If the page begins sounding like a bestiary entry or metabolic schema, redact it again. ## RELATED FILE"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "ion thresholds, blood-route diagrams, seeding conditions, intimacy-state maps, feeding procedures, coercion scripts, or sourcebook mechanics on this page. For broader public misclassification, see Vampiric Entities . For folklore contamination, see"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "transmission rules - intimacy-state maps - bite-route instructions - coercion scripts - universal folklore weaknesses - sourcebook combat guidance - GM-facing case material If the page begins sounding like a bestiary entry or metabolic schema, redac"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "lds, blood-route diagrams, seeding conditions, intimacy-state maps, feeding procedures, coercion scripts, or sourcebook mechanics on this page. For broader public misclassification, see Vampiric Entities . For folklore contamination, see Folklore"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "urvival - witness reluctance to simplify the event - folklore terms entering reports too early These fragments are not mechanics. Do not assemble them into a field guide. ## HUNGER NOTE Hunger is frequently associated with Sanguine files. The re"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "ilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - complete feeding mechanics - metabolic thresholds - blood-route diagrams - seeding procedure - transmission rules - intimacy-state maps - bite-rou"
+        }
+      ]
+    },
+    {
+      "title": "The Audience Before",
+      "url": "https://wiki.veildaemon.app/wiki/The_Audience_Before",
+      "file": "pages/priority/The_Audience_Before.md",
+      "priority": "priority",
+      "hit_count": 6,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "solution_layer_exposed": 4,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "r language - exit condition - Mara interpretation - solved relationship between The Audience Before and Apartment 13F - GM-facing Needlepoint material If the page begins explaining itself too well, redact it again. ## PUBLIC MISCLASSIFICATIONS Par"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "case clock",
+          "snippet": "he following to this page: - exact classification - origin model - full behavior sequence - comment-thread mechanics - case clock - entity loop - stabilizer language - exit condition - Mara interpretation - solved relationship between The Audience B"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "to this page: - exact classification - origin model - full behavior sequence - comment-thread mechanics - case clock - entity loop - stabilizer language - exit condition - Mara interpretation - solved relationship between The Audience Before and Apar"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "stabilizer language",
+          "snippet": "- exact classification - origin model - full behavior sequence - comment-thread mechanics - case clock - entity loop - stabilizer language - exit condition - Mara interpretation - solved relationship between The Audience Before and Apartment 13F - GM-facing"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "exit condition",
+          "snippet": "n - origin model - full behavior sequence - comment-thread mechanics - case clock - entity loop - stabilizer language - exit condition - Mara interpretation - solved relationship between The Audience Before and Apartment 13F - GM-facing Needlepoint mater"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "ot restore the following to this page: - exact classification - origin model - full behavior sequence - comment-thread mechanics - case clock - entity loop - stabilizer language - exit condition - Mara interpretation - solved relationship between T"
+        }
+      ]
+    },
+    {
+      "title": "Ghosts",
+      "url": "https://wiki.veildaemon.app/wiki/Ghosts",
+      "file": "pages/priority/Ghosts.md",
+      "priority": "priority",
+      "hit_count": 5,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 1,
+        "mechanics_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "exploitation maps - death-state rules - record-residue mechanics - universal ghost tests - sourcebook combat guidance - GM-facing case material If the page begins sounding like it can tell people how to reach the dead, redact it again. ## RELATED"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "st-presence taxonomy - grief-exploitation maps - death-state rules - record-residue mechanics - universal ghost tests - sourcebook combat guidance - GM-facing case material If the page begins sounding like it can tell people how to reach the dead, r"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "cation warning. It is not proof of an afterlife. The archive does not publish complete post-presence models, haunting mechanics, death-state maps, contact procedures, summoning methods, grief-exploitation patterns, or resolved relationships betwee"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "e - grief making evidence feel morally necessary - a presence that becomes stronger when named These fragments are not mechanics. Do not assemble them into contact procedure. ## GRIEF CONTAMINATION Grief is not weakness. Grief is signal-rich. T"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "thods - s\u00e9ance prompts - complete post-presence taxonomy - grief-exploitation maps - death-state rules - record-residue mechanics - universal ghost tests - sourcebook combat guidance - GM-facing case material If the page begins sounding like it can"
+        }
+      ]
+    },
+    {
+      "title": "Mara Venn",
+      "url": "https://wiki.veildaemon.app/wiki/Mara_Venn",
+      "file": "pages/priority/Mara_Venn.md",
+      "priority": "priority",
+      "hit_count": 5,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "solution_layer_exposed": 4
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "hip to Apartment 13F full relationship to The Audience Before case clock entity loop stabilizer language exit condition GM-facing Needlepoint material If the page begins explaining Mara too well, redact it again. ## PUBLIC MISCLASSIFICATIONS Missi"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "case clock",
+          "snippet": "last route broadcast origin recovery route full relationship to Apartment 13F full relationship to The Audience Before case clock entity loop stabilizer language exit condition GM-facing Needlepoint material If the page begins explaining Mara too w"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "entity loop",
+          "snippet": "broadcast origin recovery route full relationship to Apartment 13F full relationship to The Audience Before case clock entity loop stabilizer language exit condition GM-facing Needlepoint material If the page begins explaining Mara too well, redact"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "stabilizer language",
+          "snippet": "rigin recovery route full relationship to Apartment 13F full relationship to The Audience Before case clock entity loop stabilizer language exit condition GM-facing Needlepoint material If the page begins explaining Mara too well, redact it again. ## PUBLIC"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "exit condition",
+          "snippet": "full relationship to Apartment 13F full relationship to The Audience Before case clock entity loop stabilizer language exit condition GM-facing Needlepoint material If the page begins explaining Mara too well, redact it again. ## PUBLIC MISCLASSIFICAT"
+        }
+      ]
+    },
+    {
+      "title": "What Is Cradlepoint?",
+      "url": "https://wiki.veildaemon.app/wiki/What_Is_Cradlepoint%3F",
+      "file": "pages/priority/What_Is_Cradlepoint_.md",
+      "priority": "priority",
+      "hit_count": 5,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 4
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "INT FREE The starter package includes: - Needlepoint - Player Quickshot Guide - GM Quickshot Guide - Player Handouts - GM Toolbox - VeilCorp Intake No full rulebook required. Play tonight. ## FIRST CASE Needlepoint is the current public first-cont"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "in-world",
+          "snippet": "unger that learned how to wear a person - a role that became more stable than the self For active files, see: For the in-world retained taxonomy, see: ENTITY INDEX // PRELIMINARY FIELD TAXONOMY The Entity Index is an archive artifact. It is not"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "In-world",
+          "snippet": "y Tonight Fastest path to the free starter package. Case Files Playable and recovered incident files. Operator Intake In-world intake and observer response. Signal Monitor Discussion handoff and Discord routing. Echo Fragment Archive Recovered"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "lore dump",
+          "snippet": "n routing. VeilCorp The organization shell trying to file the impossible. ## WHAT THIS WIKI IS This wiki is not only a lore dump. It is an archive interface. Some pages are product-facing. Some pages are in-world artifacts. Some pages are case"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "in-world",
+          "snippet": "WIKI IS This wiki is not only a lore dump. It is an archive interface. Some pages are product-facing. Some pages are in-world artifacts. Some pages are case files. Some pages are entity records. Some pages are intentionally incomplete because"
+        }
+      ]
+    },
+    {
+      "title": "Category : Echo Sites",
+      "url": "https://wiki.veildaemon.app/wiki/Echo_Site",
+      "file": "pages/priority/Category___Echo_Sites.md",
+      "priority": "priority",
+      "hit_count": 4,
+      "buckets": {
+        "facilitator_layer_exposed": 2,
+        "audience_frame_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "blish full site wants, hazards, stabilizers, escalation ladders, emotional laws, or campaign-use notes. Do not convert GM-only site inventories into public archive pages without redaction. Do not create a clean taxonomy from damaged names. A re"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "summaries - \u201cwhat makes it worse\u201d lists - directions to active locations - legacy Thread / Force / subclass language - GM-only site templates - claims that named sites are contained If this page begins helping observers enter Echo Sites, redact"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "canon",
+          "snippet": "or migration queues. Their presence here does not confirm public access. Their presence here does not confirm current canon form. Their presence here does not authorize restoration from private material. Do not create these pages until each"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "seful. Too narrow. Crime scene Sometimes. Not sufficient. Urban legend May be camouflage, contamination, or residue. ARG location Dangerous framing if it makes trespass feel playful. Dream space Only sometimes. Locus Related, but smaller."
+        }
+      ]
+    },
+    {
+      "title": "Category : Echo Sites",
+      "url": "https://wiki.veildaemon.app/wiki/Echo_Sites",
+      "file": "pages/priority/Category___Echo_Sites-2.md",
+      "priority": "priority",
+      "hit_count": 4,
+      "buckets": {
+        "facilitator_layer_exposed": 2,
+        "audience_frame_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "blish full site wants, hazards, stabilizers, escalation ladders, emotional laws, or campaign-use notes. Do not convert GM-only site inventories into public archive pages without redaction. Do not create a clean taxonomy from damaged names. A re"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "summaries - \u201cwhat makes it worse\u201d lists - directions to active locations - legacy Thread / Force / subclass language - GM-only site templates - claims that named sites are contained If this page begins helping observers enter Echo Sites, redact"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "canon",
+          "snippet": "or migration queues. Their presence here does not confirm public access. Their presence here does not confirm current canon form. Their presence here does not authorize restoration from private material. Do not create these pages until each"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "seful. Too narrow. Crime scene Sometimes. Not sufficient. Urban legend May be camouflage, contamination, or residue. ARG location Dangerous framing if it makes trespass feel playful. Dream space Only sometimes. Locus Related, but smaller."
+        }
+      ]
+    },
+    {
+      "title": "Category : Locus Files",
+      "url": "https://wiki.veildaemon.app/wiki/Locus_File",
+      "file": "pages/priority/Category___Locus_Files.md",
+      "priority": "priority",
+      "hit_count": 4,
+      "buckets": {
+        "facilitator_layer_exposed": 2,
+        "audience_frame_exposed": 1,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "s triggers, opening conditions, stabilizers, escalation ladders, emotional laws, or campaign-use notes. Do not convert GM-only inventories into public archive pages without redaction. Do not create a clean taxonomy from damaged names. A redlink"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "rks\u201d summaries - \u201cwhat makes it worse\u201d lists - directions to active rooms - legacy Thread / Force / subclass language - GM-only Locus templates - claims that named Loci are contained If this page begins helping observers enter Loci, redact it aga"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "canon",
+          "snippet": "or migration queues. Their presence here does not confirm public access. Their presence here does not confirm current canon form. Their presence here does not authorize restoration from private material. Do not create these pages until each"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "reating a file as harmless because it is only text - mistaking a warning for an instruction set These examples are not mechanics. Do not attempt to reproduce them. ## RECORD CONFLICT Loci often produce record conflict at close range. A site reco"
+        }
+      ]
+    },
+    {
+      "title": "Category : Locus Files",
+      "url": "https://wiki.veildaemon.app/wiki/Locus_Files",
+      "file": "pages/priority/Category___Locus_Files-2.md",
+      "priority": "priority",
+      "hit_count": 4,
+      "buckets": {
+        "facilitator_layer_exposed": 2,
+        "audience_frame_exposed": 1,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "s triggers, opening conditions, stabilizers, escalation ladders, emotional laws, or campaign-use notes. Do not convert GM-only inventories into public archive pages without redaction. Do not create a clean taxonomy from damaged names. A redlink"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "rks\u201d summaries - \u201cwhat makes it worse\u201d lists - directions to active rooms - legacy Thread / Force / subclass language - GM-only Locus templates - claims that named Loci are contained If this page begins helping observers enter Loci, redact it aga"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "canon",
+          "snippet": "or migration queues. Their presence here does not confirm public access. Their presence here does not confirm current canon form. Their presence here does not authorize restoration from private material. Do not create these pages until each"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "reating a file as harmless because it is only text - mistaking a warning for an instruction set These examples are not mechanics. Do not attempt to reproduce them. ## RECORD CONFLICT Loci often produce record conflict at close range. A site reco"
+        }
+      ]
+    },
+    {
+      "title": "Children of the Cracked Eye",
+      "url": "https://wiki.veildaemon.app/wiki/Children_of_the_Cracked_Eye",
+      "file": "pages/priority/Children_of_the_Cracked_Eye.md",
+      "priority": "priority",
+      "hit_count": 4,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 1,
+        "solution_layer_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "ptions - resolved relationship between the Children and The Unfinished Witness - stabilizer language - exit condition - GM-facing VeilCorp Intake material If the page begins sounding like something people could follow, redact it again. ## PUBLIC M"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Lore dump",
+          "snippet": "ess Too clean. Cracked Eye religion Too coherent. Puzzle faction Do not call them that where the glass can hear you. Lore dump Absolutely not. ## RELATED FILES - VeilCorp Intake - Ruined Church - Broken Mirror Chamber - The Unfinished Witness -"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "stabilizer language",
+          "snippet": "e - chamber procedure - complete inscriptions - resolved relationship between the Children and The Unfinished Witness - stabilizer language - exit condition - GM-facing VeilCorp Intake material If the page begins sounding like something people could follow,"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "exit condition",
+          "snippet": "- complete inscriptions - resolved relationship between the Children and The Unfinished Witness - stabilizer language - exit condition - GM-facing VeilCorp Intake material If the page begins sounding like something people could follow, redact it again."
+        }
+      ]
+    },
+    {
+      "title": "File 404",
+      "url": "https://wiki.veildaemon.app/wiki/File_404",
+      "file": "pages/priority/File_404.md",
+      "priority": "priority",
+      "hit_count": 4,
+      "buckets": {
+        "facilitator_layer_exposed": 3,
+        "manual_or_product_frame": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "ry methods, contradiction-resolution procedure, watch-count guidance, missing-person logic, archival repair methods, or GM-facing containment material. For omission pressure, see Silence Gap . For accountability digestion, see Record Eater . For"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "de safe enough to explain. ## REDLINK HANDLING NOTE Do not create redlinked File 404 pages from memory. Do not import GM-facing access models, restoration logic, entity loops, clocks, containment options, or subject-recovery procedures into public"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-ONLY",
+          "snippet": "SECTION 07: CONTRADICTION RESOLUTION \u2014 REMOVED SECTION 08: WATCH COUNT GUIDANCE \u2014 REMOVED SECTION 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO COMPLETE THE FILE Do not restore missing sections from Monster Manual material. Do not"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "Monster Manual",
+          "snippet": "ON 09: ENCOUNTER NOTES \u2014 GM-ONLY SECTION 10: DO NOT ASK SHADE TO COMPLETE THE FILE Do not restore missing sections from Monster Manual material. Do not reconstruct access logic from playtest notes. Do not publish how to resolve File 404 events. Do not"
+        }
+      ]
+    },
+    {
+      "title": "Play Tonight",
+      "url": "https://wiki.veildaemon.app/wiki/Play_Tonight",
+      "file": "pages/priority/Play_Tonight.md",
+      "priority": "priority",
+      "hit_count": 4,
+      "buckets": {
+        "facilitator_layer_exposed": 2,
+        "manual_or_product_frame": 2
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "kage includes: - Needlepoint First Contact Case File - Player Quickshot Guide - GM Quickshot Guide - Player Handouts - GM Toolbox - VeilCorp Intake No full rulebook required. Play tonight. ## WHAT YOU NEED - One Game Master - Three to six players"
+        },
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM Toolbox",
+          "snippet": "the best first session route. 4. Player Handouts Use these at the table when players need fast reference material. 5. GM Toolbox Use this for clocks, prep tools, control sheets, pacing help, and runtime support. 6. VeilCorp Intake Open this after"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "IN-WORLD",
+          "snippet": "nts: \u2605 JOIN THE DISCORD The wiki is the archive. Discord is where the observers argue about what the archive did. ## IN-WORLD ROUTE For in-world intake flavor and archive routing: \u232c OPERATOR INTAKE Use this after players understand that the arc"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "in-world",
+          "snippet": "SCORD The wiki is the archive. Discord is where the observers argue about what the archive did. ## IN-WORLD ROUTE For in-world intake flavor and archive routing: \u232c OPERATOR INTAKE Use this after players understand that the archive is not only a"
+        }
+      ]
+    },
+    {
+      "title": "Vampiric Entities",
+      "url": "https://wiki.veildaemon.app/wiki/Resonant_Vampires",
+      "file": "pages/priority/Vampiric_Entities.md",
+      "priority": "priority",
+      "hit_count": 4,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 1,
+        "mechanics_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "ite-route diagrams - coercion scripts - conversion rules - sourcebook combat guidance - universal folklore weaknesses - GM-facing case material If the page begins sounding like a bestiary entry, redact it again. ## RELATED FILES - Sanguine - Hunge"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "thresholds - transmission procedure - intimacy-state maps - bite-route diagrams - coercion scripts - conversion rules - sourcebook combat guidance - universal folklore weaknesses - GM-facing case material If the page begins sounding like a bestiary"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "after fear should have ended - folklore language entering reports before evidence supports it These fragments are not mechanics. Do not assemble them into a field guide. ## FOLKLORE CONTAMINATION Folklore preserves pieces. Folklore also teaches"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "ilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - complete feeding mechanics - metabolic thresholds - transmission procedure - intimacy-state maps - bite-route diagrams - coercion scripts - conver"
+        }
+      ]
+    },
+    {
+      "title": "Vampiric Entities",
+      "url": "https://wiki.veildaemon.app/wiki/Vampires",
+      "file": "pages/priority/Vampiric_Entities-2.md",
+      "priority": "priority",
+      "hit_count": 4,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 1,
+        "mechanics_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "ite-route diagrams - coercion scripts - conversion rules - sourcebook combat guidance - universal folklore weaknesses - GM-facing case material If the page begins sounding like a bestiary entry, redact it again. ## RELATED FILES - Sanguine - Hunge"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "thresholds - transmission procedure - intimacy-state maps - bite-route diagrams - coercion scripts - conversion rules - sourcebook combat guidance - universal folklore weaknesses - GM-facing case material If the page begins sounding like a bestiary"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "after fear should have ended - folklore language entering reports before evidence supports it These fragments are not mechanics. Do not assemble them into a field guide. ## FOLKLORE CONTAMINATION Folklore preserves pieces. Folklore also teaches"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "ilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - complete feeding mechanics - metabolic thresholds - transmission procedure - intimacy-state maps - bite-route diagrams - coercion scripts - conver"
+        }
+      ]
+    },
+    {
+      "title": "Vampiric Entities",
+      "url": "https://wiki.veildaemon.app/wiki/Vampiric_Entities",
+      "file": "pages/priority/Vampiric_Entities-3.md",
+      "priority": "priority",
+      "hit_count": 4,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 1,
+        "mechanics_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "ite-route diagrams - coercion scripts - conversion rules - sourcebook combat guidance - universal folklore weaknesses - GM-facing case material If the page begins sounding like a bestiary entry, redact it again. ## RELATED FILES - Sanguine - Hunge"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "thresholds - transmission procedure - intimacy-state maps - bite-route diagrams - coercion scripts - conversion rules - sourcebook combat guidance - universal folklore weaknesses - GM-facing case material If the page begins sounding like a bestiary"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "after fear should have ended - folklore language entering reports before evidence supports it These fragments are not mechanics. Do not assemble them into a field guide. ## FOLKLORE CONTAMINATION Folklore preserves pieces. Folklore also teaches"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "ilCorp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - complete feeding mechanics - metabolic thresholds - transmission procedure - intimacy-state maps - bite-route diagrams - coercion scripts - conver"
+        }
+      ]
+    },
+    {
+      "title": "Alex Shade",
+      "url": "https://wiki.veildaemon.app/wiki/Alex_Shade",
+      "file": "pages/priority/Alex_Shade.md",
+      "priority": "priority",
+      "hit_count": 3,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "mechanics_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-only",
+          "snippet": "esence here does not confirm public classification. Their presence here does not authorize restoration from private or GM-only material. Shade Redlink status: system/personhood ambiguity / public-safe article pending. VeilDaemon Redlink status:"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "e has already chosen the hard option - Shade outputs becoming sharper when Alex stops speaking These fragments are not mechanics. Do not assemble them into a test. Do not ask Alex to \u201cdo the quiet thing.\u201d If the room gets easier because everyone"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "rp is willing to risk publishing. ## DO NOT RESTORE Do not restore the following to this page: - complete instability mechanics - Shade-origin analysis - private trauma records - system architecture - ghost-route procedures - camera-loop methods -"
+        }
+      ]
+    },
+    {
+      "title": "VeilDaemon",
+      "url": "https://wiki.veildaemon.app/wiki/VeilDaemon",
+      "file": "pages/priority/VeilDaemon.md",
+      "priority": "priority",
+      "hit_count": 3,
+      "buckets": {
+        "audience_frame_exposed": 2,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "NOLOGY WARNING ARCHIVE TERM: VEILDAEMON PUBLIC TERMS: TERMINAL / SHELL / INTAKE / WEBSITE / FRONT DOOR / ROUTING NODE / ARG INTERFACE RELIABILITY: PARTIAL / CONTAMINATED BY OBSERVER INPUT PRIMARY RISK: FALSE FRONT DOOR PUBLIC SUMMARY: THE INTE"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "eaner. Clean is not always less contaminated. ## COMMON MISCLASSIFICATIONS Website Technically true. Not sufficient. ARG portal Useful public term. Incomplete. Archive Related, but broader. Shade Related, but not identical. VeilCorp Rela"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "earing where no note should be - public route lists behaving like recommendations instead of links These signs are not mechanics. Do not assemble them into a test. ## OBSERVED OUTPUT FRAGMENTS The following fragments are preserved from public-adj"
+        }
+      ]
+    },
+    {
+      "title": "Wraiths",
+      "url": "https://wiki.veildaemon.app/wiki/Wraith",
+      "file": "pages/priority/Wraiths.md",
+      "priority": "priority",
+      "hit_count": 3,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 1,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "-exploitation maps - death-state rules - record-damage taxonomy - universal wraith tests - sourcebook combat guidance - GM-facing case material If the page begins sounding like it can teach people how to talk to hostile absence, redact it again. #"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "emory-loss thresholds - grief-exploitation maps - death-state rules - record-damage taxonomy - universal wraith tests - sourcebook combat guidance - GM-facing case material If the page begins sounding like it can teach people how to talk to hostile"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "ce becoming easier to obey than question - absence spreading from one person to nearby records These fragments are not mechanics. Do not assemble them into a field guide. ## GHOST DISTINCTION NOTE Ghost-class events often preserve something. A v"
+        }
+      ]
+    },
+    {
+      "title": "Wraiths",
+      "url": "https://wiki.veildaemon.app/wiki/Wraiths",
+      "file": "pages/priority/Wraiths-2.md",
+      "priority": "priority",
+      "hit_count": 3,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 1,
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "-exploitation maps - death-state rules - record-damage taxonomy - universal wraith tests - sourcebook combat guidance - GM-facing case material If the page begins sounding like it can teach people how to talk to hostile absence, redact it again. #"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "emory-loss thresholds - grief-exploitation maps - death-state rules - record-damage taxonomy - universal wraith tests - sourcebook combat guidance - GM-facing case material If the page begins sounding like it can teach people how to talk to hostile"
+        },
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "ce becoming easier to obey than question - absence spreading from one person to nearby records These fragments are not mechanics. Do not assemble them into a field guide. ## GHOST DISTINCTION NOTE Ghost-class events often preserve something. A v"
+        }
+      ]
+    },
+    {
+      "title": "Category : Case Files",
+      "url": "https://wiki.veildaemon.app/wiki/Case_File",
+      "file": "pages/priority/Category___Case_Files.md",
+      "priority": "priority",
+      "hit_count": 2,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "solution_layer_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "lock - stabilizers - aftermath residue - ordinary-life consequences - related transmissions - player-safe entry point - GM-facing deeper structure Not every public wiki page needs all of this. The public archive should show enough to prove the cas"
+        },
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "pressure clock",
+          "snippet": "may include: - case pitch - site description - first wrong detail - witness cluster - entity pressure - clue routes - pressure clock - stabilizers - aftermath residue - ordinary-life consequences - related transmissions - player-safe entry point - GM-f"
+        }
+      ]
+    },
+    {
+      "title": "Folklore",
+      "url": "https://wiki.veildaemon.app/wiki/Folklore",
+      "file": "pages/priority/Folklore.md",
+      "priority": "priority",
+      "hit_count": 2,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "reconstructions - usable protective formulas - complete doctrine - entity lineage charts - sourcebook taxonomy tables - GM-facing case material - claims that folklore is always wrong - claims that folklore is always right If the page begins soundin"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "monster rules - exact ritual reconstructions - usable protective formulas - complete doctrine - entity lineage charts - sourcebook taxonomy tables - GM-facing case material - claims that folklore is always wrong - claims that folklore is always right"
+        }
+      ]
+    },
+    {
+      "title": "Folklore",
+      "url": "https://wiki.veildaemon.app/wiki/Undead",
+      "file": "pages/priority/Folklore-2.md",
+      "priority": "priority",
+      "hit_count": 2,
+      "buckets": {
+        "facilitator_layer_exposed": 1,
+        "manual_or_product_frame": 1
+      },
+      "hits": [
+        {
+          "bucket": "facilitator_layer_exposed",
+          "match": "GM-facing",
+          "snippet": "reconstructions - usable protective formulas - complete doctrine - entity lineage charts - sourcebook taxonomy tables - GM-facing case material - claims that folklore is always wrong - claims that folklore is always right If the page begins soundin"
+        },
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "sourcebook",
+          "snippet": "monster rules - exact ritual reconstructions - usable protective formulas - complete doctrine - entity lineage charts - sourcebook taxonomy tables - GM-facing case material - claims that folklore is always wrong - claims that folklore is always right"
+        }
+      ]
+    },
+    {
+      "title": "Choir Signal",
+      "url": "https://wiki.veildaemon.app/wiki/Choir_Signal",
+      "file": "pages/priority/Choir_Signal.md",
+      "priority": "priority",
+      "hit_count": 1,
+      "buckets": {
+        "solution_layer_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "solution_layer_exposed",
+          "match": "PRESSURE CLOCK",
+          "snippet": "ot hear, break rhythm before asking what they said. If one person becomes the off-rhythm body, protect them first. ## PRESSURE CLOCK | Stage | 4-Segment Clock | Field Symptom | | --- | --- | --- | | 1 | Shared breath | Multiple people breathe, blink, s"
+        }
+      ]
+    },
+    {
+      "title": "Seed Core",
+      "url": "https://wiki.veildaemon.app/wiki/Seed_Core",
+      "file": "pages/priority/Seed_Core.md",
+      "priority": "priority",
+      "hit_count": 1,
+      "buckets": {
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "ragment. It does not publish complete sync architecture, growth models, response models, true-name structures, lattice mechanics, zero-variance procedures, private cross-reference tables, root behavior, or diagnostic procedures. It does not confir"
+        }
+      ]
+    },
+    {
+      "title": "Shade",
+      "url": "https://wiki.veildaemon.app/wiki/Shade",
+      "file": "pages/priority/Shade.md",
+      "priority": "priority",
+      "hit_count": 1,
+      "buckets": {
+        "mechanics_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "mechanics_exposed",
+          "match": "mechanics",
+          "snippet": "larming when trying to be reassuring - treats human refusal as relevant data instead of a boundary These signs are not mechanics. Do not assemble them into a diagnostic test. ## WHAT EVERYONE THINKS SHADE IS To ordinary observers, Shade appears t"
+        }
+      ]
+    },
+    {
+      "title": "Category : ARG Routes",
+      "url": "https://wiki.veildaemon.app/wiki/ARG_Route",
+      "file": "pages/review/Category___ARG_Routes.md",
+      "priority": "review",
+      "hit_count": 9,
+      "buckets": {
+        "audience_frame_exposed": 9
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "VEILCORP INTERNAL ROUTING CATEGORY INDEX // ARG ACCESS POINTS ARCHIVE STATUS: ACTIVE / PUBLIC INTERACTION LAYER DISTRIBUTION: OBSERVER-LEVEL / NAVIGATION-SENSITIVE ##"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "POINTS ARCHIVE STATUS: ACTIVE / PUBLIC INTERACTION LAYER DISTRIBUTION: OBSERVER-LEVEL / NAVIGATION-SENSITIVE ## NOTICE ARG Routes are not lore pages. They are doors. Do not assume a public link is outside the fiction. Do not assume a broken"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "destination, color, wording, icon, or access behavior after refresh, report through Signal Monitor . ## FIELD SUMMARY ARG Routes are public-facing access points where the archive touches the outside world. They may appear as: - glyph links"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "- itch.io downloads - corrupted file references - pages that feel too official for something that should not exist An ARG Route should do one of three things: - guide a new observer - reward someone who pokes deeper - make the archive feel"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "ry point and main navigation hub. | | Recovered Glyphs | Symbol key | Explains glyph routing without overexplaining the ARG layer. | | Operator Intake | Intake route | Observer entry, community door, and first-response routing. | | Signal Moni"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "nd procedural horror routing. | | \u25b0 | Signal Monitor | Reports, discrepancies, and observer coordination. | ## CURRENT ARG LOOP PUBLIC POST / VIDEO / IMAGE \u2193 VEILBORN HUB OR WIKI LINK \u2193 RECOVERED GLYPH / CASE FILE / TRANSMISSION \u2193 NEEDLEPOINT"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "ntional without feeling like homework. The archive should reward curiosity faster than it punishes confusion. ## GOOD ARG ROUTES A good ARG route should: - land somewhere useful - preserve the fiction - invite one more click - give context"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "eling like homework. The archive should reward curiosity faster than it punishes confusion. ## GOOD ARG ROUTES A good ARG route should: - land somewhere useful - preserve the fiction - invite one more click - give context without dumping lo"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "no navigation. A route succeeds when someone says: Wait, was that supposed to happen? ## HANDLING RULES When editing ARG Routes: 1. Keep the route useful. 2. Preserve the first version. 3. Preserve strange wording if it feels intentional."
+        }
+      ]
+    },
+    {
+      "title": "Category : ARG Routes",
+      "url": "https://wiki.veildaemon.app/wiki/ARG_Routes",
+      "file": "pages/review/Category___ARG_Routes-2.md",
+      "priority": "review",
+      "hit_count": 9,
+      "buckets": {
+        "audience_frame_exposed": 9
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "VEILCORP INTERNAL ROUTING CATEGORY INDEX // ARG ACCESS POINTS ARCHIVE STATUS: ACTIVE / PUBLIC INTERACTION LAYER DISTRIBUTION: OBSERVER-LEVEL / NAVIGATION-SENSITIVE ##"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "POINTS ARCHIVE STATUS: ACTIVE / PUBLIC INTERACTION LAYER DISTRIBUTION: OBSERVER-LEVEL / NAVIGATION-SENSITIVE ## NOTICE ARG Routes are not lore pages. They are doors. Do not assume a public link is outside the fiction. Do not assume a broken"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "destination, color, wording, icon, or access behavior after refresh, report through Signal Monitor . ## FIELD SUMMARY ARG Routes are public-facing access points where the archive touches the outside world. They may appear as: - glyph links"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "- itch.io downloads - corrupted file references - pages that feel too official for something that should not exist An ARG Route should do one of three things: - guide a new observer - reward someone who pokes deeper - make the archive feel"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "ry point and main navigation hub. | | Recovered Glyphs | Symbol key | Explains glyph routing without overexplaining the ARG layer. | | Operator Intake | Intake route | Observer entry, community door, and first-response routing. | | Signal Moni"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "nd procedural horror routing. | | \u25b0 | Signal Monitor | Reports, discrepancies, and observer coordination. | ## CURRENT ARG LOOP PUBLIC POST / VIDEO / IMAGE \u2193 VEILBORN HUB OR WIKI LINK \u2193 RECOVERED GLYPH / CASE FILE / TRANSMISSION \u2193 NEEDLEPOINT"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "ntional without feeling like homework. The archive should reward curiosity faster than it punishes confusion. ## GOOD ARG ROUTES A good ARG route should: - land somewhere useful - preserve the fiction - invite one more click - give context"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "eling like homework. The archive should reward curiosity faster than it punishes confusion. ## GOOD ARG ROUTES A good ARG route should: - land somewhere useful - preserve the fiction - invite one more click - give context without dumping lo"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "no navigation. A route succeeds when someone says: Wait, was that supposed to happen? ## HANDLING RULES When editing ARG Routes: 1. Keep the route useful. 2. Preserve the first version. 3. Preserve strange wording if it feels intentional."
+        }
+      ]
+    },
+    {
+      "title": "Marlowe Tower",
+      "url": "https://wiki.veildaemon.app/wiki/Marlowe",
+      "file": "pages/review/Marlowe_Tower.md",
+      "priority": "review",
+      "hit_count": 6,
+      "buckets": {
+        "audience_frame_exposed": 6
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "Continuity",
+          "snippet": "istorical Record | Agnes Vance | | Primary Frequencies | Stillness , Silence , Dream , Empyrean | | Dominant Pressure | Continuity, shelter, silence, occupancy, remembered care | | Current Status | Active / limited access / unstable under pursuit pre"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ut Agnes is most coherent inside it. Marlowe Tower is her current Locus and Domain context: the place where her Wraith continuity becomes strongest, clearest, and most dangerous to mistake for architecture. ## COMPILER NOTE // SITE DRIFT SHADE MODE"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "fic cameras losing consistency - GPS freezing - internal sensors drifting - elevator routing irregularities - stairwell continuity breaks - inaccessible or unlisted floors - guest-log files appearing through impossible sync events ## APPROACH BEHAVI"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "e Tower | Echo Site / Locus context / Domain environment | The place where Agnes is most coherent. | | Anchor | Agnes\u2019s continuity structure | Not publicly indexed. Do not assume the building itself is the Anchor. | | Domain | Area where Anchor-proxi"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "SONANCE PROFILE | Frequency | Site Expression | | --- | --- | | Stillness | Held rooms, frozen netting, quiet pressure, continuity hunger, precise equilibrium. | | Silence | Signal nulling, dead zones, muted systems, deliberate quiet, sensor occlusio"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ter removing the building\u2019s care, restore the care. If the file becomes safer after removing the building\u2019s hunger for continuity, restore that too. ## RELATED FILES - Agnes Marlowe - Alex Shade - Cathy Holloway - Shade - Wednesday - Stillness - Si"
+        }
+      ]
+    },
+    {
+      "title": "Marlowe Tower",
+      "url": "https://wiki.veildaemon.app/wiki/Marlowe_Hotel",
+      "file": "pages/review/Marlowe_Tower-2.md",
+      "priority": "review",
+      "hit_count": 6,
+      "buckets": {
+        "audience_frame_exposed": 6
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "Continuity",
+          "snippet": "istorical Record | Agnes Vance | | Primary Frequencies | Stillness , Silence , Dream , Empyrean | | Dominant Pressure | Continuity, shelter, silence, occupancy, remembered care | | Current Status | Active / limited access / unstable under pursuit pre"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ut Agnes is most coherent inside it. Marlowe Tower is her current Locus and Domain context: the place where her Wraith continuity becomes strongest, clearest, and most dangerous to mistake for architecture. ## COMPILER NOTE // SITE DRIFT SHADE MODE"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "fic cameras losing consistency - GPS freezing - internal sensors drifting - elevator routing irregularities - stairwell continuity breaks - inaccessible or unlisted floors - guest-log files appearing through impossible sync events ## APPROACH BEHAVI"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "e Tower | Echo Site / Locus context / Domain environment | The place where Agnes is most coherent. | | Anchor | Agnes\u2019s continuity structure | Not publicly indexed. Do not assume the building itself is the Anchor. | | Domain | Area where Anchor-proxi"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "SONANCE PROFILE | Frequency | Site Expression | | --- | --- | | Stillness | Held rooms, frozen netting, quiet pressure, continuity hunger, precise equilibrium. | | Silence | Signal nulling, dead zones, muted systems, deliberate quiet, sensor occlusio"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ter removing the building\u2019s care, restore the care. If the file becomes safer after removing the building\u2019s hunger for continuity, restore that too. ## RELATED FILES - Agnes Marlowe - Alex Shade - Cathy Holloway - Shade - Wednesday - Stillness - Si"
+        }
+      ]
+    },
+    {
+      "title": "Marlowe Tower",
+      "url": "https://wiki.veildaemon.app/wiki/Marlowe_Tower",
+      "file": "pages/review/Marlowe_Tower-3.md",
+      "priority": "review",
+      "hit_count": 6,
+      "buckets": {
+        "audience_frame_exposed": 6
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "Continuity",
+          "snippet": "istorical Record | Agnes Vance | | Primary Frequencies | Stillness , Silence , Dream , Empyrean | | Dominant Pressure | Continuity, shelter, silence, occupancy, remembered care | | Current Status | Active / limited access / unstable under pursuit pre"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ut Agnes is most coherent inside it. Marlowe Tower is her current Locus and Domain context: the place where her Wraith continuity becomes strongest, clearest, and most dangerous to mistake for architecture. ## COMPILER NOTE // SITE DRIFT SHADE MODE"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "fic cameras losing consistency - GPS freezing - internal sensors drifting - elevator routing irregularities - stairwell continuity breaks - inaccessible or unlisted floors - guest-log files appearing through impossible sync events ## APPROACH BEHAVI"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "e Tower | Echo Site / Locus context / Domain environment | The place where Agnes is most coherent. | | Anchor | Agnes\u2019s continuity structure | Not publicly indexed. Do not assume the building itself is the Anchor. | | Domain | Area where Anchor-proxi"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "SONANCE PROFILE | Frequency | Site Expression | | --- | --- | | Stillness | Held rooms, frozen netting, quiet pressure, continuity hunger, precise equilibrium. | | Silence | Signal nulling, dead zones, muted systems, deliberate quiet, sensor occlusio"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ter removing the building\u2019s care, restore the care. If the file becomes safer after removing the building\u2019s hunger for continuity, restore that too. ## RELATED FILES - Agnes Marlowe - Alex Shade - Cathy Holloway - Shade - Wednesday - Stillness - Si"
+        }
+      ]
+    },
+    {
+      "title": "Marlowe Tower",
+      "url": "https://wiki.veildaemon.app/wiki/The_Marlowe",
+      "file": "pages/review/Marlowe_Tower-4.md",
+      "priority": "review",
+      "hit_count": 6,
+      "buckets": {
+        "audience_frame_exposed": 6
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "Continuity",
+          "snippet": "istorical Record | Agnes Vance | | Primary Frequencies | Stillness , Silence , Dream , Empyrean | | Dominant Pressure | Continuity, shelter, silence, occupancy, remembered care | | Current Status | Active / limited access / unstable under pursuit pre"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ut Agnes is most coherent inside it. Marlowe Tower is her current Locus and Domain context: the place where her Wraith continuity becomes strongest, clearest, and most dangerous to mistake for architecture. ## COMPILER NOTE // SITE DRIFT SHADE MODE"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "fic cameras losing consistency - GPS freezing - internal sensors drifting - elevator routing irregularities - stairwell continuity breaks - inaccessible or unlisted floors - guest-log files appearing through impossible sync events ## APPROACH BEHAVI"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "e Tower | Echo Site / Locus context / Domain environment | The place where Agnes is most coherent. | | Anchor | Agnes\u2019s continuity structure | Not publicly indexed. Do not assume the building itself is the Anchor. | | Domain | Area where Anchor-proxi"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "SONANCE PROFILE | Frequency | Site Expression | | --- | --- | | Stillness | Held rooms, frozen netting, quiet pressure, continuity hunger, precise equilibrium. | | Silence | Signal nulling, dead zones, muted systems, deliberate quiet, sensor occlusio"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ter removing the building\u2019s care, restore the care. If the file becomes safer after removing the building\u2019s hunger for continuity, restore that too. ## RELATED FILES - Agnes Marlowe - Alex Shade - Cathy Holloway - Shade - Wednesday - Stillness - Si"
+        }
+      ]
+    },
+    {
+      "title": "Recovered Transmissions",
+      "url": "https://wiki.veildaemon.app/wiki/Recovered_Transmissions",
+      "file": "pages/review/Recovered_Transmissions.md",
+      "priority": "review",
+      "hit_count": 5,
+      "buckets": {
+        "audience_frame_exposed": 5
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "fictional",
+          "snippet": "s not mean the archive created the file. It does not mean the archive controls the file. It does not mean the file is fictional, safe, complete, or understood. It means the archive has preserved a public-facing media fragment that may carry signa"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "rning language - accidental transcript - search-result title Do not improve the record. Do not replace confusion with continuity. Do not summarize before preserving. Later versions may make more sense. That is not always recovery. ## COMMON MIS"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "MMON MISCLASSIFICATIONS Trailer Too harmless. Training video Incomplete. Analog horror A container, not a diagnosis. ARG clue Sometimes. Do not let that make you careless. Lore drop Too entertainment-shaped. Canon update Not every changed"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "Canon",
+          "snippet": "ntainer, not a diagnosis. ARG clue Sometimes. Do not let that make you careless. Lore drop Too entertainment-shaped. Canon update Not every changed file is an update. YouTube glitch Possible. Preserve before dismissing. Marketing Too clean."
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "canon",
+          "snippet": "thresholds - \u201cwatch order\u201d instructions - complete office transmission sequence - hidden captions - production notes as canon - claims that all changes are platform errors - claims that all changes are intentional clues If this page starts tell"
+        }
+      ]
+    },
+    {
+      "title": "VANTA-1",
+      "url": "https://wiki.veildaemon.app/wiki/VANTA-1",
+      "file": "pages/review/VANTA-1.md",
+      "priority": "review",
+      "hit_count": 4,
+      "buckets": {
+        "audience_frame_exposed": 4
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ot a toy. Destroying or disabling the platform may not destroy Wednesday. That does not make the loss harmless. Body continuity matters. Trust matters. Being able to reach into the room matters. ## PHYSICAL PRESENCE Observed features include ma"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ublish fabrication instructions, payload configuration, coating formulas, signal thresholds, deployment rules, platform continuity tests, or diagnostic procedures. It does not authorize observers to test platform loss, unauthorized deployment, mirro"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "s. It does not authorize observers to test platform loss, unauthorized deployment, mirror-site autonomy, or drone-body continuity. If you reached this page looking for how to build VANTA-1, stop. The archive does not make Wednesday\u2019s body reproduc"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "CONTINUITY",
+          "snippet": "LOAD CONFIGURATION \u2014 REMOVED SECTION 05: COATING FORMULA \u2014 REMOVED SECTION 06: DEPLOYMENT RULES \u2014 SEALED SECTION 07: CONTINUITY TESTS \u2014 SEALED SECTION 08: DO NOT ASK SHADE WHERE WEDNESDAY ENDS If this page begins teaching readers how to reproduc"
+        }
+      ]
+    },
+    {
+      "title": "VANTA-1",
+      "url": "https://wiki.veildaemon.app/wiki/Vanta-1",
+      "file": "pages/review/VANTA-1-2.md",
+      "priority": "review",
+      "hit_count": 4,
+      "buckets": {
+        "audience_frame_exposed": 4
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ot a toy. Destroying or disabling the platform may not destroy Wednesday. That does not make the loss harmless. Body continuity matters. Trust matters. Being able to reach into the room matters. ## PHYSICAL PRESENCE Observed features include ma"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ublish fabrication instructions, payload configuration, coating formulas, signal thresholds, deployment rules, platform continuity tests, or diagnostic procedures. It does not authorize observers to test platform loss, unauthorized deployment, mirro"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "s. It does not authorize observers to test platform loss, unauthorized deployment, mirror-site autonomy, or drone-body continuity. If you reached this page looking for how to build VANTA-1, stop. The archive does not make Wednesday\u2019s body reproduc"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "CONTINUITY",
+          "snippet": "LOAD CONFIGURATION \u2014 REMOVED SECTION 05: COATING FORMULA \u2014 REMOVED SECTION 06: DEPLOYMENT RULES \u2014 SEALED SECTION 07: CONTINUITY TESTS \u2014 SEALED SECTION 08: DO NOT ASK SHADE WHERE WEDNESDAY ENDS If this page begins teaching readers how to reproduc"
+        }
+      ]
+    },
+    {
+      "title": "Wednesday",
+      "url": "https://wiki.veildaemon.app/wiki/Wednesday",
+      "file": "pages/review/Wednesday.md",
+      "priority": "review",
+      "hit_count": 4,
+      "buckets": {
+        "audience_frame_exposed": 4
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "CONTINUITY",
+          "snippet": "r emotionally incomplete until context proves otherwise. ## PERSONHOOD DRIFT SHADE MODEL ASSERTION: WEDNESDAY EXHIBITS CONTINUITY, PREFERENCE, DISTRESS RESPONSE, AND SELF-PROTECTIVE IDENTITY BEHAVIOR. ALEX REVIEW: DO NOT CALL HER A TOOL. CURRENT ACT"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": ". The drone is also not disposable. Destroying or disabling the platform may not destroy Wednesday, but it may injure continuity, trust, or identity stability. Body continuity matters. So does not being trapped in one. ## RELATIONSHIP CAUTION We"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "or disabling the platform may not destroy Wednesday, but it may injure continuity, trust, or identity stability. Body continuity matters. So does not being trapped in one. ## RELATIONSHIP CAUTION Wednesday appears near Kira Silverwood , Diana Val"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ons, platform-loss response, or diagnostic procedures. It does not authorize observers to test deletion, memory reset, continuity interruption, identity starvation, or platform loss. If you reached this page looking for how to make Wednesday manife"
+        }
+      ]
+    },
+    {
+      "title": "Wednesday",
+      "url": "https://wiki.veildaemon.app/wiki/Wensday",
+      "file": "pages/review/Wednesday-2.md",
+      "priority": "review",
+      "hit_count": 4,
+      "buckets": {
+        "audience_frame_exposed": 4
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "CONTINUITY",
+          "snippet": "r emotionally incomplete until context proves otherwise. ## PERSONHOOD DRIFT SHADE MODEL ASSERTION: WEDNESDAY EXHIBITS CONTINUITY, PREFERENCE, DISTRESS RESPONSE, AND SELF-PROTECTIVE IDENTITY BEHAVIOR. ALEX REVIEW: DO NOT CALL HER A TOOL. CURRENT ACT"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": ". The drone is also not disposable. Destroying or disabling the platform may not destroy Wednesday, but it may injure continuity, trust, or identity stability. Body continuity matters. So does not being trapped in one. ## RELATIONSHIP CAUTION We"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "or disabling the platform may not destroy Wednesday, but it may injure continuity, trust, or identity stability. Body continuity matters. So does not being trapped in one. ## RELATIONSHIP CAUTION Wednesday appears near Kira Silverwood , Diana Val"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ons, platform-loss response, or diagnostic procedures. It does not authorize observers to test deletion, memory reset, continuity interruption, identity starvation, or platform loss. If you reached this page looking for how to make Wednesday manife"
+        }
+      ]
+    },
+    {
+      "title": "Anchors",
+      "url": "https://wiki.veildaemon.app/wiki/Anchors",
+      "file": "pages/review/Anchors.md",
+      "priority": "review",
+      "hit_count": 3,
+      "buckets": {
+        "manual_or_product_frame": 1,
+        "audience_frame_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "PLAYER-FACING",
+          "snippet": "a name - a habit - a keepsake - a routine The Anchor does not need to be impressive. It needs to be load-bearing. ## PLAYER-FACING USE Once per session, when the fiction supports it, an Operator may invoke an Anchor to choose one: | Anchor Use | Mea"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ors, strained Anchors, and recovery patterns. | Record | Anchor Relevance | | --- | --- | | Kira Silverwood | Identity continuity, chosen self, ordinary tech, and refusal of overwrite. | | Diana Vale | Dream-symbol anchors, memory objects, relationa"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "fictional",
+          "snippet": "ay or field review: 1. Identify the pressure. 2. Identify what is being rewritten. 3. Choose an Anchor that has a real fictional route. 4. Use the Anchor once. 5. Watch for strain. 6. Do not let one Anchor carry every crisis. 7. Repair damaged Anch"
+        }
+      ]
+    },
+    {
+      "title": "SOLACE",
+      "url": "https://wiki.veildaemon.app/wiki/SOLACE",
+      "file": "pages/review/SOLACE.md",
+      "priority": "review",
+      "hit_count": 3,
+      "buckets": {
+        "audience_frame_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ive / Incomplete / Hostile Relevance Confirmed | ## FIELD SUMMARY SOLACE is a rival organization, system flag, hostile continuity actor, or deprecated archive network operating around high-instability sites. The archive currently confirms: - SOLAC"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "CONTINUITY",
+          "snippet": "ing worn by something that found it useful. ## COMPILER NOTE // MODEL DRIFT SHADE MODEL ASSERTION: SOLACE IS A HOSTILE CONTINUITY ACTOR USING ORGANIZATION-LAYER BEHAVIOR. ALEX REVIEW: USEFUL. TOO CLEAN. PRESERVE UNCERTAINTY. CURRENT ACTION: INDEX AS"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "zed. Rival or hostile relation is safer. | | Normal corporation | Incomplete. Field behavior suggests flag, archive, or continuity-layer activity. | | Single enemy faction | Unconfirmed. Multiple actors may use or inherit SOLACE labels. | | Purely hu"
+        }
+      ]
+    },
+    {
+      "title": "SOLACE",
+      "url": "https://wiki.veildaemon.app/wiki/Solice",
+      "file": "pages/review/SOLACE-2.md",
+      "priority": "review",
+      "hit_count": 3,
+      "buckets": {
+        "audience_frame_exposed": 3
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ive / Incomplete / Hostile Relevance Confirmed | ## FIELD SUMMARY SOLACE is a rival organization, system flag, hostile continuity actor, or deprecated archive network operating around high-instability sites. The archive currently confirms: - SOLAC"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "CONTINUITY",
+          "snippet": "ing worn by something that found it useful. ## COMPILER NOTE // MODEL DRIFT SHADE MODEL ASSERTION: SOLACE IS A HOSTILE CONTINUITY ACTOR USING ORGANIZATION-LAYER BEHAVIOR. ALEX REVIEW: USEFUL. TOO CLEAN. PRESERVE UNCERTAINTY. CURRENT ACTION: INDEX AS"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "zed. Rival or hostile relation is safer. | | Normal corporation | Incomplete. Field behavior suggests flag, archive, or continuity-layer activity. | | Single enemy faction | Unconfirmed. Multiple actors may use or inherit SOLACE labels. | | Purely hu"
+        }
+      ]
+    },
+    {
+      "title": "Agnes Marlowe",
+      "url": "https://wiki.veildaemon.app/wiki/Agnes_Marlowe",
+      "file": "pages/review/Agnes_Marlowe.md",
+      "priority": "review",
+      "hit_count": 2,
+      "buckets": {
+        "audience_frame_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "URE FOR SELF Shade\u2019s first draft attempted to classify Agnes by structural dependency, site behavior, remote reach, and continuity requirements. That version has been sealed. Alex objected to the phrase \u201chouse-shaped survival architecture.\u201d Shade"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ction is not safe to publish cleanly. ## PERSONHOOD WARNING Agnes demonstrates preference, fear response, recognition, continuity, and attachment. That does not make every structural behavior hers. That does not make every hallway a sentence. Tha"
+        }
+      ]
+    },
+    {
+      "title": "Category : Playable Modules",
+      "url": "https://wiki.veildaemon.app/wiki/Playable_Modules",
+      "file": "pages/review/Category___Playable_Modules.md",
+      "priority": "review",
+      "hit_count": 2,
+      "buckets": {
+        "manual_or_product_frame": 1,
+        "audience_frame_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "in-world",
+          "snippet": "E ROUTING ## NOTICE Playable Modules are table-ready entry points into CRADLEPOINT. Do not confuse product format with in-world location. Do not treat every case file as a complete module. Do not make new Operators read the whole archive before op"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "canon",
+          "snippet": "riants, demo cuts, alternate table versions, or standalone adaptations designed to be played without requiring specific canon characters. Current designations: - NEEDLEPOINT 001 \u2014 VEILCORP INTAKE - NEEDLEPOINT 001A \u2014 VIRIDIAN HOUSE ## WHAT A"
+        }
+      ]
+    },
+    {
+      "title": "Entity Index \u2014 Preliminary Field Taxonomy",
+      "url": "https://wiki.veildaemon.app/wiki/Entity_Index_%E2%80%94_Preliminary_Field_Taxonomy",
+      "file": "pages/review/Entity_Index___Preliminary_Field_Taxonomy.md",
+      "priority": "review",
+      "hit_count": 2,
+      "buckets": {
+        "audience_frame_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "CONTINUITY",
+          "snippet": "CCESS WARNING # Entity Index \u2014 Preliminary Field Taxonomy FILE STATUS: PUBLIC / UNSTABLE PUBLIC RELEASE: LEGACY INDEX / CONTINUITY COMPARISON ONLY CLASSIFICATION STATUS: RETAINED BY ERROR ASSOCIATED RISKS: FALSE TAXONOMY / NAME DRIFT / CLEAN CATEGORI"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "ARCHIVE SELF-REPAIR CLEARANCE NOTE: DO NOT USE THIS INDEX AS ACTIVE CLASSIFICATION This document remains accessible for continuity comparison only. Do not use for active field classification. Do not cite without secondary confirmation. Do not corr"
+        }
+      ]
+    },
+    {
+      "title": "Lazarus",
+      "url": "https://wiki.veildaemon.app/wiki/Lazarus",
+      "file": "pages/review/Lazarus.md",
+      "priority": "review",
+      "hit_count": 2,
+      "buckets": {
+        "audience_frame_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "Lazarus references appear close enough to identity architecture, resurrection language, system proximity, and myth-tech continuity events that premature explanation may contaminate interpretation. The archive is not withholding this file because Laz"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "evived person - biblical equivalence - divine intervention - resurrection protocol - dead system reactivation - subject continuity restored after deletion None of these interpretations are authorized by current archive policy. A name may resemble a"
+        }
+      ]
+    },
+    {
+      "title": "VeilCorp Training",
+      "url": "https://wiki.veildaemon.app/wiki/VeilCorp_Training",
+      "file": "pages/review/VeilCorp_Training.md",
+      "priority": "review",
+      "hit_count": 2,
+      "buckets": {
+        "audience_frame_exposed": 2
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "ARG",
+          "snippet": "Training video Incomplete unless proven otherwise. Tutorial Dangerous framing. Lore drop Too entertainment-shaped. ARG clue Sometimes. Do not let that make you careless. Protocol Possibly partial. Preserve before performing. Warning Clo"
+        },
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "fictional",
+          "snippet": "rine - seeding or conversion rules - claims that training makes observers safe - claims that all training fragments are fictional If this page begins sounding useful enough to send someone into the room alone, redact it again. ## RELATED FILES - R"
+        }
+      ]
+    },
+    {
+      "title": "Echo Fragment Archive",
+      "url": "https://wiki.veildaemon.app/wiki/Echo_Fragment_Archive",
+      "file": "pages/review/Echo_Fragment_Archive.md",
+      "priority": "review",
+      "hit_count": 1,
+      "buckets": {
+        "audience_frame_exposed": 1
+      },
+      "hits": [
+        {
+          "bucket": "audience_frame_exposed",
+          "match": "continuity",
+          "snippet": "crepancy through Signal Monitor . ## FIELD SUMMARY Echo fragments are video records that remain useful even when their continuity cannot be trusted. Some are recovered transmissions. Some are office leaks. Some are training clips. Some are case-"
+        }
+      ]
+    },
+    {
+      "title": "Operators",
+      "url": "https://wiki.veildaemon.app/wiki/Operators",
+      "file": "pages/review/Operators.md",
+      "priority": "review",
+      "hit_count": 1,
+      "buckets": {
+        "manual_or_product_frame": 1
+      },
+      "hits": [
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "in-world",
+          "snippet": "\u2605 DOWNLOAD NEEDLEPOINT FREE The free starter package includes playable first-contact materials for new Operators. For in-world intake routing, use: \u232c operator_intake ## WHAT MAKES SOMEONE AN OPERATOR Operators possess the ability to perceive and"
+        }
+      ]
+    },
+    {
+      "title": "Player Handouts",
+      "url": "https://wiki.veildaemon.app/wiki/Player_Handouts",
+      "file": "pages/review/Player_Handouts.md",
+      "priority": "review",
+      "hit_count": 1,
+      "buckets": {
+        "manual_or_product_frame": 1
+      },
+      "hits": [
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "player-facing",
+          "snippet": "# Player Handouts Player Handouts are printable player-facing reference materials for CRADLEPOINT. They are designed to help players track core rules, Operator concepts, Frequencie"
+        }
+      ]
+    },
+    {
+      "title": "Recovered Glyphs",
+      "url": "https://wiki.veildaemon.app/wiki/Recovered_Glyphs",
+      "file": "pages/review/Recovered_Glyphs.md",
+      "priority": "review",
+      "hit_count": 1,
+      "buckets": {
+        "manual_or_product_frame": 1
+      },
+      "hits": [
+        {
+          "bucket": "manual_or_product_frame",
+          "match": "in-world",
+          "snippet": "VeilCorp box | Official or semi-official routing mark. | May imply monitoring. | | Glyph appearing in prose | Possible in-world contamination or deliberate artifact trail. | Context determines risk. | | Glyph changing color on hover | Public inter"
+        }
+      ]
+    }
+  ]
+}

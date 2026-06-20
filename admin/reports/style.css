@@ -1,0 +1,213 @@
+:root {
+  --bg: #050709;
+  --panel: rgba(7, 11, 14, .92);
+  --line: rgba(138, 255, 219, .3);
+  --text: #e6fff7;
+  --muted: #8ca7a1;
+  --cyan: #66ffdc;
+  --purple: #b954ff;
+  --red: #ff355f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  background:
+    linear-gradient(120deg, rgba(5, 7, 9, .96), rgba(11, 18, 20, .92)),
+    #050709;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.console-shell {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+}
+
+header {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+header p,
+.field span,
+.draft-field span {
+  color: var(--cyan);
+  letter-spacing: .14em;
+  font-size: .72rem;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+.token-panel,
+.queue-panel,
+.report-card {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.token-row,
+.queue-header,
+.report-header,
+.action-row {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+input,
+textarea {
+  width: 100%;
+  color: var(--text);
+  border: 1px solid rgba(138, 255, 219, .22);
+  background: rgba(0, 0, 0, .35);
+  padding: .7rem;
+}
+
+button {
+  min-height: 2.65rem;
+  color: var(--text);
+  border: 1px solid rgba(138, 255, 219, .34);
+  background: rgba(0, 0, 0, .42);
+  padding: .65rem .85rem;
+  cursor: pointer;
+}
+
+button:hover,
+button:focus-visible {
+  border-color: rgba(102, 255, 220, .8);
+}
+
+button.approve {
+  color: #03100d;
+  background: linear-gradient(90deg, var(--cyan), #e9fff8);
+  font-weight: 800;
+}
+
+button.reject {
+  border-color: rgba(255, 53, 95, .58);
+  color: #ffd5de;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.report-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.report-header h3 {
+  margin: 0;
+}
+
+.status {
+  padding: .4rem .55rem;
+  border: 1px solid rgba(138, 255, 219, .24);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.status-approved { color: var(--cyan); }
+.status-rejected { color: var(--red); }
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .65rem;
+  margin: 1rem 0;
+}
+
+.field {
+  border: 1px solid rgba(138, 255, 219, .16);
+  background: rgba(0, 0, 0, .24);
+  padding: .7rem;
+}
+
+.field p {
+  margin: .35rem 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+details {
+  border-top: 1px solid rgba(185, 84, 255, .28);
+  border-bottom: 1px solid rgba(185, 84, 255, .28);
+  padding: .85rem 0;
+}
+
+summary {
+  color: var(--cyan);
+  cursor: pointer;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.draft-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .7rem;
+  margin-top: 1rem;
+}
+
+.draft-panel h4,
+.draft-field:nth-last-child(2),
+.draft-field:last-child {
+  grid-column: 1 / -1;
+}
+
+.draft-field {
+  display: grid;
+  gap: .35rem;
+}
+
+.action-row {
+  justify-content: start;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.status-line {
+  color: var(--muted);
+  margin: 1rem 0 0;
+}
+
+.is-error {
+  color: var(--red);
+}
+
+@media (max-width: 760px) {
+  .token-row,
+  .queue-header,
+  .report-header {
+    display: grid;
+  }
+
+  .meta-grid,
+  .draft-panel {
+    grid-template-columns: 1fr;
+  }
+}
