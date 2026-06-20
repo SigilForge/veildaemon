@@ -83,6 +83,15 @@
     return result;
   }
 
+  function reportErrorMessage(error, fallbackMessage) {
+    const message = error && error.message ? error.message : "";
+    if (/Failed to fetch|NetworkError|Load failed/i.test(message)) {
+      return `${fallbackMessage} API unreachable at ${apiBase || "configured route"}. Confirm api.veildaemon.app is assigned to Vercel, not GitHub Pages.`;
+    }
+
+    return message || fallbackMessage;
+  }
+
   function readPayload() {
     const formData = new FormData(form);
     return {
@@ -160,7 +169,7 @@
 
   if (generateDraft) {
     generateDraft.addEventListener("click", () => {
-      requestDraft().catch((error) => setStatus(error.message || "Redaction pass failed.", true));
+      requestDraft().catch((error) => setStatus(reportErrorMessage(error, "Redaction pass failed."), true));
     });
   }
 
@@ -204,7 +213,7 @@
       resetDraftApproval();
       setStatus(`Report ${result.id} received. Final archive review required before public recovery.`);
     } catch (error) {
-      setStatus(error.message || "Report transfer failed.", true);
+      setStatus(reportErrorMessage(error, "Report transfer failed."), true);
     }
   });
 }());
