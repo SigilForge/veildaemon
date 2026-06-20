@@ -8,6 +8,9 @@
 
   if (!form || !statusLine) return;
   let approvedDraft = null;
+  const apiBase = window.location.hostname === "veildaemon.app" || window.location.hostname === "www.veildaemon.app"
+    ? "https://veildaemon.app.vercel.app"
+    : "";
 
   function setStatus(message, isError) {
     statusLine.textContent = message;
@@ -16,6 +19,32 @@
 
   function fieldValue(formData, name) {
     return String(formData.get(name) || "").trim();
+  }
+
+  function safeSnippet(text) {
+    return String(text || "")
+      .replace(/\s+/g, " ")
+      .replace(/[<>{}]/g, "")
+      .trim()
+      .slice(0, 180);
+  }
+
+  async function readJsonResponse(response, fallbackMessage) {
+    const text = await response.text();
+    let result = null;
+
+    try {
+      result = text ? JSON.parse(text) : {};
+    } catch (error) {
+      const snippet = safeSnippet(text);
+      throw new Error(`HTTP ${response.status}: ${snippet || fallbackMessage}`);
+    }
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || `HTTP ${response.status}: ${fallbackMessage}`);
+    }
+
+    return result;
   }
 
   function readPayload() {
@@ -77,18 +106,14 @@
     const payload = readPayload();
     setStatus("Redaction pass in progress.");
 
-    const response = await fetch("/api/reports/preview", {
+    const response = await fetch(`${apiBase}/api/reports/preview`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     });
-    const result = await response.json();
-
-    if (!response.ok || !result.ok) {
-      throw new Error(result.error || "Redaction pass failed.");
-    }
+    const result = await readJsonResponse(response, "Redaction pass failed.");
 
     approvedDraft = result.publicDraft;
     renderDraft(approvedDraft);
@@ -130,18 +155,14 @@
     setStatus("Report transfer in progress. Hold still in the useful way.");
 
     try {
-      const response = await fetch("/api/reports/submit", {
+      const response = await fetch(`${apiBase}/api/reports/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
-      const result = await response.json();
-
-      if (!response.ok || !result.ok) {
-        throw new Error(result.error || "Report transfer failed.");
-      }
+      const result = await readJsonResponse(response, "Report transfer failed.");
 
       form.reset();
       resetDraftApproval();

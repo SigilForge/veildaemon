@@ -4,6 +4,9 @@ const MAX_REPORTS = 500;
 
 function json(res, statusCode, payload) {
   res.statusCode = statusCode;
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Report-Admin-Token");
   res.setHeader("Content-Type", "application/json; charset=utf-8");
   res.end(JSON.stringify(payload));
 }
