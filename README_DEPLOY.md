@@ -26,3 +26,13 @@ The homepage embeds the Primary Feed playlist using:
 `https://www.youtube.com/embed/videoseries?list=PLEoIdLPqOjeuJaD74EtiQWXScSqVtXJh4`
 
 To change the playlist later, replace the playlist ID in `index.html`.
+
+## Debrief API
+
+`https://veildaemon.app/play-report/` is served by GitHub Pages, so the report buttons call the Vercel API through:
+
+`https://api.veildaemon.app`
+
+Assign `api.veildaemon.app` to the Vercel project that deploys this repository, then point that DNS record at Vercel. The form still accepts an override for testing:
+
+`https://veildaemon.app/play-report/?api=https://your-vercel-deployment.vercel.app`
