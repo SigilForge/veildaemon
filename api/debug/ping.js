@@ -1,4 +1,4 @@
-const { json } = require("../_alertQueue");
+const { json } = require("../../lib/alertQueue");
 
 module.exports = function handler(req, res) {
   if (req.method !== "GET") {
