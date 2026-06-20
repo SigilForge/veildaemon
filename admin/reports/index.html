@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VEILCORP // Debrief Queue</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
+  <link rel="stylesheet" href="/admin/reports/style.css?v=20260619-aar1" />
+</head>
+<body>
+  <main class="console-shell">
+    <header>
+      <p>VEILCORP ARCHIVES // REVIEW NODE</p>
+      <h1>Needlepoint Debrief Queue</h1>
+    </header>
+
+    <section class="token-panel" aria-label="Console access">
+      <label for="token">Access token</label>
+      <div class="token-row">
+        <input id="token" type="password" autocomplete="off" placeholder="Required" />
+        <button type="button" id="save-token">Hold</button>
+      </div>
+    </section>
+
+    <section class="queue-panel" aria-label="Report queue">
+      <div class="queue-header">
+        <h2>Manual Recovery Review</h2>
+        <button type="button" id="refresh-queue">Refresh</button>
+      </div>
+      <div id="report-list" class="report-list"></div>
+    </section>
+
+    <p class="status-line" id="status-line" role="status">Queue awaiting authorization.</p>
+  </main>
+  <script src="/admin/reports/admin.js?v=20260619-aar1"></script>
+</body>
+</html>

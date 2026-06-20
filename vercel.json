@@ -33,12 +33,36 @@
       "destination": "/stream/sigilforge/cam-frame/index.html"
     },
     {
+      "source": "/play-report",
+      "destination": "/play-report/index.html"
+    },
+    {
+      "source": "/play-report/",
+      "destination": "/play-report/index.html"
+    },
+    {
+      "source": "/recovered-operator-reports",
+      "destination": "/recovered-operator-reports/index.html"
+    },
+    {
+      "source": "/recovered-operator-reports/",
+      "destination": "/recovered-operator-reports/index.html"
+    },
+    {
       "source": "/admin/alerts",
       "destination": "/api/admin/alerts-page"
     },
     {
       "source": "/admin/alerts/",
       "destination": "/api/admin/alerts-page"
+    },
+    {
+      "source": "/admin/reports",
+      "destination": "/api/admin/reports-page"
+    },
+    {
+      "source": "/admin/reports/",
+      "destination": "/api/admin/reports-page"
     }
   ],
   "headers": [
