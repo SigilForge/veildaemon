@@ -8,13 +8,46 @@
 
   if (!form || !statusLine) return;
   let approvedDraft = null;
-  const apiBase = window.location.hostname === "veildaemon.app" || window.location.hostname === "www.veildaemon.app"
-    ? "https://veildaemon.app.vercel.app"
-    : "";
+  const apiBaseStorageKey = "veildaemon.reportApiBase";
+  const params = new URLSearchParams(window.location.search);
+  const suppliedApiBase = params.get("api") || "";
+  const sameOriginApiAvailable = window.location.hostname !== "veildaemon.app" && window.location.hostname !== "www.veildaemon.app";
+  const storedApiBase = window.localStorage.getItem(apiBaseStorageKey) || "";
+  const apiBase = normalizeApiBase(suppliedApiBase || storedApiBase || (sameOriginApiAvailable ? window.location.origin : ""));
+
+  if (suppliedApiBase && apiBase) {
+    window.localStorage.setItem(apiBaseStorageKey, apiBase);
+  }
 
   function setStatus(message, isError) {
     statusLine.textContent = message;
     statusLine.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function normalizeApiBase(value) {
+    const clean = String(value || "").trim().replace(/\/+$/, "");
+    if (!clean) return "";
+
+    try {
+      const url = new URL(clean);
+      return url.protocol === "https:" || url.hostname === "localhost" || url.hostname === "127.0.0.1"
+        ? url.toString().replace(/\/+$/, "")
+        : "";
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function apiUrl(path) {
+    if (!apiBase) {
+      throw new Error("Report API route not configured. Use the Vercel deployment URL with ?api=https://YOUR-DEPLOYMENT.vercel.app.");
+    }
+
+    return `${apiBase}${path}`;
+  }
+
+  if (!apiBase) {
+    setStatus("Report API route not configured. Add ?api=https://YOUR-DEPLOYMENT.vercel.app to this page URL.", true);
   }
 
   function fieldValue(formData, name) {
@@ -106,7 +139,7 @@
     const payload = readPayload();
     setStatus("Redaction pass in progress.");
 
-    const response = await fetch(`${apiBase}/api/reports/preview`, {
+    const response = await fetch(apiUrl("/api/reports/preview"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -155,7 +188,7 @@
     setStatus("Report transfer in progress. Hold still in the useful way.");
 
     try {
-      const response = await fetch(`${apiBase}/api/reports/submit`, {
+      const response = await fetch(apiUrl("/api/reports/submit"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
