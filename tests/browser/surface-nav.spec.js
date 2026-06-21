@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const publicSurfaces = [
   "/",
   "/operator/",
-  "/play-report/",
+  "/debrief/",
   "/recovered-operator-reports/",
   "/updates/"
 ];
