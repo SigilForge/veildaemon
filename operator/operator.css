@@ -449,9 +449,29 @@ h3 {
 }
 .roll-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, .8fr)) minmax(9rem, 1fr);
+  grid-template-columns: repeat(3, minmax(0, .8fr)) minmax(9rem, .9fr) minmax(9rem, .8fr);
   gap: .65rem;
   align-items: end;
+}
+.roll-mode {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .35rem;
+  margin: 0;
+  padding: .45rem .55rem;
+  border: 1px solid rgba(137,255,218,.18);
+  background: rgba(0,0,0,.2);
+}
+.roll-mode label {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  color: var(--text);
+  font-size: .66rem;
+  letter-spacing: .06em;
+}
+.roll-mode input {
+  width: auto;
 }
 .roll-output {
   margin-top: .7rem;

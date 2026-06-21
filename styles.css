@@ -183,6 +183,84 @@ h1 {
   margin-top: 0;
   color: var(--purple);
 }
+.system-notice {
+  display: grid;
+  grid-template-columns: minmax(8.5rem, .36fr) minmax(0, 1fr);
+  gap: .85rem;
+  align-items: start;
+  margin-top: 1rem;
+  padding: .95rem;
+  border: 1px solid rgba(138,255,219,.24);
+  background:
+    linear-gradient(135deg, rgba(102,255,220,.08), transparent 34%),
+    rgba(0,0,0,.32);
+  box-shadow: inset 0 0 24px rgba(102,255,220,.045);
+}
+.latest-system-notice {
+  margin-top: 1rem;
+}
+.system-notice .kicker {
+  margin-top: 0;
+}
+.system-notice h2 {
+  margin: 0 0 .45rem;
+  color: var(--text);
+  font-size: clamp(1rem, 2.6vw, 1.4rem);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.system-notice p {
+  margin: 0;
+  color: #d7fff4;
+  line-height: 1.45;
+}
+.notice-copy {
+  display: grid;
+  gap: .55rem;
+}
+.notice-copy h3 {
+  margin: .45rem 0 0;
+  color: var(--cyan);
+  font-size: .78rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.notice-meta {
+  display: grid;
+  gap: .45rem;
+  min-width: 0;
+  padding: .65rem;
+  border: 1px solid rgba(185,84,255,.22);
+  background: rgba(0,0,0,.28);
+}
+.notice-meta span,
+.notice-meta strong {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: .72rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.notice-meta span {
+  color: var(--muted);
+}
+.notice-meta strong {
+  color: var(--cyan);
+}
+.notice-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .55rem;
+}
+.notice-actions .button {
+  min-height: 2.65rem;
+  font-size: .68rem;
+}
+.notice-archive {
+  display: grid;
+  gap: 1rem;
+}
 .button {
   --button-idle-border: rgba(138,255,219,.34);
   --button-idle-shadow: inset 0 0 22px rgba(102,255,220,.06);
@@ -1395,6 +1473,12 @@ footer {
   35% { filter: drop-shadow(-8px 12px 18px rgba(0,0,0,.5)); transform: translateX(-.45rem); }
 }
 @media (max-width: 900px) {
+  .system-notice {
+    grid-template-columns: 1fr;
+  }
+  .notice-actions {
+    grid-template-columns: 1fr;
+  }
   .returning-actions,
   .compact-record-grid { grid-template-columns: 1fr; }
   .command-form { grid-template-columns: auto minmax(0, 1fr); }
