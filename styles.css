@@ -1616,7 +1616,8 @@ body:has(#operator-preview:target) .surface-tabs {
   transition: transform .24s ease;
   pointer-events: none;
 }
-.operator-preview-drawer:target {
+.operator-preview-drawer:target,
+.operator-preview-drawer.is-open {
   transform: translate(0, -50%);
   visibility: visible;
   pointer-events: auto;
@@ -1877,7 +1878,8 @@ body:has(#operator-preview:target) .surface-tabs {
   }
   .casefile-drawer.is-open,
   .recovered-reports-drawer.is-open,
-  .operator-preview-drawer:target {
+  .operator-preview-drawer:target,
+  .operator-preview-drawer.is-open {
     transform: translateY(0);
   }
   .casefile-panel,
