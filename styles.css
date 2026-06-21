@@ -20,6 +20,15 @@
 * { box-sizing: border-box; }
 html { min-height: 100%; background: var(--bg); }
 body {
+  --surface-rail-width: 980px;
+  --surface-tab-width: 3.15rem;
+  --surface-case-drawer-width: 430px;
+  --surface-reports-drawer-width: 620px;
+  --surface-operator-drawer-width: 500px;
+  --surface-tab-height: 9.4rem;
+  --surface-tab-gap: .42rem;
+  --surface-rack-padding-y: .45rem;
+  --surface-rack-height: calc((var(--surface-tab-height) * 3) + (var(--surface-tab-gap) * 2) + (var(--surface-rack-padding-y) * 2));
   margin: 0;
   min-height: 100vh;
   color: var(--text);
@@ -39,6 +48,9 @@ body::before {
   pointer-events: none;
   mix-blend-mode: screen;
   opacity: .38;
+}
+body.report-surface {
+  --surface-rail-width: 1180px;
 }
 .noise {
   position: fixed;
@@ -1391,6 +1403,7 @@ footer {
   margin-top: .95rem;
 }
 .casefile-panel {
+  min-height: min(var(--surface-rack-height), 78vh);
   max-height: min(78vh, 680px);
   overflow: auto;
   padding: 1.05rem 1rem;
@@ -1470,12 +1483,12 @@ footer {
 }
 .surface-tabs {
   position: fixed;
-  right: max(.25rem, calc((100vw - 980px) / 2 - 3.15rem));
+  right: max(.25rem, calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-tab-width)));
   top: 50%;
   z-index: 70;
   display: grid;
-  gap: .42rem;
-  padding: .45rem 0 .45rem .42rem;
+  gap: var(--surface-tab-gap);
+  padding: var(--surface-rack-padding-y) 0 var(--surface-rack-padding-y) .42rem;
   border: 1px solid rgba(216,210,189,.2);
   border-left: 0;
   border-radius: 0 .55rem .55rem 0;
@@ -1509,8 +1522,8 @@ footer {
   gap: .45rem;
   width: 3.15rem;
   min-width: 0;
-  min-height: 9.4rem;
-  height: 9.4rem;
+  min-height: var(--surface-tab-height);
+  height: var(--surface-tab-height);
   border: 1px solid rgba(216,210,189,.42);
   border-left: 0;
   border-radius: 0 .34rem .34rem 0;
@@ -1560,23 +1573,23 @@ footer {
   content: none;
 }
 body.has-casefile-drawer-open .surface-tabs {
-  right: max(.25rem, calc((100vw - 980px) / 2 - 430px - 3.15rem));
+  right: max(0rem, calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-case-drawer-width) - var(--surface-tab-width)));
 }
 body.has-reports-drawer-open .surface-tabs {
-  right: max(.25rem, calc((100vw - 980px) / 2 - 620px - 3.15rem));
+  right: max(0rem, calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-reports-drawer-width) - var(--surface-tab-width)));
 }
 body:has(#operator-preview:target) .surface-tabs {
-  right: max(.25rem, calc((100vw - 980px) / 2 - 500px - 3.15rem));
+  right: max(0rem, calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-operator-drawer-width) - var(--surface-tab-width)));
 }
 .casefile-drawer,
 .recovered-reports-drawer {
   left: auto;
 }
 .casefile-drawer {
-  right: max(.25rem, calc((100vw - 980px) / 2 - 430px));
+  right: max(var(--surface-tab-width), calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-case-drawer-width)));
 }
 .recovered-reports-drawer {
-  right: max(.25rem, calc((100vw - 980px) / 2 - 620px));
+  right: max(var(--surface-tab-width), calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-reports-drawer-width)));
 }
 .casefile-drawer {
   transform: translate(-100%, -50%);
@@ -1600,13 +1613,14 @@ body:has(#operator-preview:target) .surface-tabs {
   pointer-events: auto;
 }
 .recovered-reports-panel {
+  min-height: min(var(--surface-rack-height), 78vh);
   border-right: 0;
   border-left: 1px solid rgba(216,210,189,.34);
   box-shadow: -22px 28px 70px rgba(0,0,0,.72), inset 0 0 0 1px rgba(0,0,0,.52), inset 0 1px rgba(255,255,255,.05);
 }
 .operator-preview-drawer {
   position: fixed;
-  right: max(.25rem, calc((100vw - 980px) / 2 - 500px));
+  right: max(var(--surface-tab-width), calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-operator-drawer-width)));
   top: 50%;
   z-index: 58;
   width: min(92vw, 500px);
@@ -1623,6 +1637,7 @@ body:has(#operator-preview:target) .surface-tabs {
   pointer-events: auto;
 }
 .operator-preview-panel {
+  min-height: min(var(--surface-rack-height), 78vh);
   max-height: min(78vh, 680px);
   overflow: auto;
   padding: 1.05rem 1rem;
@@ -1885,6 +1900,7 @@ body:has(#operator-preview:target) .surface-tabs {
   .casefile-panel,
   .recovered-reports-panel,
   .operator-preview-panel {
+    min-height: auto;
     max-height: 72vh;
     padding: .85rem;
     border-right: 0;
