@@ -56,8 +56,11 @@ body.report-surface {
   --surface-rack-center: calc(var(--surface-rail-top) + (var(--surface-rack-height) / 2));
 }
 body.surface-subpage {
+  --surface-rail-top: clamp(3.25rem, 8.5vh, 6rem);
   --surface-tab-count: 4;
-  --surface-tab-height: 7rem;
+  --surface-tab-height: clamp(9.2rem, 21vh, 9.45rem);
+  --surface-tab-gap: .4rem;
+  --surface-rack-padding-y: .35rem;
 }
 .noise {
   position: fixed;
@@ -1680,6 +1683,12 @@ body.report-surface .recovered-reports-drawer:target,
 body.report-surface .operator-preview-drawer.is-open,
 body.report-surface .operator-preview-drawer:target {
   transform: translate(0, 0);
+}
+body.surface-subpage .casefile-panel,
+body.surface-subpage .recovered-reports-panel,
+body.surface-subpage .operator-preview-panel {
+  min-height: min(var(--surface-rack-height), calc(100vh - var(--surface-rail-top) - 1rem));
+  max-height: calc(100vh - var(--surface-rail-top) - 1rem);
 }
 .operator-preview-panel {
   min-height: min(var(--surface-rack-height), 78vh);
