@@ -37,8 +37,10 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await page.getByLabel("Body 3").click();
   await page.locator("#skill-picker").selectOption("Investigation");
   await page.locator("#skill-rank").fill("2");
+  await expect(page.locator("#skill-rank-preview")).toContainText("connect evidence");
   await page.getByRole("button", { name: "Add Skill" }).click();
   await expect(page.getByText("Creation: skills 2/8 // attribute spread 2/6 // Bonus Breach 3/3")).toBeVisible();
+  await expect(page.locator("#skill-list").getByText(/Investigation 2 .* connect evidence/)).toBeVisible();
   await page.locator("#roll-attribute").selectOption("Body");
   await page.locator("#roll-skill").selectOption("Investigation");
   await page.getByRole("button", { name: "Roll 3D6" }).click();
@@ -65,6 +67,13 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.getByLabel("Dream pip 3").click();
   await expect(page.locator("#lotus-frequency")).toHaveText("Dream");
   await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
+  await page.getByLabel("Silence pip 5").click();
+  await page.getByLabel("Becoming pip 3").click();
+  await expect(page.locator("#lotus-unlocks")).toContainText("Silence 5: Distortion");
+  await expect(page.locator("#lotus-unlocks")).toContainText("Becoming 3: Integration");
+  await page.locator(".lotus-petal").filter({ hasText: "Hunger" }).getByRole("button", { name: "Mark Blind" }).click();
+  await expect(page.getByLabel("Hunger pip 1")).toBeDisabled();
+  await expect(page.locator("#lotus-unlocks")).toContainText("Blind petal: Hunger");
   await expect(page.getByText("Anchor memory")).toBeVisible();
 
   await page.getByRole("button", { name: "Archive" }).click();
