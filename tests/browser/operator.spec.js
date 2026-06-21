@@ -45,6 +45,14 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await page.locator("#roll-skill").selectOption("Investigation");
   await page.getByRole("button", { name: "Roll 3D6" }).click();
   await expect(page.getByText(/3D6 .* Body \+3 .* Investigation \+2 .* = /)).toBeVisible();
+  await page.getByRole("checkbox", { name: "Advantage", exact: true }).check();
+  await expect(page.getByRole("checkbox", { name: "Disadvantage" })).not.toBeChecked();
+  await page.getByRole("button", { name: "Roll 3D6" }).click();
+  await expect(page.getByText(/4D6 .* ADVANTAGE KEEP BEST 3 .* DROP .* Body \+3 .* Investigation \+2 .* = /)).toBeVisible();
+  await page.getByRole("checkbox", { name: "Disadvantage" }).check();
+  await expect(page.getByRole("checkbox", { name: "Advantage", exact: true })).not.toBeChecked();
+  await page.getByRole("button", { name: "Roll 3D6" }).click();
+  await expect(page.getByText(/4D6 .* DISADVANTAGE KEEP WORST 3 .* DROP .* Body \+3 .* Investigation \+2 .* = /)).toBeVisible();
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await page.locator('input[name="breachPoints"]').fill("3");

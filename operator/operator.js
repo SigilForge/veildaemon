@@ -49,6 +49,8 @@
       rollAttributeKey: "Body",
       rollSkillKey: "",
       rollModifier: "0",
+      rollAdvantage: false,
+      rollDisadvantage: false,
       quickNotes: "",
       expressions: "",
       bleed: "",
@@ -147,6 +149,8 @@
       rollAttributeKey: normalizeAttributeName(status.rollAttributeKey) || "Body",
       rollSkillKey: normalizeSkillName(status.rollSkillKey),
       rollModifier: normalizeSignedValue(status.rollModifier, -10, 10),
+      rollAdvantage: Boolean(status.rollAdvantage) && !Boolean(status.rollDisadvantage),
+      rollDisadvantage: Boolean(status.rollDisadvantage),
       recoveryGround: Boolean(status.recoveryGround),
       recoveryBreathe: Boolean(status.recoveryBreathe),
       recoveryConnect: Boolean(status.recoveryConnect),
@@ -297,6 +301,8 @@
     setNamedValue("rollAttributeKey", normalizeAttributeName(status.rollAttributeKey) || "Body");
     setNamedValue("rollSkillKey", normalizeSkillName(status.rollSkillKey));
     setNamedValue("rollModifier", normalizeSignedValue(status.rollModifier, -10, 10));
+    setNamedChecked("rollAdvantage", Boolean(status.rollAdvantage) && !Boolean(status.rollDisadvantage));
+    setNamedChecked("rollDisadvantage", Boolean(status.rollDisadvantage));
     setNamedValue("quickNotes", status.quickNotes || "");
     setNamedValue("expressions", status.expressions || "");
     setNamedValue("misfireFlavor", status.misfireFlavor || frequencyCard(operatorRecord?.primaryFrequency).misfireFlavor);
@@ -1422,7 +1428,9 @@
       skills: normalizeSkills(status.skills),
       rollAttributeKey: normalizeAttributeName(status.rollAttributeKey) || "Body",
       rollSkillKey: normalizeSkillName(status.rollSkillKey),
-      rollModifier: normalizeSignedValue(status.rollModifier, -10, 10)
+      rollModifier: normalizeSignedValue(status.rollModifier, -10, 10),
+      rollAdvantage: Boolean(status.rollAdvantage) && !Boolean(status.rollDisadvantage),
+      rollDisadvantage: Boolean(status.rollDisadvantage)
     };
   }
 
@@ -1529,6 +1537,18 @@
       input.addEventListener("input", autosaveStatus);
       input.addEventListener("change", autosaveStatus);
     });
+    const rollAdvantage = document.querySelector('[name="rollAdvantage"]');
+    const rollDisadvantage = document.querySelector('[name="rollDisadvantage"]');
+    if (rollAdvantage && rollDisadvantage) {
+      rollAdvantage.addEventListener("change", () => {
+        if (rollAdvantage.checked) rollDisadvantage.checked = false;
+        autosaveStatus();
+      });
+      rollDisadvantage.addEventListener("change", () => {
+        if (rollDisadvantage.checked) rollAdvantage.checked = false;
+        autosaveStatus();
+      });
+    }
     document.querySelectorAll("[data-segmented] button[data-value]").forEach((button) => {
       button.addEventListener("click", () => {
         const group = button.closest("[data-segmented]");
@@ -1594,22 +1614,43 @@
 
   function rollAction() {
     autosaveStatus();
-    const dice = [rollDie(), rollDie(), rollDie()];
     const status = consoleState.operatorStatus;
+    const rollMode = status.rollAdvantage ? "ADVANTAGE" : status.rollDisadvantage ? "DISADVANTAGE" : "STANDARD";
+    const dice = rollMode === "STANDARD" ? [rollDie(), rollDie(), rollDie()] : [rollDie(), rollDie(), rollDie(), rollDie()];
+    const keptDice = keptRollDice(dice, rollMode);
+    const dropped = dice.filter((value, index) => index !== keptDice.dropIndex);
     const attrs = normalizeAttributes(status.attributes);
     const skills = normalizeSkills(status.skills);
     const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
     const skillKey = normalizeSkillName(status.rollSkillKey);
     const attrValue = Number(attrs[attrKey] || 0);
     const skillValue = skillKey ? Number(skills[skillKey] || 0) : 0;
-    const total = dice.reduce((sum, value) => sum + value, 0)
+    const total = keptDice.values.reduce((sum, value) => sum + value, 0)
       + attrValue
       + skillValue
       + Number(status.rollModifier || 0);
     const output = document.getElementById("roll-output");
     if (output) {
-      output.textContent = `3D6 ${dice.join(" + ")} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${status.rollModifier || 0} = ${total}`;
+      const modeText = rollMode === "ADVANTAGE" ? "ADVANTAGE KEEP BEST 3" : "DISADVANTAGE KEEP WORST 3";
+      const diceText = rollMode === "STANDARD"
+        ? `3D6 ${dice.join(" + ")}`
+        : `4D6 ${dice.join(" + ")} // ${modeText} ${keptDice.values.join(" + ")} // DROP ${dropped.join(" + ")}`;
+      output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${status.rollModifier || 0} = ${total}`;
     }
+  }
+
+  function keptRollDice(dice, mode) {
+    if (mode === "ADVANTAGE") {
+      const min = Math.min(...dice);
+      const dropIndex = dice.indexOf(min);
+      return { dropIndex, values: dice.filter((value, index) => index !== dropIndex) };
+    }
+    if (mode === "DISADVANTAGE") {
+      const max = Math.max(...dice);
+      const dropIndex = dice.indexOf(max);
+      return { dropIndex, values: dice.filter((value, index) => index !== dropIndex) };
+    }
+    return { dropIndex: -1, values: dice };
   }
 
   function rollDie() {

@@ -135,6 +135,10 @@
               <label>Attribute<select name="rollAttributeKey" id="roll-attribute"></select></label>
               <label>Skill<select name="rollSkillKey" id="roll-skill"></select></label>
               <label>Modifier<input name="rollModifier" type="number" min="-10" max="10" step="1" /></label>
+              <fieldset class="roll-mode" aria-label="Roll mode">
+                <label><input name="rollAdvantage" type="checkbox" /> Advantage</label>
+                <label><input name="rollDisadvantage" type="checkbox" /> Disadvantage</label>
+              </fieldset>
               <button type="button" class="button primary roll-button" id="roll-action">Roll 3D6</button>
             </div>
             <div class="roll-output" id="roll-output">Awaiting action.</div>
