@@ -1,4 +1,16 @@
 {
+  "redirects": [
+    {
+      "source": "/play-report",
+      "destination": "/debrief/",
+      "permanent": true
+    },
+    {
+      "source": "/play-report/",
+      "destination": "/debrief/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/stream/alerts",
@@ -33,12 +45,12 @@
       "destination": "/stream/sigilforge/cam-frame/index.html"
     },
     {
-      "source": "/play-report",
-      "destination": "/play-report/index.html"
+      "source": "/debrief",
+      "destination": "/debrief/index.html"
     },
     {
-      "source": "/play-report/",
-      "destination": "/play-report/index.html"
+      "source": "/debrief/",
+      "destination": "/debrief/index.html"
     },
     {
       "source": "/recovered-operator-reports",
