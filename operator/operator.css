@@ -280,7 +280,7 @@ h3 {
 }
 .tracker-board {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: .65rem;
 }
 .pip-tracker {
@@ -305,6 +305,13 @@ h3 {
 }
 .pip-header span {
   color: var(--muted);
+}
+.pip-derived {
+  margin: 0;
+  color: var(--muted);
+  font-size: .68rem;
+  line-height: 1.35;
+  text-transform: uppercase;
 }
 .pips {
   display: grid;
@@ -356,6 +363,9 @@ h3 {
 }
 .segmented.attention {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.segmented.misfire {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .segmented button {
   padding: .45rem;
@@ -446,6 +456,91 @@ fieldset.recovery-field.compact label {
   padding: .9rem;
   border: 1px solid rgba(137,255,218,.18);
   background: rgba(0,0,0,.18);
+}
+.counter-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .65rem;
+}
+.lotus-workspace {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(16rem, .75fr);
+  gap: .9rem;
+}
+.lotus-map {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+  min-height: 25rem;
+  padding: 1rem;
+  border: 1px solid rgba(185,84,255,.28);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(185,84,255,.18), transparent 10rem),
+    rgba(0,0,0,.22);
+}
+.lotus-map::before {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 4.4rem;
+  aspect-ratio: 1;
+  border: 1px solid rgba(137,255,218,.22);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 28px rgba(185,84,255,.18);
+  pointer-events: none;
+}
+.lotus-petal {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: .6rem;
+  min-height: 11rem;
+  padding: .75rem;
+  border: 1px solid rgba(137,255,218,.18);
+  border-radius: 44% 44% 12% 12%;
+  background: rgba(0,0,0,.3);
+}
+.lotus-petal.is-selected {
+  border-color: rgba(185,84,255,.72);
+  box-shadow: inset 0 0 24px rgba(185,84,255,.1), 0 0 20px rgba(185,84,255,.12);
+}
+.lotus-petal.is-blind {
+  border-color: rgba(255,92,138,.44);
+}
+.lotus-petal-name,
+.blind-toggle {
+  border: 1px solid rgba(137,255,218,.2);
+  background: rgba(0,0,0,.32);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  min-height: 2.25rem;
+  text-transform: uppercase;
+}
+.lotus-petal-name {
+  color: var(--cyan);
+}
+.lotus-pips {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: .3rem;
+}
+.lotus-detail {
+  min-width: 0;
+  padding: .9rem;
+  border: 1px solid rgba(137,255,218,.2);
+  background: rgba(0,0,0,.24);
+}
+.lotus-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
 }
 input,
 textarea,
@@ -568,6 +663,7 @@ a:focus-visible {
   .sheet-grid,
   .tracker-board,
   .roll-row,
+  .lotus-workspace,
   .archive-grid,
   .data-panel {
     grid-template-columns: 1fr;
@@ -616,7 +712,10 @@ a:focus-visible {
     grid-template-columns: 1fr;
   }
   .segmented,
-  .segmented.attention {
+  .segmented.attention,
+  .segmented.misfire,
+  .counter-row,
+  .lotus-map {
     grid-template-columns: 1fr;
   }
 }
