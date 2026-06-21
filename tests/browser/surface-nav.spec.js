@@ -72,6 +72,41 @@ test("local operator record preview mirrors saved operator file fields", async (
   await expect(preview.getByText("Investigation 2 // Occult 1")).toBeVisible();
 });
 
+test("operator file edits sync into local record preview on other surfaces", async ({ page }) => {
+  await page.goto("/operator/");
+
+  await page.getByRole("button", { name: "Sheet" }).click();
+  await page.locator('[name="operatorName"]').fill("June Rook");
+  await page.locator('[name="activeNeedlepoint"]').fill("Silence Gap");
+  await page.locator('[name="voidMarks"]').fill("3");
+  await page.locator('[name="breachPoints"]').fill("7");
+
+  await page.goto("/debrief/");
+  const nav = page.getByRole("navigation", { name: "Surface files" });
+  await nav.getByText("OPERATOR FILE").click();
+
+  const preview = page.locator("#operator-preview");
+  await expect(preview.getByText("June Rook")).toBeVisible();
+  await expect(preview.getByText("Silence Gap")).toBeVisible();
+  await expect(preview.getByText("3 / 7")).toBeVisible();
+});
+
+test("shift clicking file tabs bypasses preview and routes directly", async ({ page }) => {
+  await page.goto("/updates/");
+
+  const nav = page.getByRole("navigation", { name: "Surface files" });
+  await nav.getByText("OPERATOR FILE").click();
+  await expect(page.locator("#operator-preview")).toBeVisible();
+
+  await page.goto("/updates/");
+  await nav.getByText("OPERATOR FILE").click({ modifiers: ["Shift"] });
+  await expect(page).toHaveURL(/\/operator\/$/);
+
+  await page.goto("/updates/");
+  await page.getByRole("navigation", { name: "Surface files" }).getByText("REPORTS").click({ modifiers: ["Shift"] });
+  await expect(page).toHaveURL(/\/recovered-operator-reports\/$/);
+});
+
 test("surface drawers allow only one open preview", async ({ page }) => {
   await page.setViewportSize({ width: 2200, height: 1000 });
   await page.goto("/");

@@ -73,7 +73,28 @@
     });
   }
 
+  function bindDirectTabShortcuts() {
+    document.addEventListener("click", (event) => {
+      const tab = event.target && event.target.closest && event.target.closest(".surface-tab[data-direct-href]");
+      if (!tab || !event.shiftKey) return;
+
+      const href = tab.getAttribute("data-direct-href");
+      if (!href) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      if (tab.getAttribute("data-direct-target") === "_blank") {
+        window.open(href, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      window.location.href = href;
+    }, true);
+  }
+
   document.addEventListener("DOMContentLoaded", renderOperatorPreview);
+  bindDirectTabShortcuts();
   window.addEventListener("veildaemon:operator-record-updated", renderOperatorPreview);
   window.addEventListener("storage", renderOperatorPreview);
 })();
