@@ -70,6 +70,46 @@ test("operator file opens local node after intake exists", async ({ page }) => {
   await expect(page).toHaveURL(/\/operator\/$/);
 });
 
+test("subpage operator file routes unprocessed observers to intake", async ({ page }) => {
+  await page.goto("/debrief/");
+
+  const nav = page.getByRole("navigation", { name: "Surface files" });
+  await expect(nav.getByText("START INTAKE")).toBeVisible();
+  await nav.getByText("OPERATOR FILE").click();
+
+  const preview = page.locator("#operator-preview");
+  await expect(preview).toBeVisible();
+  await expect(preview.getByText("LOCAL NODE SEALED")).toBeVisible();
+  await expect(preview.getByText("OPERATOR FILE WITHHELD")).toBeVisible();
+  await expect(preview.getByRole("link", { name: "Start Intake" })).toHaveAttribute("href", "/#intake-node");
+  await expect(preview.getByRole("link", { name: "Return To Intake" })).toHaveCount(0);
+  await expect(preview.getByRole("link", { name: "Enter Local Node" })).toHaveCount(0);
+});
+
+test("subpage operator file routes processed observers to local node", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
+      designation: "RECORD-MV-7",
+      primaryFrequency: "Silence",
+      observerClassification: "POTENTIAL OPERATOR",
+      attentionStatus: "NOTED"
+    }));
+  });
+
+  await page.goto("/updates/");
+
+  const nav = page.getByRole("navigation", { name: "Surface files" });
+  await expect(nav.getByText("LOCAL NODE")).toBeVisible();
+  await nav.getByText("OPERATOR FILE").click();
+
+  const preview = page.locator("#operator-preview");
+  await expect(preview).toBeVisible();
+  await expect(preview.getByText("PERSONAL OPERATIONS RECORD")).toBeVisible();
+  await expect(preview.getByRole("link", { name: "Enter Node" })).toHaveAttribute("href", "/operator/");
+  await expect(preview.getByRole("link", { name: "Start Intake" })).toHaveCount(0);
+  await expect(preview.getByRole("link", { name: "Return To Intake" })).toHaveCount(0);
+});
+
 test("local operator record preview mirrors saved operator file fields", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify({
