@@ -933,7 +933,7 @@ a:focus-visible {
 }
 .operator-preview-drawer {
   position: fixed;
-  right: max(.25rem, calc((100vw - 1180px) / 2 - 500px));
+  right: max(.25rem, calc((100vw - 1180px) / 2));
   top: 50%;
   z-index: 58;
   width: min(92vw, 500px);
