@@ -238,6 +238,34 @@ select {
 textarea {
   resize: vertical;
 }
+fieldset.recovery-field {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: .55rem;
+  margin: 0;
+  padding: .75rem;
+  border: 1px solid rgba(137,255,218,.22);
+}
+.recovery-field legend {
+  padding: 0 .35rem;
+  color: var(--cyan);
+  font-size: .67rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.recovery-field label {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  color: var(--text);
+  font-size: .72rem;
+  letter-spacing: .06em;
+}
+.recovery-field input {
+  width: auto;
+}
 input:focus,
 textarea:focus,
 select:focus,
@@ -316,6 +344,9 @@ a:focus-visible {
   .data-panel {
     grid-template-columns: 1fr;
   }
+  fieldset.recovery-field {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .data-actions {
     justify-content: stretch;
   }
@@ -346,5 +377,8 @@ a:focus-visible {
   }
   .module-heading {
     display: block;
+  }
+  fieldset.recovery-field {
+    grid-template-columns: 1fr;
   }
 }

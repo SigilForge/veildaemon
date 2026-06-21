@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#050709" />
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
-  <link rel="stylesheet" href="./operator.css?v=20260621-trackers1" />
+  <link rel="stylesheet" href="./operator.css?v=20260621-sheet1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -65,7 +65,7 @@
     <section class="module-panel" id="module-status" data-module-panel="status" aria-label="Operator status">
       <div class="module-heading">
         <p class="kicker">OPERATOR STATUS</p>
-        <h2>Track the player-owned sheet: Stability, Harm, Void, Breach, Anchors, and Misfires.</h2>
+        <h2>Track the Operator Field Sheet: Stability, Attention, Lotus pressure, and Recovery.</h2>
       </div>
       <section class="tracker-summary" aria-label="Tracker summary">
         <div><span>Stability Band</span><strong id="status-band">UNRECORDED</strong></div>
@@ -73,19 +73,41 @@
         <div><span>Action Rhythm</span><strong>MAIN / MOVE / FREQUENCY / REACTION</strong></div>
       </section>
       <form class="console-form status-form" id="status-form">
-        <label>Stability<input name="stability" type="number" min="0" max="10" step="1" /></label>
+        <label>Stability<select name="stabilityBand"><option>Calm</option><option>Strained</option><option>Unraveling</option><option>Collapse Risk</option></select></label>
+        <label>Attention<select name="attentionState"><option>Unnoticed</option><option>Brushed</option><option>Noted</option><option>Marked</option><option>Pursued</option><option>Claimed</option></select></label>
         <label>Harm<input name="harm" type="text" maxlength="80" placeholder="Physical injury or direct damage" /></label>
-        <label>Void Marks<input name="voidMarks" type="number" min="0" step="1" /></label>
-        <label>Breach Points<input name="breachPoints" type="number" min="0" step="1" /></label>
+        <label>Harm Boxes<input name="harmBoxes" type="number" min="0" max="6" step="1" /></label>
+        <label>Void<input name="voidMarks" type="number" min="0" max="10" step="1" /></label>
+        <label>Breach<input name="breachPoints" type="number" min="0" max="10" step="1" /></label>
+        <label>Misfire<input name="misfireBoxes" type="number" min="0" max="6" step="1" /></label>
+        <label>Presentation Pressure<input name="presentationPressure" type="number" min="0" max="5" step="1" /></label>
         <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" /></label>
         <label>Common tell<input name="commonTell" type="text" maxlength="160" /></label>
+        <label>Presentation<input name="presentation" type="text" maxlength="160" /></label>
+        <label>Obligation<input name="obligation" type="text" maxlength="160" /></label>
+        <label>Primary<input name="lotusPrimary" type="text" maxlength="80" /></label>
+        <label>Blind<input name="lotusBlind" type="text" maxlength="80" /></label>
+        <label>Method<input name="lotusMethod" type="text" maxlength="80" /></label>
+        <label>Vector / Need<input name="vectorNeed" type="text" maxlength="180" /></label>
         <label>Misfire flavor<textarea name="misfireFlavor" rows="3"></textarea></label>
         <label>Anchor person / memory<textarea name="anchorPerson" rows="3"></textarea></label>
         <label>Totem object / symbol<textarea name="totemObject" rows="3"></textarea></label>
         <label>Grounding line<textarea name="groundingLine" rows="3"></textarea></label>
+        <label>Pip 1 leakage<textarea name="pipOneLeakage" rows="2"></textarea></label>
+        <label>Pip 2 expression<textarea name="pipTwoExpression" rows="2"></textarea></label>
+        <label>Known expressions<textarea name="knownExpressions" rows="3"></textarea></label>
+        <label>Range / Contact / Trigger / Cost<textarea name="expressionLimits" rows="3"></textarea></label>
         <label>Bleed notes<textarea name="bleed" rows="3"></textarea></label>
         <label>Misfires recorded<textarea name="misfires" rows="3"></textarea></label>
         <label>Void / Breach notes<textarea name="voidBreach" rows="3"></textarea></label>
+        <fieldset class="recovery-field">
+          <legend>Recovery</legend>
+          <label><input name="recoveryGround" type="checkbox" /> Ground</label>
+          <label><input name="recoveryBreathe" type="checkbox" /> Breathe</label>
+          <label><input name="recoveryConnect" type="checkbox" /> Connect</label>
+          <label><input name="recoveryLeave" type="checkbox" /> Leave</label>
+          <label><input name="recoveryNameIt" type="checkbox" /> Name It</label>
+        </fieldset>
         <button class="button primary" type="submit">Update Status</button>
       </form>
     </section>
@@ -155,6 +177,6 @@
       </div>
     </section>
   </main>
-  <script src="./operator.js?v=20260621-trackers1"></script>
+  <script src="./operator.js?v=20260621-sheet1"></script>
 </body>
 </html>
