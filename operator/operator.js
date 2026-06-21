@@ -26,16 +26,6 @@
       anchorPerson: "",
       totemObject: "",
       groundingLine: "",
-      presentation: "",
-      obligation: "",
-      lotusPrimary: "",
-      lotusBlind: "",
-      lotusMethod: "",
-      vectorNeed: "",
-      pipOneLeakage: "",
-      pipTwoExpression: "",
-      knownExpressions: "",
-      expressionLimits: "",
       recoveryGround: false,
       recoveryBreathe: false,
       recoveryConnect: false,
@@ -254,20 +244,10 @@
     form.elements.presentationPressure.value = normalizeBoxValue(status.presentationPressure, 5);
     form.elements.emotionalState.value = status.emotionalState || operatorRecord?.attentionStatus || "";
     form.elements.commonTell.value = status.commonTell || "";
-    form.elements.presentation.value = status.presentation || "";
-    form.elements.obligation.value = status.obligation || "";
-    form.elements.lotusPrimary.value = status.lotusPrimary || operatorRecord?.primaryFrequency || "";
-    form.elements.lotusBlind.value = status.lotusBlind || "";
-    form.elements.lotusMethod.value = status.lotusMethod || "";
-    form.elements.vectorNeed.value = status.vectorNeed || "";
     form.elements.misfireFlavor.value = status.misfireFlavor || frequencyCard(operatorRecord?.primaryFrequency).misfireFlavor;
     form.elements.anchorPerson.value = status.anchorPerson || "";
     form.elements.totemObject.value = status.totemObject || "";
     form.elements.groundingLine.value = status.groundingLine || "";
-    form.elements.pipOneLeakage.value = status.pipOneLeakage || "";
-    form.elements.pipTwoExpression.value = status.pipTwoExpression || "";
-    form.elements.knownExpressions.value = status.knownExpressions || "";
-    form.elements.expressionLimits.value = status.expressionLimits || "";
     form.elements.bleed.value = status.bleed || formatDrift(operatorRecord);
     form.elements.misfires.value = status.misfires || "";
     form.elements.voidBreach.value = status.voidBreach || "";
