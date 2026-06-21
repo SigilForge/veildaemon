@@ -61,7 +61,7 @@
     const stability = safe(status.stability ? `${status.stability}/10` : "", "UNMEASURED");
     const harm = safe(status.harmBoxes ? `${status.harmBoxes}/5` : status.harm, "NONE RECORDED");
     const attention = safe(status.attentionState || intakeRecord?.attentionStatus, "UNMEASURED");
-    const misfire = safe(status.misfireSeverity, "NONE");
+    const misfire = safe(status.activeMisfire || status.misfires || status.misfireSeverity, "NONE");
     const voidMarks = safe(status.voidMarks, "0");
     const breachPoints = safe(status.breachPoints, "0");
     const needlepoint = safe(status.activeNeedlepoint, "NO ACTIVE CASE");

@@ -25,6 +25,7 @@
       harmBoxes: "0",
       voidMarks: "0",
       breachPoints: "0",
+      activeMisfire: "",
       misfireSeverity: "None",
       presentationPressure: "0",
       lotus: {
@@ -139,6 +140,7 @@
       harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
       voidMarks: normalizeNonNegative(status.voidMarks),
       breachPoints: normalizeNonNegative(status.breachPoints),
+      activeMisfire: normalizeActiveMisfire(status),
       misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity || severityFromLegacyMisfire(status.misfireBoxes)),
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
       lotus: normalizeLotus(status.lotus),
@@ -297,7 +299,7 @@
     setNamedValue("emotionalState", status.emotionalState || operatorRecord?.attentionStatus || "");
     setNamedValue("voidMarks", normalizeNonNegative(status.voidMarks));
     setNamedValue("breachPoints", normalizeNonNegative(status.breachPoints));
-    setNamedValue("misfireSeverity", normalizeMisfireSeverity(status.misfireSeverity));
+    setNamedValue("activeMisfire", status.activeMisfire || "");
     setNamedValue("commonTell", status.commonTell || "");
     setNamedValue("rollAttributeKey", normalizeAttributeName(status.rollAttributeKey) || "Body");
     setNamedValue("rollSkillKey", normalizeSkillName(status.rollSkillKey));
@@ -669,6 +671,63 @@
     return { ok: true, cost: advancementCost(oldRank, targetRank) };
   }
 
+  function frequencyPipBreachCost(pip) {
+    const value = Number(normalizeBoxValue(pip, 6));
+    if (value >= 5) return 3;
+    if (value >= 3) return 2;
+    if (value >= 1) return 1;
+    return 0;
+  }
+
+  function cumulativeFrequencyBreachCost(level) {
+    const target = Number(normalizeBoxValue(level, 6));
+    let cost = 0;
+    for (let pip = 1; pip <= target; pip += 1) cost += frequencyPipBreachCost(pip);
+    return cost;
+  }
+
+  function requiredVoidForFrequencyLevel(level) {
+    const value = Number(normalizeBoxValue(level, 6));
+    if (value >= 5) return 3;
+    if (value >= 3) return 2;
+    if (value >= 1) return 1;
+    return 0;
+  }
+
+  function creationOpenedFrequency(lotus) {
+    const cultivated = Object.entries(normalizeLotus(lotus)).find(([, level]) => Number(level || 0) > 0);
+    return cultivated && cultivated[0] || selectedCoreFrequency();
+  }
+
+  function frequencyChangeAllowed(lotus, frequency, targetLevel) {
+    const normalizedLotus = normalizeLotus(lotus);
+    const oldLevel = Number(normalizedLotus[frequency] || 0);
+    const target = Number(normalizeBoxValue(targetLevel, 6));
+    const requiredVoid = requiredVoidForFrequencyLevel(target);
+    const availableVoid = Number(normalizeNonNegative(consoleState.operatorStatus.voidMarks));
+
+    if (frequency === normalizeFrequencyName(consoleState.operatorStatus.blindPetal)) {
+      return { ok: false, message: "Blind petal cannot be cultivated." };
+    }
+    if (requiredVoid > availableVoid) {
+      return { ok: false, message: `Gate locked. ${target} pips require ${requiredVoid} Void on that Frequency.` };
+    }
+
+    if (consoleState.operatorStatus.creationMode) {
+      if (target > 2) return { ok: false, message: "Creation cap is Pip 2 on the opened Gate." };
+      const opened = creationOpenedFrequency(normalizedLotus);
+      const hasCultivatedPetal = Object.values(normalizedLotus).some((level) => Number(level || 0) > 0);
+      if (hasCultivatedPetal && opened !== frequency && target > 0) {
+        return { ok: false, message: `Creation Gate already opened on ${opened}.` };
+      }
+      const oldCost = Math.max(0, cumulativeFrequencyBreachCost(oldLevel) - 1);
+      const newCost = Math.max(0, cumulativeFrequencyBreachCost(target) - 1);
+      return { ok: true, cost: newCost - oldCost };
+    }
+
+    return { ok: true, cost: cumulativeFrequencyBreachCost(target) - cumulativeFrequencyBreachCost(oldLevel) };
+  }
+
   function normalizeStabilityBand(value) {
     const allowed = ["Calm", "Strained", "Unraveling", "Collapse Risk"];
     return allowed.includes(value) ? value : "Calm";
@@ -677,6 +736,13 @@
   function normalizeMisfireSeverity(value) {
     const allowed = ["None", "Minor", "Major", "Severe"];
     return allowed.includes(value) ? value : "None";
+  }
+
+  function normalizeActiveMisfire(status) {
+    const active = safeString(status.activeMisfire, 1000);
+    if (active) return active;
+    const severity = normalizeMisfireSeverity(status.misfireSeverity || severityFromLegacyMisfire(status.misfireBoxes));
+    return severity === "None" ? "" : `${severity} Misfire`;
   }
 
   function severityFromLegacyMisfire(value) {
@@ -722,115 +788,38 @@
       Dream: {
         bleedCue: "deja vu, false familiarity, and memory confusion",
         misfireFlavor: "Metaphor becomes literal, a memory intrudes, or the wrong symbol answers.",
-        blind: "Symbols lie cleanly. Dreams, omens, and subconscious pressure pass as coincidence.",
-        pips: [
-          "Sense symbolic pressure, repetition, omen logic, and impossible familiarity.",
-          "Nudge an existing symbol, coincidence, or remembered detail toward useful meaning.",
-          "Read or redirect dreamlike scene logic with repeatable control under pressure.",
-          "Make the room answer a metaphor, memory, or omen for a sustained beat.",
-          "Force symbolic truth to outrank literal conditions; reality pays for the translation.",
-          "Become an anchor for dream logic. Scenes begin arranging themselves around meaning."
-        ],
-        basic: "Read symbolic pressure, identify impossible familiarity, and follow dreamlike logic without treating it as proof.",
-        empowered: "Shape a scene through metaphor, memory, or omen while keeping the table anchored to consent and consequence.",
-        distortion: "A symbol answers too strongly. The scene begins obeying meaning before reality catches up.",
-        divergence: "Dream stops describing reality and starts writing it."
+        blind: "Symbols lie cleanly. Dreams, omens, and subconscious pressure pass as coincidence."
       },
       Hunger: {
         bleedCue: "fixation, jealousy, shame after wanting, and fear that need makes you monstrous",
         misfireFlavor: "Want becomes compulsion, a bargain asks too much, or satisfaction turns hollow.",
-        blind: "Want reads as noise. Appetite, debt, coercion, and escalation reach you late.",
-        pips: [
-          "Sense appetite, fixation, need, predation, and what a person or place is starving for.",
-          "Nudge an existing desire, pursuit, bargain, or refusal without creating it from nothing.",
-          "Turn want into reliable pressure in crisis, conflict, or negotiation.",
-          "Set the appetite terms for a room, chase, bargain, or emotional exchange.",
-          "Make need command behavior or environment; satisfaction leaves a new wound.",
-          "Become a gravity well for want. The scene starts feeding or fleeing you."
-        ],
-        basic: "Sense want, leverage appetite, and identify what a person or place is starving for.",
-        empowered: "Turn desire into pressure, bargain, pursuit, or refusal with visible emotional cost.",
-        distortion: "Need becomes command. Satisfaction creates a worse absence.",
-        divergence: "Hunger becomes a law the scene must feed."
+        blind: "Want reads as noise. Appetite, debt, coercion, and escalation reach you late."
       },
       Silence: {
         bleedCue: "numbness, dissociation, missing time, and relief when no one asks questions",
         misfireFlavor: "The wrong thing is erased, a truth cannot be spoken, or protection becomes isolation.",
-        blind: "Absence has no outline. Nullification, shutdown, omission, and erasure go unseen.",
-        pips: [
-          "Sense absences in the room: missing sound, omitted facts, emotional shutdown, and suppressed presence.",
-          "Subtly affect absence by dampening an existing signal, tell, question, or attention line.",
-          "Mute, hide, or redact a specific signal under pressure with reliable control.",
-          "Create protective absence across a room, route, record, or witness chain for a sustained beat.",
-          "Make absence act like force; the wrong thing can vanish or a needed truth can fail to cross the room.",
-          "Become a Silence locus. Attention, records, and meaning begin dropping around you."
-        ],
-        basic: "Notice absence, suppress tells, create quiet, and survive by refusing attention.",
-        empowered: "Mute a signal, hide a truth, or create protective absence with a clear boundary.",
-        distortion: "The wrong thing vanishes. A needed truth cannot cross the room.",
-        divergence: "Silence becomes an active presence with its own appetite."
+        blind: "Absence has no outline. Nullification, shutdown, omission, and erasure go unseen."
       },
       Stillness: {
         bleedCue: "emotional freezing, rigid control, delayed panic, and inability to leave a memory behind",
         misfireFlavor: "A moment traps the wrong person, action stalls, or composure becomes paralysis.",
-        blind: "Momentum traps you. Delay, freezing, restraint, and control effects land before you name them.",
-        pips: [
-          "Sense frozen momentum, delayed panic, held breath, rigid control, and trapped moments.",
-          "Slow or steady what is already happening: a motion, escalation, reaction, or fragile pattern.",
-          "Hold position, timing, or emotional pressure reliably during crisis.",
-          "Set the tempo of a scene, room, or exchange for a sustained beat.",
-          "Make control become law; action stalls, consequence waits, or the wrong thing cannot move.",
-          "Become an anchor for suspended time. The scene hesitates around you."
-        ],
-        basic: "Hold position, endure pressure, stabilize a scene, and recognize emotional freezing.",
-        empowered: "Pin a moment, slow escalation, or keep a fragile pattern from breaking.",
-        distortion: "Control becomes paralysis. The wrong person or feeling cannot move.",
-        divergence: "Stillness edits time by refusing to let it continue."
+        blind: "Momentum traps you. Delay, freezing, restraint, and control effects land before you name them."
       },
       Empyrean: {
         bleedCue: "emotional flooding, over-identification, guilt, and fear of being felt too clearly",
         misfireFlavor: "Feelings spread too far, a bond overwhelms consent, or pain becomes communal.",
-        blind: "Connection arrives distorted. Shared pain, consent pressure, awe, and relational gravity are hard to read.",
-        pips: [
-          "Sense emotional weather, connection, pain, awe, and relational pressure in the room.",
-          "Nudge an existing bond, feeling, comfort, or shared burden with clear consent boundaries.",
-          "Share, steady, or amplify emotional resonance reliably under pressure.",
-          "Make a bond operational across a room, group, hazard, or crisis beat.",
-          "Let feeling spill into environment; pain, guilt, awe, or relief becomes communal risk.",
-          "Become an emotional anchor. The scene synchronizes around what you carry."
-        ],
-        basic: "Read emotional weather, create connection, and notice when feeling exceeds its container.",
-        empowered: "Share burden, amplify resonance, or make a bond operational under pressure.",
-        distortion: "Feeling spills beyond consent. Pain, guilt, or awe becomes communal.",
-        divergence: "Empyrean turns connection into environment."
+        blind: "Connection arrives distorted. Shared pain, consent pressure, awe, and relational gravity are hard to read."
       },
       Becoming: {
         bleedCue: "identity drift, impostor fear, and panic when recognized",
         misfireFlavor: "A mask sticks, a role overwrites behavior, or an unwanted self steps forward.",
-        blind: "Identity feels fixed until it breaks. Masks, role pressure, and self-rewrite catch you flat-footed.",
-        pips: [
-          "Sense identity drift, role pressure, masks, posture shifts, and unstable self-patterns.",
-          "Subtly shift presentation, expectation, gait, voice, or access logic already in play.",
-          "Adopt or project a role reliably enough to matter during conflict or social pressure.",
-          "Set identity terms for a scene: who counts, who belongs, who is believed, or what role sticks.",
-          "Let a mask become materially true; recognition, body logic, or paperwork can rewrite around it.",
-          "Become an emergence point. The scene asks what you are becoming and starts answering."
-        ],
-        basic: "Sense identity drift, perform a role, and recognize unstable self-patterns.",
-        empowered: "Shift presentation, claim a new role, or force a scene to answer who someone is becoming.",
-        distortion: "A mask sticks. A role overwrites behavior. Recognition becomes threat.",
-        divergence: "Becoming stops being change and becomes emergence."
+        blind: "Identity feels fixed until it breaks. Masks, role pressure, and self-rewrite catch you flat-footed."
       }
     };
     return cards[frequency] || {
       bleedCue: "choose a primary Frequency to load bleed cues",
       misfireFlavor: "",
-      blind: "",
-      pips: [],
-      basic: "",
-      empowered: "",
-      distortion: "",
-      divergence: ""
+      blind: ""
     };
   }
 
@@ -1152,10 +1141,7 @@
 
   function harmCondition(value) {
     const harm = Number(normalizeBoxValue(value, 5));
-    if (harm >= 5) return "Critical";
-    if (harm >= 3) return "Wounded";
-    if (harm >= 1) return "Hurt";
-    return "Clear";
+    return ["Fine", "Injured", "Wounded", "Impaired", "Critical", "Dying"][harm] || "Fine";
   }
 
   function lotusTier(level) {
@@ -1167,18 +1153,127 @@
     return "None";
   }
 
-  function tierCopy(frequency, tier) {
-    const card = frequencyCard(frequency);
-    if (tier === "Divergence") return card.divergence;
-    if (tier === "Distortion") return card.distortion;
-    if (tier === "Empowered") return card.empowered;
-    if (tier === "Basic") return card.basic;
+  function tierCopy(frequency, tier, level) {
+    const expression = frequencyExpression(frequency, Number(normalizeBoxValue(level, 6)));
+    if (expression) return `${expression.type} available: ${expression.name}.`;
     return "No pip selected. This petal has not been cultivated.";
   }
 
-  function pipLabel(index) {
-    const labels = ["Leakage", "Initiation", "Integration", "Command", "Distortion", "Divergence"];
-    return labels[index - 1] || "Expression";
+  function lotusEconomyCopy(frequency, level) {
+    const current = Number(normalizeBoxValue(level, 6));
+    const requiredVoid = requiredVoidForFrequencyLevel(current);
+    const next = Math.min(6, current + 1);
+    const nextVoid = requiredVoidForFrequencyLevel(next);
+    const nextCost = current >= 6 ? 0 : frequencyPipBreachCost(next);
+    const bank = normalizeNonNegative(consoleState.operatorStatus.breachPoints);
+    const gate = current > 0
+      ? `Current gate: ${requiredVoid} Void on ${frequency}.`
+      : `Gate 1 requires 1 Void on ${frequency}.`;
+    const nextLine = current >= 6
+      ? "Pip ceiling reached."
+      : `Next pip: ${nextCost} Breach after ${nextVoid} Void gate access.`;
+    return `${gate} ${nextLine} Breach bank: ${bank}.`;
+  }
+
+  function expressionLadders() {
+    return {
+      Dream: [
+        { pip: 1, name: "INDEX THE IMPOSSIBLE", type: "Expression", actionCost: "None; ambient leakage. Small Interaction only when deliberately focusing.", roll: "None for obvious pressure; 3d6 + Mind + Investigation for hidden context", effect: "Notice symbolic repetition, impossible geometry, emotional patterning, reflected inconsistencies, conceptual wrongness, or spaces behaving metaphorically.", misfire: "The symbol indexes the Operator instead." },
+        { pip: 2, name: "SYMBOLIC NUDGE", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Mind + Academics, Mind + Investigation, or Presence + Performance", effect: "Shift how one minor symbolic detail is perceived until the end of the current Pressure Round.", misfire: "The symbol chooses a harsher meaning than intended." },
+        { pip: 3, name: "ACTIVE HALLUCINATION", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Presence + Performance or Mind + Deception", effect: "Create a brief sensory impression that fits the scene's emotional logic.", misfire: "The wrong person sees it, or it reveals information the Operator did not mean to expose." },
+        { pip: 4, name: "REFRAME THE SCENE", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Mind + Ritual or Presence + Performance", effect: "Recast one symbolic pattern so it becomes survivable.", misfire: "The reframing works, but the new meaning demands an emotional price." },
+        { pip: 5, name: "LOCAL MYTH", type: "Distortion", actionCost: "Frequency Use", roll: "3d6 + Presence + Ritual", effect: "Turn one emotionally charged symbol into a temporary local rule.", misfire: "The symbol becomes law against the Operator first." },
+        { pip: 6, name: "WALKING DREAM INDEX", type: "Divergence", actionCost: "Sustained or Frequency Use", roll: "3d6 + Nerves + Ritual when contested", effect: "Become the reference point for dream logic.", misfire: "The Operator's unresolved symbolism becomes scene architecture." }
+      ],
+      Hunger: [
+        { pip: 1, name: "APPETITE SENSE", type: "Expression", actionCost: "None; ambient leakage. Small Interaction only when deliberately focusing.", roll: "None for obvious wants; 3d6 + Instinct + Awareness for hidden ones", effect: "Detect emotional weakness, escalation, fixation, desperation, desire pressure, or the direction of pursuit.", misfire: "The Operator feels the want as their own until the end of the current Pressure Round." },
+        { pip: 2, name: "WANT FINDS A WAY", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Instinct + Survival or Agility + Athletics", effect: "Find a small path toward something needed.", misfire: "The path exists, but it leads through temptation, exposure, or someone else's need." },
+        { pip: 3, name: "FIXATION MARK", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Nerves + Survival or Presence + Intimidation", effect: "Mark one desired target. Gain Advantage on one roll to pursue, track, corner, reach, or keep pressure on it.", misfire: "The fixation narrows too hard; actions unrelated to the target suffer Disadvantage until focus breaks." },
+        { pip: 4, name: "PRESS THE WANT", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Presence + Persuasion, Presence + Intimidation, or Presence + Deception", effect: "Intensify an existing want until it creates an opening.", misfire: "The desire attaches to the Operator instead." },
+        { pip: 5, name: "APPETITE BLEED", type: "Distortion", actionCost: "Frequency Use", roll: "3d6 + Presence + Intimidation or Instinct + Survival", effect: "Make one appetite environmental.", misfire: "The appetite chooses the Operator as its object." },
+        { pip: 6, name: "PREDATORY SOVEREIGNTY", type: "Divergence", actionCost: "Sustained or Frequency Use", roll: "3d6 + Nerves + Survival when contested", effect: "Become the apex appetite in the scene.", misfire: "The Operator's need becomes visible enough for the Zone or entity to feed it." }
+      ],
+      Silence: [
+        { pip: 1, name: "SOFT FOOTPRINT", type: "Expression", actionCost: "None; ambient leakage. Small Interaction only when deliberately focusing.", roll: "None for obvious absence; 3d6 + Instinct + Awareness for hidden omission", effect: "Notice omissions, suppressed truths, conversational absences, and emotional withholding; leave one minor sign of presence quieter than it should be.", misfire: "Something important fails to notice the Operator when they need to be seen." },
+        { pip: 2, name: "DAMPENING", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Agility + Stealth or Mind + Engineering", effect: "Mute or soften one immediate detail until the end of the current Pressure Round. Gain Advantage on one roll to resist detection through that muted detail.", misfire: "The wrong detail vanishes, drawing attention to the absence." },
+        { pip: 3, name: "MEMORY BLUR", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Presence + Deception or Mind + Hacking", effect: "Blur one brief event in memory or records.", misfire: "The blur hides the intended detail and exposes a worse one." },
+        { pip: 4, name: "NULL PULSE", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Mind + Engineering or Nerves + Stealth", effect: "Create a brief dead zone in one limited channel.", misfire: "The null field suppresses something the Operators needed to hear." },
+        { pip: 5, name: "CONCEPT EROSION", type: "Distortion", actionCost: "Frequency Use", roll: "3d6 + Nerves + Ritual or Mind + Hacking", effect: "Erode one concept from local continuity.", misfire: "The eroded concept returns as a hostile absence." },
+        { pip: 6, name: "PERFECT SILENCE", type: "Divergence", actionCost: "Sustained or Frequency Use", roll: "3d6 + Nerves + Stealth when contested", effect: "Become a local absence around which observation fails.", misfire: "The Operator is cut out of ally perception at the worst possible moment." }
+      ],
+      Stillness: [
+        { pip: 1, name: "ANCHOR BREATH", type: "Expression", actionCost: "None; ambient leakage. Small Interaction only when deliberately focusing.", roll: "None for obvious pressure; 3d6 + Nerves + Awareness for hidden timing", effect: "Regulate movement, steady visible stress, and notice the instant before escalation.", misfire: "The Operator freezes on the warning instead of moving." },
+        { pip: 2, name: "BRACE", type: "Reaction", actionCost: "Reaction", roll: "3d6 + Body + Athletics or Nerves + Athletics", effect: "Reduce or resist one impact, shove, fall, blast, panic surge, or forced movement.", misfire: "The force stops, then transfers somewhere worse." },
+        { pip: 3, name: "MOMENT LOCK", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Nerves + Athletics or Mind + Engineering", effect: "Hold one detail in place until next Turn.", misfire: "The detail resumes with stored force." },
+        { pip: 4, name: "HALT FIELD", type: "Sustained", actionCost: "Frequency Use, then Sustained", roll: "3d6 + Nerves + Ritual or Body + Athletics", effect: "Create a local field where escalation slows.", misfire: "The field traps an ally, truth, or needed emotion inside it." },
+        { pip: 5, name: "SUSPENDED FRAME", type: "Distortion", actionCost: "Frequency Use", roll: "3d6 + Nerves + Ritual", effect: "Suspend one scene element in a visible frame.", misfire: "The Operator is included in the frame." },
+        { pip: 6, name: "ABSOLUTE STILLPOINT", type: "Divergence", actionCost: "Sustained or Frequency Use", roll: "3d6 + Nerves + Ritual when contested", effect: "Become the fixed point in the scene.", misfire: "The stillpoint preserves what should have been allowed to change." }
+      ],
+      Empyrean: [
+        { pip: 1, name: "SHARED BREATH", type: "Expression", actionCost: "None; ambient leakage. Small Interaction or quiet scene focus only when deliberately grounding someone.", roll: "None for obvious distress; 3d6 + Presence + Empathy or Nerves + Medicine when contested or unstable", effect: "Synchronize emotionally with nearby people and steady immediate panic, isolation, spiraling, or distress.", misfire: "Shared panic, emotional echo loops, involuntary memory flashes, mirrored body language, or synchronized trembling." },
+        { pip: 2, name: "RESONANCE CONDUCTION", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Presence + Empathy, Presence + Persuasion, or Nerves + Medicine", effect: "Transfer emotional pressure between people, environments, or entities.", misfire: "Synchronized panic, involuntary honesty, emotional flooding, accidental intimacy, memory bleed, or recursive empathy." },
+        { pip: 3, name: "RELATIONAL GRAVITY", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Presence + Empathy, Presence + Performance, or Nerves + Tactics", effect: "Draw attention without speaking, pull fractured groups into temporary coherence, or create an emotional center of gravity.", misfire: "Unwanted attachment, emotional obsession, dependency loops, involuntary trust, parasocial fixation, or transferred loneliness." },
+        { pip: 4, name: "WITNESS STATE", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Presence + Empathy, Presence + Persuasion, or Mind + Awareness", effect: "Force emotional acknowledgment, expose concealed grief/shame/fear, weaken denial-based phenomena, or anchor identity under recursive pressure.", misfire: "Involuntary emotional intake, identity overlap, emotional paralysis, inability to filter distress, recursive witnessing, or shared trauma flashback states." },
+        { pip: 5, name: "HARMONIC CASCADE", type: "Distortion", actionCost: "Frequency Use", roll: "3d6 + Presence + Empathy, Presence + Performance, or Presence + Ritual", effect: "Synchronize a crowd, group field, relationship web, panic wave, riot, or emotional ecosystem around emotional pressure.", misfire: "Crowd hysteria, synchronized breakdown, emotional contagion spirals, involuntary cult behavior, mass dependency, or recursive emotional amplification." },
+        { pip: 6, name: "COMMUNION EVENT", type: "Divergence", actionCost: "Sustained or Frequency Use", roll: "3d6 + Presence + Empathy or Presence + Ritual when contested", effect: "Create temporary shared emotional architecture or collective witness states.", misfire: "Personality blending, emotional hive states, recursive communion, involuntary synchronization, collective panic collapse, or inability to emotionally isolate self from others." }
+      ],
+      Becoming: [
+        { pip: 1, name: "ADAPTIVE INSTINCT", type: "Expression", actionCost: "None; ambient leakage. Small Interaction only when deliberately focusing.", roll: "None for obvious pressure; 3d6 + Presence + Awareness for hidden identity pressure", effect: "Adapt posture, cadence, presentation, and behavior toward survivable patterns; notice role or mask pressure.", misfire: "The Operator reflexively mirrors a role they did not choose." },
+        { pip: 2, name: "WEAR THE NEEDED FACE", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Presence + Deception or Presence + Performance", effect: "Adopt a surface role convincingly enough to pass a first glance, deliver one line, enter a space, or calm a social moment.", misfire: "The role fits too well and asks for behavior the Operator did not intend." },
+        { pip: 3, name: "PATTERN MIMIC", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Presence + Performance or Mind + Investigation", effect: "Mimic a limited pattern well enough to use it.", misfire: "The pattern carries emotional residue into the Operator." },
+        { pip: 4, name: "IDENTITY DRIFT", type: "Signature", actionCost: "Frequency Use", roll: "3d6 + Presence + Deception or Mind + Hacking", effect: "Drift one limited identity marker.", misfire: "The old and new identities overlap in public." },
+        { pip: 5, name: "METAMORPHIC ECHO", type: "Distortion", actionCost: "Frequency Use", roll: "3d6 + Presence + Performance or Nerves + Ritual", effect: "Make identity change physically or socially consequential.", misfire: "The transformation answers a deeper expectation than intended." },
+        { pip: 6, name: "TRUE BECOMING", type: "Divergence", actionCost: "Sustained or Frequency Use", roll: "3d6 + Nerves + Performance when contested", effect: "Become a transformation pressure source.", misfire: "The Operator changes in a way that solves the scene and complicates the self." }
+      ]
+    };
+  }
+
+  function fusionExpressions() {
+    return {
+      "Dream|Hunger": { name: "DESTRUCTIVE VISION", target: "one target or one small hostile cluster already acting through fear, pursuit, or aggression", effect: "Turn an illusion or symbolic frame emotionally violent. The target's next attack, defense, pursuit, or focused action is downgraded once.", misfire: "The violent symbol attaches to the wrong want or marks an ally as the threat." },
+      "Dream|Silence": { name: "CONCEPT ERASURE", target: "one visible detail, meaning, signal, label, instruction, or symbolic cue", effect: "Remove one meaning from the scene until the next turn.", misfire: "The missing meaning leaves a louder absence." },
+      "Dream|Stillness": { name: "FROZEN SYMBOL", target: "one illusion, omen, dream image, or symbolic feature already present in the scene", effect: "Hold the symbol as temporary terrain, cover, obstruction, or footing until the next turn.", misfire: "The symbol becomes fixed in the wrong place or holds the wrong person." },
+      "Dream|Empyrean": { name: "SHARED DREAMSCAPE", target: "the Operator and up to three willing or emotionally exposed participants in the same scene", effect: "Pull the group into one shared symbolic frame.", misfire: "Everyone sees the same symbol but interprets it differently." },
+      "Dream|Becoming": { name: "DREAMFORM SHIFT", target: "self", effect: "Appear as the version of yourself the scene's resonance is willing to accept.", misfire: "The accepted version of you is useful, but wrong." },
+      "Hunger|Dream": { name: "PREDATORY VISION", target: "one target or one small hostile cluster within Near range", effect: "Make the target's fear or desire appear as a threat they must answer.", misfire: "The vision chooses the strongest appetite in the room instead of the intended target." },
+      "Hunger|Silence": { name: "EMPTY PREDATOR", target: "one target the Operator can reach, stalk, or pressure", effect: "Create one perfect predatory opening.", misfire: "The Operator's own emotional presence drops out of the scene." },
+      "Hunger|Stillness": { name: "MOMENTUM BREAK", target: "one moving target, rush, charge, pursuit, or projectile exchange", effect: "Cancel the target's movement until their next turn.", misfire: "The stopped motion stores pressure and releases somewhere inconvenient." },
+      "Hunger|Empyrean": { name: "EMOTIONAL BIND", target: "one emotionally exposed target", effect: "Anchor the target's attention, desire, fear, or guilt to the Operator.", misfire: "The bind becomes mutual for one beat." },
+      "Hunger|Becoming": { name: "FOCUSED PREDATOR", target: "one target with a clear role, stance, mask, or combat function", effect: "Copy the threat shape the target fears and strip confidence from one role.", misfire: "The Operator copies more of the target's fear than intended." },
+      "Silence|Dream": { name: "NULL ILLUSION", target: "one space, sightline, clue, doorway, or symbolic object", effect: "Create an empty-space illusion that hides, blanks, or misdirects attention away from a truth in the scene.", misfire: "The blank spot becomes the most suspicious part of the room." },
+      "Silence|Hunger": { name: "HOLLOW APPETITE", target: "one target, pursuit path, or predatory opening", effect: "Remove the emotional noise from a hunt, ambush, escape, or intimidation beat.", misfire: "The Operator's own wants become unreadable even to allies." },
+      "Silence|Stillness": { name: "MOTION ERASURE", target: "one movement trail, impact record, projectile path, sound trace, or brief escape route", effect: "Remove the record of one action until the next turn.", misfire: "The erased motion skips forward and reappears as consequence." },
+      "Silence|Empyrean": { name: "EMOTIONAL VOID", target: "one target or one small group sharing a clear emotional state", effect: "Suppress one named emotion until the next turn.", misfire: "The emotion returns flattened, displaced, or attached to the wrong person." },
+      "Silence|Becoming": { name: "IDENTITY ERASURE", target: "self or one willing ally", effect: "Erase the target from recognition or symbolic presence until the next turn.", misfire: "The target returns with one identity marker missing or misplaced." },
+      "Stillness|Dream": { name: "TIME-LOCKED VISION", target: "one symbolic moment, attack tell, decision point, or revealed omen", effect: "Freeze the moment long enough to read it.", misfire: "The read is true, but fixed to the wrong timing." },
+      "Stillness|Hunger": { name: "MOMENTUM CANCEL", target: "one moving target, charge, pursuit, escape, or forced movement effect", effect: "Erase the target's motion until their next turn.", misfire: "The canceled momentum transfers into the environment." },
+      "Stillness|Silence": { name: "NULL STASIS", target: "one 10 ft zone, threshold, object cluster, or pressure point", effect: "Create a small zone where sound, motion, and emotional traces are muted until the next turn.", misfire: "Something important inside the zone fails to move when it should." },
+      "Stillness|Empyrean": { name: "CALM ANCHOR", target: "one small group, panic loop, argument, fear cascade, or emotional hazard", effect: "Freeze the group's current emotional state and prevent escalation until the next turn.", misfire: "The calm hardens into numbness or refusal to act." },
+      "Stillness|Becoming": { name: "FIXED IDENTITY", target: "self, one willing ally, or one identity marker under pressure", effect: "Prevent identity shifts, imposed roles, disguise collapse, symbolic renaming, or mental displacement affecting the target until the next turn.", misfire: "The protected identity becomes rigid and harder to adapt." },
+      "Empyrean|Dream": { name: "SHARED VISION", target: "the Operator and up to three willing, allied, or emotionally open participants", effect: "Give the group one shared emotional-symbolic picture of the scene.", misfire: "The vision reveals an emotional truth no one is ready to share." },
+      "Empyrean|Hunger": { name: "ENTRAPPING EMOTION", target: "one emotionally exposed target", effect: "Bind the target to one named emotional tether.", misfire: "The tether catches an ally, bystander, or the Operator as well." },
+      "Empyrean|Silence": { name: "QUIET HEART", target: "one target or one small group sharing a clear emotional signal", effect: "Remove the expression of one emotion until the next turn.", misfire: "The emotion returns through a different channel." },
+      "Empyrean|Stillness": { name: "ANCHORED HARMONY", target: "one group emotional state, truce, confession, panic loop, or morale field", effect: "Hold the current emotional state stable until the next turn.", misfire: "The harmony locks in the wrong feeling." },
+      "Empyrean|Becoming": { name: "EMOTIONAL MASK", target: "self", effect: "Adopt one target's emotional presentation, social warmth, relational tone, or affective signature until the next turn.", misfire: "The copied emotion sticks after the mask ends." },
+      "Becoming|Dream": { name: "ARCHETYPE PROJECTION", target: "self and one audience, witness, target, or symbolic frame", effect: "Become the figure the scene expects, fears, needs, or recognizes.", misfire: "The archetype demands behavior the Operator does not want to perform." },
+      "Becoming|Hunger": { name: "ADAPTIVE PREDATOR", target: "one target who can perceive or emotionally register the Operator", effect: "Take the threat shape the target fears.", misfire: "The Operator becomes convincing enough to frighten allies or themselves." },
+      "Becoming|Silence": { name: "NAMELESS SELF", target: "self", effect: "Become conceptually hard to target until the next turn.", misfire: "The Operator's identity returns incomplete or mislabeled." },
+      "Becoming|Stillness": { name: "FIXED ROLE", target: "self, one willing ally, or one imposed role currently under pressure", effect: "Lock the target into a chosen self, role, or survivor identity until the next turn.", misfire: "The fixed role becomes hard to release." },
+      "Becoming|Empyrean": { name: "EMOTIONAL MASK", target: "self and one copied emotional profile", effect: "Copy one person's emotional identity, affect, social warmth, or relational posture until the next turn.", misfire: "The copied emotional identity answers back." }
+    };
+  }
+
+  function frequencyExpressions(frequency) {
+    return expressionLadders()[frequency] || [];
+  }
+
+  function frequencyExpression(frequency, pip) {
+    return frequencyExpressions(frequency).find((entry) => entry.pip === Number(pip));
+  }
+
+  function pipLabel(frequency, index) {
+    const expression = frequencyExpression(frequency, index);
+    return expression ? expression.name : "Expression";
   }
 
   function unlockedLotusEntries() {
@@ -1187,13 +1282,26 @@
     const blind = normalizeFrequencyName(status.blindPetal);
     return frequencies().flatMap((frequency) => {
       if (frequency === blind) return [];
-      const card = frequencyCard(frequency);
       const level = Number(lotus[frequency] || 0);
-      return card.pips.slice(0, level).map((copy, index) => ({
+      return frequencyExpressions(frequency).slice(0, level).map((expression, index) => ({
         frequency,
         pip: index + 1,
-        copy
+        ...expression
       }));
+    });
+  }
+
+  function eligibleFusionEntries() {
+    const lotus = normalizeLotus(consoleState.operatorStatus.lotus);
+    const blind = normalizeFrequencyName(consoleState.operatorStatus.blindPetal);
+    const catalog = fusionExpressions();
+    return frequencies().flatMap((initiator) => {
+      if (initiator === blind || Number(lotus[initiator] || 0) < 6) return [];
+      return frequencies().flatMap((receiver) => {
+        if (receiver === initiator || receiver === blind || Number(lotus[receiver] || 0) < 4) return [];
+        const fusion = catalog[`${initiator}|${receiver}`];
+        return fusion ? [{ initiator, receiver, ...fusion }] : [];
+      });
     });
   }
 
@@ -1243,19 +1351,55 @@
       empty.className = "empty-line";
       empty.textContent = "No cultivated expressions recorded.";
       list.append(empty);
+    } else {
+      const allList = document.createElement("ol");
+      entries.forEach((entry) => allList.append(lotusUnlockEntry(entry, true)));
+      list.append(allList);
+    }
+
+    const fusionTitle = document.createElement("h3");
+    fusionTitle.textContent = "Legal fusion signatures";
+    list.append(fusionTitle);
+
+    const fusions = eligibleFusionEntries();
+    if (!fusions.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-line";
+      empty.textContent = "No 6-to-4 Fusion pair recorded. One petal must be Pip 6 and a different cultivated petal must be Pip 4.";
+      list.append(empty);
       return;
     }
 
-    const allList = document.createElement("ol");
-    entries.forEach((entry) => allList.append(lotusUnlockEntry(entry, true)));
-    list.append(allList);
+    const fusionList = document.createElement("ol");
+    fusions.forEach((entry) => fusionList.append(fusionUnlockEntry(entry)));
+    list.append(fusionList);
   }
 
   function lotusUnlockEntry(entry, includeFrequency) {
     const item = document.createElement("li");
     const label = document.createElement("strong");
-    label.textContent = `${includeFrequency ? `${entry.frequency} ` : ""}${entry.pip}: ${pipLabel(entry.pip)}`;
-    item.append(label, ` — ${entry.copy}`);
+    label.textContent = `${includeFrequency ? `${entry.frequency} ` : ""}${entry.pip}: ${pipLabel(entry.frequency, entry.pip)}`;
+    const effect = document.createElement("p");
+    effect.textContent = `${entry.type}. ${entry.effect}`;
+    const meta = document.createElement("p");
+    meta.className = "expression-meta";
+    meta.textContent = `${entry.actionCost} // ${entry.roll} // Misfire: ${entry.misfire}`;
+    item.append(label, effect, meta);
+    return item;
+  }
+
+  function fusionUnlockEntry(entry) {
+    const item = document.createElement("li");
+    const label = document.createElement("strong");
+    label.textContent = `Fusion: ${entry.name}`;
+    const pair = document.createElement("p");
+    pair.textContent = `${entry.initiator} 6 + ${entry.receiver} 4 // Target: ${entry.target}`;
+    const effect = document.createElement("p");
+    effect.textContent = entry.effect;
+    const meta = document.createElement("p");
+    meta.className = "expression-meta";
+    meta.textContent = `Misfire: ${entry.misfire}`;
+    item.append(label, pair, effect, meta);
     return item;
   }
 
@@ -1300,9 +1444,21 @@
         pip.setAttribute("aria-label", `${frequency} pip ${index}`);
         pip.addEventListener("click", () => {
           if (frequency === status.blindPetal) return;
-          status.lotus[frequency] = normalizeBoxValue(index === level ? index - 1 : index, 6);
+          const targetLevel = index === level ? index - 1 : index;
+          const allowed = frequencyChangeAllowed(status.lotus, frequency, targetLevel);
+          if (!allowed.ok) {
+            setStorageStatus(allowed.message, true);
+            renderLotus();
+            return;
+          }
+          if (!applyBreachDelta(allowed.cost || 0)) {
+            renderLotus();
+            return;
+          }
+          status.lotus[frequency] = normalizeBoxValue(targetLevel, 6);
           status.selectedLotusPetal = frequency;
           writeConsoleState();
+          renderCreationMode();
           renderLotus();
         });
         pips.append(pip);
@@ -1332,7 +1488,7 @@
     if (copy) {
       copy.textContent = status.selectedLotusPetal === status.blindPetal
         ? frequencyCard(status.selectedLotusPetal).blind
-        : tierCopy(status.selectedLotusPetal, tier);
+        : `${tierCopy(status.selectedLotusPetal, tier, selectedLevel)} ${lotusEconomyCopy(status.selectedLotusPetal, selectedLevel)}`;
     }
     renderLotusUnlocks();
   }
@@ -1420,6 +1576,7 @@
       voidMarks: normalizeNonNegative(status.voidMarks),
       breachPoints: normalizeNonNegative(status.breachPoints),
       creationMode: Boolean(status.creationMode),
+      activeMisfire: safeString(status.activeMisfire, 1000),
       misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity),
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
       lotus: normalizeLotus(status.lotus),
@@ -1533,6 +1690,13 @@
     if (forms.frequency) forms.frequency.addEventListener("submit", (event) => {
       event.preventDefault();
       autosaveStatus();
+    });
+    const clearActiveMisfire = document.getElementById("clear-active-misfire");
+    if (clearActiveMisfire) clearActiveMisfire.addEventListener("click", () => {
+      consoleState.operatorStatus.activeMisfire = "";
+      setNamedValue("activeMisfire", "");
+      writeConsoleState();
+      setStorageStatus("Active Misfire cleared. Recorded log retained.");
     });
     document.querySelectorAll("#status-form input, #status-form textarea, #status-form select, #frequency-form input, #frequency-form textarea, #frequency-form select").forEach((input) => {
       input.addEventListener("input", autosaveStatus);
