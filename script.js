@@ -1,6 +1,7 @@
 const operatorRecordVersion = 1;
 const recordStorageKey = "veildaemon.operatorRecord.v2";
 const legacyRecordStorageKey = "veildaemon.operatorRecord.v1";
+const operatorConsoleStorageKey = "veildaemon.operatorConsole.v1";
 const commandLayerStorageKey = "veildaemon.commandLayer.v1";
 const rewardStorageKey = "veildaemon.artifactCache.v1";
 const archiveUrl = "https://wiki.veildaemon.app/";
@@ -675,6 +676,15 @@ function readOperatorRecord() {
   }
 }
 
+function readOperatorConsoleRecord() {
+  try {
+    const raw = window.localStorage.getItem(operatorConsoleStorageKey);
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    return null;
+  }
+}
+
 function writeOperatorRecord(record) {
   try {
     window.localStorage.setItem(recordStorageKey, JSON.stringify(record));
@@ -1158,7 +1168,6 @@ function renderOperatorRecord(record) {
   const exposureList = document.getElementById("record-exposure-list");
   const relatedList = document.getElementById("record-related-list");
   const historyList = document.getElementById("record-history-list");
-
   if (!record) {
     drawer.classList.remove("has-record");
     casefileStatus.textContent = "NO RECORD";
@@ -1172,6 +1181,27 @@ function renderOperatorRecord(record) {
     renderSystemState(null);
     return;
   }
+
+  const consoleRecord = readOperatorConsoleRecord();
+  const operatorStatus = consoleRecord && consoleRecord.operatorStatus || {};
+  const compactMap = (value, fallback) => {
+    if (!value || typeof value !== "object") return fallback;
+    const entries = Object.entries(value)
+      .filter(([, entryValue]) => String(entryValue || "").trim() && String(entryValue) !== "0")
+      .map(([key, entryValue]) => `${key} ${entryValue}`);
+    return entries.length ? entries.join(" // ") : fallback;
+  };
+  const operatorName = operatorStatus.operatorName || operatorStatus.designation || record.designation;
+  const activeCase = operatorStatus.activeNeedlepoint || record.knownIncidents.join(" // ");
+  const attributes = compactMap(operatorStatus.attributes, "UNASSESSED // FIELD INTAKE ONLY");
+  const skills = compactMap(operatorStatus.skills, "UNASSESSED // FIELD INTAKE ONLY");
+  const stability = operatorStatus.stability ? `${operatorStatus.stability}/10` : record.stabilityState;
+  const harm = operatorStatus.harmBoxes ? `${operatorStatus.harmBoxes}/5` : "NONE RECORDED";
+  const currentState = operatorStatus.attentionState || record.attentionStatus;
+  const misfireNotes = operatorStatus.misfires || operatorStatus.misfireSeverity || record.archiveFlags.slice(0, 2).join(" // ");
+  const voidBreach = `${operatorStatus.voidMarks || 0} / ${operatorStatus.breachPoints || 0}`;
+  const anchor = [operatorStatus.anchorPerson, operatorStatus.totemObject].filter(Boolean).join(" // ") || "UNDECLARED";
+  const notes = operatorStatus.quickNotes || "Generated from public intake. Local browser record only.";
 
   document.getElementById("record-designation").textContent = record.designation;
   document.getElementById("record-access").textContent = `ACCESS: ${record.accessLevel}`;
@@ -1197,30 +1227,32 @@ function renderOperatorRecord(record) {
     ["PRIMARY FREQUENCY", record.primaryFrequency],
     ["STABILITY STATE", record.stabilityState],
     ["ATTENTION STATUS", record.attentionStatus],
+    ["ACTIVE CASE", activeCase],
     ["FILES REVIEWED", String(record.filesReviewed)],
     ["INCIDENT REFERENCES", String(record.incidentExposure.length)],
     ["KNOWN INCIDENT", record.knownIncidents.join(" // ")]
   ].forEach(([label, value]) => addRecordField(recordGrid, label, value));
 
   [
-    ["NAME", record.designation],
+    ["NAME", operatorName],
     ["PRESENTATION", "FIRST CONTACT OPERATOR"],
     ["PRIMARY FREQUENCY", record.primaryFrequency],
     ["METHODOLOGY", record.recommendedTraining],
-    ["ATTRIBUTES", "UNASSESSED // FIELD INTAKE ONLY"],
-    ["SKILLS", "UNASSESSED // FIELD INTAKE ONLY"],
-    ["STABILITY", record.stabilityState],
-    ["HARM", "NONE RECORDED"],
-    ["CURRENT STATE", record.attentionStatus],
+    ["ATTRIBUTES", attributes],
+    ["SKILLS", skills],
+    ["STABILITY", stability],
+    ["HARM", harm],
+    ["CURRENT STATE", currentState],
+    ["VOID / BREACH", voidBreach],
     ["BLEED", formatDrift(record).join(" // ") || "NONE RECORDED"],
-    ["MISFIRE NOTES", record.archiveFlags.slice(0, 2).join(" // ")],
+    ["MISFIRE NOTES", misfireNotes],
     ["PIP 1 LEAKAGE", `${record.primaryFrequency} // MONITORING`],
     ["PIP 2 EXPRESSION", `${record.primaryFrequency} // LOCKED PENDING AUTHORIZATION`],
-    ["ANCHOR", "UNDECLARED"],
+    ["ANCHOR", anchor],
     ["ANCHOR STATE", "UNVERIFIED"],
     ["ORDINARY-LIFE CONSEQUENCE", "PENDING HUMAN FOLLOW-UP"],
     ["DOWNTIME ACTION", "STABILIZE // DOCUMENT // DO NOT ESCALATE ALONE"],
-    ["NOTES", "Generated from public intake. Local browser record only."]
+    ["NOTES", notes]
   ].forEach(([label, value]) => addRecordField(recordSheet, label, value));
 
   [
@@ -1414,6 +1446,11 @@ function toggleCasefileDrawer() {
   setCasefileDrawerOpen(!drawer.classList.contains("is-open"));
 }
 
+function openIntakeFromCaseFile() {
+  setCasefileDrawerOpen(false);
+  openIntake();
+}
+
 function setRecoveredReportsDrawerOpen(isOpen) {
   const drawer = document.getElementById("recovered-reports-drawer");
   const toggle = document.getElementById("recovered-reports-toggle");
@@ -1441,10 +1478,12 @@ function setOperatorPreviewOpen(isOpen) {
     setCasefileDrawerOpen(false);
     setRecoveredReportsDrawerOpen(false);
     preview.classList.add("is-open");
+    document.body.classList.add("has-operator-preview-open");
     window.location.hash = "operator-preview";
     return;
   }
   preview.classList.remove("is-open");
+  document.body.classList.remove("has-operator-preview-open");
   if (window.location.hash === "#operator-preview") {
     window.location.hash = "surface-files";
   }
@@ -2357,6 +2396,10 @@ document.getElementById("resume-record").addEventListener("click", resumeRecord)
 document.getElementById("reclassify-record").addEventListener("click", reclassifyRecord);
 document.getElementById("returning-purge-record").addEventListener("click", purgeRecord);
 document.getElementById("casefile-toggle").addEventListener("click", toggleCasefileDrawer);
+const casefileCompleteIntake = document.getElementById("casefile-complete-intake");
+if (casefileCompleteIntake) {
+  casefileCompleteIntake.addEventListener("click", openIntakeFromCaseFile);
+}
 const recoveredReportsToggle = document.getElementById("recovered-reports-toggle");
 if (recoveredReportsToggle) {
   recoveredReportsToggle.addEventListener("click", toggleRecoveredReportsDrawer);

@@ -25,10 +25,11 @@ body {
   --surface-case-drawer-width: 430px;
   --surface-reports-drawer-width: 620px;
   --surface-operator-drawer-width: 500px;
+  --surface-tab-count: 3;
   --surface-tab-height: 9.4rem;
   --surface-tab-gap: .42rem;
   --surface-rack-padding-y: .45rem;
-  --surface-rack-height: calc((var(--surface-tab-height) * 3) + (var(--surface-tab-gap) * 2) + (var(--surface-rack-padding-y) * 2));
+  --surface-rack-height: calc((var(--surface-tab-height) * var(--surface-tab-count)) + (var(--surface-tab-gap) * (var(--surface-tab-count) - 1)) + (var(--surface-rack-padding-y) * 2));
   margin: 0;
   min-height: 100vh;
   color: var(--text);
@@ -55,6 +56,7 @@ body.report-surface {
   --surface-rack-center: calc(var(--surface-rail-top) + (var(--surface-rack-height) / 2));
 }
 body.surface-subpage {
+  --surface-tab-count: 4;
   --surface-tab-height: 7rem;
 }
 .noise {
@@ -1595,6 +1597,7 @@ body.has-reports-drawer-open .surface-tabs {
 body:has(#recovered-reports-drawer:target) .surface-tabs {
   left: calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-reports-drawer-width));
 }
+body.has-operator-preview-open .surface-tabs,
 body:has(#operator-preview:target) .surface-tabs {
   left: calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-operator-drawer-width));
 }

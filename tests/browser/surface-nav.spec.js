@@ -20,7 +20,7 @@ for (const [path, labels] of Object.entries(publicSurfaces)) {
   });
 }
 
-test("operator file opens local anomaly preview before routing", async ({ page }) => {
+test("operator file opens action tray before routing", async ({ page }) => {
   await page.goto("/");
 
   const nav = page.getByRole("navigation", { name: "Surface files" });
@@ -28,9 +28,11 @@ test("operator file opens local anomaly preview before routing", async ({ page }
 
   const preview = page.locator("#operator-preview");
   await expect(preview).toBeVisible();
-  await expect(preview.getByRole("heading", { name: "LOCAL OPERATOR RECORD" })).toBeVisible();
-  await expect(preview.getByText("DESIGNATION")).toBeVisible();
-  await expect(preview.getByRole("link", { name: "Edit Personal File" })).toHaveAttribute("href", "/operator/");
+  await expect(preview.getByRole("heading", { name: "OPERATOR FILE" })).toBeVisible();
+  await expect(preview.getByText("REPORT OR ACCESS")).toBeVisible();
+  await expect(preview.getByRole("link", { name: "Submit Debrief" })).toHaveAttribute("href", "/debrief/");
+  await expect(preview.getByRole("link", { name: "Review Reports" })).toHaveAttribute("href", "/recovered-operator-reports/");
+  await expect(preview.getByRole("link", { name: "Open Operator Panel" })).toHaveAttribute("href", "/operator/");
 });
 
 test("local operator record preview mirrors saved operator file fields", async ({ page }) => {
@@ -61,15 +63,88 @@ test("local operator record preview mirrors saved operator file fields", async (
 
   await page.goto("/updates/");
   const nav = page.getByRole("navigation", { name: "Surface files" });
-  await nav.getByText("OPERATOR FILE").click();
+  await nav.getByText("CASE FILE").click();
 
-  const preview = page.locator("#operator-preview");
+  const preview = page.locator("#casefile-drawer");
   await expect(preview.getByText("Mara Vale")).toBeVisible();
   await expect(preview.getByText("Silence")).toBeVisible();
   await expect(preview.getByText("Viridian House")).toBeVisible();
   await expect(preview.getByText("8/10")).toBeVisible();
   await expect(preview.getByText("2/5")).toBeVisible();
   await expect(preview.getByText("Investigation 2 // Occult 1")).toBeVisible();
+});
+
+test("home case file grounds intake record with operator file data", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
+      designation: "RECORD-MV-7",
+      primaryFrequency: "Silence",
+      observerClassification: "POTENTIAL OPERATOR",
+      attentionStatus: "NOTED",
+      accessLevel: "INTAKE ACCEPTED",
+      assignmentGroup: "THE REDACTED",
+      handlerSignal: "SHADE",
+      archiveAuthority: "VEILCORP",
+      intakeNode: "VEILDAEMON",
+      observedTraits: [],
+      frequencyDrift: [{ frequency: "Silence", value: 2 }],
+      knownIncidents: ["Silence Gap"],
+      incidentExposure: ["Silence Gap"],
+      archiveFlags: ["OBSERVED: Operator Intake"],
+      relatedRecords: [],
+      recommendedTraining: "Document absences.",
+      archiveRoute: "https://wiki.veildaemon.app/",
+      classificationHistory: [],
+      visits: 1,
+      filesReviewed: 2,
+      lastSeen: new Date().toISOString(),
+      lastActivity: new Date().toISOString()
+    }));
+    window.localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify({
+      version: 1,
+      operatorStatus: {
+        operatorName: "Mara Vale",
+        activeNeedlepoint: "Viridian House",
+        stability: "8",
+        harmBoxes: "2",
+        voidMarks: "4",
+        breachPoints: "9",
+        attributes: { Body: "1", Mind: "3" },
+        skills: { Investigation: "2" }
+      }
+    }));
+  });
+
+  await page.goto("/");
+  await page.getByRole("navigation", { name: "Surface files" }).getByText("CASE FILE").click();
+
+  const caseFile = page.locator("#casefile-drawer");
+  await expect(caseFile.getByText("Mara Vale")).toBeVisible();
+  await expect(caseFile.getByText("Viridian House")).toBeVisible();
+  await expect(caseFile.getByText("8/10")).toBeVisible();
+  await expect(caseFile.getByText("4 / 9")).toBeVisible();
+  await expect(caseFile.getByText("Investigation 2")).toBeVisible();
+});
+
+test("empty home case file opens intake", async ({ page }) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Surface files" });
+  await nav.getByText("CASE FILE").click();
+
+  await expect(page.locator("#casefile-empty")).toBeVisible();
+  await page.getByRole("button", { name: "Complete Intake" }).click();
+
+  await expect(page.locator("#intake-node")).toBeVisible();
+  await expect(page.locator("#casefile-drawer")).not.toBeVisible();
+});
+
+test("empty subpage case file offers intake route", async ({ page }) => {
+  await page.goto("/updates/");
+  await page.getByRole("navigation", { name: "Surface files" }).getByText("CASE FILE").click();
+
+  const caseFile = page.locator("#casefile-drawer");
+  await expect(caseFile.getByText("INTAKE REQUIRED")).toBeVisible();
+  await expect(caseFile.getByRole("link", { name: "Complete Intake" })).toHaveAttribute("href", "/#intake-node");
 });
 
 test("operator file edits sync into local record preview on other surfaces", async ({ page }) => {
@@ -83,9 +158,9 @@ test("operator file edits sync into local record preview on other surfaces", asy
 
   await page.goto("/debrief/");
   const nav = page.getByRole("navigation", { name: "Surface files" });
-  await nav.getByText("OPERATOR FILE").click();
+  await nav.getByText("CASE FILE").click();
 
-  const preview = page.locator("#operator-preview");
+  const preview = page.locator("#casefile-drawer");
   await expect(preview.getByText("June Rook")).toBeVisible();
   await expect(preview.getByText("Silence Gap")).toBeVisible();
   await expect(preview.getByText("3 / 7")).toBeVisible();
@@ -118,6 +193,26 @@ test("surface drawers allow only one open preview", async ({ page }) => {
   await nav.getByText("REPORTS").click();
   await expect(page.locator("#operator-preview")).not.toBeVisible();
   await expect(page.locator("#recovered-reports-drawer")).toBeVisible();
+});
+
+test("home operator drawer moves the tab rack to the open file rail", async ({ page }) => {
+  await page.setViewportSize({ width: 2200, height: 1000 });
+  await page.goto("/");
+
+  await page.getByRole("navigation", { name: "Surface files" }).getByText("OPERATOR FILE").click();
+  await expect(page.locator("#operator-preview")).toBeVisible();
+  await page.waitForTimeout(300);
+
+  const rects = await page.evaluate(() => {
+    const tabs = document.querySelector(".surface-tabs")?.getBoundingClientRect();
+    const drawer = document.querySelector("#operator-preview")?.getBoundingClientRect();
+    return {
+      tabLeft: tabs?.left || 0,
+      drawerRight: drawer?.right || 0
+    };
+  });
+
+  expect(Math.abs(rects.tabLeft - rects.drawerRight)).toBeLessThanOrEqual(2);
 });
 
 test("secondary surface tabs stay inside the console model", async ({ page }) => {
@@ -181,6 +276,24 @@ test("preview panels normalize to the surface tab rack", async ({ page }) => {
 
 test("report surface tabs ride the active terminal rail", async ({ page }) => {
   await page.goto("/recovered-operator-reports/");
+
+  const rects = await page.evaluate(() => {
+    const tabs = document.querySelector(".surface-tabs")?.getBoundingClientRect();
+    const terminal = document.querySelector(".report-terminal")?.getBoundingClientRect();
+    return {
+      tabTop: tabs?.top || 0,
+      tabLeft: tabs?.left || 0,
+      terminalTop: terminal?.top || 0,
+      terminalRight: terminal?.right || 0
+    };
+  });
+
+  expect(Math.abs(rects.tabTop - rects.terminalTop)).toBeLessThanOrEqual(2);
+  expect(Math.abs(rects.tabLeft - rects.terminalRight)).toBeLessThanOrEqual(2);
+});
+
+test("updates four-tab rack stays on the terminal rail", async ({ page }) => {
+  await page.goto("/updates/");
 
   const rects = await page.evaluate(() => {
     const tabs = document.querySelector(".surface-tabs")?.getBoundingClientRect();
