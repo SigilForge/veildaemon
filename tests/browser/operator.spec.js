@@ -9,6 +9,11 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
 
   await page.getByRole("button", { name: "Sheet" }).click();
   await expect(page.getByRole("button", { name: "Sheet" })).toHaveClass(/is-active/);
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const stickyNav = await page.locator(".console-nav").boundingBox();
+  expect(stickyNav.y).toBeGreaterThanOrEqual(0);
+  expect(stickyNav.y).toBeLessThan(90);
+  await page.getByRole("button", { name: "Sheet" }).click();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("0/5")).toBeVisible();
