@@ -246,8 +246,23 @@ h3 {
   gap: .7rem;
 }
 .identity-card .card-label,
-.identity-card label:last-child {
+.identity-card label:last-child,
+.tiny-counters {
   grid-column: 1 / -1;
+}
+.tiny-counters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 7rem));
+  gap: .55rem;
+}
+.tiny-counters label {
+  gap: .2rem;
+}
+.tiny-counters input {
+  min-height: 2.1rem;
+  padding: .42rem;
+  font-size: .88rem;
+  text-align: center;
 }
 .card-label {
   margin: 0 0 .7rem;
@@ -278,18 +293,25 @@ h3 {
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
+.condition-strip {
+  grid-column: 1 / -1;
+  padding: .45rem .1rem;
+  border-top: 1px solid rgba(137,255,218,.18);
+  border-bottom: 1px solid rgba(137,255,218,.18);
+}
 .tracker-board {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .65rem;
+  gap: .8rem;
 }
-.pip-tracker {
+.line-tracker {
   display: grid;
-  gap: .65rem;
-  min-height: 9.5rem;
-  padding: .75rem;
-  border: 1px solid rgba(137,255,218,.18);
-  background: rgba(0,0,0,.28);
+  grid-template-columns: minmax(5.4rem, .25fr) minmax(0, 1fr) minmax(5.8rem, .32fr);
+  gap: .55rem;
+  align-items: center;
+  min-height: 3.3rem;
+  padding: .35rem .5rem;
+  background: rgba(0,0,0,.18);
 }
 .pip-header {
   display: flex;
@@ -311,18 +333,19 @@ h3 {
   color: var(--muted);
   font-size: .68rem;
   line-height: 1.35;
+  text-align: right;
   text-transform: uppercase;
 }
-.pips {
+.line-pips {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: .35rem;
-  align-content: start;
+  grid-template-columns: repeat(10, minmax(.8rem, 1fr));
+  gap: .24rem;
+  align-content: center;
 }
 .pip {
-  aspect-ratio: 1;
+  aspect-ratio: 2.2 / 1;
   min-width: 0;
-  min-height: 1.15rem;
+  min-height: .7rem;
   border: 1px solid rgba(137,255,218,.34);
   background: rgba(0,0,0,.28);
   cursor: pointer;
@@ -331,11 +354,11 @@ h3 {
   background: var(--cyan);
   box-shadow: 0 0 16px rgba(102,255,220,.22);
 }
-.pip-tracker.danger .pip.is-filled {
+.line-tracker.danger .pip.is-filled {
   background: var(--danger);
   box-shadow: 0 0 16px rgba(255,92,138,.22);
 }
-.pip-tracker.lotus .pip.is-filled {
+.line-tracker.lotus .pip.is-filled {
   background: var(--purple);
   box-shadow: 0 0 16px rgba(185,84,255,.28);
 }
@@ -344,6 +367,7 @@ h3 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: .4rem;
   align-self: end;
+  display: none;
 }
 .pip-controls button,
 .segmented button {
@@ -457,11 +481,6 @@ fieldset.recovery-field.compact label {
   border: 1px solid rgba(137,255,218,.18);
   background: rgba(0,0,0,.18);
 }
-.counter-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .65rem;
-}
 .lotus-workspace {
   grid-column: 1 / -1;
   display: grid;
@@ -530,6 +549,54 @@ fieldset.recovery-field.compact label {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: .3rem;
+}
+.attribute-grid,
+.skill-list {
+  display: grid;
+  gap: .55rem;
+}
+.attribute-row,
+.skill-row {
+  display: grid;
+  grid-template-columns: minmax(6rem, .35fr) minmax(0, 1fr);
+  gap: .55rem;
+  align-items: center;
+}
+.attribute-name,
+.skill-name {
+  min-height: 2.35rem;
+  border: 1px solid rgba(137,255,218,.2);
+  background: rgba(0,0,0,.28);
+  color: var(--cyan);
+  cursor: pointer;
+  font: inherit;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+.attribute-pips {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(1.3rem, 1fr));
+  gap: .35rem;
+}
+.attribute-pips .pip {
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+.skill-builder {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(4.5rem, .35fr) auto;
+  gap: .55rem;
+  align-items: end;
+  margin-bottom: .75rem;
+}
+.skill-row {
+  grid-template-columns: minmax(0, 1fr) 4.5rem auto;
+}
+.skill-row input {
+  text-align: center;
 }
 .lotus-detail {
   min-width: 0;
@@ -662,6 +729,7 @@ a:focus-visible {
   .console-form,
   .sheet-grid,
   .tracker-board,
+  .line-tracker,
   .roll-row,
   .lotus-workspace,
   .archive-grid,
@@ -669,6 +737,12 @@ a:focus-visible {
     grid-template-columns: 1fr;
   }
   .identity-card {
+    grid-template-columns: 1fr;
+  }
+  .tiny-counters,
+  .skill-builder,
+  .attribute-row,
+  .skill-row {
     grid-template-columns: 1fr;
   }
   fieldset.recovery-field {
@@ -714,7 +788,6 @@ a:focus-visible {
   .segmented,
   .segmented.attention,
   .segmented.misfire,
-  .counter-row,
   .lotus-map {
     grid-template-columns: 1fr;
   }

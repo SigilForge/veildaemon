@@ -32,11 +32,18 @@
       },
       blindPetal: "",
       selectedLotusPetal: "",
-      rollAttribute: "0",
-      rollSkill: "0",
+      attributes: {
+        Body: "1",
+        Agility: "1",
+        Mind: "1",
+        Instinct: "1",
+        Presence: "1",
+        Nerves: "1"
+      },
+      skills: {},
+      rollAttributeKey: "Body",
+      rollSkillKey: "",
       rollModifier: "0",
-      attributes: "",
-      skills: "",
       quickNotes: "",
       expressions: "",
       bleed: "",
@@ -129,8 +136,10 @@
       lotus: normalizeLotus(status.lotus),
       blindPetal: normalizeFrequencyName(status.blindPetal),
       selectedLotusPetal: normalizeFrequencyName(status.selectedLotusPetal),
-      rollAttribute: normalizeSignedValue(status.rollAttribute, -3, 8),
-      rollSkill: normalizeBoxValue(status.rollSkill, 8),
+      attributes: normalizeAttributes(status.attributes),
+      skills: normalizeSkills(status.skills),
+      rollAttributeKey: normalizeAttributeName(status.rollAttributeKey) || "Body",
+      rollSkillKey: normalizeSkillName(status.rollSkillKey),
       rollModifier: normalizeSignedValue(status.rollModifier, -10, 10),
       recoveryGround: Boolean(status.recoveryGround),
       recoveryBreathe: Boolean(status.recoveryBreathe),
@@ -270,11 +279,9 @@
     setNamedValue("breachPoints", normalizeNonNegative(status.breachPoints));
     setNamedValue("misfireSeverity", normalizeMisfireSeverity(status.misfireSeverity));
     setNamedValue("commonTell", status.commonTell || "");
-    setNamedValue("rollAttribute", normalizeSignedValue(status.rollAttribute, -3, 8));
-    setNamedValue("rollSkill", normalizeBoxValue(status.rollSkill, 8));
+    setNamedValue("rollAttributeKey", normalizeAttributeName(status.rollAttributeKey) || "Body");
+    setNamedValue("rollSkillKey", normalizeSkillName(status.rollSkillKey));
     setNamedValue("rollModifier", normalizeSignedValue(status.rollModifier, -10, 10));
-    setNamedValue("attributes", status.attributes || "");
-    setNamedValue("skills", status.skills || "");
     setNamedValue("quickNotes", status.quickNotes || "");
     setNamedValue("expressions", status.expressions || "");
     setNamedValue("misfireFlavor", status.misfireFlavor || frequencyCard(operatorRecord?.primaryFrequency).misfireFlavor);
@@ -293,6 +300,9 @@
     renderSegmentedControls();
     renderBandMeter();
     renderLotus();
+    renderAttributes();
+    renderSkills();
+    renderRollSelectors();
     renderStatusSummary();
   }
 
@@ -328,6 +338,61 @@
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return "0";
     return String(Math.max(min, Math.min(max, Math.round(parsed))));
+  }
+
+  function attributeNames() {
+    return ["Body", "Agility", "Mind", "Instinct", "Presence", "Nerves"];
+  }
+
+  function skillNames() {
+    return [
+      "Athletics",
+      "Melee",
+      "Ranged",
+      "Stealth",
+      "Survival",
+      "Medicine",
+      "Investigation",
+      "Hacking",
+      "Engineering",
+      "Academics",
+      "Awareness",
+      "Tactics",
+      "Empathy",
+      "Deception",
+      "Persuasion",
+      "Intimidation",
+      "Performance",
+      "Ritual"
+    ];
+  }
+
+  function normalizeAttributeName(value) {
+    return attributeNames().includes(value) ? value : "";
+  }
+
+  function normalizeSkillName(value) {
+    return skillNames().includes(value) ? value : "";
+  }
+
+  function normalizeAttributes(value) {
+    const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    const attributes = {};
+    attributeNames().forEach((name) => {
+      attributes[name] = normalizeBoxValue(source[name] || 1, 5);
+      if (attributes[name] === "0") attributes[name] = "1";
+    });
+    return attributes;
+  }
+
+  function normalizeSkills(value) {
+    const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    const skills = {};
+    skillNames().forEach((name) => {
+      const rank = Number(normalizeBoxValue(source[name], 5));
+      if (rank > 0) skills[name] = String(rank);
+    });
+    return skills;
   }
 
   function normalizeStabilityBand(value) {
@@ -460,7 +525,7 @@
     trackers.forEach((tracker) => {
       const value = Number(normalizeBoxValue(consoleState.operatorStatus[tracker.key], tracker.max));
       const article = document.createElement("article");
-      article.className = `pip-tracker ${tracker.kind}`;
+      article.className = `line-tracker ${tracker.kind}`;
 
       const header = document.createElement("div");
       header.className = "pip-header";
@@ -471,7 +536,7 @@
       header.append(title, count);
 
       const pips = document.createElement("div");
-      pips.className = "pips";
+      pips.className = "line-pips";
       for (let index = 1; index <= tracker.max; index += 1) {
         const pip = document.createElement("button");
         pip.type = "button";
@@ -505,6 +570,151 @@
       article.append(header, pips, derived, controls);
       board.append(article);
     });
+  }
+
+  function renderAttributes() {
+    const grid = document.getElementById("attribute-grid");
+    if (!grid) return;
+    const attrs = normalizeAttributes(consoleState.operatorStatus.attributes);
+    consoleState.operatorStatus.attributes = attrs;
+    grid.textContent = "";
+    attributeNames().forEach((name) => {
+      const value = Number(attrs[name]);
+      const row = document.createElement("article");
+      row.className = "attribute-row";
+      const label = document.createElement("button");
+      label.type = "button";
+      label.className = "attribute-name";
+      label.textContent = name;
+      label.addEventListener("click", () => {
+        consoleState.operatorStatus.rollAttributeKey = name;
+        writeConsoleState();
+        renderRollSelectors();
+      });
+      const pips = document.createElement("div");
+      pips.className = "attribute-pips";
+      for (let index = 1; index <= 5; index += 1) {
+        const pip = document.createElement("button");
+        pip.type = "button";
+        pip.className = "pip";
+        pip.classList.toggle("is-filled", index <= value);
+        pip.setAttribute("aria-label", `${name} ${index}`);
+        pip.addEventListener("click", () => {
+          attrs[name] = normalizeBoxValue(index, 5);
+          consoleState.operatorStatus.attributes = attrs;
+          consoleState.operatorStatus.rollAttributeKey = name;
+          writeConsoleState();
+          renderAttributes();
+          renderRollSelectors();
+        });
+        pips.append(pip);
+      }
+      row.append(label, pips);
+      grid.append(row);
+    });
+  }
+
+  function renderSkills() {
+    const picker = document.getElementById("skill-picker");
+    const list = document.getElementById("skill-list");
+    if (picker) {
+      const current = picker.value;
+      picker.textContent = "";
+      skillNames().forEach((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        picker.append(option);
+      });
+      picker.value = normalizeSkillName(current) || "Athletics";
+    }
+    if (!list) return;
+    const skills = normalizeSkills(consoleState.operatorStatus.skills);
+    consoleState.operatorStatus.skills = skills;
+    list.textContent = "";
+    const entries = Object.entries(skills);
+    if (!entries.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-line";
+      empty.textContent = "No trained skills assigned.";
+      list.append(empty);
+      renderRollSelectors();
+      return;
+    }
+    entries.forEach(([name, rank]) => {
+      const row = document.createElement("article");
+      row.className = "skill-row";
+      const pick = document.createElement("button");
+      pick.type = "button";
+      pick.className = "skill-name";
+      pick.textContent = name;
+      pick.addEventListener("click", () => {
+        consoleState.operatorStatus.rollSkillKey = name;
+        writeConsoleState();
+        renderRollSelectors();
+      });
+      const input = document.createElement("input");
+      input.type = "number";
+      input.min = "1";
+      input.max = "5";
+      input.step = "1";
+      input.value = rank;
+      input.setAttribute("aria-label", `${name} rank`);
+      input.addEventListener("change", () => {
+        skills[name] = normalizeBoxValue(input.value, 5);
+        if (skills[name] === "0") delete skills[name];
+        consoleState.operatorStatus.skills = skills;
+        writeConsoleState();
+        renderSkills();
+      });
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "entry-remove";
+      remove.textContent = "Remove";
+      remove.addEventListener("click", () => {
+        delete skills[name];
+        if (consoleState.operatorStatus.rollSkillKey === name) consoleState.operatorStatus.rollSkillKey = "";
+        consoleState.operatorStatus.skills = skills;
+        writeConsoleState();
+        renderSkills();
+      });
+      row.append(pick, input, remove);
+      list.append(row);
+    });
+    renderRollSelectors();
+  }
+
+  function renderRollSelectors() {
+    const attrSelect = document.getElementById("roll-attribute");
+    const skillSelect = document.getElementById("roll-skill");
+    const status = consoleState.operatorStatus;
+    if (attrSelect) {
+      const current = normalizeAttributeName(status.rollAttributeKey) || "Body";
+      attrSelect.textContent = "";
+      attributeNames().forEach((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = `${name} +${normalizeAttributes(status.attributes)[name]}`;
+        attrSelect.append(option);
+      });
+      attrSelect.value = current;
+    }
+    if (skillSelect) {
+      const current = normalizeSkillName(status.rollSkillKey);
+      const skills = normalizeSkills(status.skills);
+      skillSelect.textContent = "";
+      const untrained = document.createElement("option");
+      untrained.value = "";
+      untrained.textContent = "Untrained +0";
+      skillSelect.append(untrained);
+      Object.entries(skills).forEach(([name, rank]) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = `${name} +${rank}`;
+        skillSelect.append(option);
+      });
+      skillSelect.value = current && skills[current] ? current : "";
+    }
   }
 
   function setTrackerValue(key, value, max) {
@@ -720,8 +930,10 @@
       lotus: normalizeLotus(status.lotus),
       blindPetal: normalizeFrequencyName(status.blindPetal),
       selectedLotusPetal: normalizeFrequencyName(status.selectedLotusPetal),
-      rollAttribute: normalizeSignedValue(status.rollAttribute, -3, 8),
-      rollSkill: normalizeBoxValue(status.rollSkill, 8),
+      attributes: normalizeAttributes(status.attributes),
+      skills: normalizeSkills(status.skills),
+      rollAttributeKey: normalizeAttributeName(status.rollAttributeKey) || "Body",
+      rollSkillKey: normalizeSkillName(status.rollSkillKey),
       rollModifier: normalizeSignedValue(status.rollModifier, -10, 10)
     };
   }
@@ -733,6 +945,7 @@
     renderLotus();
     renderStatusSummary();
     renderSegmentedControls();
+    renderRollSelectors();
   }
 
   function addEntry(collection, form) {
@@ -788,19 +1001,38 @@
     });
     const rollButton = document.getElementById("roll-action");
     if (rollButton) rollButton.addEventListener("click", rollAction);
+    const addSkill = document.getElementById("add-skill");
+    if (addSkill) addSkill.addEventListener("click", () => {
+      const picker = document.getElementById("skill-picker");
+      const rank = document.getElementById("skill-rank");
+      const skill = picker && normalizeSkillName(picker.value);
+      if (!skill) return;
+      consoleState.operatorStatus.skills = normalizeSkills(consoleState.operatorStatus.skills);
+      consoleState.operatorStatus.skills[skill] = normalizeBoxValue(rank && rank.value || 1, 5);
+      if (consoleState.operatorStatus.skills[skill] === "0") consoleState.operatorStatus.skills[skill] = "1";
+      consoleState.operatorStatus.rollSkillKey = skill;
+      writeConsoleState();
+      renderSkills();
+    });
   }
 
   function rollAction() {
     autosaveStatus();
     const dice = [rollDie(), rollDie(), rollDie()];
     const status = consoleState.operatorStatus;
+    const attrs = normalizeAttributes(status.attributes);
+    const skills = normalizeSkills(status.skills);
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    const skillKey = normalizeSkillName(status.rollSkillKey);
+    const attrValue = Number(attrs[attrKey] || 0);
+    const skillValue = skillKey ? Number(skills[skillKey] || 0) : 0;
     const total = dice.reduce((sum, value) => sum + value, 0)
-      + Number(status.rollAttribute || 0)
-      + Number(status.rollSkill || 0)
+      + attrValue
+      + skillValue
       + Number(status.rollModifier || 0);
     const output = document.getElementById("roll-output");
     if (output) {
-      output.textContent = `3D6 ${dice.join(" + ")} // ATTR ${status.rollAttribute || 0} // SKILL ${status.rollSkill || 0} // MOD ${status.rollModifier || 0} = ${total}`;
+      output.textContent = `3D6 ${dice.join(" + ")} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${status.rollModifier || 0} = ${total}`;
     }
   }
 
