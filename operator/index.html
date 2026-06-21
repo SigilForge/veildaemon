@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#050709" />
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
-  <link rel="stylesheet" href="./operator.css?v=20260621-operator1" />
+  <link rel="stylesheet" href="./operator.css?v=20260621-trackers1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -65,16 +65,27 @@
     <section class="module-panel" id="module-status" data-module-panel="status" aria-label="Operator status">
       <div class="module-heading">
         <p class="kicker">OPERATOR STATUS</p>
-        <h2>Monitor Stability, Harm, bleed, and Misfires.</h2>
+        <h2>Track the player-owned sheet: Stability, Harm, Void, Breach, Anchors, and Misfires.</h2>
       </div>
+      <section class="tracker-summary" aria-label="Tracker summary">
+        <div><span>Stability Band</span><strong id="status-band">UNRECORDED</strong></div>
+        <div><span>Frequency Bleed</span><strong id="status-bleed-cue">PENDING FREQUENCY</strong></div>
+        <div><span>Action Rhythm</span><strong>MAIN / MOVE / FREQUENCY / REACTION</strong></div>
+      </section>
       <form class="console-form status-form" id="status-form">
-        <label>Stability<input name="stability" type="text" maxlength="80" /></label>
-        <label>Harm<input name="harm" type="text" maxlength="80" /></label>
-        <label>Bleed<textarea name="bleed" rows="3"></textarea></label>
-        <label>Misfires<textarea name="misfires" rows="3"></textarea></label>
-        <label>Anchors<textarea name="anchors" rows="3"></textarea></label>
-        <label>Void / Breach notes<textarea name="voidBreach" rows="3"></textarea></label>
+        <label>Stability<input name="stability" type="number" min="0" max="10" step="1" /></label>
+        <label>Harm<input name="harm" type="text" maxlength="80" placeholder="Physical injury or direct damage" /></label>
+        <label>Void Marks<input name="voidMarks" type="number" min="0" step="1" /></label>
+        <label>Breach Points<input name="breachPoints" type="number" min="0" step="1" /></label>
         <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" /></label>
+        <label>Common tell<input name="commonTell" type="text" maxlength="160" /></label>
+        <label>Misfire flavor<textarea name="misfireFlavor" rows="3"></textarea></label>
+        <label>Anchor person / memory<textarea name="anchorPerson" rows="3"></textarea></label>
+        <label>Totem object / symbol<textarea name="totemObject" rows="3"></textarea></label>
+        <label>Grounding line<textarea name="groundingLine" rows="3"></textarea></label>
+        <label>Bleed notes<textarea name="bleed" rows="3"></textarea></label>
+        <label>Misfires recorded<textarea name="misfires" rows="3"></textarea></label>
+        <label>Void / Breach notes<textarea name="voidBreach" rows="3"></textarea></label>
         <button class="button primary" type="submit">Update Status</button>
       </form>
     </section>
@@ -103,13 +114,13 @@
       <form class="console-form" id="relationship-form">
         <label>Name<input name="name" type="text" required maxlength="100" /></label>
         <label>Type<select name="kind"><option>Person</option><option>Place</option><option>Entity</option><option>Group</option></select></label>
-        <label>Bond<input name="bond" type="text" maxlength="100" /></label>
-        <label>Trust<input name="trust" type="text" maxlength="80" /></label>
-        <label>Tension<input name="tension" type="text" maxlength="100" /></label>
-        <label>Risk<input name="risk" type="text" maxlength="100" /></label>
+        <label>Trust<input name="trust" type="number" min="0" step="1" /></label>
+        <label>Tension<input name="tension" type="number" min="0" step="1" /></label>
+        <label>Why they matter<input name="why" type="text" maxlength="180" /></label>
         <label>Notes<textarea name="notes" rows="3"></textarea></label>
         <button class="button primary" type="submit">Map Relationship</button>
       </form>
+      <p class="tracker-note">Trust rises when you protect, confess, support, or survive together. Tension rises when you lie, withhold, betray, or let a Misfire hurt someone indirectly.</p>
       <div class="entry-list" id="relationship-list"></div>
     </section>
 
@@ -144,6 +155,6 @@
       </div>
     </section>
   </main>
-  <script src="./operator.js?v=20260621-operator1"></script>
+  <script src="./operator.js?v=20260621-trackers1"></script>
 </body>
 </html>

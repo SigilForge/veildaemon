@@ -116,10 +116,12 @@ h3 {
   gap: .7rem;
   margin-top: 1rem;
 }
-.snapshot-grid div {
+.snapshot-grid div,
+.tracker-summary div {
   padding: .85rem;
 }
 .snapshot-grid span,
+.tracker-summary span,
 .console-entry strong {
   display: block;
   color: var(--cyan);
@@ -128,10 +130,27 @@ h3 {
   letter-spacing: .12em;
   text-transform: uppercase;
 }
-.snapshot-grid strong {
+.snapshot-grid strong,
+.tracker-summary strong {
   display: block;
   margin-top: .35rem;
   overflow-wrap: anywhere;
+}
+.tracker-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .7rem;
+  margin-bottom: 1rem;
+}
+.tracker-summary div {
+  border: 1px solid rgba(137,255,218,.2);
+  background: rgba(0,0,0,.24);
+}
+.tracker-note {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.45;
 }
 .console-nav {
   display: grid;
@@ -289,7 +308,8 @@ a:focus-visible {
 }
 @media (max-width: 900px) {
   .snapshot-grid,
-  .console-nav {
+  .console-nav,
+  .tracker-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .console-form,
@@ -320,7 +340,8 @@ a:focus-visible {
     height: 2.3rem;
   }
   .snapshot-grid,
-  .console-nav {
+  .console-nav,
+  .tracker-summary {
     grid-template-columns: 1fr;
   }
   .module-heading {

@@ -10,11 +10,17 @@
     updatedAt: "",
     cases: [],
     operatorStatus: {
-      stability: "",
+      stability: "10",
       harm: "None recorded",
+      voidMarks: "0",
+      breachPoints: "0",
       bleed: "",
       misfires: "",
-      anchors: "",
+      commonTell: "",
+      misfireFlavor: "",
+      anchorPerson: "",
+      totemObject: "",
+      groundingLine: "",
       voidBreach: "",
       emotionalState: ""
     },
@@ -68,13 +74,23 @@
       createdAt: safeString(state.createdAt) || now,
       updatedAt: safeString(state.updatedAt) || now,
       cases: normalizeArray(state.cases),
-      operatorStatus: {
+      operatorStatus: migrateOperatorStatus({
         ...fallback.operatorStatus,
         ...(state.operatorStatus && typeof state.operatorStatus === "object" ? state.operatorStatus : {})
-      },
+      }),
       anomalies: normalizeArray(state.anomalies),
       relationships: normalizeArray(state.relationships),
       residue: normalizeArray(state.residue)
+    };
+  }
+
+  function migrateOperatorStatus(status) {
+    return {
+      ...status,
+      anchorPerson: status.anchorPerson || status.anchors || "",
+      stability: normalizeStabilityValue(status.stability),
+      voidMarks: normalizeNonNegative(status.voidMarks),
+      breachPoints: normalizeNonNegative(status.breachPoints)
     };
   }
 
@@ -198,13 +214,78 @@
     const form = forms.status;
     if (!form) return;
     const status = consoleState.operatorStatus;
-    form.elements.stability.value = status.stability || operatorRecord?.stabilityState || "";
+    form.elements.stability.value = normalizeStabilityValue(status.stability);
     form.elements.harm.value = status.harm || "None recorded";
+    form.elements.voidMarks.value = normalizeNonNegative(status.voidMarks);
+    form.elements.breachPoints.value = normalizeNonNegative(status.breachPoints);
+    form.elements.emotionalState.value = status.emotionalState || operatorRecord?.attentionStatus || "";
+    form.elements.commonTell.value = status.commonTell || "";
+    form.elements.misfireFlavor.value = status.misfireFlavor || frequencyCard(operatorRecord?.primaryFrequency).misfireFlavor;
+    form.elements.anchorPerson.value = status.anchorPerson || "";
+    form.elements.totemObject.value = status.totemObject || "";
+    form.elements.groundingLine.value = status.groundingLine || "";
     form.elements.bleed.value = status.bleed || formatDrift(operatorRecord);
     form.elements.misfires.value = status.misfires || "";
-    form.elements.anchors.value = status.anchors || "";
     form.elements.voidBreach.value = status.voidBreach || "";
-    form.elements.emotionalState.value = status.emotionalState || operatorRecord?.attentionStatus || "";
+    renderStatusSummary();
+  }
+
+  function normalizeStabilityValue(value) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return "10";
+    return String(Math.max(0, Math.min(10, Math.round(parsed))));
+  }
+
+  function normalizeNonNegative(value) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < 0) return "0";
+    return String(Math.round(parsed));
+  }
+
+  function stabilityBand(value) {
+    const stability = Number(normalizeStabilityValue(value));
+    if (stability >= 8) return "CALM";
+    if (stability >= 5) return "STRAINED";
+    if (stability >= 3) return "UNRAVELING";
+    return "COLLAPSE RISK";
+  }
+
+  function frequencyCard(frequency) {
+    const cards = {
+      Dream: {
+        bleedCue: "deja vu, false familiarity, and memory confusion",
+        misfireFlavor: "Metaphor becomes literal, a memory intrudes, or the wrong symbol answers."
+      },
+      Hunger: {
+        bleedCue: "fixation, jealousy, shame after wanting, and fear that need makes you monstrous",
+        misfireFlavor: "Want becomes compulsion, a bargain asks too much, or satisfaction turns hollow."
+      },
+      Silence: {
+        bleedCue: "numbness, dissociation, missing time, and relief when no one asks questions",
+        misfireFlavor: "The wrong thing is erased, a truth cannot be spoken, or protection becomes isolation."
+      },
+      Stillness: {
+        bleedCue: "emotional freezing, rigid control, delayed panic, and inability to leave a memory behind",
+        misfireFlavor: "A moment traps the wrong person, action stalls, or composure becomes paralysis."
+      },
+      Empyrean: {
+        bleedCue: "emotional flooding, over-identification, guilt, and fear of being felt too clearly",
+        misfireFlavor: "Feelings spread too far, a bond overwhelms consent, or pain becomes communal."
+      },
+      Becoming: {
+        bleedCue: "identity drift, impostor fear, and panic when recognized",
+        misfireFlavor: "A mask sticks, a role overwrites behavior, or an unwanted self steps forward."
+      }
+    };
+    return cards[frequency] || { bleedCue: "choose a primary Frequency to load bleed cues", misfireFlavor: "" };
+  }
+
+  function renderStatusSummary() {
+    const band = document.getElementById("status-band");
+    const bleedCue = document.getElementById("status-bleed-cue");
+    const status = consoleState.operatorStatus;
+    if (band) band.textContent = stabilityBand(status.stability);
+    if (bleedCue) bleedCue.textContent = frequencyCard(operatorRecord?.primaryFrequency).bleedCue.toUpperCase();
   }
 
   function formatDrift(record) {
@@ -235,10 +316,9 @@
     ]);
     renderList("relationships", "No relationships mapped.", (item) => item.name, (item) => [
       ["Type", item.kind],
-      ["Bond", item.bond],
       ["Trust", item.trust],
       ["Tension", item.tension],
-      ["Risk", item.risk],
+      ["Why they matter", item.why || item.bond || item.risk],
       ["Notes", item.notes]
     ]);
     renderList("residue", "No residue tracked.", (item) => item.scene, (item) => [
@@ -304,9 +384,13 @@
     });
     if (forms.status) forms.status.addEventListener("submit", (event) => {
       event.preventDefault();
+      const payload = formPayload(forms.status);
       consoleState.operatorStatus = {
         ...consoleState.operatorStatus,
-        ...formPayload(forms.status)
+        ...payload,
+        stability: normalizeStabilityValue(payload.stability),
+        voidMarks: normalizeNonNegative(payload.voidMarks),
+        breachPoints: normalizeNonNegative(payload.breachPoints)
       };
       writeConsoleState();
       renderAll();
