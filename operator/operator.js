@@ -172,6 +172,7 @@
     consoleState.updatedAt = nowStamp();
     try {
       window.localStorage.setItem(consoleStorageKey, JSON.stringify(consoleState));
+      window.dispatchEvent(new CustomEvent("veildaemon:operator-record-updated"));
       setStorageStatus("Local console record held in this browser.");
     } catch (error) {
       setStorageStatus("Local storage refused the record. Export before continuing.", true);
@@ -1706,6 +1707,7 @@
       consoleState = normalizeConsoleState(null);
       try {
         window.localStorage.removeItem(consoleStorageKey);
+        window.dispatchEvent(new CustomEvent("veildaemon:operator-record-updated"));
       } catch (error) {
         // Local cleanup is best effort.
       }

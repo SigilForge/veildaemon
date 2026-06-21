@@ -51,6 +51,11 @@ body::before {
 }
 body.report-surface {
   --surface-rail-width: 1180px;
+  --surface-rail-top: clamp(1rem, 3vw, 4rem);
+  --surface-rack-center: calc(var(--surface-rail-top) + (var(--surface-rack-height) / 2));
+}
+body.surface-subpage {
+  --surface-tab-height: 7rem;
 }
 .noise {
   position: fixed;
@@ -585,6 +590,7 @@ button.artifact-card {
 }
 .report-terminal {
   width: min(1180px, 100%);
+  min-height: var(--surface-rack-height);
 }
 .report-terminal h1 {
   font-size: clamp(2rem, 6vw, 5.2rem);
@@ -1483,7 +1489,8 @@ footer {
 }
 .surface-tabs {
   position: fixed;
-  right: max(.25rem, calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-tab-width)));
+  left: calc(50vw + (var(--surface-rail-width) / 2));
+  right: auto;
   top: 50%;
   z-index: 70;
   display: grid;
@@ -1498,6 +1505,9 @@ footer {
   box-shadow: 14px 22px 44px rgba(0,0,0,.42), inset -.4rem 0 rgba(216,210,189,.035);
   transform: translateY(-50%);
   backdrop-filter: blur(10px);
+}
+body.report-surface .surface-tabs {
+  top: var(--surface-rack-center);
 }
 .surface-tabs::before {
   content: "";
@@ -1540,7 +1550,8 @@ footer {
   text-orientation: mixed;
 }
 .surface-tabs .casefile-tab,
-.surface-tabs .recovered-reports-tab {
+.surface-tabs .recovered-reports-tab,
+.surface-tabs .return-main-tab {
   background:
     linear-gradient(90deg, rgba(47,55,48,.98), rgba(24,30,27,.98)),
     repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 6px);
@@ -1573,23 +1584,29 @@ footer {
   content: none;
 }
 body.has-casefile-drawer-open .surface-tabs {
-  right: max(0rem, calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-case-drawer-width) - var(--surface-tab-width)));
+  left: calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-case-drawer-width));
+}
+body:has(#casefile-drawer:target) .surface-tabs {
+  left: calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-case-drawer-width));
 }
 body.has-reports-drawer-open .surface-tabs {
-  right: max(0rem, calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-reports-drawer-width) - var(--surface-tab-width)));
+  left: calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-reports-drawer-width));
+}
+body:has(#recovered-reports-drawer:target) .surface-tabs {
+  left: calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-reports-drawer-width));
 }
 body:has(#operator-preview:target) .surface-tabs {
-  right: max(0rem, calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-operator-drawer-width) - var(--surface-tab-width)));
+  left: calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-operator-drawer-width));
 }
 .casefile-drawer,
 .recovered-reports-drawer {
-  left: auto;
+  right: auto;
 }
 .casefile-drawer {
-  right: max(var(--surface-tab-width), calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-case-drawer-width)));
+  left: calc(50vw + (var(--surface-rail-width) / 2));
 }
 .recovered-reports-drawer {
-  right: max(var(--surface-tab-width), calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-reports-drawer-width)));
+  left: calc(50vw + (var(--surface-rail-width) / 2));
 }
 .casefile-drawer {
   transform: translate(-100%, -50%);
@@ -1607,7 +1624,17 @@ body:has(#operator-preview:target) .surface-tabs {
   visibility: visible;
   pointer-events: auto;
 }
+.casefile-drawer:target {
+  transform: translate(0, -50%);
+  visibility: visible;
+  pointer-events: auto;
+}
 .recovered-reports-drawer.is-open {
+  transform: translate(0, -50%);
+  visibility: visible;
+  pointer-events: auto;
+}
+.recovered-reports-drawer:target {
   transform: translate(0, -50%);
   visibility: visible;
   pointer-events: auto;
@@ -1620,7 +1647,8 @@ body:has(#operator-preview:target) .surface-tabs {
 }
 .operator-preview-drawer {
   position: fixed;
-  right: max(var(--surface-tab-width), calc((100vw - var(--surface-rail-width)) / 2 - var(--surface-operator-drawer-width)));
+  left: calc(50vw + (var(--surface-rail-width) / 2));
+  right: auto;
   top: 50%;
   z-index: 58;
   width: min(92vw, 500px);
@@ -1629,6 +1657,9 @@ body:has(#operator-preview:target) .surface-tabs {
   visibility: hidden;
   transition: transform .24s ease;
   pointer-events: none;
+}
+body.report-surface .operator-preview-drawer {
+  top: var(--surface-rack-center);
 }
 .operator-preview-drawer:target,
 .operator-preview-drawer.is-open {
@@ -1892,7 +1923,9 @@ body:has(#operator-preview:target) .surface-tabs {
     transform: translateY(calc(100% + 3.35rem));
   }
   .casefile-drawer.is-open,
+  .casefile-drawer:target,
   .recovered-reports-drawer.is-open,
+  .recovered-reports-drawer:target,
   .operator-preview-drawer:target,
   .operator-preview-drawer.is-open {
     transform: translateY(0);

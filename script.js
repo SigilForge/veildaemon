@@ -678,6 +678,7 @@ function readOperatorRecord() {
 function writeOperatorRecord(record) {
   try {
     window.localStorage.setItem(recordStorageKey, JSON.stringify(record));
+    window.dispatchEvent(new CustomEvent("veildaemon:operator-record-updated"));
   } catch (error) {
     // Local state is helpful, not load-bearing.
   }
@@ -2346,6 +2347,9 @@ renderObserverAdvisory();
 renderSystemState(intakeState.record);
 renderOperatorRecord(intakeState.record);
 document.getElementById("start-intake").addEventListener("click", openIntake);
+if (window.location.hash === "#intake-node") {
+  openIntake();
+}
 document.getElementById("answer-panel").addEventListener("click", selectAnswer);
 document.getElementById("reset-intake").addEventListener("click", resetIntake);
 document.getElementById("purge-record").addEventListener("click", purgeRecord);
