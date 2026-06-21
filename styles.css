@@ -1145,6 +1145,52 @@ footer {
   letter-spacing: .08em;
   line-height: 1.1;
 }
+.active-case-tab {
+  position: absolute;
+  left: -3.15rem;
+  top: 12.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.15rem;
+  height: 9.15rem;
+  border: 1px solid rgba(185,84,255,.44);
+  border-right: 0;
+  border-radius: .28rem 0 0 .28rem;
+  padding: .65rem .42rem;
+  background:
+    linear-gradient(90deg, rgba(36,29,48,.98), rgba(18,18,26,.98)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 6px);
+  color: var(--dossier-ink);
+  text-decoration: none;
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+  box-shadow: -12px 18px 34px rgba(0,0,0,.36), inset 0 1px rgba(255,255,255,.07);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, .7rem 100%, 0 calc(100% - .7rem));
+  text-align: center;
+  line-height: 1.1;
+  overflow: hidden;
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.active-case-tab > span {
+  display: block;
+  min-width: 7.4rem;
+  transform: rotate(90deg);
+  transform-origin: center;
+  white-space: nowrap;
+}
+.active-case-tab strong {
+  display: none;
+}
+.active-case-tab:hover,
+.active-case-tab:focus-visible {
+  transform: translateX(-.35rem);
+  border-color: rgba(185,84,255,.68);
+  outline: none;
+  box-shadow: -14px 20px 38px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.09);
+}
 .recovered-reports-drawer {
   position: fixed;
   left: 0;
@@ -1337,6 +1383,10 @@ footer {
 .casefile-panel .compact-record-grid {
   grid-template-columns: 1fr;
 }
+.casefile-console-route {
+  margin-top: .95rem;
+  width: 100%;
+}
 .first-contact-grid {
   margin-top: .85rem;
 }
@@ -1379,6 +1429,21 @@ footer {
     letter-spacing: .12em;
     box-shadow: -10px 14px 28px rgba(0,0,0,.4), inset .35rem 0 0 rgba(216,210,189,.08);
   }
+  .active-case-tab {
+    left: 0;
+    top: clamp(10rem, 32vh, 13rem);
+    width: 2.75rem;
+    height: 8.6rem;
+    border: 1px solid rgba(185,84,255,.44);
+    border-right: 0;
+    border-radius: .42rem 0 0 .42rem;
+    font-size: .62rem;
+    letter-spacing: .1em;
+    box-shadow: -10px 14px 28px rgba(0,0,0,.4), inset .35rem 0 0 rgba(185,84,255,.08);
+  }
+  .active-case-tab > span {
+    min-width: 7rem;
+  }
   .casefile-tab::after {
     content: "";
   }
@@ -1391,6 +1456,9 @@ footer {
     border-right: 0;
     border-radius: .42rem 0 0 .42rem;
     box-shadow: -10px 14px 28px rgba(0,0,0,.4), inset .35rem 0 0 rgba(216,210,189,.08);
+  }
+  .casefile-drawer.is-open .active-case-tab {
+    left: -2.75rem;
   }
   .casefile-panel {
     max-height: 78vh;

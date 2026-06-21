@@ -1873,8 +1873,10 @@ function appendCommandRoute(label, href, interactionType = "") {
   const route = document.createElement("a");
   route.className = "button command-route";
   route.href = href;
-  route.target = "_blank";
-  route.rel = "noopener noreferrer";
+  if (/^https?:\/\//i.test(href)) {
+    route.target = "_blank";
+    route.rel = "noopener noreferrer";
+  }
   route.textContent = label;
 
   if (interactionType) {
@@ -2121,8 +2123,9 @@ function executeCommand(rawCommand) {
     if (!record) {
       const intake = document.getElementById("intake-node");
 
-      appendCommandLine("Operator channel requires intake classification.");
+      appendCommandLine("Operations node prefers intake classification.");
       appendCommandLine("Opening observer routing procedure.");
+      appendCommandRoute("Open Operations Node", "/operator/");
 
       if (intake && intake.hidden) {
         openIntake();
@@ -2133,8 +2136,8 @@ function executeCommand(rawCommand) {
     }
 
     appendCommandLine(`OBSERVER CLASSIFICATION: ${record.observerClassification}`);
-    appendCommandLine(requiresReviewRoute(record) ? "Support routing / misclassification review provisioned." : `${record.primaryFrequency} channel provisioned.`);
-    appendCommandRoute(getOperatorRouteLabel(record), record.discordRoute, requiresReviewRoute(record) ? "triageChannel" : "operatorChannel");
+    appendCommandLine("Local operations node provisioned.");
+    appendCommandRoute("Open Operations Node", "/operator/");
     return;
   }
 

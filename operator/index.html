@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VEILDAEMON // Personal Operations Node</title>
+  <meta name="description" content="Local-only personal operations node for Cradlepoint operators." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#050709" />
+  <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
+  <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
+  <link rel="stylesheet" href="./operator.css?v=20260621-operator1" />
+</head>
+<body class="operator-surface">
+  <div class="noise" aria-hidden="true"></div>
+  <main class="operator-shell" aria-label="Personal operations node">
+    <header class="operator-header">
+      <div class="seal-wrap">
+        <img src="../assets/veilcorp-avatar.png" alt="VeilCorp sigil" class="seal" />
+      </div>
+      <div>
+        <p class="kicker">VEILDAEMON.APP // LOCAL OPERATIONS NODE</p>
+        <h1>PERSONAL OPERATIONS NODE</h1>
+        <p class="subhead">Initialize. Record. Operate. Local record only.</p>
+      </div>
+    </header>
+
+    <section class="notice-panel" id="record-notice" aria-live="polite">
+      <p><span class="prompt">&gt;</span> Console checks this browser for an operator record. Nothing here syncs upstream.</p>
+    </section>
+
+    <section class="snapshot-grid" aria-label="Operator snapshot">
+      <div><span>Designation</span><strong id="snapshot-designation">UNINITIALIZED</strong></div>
+      <div><span>Classification</span><strong id="snapshot-classification">PENDING</strong></div>
+      <div><span>Primary Frequency</span><strong id="snapshot-frequency">UNASSIGNED</strong></div>
+      <div><span>Attention</span><strong id="snapshot-attention">UNMEASURED</strong></div>
+      <div><span>Access</span><strong id="snapshot-access">LOCAL</strong></div>
+    </section>
+
+    <nav class="console-nav" aria-label="Console modules">
+      <button type="button" class="module-tab is-active" data-module-tab="cases">Case Management</button>
+      <button type="button" class="module-tab" data-module-tab="status">Operator Status</button>
+      <button type="button" class="module-tab" data-module-tab="anomalies">Anomaly Log</button>
+      <button type="button" class="module-tab" data-module-tab="relationships">Relationships</button>
+      <button type="button" class="module-tab" data-module-tab="residue">Residue Tracker</button>
+    </nav>
+
+    <section class="module-panel is-active" id="module-cases" data-module-panel="cases" aria-label="Case management">
+      <div class="module-heading">
+        <p class="kicker">CASE MANAGEMENT</p>
+        <h2>Track cases, clues, entities, and timelines.</h2>
+      </div>
+      <form class="console-form" id="case-form">
+        <label>Case title<input name="title" type="text" required maxlength="90" /></label>
+        <label>Needlepoint<input name="needlepoint" type="text" maxlength="90" placeholder="Viridian House" /></label>
+        <label>Clues<textarea name="clues" rows="3"></textarea></label>
+        <label>NPCs / entities<textarea name="entities" rows="3"></textarea></label>
+        <label>Timeline notes<textarea name="timeline" rows="3"></textarea></label>
+        <label>Unresolved questions<textarea name="questions" rows="3"></textarea></label>
+        <button class="button primary" type="submit">Record Case</button>
+      </form>
+      <div class="entry-list" id="case-list"></div>
+    </section>
+
+    <section class="module-panel" id="module-status" data-module-panel="status" aria-label="Operator status">
+      <div class="module-heading">
+        <p class="kicker">OPERATOR STATUS</p>
+        <h2>Monitor Stability, Harm, bleed, and Misfires.</h2>
+      </div>
+      <form class="console-form status-form" id="status-form">
+        <label>Stability<input name="stability" type="text" maxlength="80" /></label>
+        <label>Harm<input name="harm" type="text" maxlength="80" /></label>
+        <label>Bleed<textarea name="bleed" rows="3"></textarea></label>
+        <label>Misfires<textarea name="misfires" rows="3"></textarea></label>
+        <label>Anchors<textarea name="anchors" rows="3"></textarea></label>
+        <label>Void / Breach notes<textarea name="voidBreach" rows="3"></textarea></label>
+        <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" /></label>
+        <button class="button primary" type="submit">Update Status</button>
+      </form>
+    </section>
+
+    <section class="module-panel" id="module-anomalies" data-module-panel="anomalies" aria-label="Anomaly log">
+      <div class="module-heading">
+        <p class="kicker">ANOMALY LOG</p>
+        <h2>Record the impossible. Patterns emerge.</h2>
+      </div>
+      <form class="console-form" id="anomaly-form">
+        <label>Scene<input name="scene" type="text" required maxlength="120" /></label>
+        <label>Impossible detail<textarea name="detail" rows="3" required></textarea></label>
+        <label>Severity<select name="severity"><option>Trace</option><option>Minor</option><option>Active</option><option>Breach</option></select></label>
+        <label>Tags<input name="tags" type="text" maxlength="140" placeholder="dream, elevator, witness" /></label>
+        <label>Notes<textarea name="notes" rows="3"></textarea></label>
+        <button class="button primary" type="submit">Log Anomaly</button>
+      </form>
+      <div class="entry-list" id="anomaly-list"></div>
+    </section>
+
+    <section class="module-panel" id="module-relationships" data-module-panel="relationships" aria-label="Relationship map">
+      <div class="module-heading">
+        <p class="kicker">RELATIONSHIPS</p>
+        <h2>Map bonds, trust, tension, and risk.</h2>
+      </div>
+      <form class="console-form" id="relationship-form">
+        <label>Name<input name="name" type="text" required maxlength="100" /></label>
+        <label>Type<select name="kind"><option>Person</option><option>Place</option><option>Entity</option><option>Group</option></select></label>
+        <label>Bond<input name="bond" type="text" maxlength="100" /></label>
+        <label>Trust<input name="trust" type="text" maxlength="80" /></label>
+        <label>Tension<input name="tension" type="text" maxlength="100" /></label>
+        <label>Risk<input name="risk" type="text" maxlength="100" /></label>
+        <label>Notes<textarea name="notes" rows="3"></textarea></label>
+        <button class="button primary" type="submit">Map Relationship</button>
+      </form>
+      <div class="entry-list" id="relationship-list"></div>
+    </section>
+
+    <section class="module-panel" id="module-residue" data-module-panel="residue" aria-label="Residue tracker">
+      <div class="module-heading">
+        <p class="kicker">RESIDUE TRACKER</p>
+        <h2>What follows you home never stays buried.</h2>
+      </div>
+      <form class="console-form" id="residue-form">
+        <label>Scene<input name="scene" type="text" required maxlength="120" /></label>
+        <label>Highest state reached<input name="highestState" type="text" maxlength="120" /></label>
+        <label>Persistence<select name="persistence"><option>Residue</option><option>Groove</option><option>Haunting</option><option>Node</option><option>Domain Seed</option></select></label>
+        <label>Who noticed<input name="noticed" type="text" maxlength="120" /></label>
+        <label>What returns<textarea name="returns" rows="3"></textarea></label>
+        <label>Mundane record<input name="mundaneRecord" type="text" maxlength="140" /></label>
+        <label>Recovery opening<textarea name="recoveryOpening" rows="3"></textarea></label>
+        <button class="button primary" type="submit">Track Residue</button>
+      </form>
+      <div class="entry-list" id="residue-list"></div>
+    </section>
+
+    <section class="data-panel" aria-label="Local data controls">
+      <div>
+        <p class="kicker">LOCAL RECORD CONTROLS</p>
+        <p id="storage-status">Storage status pending.</p>
+      </div>
+      <div class="data-actions">
+        <button class="button" type="button" id="export-console">Export Local Record</button>
+        <label class="button file-button">Import Local Record<input id="import-console" type="file" accept="application/json" /></label>
+        <button class="button danger" type="button" id="purge-console">Purge Local Console</button>
+        <a class="button ghost" href="../">Return to Intake</a>
+      </div>
+    </section>
+  </main>
+  <script src="./operator.js?v=20260621-operator1"></script>
+</body>
+</html>
