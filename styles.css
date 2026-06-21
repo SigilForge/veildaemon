@@ -1470,30 +1470,33 @@ footer {
 }
 .surface-tabs {
   position: fixed;
-  right: .75rem;
-  top: .75rem;
+  right: max(1rem, calc((100vw - 980px) / 2));
+  top: max(.65rem, calc(50vh - 22rem));
   z-index: 70;
   display: flex;
-  flex-wrap: wrap;
   justify-content: flex-end;
-  gap: .35rem;
-  max-width: min(32rem, calc(100vw - 1.5rem));
-  padding: .32rem;
-  border: 1px solid rgba(137,255,218,.16);
-  border-radius: .4rem;
-  background: rgba(5,7,9,.78);
-  box-shadow: 0 12px 34px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.04);
-  backdrop-filter: blur(12px);
+  gap: .38rem;
+  padding: .36rem .45rem 0;
+  border: 1px solid rgba(216,210,189,.2);
+  border-bottom: 0;
+  border-radius: .48rem .48rem 0 0;
+  background:
+    linear-gradient(180deg, rgba(5,7,9,.88), rgba(5,7,9,.42)),
+    repeating-linear-gradient(90deg, rgba(216,210,189,.035) 0 1px, transparent 1px 7px);
+  box-shadow: 0 -10px 28px rgba(0,0,0,.34), inset 0 .35rem rgba(216,210,189,.035);
+  transform: none;
+  backdrop-filter: blur(10px);
 }
 .surface-tabs::before {
   content: "";
   position: absolute;
-  inset: .2rem -.18rem .2rem .2rem;
+  inset: .24rem .25rem -.16rem;
   z-index: -1;
   border: 1px solid rgba(216,210,189,.12);
-  border-radius: .32rem;
+  border-bottom: 0;
+  border-radius: .38rem .38rem 0 0;
   background:
-    linear-gradient(90deg, rgba(216,210,189,.08), rgba(216,210,189,.025)),
+    linear-gradient(180deg, rgba(216,210,189,.12), rgba(216,210,189,.03)),
     rgba(0,0,0,.18);
   pointer-events: none;
 }
@@ -1502,24 +1505,27 @@ footer {
   inset: auto;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   gap: .12rem;
-  width: auto;
-  min-width: 7.1rem;
-  min-height: 2.3rem;
-  height: auto;
-  border: 1px solid rgba(216,210,189,.22);
-  border-radius: .28rem;
-  padding: .38rem .58rem;
-  clip-path: none;
+  width: 8.1rem;
+  min-width: 0;
+  min-height: 2.8rem;
+  height: 2.8rem;
+  border: 1px solid rgba(216,210,189,.42);
+  border-bottom: 0;
+  border-radius: .34rem .34rem 0 0;
+  padding: .42rem .56rem;
+  clip-path: polygon(0 0, calc(100% - .55rem) 0, 100% .55rem, 100% 100%, 0 100%);
   color: var(--dossier-ink);
-  text-align: left;
+  text-align: center;
   transform: none;
   font-size: .58rem;
   letter-spacing: .1em;
   line-height: 1.1;
   text-decoration: none;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
 }
 .surface-tabs .casefile-tab,
 .surface-tabs .recovered-reports-tab {
@@ -1546,10 +1552,10 @@ footer {
 }
 .surface-tabs .surface-tab:hover,
 .surface-tabs .surface-tab:focus-visible {
-  transform: translateX(-.16rem);
+  transform: translateY(-.18rem);
   outline: none;
   border-color: rgba(137,255,218,.42);
-  box-shadow: 0 8px 20px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.09);
+  box-shadow: 0 -10px 24px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.09);
 }
 .surface-tabs .casefile-tab::after {
   content: none;
@@ -1573,6 +1579,78 @@ footer {
   border-right: 0;
   border-left: 1px solid rgba(216,210,189,.34);
   box-shadow: -22px 28px 70px rgba(0,0,0,.72), inset 0 0 0 1px rgba(0,0,0,.52), inset 0 1px rgba(255,255,255,.05);
+}
+.operator-preview-drawer {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  z-index: 58;
+  width: min(92vw, 500px);
+  max-height: min(78vh, 680px);
+  transform: translate(100%, -50%);
+  visibility: hidden;
+  transition: transform .24s ease;
+  pointer-events: none;
+}
+.operator-preview-drawer:target {
+  transform: translate(0, -50%);
+  visibility: visible;
+  pointer-events: auto;
+}
+.operator-preview-panel {
+  max-height: min(78vh, 680px);
+  overflow: auto;
+  padding: 1.05rem 1rem;
+  border: 1px solid rgba(185,84,255,.34);
+  border-right: 0;
+  background:
+    linear-gradient(180deg, rgba(21,18,30,.98), rgba(8,9,13,.98)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 7px);
+  box-shadow: -22px 28px 70px rgba(0,0,0,.72), inset 0 0 0 1px rgba(0,0,0,.52), inset 0 1px rgba(255,255,255,.05);
+  color: var(--text);
+}
+.operator-preview-panel .record-header {
+  align-items: start;
+  gap: .85rem;
+}
+.operator-preview-panel .record-header h3 {
+  margin: .2rem 0 0;
+  color: var(--text);
+  font-size: 1rem;
+  letter-spacing: .06em;
+}
+.operator-preview-screen {
+  display: grid;
+  gap: .75rem;
+  margin-top: 1rem;
+  padding: .9rem;
+  border: 1px solid rgba(137,255,218,.2);
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.24), rgba(0,0,0,.36)),
+    repeating-linear-gradient(0deg, rgba(102,255,220,.04) 0 1px, transparent 1px 7px);
+}
+.operator-preview-screen h2 {
+  margin: 0;
+  font-size: .95rem;
+  letter-spacing: .06em;
+}
+.preview-entry {
+  padding: .7rem;
+  border: 1px solid rgba(137,255,218,.18);
+  background: rgba(0,0,0,.24);
+}
+.preview-entry span {
+  display: block;
+  color: var(--cyan);
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.preview-entry strong {
+  display: block;
+  margin-top: .32rem;
+  color: var(--text);
 }
 @keyframes casefilePulse {
   0%, 100% { filter: none; transform: translateX(0); }
@@ -1742,6 +1820,7 @@ footer {
   .surface-tabs .surface-tab {
     min-width: 0;
     width: auto;
+    height: auto;
     min-height: 3.05rem;
     border: 1px solid rgba(216,210,189,.36);
     border-bottom: 0;
@@ -1752,6 +1831,8 @@ footer {
     text-align: center;
     font-size: .55rem;
     letter-spacing: .06em;
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
   }
   .surface-tabs .surface-tab:hover,
   .surface-tabs .surface-tab:focus-visible {
@@ -1761,7 +1842,8 @@ footer {
     font-size: .48rem;
   }
   .casefile-drawer,
-  .recovered-reports-drawer {
+  .recovered-reports-drawer,
+  .operator-preview-drawer {
     top: auto;
     right: 0;
     bottom: 3.35rem;
@@ -1770,11 +1852,13 @@ footer {
     transform: translateY(calc(100% + 3.35rem));
   }
   .casefile-drawer.is-open,
-  .recovered-reports-drawer.is-open {
+  .recovered-reports-drawer.is-open,
+  .operator-preview-drawer:target {
     transform: translateY(0);
   }
   .casefile-panel,
-  .recovered-reports-panel {
+  .recovered-reports-panel,
+  .operator-preview-panel {
     max-height: 72vh;
     border-right: 0;
     border-left: 0;

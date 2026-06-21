@@ -25,7 +25,7 @@
   <link rel="icon" type="image/png" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="apple-touch-icon" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="styles.css?v=20260621-globalnav1" />
+  <link rel="stylesheet" href="styles.css?v=20260621-filerack1" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -341,12 +341,12 @@
       </footer>
     </section>
   </main>
-  <nav class="surface-tabs" aria-label="Surface files" data-nosnippet>
+  <nav class="surface-tabs" id="surface-files" aria-label="Surface files" data-nosnippet>
     <button class="surface-tab casefile-tab" type="button" id="casefile-toggle" aria-expanded="false" aria-controls="casefile-drawer">
       <span>CASE FILE</span>
       <strong id="casefile-tab-status">NO LOCAL RECORD</strong>
     </button>
-    <a class="surface-tab active-case-tab" href="/operator/">
+    <a class="surface-tab active-case-tab" id="operator-preview-toggle" href="#operator-preview" aria-controls="operator-preview">
       <span>OPERATOR FILE</span>
       <strong>LOCAL NODE</strong>
     </a>
@@ -355,6 +355,34 @@
       <strong>PUBLIC INDEX</strong>
     </button>
   </nav>
+
+  <aside class="operator-preview-drawer" id="operator-preview" aria-label="Operator file preview" data-nosnippet>
+    <section class="operator-preview-panel">
+      <div class="record-header">
+        <div>
+          <p class="kicker">VEILDAEMON // LOCAL NODE</p>
+          <h3>OPERATOR FILE</h3>
+        </div>
+        <a class="button ghost drawer-route" href="#surface-files"><span>Close</span></a>
+      </div>
+      <div class="operator-preview-screen" aria-label="Anomaly log preview">
+        <p class="kicker">ANOMALY RECOVERY CHANNEL</p>
+        <h2>LOCAL OBSERVATION BUFFER</h2>
+        <div class="preview-entry">
+          <span>STATUS</span>
+          <strong>LOCAL RECORD ONLY</strong>
+        </div>
+        <div class="preview-entry">
+          <span>CURRENT SURFACE</span>
+          <strong>ANOMALY LOG</strong>
+        </div>
+        <p class="local-note"><span class="prompt">&gt;</span> Record impossible details privately. Volunteer a copy only when transfer is authorized.</p>
+      </div>
+      <nav class="route-actions drawer-actions" aria-label="Operator file routes">
+        <a class="button primary" href="/operator/"><span>Edit Personal File</span></a>
+      </nav>
+    </section>
+  </aside>
 
   <aside class="casefile-drawer" id="casefile-drawer" aria-label="Operator case file" aria-hidden="true" data-nosnippet>
 
@@ -440,7 +468,7 @@
       </nav>
     </section>
   </aside>
-  <script src="script.js?v=20260621-globalnav1"></script>
+  <script src="script.js?v=20260621-filerack1"></script>
   <script src="/recovered-operator-reports/public-reports.js?v=20260620-reportdrawer1"></script>
 </body>
 </html>
