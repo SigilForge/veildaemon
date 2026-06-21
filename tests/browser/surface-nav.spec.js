@@ -20,21 +20,54 @@ for (const [path, labels] of Object.entries(publicSurfaces)) {
   });
 }
 
-test("operator file opens local node dossier before routing", async ({ page }) => {
+test("operator file opens sealed intake prompt before local record", async ({ page }) => {
   await page.goto("/");
 
   const nav = page.getByRole("navigation", { name: "Surface files" });
+  await expect(nav.getByText("START INTAKE")).toBeVisible();
   await nav.getByText("OPERATOR FILE").click();
 
   const preview = page.locator("#operator-preview");
   await expect(preview).toBeVisible();
   await expect(preview.getByRole("heading", { name: "OPERATOR FILE" })).toBeVisible();
+  await expect(preview.getByText("LOCAL NODE SEALED")).toBeVisible();
+  await expect(preview.getByText("INTAKE REQUIRED")).toBeVisible();
+  await expect(preview.getByText("OPERATOR FILE WITHHELD")).toBeVisible();
+  await expect(preview.getByRole("button", { name: "Start Intake" })).toBeVisible();
+  await expect(preview.getByRole("link", { name: "Review Reports" })).toHaveCount(0);
+
+  await preview.getByRole("button", { name: "Start Intake" }).click();
+  await expect(preview).not.toBeVisible();
+  await expect(page.locator("#intake-node")).toBeVisible();
+  await expect(page.locator("#start-intake")).toHaveAttribute("aria-expanded", "true");
+});
+
+test("operator file opens local node after intake exists", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
+      designation: "RECORD-MV-7",
+      primaryFrequency: "Silence",
+      observerClassification: "POTENTIAL OPERATOR",
+      attentionStatus: "NOTED"
+    }));
+  });
+
+  await page.goto("/");
+
+  const nav = page.getByRole("navigation", { name: "Surface files" });
+  await expect(nav.getByText("LOCAL NODE")).toBeVisible();
+  await nav.getByText("OPERATOR FILE").click();
+
+  const preview = page.locator("#operator-preview");
+  await expect(preview).toBeVisible();
   await expect(preview.getByText("PERSONAL OPERATIONS RECORD")).toBeVisible();
   await expect(preview.getByText("ATTRIBUTES // SKILLS // FREQUENCY // CASE NOTES")).toBeVisible();
   await expect(preview.getByText("MANUAL ONLY")).toBeVisible();
-  await expect(preview.getByRole("link", { name: "Enter Local Node" })).toHaveAttribute("href", "/operator/");
-  await expect(preview.getByRole("link", { name: "Return To Intake" })).toHaveAttribute("href", "/#intake-node");
-  await expect(preview.getByRole("link", { name: "Review Reports" })).toHaveCount(0);
+  await expect(preview.getByRole("button", { name: "Enter Node" })).toBeVisible();
+  await expect(preview.getByRole("button", { name: "Start Intake" })).toHaveCount(0);
+
+  await preview.getByRole("button", { name: "Enter Node" }).click();
+  await expect(page).toHaveURL(/\/operator\/$/);
 });
 
 test("local operator record preview mirrors saved operator file fields", async ({ page }) => {

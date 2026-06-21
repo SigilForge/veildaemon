@@ -1152,6 +1152,57 @@ function getOperatorRouteLabel(record) {
   return `Open ${record.primaryFrequency} Channel`;
 }
 
+function renderOperatorPreviewScreen(record) {
+  const screen = document.querySelector("#operator-preview .operator-preview-screen");
+  if (!screen) return;
+  screen.innerHTML = record ? `
+    <p class="kicker">LOCAL NODE</p>
+    <h2>PERSONAL OPERATIONS RECORD</h2>
+    <div class="preview-entry">
+      <span>STATUS</span>
+      <strong>DEVICE-HELD</strong>
+    </div>
+    <div class="preview-entry">
+      <span>CONTENTS</span>
+      <strong>ATTRIBUTES // SKILLS // FREQUENCY // CASE NOTES</strong>
+    </div>
+    <div class="preview-entry">
+      <span>TRANSFER</span>
+      <strong>MANUAL ONLY</strong>
+    </div>
+    <p class="local-note"><span class="prompt">&gt;</span> Observation can be recorded without upstream transfer. The node will not volunteer a file for you.</p>
+  ` : `
+    <p class="kicker">ACCESS UNQUALIFIED</p>
+    <h2>LOCAL NODE SEALED</h2>
+    <div class="preview-entry">
+      <span>STATUS</span>
+      <strong>INTAKE REQUIRED</strong>
+    </div>
+    <div class="preview-entry">
+      <span>CONTENTS</span>
+      <strong>OPERATOR FILE WITHHELD</strong>
+    </div>
+    <div class="preview-entry">
+      <span>TRANSFER</span>
+      <strong>NONE</strong>
+    </div>
+    <p class="local-note"><span class="prompt">&gt;</span> Intake must classify the observer before local node contents are exposed.</p>
+  `;
+}
+
+function renderOperatorPreviewActions(record) {
+  const tabStatus = document.getElementById("operator-preview-tab-status");
+  const primaryAction = document.getElementById("operator-preview-primary-action");
+  if (tabStatus) {
+    tabStatus.textContent = record ? "LOCAL NODE" : "START INTAKE";
+  }
+  if (primaryAction) {
+    primaryAction.dataset.mode = record ? "node" : "intake";
+    setButtonLabel(primaryAction, record ? "Enter Node" : "Start Intake");
+  }
+  renderOperatorPreviewScreen(record);
+}
+
 function renderOperatorRecord(record) {
   const drawer = document.getElementById("casefile-drawer");
   const casefileStatus = document.getElementById("casefile-status");
@@ -1168,6 +1219,7 @@ function renderOperatorRecord(record) {
   const exposureList = document.getElementById("record-exposure-list");
   const relatedList = document.getElementById("record-related-list");
   const historyList = document.getElementById("record-history-list");
+  renderOperatorPreviewActions(record);
   if (!record) {
     drawer.classList.remove("has-record");
     casefileStatus.textContent = "NO RECORD";
@@ -1449,6 +1501,27 @@ function toggleCasefileDrawer() {
 function openIntakeFromCaseFile() {
   setCasefileDrawerOpen(false);
   openIntake();
+}
+
+function openIntakeFromOperatorPreview() {
+  const intake = document.getElementById("intake-node");
+  setOperatorPreviewOpen(false);
+  if (!intake) return;
+  if (intake.hidden) {
+    openIntake();
+    return;
+  }
+  intake.focus({ preventScroll: true });
+  keepIntakeVisible(intake);
+}
+
+function activateOperatorPreviewPrimaryAction() {
+  const record = intakeState.record || readOperatorRecord();
+  if (record) {
+    window.location.href = "/operator/";
+    return;
+  }
+  openIntakeFromOperatorPreview();
 }
 
 function setRecoveredReportsDrawerOpen(isOpen) {
@@ -2410,6 +2483,10 @@ if (operatorPreviewToggle) {
     event.preventDefault();
     setOperatorPreviewOpen(true);
   });
+}
+const operatorPreviewPrimaryAction = document.getElementById("operator-preview-primary-action");
+if (operatorPreviewPrimaryAction) {
+  operatorPreviewPrimaryAction.addEventListener("click", activateOperatorPreviewPrimaryAction);
 }
 document.getElementById("open-transmission").addEventListener("click", toggleTransmissionViewer);
 document.getElementById("archive-route").addEventListener("click", () => recordArchiveInteraction("archive"));

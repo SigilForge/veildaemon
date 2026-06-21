@@ -348,7 +348,7 @@
     </button>
     <a class="surface-tab active-case-tab" id="operator-preview-toggle" href="#operator-preview" aria-controls="operator-preview" data-direct-href="/operator/">
       <span>OPERATOR FILE</span>
-      <strong>LOCAL NODE</strong>
+      <strong id="operator-preview-tab-status">START INTAKE</strong>
     </a>
     <button class="surface-tab recovered-reports-tab" type="button" id="recovered-reports-toggle" aria-expanded="false" aria-controls="recovered-reports-drawer" data-direct-href="/recovered-operator-reports/">
       <span>REPORTS</span>
@@ -366,25 +366,24 @@
         <a class="button ghost drawer-route" href="#surface-files"><span>Close</span></a>
       </div>
       <div class="operator-preview-screen" aria-label="Operator file preview">
-        <p class="kicker">LOCAL NODE</p>
-        <h2>PERSONAL OPERATIONS RECORD</h2>
+        <p class="kicker">ACCESS UNQUALIFIED</p>
+        <h2>LOCAL NODE SEALED</h2>
         <div class="preview-entry">
           <span>STATUS</span>
-          <strong>DEVICE-HELD</strong>
+          <strong>INTAKE REQUIRED</strong>
         </div>
         <div class="preview-entry">
           <span>CONTENTS</span>
-          <strong>ATTRIBUTES // SKILLS // FREQUENCY // CASE NOTES</strong>
+          <strong>OPERATOR FILE WITHHELD</strong>
         </div>
         <div class="preview-entry">
           <span>TRANSFER</span>
-          <strong>MANUAL ONLY</strong>
+          <strong>NONE</strong>
         </div>
-        <p class="local-note"><span class="prompt">&gt;</span> Observation can be recorded without upstream transfer. The node will not volunteer a file for you.</p>
+        <p class="local-note"><span class="prompt">&gt;</span> Intake must classify the observer before local node contents are exposed.</p>
       </div>
       <nav class="route-actions drawer-actions" aria-label="Operator file routes">
-        <a class="button primary" href="/operator/"><span>Enter Local Node</span></a>
-        <a class="button ghost" href="/#intake-node"><span>Return To Intake</span></a>
+        <button class="button primary" type="button" id="operator-preview-primary-action"><span>Start Intake</span></button>
       </nav>
     </section>
   </aside>
@@ -474,7 +473,7 @@
       </nav>
     </section>
   </aside>
-  <script src="script.js?v=20260621-filerack1"></script>
+  <script src="script.js?v=20260621-intakeaction1"></script>
   <script src="surface-nav.js?v=20260621-filerack5"></script>
   <script src="/recovered-operator-reports/public-reports.js?v=20260620-reportdrawer1"></script>
 </body>
