@@ -6,7 +6,7 @@
   <title>VEILCORP // Debrief Queue</title>
   <meta name="robots" content="noindex" />
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
-  <link rel="stylesheet" href="/admin/reports/style.css?v=20260619-aar1" />
+  <link rel="stylesheet" href="/admin/reports/style.css?v=20260621-anomaly1" />
 </head>
 <body>
   <main class="console-shell">
@@ -31,8 +31,16 @@
       <div id="report-list" class="report-list"></div>
     </section>
 
-    <p class="status-line" id="status-line" role="status">Queue awaiting authorization. Build 20260620-redaction-gate1.</p>
+    <section class="queue-panel" id="anomaly-volunteers" aria-label="Volunteered anomaly logs">
+      <div class="queue-header">
+        <h2>Anomaly Volunteers</h2>
+        <button type="button" id="refresh-anomalies">Refresh</button>
+      </div>
+      <div id="anomaly-list" class="report-list"></div>
+    </section>
+
+    <p class="status-line" id="status-line" role="status">Queue awaiting authorization. Build 20260621-anomaly1.</p>
   </main>
-  <script src="/admin/reports/admin.js?v=20260620-redaction-gate1"></script>
+  <script src="/admin/reports/admin.js?v=20260621-anomaly1"></script>
 </body>
 </html>

@@ -3,6 +3,11 @@ const { test, expect } = require("@playwright/test");
 test("operator sheet exposes at-table controls", async ({ page }) => {
   await page.goto("/operator/");
 
+  await expect(page.getByRole("button", { name: "Anomaly Log" })).toHaveClass(/is-active/);
+  await expect(page.getByText("Record the impossible. Patterns emerge.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Log + Volunteer Copy" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Sheet" }).click();
   await expect(page.getByRole("button", { name: "Sheet" })).toHaveClass(/is-active/);
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" })).toBeVisible();
@@ -10,8 +15,11 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("Condition: Clear")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("10/10")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("Band: Calm")).toBeVisible();
+  await expect(page.getByLabel("Operator Name")).toBeVisible();
   await expect(page.locator('input[name="voidMarks"]')).toBeVisible();
   await expect(page.locator('input[name="breachPoints"]')).toBeVisible();
+  await expect(page.locator('input[name="voidMarks"]')).toHaveAttribute("max", "99");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveAttribute("max", "99");
 
   await page.locator('input[name="voidMarks"]').fill("12");
   await page.locator('input[name="breachPoints"]').fill("3");
@@ -48,6 +56,7 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
 test("secondary material is separated into tabs", async ({ page }) => {
   await page.goto("/operator/");
 
+  await page.getByRole("button", { name: "Sheet" }).click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await page.getByRole("button", { name: "Frequency" }).click();
   await expect(page.getByText("Abilities, tells, grounding, and misfire language.")).toBeVisible();

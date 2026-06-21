@@ -65,6 +65,10 @@ p {
   margin-top: 1rem;
 }
 
+.anomaly-card {
+  border-color: rgba(185, 84, 255, .38);
+}
+
 .token-row,
 .queue-header,
 .report-header,
@@ -132,6 +136,7 @@ button:disabled {
 
 .status-approved { color: var(--cyan); }
 .status-rejected { color: var(--red); }
+.status-held { color: var(--purple); }
 
 .meta-grid {
   display: grid;
