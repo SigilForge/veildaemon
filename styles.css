@@ -1661,14 +1661,25 @@ body:has(#operator-preview:target) .surface-tabs {
   transition: transform .24s ease;
   pointer-events: none;
 }
+body.report-surface .casefile-drawer,
+body.report-surface .recovered-reports-drawer,
 body.report-surface .operator-preview-drawer {
-  top: var(--surface-rack-center);
+  top: var(--surface-rail-top);
+  transform: translate(-100%, 0);
 }
 .operator-preview-drawer:target,
 .operator-preview-drawer.is-open {
   transform: translate(0, -50%);
   visibility: visible;
   pointer-events: auto;
+}
+body.report-surface .casefile-drawer.is-open,
+body.report-surface .casefile-drawer:target,
+body.report-surface .recovered-reports-drawer.is-open,
+body.report-surface .recovered-reports-drawer:target,
+body.report-surface .operator-preview-drawer.is-open,
+body.report-surface .operator-preview-drawer:target {
+  transform: translate(0, 0);
 }
 .operator-preview-panel {
   min-height: min(var(--surface-rack-height), 78vh);
