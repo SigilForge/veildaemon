@@ -1470,33 +1470,32 @@ footer {
 }
 .surface-tabs {
   position: fixed;
-  right: max(1rem, calc((100vw - 980px) / 2));
-  top: max(.65rem, calc(50vh - 22rem));
+  right: max(.25rem, calc((100vw - 980px) / 2 - 3.15rem));
+  top: 50%;
   z-index: 70;
-  display: flex;
-  justify-content: flex-end;
-  gap: .38rem;
-  padding: .36rem .45rem 0;
+  display: grid;
+  gap: .42rem;
+  padding: .45rem 0 .45rem .42rem;
   border: 1px solid rgba(216,210,189,.2);
-  border-bottom: 0;
-  border-radius: .48rem .48rem 0 0;
+  border-right: 0;
+  border-radius: .55rem 0 0 .55rem;
   background:
-    linear-gradient(180deg, rgba(5,7,9,.88), rgba(5,7,9,.42)),
-    repeating-linear-gradient(90deg, rgba(216,210,189,.035) 0 1px, transparent 1px 7px);
-  box-shadow: 0 -10px 28px rgba(0,0,0,.34), inset 0 .35rem rgba(216,210,189,.035);
-  transform: none;
+    linear-gradient(90deg, rgba(5,7,9,.42), rgba(5,7,9,.86)),
+    repeating-linear-gradient(0deg, rgba(216,210,189,.035) 0 1px, transparent 1px 7px);
+  box-shadow: -14px 22px 44px rgba(0,0,0,.42), inset .4rem 0 rgba(216,210,189,.035);
+  transform: translateY(-50%);
   backdrop-filter: blur(10px);
 }
 .surface-tabs::before {
   content: "";
   position: absolute;
-  inset: .24rem .25rem -.16rem;
+  inset: .25rem -.16rem .25rem .28rem;
   z-index: -1;
   border: 1px solid rgba(216,210,189,.12);
-  border-bottom: 0;
-  border-radius: .38rem .38rem 0 0;
+  border-right: 0;
+  border-radius: .42rem 0 0 .42rem;
   background:
-    linear-gradient(180deg, rgba(216,210,189,.12), rgba(216,210,189,.03)),
+    linear-gradient(90deg, rgba(216,210,189,.12), rgba(216,210,189,.03)),
     rgba(0,0,0,.18);
   pointer-events: none;
 }
@@ -1504,27 +1503,27 @@ footer {
   position: static;
   inset: auto;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: row;
+  align-items: flex-start;
   justify-content: center;
-  gap: .12rem;
-  width: 8.1rem;
+  gap: .45rem;
+  width: 3.15rem;
   min-width: 0;
-  min-height: 2.8rem;
-  height: 2.8rem;
+  min-height: 9.4rem;
+  height: 9.4rem;
   border: 1px solid rgba(216,210,189,.42);
-  border-bottom: 0;
-  border-radius: .34rem .34rem 0 0;
-  padding: .42rem .56rem;
-  clip-path: polygon(0 0, calc(100% - .55rem) 0, 100% .55rem, 100% 100%, 0 100%);
+  border-right: 0;
+  border-radius: .34rem 0 0 .34rem;
+  padding: .72rem .42rem;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, .7rem 100%, 0 calc(100% - .7rem));
   color: var(--dossier-ink);
   text-align: center;
   transform: none;
-  font-size: .58rem;
-  letter-spacing: .1em;
+  font-size: .66rem;
+  letter-spacing: .12em;
   line-height: 1.1;
   text-decoration: none;
-  writing-mode: horizontal-tb;
+  writing-mode: vertical-rl;
   text-orientation: mixed;
 }
 .surface-tabs .casefile-tab,
@@ -1552,10 +1551,10 @@ footer {
 }
 .surface-tabs .surface-tab:hover,
 .surface-tabs .surface-tab:focus-visible {
-  transform: translateY(-.18rem);
+  transform: translateX(-.34rem);
   outline: none;
   border-color: rgba(137,255,218,.42);
-  box-shadow: 0 -10px 24px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.09);
+  box-shadow: -12px 18px 34px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.09);
 }
 .surface-tabs .casefile-tab::after {
   content: none;
@@ -1563,7 +1562,12 @@ footer {
 .casefile-drawer,
 .recovered-reports-drawer {
   left: auto;
-  right: 0;
+}
+.casefile-drawer {
+  right: max(.25rem, calc((100vw - 980px) / 2 - 430px));
+}
+.recovered-reports-drawer {
+  right: max(.25rem, calc((100vw - 980px) / 2 - 620px));
 }
 .casefile-drawer {
   transform: translate(100%, -50%);
@@ -1582,7 +1586,7 @@ footer {
 }
 .operator-preview-drawer {
   position: fixed;
-  right: 0;
+  right: max(.25rem, calc((100vw - 980px) / 2 - 500px));
   top: 50%;
   z-index: 58;
   width: min(92vw, 500px);
