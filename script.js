@@ -1399,9 +1399,7 @@ function setCasefileDrawerOpen(isOpen) {
   const toggle = document.getElementById("casefile-toggle");
   if (!drawer || !toggle) return;
   if (isOpen) setRecoveredReportsDrawerOpen(false);
-  if (isOpen && window.location.hash === "#operator-preview") {
-    history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
-  }
+  if (isOpen) setOperatorPreviewOpen(false);
 
   drawer.classList.toggle("is-open", isOpen);
   drawer.setAttribute("aria-hidden", String(!isOpen));
@@ -1420,9 +1418,7 @@ function setRecoveredReportsDrawerOpen(isOpen) {
   const toggle = document.getElementById("recovered-reports-toggle");
   if (!drawer || !toggle) return;
   if (isOpen) setCasefileDrawerOpen(false);
-  if (isOpen && window.location.hash === "#operator-preview") {
-    history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
-  }
+  if (isOpen) setOperatorPreviewOpen(false);
 
   drawer.classList.toggle("is-open", isOpen);
   drawer.setAttribute("aria-hidden", String(!isOpen));
@@ -1435,6 +1431,22 @@ function toggleRecoveredReportsDrawer() {
   if (!drawer) return;
 
   setRecoveredReportsDrawerOpen(!drawer.classList.contains("is-open"));
+}
+
+function setOperatorPreviewOpen(isOpen) {
+  const preview = document.getElementById("operator-preview");
+  if (!preview) return;
+  if (isOpen) {
+    setCasefileDrawerOpen(false);
+    setRecoveredReportsDrawerOpen(false);
+    preview.classList.add("is-open");
+    window.location.hash = "operator-preview";
+    return;
+  }
+  preview.classList.remove("is-open");
+  if (window.location.hash === "#operator-preview") {
+    window.location.hash = "surface-files";
+  }
 }
 
 function pulseCasefileDrawer() {
@@ -2347,9 +2359,9 @@ if (recoveredReportsToggle) {
 }
 const operatorPreviewToggle = document.getElementById("operator-preview-toggle");
 if (operatorPreviewToggle) {
-  operatorPreviewToggle.addEventListener("click", () => {
-    setCasefileDrawerOpen(false);
-    setRecoveredReportsDrawerOpen(false);
+  operatorPreviewToggle.addEventListener("click", (event) => {
+    event.preventDefault();
+    setOperatorPreviewOpen(true);
   });
 }
 document.getElementById("open-transmission").addEventListener("click", toggleTransmissionViewer);

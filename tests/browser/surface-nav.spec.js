@@ -32,3 +32,15 @@ test("operator file opens local anomaly preview before routing", async ({ page }
   await expect(preview.getByText("ANOMALY RECOVERY CHANNEL", { exact: true })).toBeVisible();
   await expect(preview.getByRole("link", { name: "Edit Personal File" })).toHaveAttribute("href", "/operator/");
 });
+
+test("surface drawers allow only one open preview", async ({ page }) => {
+  await page.goto("/");
+
+  const nav = page.getByRole("navigation", { name: "Surface files" });
+  await nav.getByText("OPERATOR FILE").click();
+  await expect(page.locator("#operator-preview")).toBeVisible();
+
+  await nav.getByText("REPORTS").click();
+  await expect(page.locator("#operator-preview")).not.toBeVisible();
+  await expect(page.locator("#recovered-reports-drawer")).toBeVisible();
+});

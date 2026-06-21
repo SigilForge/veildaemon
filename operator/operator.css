@@ -946,7 +946,8 @@ body:has(#operator-preview:target) .surface-tabs {
   transition: transform .24s ease;
   pointer-events: none;
 }
-.operator-preview-drawer:target {
+.operator-preview-drawer:target,
+.operator-preview-drawer.is-open {
   transform: translate(0, -50%);
   visibility: visible;
   pointer-events: auto;
@@ -1146,7 +1147,8 @@ body:has(#operator-preview:target) .surface-tabs {
     max-height: 72vh;
     transform: translateY(calc(100% + 3.35rem));
   }
-  .operator-preview-drawer:target {
+  .operator-preview-drawer:target,
+  .operator-preview-drawer.is-open {
     transform: translateY(0);
   }
   .operator-preview-panel {
