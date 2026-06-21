@@ -1564,10 +1564,10 @@ footer {
   left: auto;
 }
 .casefile-drawer {
-  right: max(.25rem, calc((100vw - 980px) / 2 - 430px));
+  right: max(.25rem, calc((100vw - 980px) / 2));
 }
 .recovered-reports-drawer {
-  right: max(.25rem, calc((100vw - 980px) / 2 - 620px));
+  right: max(.25rem, calc((100vw - 980px) / 2));
 }
 .casefile-drawer {
   transform: translate(100%, -50%);
@@ -1586,7 +1586,7 @@ footer {
 }
 .operator-preview-drawer {
   position: fixed;
-  right: max(.25rem, calc((100vw - 980px) / 2 - 500px));
+  right: max(.25rem, calc((100vw - 980px) / 2));
   top: 50%;
   z-index: 58;
   width: min(92vw, 500px);
