@@ -3,6 +3,9 @@
   const recordStorageKey = "veildaemon.operatorRecord.v2";
   const legacyRecordStorageKey = "veildaemon.operatorRecord.v1";
   const rewardStorageKey = "veildaemon.artifactCache.v1";
+  const apiBase = window.location.hostname === "veildaemon.app" || window.location.hostname === "www.veildaemon.app"
+    ? "https://api.veildaemon.app"
+    : "";
 
   const defaults = {
     version: 1,
@@ -13,6 +16,7 @@
       stability: "10",
       stabilityBand: "Calm",
       attentionState: "Unnoticed",
+      operatorName: "",
       designation: "",
       role: "Operator",
       activeNeedlepoint: "",
@@ -200,6 +204,13 @@
     status.classList.toggle("is-error", Boolean(isError));
   }
 
+  function setAnomalyTransferStatus(message, isError) {
+    const status = document.getElementById("anomaly-transfer-status");
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle("is-error", Boolean(isError));
+  }
+
   function renderSnapshot() {
     setText("snapshot-designation", operatorRecord && operatorRecord.designation || "UNINITIALIZED");
     setText("snapshot-classification", operatorRecord && operatorRecord.observerClassification || "PENDING");
@@ -270,6 +281,7 @@
 
   function renderStatusForm() {
     const status = consoleState.operatorStatus;
+    setNamedValue("operatorName", status.operatorName || "");
     setNamedValue("designation", status.designation || operatorRecord?.designation || "");
     setNamedValue("role", status.role || "Operator");
     setNamedValue("activeNeedlepoint", status.activeNeedlepoint || "");
@@ -1094,14 +1106,55 @@
 
   function addEntry(collection, form) {
     const payload = formPayload(form);
-    consoleState[collection].unshift({
+    const record = {
       id: `${collection}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       createdAt: nowStamp(),
       ...payload
-    });
+    };
+    consoleState[collection].unshift(record);
     writeConsoleState();
     form.reset();
     renderAll();
+    return record;
+  }
+
+  async function parseApiResponse(response) {
+    const text = await response.text();
+    let result;
+    try {
+      result = text ? JSON.parse(text) : {};
+    } catch (error) {
+      const snippet = text.replace(/\s+/g, " ").replace(/[<>{}]/g, "").trim().slice(0, 160);
+      throw new Error(`HTTP ${response.status}: ${snippet || "Transfer returned non-JSON."}`);
+    }
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || "Transfer refused.");
+    }
+
+    return result;
+  }
+
+  async function volunteerAnomaly(record) {
+    const status = consoleState.operatorStatus;
+    const response = await fetch(`${apiBase}/api/reports/anomaly-submit`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        operatorName: status.operatorName,
+        designation: status.designation || operatorRecord?.designation || "",
+        primaryFrequency: operatorRecord?.primaryFrequency || status.selectedLotusPetal || "",
+        classification: operatorRecord?.observerClassification || "",
+        attentionState: status.attentionState,
+        activeNeedlepoint: status.activeNeedlepoint,
+        scene: record.scene,
+        detail: record.detail,
+        severity: record.severity,
+        tags: record.tags,
+        notes: record.notes,
+      }),
+    });
+    return parseApiResponse(response);
   }
 
   function bindForms() {
@@ -1111,7 +1164,17 @@
     });
     if (forms.anomalies) forms.anomalies.addEventListener("submit", (event) => {
       event.preventDefault();
-      addEntry("anomalies", forms.anomalies);
+      const shouldVolunteer = event.submitter && event.submitter.getAttribute("data-anomaly-submit") === "volunteer";
+      const record = addEntry("anomalies", forms.anomalies);
+      if (!shouldVolunteer) {
+        setAnomalyTransferStatus("Anomaly logged locally. No upstream copy created.");
+        return;
+      }
+
+      setAnomalyTransferStatus("Volunteer transfer in progress.");
+      volunteerAnomaly(record)
+        .then((result) => setAnomalyTransferStatus(`Volunteer copy accepted: ${result.id}.`))
+        .catch((error) => setAnomalyTransferStatus(error.message, true));
     });
     if (forms.relationships) forms.relationships.addEventListener("submit", (event) => {
       event.preventDefault();

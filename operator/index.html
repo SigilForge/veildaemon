@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#050709" />
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
-  <link rel="stylesheet" href="./operator.css?v=20260621-sheet4" />
+  <link rel="stylesheet" href="./operator.css?v=20260621-anomaly1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -38,14 +38,14 @@
     </section>
 
     <nav class="console-nav" aria-label="Console modules">
-      <button type="button" class="module-tab is-active" data-module-tab="sheet">Sheet</button>
+      <button type="button" class="module-tab is-active" data-module-tab="anomalies">Anomaly Log</button>
+      <button type="button" class="module-tab" data-module-tab="sheet">Sheet</button>
       <button type="button" class="module-tab" data-module-tab="frequency">Frequency</button>
       <button type="button" class="module-tab" data-module-tab="relationships">Relationships</button>
-      <button type="button" class="module-tab" data-module-tab="anomalies">Anomaly Log</button>
       <button type="button" class="module-tab" data-module-tab="archive">Archive</button>
     </nav>
 
-    <section class="module-panel is-active sheet-panel" id="module-sheet" data-module-panel="sheet" aria-label="Operator sheet">
+    <section class="module-panel sheet-panel" id="module-sheet" data-module-panel="sheet" aria-label="Operator sheet">
       <div class="module-heading">
         <p class="kicker">ACTIVE CASE</p>
         <h2>At-table controls for the next thirty seconds.</h2>
@@ -54,13 +54,14 @@
         <section class="sheet-grid">
           <article class="sheet-card identity-card">
             <p class="card-label">Identity</p>
+            <label>Operator Name<input name="operatorName" type="text" maxlength="80" autocomplete="off" /></label>
             <label>Designation<input name="designation" type="text" maxlength="80" autocomplete="off" /></label>
             <label>Role<input name="role" type="text" maxlength="80" placeholder="Operator" autocomplete="off" /></label>
             <label>Needlepoint<input name="activeNeedlepoint" type="text" maxlength="90" placeholder="Viridian House" autocomplete="off" /></label>
             <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" autocomplete="off" /></label>
             <div class="tiny-counters" aria-label="Operator currencies">
-              <label>Void<input name="voidMarks" type="number" min="0" step="1" inputmode="numeric" /></label>
-              <label>Breach<input name="breachPoints" type="number" min="0" step="1" inputmode="numeric" /></label>
+              <label>Void<input name="voidMarks" type="number" min="0" max="99" step="1" inputmode="numeric" /></label>
+              <label>Breach<input name="breachPoints" type="number" min="0" max="99" step="1" inputmode="numeric" /></label>
             </div>
           </article>
 
@@ -197,7 +198,7 @@
       </form>
     </section>
 
-    <section class="module-panel" id="module-anomalies" data-module-panel="anomalies" aria-label="Anomaly log">
+    <section class="module-panel is-active" id="module-anomalies" data-module-panel="anomalies" aria-label="Anomaly log">
       <div class="module-heading">
         <p class="kicker">ANOMALY LOG</p>
         <h2>Record the impossible. Patterns emerge.</h2>
@@ -208,8 +209,12 @@
         <label>Severity<select name="severity"><option>Trace</option><option>Minor</option><option>Active</option><option>Breach</option></select></label>
         <label>Tags<input name="tags" type="text" maxlength="140" placeholder="dream, elevator, witness" /></label>
         <label>Notes<textarea name="notes" rows="3"></textarea></label>
-        <button class="button primary" type="submit">Log Anomaly</button>
+        <div class="volunteer-row">
+          <button class="button primary" type="submit" data-anomaly-submit="local">Log Anomaly</button>
+          <button class="button ghost" type="submit" data-anomaly-submit="volunteer">Log + Volunteer Copy</button>
+        </div>
       </form>
+      <p class="tracker-note" id="anomaly-transfer-status" role="status">Local log only. Volunteered copies enter separate recovery review.</p>
       <div class="entry-list" id="anomaly-list"></div>
     </section>
 
@@ -281,6 +286,6 @@
       </div>
     </section>
   </main>
-  <script src="./operator.js?v=20260621-sheet4"></script>
+  <script src="./operator.js?v=20260621-anomaly1"></script>
 </body>
 </html>

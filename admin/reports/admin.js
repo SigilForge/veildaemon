@@ -2,7 +2,9 @@
   const tokenInput = document.getElementById("token");
   const saveToken = document.getElementById("save-token");
   const refreshQueue = document.getElementById("refresh-queue");
+  const refreshAnomalies = document.getElementById("refresh-anomalies");
   const reportList = document.getElementById("report-list");
+  const anomalyList = document.getElementById("anomaly-list");
   const statusLine = document.getElementById("status-line");
   const tokenKey = "veildaemon.reportAdminToken";
   const queryToken = new URLSearchParams(window.location.search).get("token") || "";
@@ -10,9 +12,10 @@
     ? "https://api.veildaemon.app"
     : "";
 
-  if (!tokenInput || !reportList || !statusLine) return;
+  if (!tokenInput || !reportList || !anomalyList || !statusLine) return;
 
   let reports = [];
+  let anomalyLogs = [];
 
   function token() {
     return tokenInput.value.trim();
@@ -98,6 +101,22 @@
     setStatus(`Report ${id} ${action} accepted.`);
   }
 
+  async function updateAnomalyLog(id, action) {
+    const result = await api("/api/reports/anomaly-admin", {
+      method: "PATCH",
+      body: JSON.stringify({ id, action }),
+    });
+
+    if (action === "delete") {
+      anomalyLogs = anomalyLogs.filter((log) => log.id !== id);
+    } else {
+      const index = anomalyLogs.findIndex((log) => log.id === id);
+      if (index >= 0) anomalyLogs[index] = result.anomalyLog;
+    }
+    renderAnomalyLogs();
+    setStatus(`Anomaly log ${id} ${action} accepted.`);
+  }
+
   function renderReport(report) {
     const card = el("article", "report-card");
     card.dataset.id = report.id;
@@ -166,12 +185,76 @@
     reports.forEach((report) => reportList.append(renderReport(report)));
   }
 
+  function renderAnomalyLog(log) {
+    const card = el("article", "report-card anomaly-card");
+    card.dataset.id = log.id;
+
+    const header = el("div", "report-header");
+    header.append(el("h3", "", `ANOMALY #${log.id}`));
+    header.append(el("span", `status status-${log.status}`, log.status.replace("_", " ").toUpperCase()));
+    card.append(header);
+
+    const meta = el("div", "meta-grid");
+    meta.append(field("OPERATOR", log.operatorName || log.designation));
+    meta.append(field("FREQUENCY", log.primaryFrequency));
+    meta.append(field("NEEDLEPOINT", log.activeNeedlepoint));
+    meta.append(field("CLASSIFICATION", log.classification));
+    meta.append(field("ATTENTION", log.attentionState));
+    meta.append(field("SEVERITY", log.severity));
+    card.append(meta);
+
+    const original = document.createElement("details");
+    original.open = log.status === "under_review";
+    original.append(el("summary", "", "View Volunteered Log"));
+    original.append(field("SCENE", log.scene));
+    original.append(field("IMPOSSIBLE DETAIL", log.detail));
+    original.append(field("TAGS", log.tags));
+    original.append(field("NOTES", log.notes));
+    card.append(original);
+
+    const actions = el("div", "action-row");
+    const hold = el("button", "", "Hold");
+    const review = el("button", "", "Return To Review");
+    const remove = el("button", "reject", "Delete");
+    hold.type = review.type = remove.type = "button";
+    hold.addEventListener("click", () => updateAnomalyLog(log.id, "hold").catch((error) => setStatus(error.message, true)));
+    review.addEventListener("click", () => updateAnomalyLog(log.id, "review").catch((error) => setStatus(error.message, true)));
+    remove.addEventListener("click", () => updateAnomalyLog(log.id, "delete").catch((error) => setStatus(error.message, true)));
+    actions.append(hold, review, remove);
+    card.append(actions);
+
+    return card;
+  }
+
+  function renderAnomalyLogs() {
+    anomalyList.textContent = "";
+    if (anomalyLogs.length === 0) {
+      anomalyList.append(el("p", "empty", "No volunteered anomaly logs."));
+      return;
+    }
+
+    anomalyLogs.forEach((log) => anomalyList.append(renderAnomalyLog(log)));
+  }
+
   async function loadReports() {
     setStatus("Queue refresh in progress.");
     const result = await api("/api/reports/admin", { method: "GET" });
     reports = result.reports || [];
     render();
     setStatus(`Queue refreshed. ${reports.length} report records present.`);
+  }
+
+  async function loadAnomalyLogs() {
+    setStatus("Anomaly volunteer refresh in progress.");
+    const result = await api("/api/reports/anomaly-admin", { method: "GET" });
+    anomalyLogs = result.anomalyLogs || [];
+    renderAnomalyLogs();
+    setStatus(`Anomaly volunteers refreshed. ${anomalyLogs.length} records present.`);
+  }
+
+  async function loadAll() {
+    await loadReports();
+    await loadAnomalyLogs();
   }
 
   tokenInput.value = queryToken || window.localStorage.getItem(tokenKey) || "";
@@ -181,11 +264,12 @@
   saveToken.addEventListener("click", () => {
     window.localStorage.setItem(tokenKey, token());
     setStatus("Token held locally.");
-    loadReports().catch((error) => setStatus(error.message, true));
+    loadAll().catch((error) => setStatus(error.message, true));
   });
   refreshQueue.addEventListener("click", () => loadReports().catch((error) => setStatus(error.message, true)));
+  refreshAnomalies.addEventListener("click", () => loadAnomalyLogs().catch((error) => setStatus(error.message, true)));
 
   if (token()) {
-    loadReports().catch((error) => setStatus(error.message, true));
+    loadAll().catch((error) => setStatus(error.message, true));
   }
 }());

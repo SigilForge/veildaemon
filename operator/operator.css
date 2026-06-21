@@ -223,6 +223,7 @@ h3 {
 }
 .console-form label:has(textarea),
 .console-form .button,
+.volunteer-row,
 .frequency-form label:has(textarea) {
   grid-column: 1 / -1;
 }
@@ -252,16 +253,18 @@ h3 {
 }
 .tiny-counters {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 7rem));
+  grid-template-columns: repeat(2, 5.2rem);
   gap: .55rem;
+  justify-content: start;
 }
 .tiny-counters label {
   gap: .2rem;
 }
 .tiny-counters input {
   min-height: 2.1rem;
-  padding: .42rem;
+  padding: .35rem;
   font-size: .88rem;
+  font-weight: 800;
   text-align: center;
 }
 .card-label {
@@ -730,6 +733,14 @@ a:focus-visible {
   flex-wrap: wrap;
   gap: .55rem;
   justify-content: end;
+}
+.volunteer-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+}
+.volunteer-row .button {
+  flex: 1 1 13rem;
 }
 .file-button {
   position: relative;
