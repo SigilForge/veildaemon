@@ -11,9 +11,14 @@
     cases: [],
     operatorStatus: {
       stability: "10",
+      stabilityBand: "Calm",
+      attentionState: "Unnoticed",
       harm: "None recorded",
+      harmBoxes: "0",
       voidMarks: "0",
       breachPoints: "0",
+      misfireBoxes: "0",
+      presentationPressure: "0",
       bleed: "",
       misfires: "",
       commonTell: "",
@@ -21,6 +26,21 @@
       anchorPerson: "",
       totemObject: "",
       groundingLine: "",
+      presentation: "",
+      obligation: "",
+      lotusPrimary: "",
+      lotusBlind: "",
+      lotusMethod: "",
+      vectorNeed: "",
+      pipOneLeakage: "",
+      pipTwoExpression: "",
+      knownExpressions: "",
+      expressionLimits: "",
+      recoveryGround: false,
+      recoveryBreathe: false,
+      recoveryConnect: false,
+      recoveryLeave: false,
+      recoveryNameIt: false,
       voidBreach: "",
       emotionalState: ""
     },
@@ -88,9 +108,19 @@
     return {
       ...status,
       anchorPerson: status.anchorPerson || status.anchors || "",
+      stabilityBand: normalizeStabilityBand(status.stabilityBand || bandFromLegacyStability(status.stability)),
+      attentionState: normalizeAttentionState(status.attentionState),
       stability: normalizeStabilityValue(status.stability),
+      harmBoxes: normalizeBoxValue(status.harmBoxes, 6),
       voidMarks: normalizeNonNegative(status.voidMarks),
-      breachPoints: normalizeNonNegative(status.breachPoints)
+      breachPoints: normalizeNonNegative(status.breachPoints),
+      misfireBoxes: normalizeBoxValue(status.misfireBoxes, 6),
+      presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
+      recoveryGround: Boolean(status.recoveryGround),
+      recoveryBreathe: Boolean(status.recoveryBreathe),
+      recoveryConnect: Boolean(status.recoveryConnect),
+      recoveryLeave: Boolean(status.recoveryLeave),
+      recoveryNameIt: Boolean(status.recoveryNameIt)
     };
   }
 
@@ -214,19 +244,38 @@
     const form = forms.status;
     if (!form) return;
     const status = consoleState.operatorStatus;
-    form.elements.stability.value = normalizeStabilityValue(status.stability);
+    form.elements.stabilityBand.value = normalizeStabilityBand(status.stabilityBand);
+    form.elements.attentionState.value = normalizeAttentionState(status.attentionState);
     form.elements.harm.value = status.harm || "None recorded";
+    form.elements.harmBoxes.value = normalizeBoxValue(status.harmBoxes, 6);
     form.elements.voidMarks.value = normalizeNonNegative(status.voidMarks);
     form.elements.breachPoints.value = normalizeNonNegative(status.breachPoints);
+    form.elements.misfireBoxes.value = normalizeBoxValue(status.misfireBoxes, 6);
+    form.elements.presentationPressure.value = normalizeBoxValue(status.presentationPressure, 5);
     form.elements.emotionalState.value = status.emotionalState || operatorRecord?.attentionStatus || "";
     form.elements.commonTell.value = status.commonTell || "";
+    form.elements.presentation.value = status.presentation || "";
+    form.elements.obligation.value = status.obligation || "";
+    form.elements.lotusPrimary.value = status.lotusPrimary || operatorRecord?.primaryFrequency || "";
+    form.elements.lotusBlind.value = status.lotusBlind || "";
+    form.elements.lotusMethod.value = status.lotusMethod || "";
+    form.elements.vectorNeed.value = status.vectorNeed || "";
     form.elements.misfireFlavor.value = status.misfireFlavor || frequencyCard(operatorRecord?.primaryFrequency).misfireFlavor;
     form.elements.anchorPerson.value = status.anchorPerson || "";
     form.elements.totemObject.value = status.totemObject || "";
     form.elements.groundingLine.value = status.groundingLine || "";
+    form.elements.pipOneLeakage.value = status.pipOneLeakage || "";
+    form.elements.pipTwoExpression.value = status.pipTwoExpression || "";
+    form.elements.knownExpressions.value = status.knownExpressions || "";
+    form.elements.expressionLimits.value = status.expressionLimits || "";
     form.elements.bleed.value = status.bleed || formatDrift(operatorRecord);
     form.elements.misfires.value = status.misfires || "";
     form.elements.voidBreach.value = status.voidBreach || "";
+    form.elements.recoveryGround.checked = Boolean(status.recoveryGround);
+    form.elements.recoveryBreathe.checked = Boolean(status.recoveryBreathe);
+    form.elements.recoveryConnect.checked = Boolean(status.recoveryConnect);
+    form.elements.recoveryLeave.checked = Boolean(status.recoveryLeave);
+    form.elements.recoveryNameIt.checked = Boolean(status.recoveryNameIt);
     renderStatusSummary();
   }
 
@@ -242,12 +291,28 @@
     return String(Math.round(parsed));
   }
 
-  function stabilityBand(value) {
+  function normalizeBoxValue(value, max) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return "0";
+    return String(Math.max(0, Math.min(max, Math.round(parsed))));
+  }
+
+  function normalizeStabilityBand(value) {
+    const allowed = ["Calm", "Strained", "Unraveling", "Collapse Risk"];
+    return allowed.includes(value) ? value : "Calm";
+  }
+
+  function normalizeAttentionState(value) {
+    const allowed = ["Unnoticed", "Brushed", "Noted", "Marked", "Pursued", "Claimed"];
+    return allowed.includes(value) ? value : "Unnoticed";
+  }
+
+  function bandFromLegacyStability(value) {
     const stability = Number(normalizeStabilityValue(value));
-    if (stability >= 8) return "CALM";
-    if (stability >= 5) return "STRAINED";
-    if (stability >= 3) return "UNRAVELING";
-    return "COLLAPSE RISK";
+    if (stability >= 8) return "Calm";
+    if (stability >= 5) return "Strained";
+    if (stability >= 3) return "Unraveling";
+    return "Collapse Risk";
   }
 
   function frequencyCard(frequency) {
@@ -284,7 +349,7 @@
     const band = document.getElementById("status-band");
     const bleedCue = document.getElementById("status-bleed-cue");
     const status = consoleState.operatorStatus;
-    if (band) band.textContent = stabilityBand(status.stability);
+    if (band) band.textContent = normalizeStabilityBand(status.stabilityBand).toUpperCase();
     if (bleedCue) bleedCue.textContent = frequencyCard(operatorRecord?.primaryFrequency).bleedCue.toUpperCase();
   }
 
@@ -350,6 +415,9 @@
     data.forEach((value, key) => {
       payload[key] = safeString(value, 3000);
     });
+    form.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+      payload[input.name] = input.checked;
+    });
     return payload;
   }
 
@@ -388,9 +456,13 @@
       consoleState.operatorStatus = {
         ...consoleState.operatorStatus,
         ...payload,
-        stability: normalizeStabilityValue(payload.stability),
+        stabilityBand: normalizeStabilityBand(payload.stabilityBand),
+        attentionState: normalizeAttentionState(payload.attentionState),
+        harmBoxes: normalizeBoxValue(payload.harmBoxes, 6),
         voidMarks: normalizeNonNegative(payload.voidMarks),
-        breachPoints: normalizeNonNegative(payload.breachPoints)
+        breachPoints: normalizeNonNegative(payload.breachPoints),
+        misfireBoxes: normalizeBoxValue(payload.misfireBoxes, 6),
+        presentationPressure: normalizeBoxValue(payload.presentationPressure, 5)
       };
       writeConsoleState();
       renderAll();
