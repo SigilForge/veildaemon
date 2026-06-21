@@ -20,9 +20,18 @@
       harmBoxes: "0",
       voidMarks: "0",
       breachPoints: "0",
-      misfireBoxes: "0",
-      lotusMarks: "0",
+      misfireSeverity: "None",
       presentationPressure: "0",
+      lotus: {
+        Dream: "0",
+        Hunger: "0",
+        Silence: "0",
+        Stillness: "0",
+        Empyrean: "0",
+        Becoming: "0"
+      },
+      blindPetal: "",
+      selectedLotusPetal: "",
       rollAttribute: "0",
       rollSkill: "0",
       rollModifier: "0",
@@ -115,9 +124,11 @@
       harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
       voidMarks: normalizeNonNegative(status.voidMarks),
       breachPoints: normalizeNonNegative(status.breachPoints),
-      misfireBoxes: normalizeBoxValue(status.misfireBoxes, 6),
-      lotusMarks: normalizeBoxValue(status.lotusMarks, 6),
+      misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity || severityFromLegacyMisfire(status.misfireBoxes)),
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
+      lotus: normalizeLotus(status.lotus),
+      blindPetal: normalizeFrequencyName(status.blindPetal),
+      selectedLotusPetal: normalizeFrequencyName(status.selectedLotusPetal),
       rollAttribute: normalizeSignedValue(status.rollAttribute, -3, 8),
       rollSkill: normalizeBoxValue(status.rollSkill, 8),
       rollModifier: normalizeSignedValue(status.rollModifier, -10, 10),
@@ -255,6 +266,9 @@
     consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(consoleState.operatorStatus.stability);
     setNamedValue("attentionState", normalizeAttentionState(status.attentionState));
     setNamedValue("emotionalState", status.emotionalState || operatorRecord?.attentionStatus || "");
+    setNamedValue("voidMarks", normalizeNonNegative(status.voidMarks));
+    setNamedValue("breachPoints", normalizeNonNegative(status.breachPoints));
+    setNamedValue("misfireSeverity", normalizeMisfireSeverity(status.misfireSeverity));
     setNamedValue("commonTell", status.commonTell || "");
     setNamedValue("rollAttribute", normalizeSignedValue(status.rollAttribute, -3, 8));
     setNamedValue("rollSkill", normalizeBoxValue(status.rollSkill, 8));
@@ -278,6 +292,7 @@
     renderTrackers();
     renderSegmentedControls();
     renderBandMeter();
+    renderLotus();
     renderStatusSummary();
   }
 
@@ -320,6 +335,36 @@
     return allowed.includes(value) ? value : "Calm";
   }
 
+  function normalizeMisfireSeverity(value) {
+    const allowed = ["None", "Minor", "Major", "Severe"];
+    return allowed.includes(value) ? value : "None";
+  }
+
+  function severityFromLegacyMisfire(value) {
+    const boxes = Number(normalizeBoxValue(value, 6));
+    if (boxes >= 5) return "Severe";
+    if (boxes >= 3) return "Major";
+    if (boxes >= 1) return "Minor";
+    return "None";
+  }
+
+  function frequencies() {
+    return ["Dream", "Hunger", "Silence", "Stillness", "Empyrean", "Becoming"];
+  }
+
+  function normalizeFrequencyName(value) {
+    return frequencies().includes(value) ? value : "";
+  }
+
+  function normalizeLotus(value) {
+    const source = value && typeof value === "object" ? value : {};
+    const lotus = {};
+    frequencies().forEach((frequency) => {
+      lotus[frequency] = normalizeBoxValue(source[frequency], 6);
+    });
+    return lotus;
+  }
+
   function normalizeAttentionState(value) {
     const allowed = ["Unnoticed", "Brushed", "Noted", "Marked", "Pursued", "Claimed"];
     return allowed.includes(value) ? value : "Unnoticed";
@@ -337,30 +382,61 @@
     const cards = {
       Dream: {
         bleedCue: "deja vu, false familiarity, and memory confusion",
-        misfireFlavor: "Metaphor becomes literal, a memory intrudes, or the wrong symbol answers."
+        misfireFlavor: "Metaphor becomes literal, a memory intrudes, or the wrong symbol answers.",
+        basic: "Read symbolic pressure, identify impossible familiarity, and follow dreamlike logic without treating it as proof.",
+        empowered: "Shape a scene through metaphor, memory, or omen while keeping the table anchored to consent and consequence.",
+        distortion: "A symbol answers too strongly. The scene begins obeying meaning before reality catches up.",
+        divergence: "Dream stops describing reality and starts writing it."
       },
       Hunger: {
         bleedCue: "fixation, jealousy, shame after wanting, and fear that need makes you monstrous",
-        misfireFlavor: "Want becomes compulsion, a bargain asks too much, or satisfaction turns hollow."
+        misfireFlavor: "Want becomes compulsion, a bargain asks too much, or satisfaction turns hollow.",
+        basic: "Sense want, leverage appetite, and identify what a person or place is starving for.",
+        empowered: "Turn desire into pressure, bargain, pursuit, or refusal with visible emotional cost.",
+        distortion: "Need becomes command. Satisfaction creates a worse absence.",
+        divergence: "Hunger becomes a law the scene must feed."
       },
       Silence: {
         bleedCue: "numbness, dissociation, missing time, and relief when no one asks questions",
-        misfireFlavor: "The wrong thing is erased, a truth cannot be spoken, or protection becomes isolation."
+        misfireFlavor: "The wrong thing is erased, a truth cannot be spoken, or protection becomes isolation.",
+        basic: "Notice absence, suppress tells, create quiet, and survive by refusing attention.",
+        empowered: "Mute a signal, hide a truth, or create protective absence with a clear boundary.",
+        distortion: "The wrong thing vanishes. A needed truth cannot cross the room.",
+        divergence: "Silence becomes an active presence with its own appetite."
       },
       Stillness: {
         bleedCue: "emotional freezing, rigid control, delayed panic, and inability to leave a memory behind",
-        misfireFlavor: "A moment traps the wrong person, action stalls, or composure becomes paralysis."
+        misfireFlavor: "A moment traps the wrong person, action stalls, or composure becomes paralysis.",
+        basic: "Hold position, endure pressure, stabilize a scene, and recognize emotional freezing.",
+        empowered: "Pin a moment, slow escalation, or keep a fragile pattern from breaking.",
+        distortion: "Control becomes paralysis. The wrong person or feeling cannot move.",
+        divergence: "Stillness edits time by refusing to let it continue."
       },
       Empyrean: {
         bleedCue: "emotional flooding, over-identification, guilt, and fear of being felt too clearly",
-        misfireFlavor: "Feelings spread too far, a bond overwhelms consent, or pain becomes communal."
+        misfireFlavor: "Feelings spread too far, a bond overwhelms consent, or pain becomes communal.",
+        basic: "Read emotional weather, create connection, and notice when feeling exceeds its container.",
+        empowered: "Share burden, amplify resonance, or make a bond operational under pressure.",
+        distortion: "Feeling spills beyond consent. Pain, guilt, or awe becomes communal.",
+        divergence: "Empyrean turns connection into environment."
       },
       Becoming: {
         bleedCue: "identity drift, impostor fear, and panic when recognized",
-        misfireFlavor: "A mask sticks, a role overwrites behavior, or an unwanted self steps forward."
+        misfireFlavor: "A mask sticks, a role overwrites behavior, or an unwanted self steps forward.",
+        basic: "Sense identity drift, perform a role, and recognize unstable self-patterns.",
+        empowered: "Shift presentation, claim a new role, or force a scene to answer who someone is becoming.",
+        distortion: "A mask sticks. A role overwrites behavior. Recognition becomes threat.",
+        divergence: "Becoming stops being change and becomes emergence."
       }
     };
-    return cards[frequency] || { bleedCue: "choose a primary Frequency to load bleed cues", misfireFlavor: "" };
+    return cards[frequency] || {
+      bleedCue: "choose a primary Frequency to load bleed cues",
+      misfireFlavor: "",
+      basic: "",
+      empowered: "",
+      distortion: "",
+      divergence: ""
+    };
   }
 
   function renderStatusSummary() {
@@ -377,12 +453,8 @@
     const board = document.getElementById("tracker-board");
     if (!board) return;
     const trackers = [
-      { key: "voidMarks", label: "Void", max: 10, kind: "mark" },
-      { key: "breachPoints", label: "Breach", max: 10, kind: "danger" },
       { key: "harmBoxes", label: "Harm", max: 5, kind: "harm" },
-      { key: "misfireBoxes", label: "Misfire", max: 6, kind: "danger" },
-      { key: "stability", label: "Stability", max: 10, kind: "stability" },
-      { key: "lotusMarks", label: "Lotus", max: 6, kind: "lotus" }
+      { key: "stability", label: "Stability", max: 10, kind: "stability" }
     ];
     board.textContent = "";
     trackers.forEach((tracker) => {
@@ -424,7 +496,13 @@
       plus.addEventListener("click", () => setTrackerValue(tracker.key, value + 1, tracker.max));
       controls.append(minus, plus);
 
-      article.append(header, pips, controls);
+      const derived = document.createElement("p");
+      derived.className = "pip-derived";
+      derived.textContent = tracker.key === "harmBoxes"
+        ? `Condition: ${harmCondition(value)}`
+        : `Band: ${bandFromLegacyStability(value)}`;
+
+      article.append(header, pips, derived, controls);
       board.append(article);
     });
   }
@@ -445,7 +523,9 @@
       const field = group.getAttribute("data-segmented");
       const current = field === "stabilityBand"
         ? normalizeStabilityBand(consoleState.operatorStatus[field])
-        : normalizeAttentionState(consoleState.operatorStatus[field]);
+        : field === "misfireSeverity"
+          ? normalizeMisfireSeverity(consoleState.operatorStatus[field])
+          : normalizeAttentionState(consoleState.operatorStatus[field]);
       group.querySelectorAll("button[data-value]").forEach((button) => {
         button.classList.toggle("is-active", button.getAttribute("data-value") === current);
       });
@@ -458,6 +538,99 @@
     document.querySelectorAll("#stability-band-meter [data-band]").forEach((node) => {
       node.classList.toggle("is-active", node.getAttribute("data-band") === current);
     });
+  }
+
+  function harmCondition(value) {
+    const harm = Number(normalizeBoxValue(value, 5));
+    if (harm >= 5) return "Critical";
+    if (harm >= 3) return "Wounded";
+    if (harm >= 1) return "Hurt";
+    return "Clear";
+  }
+
+  function lotusTier(level) {
+    const value = Number(normalizeBoxValue(level, 6));
+    if (value >= 6) return "Divergence";
+    if (value >= 5) return "Distortion";
+    if (value >= 3) return "Empowered";
+    if (value >= 1) return "Basic";
+    return "None";
+  }
+
+  function tierCopy(frequency, tier) {
+    const card = frequencyCard(frequency);
+    if (tier === "Divergence") return card.divergence;
+    if (tier === "Distortion") return card.distortion;
+    if (tier === "Empowered") return card.empowered;
+    if (tier === "Basic") return card.basic;
+    return "No pip selected. This petal has not been cultivated.";
+  }
+
+  function renderLotus() {
+    const map = document.getElementById("lotus-map");
+    if (!map) return;
+    const status = consoleState.operatorStatus;
+    const lotus = normalizeLotus(status.lotus);
+    const selected = normalizeFrequencyName(status.selectedLotusPetal) || operatorRecord?.primaryFrequency || "Dream";
+    status.selectedLotusPetal = normalizeFrequencyName(selected) || "Dream";
+    status.lotus = lotus;
+    map.textContent = "";
+
+    frequencies().forEach((frequency) => {
+      const level = Number(lotus[frequency] || 0);
+      const petal = document.createElement("article");
+      petal.className = "lotus-petal";
+      petal.classList.toggle("is-selected", frequency === status.selectedLotusPetal);
+      petal.classList.toggle("is-blind", frequency === status.blindPetal);
+
+      const header = document.createElement("button");
+      header.type = "button";
+      header.className = "lotus-petal-name";
+      header.textContent = frequency === status.blindPetal ? `${frequency} // Blind` : frequency;
+      header.addEventListener("click", () => {
+        status.selectedLotusPetal = frequency;
+        writeConsoleState();
+        renderLotus();
+      });
+
+      const pips = document.createElement("div");
+      pips.className = "lotus-pips";
+      for (let index = 1; index <= 6; index += 1) {
+        const pip = document.createElement("button");
+        pip.type = "button";
+        pip.className = "pip";
+        pip.classList.toggle("is-filled", index <= level);
+        pip.setAttribute("aria-label", `${frequency} pip ${index}`);
+        pip.addEventListener("click", () => {
+          status.lotus[frequency] = normalizeBoxValue(index === level ? index - 1 : index, 6);
+          status.selectedLotusPetal = frequency;
+          writeConsoleState();
+          renderLotus();
+        });
+        pips.append(pip);
+      }
+
+      const blind = document.createElement("button");
+      blind.type = "button";
+      blind.className = "blind-toggle";
+      blind.textContent = frequency === status.blindPetal ? "Blind Petal" : "Mark Blind";
+      blind.addEventListener("click", () => {
+        status.blindPetal = frequency === status.blindPetal ? "" : frequency;
+        status.selectedLotusPetal = frequency;
+        writeConsoleState();
+        renderLotus();
+      });
+
+      petal.append(header, pips, blind);
+      map.append(petal);
+    });
+
+    const selectedLevel = Number(lotus[status.selectedLotusPetal] || 0);
+    const tier = lotusTier(selectedLevel);
+    setText("lotus-frequency", status.selectedLotusPetal + (status.selectedLotusPetal === status.blindPetal ? " // BLIND" : ""));
+    setText("lotus-tier", tier);
+    const copy = document.getElementById("lotus-copy");
+    if (copy) copy.textContent = tierCopy(status.selectedLotusPetal, tier);
   }
 
   function formatDrift(record) {
@@ -542,9 +715,11 @@
       harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
       voidMarks: normalizeNonNegative(status.voidMarks),
       breachPoints: normalizeNonNegative(status.breachPoints),
-      misfireBoxes: normalizeBoxValue(status.misfireBoxes, 6),
-      lotusMarks: normalizeBoxValue(status.lotusMarks, 6),
+      misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity),
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
+      lotus: normalizeLotus(status.lotus),
+      blindPetal: normalizeFrequencyName(status.blindPetal),
+      selectedLotusPetal: normalizeFrequencyName(status.selectedLotusPetal),
       rollAttribute: normalizeSignedValue(status.rollAttribute, -3, 8),
       rollSkill: normalizeBoxValue(status.rollSkill, 8),
       rollModifier: normalizeSignedValue(status.rollModifier, -10, 10)
@@ -555,6 +730,7 @@
     consoleState.operatorStatus = collectStatusPayload();
     writeConsoleState();
     renderBandMeter();
+    renderLotus();
     renderStatusSummary();
     renderSegmentedControls();
   }

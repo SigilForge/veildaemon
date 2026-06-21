@@ -74,8 +74,28 @@
           </article>
 
           <article class="sheet-card tracker-card wide">
-            <p class="card-label">Pressure Trackers</p>
+            <p class="card-label">Live Condition Trackers</p>
             <div class="tracker-board" id="tracker-board"></div>
+          </article>
+
+          <article class="sheet-card">
+            <p class="card-label">Void / Breach</p>
+            <div class="counter-row">
+              <label>Void<input name="voidMarks" type="number" min="0" step="1" inputmode="numeric" /></label>
+              <label>Breach<input name="breachPoints" type="number" min="0" step="1" inputmode="numeric" /></label>
+            </div>
+          </article>
+
+          <article class="sheet-card">
+            <p class="card-label">Current Misfire</p>
+            <div class="segmented misfire" data-segmented="misfireSeverity">
+              <button type="button" data-value="None">None</button>
+              <button type="button" data-value="Minor">Minor</button>
+              <button type="button" data-value="Major">Major</button>
+              <button type="button" data-value="Severe">Severe</button>
+            </div>
+            <input name="misfireSeverity" type="hidden" />
+            <label>Misfire record<textarea name="misfires" rows="3" placeholder="Consequence, flavor, who noticed."></textarea></label>
           </article>
 
           <article class="sheet-card">
@@ -151,6 +171,21 @@
         <h2>Abilities, tells, grounding, and misfire language.</h2>
       </div>
       <form class="console-form frequency-form" id="frequency-form">
+        <section class="lotus-workspace" aria-label="Frequency Lotus">
+          <div class="lotus-map" id="lotus-map"></div>
+          <article class="lotus-detail">
+            <p class="card-label">Selected Petal</p>
+            <div class="readout-block">
+              <span>Frequency</span>
+              <strong id="lotus-frequency">UNSELECTED</strong>
+            </div>
+            <div class="readout-block">
+              <span>Unlock Tier</span>
+              <strong id="lotus-tier">NONE</strong>
+            </div>
+            <p id="lotus-copy" class="lotus-copy">Select a Frequency petal to review unlocked material.</p>
+          </article>
+        </section>
         <label>Frequency abilities / expressions<textarea name="expressions" rows="5"></textarea></label>
         <label>Misfire flavor<textarea name="misfireFlavor" rows="4"></textarea></label>
         <details open>
@@ -166,7 +201,6 @@
           <summary>Bleed and Void/Breach notes</summary>
           <label>Bleed notes<textarea name="bleed" rows="4"></textarea></label>
           <label>Void / Breach notes<textarea name="voidBreach" rows="4"></textarea></label>
-          <label>Misfires recorded<textarea name="misfires" rows="4"></textarea></label>
         </details>
       </form>
     </section>
