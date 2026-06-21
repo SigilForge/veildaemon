@@ -13,6 +13,10 @@
 }
 
 * { box-sizing: border-box; }
+html {
+  min-height: 100%;
+  background: var(--bg);
+}
 body {
   --surface-rail-width: 1180px;
   --surface-tab-width: 3.15rem;
@@ -24,8 +28,10 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 70% 10%, rgba(185,84,255,.18), transparent 34rem),
-    radial-gradient(circle at 18% 0, rgba(102,255,220,.08), transparent 26rem),
+    radial-gradient(circle at 72% 18%, rgba(185,84,255,.2), transparent 28rem),
+    radial-gradient(circle at 18% 0, rgba(102,255,220,.1), transparent 24rem),
+    linear-gradient(90deg, rgba(0,0,0,.78), rgba(5,7,9,.44) 48%, rgba(0,0,0,.6)),
+    url("../assets/background.jpg") center top / cover no-repeat fixed,
     #050709;
   color: var(--text);
   font-family: var(--font);
@@ -942,10 +948,19 @@ a:focus-visible {
 body:has(#operator-preview:target) .surface-tabs {
   left: calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-operator-drawer-width));
 }
+body.has-operator-preview-open .surface-tabs {
+  left: calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-operator-drawer-width));
+}
 body:has(#casefile-drawer:target) .surface-tabs {
   left: calc(50vw + (var(--surface-rail-width) / 2) + 430px);
 }
+body.has-casefile-drawer-open .surface-tabs {
+  left: calc(50vw + (var(--surface-rail-width) / 2) + 430px);
+}
 body:has(#recovered-reports-drawer:target) .surface-tabs {
+  left: calc(50vw + (var(--surface-rail-width) / 2) + 620px);
+}
+body.has-reports-drawer-open .surface-tabs {
   left: calc(50vw + (var(--surface-rail-width) / 2) + 620px);
 }
 .operator-preview-drawer {
@@ -987,7 +1002,9 @@ body:has(#recovered-reports-drawer:target) .surface-tabs {
   width: min(92vw, 620px);
 }
 .casefile-drawer:target,
-.recovered-reports-drawer:target {
+.casefile-drawer.is-open,
+.recovered-reports-drawer:target,
+.recovered-reports-drawer.is-open {
   transform: translate(0, -50%);
   visibility: visible;
   pointer-events: auto;

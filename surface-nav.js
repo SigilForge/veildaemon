@@ -108,8 +108,102 @@
     }, true);
   }
 
-  document.addEventListener("DOMContentLoaded", renderCaseFileRecord);
+  function drawerIds() {
+    return ["casefile-drawer", "operator-preview", "recovered-reports-drawer"];
+  }
+
+  function closeSurfaceDrawers() {
+    drawerIds().forEach((id) => {
+      const drawer = document.getElementById(id);
+      if (!drawer) return;
+      drawer.classList.remove("is-open");
+      drawer.setAttribute("aria-hidden", "true");
+    });
+
+    document.body.classList.remove(
+      "has-casefile-drawer-open",
+      "has-operator-preview-open",
+      "has-reports-drawer-open"
+    );
+
+    document.querySelectorAll(".surface-tab[aria-expanded], .surface-tab[aria-controls]").forEach((tab) => {
+      tab.setAttribute("aria-expanded", "false");
+    });
+
+    if (drawerIds().some((id) => window.location.hash === `#${id}`) || window.location.hash === "#surface-files") {
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    }
+  }
+
+  function bodyClassForDrawer(id) {
+    return {
+      "casefile-drawer": "has-casefile-drawer-open",
+      "operator-preview": "has-operator-preview-open",
+      "recovered-reports-drawer": "has-reports-drawer-open"
+    }[id];
+  }
+
+  function openSurfaceDrawer(id) {
+    const drawer = document.getElementById(id);
+    if (!drawer) return;
+
+    closeSurfaceDrawers();
+    drawer.classList.add("is-open");
+    drawer.setAttribute("aria-hidden", "false");
+
+    const bodyClass = bodyClassForDrawer(id);
+    if (bodyClass) {
+      document.body.classList.add(bodyClass);
+    }
+
+    document.querySelectorAll(`.surface-tab[aria-controls="${id}"]`).forEach((tab) => {
+      tab.setAttribute("aria-expanded", "true");
+    });
+  }
+
+  function bindDrawerControls() {
+    document.addEventListener("click", (event) => {
+      const close = event.target && event.target.closest && event.target.closest('.drawer-route[href="#surface-files"]');
+      if (close) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        closeSurfaceDrawers();
+        return;
+      }
+
+      const tab = event.target && event.target.closest && event.target.closest(".surface-tab[aria-controls]");
+      if (!tab || event.shiftKey) return;
+
+      const targetId = tab.getAttribute("aria-controls");
+      if (!drawerIds().includes(targetId)) return;
+
+      const target = document.getElementById(targetId);
+      const isOpen = target && (target.matches(":target") || target.classList.contains("is-open"));
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      if (isOpen) {
+        closeSurfaceDrawers();
+        return;
+      }
+
+      openSurfaceDrawer(targetId);
+    }, true);
+  }
+
+  function restoreHashDrawer() {
+    const targetId = window.location.hash && window.location.hash.slice(1);
+    if (!drawerIds().includes(targetId)) return;
+    openSurfaceDrawer(targetId);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    renderCaseFileRecord();
+    restoreHashDrawer();
+  });
   bindDirectTabShortcuts();
+  bindDrawerControls();
   window.addEventListener("veildaemon:operator-record-updated", renderCaseFileRecord);
   window.addEventListener("storage", renderCaseFileRecord);
 })();

@@ -215,6 +215,42 @@ test("home operator drawer moves the tab rack to the open file rail", async ({ p
   expect(Math.abs(rects.tabLeft - rects.drawerRight)).toBeLessThanOrEqual(2);
 });
 
+test("operator file tab toggles the open drawer closed", async ({ page }) => {
+  await page.setViewportSize({ width: 2600, height: 1000 });
+  await page.goto("/updates/");
+
+  const nav = page.getByRole("navigation", { name: "Surface files" });
+  await nav.getByText("OPERATOR FILE").click();
+  await expect(page.locator("#operator-preview")).toBeVisible();
+
+  await nav.getByText("OPERATOR FILE").click();
+  await expect(page.locator("#operator-preview")).not.toBeVisible();
+  await expect(page).not.toHaveURL(/#operator-preview$/);
+});
+
+test("operator drawer close restores the tab rack to the terminal rail", async ({ page }) => {
+  await page.setViewportSize({ width: 2600, height: 1000 });
+  await page.goto("/updates/");
+
+  const nav = page.getByRole("navigation", { name: "Surface files" });
+  await nav.getByText("OPERATOR FILE").click();
+  await expect(page.locator("#operator-preview")).toBeVisible();
+
+  await page.locator("#operator-preview").getByRole("link", { name: "Close" }).click();
+  await expect(page.locator("#operator-preview")).not.toBeVisible();
+
+  const rects = await page.evaluate(() => {
+    const tabs = document.querySelector(".surface-tabs")?.getBoundingClientRect();
+    const terminal = document.querySelector(".report-terminal")?.getBoundingClientRect();
+    return {
+      tabLeft: tabs?.left || 0,
+      terminalRight: terminal?.right || 0
+    };
+  });
+
+  expect(Math.abs(rects.tabLeft - rects.terminalRight)).toBeLessThanOrEqual(2);
+});
+
 test("secondary surface tabs stay inside the console model", async ({ page }) => {
   for (const path of ["/operator/", "/debrief/", "/recovered-operator-reports/", "/updates/"]) {
     await page.goto(path);
@@ -308,4 +344,34 @@ test("updates four-tab rack stays on the terminal rail", async ({ page }) => {
 
   expect(Math.abs(rects.tabTop - rects.terminalTop)).toBeLessThanOrEqual(2);
   expect(Math.abs(rects.tabLeft - rects.terminalRight)).toBeLessThanOrEqual(2);
+});
+
+test("updates drawers open on the same vertical rail as their tabs", async ({ page }) => {
+  await page.setViewportSize({ width: 2600, height: 1000 });
+  await page.goto("/updates/");
+
+  const checks = [
+    { label: "CASE FILE", drawer: "#casefile-drawer" },
+    { label: "OPERATOR FILE", drawer: "#operator-preview" },
+    { label: "REPORTS", drawer: "#recovered-reports-drawer" }
+  ];
+
+  for (const check of checks) {
+    await page.getByRole("navigation", { name: "Surface files" }).getByText(check.label).click();
+    await expect(page.locator(check.drawer)).toBeVisible();
+
+    const rects = await page.evaluate((drawerSelector) => {
+      const tabs = document.querySelector(".surface-tabs")?.getBoundingClientRect();
+      const drawer = document.querySelector(drawerSelector)?.getBoundingClientRect();
+      return {
+        tabTop: tabs?.top || 0,
+        drawerTop: drawer?.top || 0
+      };
+    }, check.drawer);
+
+    expect(Math.abs(rects.tabTop - rects.drawerTop)).toBeLessThanOrEqual(2);
+
+    await page.locator(check.drawer).getByRole("link", { name: "Close" }).click();
+    await expect(page.locator(check.drawer)).not.toBeVisible();
+  }
 });
