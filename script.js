@@ -1399,6 +1399,9 @@ function setCasefileDrawerOpen(isOpen) {
   const toggle = document.getElementById("casefile-toggle");
   if (!drawer || !toggle) return;
   if (isOpen) setRecoveredReportsDrawerOpen(false);
+  if (isOpen && window.location.hash === "#operator-preview") {
+    history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+  }
 
   drawer.classList.toggle("is-open", isOpen);
   drawer.setAttribute("aria-hidden", String(!isOpen));
@@ -1416,6 +1419,9 @@ function setRecoveredReportsDrawerOpen(isOpen) {
   const toggle = document.getElementById("recovered-reports-toggle");
   if (!drawer || !toggle) return;
   if (isOpen) setCasefileDrawerOpen(false);
+  if (isOpen && window.location.hash === "#operator-preview") {
+    history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+  }
 
   drawer.classList.toggle("is-open", isOpen);
   drawer.setAttribute("aria-hidden", String(!isOpen));
@@ -2336,6 +2342,13 @@ document.getElementById("casefile-toggle").addEventListener("click", toggleCasef
 const recoveredReportsToggle = document.getElementById("recovered-reports-toggle");
 if (recoveredReportsToggle) {
   recoveredReportsToggle.addEventListener("click", toggleRecoveredReportsDrawer);
+}
+const operatorPreviewToggle = document.getElementById("operator-preview-toggle");
+if (operatorPreviewToggle) {
+  operatorPreviewToggle.addEventListener("click", () => {
+    setCasefileDrawerOpen(false);
+    setRecoveredReportsDrawerOpen(false);
+  });
 }
 document.getElementById("open-transmission").addEventListener("click", toggleTransmissionViewer);
 document.getElementById("archive-route").addEventListener("click", () => recordArchiveInteraction("archive"));
