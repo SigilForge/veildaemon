@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Debrief // VeilCorp</title>
+  <meta name="description" content="Private debrief intake for Needlepoint operators." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="https://veildaemon.app/debrief/" />
+  <meta name="theme-color" content="#050709" />
+  <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
+  <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
+  <link rel="apple-touch-icon" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
+  <link rel="stylesheet" href="../styles.css?v=20260621-globalnav1" />
+</head>
+<body class="report-surface">
+  <div class="noise" aria-hidden="true"></div>
+  <nav class="surface-tabs" aria-label="Surface files">
+    <a class="surface-tab casefile-tab" href="https://the-cradlepoint-archives.itch.io/needlepoint" target="_blank" rel="noopener noreferrer">
+      <span>CASE FILE</span>
+      <strong>NEEDLEPOINT</strong>
+    </a>
+    <a class="surface-tab active-case-tab" href="/operator/">
+      <span>OPERATOR FILE</span>
+      <strong>LOCAL NODE</strong>
+    </a>
+    <a class="surface-tab recovered-reports-tab" href="/recovered-operator-reports/">
+      <span>REPORTS</span>
+      <strong>PUBLIC INDEX</strong>
+    </a>
+  </nav>
+  <main class="shell report-shell" aria-label="Debrief intake">
+    <section class="terminal report-terminal" data-state="awake">
+      <header class="topline">
+        <div class="seal-wrap">
+          <img src="../assets/veilcorp-avatar.png" alt="VeilCorp Archives sigil" class="seal" />
+        </div>
+        <div>
+          <p class="kicker">VEILCORP // DEBRIEF INTAKE</p>
+          <h1>NEEDLEPOINT DEBRIEF</h1>
+          <p class="subhead">Private submission first. Public recovery requires explicit authorization and manual review.</p>
+        </div>
+      </header>
+
+      <div class="readout">
+        <p><span class="prompt">&gt;</span> Needlepoint contact reports are accepted for calibration.</p>
+        <p><span class="prompt">&gt;</span> Names, locations, contact channels, and table-specific details are restricted from public recovery.</p>
+      </div>
+
+      <div class="report-layout">
+        <form class="report-form" id="after-action-form">
+          <input type="text" name="company" autocomplete="off" tabindex="-1" aria-hidden="true" hidden />
+
+          <fieldset>
+            <legend>CONTACT ROLE</legend>
+            <label><input type="radio" name="role" value="read" checked /> Read</label>
+            <label><input type="radio" name="role" value="played" /> Played</label>
+            <label><input type="radio" name="role" value="gmd" /> GM'd</label>
+          </fieldset>
+
+          <label for="needlepoint">Needlepoint played</label>
+          <input id="needlepoint" name="needlepoint" type="text" maxlength="80" placeholder="Viridian House, starter packet, unknown branch..." />
+
+          <label for="player-count">Operator count</label>
+          <input id="player-count" name="playerCount" type="number" min="1" max="12" inputmode="numeric" placeholder="4" />
+
+          <label for="best-moment">Best moment</label>
+          <textarea id="best-moment" name="bestMoment" rows="3" required></textarea>
+
+          <label for="confusing-rule">Confusing rule or scene</label>
+          <textarea id="confusing-rule" name="confusingRule" rows="3"></textarea>
+
+          <label for="improve">What should improve</label>
+          <textarea id="improve" name="improve" rows="3"></textarea>
+
+          <label for="full-feedback">Full debrief text</label>
+          <textarea id="full-feedback" name="fullFeedback" rows="7" required></textarea>
+
+          <div class="form-grid">
+            <label for="handle">Optional name or handle
+              <input id="handle" name="handle" type="text" maxlength="120" autocomplete="name" />
+            </label>
+            <label for="email">Optional email
+              <input id="email" name="email" type="email" maxlength="180" autocomplete="email" />
+            </label>
+          </div>
+
+          <section class="draft-review" id="draft-review" aria-label="Public recovery review">
+            <div>
+              <p class="kicker">OPTIONAL PUBLIC RECOVERY</p>
+              <h2>Review Before Release</h2>
+              <p>Generate the public recovery version before granting archive permission. You may submit privately without this step.</p>
+            </div>
+            <button class="button ghost" id="generate-draft" type="button"><span>Generate Redacted Version</span></button>
+            <div class="public-draft-preview" id="public-draft-preview" hidden></div>
+            <label class="consent-line" for="draft-approved">
+              <input id="draft-approved" name="publicDraftApproved" type="checkbox" disabled />
+              <span>I approve this redacted version for possible public recovery.</span>
+            </label>
+          </section>
+
+          <button class="button primary" type="submit"><span>Submit Debrief</span></button>
+          <p class="local-note" id="report-status" role="status">Private debriefs are accepted. Public recovery requires your redaction approval and final archive review.</p>
+        </form>
+
+        <aside class="redaction-example" aria-label="Redaction example">
+          <p class="kicker">PUBLIC RECOVERY FILTER</p>
+          <h2>Redaction Example</h2>
+          <div class="example-block">
+            <h3>RAW SUBMISSION</h3>
+            <p>Alex Mercer at 1148 Holt Street, Chicago ran Viridian House for four players. The elevator event landed perfectly, but the first scene needed clearer examples.</p>
+          </div>
+          <div class="example-block public-output">
+            <h3>PUBLIC OUTPUT</h3>
+            <p><strong>REPORT #013F-006</strong></p>
+            <p>IDENTITY: REDACTED<br />LOCATION: REDACTED<br />ROLE: GM<br />OPERATOR COUNT: 4<br />NEEDLEPOINT: VIRIDIAN HOUSE<br />STATUS: COMPLETED</p>
+            <p>RECOVERED STATEMENT:<br />"The first scene required calibration. After initial examples, table flow stabilized. Elevator event produced strong group response."</p>
+            <p>ARCHIVE NOTE:<br />Useful field report. Low contamination risk. Approved for public recovery index.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <script src="./report.js?v=20260620-redaction-gate1"></script>
+</body>
+</html>
