@@ -33,12 +33,27 @@
     return entries.length ? entries.join(" // ") : fallback;
   }
 
-  function renderOperatorPreview() {
-    const screens = document.querySelectorAll("#operator-preview .operator-preview-screen");
+  function renderCaseFileRecord() {
+    const screens = document.querySelectorAll("#casefile-drawer .operator-preview-screen");
     if (!screens.length) return;
 
     const consoleRecord = readJson(consoleStorageKey);
     const intakeRecord = readJson(recordStorageKey) || readJson(legacyRecordStorageKey);
+    if (!consoleRecord && !intakeRecord) {
+      screens.forEach((screen) => {
+        screen.dataset.surfaceKind = "operator";
+        screen.innerHTML = `
+          <p class="kicker">NO OPERATOR RECORD FOUND</p>
+          <h2>INTAKE REQUIRED</h2>
+          <div class="preview-entry"><span>STATUS</span><strong>LOCAL FILE UNINITIALIZED</strong></div>
+          <p class="local-note"><span class="prompt">&gt;</span> Complete intake to initialize the local case file.</p>
+          <nav class="route-actions drawer-actions" aria-label="Case file intake route">
+            <a class="button primary" href="/#intake-node"><span>Complete Intake</span></a>
+          </nav>
+        `;
+      });
+      return;
+    }
     const status = consoleRecord && consoleRecord.operatorStatus || {};
     const operatorName = safe(status.operatorName, "UNNAMED OPERATOR");
     const designation = safe(status.designation || intakeRecord?.designation, "UNINITIALIZED");
@@ -93,8 +108,8 @@
     }, true);
   }
 
-  document.addEventListener("DOMContentLoaded", renderOperatorPreview);
+  document.addEventListener("DOMContentLoaded", renderCaseFileRecord);
   bindDirectTabShortcuts();
-  window.addEventListener("veildaemon:operator-record-updated", renderOperatorPreview);
-  window.addEventListener("storage", renderOperatorPreview);
+  window.addEventListener("veildaemon:operator-record-updated", renderCaseFileRecord);
+  window.addEventListener("storage", renderCaseFileRecord);
 })();
