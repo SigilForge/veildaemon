@@ -48,7 +48,7 @@ test("local operator record preview mirrors saved operator file fields", async (
         stability: "8",
         harmBoxes: "2",
         attentionState: "Noted",
-        misfireSeverity: "Minor",
+        activeMisfire: "The wrong door remembers the Operator.",
         voidMarks: "4",
         breachPoints: "9",
         attributes: { Body: "1", Agility: "2", Mind: "3" },

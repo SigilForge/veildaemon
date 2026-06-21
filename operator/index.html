@@ -162,15 +162,10 @@
           </article>
 
           <article class="sheet-card compact-control-card">
-            <p class="card-label">Current Misfire</p>
-            <div class="segmented misfire" data-segmented="misfireSeverity">
-              <button type="button" data-value="None">None</button>
-              <button type="button" data-value="Minor">Minor</button>
-              <button type="button" data-value="Major">Major</button>
-              <button type="button" data-value="Severe">Severe</button>
-            </div>
-            <input name="misfireSeverity" type="hidden" />
-            <label>Misfire record<textarea name="misfires" rows="3" placeholder="Consequence, flavor, who noticed."></textarea></label>
+            <p class="card-label">Active Misfire</p>
+            <label>Current consequence<textarea name="activeMisfire" rows="3" placeholder="Describe the wrong-success consequence currently in play."></textarea></label>
+            <button type="button" class="button" id="clear-active-misfire">Clear Active Misfire</button>
+            <label>Misfires recorded<textarea name="misfires" rows="3" placeholder="Consequence, flavor, who noticed."></textarea></label>
           </article>
 
           <article class="sheet-card">

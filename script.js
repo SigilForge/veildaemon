@@ -1198,7 +1198,7 @@ function renderOperatorRecord(record) {
   const stability = operatorStatus.stability ? `${operatorStatus.stability}/10` : record.stabilityState;
   const harm = operatorStatus.harmBoxes ? `${operatorStatus.harmBoxes}/5` : "NONE RECORDED";
   const currentState = operatorStatus.attentionState || record.attentionStatus;
-  const misfireNotes = operatorStatus.misfires || operatorStatus.misfireSeverity || record.archiveFlags.slice(0, 2).join(" // ");
+  const misfireNotes = operatorStatus.activeMisfire || operatorStatus.misfires || operatorStatus.misfireSeverity || record.archiveFlags.slice(0, 2).join(" // ");
   const voidBreach = `${operatorStatus.voidMarks || 0} / ${operatorStatus.breachPoints || 0}`;
   const anchor = [operatorStatus.anchorPerson, operatorStatus.totemObject].filter(Boolean).join(" // ") || "UNDECLARED";
   const notes = operatorStatus.quickNotes || "Generated from public intake. Local browser record only.";

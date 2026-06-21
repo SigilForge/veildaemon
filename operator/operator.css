@@ -740,8 +740,15 @@ fieldset.recovery-field.compact label {
   font-size: .76rem;
   line-height: 1.45;
 }
+.lotus-unlocks li p {
+  margin: .25rem 0 0;
+}
 .lotus-unlocks strong {
   color: var(--text);
+}
+.expression-meta {
+  color: rgba(146, 170, 164, .86);
+  font-size: .68rem;
 }
 .lotus-warning {
   margin: 0;

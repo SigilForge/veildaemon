@@ -17,7 +17,7 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("0/5")).toBeVisible();
-  await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("Condition: Clear")).toBeVisible();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("Condition: Fine")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("10/10")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("Band: Calm")).toBeVisible();
   await expect(page.getByLabel("Operator Name")).toBeVisible();
@@ -28,8 +28,10 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
 
   await page.locator('input[name="voidMarks"]').fill("12");
   await page.locator('input[name="breachPoints"]').fill("3");
-  await page.getByRole("button", { name: "Major" }).click();
-  await expect(page.getByRole("button", { name: "Major" })).toHaveClass(/is-active/);
+  await page.getByLabel("Current consequence").fill("The wrong door remembers the Operator.");
+  await expect(page.getByLabel("Current consequence")).toHaveValue("The wrong door remembers the Operator.");
+  await page.getByRole("button", { name: "Clear Active Misfire" }).click();
+  await expect(page.getByLabel("Current consequence")).toHaveValue("");
 
   await page.getByRole("button", { name: "Marked" }).click();
   await expect(page.getByRole("button", { name: "Marked" })).toHaveClass(/is-active/);
@@ -73,6 +75,9 @@ test("secondary material is separated into tabs", async ({ page }) => {
 
   await page.getByRole("button", { name: "Sheet" }).click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
+  await page.getByRole("button", { name: "Creation Mode: On" }).click();
+  await page.locator('input[name="voidMarks"]').fill("3");
+  await page.locator('input[name="breachPoints"]').fill("30");
   await page.getByRole("button", { name: "Frequency" }).click();
   await expect(page.getByText("Abilities, tells, grounding, and misfire language.")).toBeVisible();
   await expect(page.locator(".lotus-petal")).toHaveCount(6);
@@ -80,10 +85,14 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.getByLabel("Dream pip 3").click();
   await expect(page.locator("#lotus-frequency")).toHaveText("Dream");
   await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
-  await page.getByLabel("Silence pip 5").click();
-  await page.getByLabel("Becoming pip 3").click();
-  await expect(page.locator("#lotus-unlocks")).toContainText("Silence 5: Distortion");
-  await expect(page.locator("#lotus-unlocks")).toContainText("Becoming 3: Integration");
+  await page.getByLabel("Silence pip 6").click();
+  await page.getByLabel("Becoming pip 4").click();
+  await expect(page.locator("#lotus-unlocks")).toContainText("Silence 5: CONCEPT EROSION");
+  await expect(page.locator("#lotus-unlocks")).toContainText("Becoming 3: PATTERN MIMIC");
+  await expect(page.locator("#lotus-unlocks")).toContainText("Fusion: IDENTITY ERASURE");
+  await expect(page.locator("#lotus-unlocks")).toContainText("Silence 6 + Becoming 4");
+  await expect(page.locator("#lotus-unlocks")).not.toContainText("Fusion: NULL ILLUSION");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("9");
   await page.locator(".lotus-petal").filter({ hasText: "Hunger" }).getByRole("button", { name: "Mark Blind" }).click();
   await expect(page.getByLabel("Hunger pip 1")).toBeDisabled();
   await expect(page.locator("#lotus-unlocks")).toContainText("Blind petal: Hunger");
