@@ -625,13 +625,26 @@
     return true;
   }
 
+  function refundCreationBreach(amount) {
+    if (amount <= 0) return;
+    const current = Number(normalizeNonNegative(consoleState.operatorStatus.breachPoints));
+    consoleState.operatorStatus.breachPoints = String(Math.min(creationBonusBreachBudget(), current + amount));
+    setNamedValue("breachPoints", consoleState.operatorStatus.breachPoints);
+  }
+
+  function applyBreachDelta(delta) {
+    if (delta > 0) return spendBreach(delta);
+    if (delta < 0 && consoleState.operatorStatus.creationMode) refundCreationBreach(Math.abs(delta));
+    return true;
+  }
+
   function skillChangeAllowed(skills, skill, targetRank) {
     const next = normalizeSkills({ ...skills, [skill]: String(targetRank) });
     if (consoleState.operatorStatus.creationMode) {
       if (targetRank > 3) return { ok: false, message: "Creation skill cap is Rank 3." };
       const oldOverage = Math.max(0, totalSkillRanks(skills) - creationSkillBudget());
       const newOverage = Math.max(0, totalSkillRanks(next) - creationSkillBudget());
-      return { ok: true, cost: Math.max(0, newOverage - oldOverage) };
+      return { ok: true, cost: newOverage - oldOverage };
     }
     const oldRank = Number(normalizeSkills(skills)[skill] || 0);
     return { ok: true, cost: advancementCost(oldRank, targetRank) };
@@ -643,7 +656,7 @@
       if (targetRank > 4) return { ok: false, message: "Creation attribute cap is 4." };
       const oldOverage = Math.max(0, totalAttributeBoosts(attributes) - creationAttributeSpreadBudget());
       const newOverage = Math.max(0, totalAttributeBoosts(next) - creationAttributeSpreadBudget());
-      return { ok: true, cost: Math.max(0, newOverage - oldOverage) };
+      return { ok: true, cost: newOverage - oldOverage };
     }
     const oldRank = Number(normalizeAttributes(attributes)[attribute] || 1);
     return { ok: true, cost: advancementCost(oldRank, targetRank) };
@@ -915,7 +928,7 @@
             setStorageStatus(allowed.message, true);
             return;
           }
-          if (!spendBreach(allowed.cost || 0)) return;
+          if (!applyBreachDelta(allowed.cost || 0)) return;
           attrs[name] = normalizeBoxValue(index, 5);
           consoleState.operatorStatus.attributes = attrs;
           consoleState.operatorStatus.rollAttributeKey = name;
@@ -985,7 +998,7 @@
           renderSkills();
           return;
         }
-        if (!spendBreach(allowed.cost || 0)) {
+        if (!applyBreachDelta(allowed.cost || 0)) {
           renderSkills();
           return;
         }
@@ -1055,9 +1068,12 @@
       if (meaning) meaning.textContent = `${skill} ${targetRank} // ${skillRankLabel(targetRank)}: ${skillRankDescription(skill, targetRank)}`;
       return;
     }
+    const cost = allowed.cost || 0;
     preview.textContent = consoleState.operatorStatus.creationMode
-      ? `Creation cost: ${allowed.cost || 0} Bonus Breach`
-      : `Cost: ${allowed.cost || 0} Breach`;
+      ? cost < 0
+        ? `Refund: ${Math.abs(cost)} Bonus Breach`
+        : `Creation cost: ${cost} Bonus Breach`
+      : `Cost: ${cost} Breach`;
     if (meaning) meaning.textContent = `${skill} ${targetRank} // ${skillRankLabel(targetRank)}: ${skillRankDescription(skill, targetRank)}`;
   }
 
@@ -1538,7 +1554,7 @@
         setStorageStatus(allowed.message, true);
         return;
       }
-      if (!spendBreach(allowed.cost || 0)) return;
+      if (!applyBreachDelta(allowed.cost || 0)) return;
       consoleState.operatorStatus.skills[skill] = String(targetRank);
       if (consoleState.operatorStatus.skills[skill] === "0") consoleState.operatorStatus.skills[skill] = "1";
       consoleState.operatorStatus.rollSkillKey = skill;

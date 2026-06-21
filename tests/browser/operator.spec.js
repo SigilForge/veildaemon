@@ -81,3 +81,23 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Case File", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Residue", exact: true })).toBeVisible();
 });
+
+test("creation bonus breach refunds when attributes are lowered", async ({ page }) => {
+  await page.goto("/operator/");
+
+  await page.getByRole("button", { name: "Sheet" }).click();
+  await page.getByRole("button", { name: "Apply Core Start" }).click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+
+  await page.getByLabel("Body 4").click();
+  await page.getByLabel("Agility 4").click();
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 3/3")).toBeVisible();
+
+  await page.getByLabel("Mind 2").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("2");
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 2/3")).toBeVisible();
+
+  await page.getByLabel("Body 3").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 3/3")).toBeVisible();
+});
