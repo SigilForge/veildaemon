@@ -1406,6 +1406,7 @@ function setCasefileDrawerOpen(isOpen) {
   drawer.classList.toggle("is-open", isOpen);
   drawer.setAttribute("aria-hidden", String(!isOpen));
   toggle.setAttribute("aria-expanded", String(isOpen));
+  document.body.classList.toggle("has-casefile-drawer-open", isOpen);
 }
 
 function toggleCasefileDrawer() {
@@ -1426,6 +1427,7 @@ function setRecoveredReportsDrawerOpen(isOpen) {
   drawer.classList.toggle("is-open", isOpen);
   drawer.setAttribute("aria-hidden", String(!isOpen));
   toggle.setAttribute("aria-expanded", String(isOpen));
+  document.body.classList.toggle("has-reports-drawer-open", isOpen);
 }
 
 function toggleRecoveredReportsDrawer() {

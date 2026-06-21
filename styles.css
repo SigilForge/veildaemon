@@ -1559,6 +1559,15 @@ footer {
 .surface-tabs .casefile-tab::after {
   content: none;
 }
+body.has-casefile-drawer-open .surface-tabs {
+  right: max(.25rem, calc((100vw - 980px) / 2 - 430px - 3.15rem));
+}
+body.has-reports-drawer-open .surface-tabs {
+  right: max(.25rem, calc((100vw - 980px) / 2 - 620px - 3.15rem));
+}
+body:has(#operator-preview:target) .surface-tabs {
+  right: max(.25rem, calc((100vw - 980px) / 2 - 500px - 3.15rem));
+}
 .casefile-drawer,
 .recovered-reports-drawer {
   left: auto;
@@ -1875,6 +1884,7 @@ footer {
   .recovered-reports-panel,
   .operator-preview-panel {
     max-height: 72vh;
+    padding: .85rem;
     border-right: 0;
     border-left: 0;
   }
