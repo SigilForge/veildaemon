@@ -110,10 +110,9 @@
     return {
       ...status,
       anchorPerson: status.anchorPerson || status.anchors || "",
-      stabilityBand: normalizeStabilityBand(status.stabilityBand || bandFromLegacyStability(status.stability)),
       attentionState: normalizeAttentionState(status.attentionState),
       stability: normalizeStabilityValue(status.stability),
-      harmBoxes: normalizeBoxValue(status.harmBoxes, 6),
+      harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
       voidMarks: normalizeNonNegative(status.voidMarks),
       breachPoints: normalizeNonNegative(status.breachPoints),
       misfireBoxes: normalizeBoxValue(status.misfireBoxes, 6),
@@ -126,7 +125,8 @@
       recoveryBreathe: Boolean(status.recoveryBreathe),
       recoveryConnect: Boolean(status.recoveryConnect),
       recoveryLeave: Boolean(status.recoveryLeave),
-      recoveryNameIt: Boolean(status.recoveryNameIt)
+      recoveryNameIt: Boolean(status.recoveryNameIt),
+      stabilityBand: bandFromLegacyStability(status.stability)
     };
   }
 
@@ -251,7 +251,8 @@
     setNamedValue("designation", status.designation || operatorRecord?.designation || "");
     setNamedValue("role", status.role || "Operator");
     setNamedValue("activeNeedlepoint", status.activeNeedlepoint || "");
-    setNamedValue("stabilityBand", normalizeStabilityBand(status.stabilityBand));
+    consoleState.operatorStatus.stability = normalizeStabilityValue(status.stability);
+    consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(consoleState.operatorStatus.stability);
     setNamedValue("attentionState", normalizeAttentionState(status.attentionState));
     setNamedValue("emotionalState", status.emotionalState || operatorRecord?.attentionStatus || "");
     setNamedValue("commonTell", status.commonTell || "");
@@ -276,6 +277,7 @@
     setNamedChecked("recoveryNameIt", Boolean(status.recoveryNameIt));
     renderTrackers();
     renderSegmentedControls();
+    renderBandMeter();
     renderStatusSummary();
   }
 
@@ -365,7 +367,8 @@
     const band = document.getElementById("status-band");
     const bleedCue = document.getElementById("status-bleed-cue");
     const status = consoleState.operatorStatus;
-    if (band) band.textContent = normalizeStabilityBand(status.stabilityBand).toUpperCase();
+    status.stabilityBand = bandFromLegacyStability(status.stability);
+    if (band) band.textContent = status.stabilityBand.toUpperCase();
     if (bleedCue) bleedCue.textContent = frequencyCard(operatorRecord?.primaryFrequency).bleedCue.toUpperCase();
     setText("sheet-frequency", operatorRecord && operatorRecord.primaryFrequency || "UNASSIGNED");
   }
@@ -376,8 +379,9 @@
     const trackers = [
       { key: "voidMarks", label: "Void", max: 10, kind: "mark" },
       { key: "breachPoints", label: "Breach", max: 10, kind: "danger" },
-      { key: "harmBoxes", label: "Harm", max: 6, kind: "harm" },
+      { key: "harmBoxes", label: "Harm", max: 5, kind: "harm" },
       { key: "misfireBoxes", label: "Misfire", max: 6, kind: "danger" },
+      { key: "stability", label: "Stability", max: 10, kind: "stability" },
       { key: "lotusMarks", label: "Lotus", max: 6, kind: "lotus" }
     ];
     board.textContent = "";
@@ -427,6 +431,11 @@
 
   function setTrackerValue(key, value, max) {
     consoleState.operatorStatus[key] = normalizeBoxValue(value, max);
+    if (key === "stability") {
+      consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(consoleState.operatorStatus.stability);
+      renderBandMeter();
+      renderStatusSummary();
+    }
     writeConsoleState();
     renderTrackers();
   }
@@ -440,6 +449,14 @@
       group.querySelectorAll("button[data-value]").forEach((button) => {
         button.classList.toggle("is-active", button.getAttribute("data-value") === current);
       });
+    });
+  }
+
+  function renderBandMeter() {
+    const current = bandFromLegacyStability(consoleState.operatorStatus.stability);
+    consoleState.operatorStatus.stabilityBand = current;
+    document.querySelectorAll("#stability-band-meter [data-band]").forEach((node) => {
+      node.classList.toggle("is-active", node.getAttribute("data-band") === current);
     });
   }
 
@@ -519,9 +536,10 @@
     });
     return {
       ...status,
-      stabilityBand: normalizeStabilityBand(status.stabilityBand),
+      stability: normalizeStabilityValue(status.stability),
+      stabilityBand: bandFromLegacyStability(status.stability),
       attentionState: normalizeAttentionState(status.attentionState),
-      harmBoxes: normalizeBoxValue(status.harmBoxes, 6),
+      harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
       voidMarks: normalizeNonNegative(status.voidMarks),
       breachPoints: normalizeNonNegative(status.breachPoints),
       misfireBoxes: normalizeBoxValue(status.misfireBoxes, 6),
@@ -536,6 +554,7 @@
   function autosaveStatus() {
     consoleState.operatorStatus = collectStatusPayload();
     writeConsoleState();
+    renderBandMeter();
     renderStatusSummary();
     renderSegmentedControls();
   }

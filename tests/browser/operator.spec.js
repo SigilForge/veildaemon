@@ -9,7 +9,11 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator(".pip-tracker").filter({ hasText: "Breach" })).toBeVisible();
   await expect(page.locator(".pip-tracker").filter({ hasText: "Harm" })).toBeVisible();
   await expect(page.locator(".pip-tracker").filter({ hasText: "Misfire" })).toBeVisible();
+  await expect(page.locator(".pip-tracker").filter({ hasText: "Stability" })).toBeVisible();
   await expect(page.locator(".pip-tracker").filter({ hasText: "Lotus" })).toBeVisible();
+  await expect(page.locator(".pip-tracker").filter({ hasText: "Harm" }).getByText("0/5")).toBeVisible();
+  await expect(page.locator(".pip-tracker").filter({ hasText: "Stability" }).getByText("10/10")).toBeVisible();
+  await expect(page.locator("#status-band")).toHaveText("CALM");
 
   await page.getByLabel("Increase Void").click();
   await expect(page.getByText("1/10")).toBeVisible();

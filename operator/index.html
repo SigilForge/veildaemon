@@ -90,15 +90,14 @@
 
           <article class="sheet-card">
             <p class="card-label">Stability</p>
-            <div class="segmented" data-segmented="stabilityBand">
-              <button type="button" data-value="Calm">Calm</button>
-              <button type="button" data-value="Strained">Strained</button>
-              <button type="button" data-value="Unraveling">Unraveling</button>
-              <button type="button" data-value="Collapse Risk">Collapse</button>
+            <div class="band-meter" id="stability-band-meter" aria-label="Derived stability band">
+              <span data-band="Calm">Calm</span>
+              <span data-band="Strained">Strained</span>
+              <span data-band="Unraveling">Unraveling</span>
+              <span data-band="Collapse Risk">Collapse</span>
             </div>
-            <input name="stabilityBand" type="hidden" />
             <div class="readout-block">
-              <span>Current Band</span>
+              <span>Derived Band</span>
               <strong id="status-band">UNRECORDED</strong>
             </div>
           </article>
