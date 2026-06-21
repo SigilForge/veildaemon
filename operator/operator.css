@@ -866,23 +866,23 @@ a:focus-visible {
   gap: .42rem;
   padding: .45rem 0 .45rem .42rem;
   border: 1px solid rgba(137,255,218,.2);
-  border-right: 0;
-  border-radius: .55rem 0 0 .55rem;
+  border-left: 0;
+  border-radius: 0 .55rem .55rem 0;
   background:
     linear-gradient(90deg, rgba(5,7,9,.42), rgba(5,7,9,.86)),
     repeating-linear-gradient(0deg, rgba(137,255,218,.035) 0 1px, transparent 1px 7px);
-  box-shadow: -14px 22px 44px rgba(0,0,0,.42), inset .4rem 0 rgba(137,255,218,.035);
+  box-shadow: 14px 22px 44px rgba(0,0,0,.42), inset -.4rem 0 rgba(137,255,218,.035);
   transform: translateY(-50%);
   backdrop-filter: blur(12px);
 }
 .surface-tabs::before {
   content: "";
   position: absolute;
-  inset: .25rem -.16rem .25rem .28rem;
+  inset: .25rem .28rem .25rem -.16rem;
   z-index: -1;
   border: 1px solid rgba(137,255,218,.12);
-  border-right: 0;
-  border-radius: .42rem 0 0 .42rem;
+  border-left: 0;
+  border-radius: 0 .42rem .42rem 0;
   background:
     linear-gradient(90deg, rgba(137,255,218,.1), rgba(137,255,218,.02)),
     rgba(0,0,0,.18);
@@ -899,14 +899,14 @@ a:focus-visible {
   min-height: 9.4rem;
   height: 9.4rem;
   border: 1px solid rgba(137,255,218,.32);
-  border-right: 0;
-  border-radius: .34rem 0 0 .34rem;
+  border-left: 0;
+  border-radius: 0 .34rem .34rem 0;
   padding: .72rem .42rem;
   background:
     linear-gradient(90deg, rgba(8,12,14,.94), rgba(3,5,7,.94)),
     repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 6px);
   color: var(--text);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, .7rem 100%, 0 calc(100% - .7rem));
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - .7rem), calc(100% - .7rem) 100%, 0 100%);
   font-size: .66rem;
   font-weight: 800;
   letter-spacing: .12em;
@@ -926,19 +926,19 @@ a:focus-visible {
 }
 .surface-tab:hover,
 .surface-tab:focus-visible {
-  transform: translateX(-.34rem);
+  transform: translateX(.34rem);
   border-color: rgba(137,255,218,.42);
   outline: none;
-  box-shadow: -12px 18px 34px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.09);
+  box-shadow: 12px 18px 34px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.09);
 }
 .operator-preview-drawer {
   position: fixed;
-  right: max(.25rem, calc((100vw - 1180px) / 2));
+  right: max(.25rem, calc((100vw - 1180px) / 2 - 500px));
   top: 50%;
   z-index: 58;
   width: min(92vw, 500px);
   max-height: min(78vh, 680px);
-  transform: translate(100%, -50%);
+  transform: translate(-100%, -50%);
   visibility: hidden;
   transition: transform .24s ease;
   pointer-events: none;
