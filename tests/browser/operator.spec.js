@@ -21,14 +21,16 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await page.getByRole("button", { name: "Marked" }).click();
   await expect(page.getByRole("button", { name: "Marked" })).toHaveClass(/is-active/);
 
-  await page.getByRole("button", { name: "Creation Mode: Off" }).click();
+  await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
+  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("1");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
   await expect(page.getByLabel("Body 1")).toBeVisible();
   await page.getByLabel("Body 3").click();
   await page.locator("#skill-picker").selectOption("Investigation");
   await page.locator("#skill-rank").fill("2");
   await page.getByRole("button", { name: "Add Skill" }).click();
-  await expect(page.getByText("Creation: skills 2/8 // attribute boosts 2/6")).toBeVisible();
+  await expect(page.getByText("Creation: skills 2/8 // attribute spread 2/6 // Bonus Breach 3/3")).toBeVisible();
   await page.locator("#roll-attribute").selectOption("Body");
   await page.locator("#roll-skill").selectOption("Investigation");
   await page.getByRole("button", { name: "Roll 3D6" }).click();
@@ -46,9 +48,11 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
 test("secondary material is separated into tabs", async ({ page }) => {
   await page.goto("/operator/");
 
+  await page.getByRole("button", { name: "Apply Core Start" }).click();
   await page.getByRole("button", { name: "Frequency" }).click();
   await expect(page.getByText("Abilities, tells, grounding, and misfire language.")).toBeVisible();
   await expect(page.locator(".lotus-petal")).toHaveCount(6);
+  await expect(page.locator("#lotus-tier")).toHaveText("Basic");
   await page.getByLabel("Dream pip 3").click();
   await expect(page.locator("#lotus-frequency")).toHaveText("Dream");
   await expect(page.locator("#lotus-tier")).toHaveText("Empowered");

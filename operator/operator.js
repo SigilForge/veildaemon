@@ -416,6 +416,28 @@
     return Object.values(normalizeAttributes(attributes)).reduce((sum, value) => sum + Math.max(0, Number(value || 1) - 1), 0);
   }
 
+  function creationSkillBudget() {
+    return 8;
+  }
+
+  function creationAttributeSpreadBudget() {
+    return 6;
+  }
+
+  function creationBonusBreachBudget() {
+    return 3;
+  }
+
+  function creationBonusSpent(attributes) {
+    return Math.max(0, totalAttributeBoosts(attributes) - creationAttributeSpreadBudget());
+  }
+
+  function selectedCoreFrequency() {
+    return normalizeFrequencyName(consoleState.operatorStatus.selectedLotusPetal)
+      || normalizeFrequencyName(operatorRecord?.primaryFrequency)
+      || "Dream";
+  }
+
   function canSpendBreach(cost) {
     return Number(consoleState.operatorStatus.breachPoints || 0) >= cost;
   }
@@ -435,8 +457,9 @@
     const next = normalizeSkills({ ...skills, [skill]: String(targetRank) });
     if (consoleState.operatorStatus.creationMode) {
       if (targetRank > 3) return { ok: false, message: "Creation skill cap is Rank 3." };
-      if (totalSkillRanks(next) > 8) return { ok: false, message: "Creation skill budget is 8 ranks." };
-      return { ok: true, cost: 0 };
+      const oldOverage = Math.max(0, totalSkillRanks(skills) - creationSkillBudget());
+      const newOverage = Math.max(0, totalSkillRanks(next) - creationSkillBudget());
+      return { ok: true, cost: Math.max(0, newOverage - oldOverage) };
     }
     const oldRank = Number(normalizeSkills(skills)[skill] || 0);
     return { ok: true, cost: advancementCost(oldRank, targetRank) };
@@ -446,8 +469,9 @@
     const next = normalizeAttributes({ ...attributes, [attribute]: String(targetRank) });
     if (consoleState.operatorStatus.creationMode) {
       if (targetRank > 4) return { ok: false, message: "Creation attribute cap is 4." };
-      if (totalAttributeBoosts(next) > 6) return { ok: false, message: "Creation attribute boost budget is 6." };
-      return { ok: true, cost: 0 };
+      const oldOverage = Math.max(0, totalAttributeBoosts(attributes) - creationAttributeSpreadBudget());
+      const newOverage = Math.max(0, totalAttributeBoosts(next) - creationAttributeSpreadBudget());
+      return { ok: true, cost: Math.max(0, newOverage - oldOverage) };
     }
     const oldRank = Number(normalizeAttributes(attributes)[attribute] || 1);
     return { ok: true, cost: advancementCost(oldRank, targetRank) };
@@ -772,7 +796,7 @@
       if (status.creationMode) {
         const skillUsed = totalSkillRanks(status.skills);
         const attrUsed = totalAttributeBoosts(status.attributes);
-        budget.textContent = `Creation: skills ${skillUsed}/8 // attribute boosts ${attrUsed}/6`;
+        budget.textContent = `Creation: skills ${Math.min(skillUsed, creationSkillBudget())}/${creationSkillBudget()} // attribute spread ${Math.min(attrUsed, creationAttributeSpreadBudget())}/${creationAttributeSpreadBudget()} // Bonus Breach ${normalizeNonNegative(status.breachPoints)}/${creationBonusBreachBudget()}`;
       } else {
         budget.textContent = `Advancement: Breach bank ${normalizeNonNegative(status.breachPoints)}`;
       }
@@ -798,7 +822,7 @@
       return;
     }
     preview.textContent = consoleState.operatorStatus.creationMode
-      ? `Creation ranks: ${totalSkillRanks({ ...skills, [skill]: String(targetRank) })}/8`
+      ? `Creation cost: ${allowed.cost || 0} Bonus Breach`
       : `Cost: ${allowed.cost || 0} Breach`;
   }
 
@@ -1141,6 +1165,22 @@
       writeConsoleState();
       renderSkills();
       renderCreationMode();
+    });
+    const applyCoreStart = document.getElementById("apply-core-start");
+    if (applyCoreStart) applyCoreStart.addEventListener("click", () => {
+      const status = consoleState.operatorStatus;
+      const frequency = selectedCoreFrequency();
+      status.creationMode = true;
+      status.voidMarks = "1";
+      status.breachPoints = String(creationBonusBreachBudget());
+      status.lotus = normalizeLotus(status.lotus);
+      status.lotus[frequency] = String(Math.max(1, Number(status.lotus[frequency] || 0)));
+      status.selectedLotusPetal = frequency;
+      setNamedValue("voidMarks", status.voidMarks);
+      setNamedValue("breachPoints", status.breachPoints);
+      writeConsoleState();
+      renderAll();
+      setStorageStatus(`Core start applied: ${frequency} pip 1, 1 Void, 3 Bonus Breach.`);
     });
     const creationMode = document.getElementById("creation-mode-toggle");
     if (creationMode) creationMode.addEventListener("click", () => {
