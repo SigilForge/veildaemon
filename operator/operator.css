@@ -363,6 +363,10 @@ h3 {
   background: var(--cyan);
   box-shadow: 0 0 16px rgba(102,255,220,.22);
 }
+.pip:disabled {
+  cursor: not-allowed;
+  opacity: .28;
+}
 .line-tracker.danger .pip.is-filled {
   background: var(--danger);
   box-shadow: 0 0 16px rgba(255,92,138,.22);
@@ -635,8 +639,25 @@ fieldset.recovery-field.compact label {
   border: 1px solid rgba(137,255,218,.18);
   background: rgba(0,0,0,.2);
 }
+.skill-rank-preview,
+.skill-scale {
+  margin: 0;
+  color: var(--muted);
+  font-size: .72rem;
+  line-height: 1.4;
+}
+.skill-rank-preview {
+  margin: -.25rem 0 .65rem;
+  padding: .55rem .65rem;
+  border: 1px solid rgba(137,255,218,.14);
+  background: rgba(0,0,0,.18);
+}
 .skill-row {
   grid-template-columns: minmax(0, 1fr) 4.5rem auto;
+}
+.skill-scale {
+  grid-column: 1 / -1;
+  padding: .1rem .2rem .35rem;
 }
 .skill-row input {
   text-align: center;
@@ -651,6 +672,42 @@ fieldset.recovery-field.compact label {
   margin: 0;
   color: var(--muted);
   line-height: 1.45;
+}
+.lotus-unlocks {
+  display: grid;
+  gap: .65rem;
+  margin-top: .8rem;
+  padding-top: .8rem;
+  border-top: 1px solid rgba(137,255,218,.16);
+}
+.lotus-unlocks h3 {
+  margin: 0;
+  color: var(--cyan);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.lotus-unlocks ol {
+  display: grid;
+  gap: .45rem;
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.lotus-unlocks li {
+  color: var(--muted);
+  font-size: .76rem;
+  line-height: 1.45;
+}
+.lotus-unlocks strong {
+  color: var(--text);
+}
+.lotus-warning {
+  margin: 0;
+  color: var(--purple);
+  font-size: .72rem;
+  font-weight: 800;
+  line-height: 1.4;
+  text-transform: uppercase;
 }
 input,
 textarea,

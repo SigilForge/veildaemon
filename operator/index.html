@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#050709" />
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
-  <link rel="stylesheet" href="./operator.css?v=20260621-compact1" />
+  <link rel="stylesheet" href="./operator.css?v=20260621-skillscale1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -112,6 +112,7 @@
               <span class="cost-preview" id="skill-cost-preview">Cost: 1 Breach</span>
               <button type="button" class="button" id="add-skill">Add Skill</button>
             </div>
+            <p class="skill-rank-preview" id="skill-rank-preview">Rank meaning pending.</p>
             <div class="skill-list" id="skill-list"></div>
           </article>
 
@@ -177,6 +178,7 @@
               <strong id="lotus-tier">NONE</strong>
             </div>
             <p id="lotus-copy" class="lotus-copy">Select a Frequency petal to review unlocked material.</p>
+            <div id="lotus-unlocks" class="lotus-unlocks" aria-live="polite"></div>
           </article>
         </section>
         <label>Frequency abilities / expressions<textarea name="expressions" rows="5"></textarea></label>
@@ -286,6 +288,6 @@
       </div>
     </section>
   </main>
-  <script src="./operator.js?v=20260621-compact1"></script>
+  <script src="./operator.js?v=20260621-skillscale1"></script>
 </body>
 </html>
