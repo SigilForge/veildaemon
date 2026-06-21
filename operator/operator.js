@@ -16,6 +16,7 @@
       designation: "",
       role: "Operator",
       activeNeedlepoint: "",
+      creationMode: false,
       harm: "None recorded",
       harmBoxes: "0",
       voidMarks: "0",
@@ -127,6 +128,7 @@
       ...status,
       anchorPerson: status.anchorPerson || status.anchors || "",
       attentionState: normalizeAttentionState(status.attentionState),
+      creationMode: Boolean(status.creationMode),
       stability: normalizeStabilityValue(status.stability),
       harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
       voidMarks: normalizeNonNegative(status.voidMarks),
@@ -271,6 +273,7 @@
     setNamedValue("designation", status.designation || operatorRecord?.designation || "");
     setNamedValue("role", status.role || "Operator");
     setNamedValue("activeNeedlepoint", status.activeNeedlepoint || "");
+    consoleState.operatorStatus.creationMode = Boolean(status.creationMode);
     consoleState.operatorStatus.stability = normalizeStabilityValue(status.stability);
     consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(consoleState.operatorStatus.stability);
     setNamedValue("attentionState", normalizeAttentionState(status.attentionState));
@@ -303,6 +306,7 @@
     renderAttributes();
     renderSkills();
     renderRollSelectors();
+    renderCreationMode();
     renderStatusSummary();
   }
 
@@ -393,6 +397,60 @@
       if (rank > 0) skills[name] = String(rank);
     });
     return skills;
+  }
+
+  function advancementCost(from, to) {
+    const start = Math.max(0, Number(from) || 0);
+    const end = Math.max(0, Number(to) || 0);
+    if (end <= start) return 0;
+    let cost = 0;
+    for (let rank = start + 1; rank <= end; rank += 1) cost += rank;
+    return cost;
+  }
+
+  function totalSkillRanks(skills) {
+    return Object.values(normalizeSkills(skills)).reduce((sum, value) => sum + Number(value || 0), 0);
+  }
+
+  function totalAttributeBoosts(attributes) {
+    return Object.values(normalizeAttributes(attributes)).reduce((sum, value) => sum + Math.max(0, Number(value || 1) - 1), 0);
+  }
+
+  function canSpendBreach(cost) {
+    return Number(consoleState.operatorStatus.breachPoints || 0) >= cost;
+  }
+
+  function spendBreach(cost) {
+    if (cost <= 0) return true;
+    if (!canSpendBreach(cost)) {
+      setStorageStatus(`Insufficient Breach. Required ${cost}.`, true);
+      return false;
+    }
+    consoleState.operatorStatus.breachPoints = String(Number(consoleState.operatorStatus.breachPoints || 0) - cost);
+    setNamedValue("breachPoints", consoleState.operatorStatus.breachPoints);
+    return true;
+  }
+
+  function skillChangeAllowed(skills, skill, targetRank) {
+    const next = normalizeSkills({ ...skills, [skill]: String(targetRank) });
+    if (consoleState.operatorStatus.creationMode) {
+      if (targetRank > 3) return { ok: false, message: "Creation skill cap is Rank 3." };
+      if (totalSkillRanks(next) > 8) return { ok: false, message: "Creation skill budget is 8 ranks." };
+      return { ok: true, cost: 0 };
+    }
+    const oldRank = Number(normalizeSkills(skills)[skill] || 0);
+    return { ok: true, cost: advancementCost(oldRank, targetRank) };
+  }
+
+  function attributeChangeAllowed(attributes, attribute, targetRank) {
+    const next = normalizeAttributes({ ...attributes, [attribute]: String(targetRank) });
+    if (consoleState.operatorStatus.creationMode) {
+      if (targetRank > 4) return { ok: false, message: "Creation attribute cap is 4." };
+      if (totalAttributeBoosts(next) > 6) return { ok: false, message: "Creation attribute boost budget is 6." };
+      return { ok: true, cost: 0 };
+    }
+    const oldRank = Number(normalizeAttributes(attributes)[attribute] || 1);
+    return { ok: true, cost: advancementCost(oldRank, targetRank) };
   }
 
   function normalizeStabilityBand(value) {
@@ -600,12 +658,19 @@
         pip.classList.toggle("is-filled", index <= value);
         pip.setAttribute("aria-label", `${name} ${index}`);
         pip.addEventListener("click", () => {
+          const allowed = attributeChangeAllowed(attrs, name, index);
+          if (!allowed.ok) {
+            setStorageStatus(allowed.message, true);
+            return;
+          }
+          if (!spendBreach(allowed.cost || 0)) return;
           attrs[name] = normalizeBoxValue(index, 5);
           consoleState.operatorStatus.attributes = attrs;
           consoleState.operatorStatus.rollAttributeKey = name;
           writeConsoleState();
           renderAttributes();
           renderRollSelectors();
+          renderCreationMode();
         });
         pips.append(pip);
       }
@@ -661,7 +726,18 @@
       input.value = rank;
       input.setAttribute("aria-label", `${name} rank`);
       input.addEventListener("change", () => {
-        skills[name] = normalizeBoxValue(input.value, 5);
+        const targetRank = Number(normalizeBoxValue(input.value, 5));
+        const allowed = skillChangeAllowed(skills, name, targetRank);
+        if (!allowed.ok) {
+          setStorageStatus(allowed.message, true);
+          renderSkills();
+          return;
+        }
+        if (!spendBreach(allowed.cost || 0)) {
+          renderSkills();
+          return;
+        }
+        skills[name] = String(targetRank);
         if (skills[name] === "0") delete skills[name];
         consoleState.operatorStatus.skills = skills;
         writeConsoleState();
@@ -682,6 +758,48 @@
       list.append(row);
     });
     renderRollSelectors();
+  }
+
+  function renderCreationMode() {
+    const toggle = document.getElementById("creation-mode-toggle");
+    const budget = document.getElementById("creation-budget");
+    const status = consoleState.operatorStatus;
+    if (toggle) {
+      toggle.textContent = status.creationMode ? "Creation Mode: On" : "Creation Mode: Off";
+      toggle.classList.toggle("primary", Boolean(status.creationMode));
+    }
+    if (budget) {
+      if (status.creationMode) {
+        const skillUsed = totalSkillRanks(status.skills);
+        const attrUsed = totalAttributeBoosts(status.attributes);
+        budget.textContent = `Creation: skills ${skillUsed}/8 // attribute boosts ${attrUsed}/6`;
+      } else {
+        budget.textContent = `Advancement: Breach bank ${normalizeNonNegative(status.breachPoints)}`;
+      }
+    }
+    renderSkillCostPreview();
+  }
+
+  function renderSkillCostPreview() {
+    const preview = document.getElementById("skill-cost-preview");
+    const picker = document.getElementById("skill-picker");
+    const rank = document.getElementById("skill-rank");
+    if (!preview || !picker || !rank) return;
+    const skill = normalizeSkillName(picker.value);
+    const targetRank = Number(normalizeBoxValue(rank.value || 1, 5));
+    const skills = normalizeSkills(consoleState.operatorStatus.skills);
+    if (!skill) {
+      preview.textContent = "Cost: unavailable";
+      return;
+    }
+    const allowed = skillChangeAllowed(skills, skill, targetRank);
+    if (!allowed.ok) {
+      preview.textContent = allowed.message;
+      return;
+    }
+    preview.textContent = consoleState.operatorStatus.creationMode
+      ? `Creation ranks: ${totalSkillRanks({ ...skills, [skill]: String(targetRank) })}/8`
+      : `Cost: ${allowed.cost || 0} Breach`;
   }
 
   function renderRollSelectors() {
@@ -925,6 +1043,7 @@
       harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
       voidMarks: normalizeNonNegative(status.voidMarks),
       breachPoints: normalizeNonNegative(status.breachPoints),
+      creationMode: Boolean(status.creationMode),
       misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity),
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
       lotus: normalizeLotus(status.lotus),
@@ -946,6 +1065,7 @@
     renderStatusSummary();
     renderSegmentedControls();
     renderRollSelectors();
+    renderCreationMode();
   }
 
   function addEntry(collection, form) {
@@ -1008,12 +1128,32 @@
       const skill = picker && normalizeSkillName(picker.value);
       if (!skill) return;
       consoleState.operatorStatus.skills = normalizeSkills(consoleState.operatorStatus.skills);
-      consoleState.operatorStatus.skills[skill] = normalizeBoxValue(rank && rank.value || 1, 5);
+      const targetRank = Number(normalizeBoxValue(rank && rank.value || 1, 5));
+      const allowed = skillChangeAllowed(consoleState.operatorStatus.skills, skill, targetRank);
+      if (!allowed.ok) {
+        setStorageStatus(allowed.message, true);
+        return;
+      }
+      if (!spendBreach(allowed.cost || 0)) return;
+      consoleState.operatorStatus.skills[skill] = String(targetRank);
       if (consoleState.operatorStatus.skills[skill] === "0") consoleState.operatorStatus.skills[skill] = "1";
       consoleState.operatorStatus.rollSkillKey = skill;
       writeConsoleState();
       renderSkills();
+      renderCreationMode();
     });
+    const creationMode = document.getElementById("creation-mode-toggle");
+    if (creationMode) creationMode.addEventListener("click", () => {
+      consoleState.operatorStatus.creationMode = !consoleState.operatorStatus.creationMode;
+      writeConsoleState();
+      renderCreationMode();
+      renderAttributes();
+      renderSkills();
+    });
+    const skillPicker = document.getElementById("skill-picker");
+    const skillRank = document.getElementById("skill-rank");
+    if (skillPicker) skillPicker.addEventListener("change", renderSkillCostPreview);
+    if (skillRank) skillRank.addEventListener("input", renderSkillCostPreview);
   }
 
   function rollAction() {

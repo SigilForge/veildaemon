@@ -587,10 +587,34 @@ fieldset.recovery-field.compact label {
 }
 .skill-builder {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(4.5rem, .35fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(4.5rem, .35fr) minmax(7rem, .5fr) auto;
   gap: .55rem;
   align-items: end;
   margin-bottom: .75rem;
+}
+.creation-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: .55rem;
+  align-items: center;
+  margin-bottom: .75rem;
+}
+.creation-row span,
+.cost-preview {
+  color: var(--muted);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+.cost-preview {
+  min-height: 2.7rem;
+  display: grid;
+  align-items: center;
+  padding: .45rem .55rem;
+  border: 1px solid rgba(137,255,218,.18);
+  background: rgba(0,0,0,.2);
 }
 .skill-row {
   grid-template-columns: minmax(0, 1fr) 4.5rem auto;
@@ -741,6 +765,7 @@ a:focus-visible {
   }
   .tiny-counters,
   .skill-builder,
+  .creation-row,
   .attribute-row,
   .skill-row {
     grid-template-columns: 1fr;

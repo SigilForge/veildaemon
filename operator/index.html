@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#050709" />
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
-  <link rel="stylesheet" href="./operator.css?v=20260621-sheet1" />
+  <link rel="stylesheet" href="./operator.css?v=20260621-sheet2" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -100,9 +100,14 @@
 
           <article class="sheet-card">
             <p class="card-label">Skills</p>
+            <div class="creation-row">
+              <button type="button" class="button" id="creation-mode-toggle">Creation Mode: Off</button>
+              <span id="creation-budget">Advancement spends Breach.</span>
+            </div>
             <div class="skill-builder">
               <label>Skill<select id="skill-picker"></select></label>
               <label>Rank<input id="skill-rank" type="number" min="1" max="5" step="1" value="1" /></label>
+              <span class="cost-preview" id="skill-cost-preview">Cost: 1 Breach</span>
               <button type="button" class="button" id="add-skill">Add Skill</button>
             </div>
             <div class="skill-list" id="skill-list"></div>
@@ -275,6 +280,6 @@
       </div>
     </section>
   </main>
-  <script src="./operator.js?v=20260621-sheet1"></script>
+  <script src="./operator.js?v=20260621-sheet2"></script>
 </body>
 </html>
