@@ -58,7 +58,7 @@ body.report-surface {
 body.surface-subpage {
   --surface-rail-top: clamp(3.25rem, 8.5vh, 6rem);
   --surface-tab-count: 4;
-  --surface-tab-height: clamp(9.2rem, 21vh, 9.45rem);
+  --surface-tab-height: clamp(9.55rem, 21vh, 9.65rem);
   --surface-tab-gap: .4rem;
   --surface-rack-padding-y: .35rem;
 }

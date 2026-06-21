@@ -33,12 +33,51 @@
     return entries.length ? entries.join(" // ") : fallback;
   }
 
+  function readIntakeRecord() {
+    return readJson(recordStorageKey) || readJson(legacyRecordStorageKey);
+  }
+
+  function renderOperatorPreviewState() {
+    const preview = document.getElementById("operator-preview");
+    if (!preview || document.getElementById("operator-preview-primary-action")) return;
+
+    const intakeRecord = readIntakeRecord();
+    const tabStatus = document.querySelector('.surface-tab[aria-controls="operator-preview"] strong');
+    const panel = preview.querySelector(".operator-preview-panel");
+    const screen = panel && Array.from(panel.children).find((child) => child.classList && child.classList.contains("operator-preview-screen"));
+    const actions = preview.querySelector('.drawer-actions[aria-label="Operator file routes"]');
+
+    if (tabStatus) tabStatus.textContent = intakeRecord ? "LOCAL NODE" : "START INTAKE";
+    if (screen) {
+      screen.innerHTML = intakeRecord ? `
+        <p class="kicker">LOCAL NODE</p>
+        <h2>PERSONAL OPERATIONS RECORD</h2>
+        <div class="preview-entry"><span>STATUS</span><strong>DEVICE-HELD</strong></div>
+        <div class="preview-entry"><span>CONTENTS</span><strong>ATTRIBUTES // SKILLS // FREQUENCY // CASE NOTES</strong></div>
+        <div class="preview-entry"><span>TRANSFER</span><strong>MANUAL ONLY</strong></div>
+        <p class="local-note"><span class="prompt">&gt;</span> Observation can be recorded without upstream transfer. The node will not volunteer a file for you.</p>
+      ` : `
+        <p class="kicker">ACCESS UNQUALIFIED</p>
+        <h2>LOCAL NODE SEALED</h2>
+        <div class="preview-entry"><span>STATUS</span><strong>INTAKE REQUIRED</strong></div>
+        <div class="preview-entry"><span>CONTENTS</span><strong>OPERATOR FILE WITHHELD</strong></div>
+        <div class="preview-entry"><span>TRANSFER</span><strong>NONE</strong></div>
+        <p class="local-note"><span class="prompt">&gt;</span> Intake must classify the observer before local node contents are exposed.</p>
+      `;
+    }
+    if (actions) {
+      actions.innerHTML = intakeRecord
+        ? '<a class="button primary" href="/operator/"><span>Enter Node</span></a>'
+        : '<a class="button primary" href="/#intake-node"><span>Start Intake</span></a>';
+    }
+  }
+
   function renderCaseFileRecord() {
     const screens = document.querySelectorAll("#casefile-drawer .operator-preview-screen");
     if (!screens.length) return;
 
     const consoleRecord = readJson(consoleStorageKey);
-    const intakeRecord = readJson(recordStorageKey) || readJson(legacyRecordStorageKey);
+    const intakeRecord = readIntakeRecord();
     if (!consoleRecord && !intakeRecord) {
       screens.forEach((screen) => {
         screen.dataset.surfaceKind = "operator";
@@ -199,11 +238,18 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    renderOperatorPreviewState();
     renderCaseFileRecord();
     restoreHashDrawer();
   });
   bindDirectTabShortcuts();
   bindDrawerControls();
-  window.addEventListener("veildaemon:operator-record-updated", renderCaseFileRecord);
-  window.addEventListener("storage", renderCaseFileRecord);
+  window.addEventListener("veildaemon:operator-record-updated", () => {
+    renderOperatorPreviewState();
+    renderCaseFileRecord();
+  });
+  window.addEventListener("storage", () => {
+    renderOperatorPreviewState();
+    renderCaseFileRecord();
+  });
 })();
