@@ -44,3 +44,50 @@ test("surface drawers allow only one open preview", async ({ page }) => {
   await expect(page.locator("#operator-preview")).not.toBeVisible();
   await expect(page.locator("#recovered-reports-drawer")).toBeVisible();
 });
+
+test("secondary surface tabs route through the main console", async ({ page }) => {
+  for (const path of ["/operator/", "/debrief/", "/recovered-operator-reports/", "/updates/"]) {
+    await page.goto(path);
+
+    const links = await page.locator(".surface-tabs .surface-tab").evaluateAll((tabs) =>
+      tabs.map((tab) => ({
+        label: tab.querySelector("span")?.textContent?.trim(),
+        detail: tab.querySelector("strong")?.textContent?.trim(),
+        href: tab.getAttribute("href")
+      }))
+    );
+
+    expect(links.find((link) => link.label === "CASE FILE")?.href).toBe("/");
+    expect(links.some((link) => link.href?.includes("itch.io"))).toBe(false);
+  }
+
+  await page.goto("/operator/");
+  await expect(page.locator(".surface-tabs .active-case-tab")).toHaveAttribute("href", "/");
+  await expect(page.locator(".surface-tabs .active-case-tab strong")).toHaveText("RETURN HOME");
+
+  await page.goto("/recovered-operator-reports/");
+  await expect(page.locator(".surface-tabs .recovered-reports-tab")).toHaveAttribute("href", "/");
+  await expect(page.locator(".surface-tabs .recovered-reports-tab strong")).toHaveText("RETURN HOME");
+});
+
+test("preview panels normalize to the surface tab rack", async ({ page }) => {
+  await page.goto("/");
+
+  const nav = page.getByRole("navigation", { name: "Surface files" });
+  await nav.getByText("CASE FILE").click();
+
+  const homeHeights = await page.evaluate(() => {
+    const tabs = document.querySelector(".surface-tabs")?.getBoundingClientRect().height || 0;
+    const panel = document.querySelector(".casefile-panel")?.getBoundingClientRect().height || 0;
+    return { tabs, panel };
+  });
+  expect(homeHeights.panel).toBeGreaterThanOrEqual(homeHeights.tabs - 2);
+
+  await page.goto("/updates/#operator-preview");
+  const noticeHeights = await page.evaluate(() => {
+    const tabs = document.querySelector(".surface-tabs")?.getBoundingClientRect().height || 0;
+    const panel = document.querySelector(".operator-preview-panel")?.getBoundingClientRect().height || 0;
+    return { tabs, panel };
+  });
+  expect(noticeHeights.panel).toBeGreaterThanOrEqual(noticeHeights.tabs - 2);
+});
