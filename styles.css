@@ -1468,6 +1468,112 @@ footer {
 .first-contact-grid {
   margin-top: .85rem;
 }
+.surface-tabs {
+  position: fixed;
+  right: .75rem;
+  top: .75rem;
+  z-index: 70;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .35rem;
+  max-width: min(32rem, calc(100vw - 1.5rem));
+  padding: .32rem;
+  border: 1px solid rgba(137,255,218,.16);
+  border-radius: .4rem;
+  background: rgba(5,7,9,.78);
+  box-shadow: 0 12px 34px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.04);
+  backdrop-filter: blur(12px);
+}
+.surface-tabs::before {
+  content: "";
+  position: absolute;
+  inset: .2rem -.18rem .2rem .2rem;
+  z-index: -1;
+  border: 1px solid rgba(216,210,189,.12);
+  border-radius: .32rem;
+  background:
+    linear-gradient(90deg, rgba(216,210,189,.08), rgba(216,210,189,.025)),
+    rgba(0,0,0,.18);
+  pointer-events: none;
+}
+.surface-tabs .surface-tab {
+  position: static;
+  inset: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: .12rem;
+  width: auto;
+  min-width: 7.1rem;
+  min-height: 2.3rem;
+  height: auto;
+  border: 1px solid rgba(216,210,189,.22);
+  border-radius: .28rem;
+  padding: .38rem .58rem;
+  clip-path: none;
+  color: var(--dossier-ink);
+  text-align: left;
+  transform: none;
+  font-size: .58rem;
+  letter-spacing: .1em;
+  line-height: 1.1;
+  text-decoration: none;
+}
+.surface-tabs .casefile-tab,
+.surface-tabs .recovered-reports-tab {
+  background:
+    linear-gradient(90deg, rgba(47,55,48,.98), rgba(24,30,27,.98)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 6px);
+}
+.surface-tabs .active-case-tab {
+  background:
+    linear-gradient(90deg, rgba(36,29,48,.98), rgba(18,18,26,.98)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 6px);
+}
+.surface-tabs .casefile-tab > span:first-child,
+.surface-tabs .active-case-tab > span,
+.surface-tabs .recovered-reports-tab > span {
+  min-width: 0;
+  transform: none;
+}
+.surface-tabs .surface-tab strong {
+  display: block;
+  color: rgba(216,210,189,.66);
+  font-size: .48rem;
+  letter-spacing: .08em;
+}
+.surface-tabs .surface-tab:hover,
+.surface-tabs .surface-tab:focus-visible {
+  transform: translateX(-.16rem);
+  outline: none;
+  border-color: rgba(137,255,218,.42);
+  box-shadow: 0 8px 20px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.09);
+}
+.surface-tabs .casefile-tab::after {
+  content: none;
+}
+.casefile-drawer,
+.recovered-reports-drawer {
+  left: auto;
+  right: 0;
+}
+.casefile-drawer {
+  transform: translate(100%, -50%);
+}
+.recovered-reports-drawer {
+  z-index: 55;
+  transform: translate(100%, -50%);
+}
+.recovered-reports-drawer.is-open {
+  transform: translate(0, -50%);
+}
+.recovered-reports-panel {
+  border-right: 0;
+  border-left: 1px solid rgba(216,210,189,.34);
+  box-shadow: -22px 28px 70px rgba(0,0,0,.72), inset 0 0 0 1px rgba(0,0,0,.52), inset 0 1px rgba(255,255,255,.05);
+}
 @keyframes casefilePulse {
   0%, 100% { filter: none; transform: translateX(0); }
   35% { filter: drop-shadow(-8px 12px 18px rgba(0,0,0,.5)); transform: translateX(-.45rem); }
@@ -1608,5 +1714,73 @@ footer {
   .operator-tasking .route-actions { grid-template-columns: 1fr; }
   .route-restart {
     padding-inline: .62rem;
+  }
+}
+@media (max-width: 760px) {
+  .surface-tabs {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    transform: none;
+    max-width: none;
+    padding: 0 .35rem;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: .55rem .55rem 0 0;
+  }
+  .surface-tabs::before {
+    inset: -.24rem .35rem 0;
+    border-radius: .4rem .4rem 0 0;
+    background:
+      linear-gradient(180deg, rgba(216,210,189,.08), rgba(216,210,189,.02)),
+      rgba(0,0,0,.22);
+  }
+  .surface-tabs .surface-tab {
+    min-width: 0;
+    width: auto;
+    min-height: 3.05rem;
+    border: 1px solid rgba(216,210,189,.36);
+    border-bottom: 0;
+    border-radius: .34rem .34rem 0 0;
+    padding: .42rem .4rem;
+    clip-path: none;
+    align-items: center;
+    text-align: center;
+    font-size: .55rem;
+    letter-spacing: .06em;
+  }
+  .surface-tabs .surface-tab:hover,
+  .surface-tabs .surface-tab:focus-visible {
+    transform: translateY(-.12rem);
+  }
+  .surface-tabs .surface-tab strong {
+    font-size: .48rem;
+  }
+  .casefile-drawer,
+  .recovered-reports-drawer {
+    top: auto;
+    right: 0;
+    bottom: 3.35rem;
+    width: 100vw;
+    max-height: 72vh;
+    transform: translateY(calc(100% + 3.35rem));
+  }
+  .casefile-drawer.is-open,
+  .recovered-reports-drawer.is-open {
+    transform: translateY(0);
+  }
+  .casefile-panel,
+  .recovered-reports-panel {
+    max-height: 72vh;
+    border-right: 0;
+    border-left: 0;
+  }
+  .casefile-drawer:not(.is-open) .casefile-panel,
+  .recovered-reports-drawer:not(.is-open) .recovered-reports-panel {
+    visibility: hidden;
   }
 }

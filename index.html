@@ -25,7 +25,7 @@
   <link rel="icon" type="image/png" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="apple-touch-icon" href="VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="styles.css?v=20260621-systemnotices1" />
+  <link rel="stylesheet" href="styles.css?v=20260621-globalnav1" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -341,15 +341,22 @@
       </footer>
     </section>
   </main>
-  <aside class="casefile-drawer" id="casefile-drawer" aria-label="Operator case file" aria-hidden="true" data-nosnippet>
-    <button class="casefile-tab" type="button" id="casefile-toggle" aria-expanded="false">
+  <nav class="surface-tabs" aria-label="Surface files" data-nosnippet>
+    <button class="surface-tab casefile-tab" type="button" id="casefile-toggle" aria-expanded="false" aria-controls="casefile-drawer">
       <span>CASE FILE</span>
       <strong id="casefile-tab-status">NO LOCAL RECORD</strong>
     </button>
-    <a class="active-case-tab" href="/operator/">
-      <span>ACTIVE CASE</span>
+    <a class="surface-tab active-case-tab" href="/operator/">
+      <span>OPERATOR FILE</span>
       <strong>LOCAL NODE</strong>
     </a>
+    <button class="surface-tab recovered-reports-tab" type="button" id="recovered-reports-toggle" aria-expanded="false" aria-controls="recovered-reports-drawer">
+      <span>REPORTS</span>
+      <strong>PUBLIC INDEX</strong>
+    </button>
+  </nav>
+
+  <aside class="casefile-drawer" id="casefile-drawer" aria-label="Operator case file" aria-hidden="true" data-nosnippet>
 
     <section class="casefile-panel">
       <div class="record-header">
@@ -407,11 +414,6 @@
     </section>
   </aside>
   <aside class="recovered-reports-drawer" id="recovered-reports-drawer" aria-label="Recovered operator reports" aria-hidden="true" data-nosnippet>
-    <button class="recovered-reports-tab" type="button" id="recovered-reports-toggle" aria-expanded="false">
-      <span>RECOVERED REPORTS</span>
-      <strong>PUBLIC INDEX</strong>
-    </button>
-
     <section class="recovered-reports-panel">
       <div class="record-header">
         <div>
@@ -438,7 +440,7 @@
       </nav>
     </section>
   </aside>
-  <script src="script.js?v=20260621-operator1"></script>
+  <script src="script.js?v=20260621-globalnav1"></script>
   <script src="/recovered-operator-reports/public-reports.js?v=20260620-reportdrawer1"></script>
 </body>
 </html>

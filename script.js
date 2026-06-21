@@ -1397,6 +1397,8 @@ function politelyRevealChoices() {
 function setCasefileDrawerOpen(isOpen) {
   const drawer = document.getElementById("casefile-drawer");
   const toggle = document.getElementById("casefile-toggle");
+  if (!drawer || !toggle) return;
+  if (isOpen) setRecoveredReportsDrawerOpen(false);
 
   drawer.classList.toggle("is-open", isOpen);
   drawer.setAttribute("aria-hidden", String(!isOpen));
@@ -1413,6 +1415,7 @@ function setRecoveredReportsDrawerOpen(isOpen) {
   const drawer = document.getElementById("recovered-reports-drawer");
   const toggle = document.getElementById("recovered-reports-toggle");
   if (!drawer || !toggle) return;
+  if (isOpen) setCasefileDrawerOpen(false);
 
   drawer.classList.toggle("is-open", isOpen);
   drawer.setAttribute("aria-hidden", String(!isOpen));
