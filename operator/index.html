@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#050709" />
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
-  <link rel="stylesheet" href="./operator.css?v=20260621-publictrackers1" />
+  <link rel="stylesheet" href="./operator.css?v=20260621-sheet1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -38,67 +38,137 @@
     </section>
 
     <nav class="console-nav" aria-label="Console modules">
-      <button type="button" class="module-tab is-active" data-module-tab="cases">Case Management</button>
-      <button type="button" class="module-tab" data-module-tab="status">Operator Status</button>
-      <button type="button" class="module-tab" data-module-tab="anomalies">Anomaly Log</button>
+      <button type="button" class="module-tab is-active" data-module-tab="sheet">Sheet</button>
+      <button type="button" class="module-tab" data-module-tab="frequency">Frequency</button>
       <button type="button" class="module-tab" data-module-tab="relationships">Relationships</button>
-      <button type="button" class="module-tab" data-module-tab="residue">Residue Tracker</button>
+      <button type="button" class="module-tab" data-module-tab="anomalies">Anomaly Log</button>
+      <button type="button" class="module-tab" data-module-tab="archive">Archive</button>
     </nav>
 
-    <section class="module-panel is-active" id="module-cases" data-module-panel="cases" aria-label="Case management">
+    <section class="module-panel is-active sheet-panel" id="module-sheet" data-module-panel="sheet" aria-label="Operator sheet">
       <div class="module-heading">
-        <p class="kicker">CASE MANAGEMENT</p>
-        <h2>Track cases, clues, entities, and timelines.</h2>
+        <p class="kicker">ACTIVE CASE</p>
+        <h2>At-table controls for the next thirty seconds.</h2>
       </div>
-      <form class="console-form" id="case-form">
-        <label>Case title<input name="title" type="text" required maxlength="90" /></label>
-        <label>Needlepoint<input name="needlepoint" type="text" maxlength="90" placeholder="Viridian House" /></label>
-        <label>Clues<textarea name="clues" rows="3"></textarea></label>
-        <label>NPCs / entities<textarea name="entities" rows="3"></textarea></label>
-        <label>Timeline notes<textarea name="timeline" rows="3"></textarea></label>
-        <label>Unresolved questions<textarea name="questions" rows="3"></textarea></label>
-        <button class="button primary" type="submit">Record Case</button>
+      <form class="console-form status-form" id="status-form">
+        <section class="sheet-grid">
+          <article class="sheet-card identity-card">
+            <p class="card-label">Identity</p>
+            <label>Designation<input name="designation" type="text" maxlength="80" autocomplete="off" /></label>
+            <label>Role<input name="role" type="text" maxlength="80" placeholder="Operator" autocomplete="off" /></label>
+            <label>Needlepoint<input name="activeNeedlepoint" type="text" maxlength="90" placeholder="Viridian House" autocomplete="off" /></label>
+            <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" autocomplete="off" /></label>
+          </article>
+
+          <article class="sheet-card">
+            <p class="card-label">Frequency</p>
+            <div class="readout-block">
+              <span>Primary</span>
+              <strong id="sheet-frequency">UNASSIGNED</strong>
+            </div>
+            <div class="readout-block">
+              <span>Bleed Cue</span>
+              <strong id="status-bleed-cue">PENDING FREQUENCY</strong>
+            </div>
+            <label>Common tell<input name="commonTell" type="text" maxlength="160" autocomplete="off" /></label>
+          </article>
+
+          <article class="sheet-card tracker-card wide">
+            <p class="card-label">Pressure Trackers</p>
+            <div class="tracker-board" id="tracker-board"></div>
+          </article>
+
+          <article class="sheet-card">
+            <p class="card-label">Attributes</p>
+            <textarea name="attributes" rows="5" placeholder="Body +0&#10;Mind +0&#10;Presence +0"></textarea>
+          </article>
+
+          <article class="sheet-card">
+            <p class="card-label">Skills</p>
+            <textarea name="skills" rows="5" placeholder="Investigation +0&#10;Resist +0&#10;Connect +0"></textarea>
+          </article>
+
+          <article class="sheet-card">
+            <p class="card-label">Stability</p>
+            <div class="segmented" data-segmented="stabilityBand">
+              <button type="button" data-value="Calm">Calm</button>
+              <button type="button" data-value="Strained">Strained</button>
+              <button type="button" data-value="Unraveling">Unraveling</button>
+              <button type="button" data-value="Collapse Risk">Collapse</button>
+            </div>
+            <input name="stabilityBand" type="hidden" />
+            <div class="readout-block">
+              <span>Current Band</span>
+              <strong id="status-band">UNRECORDED</strong>
+            </div>
+          </article>
+
+          <article class="sheet-card">
+            <p class="card-label">Attention</p>
+            <div class="segmented attention" data-segmented="attentionState">
+              <button type="button" data-value="Unnoticed">Unnoticed</button>
+              <button type="button" data-value="Brushed">Brushed</button>
+              <button type="button" data-value="Noted">Noted</button>
+              <button type="button" data-value="Marked">Marked</button>
+              <button type="button" data-value="Pursued">Pursued</button>
+              <button type="button" data-value="Claimed">Claimed</button>
+            </div>
+            <input name="attentionState" type="hidden" />
+          </article>
+
+          <article class="sheet-card wide">
+            <p class="card-label">Action Roll</p>
+            <div class="roll-row">
+              <label>Attribute<input name="rollAttribute" type="number" min="-3" max="8" step="1" /></label>
+              <label>Skill<input name="rollSkill" type="number" min="0" max="8" step="1" /></label>
+              <label>Modifier<input name="rollModifier" type="number" min="-10" max="10" step="1" /></label>
+              <button type="button" class="button primary roll-button" id="roll-action">Roll 3D6</button>
+            </div>
+            <div class="roll-output" id="roll-output">Awaiting action.</div>
+          </article>
+
+          <article class="sheet-card wide">
+            <p class="card-label">Recovery</p>
+            <fieldset class="recovery-field compact">
+              <label><input name="recoveryGround" type="checkbox" /> Ground</label>
+              <label><input name="recoveryBreathe" type="checkbox" /> Breathe</label>
+              <label><input name="recoveryConnect" type="checkbox" /> Connect</label>
+              <label><input name="recoveryLeave" type="checkbox" /> Leave</label>
+              <label><input name="recoveryNameIt" type="checkbox" /> Name It</label>
+            </fieldset>
+          </article>
+
+          <article class="sheet-card wide">
+            <p class="card-label">Immediate Notes</p>
+            <textarea name="quickNotes" rows="4" placeholder="Scene facts, table reminders, current risk."></textarea>
+          </article>
+        </section>
       </form>
-      <div class="entry-list" id="case-list"></div>
     </section>
 
-    <section class="module-panel" id="module-status" data-module-panel="status" aria-label="Operator status">
+    <section class="module-panel" id="module-frequency" data-module-panel="frequency" aria-label="Frequency reference">
       <div class="module-heading">
-        <p class="kicker">OPERATOR STATUS</p>
-        <h2>Track the public-safe player-owned pressure fields.</h2>
+        <p class="kicker">FREQUENCY</p>
+        <h2>Abilities, tells, grounding, and misfire language.</h2>
       </div>
-      <section class="tracker-summary" aria-label="Tracker summary">
-        <div><span>Stability Band</span><strong id="status-band">UNRECORDED</strong></div>
-        <div><span>Frequency Bleed</span><strong id="status-bleed-cue">PENDING FREQUENCY</strong></div>
-        <div><span>Action Rhythm</span><strong>MAIN / MOVE / FREQUENCY / REACTION</strong></div>
-      </section>
-      <form class="console-form status-form" id="status-form">
-        <label>Stability<select name="stabilityBand"><option>Calm</option><option>Strained</option><option>Unraveling</option><option>Collapse Risk</option></select></label>
-        <label>Attention<select name="attentionState"><option>Unnoticed</option><option>Brushed</option><option>Noted</option><option>Marked</option><option>Pursued</option><option>Claimed</option></select></label>
-        <label>Harm<input name="harm" type="text" maxlength="80" placeholder="Physical injury or direct damage" /></label>
-        <label>Harm Boxes<input name="harmBoxes" type="number" min="0" max="6" step="1" /></label>
-        <label>Void<input name="voidMarks" type="number" min="0" max="10" step="1" /></label>
-        <label>Breach<input name="breachPoints" type="number" min="0" max="10" step="1" /></label>
-        <label>Misfire<input name="misfireBoxes" type="number" min="0" max="6" step="1" /></label>
-        <label>Presentation Pressure<input name="presentationPressure" type="number" min="0" max="5" step="1" /></label>
-        <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" /></label>
-        <label>Common tell<input name="commonTell" type="text" maxlength="160" /></label>
-        <label>Misfire flavor<textarea name="misfireFlavor" rows="3"></textarea></label>
-        <label>Anchor person / memory<textarea name="anchorPerson" rows="3"></textarea></label>
-        <label>Totem object / symbol<textarea name="totemObject" rows="3"></textarea></label>
-        <label>Grounding line<textarea name="groundingLine" rows="3"></textarea></label>
-        <label>Bleed notes<textarea name="bleed" rows="3"></textarea></label>
-        <label>Misfires recorded<textarea name="misfires" rows="3"></textarea></label>
-        <label>Void / Breach notes<textarea name="voidBreach" rows="3"></textarea></label>
-        <fieldset class="recovery-field">
-          <legend>Recovery</legend>
-          <label><input name="recoveryGround" type="checkbox" /> Ground</label>
-          <label><input name="recoveryBreathe" type="checkbox" /> Breathe</label>
-          <label><input name="recoveryConnect" type="checkbox" /> Connect</label>
-          <label><input name="recoveryLeave" type="checkbox" /> Leave</label>
-          <label><input name="recoveryNameIt" type="checkbox" /> Name It</label>
-        </fieldset>
-        <button class="button primary" type="submit">Update Status</button>
+      <form class="console-form frequency-form" id="frequency-form">
+        <label>Frequency abilities / expressions<textarea name="expressions" rows="5"></textarea></label>
+        <label>Misfire flavor<textarea name="misfireFlavor" rows="4"></textarea></label>
+        <details open>
+          <summary>Anchor memory</summary>
+          <label>Anchor person / memory<textarea name="anchorPerson" rows="4"></textarea></label>
+        </details>
+        <details>
+          <summary>Totem and grounding</summary>
+          <label>Totem object / symbol<textarea name="totemObject" rows="4"></textarea></label>
+          <label>Grounding line<textarea name="groundingLine" rows="3"></textarea></label>
+        </details>
+        <details>
+          <summary>Bleed and Void/Breach notes</summary>
+          <label>Bleed notes<textarea name="bleed" rows="4"></textarea></label>
+          <label>Void / Breach notes<textarea name="voidBreach" rows="4"></textarea></label>
+          <label>Misfires recorded<textarea name="misfires" rows="4"></textarea></label>
+        </details>
       </form>
     </section>
 
@@ -136,22 +206,41 @@
       <div class="entry-list" id="relationship-list"></div>
     </section>
 
-    <section class="module-panel" id="module-residue" data-module-panel="residue" aria-label="Residue tracker">
+    <section class="module-panel" id="module-archive" data-module-panel="archive" aria-label="Archive">
       <div class="module-heading">
-        <p class="kicker">RESIDUE TRACKER</p>
-        <h2>What follows you home never stays buried.</h2>
+        <p class="kicker">ARCHIVE</p>
+        <h2>Case files, residue records, and slower notes.</h2>
       </div>
-      <form class="console-form" id="residue-form">
-        <label>Scene<input name="scene" type="text" required maxlength="120" /></label>
-        <label>Highest state reached<input name="highestState" type="text" maxlength="120" /></label>
-        <label>Persistence<select name="persistence"><option>Residue</option><option>Groove</option><option>Haunting</option><option>Node</option><option>Domain Seed</option></select></label>
-        <label>Who noticed<input name="noticed" type="text" maxlength="120" /></label>
-        <label>What returns<textarea name="returns" rows="3"></textarea></label>
-        <label>Mundane record<input name="mundaneRecord" type="text" maxlength="140" /></label>
-        <label>Recovery opening<textarea name="recoveryOpening" rows="3"></textarea></label>
-        <button class="button primary" type="submit">Track Residue</button>
-      </form>
-      <div class="entry-list" id="residue-list"></div>
+      <div class="archive-grid">
+        <section>
+          <h3>Case File</h3>
+          <form class="console-form" id="case-form">
+            <label>Case title<input name="title" type="text" required maxlength="90" /></label>
+            <label>Needlepoint<input name="needlepoint" type="text" maxlength="90" placeholder="Viridian House" /></label>
+            <label>Clues<textarea name="clues" rows="3"></textarea></label>
+            <label>NPCs / entities<textarea name="entities" rows="3"></textarea></label>
+            <label>Timeline notes<textarea name="timeline" rows="3"></textarea></label>
+            <label>Unresolved questions<textarea name="questions" rows="3"></textarea></label>
+            <button class="button primary" type="submit">Record Case</button>
+          </form>
+          <div class="entry-list" id="case-list"></div>
+        </section>
+
+        <section>
+          <h3>Residue</h3>
+          <form class="console-form" id="residue-form">
+            <label>Scene<input name="scene" type="text" required maxlength="120" /></label>
+            <label>Highest state reached<input name="highestState" type="text" maxlength="120" /></label>
+            <label>Persistence<select name="persistence"><option>Residue</option><option>Groove</option><option>Haunting</option><option>Node</option><option>Domain Seed</option></select></label>
+            <label>Who noticed<input name="noticed" type="text" maxlength="120" /></label>
+            <label>What returns<textarea name="returns" rows="3"></textarea></label>
+            <label>Mundane record<input name="mundaneRecord" type="text" maxlength="140" /></label>
+            <label>Recovery opening<textarea name="recoveryOpening" rows="3"></textarea></label>
+            <button class="button primary" type="submit">Track Residue</button>
+          </form>
+          <div class="entry-list" id="residue-list"></div>
+        </section>
+      </div>
     </section>
 
     <section class="data-panel" aria-label="Local data controls">
@@ -167,6 +256,6 @@
       </div>
     </section>
   </main>
-  <script src="./operator.js?v=20260621-publictrackers1"></script>
+  <script src="./operator.js?v=20260621-sheet1"></script>
 </body>
 </html>

@@ -13,12 +13,23 @@
       stability: "10",
       stabilityBand: "Calm",
       attentionState: "Unnoticed",
+      designation: "",
+      role: "Operator",
+      activeNeedlepoint: "",
       harm: "None recorded",
       harmBoxes: "0",
       voidMarks: "0",
       breachPoints: "0",
       misfireBoxes: "0",
+      lotusMarks: "0",
       presentationPressure: "0",
+      rollAttribute: "0",
+      rollSkill: "0",
+      rollModifier: "0",
+      attributes: "",
+      skills: "",
+      quickNotes: "",
+      expressions: "",
       bleed: "",
       misfires: "",
       commonTell: "",
@@ -49,6 +60,7 @@
   const forms = {
     cases: document.getElementById("case-form"),
     status: document.getElementById("status-form"),
+    frequency: document.getElementById("frequency-form"),
     anomalies: document.getElementById("anomaly-form"),
     relationships: document.getElementById("relationship-form"),
     residue: document.getElementById("residue-form")
@@ -105,7 +117,11 @@
       voidMarks: normalizeNonNegative(status.voidMarks),
       breachPoints: normalizeNonNegative(status.breachPoints),
       misfireBoxes: normalizeBoxValue(status.misfireBoxes, 6),
+      lotusMarks: normalizeBoxValue(status.lotusMarks, 6),
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
+      rollAttribute: normalizeSignedValue(status.rollAttribute, -3, 8),
+      rollSkill: normalizeBoxValue(status.rollSkill, 8),
+      rollModifier: normalizeSignedValue(status.rollModifier, -10, 10),
       recoveryGround: Boolean(status.recoveryGround),
       recoveryBreathe: Boolean(status.recoveryBreathe),
       recoveryConnect: Boolean(status.recoveryConnect),
@@ -231,32 +247,46 @@
   }
 
   function renderStatusForm() {
-    const form = forms.status;
-    if (!form) return;
     const status = consoleState.operatorStatus;
-    form.elements.stabilityBand.value = normalizeStabilityBand(status.stabilityBand);
-    form.elements.attentionState.value = normalizeAttentionState(status.attentionState);
-    form.elements.harm.value = status.harm || "None recorded";
-    form.elements.harmBoxes.value = normalizeBoxValue(status.harmBoxes, 6);
-    form.elements.voidMarks.value = normalizeNonNegative(status.voidMarks);
-    form.elements.breachPoints.value = normalizeNonNegative(status.breachPoints);
-    form.elements.misfireBoxes.value = normalizeBoxValue(status.misfireBoxes, 6);
-    form.elements.presentationPressure.value = normalizeBoxValue(status.presentationPressure, 5);
-    form.elements.emotionalState.value = status.emotionalState || operatorRecord?.attentionStatus || "";
-    form.elements.commonTell.value = status.commonTell || "";
-    form.elements.misfireFlavor.value = status.misfireFlavor || frequencyCard(operatorRecord?.primaryFrequency).misfireFlavor;
-    form.elements.anchorPerson.value = status.anchorPerson || "";
-    form.elements.totemObject.value = status.totemObject || "";
-    form.elements.groundingLine.value = status.groundingLine || "";
-    form.elements.bleed.value = status.bleed || formatDrift(operatorRecord);
-    form.elements.misfires.value = status.misfires || "";
-    form.elements.voidBreach.value = status.voidBreach || "";
-    form.elements.recoveryGround.checked = Boolean(status.recoveryGround);
-    form.elements.recoveryBreathe.checked = Boolean(status.recoveryBreathe);
-    form.elements.recoveryConnect.checked = Boolean(status.recoveryConnect);
-    form.elements.recoveryLeave.checked = Boolean(status.recoveryLeave);
-    form.elements.recoveryNameIt.checked = Boolean(status.recoveryNameIt);
+    setNamedValue("designation", status.designation || operatorRecord?.designation || "");
+    setNamedValue("role", status.role || "Operator");
+    setNamedValue("activeNeedlepoint", status.activeNeedlepoint || "");
+    setNamedValue("stabilityBand", normalizeStabilityBand(status.stabilityBand));
+    setNamedValue("attentionState", normalizeAttentionState(status.attentionState));
+    setNamedValue("emotionalState", status.emotionalState || operatorRecord?.attentionStatus || "");
+    setNamedValue("commonTell", status.commonTell || "");
+    setNamedValue("rollAttribute", normalizeSignedValue(status.rollAttribute, -3, 8));
+    setNamedValue("rollSkill", normalizeBoxValue(status.rollSkill, 8));
+    setNamedValue("rollModifier", normalizeSignedValue(status.rollModifier, -10, 10));
+    setNamedValue("attributes", status.attributes || "");
+    setNamedValue("skills", status.skills || "");
+    setNamedValue("quickNotes", status.quickNotes || "");
+    setNamedValue("expressions", status.expressions || "");
+    setNamedValue("misfireFlavor", status.misfireFlavor || frequencyCard(operatorRecord?.primaryFrequency).misfireFlavor);
+    setNamedValue("anchorPerson", status.anchorPerson || "");
+    setNamedValue("totemObject", status.totemObject || "");
+    setNamedValue("groundingLine", status.groundingLine || "");
+    setNamedValue("bleed", status.bleed || formatDrift(operatorRecord));
+    setNamedValue("misfires", status.misfires || "");
+    setNamedValue("voidBreach", status.voidBreach || "");
+    setNamedChecked("recoveryGround", Boolean(status.recoveryGround));
+    setNamedChecked("recoveryBreathe", Boolean(status.recoveryBreathe));
+    setNamedChecked("recoveryConnect", Boolean(status.recoveryConnect));
+    setNamedChecked("recoveryLeave", Boolean(status.recoveryLeave));
+    setNamedChecked("recoveryNameIt", Boolean(status.recoveryNameIt));
+    renderTrackers();
+    renderSegmentedControls();
     renderStatusSummary();
+  }
+
+  function setNamedValue(name, value) {
+    const input = document.querySelector(`[name="${name}"]`);
+    if (input) input.value = value;
+  }
+
+  function setNamedChecked(name, value) {
+    const input = document.querySelector(`[name="${name}"]`);
+    if (input) input.checked = Boolean(value);
   }
 
   function normalizeStabilityValue(value) {
@@ -275,6 +305,12 @@
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) return "0";
     return String(Math.max(0, Math.min(max, Math.round(parsed))));
+  }
+
+  function normalizeSignedValue(value, min, max) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return "0";
+    return String(Math.max(min, Math.min(max, Math.round(parsed))));
   }
 
   function normalizeStabilityBand(value) {
@@ -331,6 +367,80 @@
     const status = consoleState.operatorStatus;
     if (band) band.textContent = normalizeStabilityBand(status.stabilityBand).toUpperCase();
     if (bleedCue) bleedCue.textContent = frequencyCard(operatorRecord?.primaryFrequency).bleedCue.toUpperCase();
+    setText("sheet-frequency", operatorRecord && operatorRecord.primaryFrequency || "UNASSIGNED");
+  }
+
+  function renderTrackers() {
+    const board = document.getElementById("tracker-board");
+    if (!board) return;
+    const trackers = [
+      { key: "voidMarks", label: "Void", max: 10, kind: "mark" },
+      { key: "breachPoints", label: "Breach", max: 10, kind: "danger" },
+      { key: "harmBoxes", label: "Harm", max: 6, kind: "harm" },
+      { key: "misfireBoxes", label: "Misfire", max: 6, kind: "danger" },
+      { key: "lotusMarks", label: "Lotus", max: 6, kind: "lotus" }
+    ];
+    board.textContent = "";
+    trackers.forEach((tracker) => {
+      const value = Number(normalizeBoxValue(consoleState.operatorStatus[tracker.key], tracker.max));
+      const article = document.createElement("article");
+      article.className = `pip-tracker ${tracker.kind}`;
+
+      const header = document.createElement("div");
+      header.className = "pip-header";
+      const title = document.createElement("strong");
+      title.textContent = tracker.label;
+      const count = document.createElement("span");
+      count.textContent = `${value}/${tracker.max}`;
+      header.append(title, count);
+
+      const pips = document.createElement("div");
+      pips.className = "pips";
+      for (let index = 1; index <= tracker.max; index += 1) {
+        const pip = document.createElement("button");
+        pip.type = "button";
+        pip.className = "pip";
+        pip.classList.toggle("is-filled", index <= value);
+        pip.setAttribute("aria-label", `${tracker.label} ${index}`);
+        pip.addEventListener("click", () => setTrackerValue(tracker.key, index === value ? index - 1 : index, tracker.max));
+        pips.append(pip);
+      }
+
+      const controls = document.createElement("div");
+      controls.className = "pip-controls";
+      const minus = document.createElement("button");
+      minus.type = "button";
+      minus.textContent = "-";
+      minus.setAttribute("aria-label", `Decrease ${tracker.label}`);
+      minus.addEventListener("click", () => setTrackerValue(tracker.key, value - 1, tracker.max));
+      const plus = document.createElement("button");
+      plus.type = "button";
+      plus.textContent = "+";
+      plus.setAttribute("aria-label", `Increase ${tracker.label}`);
+      plus.addEventListener("click", () => setTrackerValue(tracker.key, value + 1, tracker.max));
+      controls.append(minus, plus);
+
+      article.append(header, pips, controls);
+      board.append(article);
+    });
+  }
+
+  function setTrackerValue(key, value, max) {
+    consoleState.operatorStatus[key] = normalizeBoxValue(value, max);
+    writeConsoleState();
+    renderTrackers();
+  }
+
+  function renderSegmentedControls() {
+    document.querySelectorAll("[data-segmented]").forEach((group) => {
+      const field = group.getAttribute("data-segmented");
+      const current = field === "stabilityBand"
+        ? normalizeStabilityBand(consoleState.operatorStatus[field])
+        : normalizeAttentionState(consoleState.operatorStatus[field]);
+      group.querySelectorAll("button[data-value]").forEach((button) => {
+        button.classList.toggle("is-active", button.getAttribute("data-value") === current);
+      });
+    });
   }
 
   function formatDrift(record) {
@@ -401,6 +511,35 @@
     return payload;
   }
 
+  function collectStatusPayload() {
+    const status = { ...consoleState.operatorStatus };
+    document.querySelectorAll("#status-form input, #status-form textarea, #status-form select, #frequency-form input, #frequency-form textarea, #frequency-form select").forEach((input) => {
+      if (!input.name) return;
+      status[input.name] = input.type === "checkbox" ? input.checked : safeString(input.value, 3000);
+    });
+    return {
+      ...status,
+      stabilityBand: normalizeStabilityBand(status.stabilityBand),
+      attentionState: normalizeAttentionState(status.attentionState),
+      harmBoxes: normalizeBoxValue(status.harmBoxes, 6),
+      voidMarks: normalizeNonNegative(status.voidMarks),
+      breachPoints: normalizeNonNegative(status.breachPoints),
+      misfireBoxes: normalizeBoxValue(status.misfireBoxes, 6),
+      lotusMarks: normalizeBoxValue(status.lotusMarks, 6),
+      presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
+      rollAttribute: normalizeSignedValue(status.rollAttribute, -3, 8),
+      rollSkill: normalizeBoxValue(status.rollSkill, 8),
+      rollModifier: normalizeSignedValue(status.rollModifier, -10, 10)
+    };
+  }
+
+  function autosaveStatus() {
+    consoleState.operatorStatus = collectStatusPayload();
+    writeConsoleState();
+    renderStatusSummary();
+    renderSegmentedControls();
+  }
+
   function addEntry(collection, form) {
     const payload = formPayload(form);
     consoleState[collection].unshift({
@@ -432,21 +571,46 @@
     });
     if (forms.status) forms.status.addEventListener("submit", (event) => {
       event.preventDefault();
-      const payload = formPayload(forms.status);
-      consoleState.operatorStatus = {
-        ...consoleState.operatorStatus,
-        ...payload,
-        stabilityBand: normalizeStabilityBand(payload.stabilityBand),
-        attentionState: normalizeAttentionState(payload.attentionState),
-        harmBoxes: normalizeBoxValue(payload.harmBoxes, 6),
-        voidMarks: normalizeNonNegative(payload.voidMarks),
-        breachPoints: normalizeNonNegative(payload.breachPoints),
-        misfireBoxes: normalizeBoxValue(payload.misfireBoxes, 6),
-        presentationPressure: normalizeBoxValue(payload.presentationPressure, 5)
-      };
-      writeConsoleState();
-      renderAll();
+      autosaveStatus();
     });
+    if (forms.frequency) forms.frequency.addEventListener("submit", (event) => {
+      event.preventDefault();
+      autosaveStatus();
+    });
+    document.querySelectorAll("#status-form input, #status-form textarea, #status-form select, #frequency-form input, #frequency-form textarea, #frequency-form select").forEach((input) => {
+      input.addEventListener("input", autosaveStatus);
+      input.addEventListener("change", autosaveStatus);
+    });
+    document.querySelectorAll("[data-segmented] button[data-value]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const group = button.closest("[data-segmented]");
+        const field = group && group.getAttribute("data-segmented");
+        if (!field) return;
+        consoleState.operatorStatus[field] = button.getAttribute("data-value");
+        setNamedValue(field, consoleState.operatorStatus[field]);
+        autosaveStatus();
+      });
+    });
+    const rollButton = document.getElementById("roll-action");
+    if (rollButton) rollButton.addEventListener("click", rollAction);
+  }
+
+  function rollAction() {
+    autosaveStatus();
+    const dice = [rollDie(), rollDie(), rollDie()];
+    const status = consoleState.operatorStatus;
+    const total = dice.reduce((sum, value) => sum + value, 0)
+      + Number(status.rollAttribute || 0)
+      + Number(status.rollSkill || 0)
+      + Number(status.rollModifier || 0);
+    const output = document.getElementById("roll-output");
+    if (output) {
+      output.textContent = `3D6 ${dice.join(" + ")} // ATTR ${status.rollAttribute || 0} // SKILL ${status.rollSkill || 0} // MOD ${status.rollModifier || 0} = ${total}`;
+    }
+  }
+
+  function rollDie() {
+    return Math.floor(Math.random() * 6) + 1;
   }
 
   function bindTabs() {
