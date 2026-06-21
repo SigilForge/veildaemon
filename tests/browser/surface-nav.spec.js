@@ -20,7 +20,7 @@ for (const [path, labels] of Object.entries(publicSurfaces)) {
   });
 }
 
-test("operator file opens action tray before routing", async ({ page }) => {
+test("operator file opens local node dossier before routing", async ({ page }) => {
   await page.goto("/");
 
   const nav = page.getByRole("navigation", { name: "Surface files" });
@@ -29,10 +29,12 @@ test("operator file opens action tray before routing", async ({ page }) => {
   const preview = page.locator("#operator-preview");
   await expect(preview).toBeVisible();
   await expect(preview.getByRole("heading", { name: "OPERATOR FILE" })).toBeVisible();
-  await expect(preview.getByText("REPORT OR ACCESS")).toBeVisible();
-  await expect(preview.getByRole("link", { name: "Submit Debrief" })).toHaveAttribute("href", "/debrief/");
-  await expect(preview.getByRole("link", { name: "Review Reports" })).toHaveAttribute("href", "/recovered-operator-reports/");
-  await expect(preview.getByRole("link", { name: "Open Operator Panel" })).toHaveAttribute("href", "/operator/");
+  await expect(preview.getByText("PERSONAL OPERATIONS RECORD")).toBeVisible();
+  await expect(preview.getByText("ATTRIBUTES // SKILLS // FREQUENCY // CASE NOTES")).toBeVisible();
+  await expect(preview.getByText("MANUAL ONLY")).toBeVisible();
+  await expect(preview.getByRole("link", { name: "Enter Local Node" })).toHaveAttribute("href", "/operator/");
+  await expect(preview.getByRole("link", { name: "Return To Intake" })).toHaveAttribute("href", "/#intake-node");
+  await expect(preview.getByRole("link", { name: "Review Reports" })).toHaveCount(0);
 });
 
 test("local operator record preview mirrors saved operator file fields", async ({ page }) => {
@@ -328,7 +330,7 @@ test("report surface tabs ride the active terminal rail", async ({ page }) => {
   expect(Math.abs(rects.tabLeft - rects.terminalRight)).toBeLessThanOrEqual(2);
 });
 
-test("updates four-tab rack stays on the terminal rail", async ({ page }) => {
+test("updates four-tab rack sits below the status rail", async ({ page }) => {
   await page.goto("/updates/");
 
   const rects = await page.evaluate(() => {
@@ -342,8 +344,27 @@ test("updates four-tab rack stays on the terminal rail", async ({ page }) => {
     };
   });
 
-  expect(Math.abs(rects.tabTop - rects.terminalTop)).toBeLessThanOrEqual(2);
+  expect(rects.tabTop - rects.terminalTop).toBeGreaterThanOrEqual(18);
+  expect(rects.tabTop - rects.terminalTop).toBeLessThanOrEqual(70);
   expect(Math.abs(rects.tabLeft - rects.terminalRight)).toBeLessThanOrEqual(2);
+});
+
+test("updates file tabs have enough room for their labels", async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 680 });
+  await page.goto("/updates/");
+
+  const tabs = await page.locator(".surface-tabs .surface-tab").evaluateAll((items) =>
+    items.map((tab) => ({
+      label: tab.querySelector("span")?.textContent?.trim(),
+      clientHeight: tab.clientHeight,
+      scrollHeight: tab.scrollHeight
+    }))
+  );
+
+  expect(tabs.map((tab) => tab.label)).toEqual(["CASE FILE", "OPERATOR FILE", "REPORTS", "HOME"]);
+  for (const tab of tabs) {
+    expect(tab.clientHeight).toBeGreaterThanOrEqual(tab.scrollHeight - 1);
+  }
 });
 
 test("updates drawers open on the same vertical rail as their tabs", async ({ page }) => {
