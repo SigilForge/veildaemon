@@ -58,6 +58,10 @@
             <label>Role<input name="role" type="text" maxlength="80" placeholder="Operator" autocomplete="off" /></label>
             <label>Needlepoint<input name="activeNeedlepoint" type="text" maxlength="90" placeholder="Viridian House" autocomplete="off" /></label>
             <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" autocomplete="off" /></label>
+            <div class="tiny-counters" aria-label="Operator currencies">
+              <label>Void<input name="voidMarks" type="number" min="0" step="1" inputmode="numeric" /></label>
+              <label>Breach<input name="breachPoints" type="number" min="0" step="1" inputmode="numeric" /></label>
+            </div>
           </article>
 
           <article class="sheet-card">
@@ -73,17 +77,8 @@
             <label>Common tell<input name="commonTell" type="text" maxlength="160" autocomplete="off" /></label>
           </article>
 
-          <article class="sheet-card tracker-card wide">
-            <p class="card-label">Live Condition Trackers</p>
+          <article class="condition-strip wide">
             <div class="tracker-board" id="tracker-board"></div>
-          </article>
-
-          <article class="sheet-card">
-            <p class="card-label">Void / Breach</p>
-            <div class="counter-row">
-              <label>Void<input name="voidMarks" type="number" min="0" step="1" inputmode="numeric" /></label>
-              <label>Breach<input name="breachPoints" type="number" min="0" step="1" inputmode="numeric" /></label>
-            </div>
           </article>
 
           <article class="sheet-card">
@@ -100,26 +95,17 @@
 
           <article class="sheet-card">
             <p class="card-label">Attributes</p>
-            <textarea name="attributes" rows="5" placeholder="Body +0&#10;Mind +0&#10;Presence +0"></textarea>
+            <div class="attribute-grid" id="attribute-grid"></div>
           </article>
 
           <article class="sheet-card">
             <p class="card-label">Skills</p>
-            <textarea name="skills" rows="5" placeholder="Investigation +0&#10;Resist +0&#10;Connect +0"></textarea>
-          </article>
-
-          <article class="sheet-card">
-            <p class="card-label">Stability</p>
-            <div class="band-meter" id="stability-band-meter" aria-label="Derived stability band">
-              <span data-band="Calm">Calm</span>
-              <span data-band="Strained">Strained</span>
-              <span data-band="Unraveling">Unraveling</span>
-              <span data-band="Collapse Risk">Collapse</span>
+            <div class="skill-builder">
+              <label>Skill<select id="skill-picker"></select></label>
+              <label>Rank<input id="skill-rank" type="number" min="1" max="5" step="1" value="1" /></label>
+              <button type="button" class="button" id="add-skill">Add Skill</button>
             </div>
-            <div class="readout-block">
-              <span>Derived Band</span>
-              <strong id="status-band">UNRECORDED</strong>
-            </div>
+            <div class="skill-list" id="skill-list"></div>
           </article>
 
           <article class="sheet-card">
@@ -138,8 +124,8 @@
           <article class="sheet-card wide">
             <p class="card-label">Action Roll</p>
             <div class="roll-row">
-              <label>Attribute<input name="rollAttribute" type="number" min="-3" max="8" step="1" /></label>
-              <label>Skill<input name="rollSkill" type="number" min="0" max="8" step="1" /></label>
+              <label>Attribute<select name="rollAttributeKey" id="roll-attribute"></select></label>
+              <label>Skill<select name="rollSkillKey" id="roll-skill"></select></label>
               <label>Modifier<input name="rollModifier" type="number" min="-10" max="10" step="1" /></label>
               <button type="button" class="button primary roll-button" id="roll-action">Roll 3D6</button>
             </div>

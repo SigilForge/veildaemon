@@ -4,17 +4,14 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await page.goto("/operator/");
 
   await expect(page.getByRole("button", { name: "Sheet" })).toHaveClass(/is-active/);
-  await expect(page.getByText("Live Condition Trackers")).toBeVisible();
-  await expect(page.locator(".pip-tracker").filter({ hasText: "Harm" })).toBeVisible();
-  await expect(page.locator(".pip-tracker").filter({ hasText: "Stability" })).toBeVisible();
-  await expect(page.locator(".pip-tracker").filter({ hasText: "Misfire" })).toHaveCount(0);
-  await expect(page.locator(".pip-tracker").filter({ hasText: "Lotus" })).toHaveCount(0);
-  await expect(page.locator(".pip-tracker").filter({ hasText: "Void" })).toHaveCount(0);
-  await expect(page.locator(".pip-tracker").filter({ hasText: "Breach" })).toHaveCount(0);
-  await expect(page.locator(".pip-tracker").filter({ hasText: "Harm" }).getByText("0/5")).toBeVisible();
-  await expect(page.locator(".pip-tracker").filter({ hasText: "Harm" }).getByText("Condition: Clear")).toBeVisible();
-  await expect(page.locator(".pip-tracker").filter({ hasText: "Stability" }).getByText("10/10")).toBeVisible();
-  await expect(page.locator("#status-band")).toHaveText("CALM");
+  await expect(page.locator(".line-tracker").filter({ hasText: "Harm" })).toBeVisible();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Stability" })).toBeVisible();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("0/5")).toBeVisible();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("Condition: Clear")).toBeVisible();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("10/10")).toBeVisible();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("Band: Calm")).toBeVisible();
+  await expect(page.locator('input[name="voidMarks"]')).toBeVisible();
+  await expect(page.locator('input[name="breachPoints"]')).toBeVisible();
 
   await page.locator('input[name="voidMarks"]').fill("12");
   await page.locator('input[name="breachPoints"]').fill("3");
@@ -24,10 +21,15 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await page.getByRole("button", { name: "Marked" }).click();
   await expect(page.getByRole("button", { name: "Marked" })).toHaveClass(/is-active/);
 
-  await page.getByLabel("Attribute").fill("2");
-  await page.getByLabel("Skill").fill("1");
+  await expect(page.getByLabel("Body 1")).toBeVisible();
+  await page.getByLabel("Body 3").click();
+  await page.locator("#skill-picker").selectOption("Investigation");
+  await page.locator("#skill-rank").fill("2");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await page.locator("#roll-attribute").selectOption("Body");
+  await page.locator("#roll-skill").selectOption("Investigation");
   await page.getByRole("button", { name: "Roll 3D6" }).click();
-  await expect(page.getByText(/3D6 .* = /)).toBeVisible();
+  await expect(page.getByText(/3D6 .* Body \+3 .* Investigation \+2 .* = /)).toBeVisible();
 });
 
 test("secondary material is separated into tabs", async ({ page }) => {
