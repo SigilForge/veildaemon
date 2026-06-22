@@ -1,17 +1,19 @@
-# VeilBorn Survival
-
-VeilCorp Field Orientation Fragment
+# FIELD ORIENTATION FRAGMENT - SURVIVAL CONDITIONS
 
 Registry Date: 2026-06-22
 
-Status: Observer exposure approved.
+Distribution: Public Safety Triage / Observer Exposure Approved
+
+Origin: VeilCorp field-training cache
+
+Status: Redacted public recovery
 
 ## Post-Pulse Operating Window
 
-Five years after the Pulse, compromised Zones remain active in ordinary places:
-clinics, towers, transit corridors, service tunnels, research campuses,
-churches, hospitals, suburbs, and commercial districts that have begun to
-remember too much.
+Several operating years after the Pulse, compromised Zones remain active in
+ordinary places: clinics, towers, transit corridors, service tunnels, research
+campuses, churches, hospitals, suburbs, and commercial districts that have
+begun to remember too much.
 
 VeilBorn operators are not exceptional by permission. They are functional by
 necessity. Some are contractors. Some are survivors. Some are specialists. Some
@@ -128,4 +130,8 @@ Leave before the world finishes waking up.
 
 ---
 
-VEILBORN SURVIVAL | FIELD ORIENTATION FRAGMENT | VEILCORP PUBLIC SAFETY TRIAGE
+VEILCORP FIELD ORIENTATION FRAGMENT
+
+PUBLIC SAFETY TRIAGE COPY
+
+RECOVERY STATUS: PARTIAL / REDACTED
