@@ -828,6 +828,14 @@ footer {
 .archive-metadata p {
   margin: 0;
 }
+.archive-metadata span,
+.archive-metadata strong {
+  display: block;
+}
+.archive-metadata strong {
+  color: rgba(215,255,244,.86);
+  font-size: .72rem;
+}
 .archive-metadata a {
   color: rgba(215,255,244,.78);
   text-decoration: none;

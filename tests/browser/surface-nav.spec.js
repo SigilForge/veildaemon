@@ -47,8 +47,11 @@ test("source records stay in footer metadata", async ({ page }) => {
 
   const metadata = page.locator(".archive-metadata");
   await expect(metadata.getByText("ARCHIVE METADATA")).toBeVisible();
-  await expect(metadata.getByText("Established: 2024")).toBeVisible();
-  await expect(metadata.getByText("Build Status: Active")).toBeVisible();
+  await expect(metadata.getByText("Archive Signal First Detected:")).toBeVisible();
+  await expect(metadata.getByText("May 2024")).toBeVisible();
+  await expect(metadata.getByText("Build Status:")).toBeVisible();
+  await expect(metadata.getByText("Active")).toBeVisible();
+  await expect(metadata.getByText("Source Records:")).toBeVisible();
   await expect(metadata.getByRole("link", { name: "Available" })).toHaveAttribute("href", "https://github.com/SigilForge/veildaemon");
 
   await expect(page.getByRole("navigation", { name: "First contact routes" }).getByRole("link", { name: "Available" })).toHaveCount(0);
