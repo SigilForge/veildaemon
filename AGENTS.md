@@ -32,8 +32,8 @@
   - Begin Operator Intake -> local intake terminal
   - Play the Case File -> `https://the-cradlepoint-archives.itch.io/needlepoint`
 - Discord access belongs behind the intake result:
-  - PASS -> `https://discord.gg/Bn6attnYN6`
-  - CLAIMED / fail-state -> `https://discord.gg/KRbckpfTQk`
+  - PASS -> `operator-*` route keys resolved by `/api/route`
+  - CLAIMED / fail-state -> `triage-*` route keys resolved by `/api/route`
 - Do not add a public top-level Discord button unless the user explicitly reverses this rule.
 - External links must open in a new tab with `target="_blank"` and `rel="noopener noreferrer"`.
 

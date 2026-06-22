@@ -6,36 +6,38 @@ const commandLayerStorageKey = "veildaemon.commandLayer.v1";
 const rewardStorageKey = "veildaemon.artifactCache.v1";
 const archiveUrl = "https://wiki.veildaemon.app/";
 const caseFileUrl = "https://the-cradlepoint-archives.itch.io/needlepoint";
-const frequencyDiscordRoutes = {
-  Dream: "https://discord.gg/3C6nXeWkjs",
-  Silence: "https://discord.gg/guB7VRgA8R",
-  Hunger: "https://discord.gg/Q8rRwetUhF",
-  Stillness: "https://discord.gg/ryrAX48e67",
-  Empyrean: "https://discord.gg/eHHyEupuHy",
-  Becoming: "https://discord.gg/3RCK9BGkZ5"
+const routeEndpoint = "/api/route";
+const frequencyRouteKeys = {
+  Dream: "operator-dream",
+  Silence: "operator-silence",
+  Hunger: "operator-hunger",
+  Stillness: "operator-stillness",
+  Empyrean: "operator-empyrean",
+  Becoming: "operator-becoming"
 };
-const unstableFrequencyDiscordRoutes = {
-  Dream: "https://discord.gg/db2QBYMMBa",
-  Silence: "https://discord.gg/xwsc8EbPeH",
-  Hunger: "https://discord.gg/NjZVEwMBMS",
-  Stillness: "https://discord.gg/jMBdvcSXAe",
-  Empyrean: "https://discord.gg/yWMwM7h6yF",
-  Becoming: "https://discord.gg/tGqacRrTqx"
+const triageRouteKeys = {
+  Dream: "triage-dream",
+  Silence: "triage-silence",
+  Hunger: "triage-hunger",
+  Stillness: "triage-stillness",
+  Empyrean: "triage-empyrean",
+  Becoming: "triage-becoming"
 };
-const legacyGenericDiscordRoutes = new Set([
-  "https://discord.gg/Bn6attnYN6",
-  "https://discord.gg/KRbckpfTQk"
-]);
 const observerLogEndpoint = "/api/observe";
-const threadbreakerRoute = "https://discord.gg/Bn6attnYN6";
-const currentDiscordRoutes = new Set([
-  ...Object.values(frequencyDiscordRoutes),
-  ...Object.values(unstableFrequencyDiscordRoutes)
+const threadbreakerRouteKey = "threadbreaker";
+const currentRouteKeys = new Set([
+  ...Object.values(frequencyRouteKeys),
+  ...Object.values(triageRouteKeys),
+  threadbreakerRouteKey
 ]);
 
-function getDiscordRoute(frequency, unstable = false) {
-  const routeMap = unstable ? unstableFrequencyDiscordRoutes : frequencyDiscordRoutes;
-  return routeMap[frequency] || frequencyDiscordRoutes.Dream;
+function getOperatorRouteKey(frequency, unstable = false) {
+  const routeMap = unstable ? triageRouteKeys : frequencyRouteKeys;
+  return routeMap[frequency] || frequencyRouteKeys.Dream;
+}
+
+function routeUrl(routeKey) {
+  return `${routeEndpoint}?key=${encodeURIComponent(routeKey || frequencyRouteKeys.Dream)}`;
 }
 
 function observerReferrerHost() {
@@ -633,8 +635,8 @@ function normalizeOperatorRecord(record) {
   const attentionStatus = record.attentionStatus || record.attention || "LOW";
   const accessLevel = record.accessLevel || record.access || "PROVISIONAL";
   const unstableRoute = attentionStatus === "DO NOT SUSTAIN EYE CONTACT" || stabilityState === "TRIAGE RECOMMENDED" || accessLevel === "REDACTED";
-  const storedDiscordRoute = currentDiscordRoutes.has(record.discordRoute) && !legacyGenericDiscordRoutes.has(record.discordRoute) ? record.discordRoute : null;
-  const discordRoute = storedDiscordRoute || getDiscordRoute(primaryFrequency, unstableRoute);
+  const storedRouteKey = currentRouteKeys.has(record.routeKey || record.discordRoute) ? record.routeKey || record.discordRoute : null;
+  const routeKey = storedRouteKey || getOperatorRouteKey(primaryFrequency, unstableRoute);
 
   return {
     operatorRecordVersion,
@@ -656,7 +658,7 @@ function normalizeOperatorRecord(record) {
     relatedRecords: Array.isArray(record.relatedRecords) ? record.relatedRecords : (profile.relatedRecords || []),
     recommendedTraining: record.recommendedTraining || record.training || profile.recommendedTraining,
     archiveRoute: record.archiveRoute || profile.archiveRoute,
-    discordRoute,
+    routeKey,
     classificationHistory: normalizeHistory(record.classificationHistory || record.history),
     createdAt,
     updatedAt,
@@ -1012,7 +1014,7 @@ function buildIntakeResult() {
     stabilityState: determineStabilityState({ frequency, action: action.value, risk }),
     accessLevel: determineAccessLevel({ frequency, action: action.value, risk }),
     observerClassification,
-    discordRoute: getDiscordRoute(frequency, routeRequiresReview)
+    routeKey: getOperatorRouteKey(frequency, routeRequiresReview)
   };
 }
 
@@ -1038,7 +1040,7 @@ function createOperatorRecord(result) {
     relatedRecords: result.profile.relatedRecords.slice(),
     recommendedTraining: result.profile.recommendedTraining,
     archiveRoute: result.profile.archiveRoute,
-    discordRoute: result.discordRoute,
+    routeKey: result.routeKey,
     classificationHistory: [],
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -1079,7 +1081,7 @@ function updateOperatorRecord(record, result) {
   nextRecord.observedTraits = result.profile.observedTraits.slice();
   nextRecord.recommendedTraining = result.profile.recommendedTraining;
   nextRecord.archiveRoute = result.profile.archiveRoute;
-  nextRecord.discordRoute = result.discordRoute;
+  nextRecord.routeKey = result.routeKey;
   nextRecord.lastSeen = nowStamp();
 
   addUnique(nextRecord.knownIncidents, result.profile.knownIncident);
@@ -1137,7 +1139,7 @@ function formatDrift(record) {
 }
 
 function requiresReviewRoute(record) {
-  return record && (Object.values(unstableFrequencyDiscordRoutes).includes(record.discordRoute) || record.observerClassification === "CLAIMED" || record.observerClassification === "MISROUTED ASSET");
+  return record && ((record.routeKey || "").startsWith("triage-") || record.observerClassification === "CLAIMED" || record.observerClassification === "MISROUTED ASSET");
 }
 
 function getOperatorRouteLabel(record) {
@@ -1788,7 +1790,7 @@ function typeResultLines(lines, claimed, record) {
 
     routeWrap.className = "route-actions";
     operatorRoute.className = `button ${claimed ? "ghost" : "primary"} discord-route`;
-    operatorRoute.href = record.discordRoute;
+    operatorRoute.href = routeUrl(record.routeKey);
     operatorRoute.target = "_blank";
     operatorRoute.rel = "noopener noreferrer";
     operatorRoute.textContent = getOperatorRouteLabel(record);
@@ -2009,7 +2011,7 @@ function appendCommandRoute(label, href, interactionType = "") {
   const route = document.createElement("a");
   route.className = "button command-route";
   route.href = href;
-  if (/^https?:\/\//i.test(href)) {
+  if (/^https?:\/\//i.test(href) || href.startsWith(routeEndpoint)) {
     route.target = "_blank";
     route.rel = "noopener noreferrer";
   }
@@ -2280,7 +2282,7 @@ function executeCommand(rawCommand) {
   if (command === "threadbreaker" || command === "thread breaker") {
     appendCommandLine("Unlisted route acknowledged.");
     appendCommandLine("Misrouting can be useful when the thread was already broken.");
-    appendCommandRoute("Open Threadbreaker Route", threadbreakerRoute, "threadbreaker");
+    appendCommandRoute("Open Threadbreaker Route", routeUrl(threadbreakerRouteKey), "threadbreaker");
     return;
   }
 
@@ -2423,7 +2425,7 @@ function renderOperatorTasking(record) {
   badge.textContent = record.attentionStatus || "NOTED";
   archiveRoute.href = record.archiveRoute || archiveUrl;
   caseFileRoute.href = caseFileUrl;
-  discordRoute.href = record.discordRoute || getDiscordRoute(record.primaryFrequency, claimed);
+  discordRoute.href = routeUrl(record.routeKey || getOperatorRouteKey(record.primaryFrequency, claimed));
   discordRoute.target = "_blank";
   discordRoute.rel = "noopener noreferrer";
   discordRoute.classList.toggle("primary", !claimed);
