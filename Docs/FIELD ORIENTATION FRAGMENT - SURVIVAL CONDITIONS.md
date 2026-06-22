@@ -1,5 +1,7 @@
 # FIELD ORIENTATION FRAGMENT - SURVIVAL CONDITIONS
 
+<!-- Source note: underlying VeilBorn Survival outline drafted shortly after Arc Raiders' public launch on 2025-10-30; this field copy was recovered/redacted on 2026-06-22. -->
+
 Registry Date: 2026-06-22
 
 Distribution: Public Safety Triage / Observer Exposure Approved
