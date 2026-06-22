@@ -42,6 +42,19 @@ test("operator file opens sealed intake prompt before local record", async ({ pa
   await expect(page.locator("#start-intake")).toHaveAttribute("aria-expanded", "true");
 });
 
+test("source records stay in footer metadata", async ({ page }) => {
+  await page.goto("/");
+
+  const metadata = page.locator(".archive-metadata");
+  await expect(metadata.getByText("ARCHIVE METADATA")).toBeVisible();
+  await expect(metadata.getByText("Established: 2024")).toBeVisible();
+  await expect(metadata.getByText("Build Status: Active")).toBeVisible();
+  await expect(metadata.getByRole("link", { name: "Available" })).toHaveAttribute("href", "https://github.com/SigilForge/veildaemon");
+
+  await expect(page.getByRole("navigation", { name: "First contact routes" }).getByRole("link", { name: "Available" })).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "Latest notice routes" }).getByRole("link", { name: "Available" })).toHaveCount(0);
+});
+
 test("operator file opens local node after intake exists", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
