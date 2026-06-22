@@ -440,6 +440,70 @@ test("updates file tabs have enough room for their labels", async ({ page }) => 
   }
 });
 
+test("mobile surface rack stays compact and drawers open above it", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  for (const path of ["/", "/updates/", "/operator/"]) {
+    await page.goto(path);
+
+    const nav = page.getByRole("navigation", { name: "Surface files" });
+    await expect(nav).toBeVisible();
+
+    const closedRack = await nav.evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      return { y: rect.y, height: rect.height };
+    });
+    expect(closedRack.height).toBeLessThanOrEqual(60);
+    expect(closedRack.y).toBeGreaterThanOrEqual(780);
+
+    const tabBoxes = await nav.locator(".surface-tab").evaluateAll((tabs) =>
+      tabs.map((tab) => {
+        const rect = tab.getBoundingClientRect();
+        return {
+          label: tab.querySelector("span")?.textContent?.trim(),
+          width: rect.width,
+          height: rect.height,
+          y: rect.y
+        };
+      })
+    );
+
+    expect(tabBoxes.length).toBe(path === "/updates/" ? 4 : 3);
+    for (const tab of tabBoxes) {
+      expect(tab.width).toBeGreaterThan(80);
+      expect(tab.height).toBeLessThanOrEqual(56);
+      expect(tab.y).toBeGreaterThanOrEqual(790);
+    }
+
+    await nav.getByText("REPORTS", { exact: true }).click();
+
+    const drawer = page.locator("#recovered-reports-drawer");
+    await expect(drawer).toBeVisible();
+    await page.waitForTimeout(300);
+
+    const { openRack, drawerBox } = await page.evaluate(() => {
+      const rackRect = document.querySelector(".surface-tabs")?.getBoundingClientRect();
+      const drawerRect = document.querySelector("#recovered-reports-drawer")?.getBoundingClientRect();
+      return {
+        openRack: {
+          y: rackRect?.y || 0,
+          height: rackRect?.height || 0
+        },
+        drawerBox: {
+          x: drawerRect?.x || 0,
+          width: drawerRect?.width || 0,
+          y: drawerRect?.y || 0,
+          height: drawerRect?.height || 0
+        }
+      };
+    });
+    expect(openRack.height).toBeLessThanOrEqual(60);
+    expect(drawerBox.x).toBeGreaterThanOrEqual(-1);
+    expect(drawerBox.width).toBeGreaterThanOrEqual(388);
+    expect(drawerBox.y + drawerBox.height).toBeLessThanOrEqual(openRack.y + 2);
+  }
+});
+
 test("updates drawers open on the same vertical rail as their tabs", async ({ page }) => {
   await page.setViewportSize({ width: 2600, height: 1000 });
   await page.goto("/updates/");

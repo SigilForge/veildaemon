@@ -1889,20 +1889,36 @@ body.surface-subpage .operator-preview-panel {
   }
 }
 @media (max-width: 760px) {
+  body {
+    padding-bottom: calc(4.2rem + env(safe-area-inset-bottom));
+  }
   .surface-tabs {
     left: 0;
     right: 0;
     top: auto;
     bottom: 0;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--surface-tab-count), minmax(0, 1fr));
     gap: 0;
     transform: none;
     max-width: none;
-    padding: 0 .35rem;
+    padding: 0 .35rem env(safe-area-inset-bottom);
     border-right: 0;
     border-bottom: 0;
     border-left: 0;
     border-radius: .55rem .55rem 0 0;
+  }
+  body.report-surface .surface-tabs,
+  body.has-casefile-drawer-open .surface-tabs,
+  body:has(#casefile-drawer:target) .surface-tabs,
+  body.has-reports-drawer-open .surface-tabs,
+  body:has(#recovered-reports-drawer:target) .surface-tabs,
+  body.has-operator-preview-open .surface-tabs,
+  body:has(#operator-preview:target) .surface-tabs {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    transform: none;
   }
   .surface-tabs::before {
     inset: -.24rem .35rem 0;
@@ -1916,34 +1932,55 @@ body.surface-subpage .operator-preview-panel {
     width: auto;
     height: auto;
     min-height: 3.05rem;
+    max-height: 3.35rem;
     border: 1px solid rgba(216,210,189,.36);
     border-bottom: 0;
     border-radius: .34rem .34rem 0 0;
-    padding: .42rem .4rem;
+    padding: .42rem .24rem;
     clip-path: none;
     align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    gap: .22rem;
     text-align: center;
-    font-size: .55rem;
-    letter-spacing: .06em;
+    font-size: clamp(.48rem, 1.8vw, .55rem);
+    letter-spacing: .04em;
+    line-height: 1;
     writing-mode: horizontal-tb;
     text-orientation: mixed;
+    overflow: hidden;
   }
   .surface-tabs .surface-tab:hover,
   .surface-tabs .surface-tab:focus-visible {
     transform: translateY(-.12rem);
   }
   .surface-tabs .surface-tab strong {
-    font-size: .48rem;
+    font-size: clamp(.38rem, 1.5vw, .46rem);
+    letter-spacing: .04em;
   }
   .casefile-drawer,
   .recovered-reports-drawer,
   .operator-preview-drawer {
+    left: 0;
     top: auto;
     right: 0;
-    bottom: 3.35rem;
+    bottom: calc(3.35rem + env(safe-area-inset-bottom));
     width: 100vw;
-    max-height: 72vh;
-    transform: translateY(calc(100% + 3.35rem));
+    max-height: min(72vh, calc(100vh - 4.2rem - env(safe-area-inset-bottom)));
+    transform: translateY(calc(100% + 3.35rem + env(safe-area-inset-bottom)));
+    visibility: hidden;
+    pointer-events: none;
+  }
+  body.report-surface .casefile-drawer,
+  body.report-surface .recovered-reports-drawer,
+  body.report-surface .operator-preview-drawer {
+    left: 0;
+    top: auto;
+    right: 0;
+    bottom: calc(3.35rem + env(safe-area-inset-bottom));
+    width: 100vw;
+    max-height: min(72vh, calc(100vh - 4.2rem - env(safe-area-inset-bottom)));
+    transform: translateY(calc(100% + 3.35rem + env(safe-area-inset-bottom)));
   }
   .casefile-drawer.is-open,
   .casefile-drawer:target,
@@ -1952,18 +1989,36 @@ body.surface-subpage .operator-preview-panel {
   .operator-preview-drawer:target,
   .operator-preview-drawer.is-open {
     transform: translateY(0);
+    visibility: visible;
+    pointer-events: auto;
+  }
+  body.report-surface .casefile-drawer.is-open,
+  body.report-surface .casefile-drawer:target,
+  body.report-surface .recovered-reports-drawer.is-open,
+  body.report-surface .recovered-reports-drawer:target,
+  body.report-surface .operator-preview-drawer.is-open,
+  body.report-surface .operator-preview-drawer:target {
+    transform: translateY(0);
   }
   .casefile-panel,
   .recovered-reports-panel,
   .operator-preview-panel {
     min-height: auto;
-    max-height: 72vh;
+    max-height: min(72vh, calc(100vh - 4.2rem - env(safe-area-inset-bottom)));
     padding: .85rem;
     border-right: 0;
     border-left: 0;
+    overflow-y: auto;
+  }
+  body.surface-subpage .casefile-panel,
+  body.surface-subpage .recovered-reports-panel,
+  body.surface-subpage .operator-preview-panel {
+    min-height: auto;
+    max-height: min(72vh, calc(100vh - 4.2rem - env(safe-area-inset-bottom)));
   }
   .casefile-drawer:not(.is-open) .casefile-panel,
-  .recovered-reports-drawer:not(.is-open) .recovered-reports-panel {
+  .recovered-reports-drawer:not(.is-open) .recovered-reports-panel,
+  .operator-preview-drawer:not(.is-open) .operator-preview-panel {
     visibility: hidden;
   }
 }
