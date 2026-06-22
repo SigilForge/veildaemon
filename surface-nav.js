@@ -151,6 +151,49 @@
     return ["casefile-drawer", "operator-preview", "recovered-reports-drawer"];
   }
 
+  function drawerOpenClasses() {
+    return ["has-casefile-drawer-open", "has-operator-preview-open", "has-reports-drawer-open"];
+  }
+
+  function isMobileSurface() {
+    return window.matchMedia && window.matchMedia("(max-width: 760px)").matches;
+  }
+
+  function hasOpenSurfaceDrawer() {
+    const hasOpenClass = drawerOpenClasses().some((className) => document.body.classList.contains(className));
+    const hasOpenTarget = drawerIds().some((id) => window.location.hash === `#${id}`);
+    return hasOpenClass || hasOpenTarget;
+  }
+
+  let panFrame = 0;
+  function syncSurfaceHorizontalPan() {
+    if (panFrame) return;
+
+    panFrame = window.requestAnimationFrame(() => {
+      panFrame = 0;
+      const enabled = hasOpenSurfaceDrawer() && !isMobileSurface();
+
+      document.body.classList.toggle("has-surface-horizontal-scroll", enabled);
+      if (!enabled) {
+        document.body.style.setProperty("--surface-scroll-x", "0px");
+        if (window.scrollX) {
+          window.scrollTo(0, window.scrollY);
+        }
+        return;
+      }
+
+      document.body.style.setProperty("--surface-scroll-x", `${Math.max(0, window.scrollX)}px`);
+    });
+  }
+
+  function bindSurfaceHorizontalPan() {
+    const surfaceClassObserver = new MutationObserver(syncSurfaceHorizontalPan);
+    surfaceClassObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    window.addEventListener("scroll", syncSurfaceHorizontalPan, { passive: true });
+    window.addEventListener("resize", syncSurfaceHorizontalPan);
+    syncSurfaceHorizontalPan();
+  }
+
   function closeSurfaceDrawers() {
     drawerIds().forEach((id) => {
       const drawer = document.getElementById(id);
@@ -237,11 +280,19 @@
     openSurfaceDrawer(targetId);
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  function initSurfaceNav() {
     renderOperatorPreviewState();
     renderCaseFileRecord();
+    bindSurfaceHorizontalPan();
     restoreHashDrawer();
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSurfaceNav);
+  } else {
+    initSurfaceNav();
+  }
+
   bindDirectTabShortcuts();
   bindDrawerControls();
   window.addEventListener("veildaemon:operator-record-updated", () => {
