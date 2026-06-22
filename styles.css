@@ -25,6 +25,8 @@ body {
   --surface-case-drawer-width: 430px;
   --surface-reports-drawer-width: 620px;
   --surface-operator-drawer-width: 500px;
+  --surface-active-drawer-width: 0px;
+  --surface-scroll-x: 0px;
   --surface-tab-count: 3;
   --surface-tab-height: 9.4rem;
   --surface-tab-gap: .42rem;
@@ -38,6 +40,18 @@ body {
     linear-gradient(90deg, rgba(5,7,9,.62), rgba(5,7,9,.16), rgba(5,7,9,.62)),
     url("assets/background.jpg") center top / cover no-repeat fixed;
   overflow-x: hidden;
+}
+body.has-casefile-drawer-open,
+body:has(#casefile-drawer:target) {
+  --surface-active-drawer-width: var(--surface-case-drawer-width);
+}
+body.has-reports-drawer-open,
+body:has(#recovered-reports-drawer:target) {
+  --surface-active-drawer-width: var(--surface-reports-drawer-width);
+}
+body.has-operator-preview-open,
+body:has(#operator-preview:target) {
+  --surface-active-drawer-width: var(--surface-operator-drawer-width);
 }
 body::before {
   content: "";
@@ -1641,6 +1655,35 @@ body.has-operator-preview-open .surface-tabs,
 body:has(#operator-preview:target) .surface-tabs {
   left: calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-operator-drawer-width));
 }
+@media (min-width: 761px) {
+  body.has-surface-horizontal-scroll {
+    overflow-x: auto;
+  }
+  body.has-surface-horizontal-scroll::after {
+    content: "";
+    display: block;
+    width: max(100vw, calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-active-drawer-width) + var(--surface-tab-width) + 1rem));
+    height: 1px;
+    pointer-events: none;
+  }
+  body.has-surface-horizontal-scroll .surface-tabs,
+  body.has-surface-horizontal-scroll.has-casefile-drawer-open .surface-tabs,
+  body.has-surface-horizontal-scroll.has-reports-drawer-open .surface-tabs,
+  body.has-surface-horizontal-scroll.has-operator-preview-open .surface-tabs,
+  body.has-surface-horizontal-scroll:has(#casefile-drawer:target) .surface-tabs,
+  body.has-surface-horizontal-scroll:has(#recovered-reports-drawer:target) .surface-tabs,
+  body.has-surface-horizontal-scroll:has(#operator-preview:target) .surface-tabs {
+    left: calc(50vw + (var(--surface-rail-width) / 2) + var(--surface-active-drawer-width) - var(--surface-scroll-x));
+  }
+  body.has-surface-horizontal-scroll .casefile-drawer,
+  body.has-surface-horizontal-scroll .recovered-reports-drawer,
+  body.has-surface-horizontal-scroll .operator-preview-drawer,
+  body.has-surface-horizontal-scroll.report-surface .casefile-drawer,
+  body.has-surface-horizontal-scroll.report-surface .recovered-reports-drawer,
+  body.has-surface-horizontal-scroll.report-surface .operator-preview-drawer {
+    left: calc(50vw + (var(--surface-rail-width) / 2) - var(--surface-scroll-x));
+  }
+}
 .casefile-drawer,
 .recovered-reports-drawer {
   right: auto;
@@ -1956,6 +1999,12 @@ body.surface-subpage .operator-preview-panel {
     top: auto;
     bottom: 0;
     transform: none;
+  }
+  body.has-surface-horizontal-scroll {
+    overflow-x: hidden;
+  }
+  body.has-surface-horizontal-scroll::after {
+    content: none;
   }
   .surface-tabs::before {
     inset: -.24rem .35rem 0;

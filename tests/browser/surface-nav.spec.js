@@ -342,6 +342,52 @@ test("operator drawer close restores the tab rack to the terminal rail", async (
   expect(Math.abs(rects.tabLeft - rects.terminalRight)).toBeLessThanOrEqual(2);
 });
 
+test("desktop drawers expose a horizontal pan runway", async ({ page }) => {
+  await page.setViewportSize({ width: 1400, height: 900 });
+
+  for (const path of ["/updates/", "/operator/"]) {
+    await page.goto(path);
+
+    const nav = page.getByRole("navigation", { name: "Surface files" });
+    await nav.getByText("REPORTS", { exact: true }).click();
+    await expect(page.locator("#recovered-reports-drawer")).toBeVisible();
+    await page.waitForTimeout(300);
+
+    const initial = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+      hasRunway: document.body.classList.contains("has-surface-horizontal-scroll")
+    }));
+    expect(initial.hasRunway).toBe(true);
+    expect(initial.scrollWidth).toBeGreaterThan(initial.clientWidth);
+
+    await page.evaluate(() => {
+      window.scrollTo(document.documentElement.scrollWidth, window.scrollY);
+    });
+    await page.waitForTimeout(100);
+
+    const panned = await page.evaluate(() => {
+      const tabs = document.querySelector(".surface-tabs")?.getBoundingClientRect();
+      const drawer = document.querySelector("#recovered-reports-drawer")?.getBoundingClientRect();
+      return {
+        scrollX: window.scrollX,
+        tabsLeft: tabs?.left || 0,
+        tabsRight: tabs?.right || 0,
+        drawerRight: drawer?.right || 0,
+        viewportWidth: window.innerWidth
+      };
+    });
+
+    expect(panned.scrollX).toBeGreaterThan(0);
+    expect(panned.tabsRight).toBeLessThanOrEqual(panned.viewportWidth + 2);
+    expect(Math.abs(panned.tabsLeft - panned.drawerRight)).toBeLessThanOrEqual(2);
+
+    await page.locator("#recovered-reports-drawer").getByRole("link", { name: "Close" }).click();
+    await expect(page.locator("#recovered-reports-drawer")).not.toBeVisible();
+    await page.waitForFunction(() => window.scrollX === 0 && !document.body.classList.contains("has-surface-horizontal-scroll"));
+  }
+});
+
 test("secondary surface tabs stay inside the console model", async ({ page }) => {
   for (const path of ["/operator/", "/debrief/", "/recovered-operator-reports/", "/updates/"]) {
     await page.goto(path);
