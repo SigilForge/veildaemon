@@ -342,7 +342,7 @@ test("operator drawer close restores the tab rack to the terminal rail", async (
   expect(Math.abs(rects.tabLeft - rects.terminalRight)).toBeLessThanOrEqual(2);
 });
 
-test("desktop drawers expose a horizontal pan runway", async ({ page }) => {
+test("desktop drawers pan politely when opened", async ({ page }) => {
   await page.setViewportSize({ width: 1400, height: 900 });
 
   for (const path of ["/updates/", "/operator/"]) {
@@ -351,20 +351,23 @@ test("desktop drawers expose a horizontal pan runway", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Surface files" });
     await nav.getByText("REPORTS", { exact: true }).click();
     await expect(page.locator("#recovered-reports-drawer")).toBeVisible();
-    await page.waitForTimeout(300);
+    await page.waitForFunction(() => {
+      const tabs = document.querySelector(".surface-tabs")?.getBoundingClientRect();
+      return document.body.classList.contains("has-surface-horizontal-scroll") &&
+        window.scrollX > 0 &&
+        !!tabs &&
+        tabs.right <= window.innerWidth + 2;
+    });
 
     const initial = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,
       clientWidth: document.documentElement.clientWidth,
+      scrollX: window.scrollX,
       hasRunway: document.body.classList.contains("has-surface-horizontal-scroll")
     }));
     expect(initial.hasRunway).toBe(true);
     expect(initial.scrollWidth).toBeGreaterThan(initial.clientWidth);
-
-    await page.evaluate(() => {
-      window.scrollTo(document.documentElement.scrollWidth, window.scrollY);
-    });
-    await page.waitForTimeout(100);
+    expect(initial.scrollX).toBeGreaterThan(0);
 
     const panned = await page.evaluate(() => {
       const tabs = document.querySelector(".surface-tabs")?.getBoundingClientRect();

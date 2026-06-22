@@ -194,6 +194,40 @@
     syncSurfaceHorizontalPan();
   }
 
+  let revealFrame = 0;
+  function revealSurfaceDrawer(id) {
+    if (isMobileSurface()) return;
+    if (revealFrame) {
+      window.cancelAnimationFrame(revealFrame);
+    }
+
+    syncSurfaceHorizontalPan();
+    revealFrame = window.requestAnimationFrame(() => {
+      revealFrame = 0;
+      const drawer = document.getElementById(id);
+      const tabs = document.querySelector(".surface-tabs");
+      if (!drawer || !tabs || !(drawer.matches(":target") || drawer.classList.contains("is-open"))) return;
+
+      const tabRect = tabs.getBoundingClientRect();
+      const drawerRect = drawer.getBoundingClientRect();
+      const visibleMargin = 16;
+      const rightEdge = Math.max(tabRect.right, drawerRect.right);
+      const overflow = rightEdge - (window.innerWidth - visibleMargin);
+      if (overflow <= 1) return;
+
+      const scrollRoot = document.scrollingElement || document.documentElement;
+      const maxScroll = Math.max(0, scrollRoot.scrollWidth - window.innerWidth);
+      const targetScroll = Math.min(maxScroll, Math.max(0, window.scrollX + overflow));
+      const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      window.scrollTo({
+        left: targetScroll,
+        top: window.scrollY,
+        behavior: prefersReducedMotion ? "auto" : "smooth"
+      });
+    });
+  }
+
   function closeSurfaceDrawers() {
     drawerIds().forEach((id) => {
       const drawer = document.getElementById(id);
@@ -241,6 +275,8 @@
     document.querySelectorAll(`.surface-tab[aria-controls="${id}"]`).forEach((tab) => {
       tab.setAttribute("aria-expanded", "true");
     });
+
+    revealSurfaceDrawer(id);
   }
 
   function bindDrawerControls() {
