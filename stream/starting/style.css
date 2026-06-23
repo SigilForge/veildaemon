@@ -38,6 +38,7 @@ body {
 .frame-glow,
 .monitor-field,
 .monitor-scan,
+.route-barcode,
 .monitor-beam,
 .screen-glitch,
 .keyboard-glow,
@@ -136,6 +137,41 @@ body {
     repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 6px),
     linear-gradient(180deg, transparent 0 44%, rgba(216, 180, 254, 0.28) 50%, transparent 56% 100%);
   animation: monitorScan 5s linear infinite;
+}
+
+.route-barcode {
+  z-index: 8;
+  overflow: hidden;
+  background: #fff url("../../assets/veilcorp-url-barcode.svg") center / 100% 100% no-repeat;
+  border: 1px solid rgba(216, 180, 254, 0.34);
+  box-shadow: 0 0 10px rgba(102, 247, 231, 0.24), 0 0 18px rgba(168, 85, 255, 0.2);
+  opacity: 0.78;
+}
+
+.route-barcode::before {
+  content: "";
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  width: 20%;
+  background: linear-gradient(90deg, transparent, rgba(102, 247, 231, 0.7), rgba(216, 180, 254, 0.62), transparent);
+  filter: blur(0.6px);
+  mix-blend-mode: screen;
+  animation: routeBarcodeSweep 3.1s ease-in-out infinite;
+}
+
+.route-barcode-observer {
+  left: 72%;
+  top: 15.1%;
+  width: 5.35%;
+  height: 2.4%;
+}
+
+.route-barcode-archive {
+  left: 85%;
+  top: 65.1%;
+  width: 3.95%;
+  height: 2.45%;
 }
 
 .monitor-beam {
@@ -291,6 +327,13 @@ body {
 @keyframes monitorScan {
   from { transform: translateY(-18%); }
   to { transform: translateY(18%); }
+}
+
+@keyframes routeBarcodeSweep {
+  0% { left: -22%; opacity: 0; }
+  18% { opacity: 0.9; }
+  82% { opacity: 0.9; }
+  100% { left: 104%; opacity: 0; }
 }
 
 @keyframes beamPulse {
