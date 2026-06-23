@@ -23,6 +23,9 @@ streamdaemon/**
 # Quarantined files dumpster (never track)
 .trash/**
 
+# Mobile/Codex upload reference nest (local-only)
+.codex-remote-attachments/**
+
 # Secrets
 secrets.json
 secrets.json.enc
