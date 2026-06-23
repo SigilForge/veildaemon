@@ -861,7 +861,7 @@ a:focus-visible {
 }
 .data-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(18rem, .8fr) minmax(26rem, 1.2fr);
   gap: 1rem;
   align-items: center;
   margin-top: 1rem;
@@ -872,6 +872,9 @@ a:focus-visible {
   flex-wrap: wrap;
   gap: .55rem;
   justify-content: end;
+}
+.data-actions .button {
+  flex: 1 1 10.5rem;
 }
 .volunteer-row {
   display: flex;

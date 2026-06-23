@@ -91,7 +91,7 @@
   };
 
   let consoleState = readConsoleState();
-  const operatorRecord = readOperatorRecord();
+  let operatorRecord = readOperatorRecord();
   const artifactState = readArtifactState();
 
   function nowStamp() {
@@ -187,6 +187,90 @@
       return raw ? JSON.parse(raw) : null;
     } catch (error) {
       return null;
+    }
+  }
+
+  function normalizeImportedTextArray(value) {
+    if (!Array.isArray(value)) return [];
+    return value.map((item) => safeString(item, 180)).filter(Boolean).slice(0, 24);
+  }
+
+  function normalizeImportedDrift(value, fallbackFrequency) {
+    if (!Array.isArray(value)) return [{ frequency: fallbackFrequency, value: 2 }];
+    return value.map((entry) => ({
+      frequency: safeString(entry && entry.frequency, 40) || fallbackFrequency,
+      value: Number(entry && entry.value) || 0
+    })).filter((entry) => entry.frequency).slice(0, 8);
+  }
+
+  function normalizeImportedHistory(value) {
+    if (!Array.isArray(value)) return [];
+    return value.map((entry) => {
+      if (typeof entry === "string") {
+        return { time: nowStamp(), event: safeString(entry, 180) };
+      }
+      return {
+        time: safeString(entry && (entry.time || entry.updatedAt), 80) || nowStamp(),
+        event: safeString(entry && entry.event, 180)
+      };
+    }).filter((entry) => entry.event).slice(0, 24);
+  }
+
+  function importedOperatorCandidate(payload) {
+    if (!payload || typeof payload !== "object") return null;
+    if (payload.operatorRecord && typeof payload.operatorRecord === "object") return payload.operatorRecord;
+    if (payload.record && typeof payload.record === "object" && (payload.record.designation || payload.record.primaryFrequency)) return payload.record;
+    return payload;
+  }
+
+  function normalizeImportedOperatorRecord(payload) {
+    const record = importedOperatorCandidate(payload);
+    if (!record || typeof record !== "object") return null;
+    const designation = safeString(record.designation, 80);
+    const primaryFrequency = safeString(record.primaryFrequency, 40) || safeString(record.frequency, 40);
+    if (!designation || !primaryFrequency) return null;
+    const timestamp = nowStamp();
+    const updatedAt = safeString(record.updatedAt, 80) || timestamp;
+
+    return {
+      operatorRecordVersion: 1,
+      designation,
+      primaryFrequency,
+      stabilityState: safeString(record.stabilityState || record.stability, 120) || "NOMINAL",
+      attentionStatus: safeString(record.attentionStatus || record.attention, 120) || "LOW",
+      accessLevel: safeString(record.accessLevel || record.access, 80) || "PROVISIONAL",
+      observerClassification: safeString(record.observerClassification, 120) || "POTENTIAL OPERATOR",
+      assignmentGroup: safeString(record.assignmentGroup, 120) || "THE REDACTED",
+      handlerSignal: safeString(record.handlerSignal, 80) || "SHADE",
+      archiveAuthority: safeString(record.archiveAuthority, 80) || "VEILCORP",
+      intakeNode: safeString(record.intakeNode, 80) || "VEILDAEMON",
+      observedTraits: normalizeImportedTextArray(record.observedTraits || record.traits),
+      frequencyDrift: normalizeImportedDrift(record.frequencyDrift || record.drift, primaryFrequency),
+      knownIncidents: normalizeImportedTextArray(record.knownIncidents || record.incidents),
+      incidentExposure: normalizeImportedTextArray(record.incidentExposure || record.knownIncidents || record.incidents),
+      archiveFlags: normalizeImportedTextArray(record.archiveFlags).length ? normalizeImportedTextArray(record.archiveFlags) : ["IMPORTED: Operator File"],
+      relatedRecords: normalizeImportedTextArray(record.relatedRecords),
+      recommendedTraining: safeString(record.recommendedTraining || record.training, 140) || "Operator field review",
+      archiveRoute: safeString(record.archiveRoute, 240) || "https://wiki.veildaemon.app/",
+      routeKey: safeString(record.routeKey || record.discordRoute, 80),
+      classificationHistory: normalizeImportedHistory(record.classificationHistory || record.history),
+      createdAt: safeString(record.createdAt, 80) || updatedAt,
+      updatedAt,
+      visits: Number(record.visits) || 0,
+      filesReviewed: Number(record.filesReviewed) || 0,
+      lastSeen: safeString(record.lastSeen, 80) || updatedAt,
+      lastActivity: safeString(record.lastActivity, 80) || safeString(record.lastSeen, 80) || updatedAt
+    };
+  }
+
+  function writeOperatorRecord(record) {
+    try {
+      window.localStorage.setItem(recordStorageKey, JSON.stringify(record));
+      window.localStorage.removeItem(legacyRecordStorageKey);
+      window.dispatchEvent(new CustomEvent("veildaemon:operator-record-updated"));
+      setStorageStatus("Operator file held in this browser.");
+    } catch (error) {
+      setStorageStatus("Local storage refused the operator file. Export before continuing.", true);
     }
   }
 
@@ -1835,9 +1919,55 @@
   }
 
   function bindDataControls() {
+    const exportOperatorFile = document.getElementById("export-operator-file");
+    const importOperatorFile = document.getElementById("import-operator-file");
     const exportButton = document.getElementById("export-console");
     const importInput = document.getElementById("import-console");
     const purgeButton = document.getElementById("purge-console");
+
+    if (exportOperatorFile) exportOperatorFile.addEventListener("click", () => {
+      operatorRecord = readOperatorRecord();
+      if (!operatorRecord) {
+        setStorageStatus("No operator file found. Complete intake or import an operator file first.", true);
+        return;
+      }
+      const blob = new Blob([JSON.stringify({ operatorRecord }, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `veildaemon-operator-file-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setStorageStatus("Operator file exported.");
+    });
+
+    if (importOperatorFile) importOperatorFile.addEventListener("change", async () => {
+      const file = importOperatorFile.files && importOperatorFile.files[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const imported = normalizeImportedOperatorRecord(JSON.parse(text));
+        if (!imported) {
+          throw new Error("Import refused. File did not match operator file shape.");
+        }
+        operatorRecord = imported;
+        if (!consoleState.operatorStatus.designation) consoleState.operatorStatus.designation = imported.designation;
+        if (!consoleState.operatorStatus.selectedLotusPetal) consoleState.operatorStatus.selectedLotusPetal = imported.primaryFrequency;
+        if (!consoleState.operatorStatus.activeNeedlepoint && imported.knownIncidents.length) {
+          consoleState.operatorStatus.activeNeedlepoint = imported.knownIncidents[0];
+        }
+        writeOperatorRecord(imported);
+        writeConsoleState();
+        renderAll();
+        setStorageStatus(`Operator file imported: ${safeString(imported.designation, 80)}.`);
+      } catch (error) {
+        setStorageStatus(error.message || "Import refused. File did not match operator file shape.", true);
+      } finally {
+        importOperatorFile.value = "";
+      }
+    });
 
     if (exportButton) exportButton.addEventListener("click", () => {
       const blob = new Blob([JSON.stringify(consoleState, null, 2)], { type: "application/json" });
