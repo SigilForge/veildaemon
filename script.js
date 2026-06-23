@@ -218,31 +218,31 @@ const commandRewards = {
   INTAKE_NODE: {
     id: "witness-key",
     title: "WITNESS KEY",
-    file: "assets/rewards/witness-key.png",
+    file: "assets/rewards/witness-key.png?v=20260623-scanfields1",
     text: "Witness key recovered."
   },
   PLAZA_DRIFT: {
     id: "signal-wake",
     title: "SIGNAL WAKE",
-    file: "assets/rewards/signal-wake.png",
+    file: "assets/rewards/signal-wake.png?v=20260623-scanfields1",
     text: "Observation artifact unsealed."
   },
   NEEDLEPOINT_LOBBY: {
     id: "observer-mark",
     title: "OBSERVER MARK",
-    file: "assets/rewards/observer-mark.png",
+    file: "assets/rewards/observer-mark.png?v=20260623-scanfields1",
     text: "Observer mark impressed."
   },
   MIRROR_ERROR: {
     id: "relic-access",
     title: "RELIC ACCESS",
-    file: "assets/rewards/relic-access.png",
+    file: "assets/rewards/relic-access.png?v=20260623-scanfields1",
     text: "Relic access card indexed."
   },
   SIGNAL_RELAY: {
     id: "threadbreaker",
     title: "THREADBREAKER",
-    file: "assets/rewards/threadbreaker.png",
+    file: "assets/rewards/threadbreaker.png?v=20260623-scanfields1",
     text: "Threadbreaker artifact unsealed."
   }
 };
@@ -251,7 +251,7 @@ const commandRewardOrder = ["witness-key", "signal-wake", "observer-mark", "reli
 const commandCapstoneReward = {
   id: "route-index",
   title: "ROUTE INDEX",
-  file: "assets/rewards/route-index.png",
+  file: "assets/rewards/route-index.png?v=20260623-scanfields1",
   text: "Pathfinder capstone indexed."
 };
 const commandRewardIds = [...commandRewardOrder, commandCapstoneReward.id];
