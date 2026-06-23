@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VEILCORP // Conversion Board</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
+  <link rel="stylesheet" href="/admin/conversion/style.css?v=20260623-conversion1" />
+</head>
+<body>
+  <main class="console-shell">
+    <header class="board-header">
+      <div>
+        <p>VEILCORP ARCHIVES // SIGNAL ACCOUNTING</p>
+        <h1>Conversion Board</h1>
+      </div>
+      <div class="header-actions">
+        <button type="button" id="export-json">Export</button>
+        <label class="file-button" for="import-json">Import<input id="import-json" type="file" accept="application/json" /></label>
+      </div>
+    </header>
+
+    <section class="summary-grid" aria-label="Conversion summary">
+      <article class="metric-card">
+        <span>Surface Reach</span>
+        <strong id="metric-reach">--</strong>
+        <small id="metric-reach-note">Awaiting signal.</small>
+      </article>
+      <article class="metric-card">
+        <span>Deepening Rate</span>
+        <strong id="metric-deepening">--</strong>
+        <small>Archive + case-file movement from intake traffic.</small>
+      </article>
+      <article class="metric-card">
+        <span>Case-File Conversion</span>
+        <strong id="metric-casefile">--</strong>
+        <small>Itch plays/downloads from itch page views.</small>
+      </article>
+      <article class="metric-card">
+        <span>Signal Lift</span>
+        <strong id="metric-lift">--</strong>
+        <small id="metric-lift-note">Compared with prior logged day.</small>
+      </article>
+    </section>
+
+    <section class="board-grid" aria-label="Dashboard panels">
+      <article class="panel data-panel">
+        <div class="panel-heading">
+          <h2>Daily Recovery</h2>
+          <p>Record only what the dashboards actually report. Blank means unknown.</p>
+        </div>
+
+        <form id="daily-form" class="daily-form">
+          <label class="wide">Date<input id="entry-date" name="date" type="date" required /></label>
+
+          <fieldset>
+            <legend>VeilDaemon</legend>
+            <label>Visits<input name="vdVisits" type="number" min="0" inputmode="numeric" /></label>
+            <label>Archive exits<input name="archiveClicks" type="number" min="0" inputmode="numeric" /></label>
+            <label>Case-file exits<input name="itchClicks" type="number" min="0" inputmode="numeric" /></label>
+            <label>YouTube exits<input name="youtubeClicks" type="number" min="0" inputmode="numeric" /></label>
+            <label>Intake completions<input name="intakeCompletions" type="number" min="0" inputmode="numeric" /></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Archive</legend>
+            <label>Wiki views<input name="wikiViews" type="number" min="0" inputmode="numeric" /></label>
+            <label>Top page<input name="wikiTopPage" type="text" maxlength="90" /></label>
+            <label>Site returns<input name="wikiReturns" type="number" min="0" inputmode="numeric" /></label>
+            <label>Case-file exits<input name="wikiItchExits" type="number" min="0" inputmode="numeric" /></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Case File</legend>
+            <label>Itch views<input name="itchViews" type="number" min="0" inputmode="numeric" /></label>
+            <label>Browser plays<input name="itchPlays" type="number" min="0" inputmode="numeric" /></label>
+            <label>Downloads<input name="itchDownloads" type="number" min="0" inputmode="numeric" /></label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Echo Archive</legend>
+            <label>YouTube views<input name="youtubeViews" type="number" min="0" inputmode="numeric" /></label>
+            <label>Watch hours<input name="watchHours" type="number" min="0" step="0.1" inputmode="decimal" /></label>
+            <label>Subscribers<input name="subscribers" type="number" inputmode="numeric" /></label>
+            <label>Top video<input name="topVideo" type="text" maxlength="90" /></label>
+          </fieldset>
+
+          <label class="wide">Notes<textarea name="notes" rows="3" placeholder="Spike source, posted link, stream mention, wiki edit, upload, or anomaly."></textarea></label>
+
+          <div class="form-actions">
+            <button type="submit" class="primary">Hold Snapshot</button>
+            <button type="button" id="clear-form">Clear Form</button>
+            <button type="button" class="danger" id="delete-entry">Delete Day</button>
+          </div>
+        </form>
+      </article>
+
+      <article class="panel">
+        <div class="panel-heading">
+          <h2>Funnel</h2>
+          <p>Movement between public surface, archive, case file, and echo archive.</p>
+        </div>
+        <div class="funnel" id="funnel"></div>
+      </article>
+
+      <article class="panel trend-panel">
+        <div class="panel-heading">
+          <h2>Seven-Day Pulse</h2>
+          <p>Uses logged days only.</p>
+        </div>
+        <div class="trend" id="trend"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-heading">
+          <h2>Channel Quality</h2>
+          <p>Where attention becomes action.</p>
+        </div>
+        <div class="quality-table" id="quality-table"></div>
+      </article>
+
+      <article class="panel log-panel">
+        <div class="panel-heading">
+          <h2>Signal Ledger</h2>
+          <p>Newest snapshots first.</p>
+        </div>
+        <div class="entry-list" id="entry-list"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-heading">
+          <h2>Operator Read</h2>
+          <p>Automatic notes from the current snapshot.</p>
+        </div>
+        <div class="insight-list" id="insight-list"></div>
+      </article>
+    </section>
+
+    <p class="status-line" id="status-line" role="status">Conversion board ready. Build 20260623-conversion1.</p>
+  </main>
+  <script src="/admin/conversion/conversion.js?v=20260623-conversion1"></script>
+</body>
+</html>
