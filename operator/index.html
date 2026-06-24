@@ -128,6 +128,7 @@
     <nav class="console-nav" aria-label="Console modules">
       <button type="button" class="module-tab is-active" data-module-tab="anomalies">Anomaly Log</button>
       <button type="button" class="module-tab" data-module-tab="sheet">Sheet</button>
+      <button type="button" class="module-tab" data-module-tab="equipment">Equipment</button>
       <button type="button" class="module-tab" data-module-tab="frequency">Frequency</button>
       <button type="button" class="module-tab" data-module-tab="relationships">Relationships</button>
       <button type="button" class="module-tab" data-module-tab="archive">Archive</button>
@@ -244,6 +245,27 @@
           </article>
         </section>
       </form>
+    </section>
+
+    <section class="module-panel" id="module-equipment" data-module-panel="equipment" aria-label="Operator equipment">
+      <div class="module-heading">
+        <p class="kicker">RANK ONE OPERATOR EQUIPMENT</p>
+        <h2>Ordinary tools, plausible carry, and one thing you maybe should not have brought.</h2>
+      </div>
+      <div class="equipment-law">
+        <p>At first contact, Operators do not arrive with professional containment gear. You have ordinary tools, whatever your life reasonably explains, and maybe one thing you should not have brought.</p>
+        <p><strong>Handler Limit:</strong> If it sounds military, illegal, expensive, or specialized, ask the Handler.</p>
+        <p><strong>Field Law:</strong> A tool solves one problem. A bad decision creates three more.</p>
+      </div>
+      <form class="console-form equipment-form" id="equipment-form">
+        <label>Category<select name="category"><option>Optional Carry</option><option>Background Tool</option><option>Custom</option></select></label>
+        <label>Equipment item<select name="item" id="equipment-preset"></select></label>
+        <label>Custom item<input name="customItem" type="text" maxlength="120" placeholder="Only if it is not in the list." /></label>
+        <label>Why you have it<input name="reason" type="text" maxlength="180" placeholder="Background, scene, mistake, or Anchor logic." /></label>
+        <button class="button primary" type="submit">Add Equipment</button>
+      </form>
+      <p class="tracker-note">Default kit is already listed. Optional carry is usually one item. Background tools should be boring, plausible, and useful under pressure.</p>
+      <div class="entry-list" id="equipment-list"></div>
     </section>
 
     <section class="module-panel" id="module-frequency" data-module-panel="frequency" aria-label="Frequency reference">

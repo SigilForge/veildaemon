@@ -859,6 +859,21 @@ a:focus-visible {
   gap: .75rem;
   margin-top: 1rem;
 }
+
+.equipment-law {
+  display: grid;
+  gap: .55rem;
+  padding: .85rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.22);
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.equipment-law p {
+  margin: 0;
+}
+
 .console-entry {
   padding: .9rem;
   border: 1px solid rgba(137,255,218,.18);
@@ -881,6 +896,13 @@ a:focus-visible {
   padding: .45rem .55rem;
   text-transform: uppercase;
 }
+
+.entry-remove:disabled {
+  border-color: rgba(137,255,218,.18);
+  color: var(--muted);
+  cursor: default;
+}
+
 .console-entry p {
   margin: .45rem 0 0;
   color: var(--muted);

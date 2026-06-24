@@ -128,6 +128,7 @@
           <label>Frequency Pips<input data-player="${index}" data-field="frequencyPips" maxlength="180" /></label>
         </div>
         <label>Relationship Pressure<input data-player="${index}" data-field="relationshipPressure" maxlength="180" /></label>
+        <label>Equipment Summary<input data-player="${index}" data-field="equipment" maxlength="260" /></label>
         <p class="helper-copy">Last Imported: ${api.safeString(player.lastImported ? player.lastImported.slice(0, 10) : "", 80) || "Manual summary"}</p>
       `;
       grid.append(card);
@@ -271,6 +272,7 @@
         relationshipPressure: "",
         primaryFrequency: "",
         frequencyPips: "",
+        equipment: "",
         sourceExportedAt: "",
         lastImported: "",
         sourceId: ""

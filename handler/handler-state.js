@@ -218,6 +218,7 @@
         relationshipPressure: "",
         primaryFrequency: "",
         frequencyPips: "",
+        equipment: "",
         sourceExportedAt: "",
         lastImported: "",
         sourceId: ""
@@ -378,6 +379,7 @@
       relationshipPressure: safeString(player.relationshipPressure, 180),
       primaryFrequency: safeString(player.primaryFrequency, 80),
       frequencyPips: safeString(player.frequencyPips, 180),
+      equipment: safeString(player.equipment, 260),
       sourceExportedAt: safeString(player.sourceExportedAt, 80),
       lastImported: safeString(player.lastImported, 80),
       sourceId: safeString(player.sourceId, 120)
