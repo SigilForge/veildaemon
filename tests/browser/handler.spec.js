@@ -1,12 +1,35 @@
 const { test, expect } = require("@playwright/test");
 
-test("handler dashboard exposes live table controls", async ({ page }) => {
+test("handler overview exposes modular control cards", async ({ page }) => {
   await page.goto("/handler/");
 
-  await expect(page.getByRole("heading", { name: "HANDLER DASHBOARD" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "HANDLER OVERVIEW" })).toBeVisible();
+  await expect(page.locator(".status-strip").getByText("Handler", { exact: true })).toBeVisible();
+  await expect(page.getByText("Handler Exterior")).toHaveCount(0);
+  const overview = page.getByLabel("Handler subsystem overview");
+  await expect(overview.getByRole("link", { name: "Open Live Dashboard" })).toBeVisible();
+  await expect(overview.getByRole("link", { name: "Manage NPCs" })).toBeVisible();
+  await expect(overview.getByRole("link", { name: "Open Entity Library" })).toBeVisible();
+  await expect(overview.getByRole("link", { name: "Manage Clocks" })).toBeVisible();
+  await expect(overview.getByRole("link", { name: "Open Case File" })).toBeVisible();
+  await expect(overview.getByRole("link", { name: "Open Residue Log" })).toBeVisible();
+  await expect(overview.getByRole("link", { name: "View Operator Summaries" })).toBeVisible();
+  await expect(overview.getByRole("link", { name: "Open Player View" })).toBeVisible();
+
+  await page.getByLabel("Template").selectOption("veilcorp-intake");
+  await page.getByRole("button", { name: "Apply Template" }).click();
+  await expect(page.locator("#overview-case")).toContainText("VeilCorp Intake");
+  await expect(page.locator("#overview-scene-state")).toContainText("Echoed");
+});
+
+test("handler live dashboard exposes at-table controls", async ({ page }) => {
+  await page.goto("/handler/live/");
+
+  await expect(page.getByRole("heading", { name: "LIVE DASHBOARD" })).toBeVisible();
   await expect(page.getByLabel("Scene State").getByRole("button", { name: /Stable/ })).toHaveClass(/is-active/);
   await expect(page.getByLabel("Primary clock segments")).toBeVisible();
-  await expect(page.locator(".status-strip").getByText("3d6 + Attribute + Skill", { exact: true })).toBeVisible();
+  await expect(page.locator(".status-strip").getByText("Handler", { exact: true })).toBeVisible();
+  await expect(page.getByText("Handler Exterior")).toHaveCount(0);
   await expect(page.getByText("Need -> Lure -> Pressure -> Gift -> Violence -> Exit")).toBeVisible();
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toBeVisible();
 
@@ -26,4 +49,18 @@ test("handler dashboard exposes live table controls", async ({ page }) => {
   await expect(page.getByLabel("Player-facing display")).toBeVisible();
   await expect(page.getByLabel("Player-facing display")).toContainText("Intake pressure rising");
   await expect(page.getByLabel("Player-facing display")).not.toContainText("PRIVATE HANDLER NOTES");
+});
+
+test("handler module pages share case state", async ({ page }) => {
+  await page.goto("/handler/cases/");
+  await page.locator('[name="session.caseTitle"]').fill("Silence Gap");
+  await page.locator('[name="caseFile.nextClue"]').fill("The exit sign points inward.");
+
+  await page.goto("/handler/");
+  await expect(page.locator("#overview-case")).toContainText("Silence Gap");
+  await expect(page.locator("#overview-next-clue")).toContainText("The exit sign points inward.");
+
+  await page.goto("/handler/player-view/");
+  await expect(page.getByRole("heading", { name: "PLAYER VIEW" })).toBeVisible();
+  await expect(page.getByText("PRIVATE HANDLER NOTES")).toHaveCount(0);
 });

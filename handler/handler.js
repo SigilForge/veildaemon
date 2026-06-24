@@ -1,335 +1,6 @@
 (function () {
-  const storageKey = "veildaemon.handlerDashboard.v1";
-
-  const canonTerminology = {
-    ui: {
-      gm: "Handler",
-      player: "Operator",
-      module: "Needlepoint",
-      adventure: "Field Assignment",
-      sessionReport: "After Action Report"
-    },
-    sourceAliases: {
-      gmGuide: "Cradlepoint GM Guide 1.5",
-      gmToolbox: "CRADLEPOINT GM TOOLBOX",
-      playerHandouts: "CRADLEPOINT PLAYER HANDOUTS"
-    }
-  };
-
-  const sceneStates = [
-    { name: "Stable", cue: "Baseline. Pressure is present but manageable." },
-    { name: "Echoed", cue: "Things repeat. Rooms answer sideways." },
-    { name: "Recursive", cue: "Patterns layer. The same truth returns." },
-    { name: "Breached", cue: "Reality frays. Costs become visible." },
-    { name: "Collapse", cue: "Control fails. The room becomes the threat." }
-  ];
-
-  const attentionStates = ["Unseen", "Observed", "Focused", "Witnessed", "Mythic"];
-  const loopFields = ["Need", "Lure", "Pressure", "Gift", "Violence", "Exit"];
-
-  const templates = [
-    {
-      id: "blank",
-      name: "Blank Handler Dashboard",
-      data: {}
-    },
-    {
-      id: "needlepoint",
-      name: "Needlepoint Runtime",
-      data: {
-        session: {
-          title: "Field Assignment",
-          caseTitle: "Needlepoint",
-          location: "Active scene",
-          safeSceneLabel: "Pressure scene active"
-        },
-        sceneState: {
-          current: "Stable",
-          primaryConsequence: "The room answers what the Operators do through feeling."
-        },
-        primaryClock: {
-          name: "Pressure Clock",
-          segments: 6,
-          current: 0,
-          ticksWhen: "Operators ignore the lure, split attention, escalate, or feed the Need.",
-          midpointEvent: "The room changes in a visible ordinary way.",
-          fullClockEvent: "The entity or Zone acts openly.",
-          stabilizer: "Observe, ground, name the truth, leave, or change the pattern."
-        },
-        entityLoop: {
-          Need: "What the entity or Zone must have to remain in pressure.",
-          Lure: "What draws Operators in or keeps them engaged.",
-          Pressure: "What happens when the Need is ignored.",
-          Gift: "What truth, power, or resource it offers in exchange.",
-          Violence: "What happens if the Need is denied or blocked.",
-          Exit: "What satisfies, breaks, redirects, or contains the loop."
-        },
-        roomAnswer: {
-          object: "Door, light, receipt, voicemail, elevator, mirror, coffee cup",
-          emotionalInput: "Fear, hunger, denial, grief, awe, refusal, hope",
-          consequence: "A normal object behaves as if it understood the feeling."
-        }
-      }
-    },
-    {
-      id: "veilcorp-intake",
-      name: "VeilCorp Intake",
-      data: {
-        session: {
-          title: "Intake Session",
-          caseTitle: "VeilCorp Intake",
-          location: "First contact location",
-          safeSceneLabel: "Intake pressure rising"
-        },
-        sceneState: {
-          current: "Echoed",
-          primaryConsequence: "Observation creates relevance."
-        },
-        primaryClock: {
-          name: "Intake Exposure Clock",
-          segments: 6,
-          current: 1,
-          ticksWhen: "Operators over-explain, deny the obvious, draw public attention, or repeat the pattern.",
-          midpointEvent: "Records, devices, or bystanders begin noticing the same detail.",
-          fullClockEvent: "VeilCorp contact becomes unavoidable and the scene answers back.",
-          stabilizer: "Limit exposure, verify assumptions, connect to an anchor, or leave cleanly."
-        },
-        entityLoop: {
-          Need: "Classification before contact spreads.",
-          Lure: "Answers, recognition, help, and the feeling of being seen.",
-          Pressure: "The more they look, the more the signal treats them as relevant.",
-          Gift: "A route, warning, contact point, or impossible confirmation.",
-          Violence: "Exposure, attention, misclassification, or public residue.",
-          Exit: "Accept intake boundaries, stabilize, and choose the next case route."
-        },
-        attention: {
-          current: "Observed",
-          residue: "A record updates too early.",
-          followsHome: "A public system predicts what they almost said."
-        },
-        roomAnswer: {
-          object: "Phone lock screen",
-          emotionalInput: "The fear that someone already knows",
-          consequence: "A notification arrives with no sender and the correct case label."
-        }
-      }
-    }
-  ];
-
-  const defaultState = {
-    version: 1,
-    createdAt: "",
-    updatedAt: "",
-    playerViewEnabled: false,
-    session: {
-      title: "",
-      caseTitle: "",
-      location: "",
-      safeSceneLabel: ""
-    },
-    sceneState: {
-      current: "Stable",
-      primaryConsequence: ""
-    },
-    primaryClock: {
-      name: "",
-      segments: 6,
-      current: 0,
-      ticksWhen: "",
-      midpointEvent: "",
-      fullClockEvent: "",
-      stabilizer: ""
-    },
-    secondaryClock: {
-      enabled: false,
-      name: "",
-      segments: 6,
-      current: 0,
-      liveDecision: ""
-    },
-    entityLoop: {
-      Need: "",
-      Lure: "",
-      Pressure: "",
-      Gift: "",
-      Violence: "",
-      Exit: ""
-    },
-    attention: {
-      current: "Unseen",
-      residue: "",
-      followsHome: ""
-    },
-    roomAnswer: {
-      object: "",
-      emotionalInput: "",
-      consequence: ""
-    },
-    roll: {
-      attribute: 0,
-      skill: 0,
-      modifier: 0,
-      advantage: false,
-      disadvantage: false
-    },
-    players: [
-      {
-        id: "operator-1",
-        name: "Operator 1",
-        stability: "",
-        harm: "",
-        misfire: "",
-        voidBreach: "",
-        anchors: "",
-        emotionalState: "",
-        relationshipPressure: ""
-      }
-    ],
-    handlerNotes: {
-      privateNotes: "",
-      clueList: "",
-      consequenceQueue: "",
-      residueLog: ""
-    },
-    canonTerminology
-  };
-
-  let state = readState();
-
-  function nowStamp() {
-    return new Date().toISOString();
-  }
-
-  function clone(value) {
-    return JSON.parse(JSON.stringify(value));
-  }
-
-  function safeString(value, max = 3000) {
-    return String(value || "").trim().slice(0, max);
-  }
-
-  function safeNumber(value, min, max, fallback) {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return fallback;
-    return Math.max(min, Math.min(max, Math.round(parsed)));
-  }
-
-  function mergeDeep(base, patch) {
-    const output = clone(base);
-    if (!patch || typeof patch !== "object") return output;
-    Object.keys(patch).forEach((key) => {
-      if (patch[key] && typeof patch[key] === "object" && !Array.isArray(patch[key]) && output[key] && typeof output[key] === "object") {
-        output[key] = mergeDeep(output[key], patch[key]);
-      } else {
-        output[key] = patch[key];
-      }
-    });
-    return output;
-  }
-
-  function normalizeState(value) {
-    const now = nowStamp();
-    const merged = mergeDeep(defaultState, value && typeof value === "object" ? value : {});
-    return {
-      ...merged,
-      version: 1,
-      createdAt: safeString(merged.createdAt) || now,
-      updatedAt: safeString(merged.updatedAt) || now,
-      playerViewEnabled: Boolean(merged.playerViewEnabled),
-      session: normalizeTextObject(merged.session, defaultState.session),
-      sceneState: {
-        current: normalizeChoice(merged.sceneState.current, sceneStates.map((item) => item.name), "Stable"),
-        primaryConsequence: safeString(merged.sceneState.primaryConsequence, 220)
-      },
-      primaryClock: normalizeClock(merged.primaryClock),
-      secondaryClock: {
-        ...normalizeClock(merged.secondaryClock),
-        enabled: Boolean(merged.secondaryClock.enabled),
-        liveDecision: safeString(merged.secondaryClock.liveDecision, 180)
-      },
-      entityLoop: normalizeTextObject(merged.entityLoop, defaultState.entityLoop),
-      attention: {
-        current: normalizeChoice(merged.attention.current, attentionStates, "Unseen"),
-        residue: safeString(merged.attention.residue, 180),
-        followsHome: safeString(merged.attention.followsHome, 180)
-      },
-      roomAnswer: normalizeTextObject(merged.roomAnswer, defaultState.roomAnswer),
-      roll: normalizeRoll(merged.roll),
-      players: normalizePlayers(merged.players),
-      handlerNotes: normalizeTextObject(merged.handlerNotes, defaultState.handlerNotes),
-      canonTerminology
-    };
-  }
-
-  function normalizeTextObject(value, shape) {
-    const source = value && typeof value === "object" ? value : {};
-    return Object.keys(shape).reduce((next, key) => {
-      next[key] = safeString(source[key], 3000);
-      return next;
-    }, {});
-  }
-
-  function normalizeChoice(value, choices, fallback) {
-    return choices.includes(value) ? value : fallback;
-  }
-
-  function normalizeClock(clock) {
-    const source = clock && typeof clock === "object" ? clock : {};
-    const segments = safeNumber(source.segments, 4, 8, 6);
-    return {
-      name: safeString(source.name, 100),
-      segments,
-      current: safeNumber(source.current, 0, segments, 0),
-      ticksWhen: safeString(source.ticksWhen, 180),
-      midpointEvent: safeString(source.midpointEvent, 500),
-      fullClockEvent: safeString(source.fullClockEvent, 500),
-      stabilizer: safeString(source.stabilizer, 160)
-    };
-  }
-
-  function normalizeRoll(roll) {
-    const source = roll && typeof roll === "object" ? roll : {};
-    return {
-      attribute: safeNumber(source.attribute, 0, 8, 0),
-      skill: safeNumber(source.skill, 0, 8, 0),
-      modifier: safeNumber(source.modifier, -10, 10, 0),
-      advantage: Boolean(source.advantage) && !Boolean(source.disadvantage),
-      disadvantage: Boolean(source.disadvantage)
-    };
-  }
-
-  function normalizePlayers(players) {
-    const list = Array.isArray(players) ? players : [];
-    return list.slice(0, 8).map((player, index) => ({
-      id: safeString(player.id, 80) || `operator-${index + 1}`,
-      name: safeString(player.name, 80) || `Operator ${index + 1}`,
-      stability: safeString(player.stability, 80),
-      harm: safeString(player.harm, 120),
-      misfire: safeString(player.misfire, 180),
-      voidBreach: safeString(player.voidBreach, 180),
-      anchors: safeString(player.anchors, 180),
-      emotionalState: safeString(player.emotionalState, 160),
-      relationshipPressure: safeString(player.relationshipPressure, 180)
-    }));
-  }
-
-  function readState() {
-    try {
-      return normalizeState(JSON.parse(window.localStorage.getItem(storageKey)));
-    } catch (error) {
-      return normalizeState(null);
-    }
-  }
-
-  function writeState() {
-    state.updatedAt = nowStamp();
-    try {
-      window.localStorage.setItem(storageKey, JSON.stringify(state));
-      setStatus("LOCAL SAVED");
-    } catch (error) {
-      setStatus("STORAGE REFUSED", true);
-    }
-  }
+  const api = window.HandlerState;
+  let state = api.readState();
 
   function setStatus(message, isError) {
     const node = document.getElementById("storage-status");
@@ -338,19 +9,13 @@
     node.classList.toggle("is-error", Boolean(isError));
   }
 
-  function getPath(path) {
-    return path.split(".").reduce((value, key) => value && value[key], state);
-  }
-
-  function setPath(path, value) {
-    const parts = path.split(".");
-    let target = state;
-    while (parts.length > 1) {
-      const key = parts.shift();
-      target[key] = target[key] && typeof target[key] === "object" ? target[key] : {};
-      target = target[key];
+  function writeState(message) {
+    try {
+      state = api.writeState(state, message);
+      setStatus(message || "LOCAL SAVED");
+    } catch (error) {
+      setStatus("STORAGE REFUSED", true);
     }
-    target[parts[0]] = value;
   }
 
   function fillSelect(name, values) {
@@ -369,7 +34,7 @@
     const picker = document.getElementById("template-picker");
     if (!picker) return;
     picker.textContent = "";
-    templates.forEach((template) => {
+    api.templates.forEach((template) => {
       const option = document.createElement("option");
       option.value = template.id;
       option.textContent = template.name;
@@ -381,7 +46,7 @@
     const row = document.getElementById("scene-state-row");
     if (!row) return;
     row.textContent = "";
-    sceneStates.forEach((item) => {
+    api.sceneStates.forEach((item) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "scene-state-button";
@@ -390,6 +55,7 @@
       button.innerHTML = `<strong>${item.name}</strong><span>${item.cue}</span>`;
       button.addEventListener("click", () => {
         state.sceneState.current = item.name;
+        state.activeEntity.sceneState = item.name;
         syncForm();
         writeState();
         renderDynamic();
@@ -402,7 +68,7 @@
     const grid = document.getElementById("entity-loop-grid");
     if (!grid) return;
     grid.textContent = "";
-    loopFields.forEach((field) => {
+    api.loopFields.forEach((field) => {
       const label = document.createElement("label");
       label.textContent = field;
       const textarea = document.createElement("textarea");
@@ -469,7 +135,7 @@
       const field = input.dataset.field;
       input.value = state.players[index][field] || "";
       input.addEventListener("input", () => {
-        state.players[index][field] = safeString(input.value, 180);
+        state.players[index][field] = api.safeString(input.value, 180);
         writeState();
       });
     });
@@ -478,7 +144,7 @@
       button.addEventListener("click", () => {
         const index = Number(button.dataset.removePlayer);
         state.players.splice(index, 1);
-        if (!state.players.length) state.players.push(normalizePlayers([{}])[0]);
+        if (!state.players.length) state.players.push(api.normalizeState({ players: [{}] }).players[0]);
         writeState();
         renderPlayers();
       });
@@ -488,7 +154,7 @@
   function syncForm() {
     document.querySelectorAll("[name]").forEach((input) => {
       if (input.id === "template-picker") return;
-      const value = getPath(input.name);
+      const value = api.getPath(state, input.name);
       if (input.type === "checkbox") {
         input.checked = Boolean(value);
       } else {
@@ -504,11 +170,11 @@
       if (input.id === "template-picker") return;
       let value = input.type === "checkbox" ? input.checked : input.value;
       if (input.type === "number" || input.tagName === "SELECT" && input.name.includes("segments")) value = Number(value);
-      setPath(input.name, value);
+      api.setPath(state, input.name, value);
     });
     const toggle = document.getElementById("player-view-toggle");
     state.playerViewEnabled = Boolean(toggle && toggle.checked);
-    state = normalizeState(state);
+    state = api.normalizeState(state);
   }
 
   function renderRoomAnswer() {
@@ -528,18 +194,13 @@
     setText("player-view-title", state.session.safeSceneLabel || state.session.caseTitle || "Scene active.");
     setText("player-view-scene", state.session.safeSceneLabel || state.session.location || "UNSET");
     setText("player-view-state", state.sceneState.current);
-    setText("player-view-clock", publicClockLabel());
+    setText("player-view-clock", api.publicClockLabel(state));
     setText("player-view-consequence", state.sceneState.primaryConsequence || state.attention.residue || "WATCH THE ROOM");
-  }
-
-  function publicClockLabel() {
-    const name = state.primaryClock.name || "Active Clock";
-    return `${name} ${state.primaryClock.current}/${state.primaryClock.segments}`;
   }
 
   function setText(id, value) {
     const node = document.getElementById(id);
-    if (node) node.textContent = safeString(value, 220) || "UNSET";
+    if (node) node.textContent = api.safeString(value, 220) || "UNSET";
   }
 
   function renderDynamic() {
@@ -615,13 +276,12 @@
     const applyTemplate = document.getElementById("apply-template");
     const picker = document.getElementById("template-picker");
     if (applyTemplate && picker) applyTemplate.addEventListener("click", () => {
-      const template = templates.find((item) => item.id === picker.value) || templates[0];
-      state = normalizeState(mergeDeep(state, template.data));
+      const template = api.templates.find((item) => item.id === picker.value) || api.templates[0];
+      state = api.normalizeState(api.mergeDeep(state, template.data));
       syncForm();
-      writeState();
+      writeState(`${template.name.toUpperCase()} LOADED`);
       renderDynamic();
       renderPlayers();
-      setStatus(`${template.name.toUpperCase()} LOADED`);
     });
 
     const exportButton = document.getElementById("export-case");
@@ -645,10 +305,9 @@
       const file = importInput.files && importInput.files[0];
       if (!file) return;
       try {
-        state = normalizeState(JSON.parse(await file.text()));
-        writeState();
+        state = api.normalizeState(JSON.parse(await file.text()));
+        writeState("IMPORT ACCEPTED");
         renderAll();
-        setStatus("IMPORT ACCEPTED");
       } catch (error) {
         setStatus("IMPORT REFUSED", true);
       } finally {
@@ -659,9 +318,9 @@
     const resetButton = document.getElementById("reset-dashboard");
     if (resetButton) resetButton.addEventListener("click", () => {
       if (!window.confirm("Reset the local Handler dashboard in this browser?")) return;
-      state = normalizeState(null);
+      state = api.normalizeState(null);
       try {
-        window.localStorage.removeItem(storageKey);
+        window.localStorage.removeItem(api.storageKey);
       } catch (error) {
         // Local cleanup is best effort.
       }
@@ -704,12 +363,14 @@
   }
 
   function renderAll() {
+    state = api.readState();
     renderTemplates();
-    fillSelect("attention.current", attentionStates);
+    fillSelect("attention.current", api.attentionStates);
     renderLoopFields();
     syncForm();
     renderPlayers();
     renderDynamic();
+    setStatus("LOCAL READY");
   }
 
   bindForm();
