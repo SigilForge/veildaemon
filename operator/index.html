@@ -129,6 +129,8 @@
       <button type="button" class="module-tab is-active" data-module-tab="anomalies">Anomaly Log</button>
       <button type="button" class="module-tab" data-module-tab="sheet">Sheet</button>
       <button type="button" class="module-tab" data-module-tab="equipment">Equipment</button>
+      <button type="button" class="module-tab locked-tab" data-module-tab="background" data-unlock-tab="background" hidden>Background</button>
+      <button type="button" class="module-tab locked-tab" data-module-tab="ontology" data-unlock-tab="ontology" hidden>Ontology</button>
       <button type="button" class="module-tab" data-module-tab="frequency">Frequency</button>
       <button type="button" class="module-tab" data-module-tab="relationships">Relationships</button>
       <button type="button" class="module-tab" data-module-tab="archive">Archive</button>
@@ -269,6 +271,24 @@
       <div class="entry-list" id="equipment-list"></div>
     </section>
 
+    <section class="module-panel locked-panel" id="module-background" data-module-panel="background" data-unlock-panel="background" aria-label="Background authorization" hidden>
+      <div class="module-heading">
+        <p class="kicker">BACKGROUND AUTHORIZATION</p>
+        <h2>Handler-approved origin threads and one-time sheet effects.</h2>
+      </div>
+      <div class="authorization-notice" id="background-unlock-notice">No Background authorization packet imported.</div>
+      <div class="entry-list" id="background-unlock-list"></div>
+    </section>
+
+    <section class="module-panel locked-panel" id="module-ontology" data-module-panel="ontology" data-unlock-panel="ontology" aria-label="Ontology authorization" hidden>
+      <div class="module-heading">
+        <p class="kicker">ONTOLOGY SIGNAL</p>
+        <h2>Handler-released Presentation material. Review only what was authorized.</h2>
+      </div>
+      <div class="authorization-notice" id="ontology-unlock-notice">No ontology authorization packet imported.</div>
+      <div class="entry-list" id="ontology-unlock-list"></div>
+    </section>
+
     <section class="module-panel" id="module-frequency" data-module-panel="frequency" aria-label="Frequency reference">
       <div class="module-heading">
         <p class="kicker">FREQUENCY</p>
@@ -393,6 +413,7 @@
       <div class="data-actions">
         <button class="button" type="button" id="export-operator-file">Export Operator JSON</button>
         <label class="button file-button">Import Operator File<input data-operator-file-import type="file" accept="application/json" /></label>
+        <label class="button file-button">Import Authorization Packet<input id="import-authorization" type="file" accept=".json,.txt,text/plain,application/json" /></label>
         <button class="button" type="button" id="export-console">Export Console Data</button>
         <label class="button file-button">Import Console Data<input id="import-console" type="file" accept="application/json" /></label>
         <button class="button danger" type="button" id="purge-console">Purge Local Console</button>

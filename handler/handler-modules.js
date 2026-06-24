@@ -443,6 +443,53 @@
     });
   }
 
+  function bindAuthorizationExport() {
+    const form = document.getElementById("authorization-form");
+    if (!form) return;
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const data = new FormData(form);
+      const flags = [];
+      const ontology = api.safeString(data.get("ontology"), 80);
+      const background = api.safeString(data.get("background"), 80);
+      const caseUnlock = api.safeString(data.get("case"), 80);
+      if (ontology) flags.push(`ONTOLOGY_UNLOCK:${ontology}`);
+      if (background) flags.push(`BACKGROUND_UNLOCK:${background}`);
+      if (caseUnlock) flags.push(`CASE_UNLOCK:${caseUnlock}`);
+      if (!flags.length) {
+        setStatus("NO AUTHORIZATION FLAGS", true);
+        return;
+      }
+      const operatorName = api.safeString(data.get("operatorName"), 80);
+      const payload = {
+        exportType: "cradlepoint.authorization",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        operatorName,
+        flags,
+        note: api.safeString(data.get("note"), 1000) || defaultAuthorizationNote(flags)
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const safeName = (operatorName || "operator").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      link.href = url;
+      link.download = `cradlepoint-authorization-${safeName || "operator"}-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setStatus("AUTHORIZATION PACKET EXPORTED");
+    });
+  }
+
+  function defaultAuthorizationNote(flags) {
+    if (flags.some((flag) => flag.startsWith("ONTOLOGY_UNLOCK:SANGUINE"))) {
+      return "NEW ONTOLOGY SIGNAL DETECTED\n\nHandler authorization received.\n\nSanguine Presentation available for review.";
+    }
+    return "HANDLER AUTHORIZATION RECEIVED\n\nNew Operator option available for review.";
+  }
+
   function renderPlayerView() {
     text("safe-scene", state.session.safeSceneLabel || state.session.location, "Scene pending.");
     text("safe-state", state.sceneState.current, "Stable");
@@ -478,6 +525,7 @@
   bindSimpleForm();
   bindDataControls();
   bindOperatorImport();
+  bindAuthorizationExport();
   addNpcs();
   addOperators();
   addResidue();

@@ -160,6 +160,44 @@ test("operator equipment supports default kit and selectable carry", async ({ pa
   await expect(page.locator("#equipment-list")).not.toContainText("Basic lockpick set");
 });
 
+test("operator imports Handler authorization unlock packets", async ({ page }) => {
+  await page.goto("/operator/");
+
+  await expect(page.getByRole("button", { name: "Background" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Ontology" })).toHaveCount(0);
+
+  const packet = {
+    exportType: "cradlepoint.authorization",
+    version: 1,
+    exportedAt: "2026-06-24T21:00:00.000Z",
+    flags: [
+      "ONTOLOGY_UNLOCK:SANGUINE",
+      "BACKGROUND_UNLOCK:FIELD_MEDIC",
+      "CASE_UNLOCK:NEEDLEPOINT_SURVIVOR"
+    ],
+    note: "NEW ONTOLOGY SIGNAL DETECTED\n\nHandler authorization received.\n\nSanguine Presentation available for review."
+  };
+
+  await page.locator("#import-authorization").setInputFiles({
+    name: "authorization.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(packet))
+  });
+
+  await expect(page.locator("#storage-status")).toContainText("NEW ONTOLOGY SIGNAL DETECTED");
+  await expect(page.getByRole("button", { name: "Background" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ontology" })).toBeVisible();
+  await page.getByRole("button", { name: "Background" }).click();
+  await expect(page.locator("#background-unlock-list")).toContainText("Field Medic");
+  await expect(page.locator("#background-unlock-list")).toContainText("Applied");
+  await page.getByRole("button", { name: "Sheet" }).click();
+  await expect(page.locator("#skill-list")).toContainText("Medicine 1");
+
+  await page.getByRole("button", { name: "Ontology" }).click();
+  await expect(page.locator("#ontology-unlock-notice")).toContainText("Sanguine Presentation available for review");
+  await expect(page.locator("#ontology-unlock-list")).toContainText("Sanguine Presentation");
+});
+
 test("creation bonus breach refunds when attributes are lowered", async ({ page }) => {
   await page.goto("/operator/");
 

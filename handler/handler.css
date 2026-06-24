@@ -296,6 +296,7 @@ h2 {
 .field-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .field-grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .field-grid.five { grid-template-columns: 1.15fr .42fr .42fr 1.35fr 1.05fr; }
+.field-grid .wide { grid-column: 1 / -1; }
 
 input,
 textarea,

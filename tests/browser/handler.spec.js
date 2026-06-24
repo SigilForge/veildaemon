@@ -123,3 +123,25 @@ test("handler imports Operator JSON summaries", async ({ page }) => {
   await expect(page.locator("#overview-operators")).toContainText("June Rook");
   await expect(page.locator("#overview-operators")).toContainText("Dream");
 });
+
+test("handler exports Operator authorization packets", async ({ page }) => {
+  await page.goto("/handler/operators/");
+
+  await page.getByLabel("Ontology Unlock").selectOption("SANGUINE");
+  await page.getByLabel("Background Unlock").selectOption("FIELD_MEDIC");
+  await page.getByLabel("Case Unlock").selectOption("NEEDLEPOINT_SURVIVOR");
+  await page.getByLabel("Operator Name").fill("June Rook");
+
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export Authorization Packet" }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toContain("cradlepoint-authorization-june-rook");
+  const payload = JSON.parse(require("fs").readFileSync(await download.path(), "utf8"));
+  expect(payload.exportType).toBe("cradlepoint.authorization");
+  expect(payload.flags).toEqual([
+    "ONTOLOGY_UNLOCK:SANGUINE",
+    "BACKGROUND_UNLOCK:FIELD_MEDIC",
+    "CASE_UNLOCK:NEEDLEPOINT_SURVIVOR"
+  ]);
+  expect(payload.note).toContain("Sanguine Presentation available for review");
+});
