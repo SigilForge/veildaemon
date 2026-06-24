@@ -239,6 +239,15 @@ test("empty subpage case file offers intake route", async ({ page }) => {
 });
 
 test("operator file edits sync into local record preview on other surfaces", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
+      designation: "SYNC-OP",
+      primaryFrequency: "Dream",
+      observerClassification: "Operator",
+      attentionStatus: "Local",
+      accessLevel: "LOCAL"
+    }));
+  });
   await page.goto("/operator/");
 
   await page.getByRole("button", { name: "Sheet" }).click();

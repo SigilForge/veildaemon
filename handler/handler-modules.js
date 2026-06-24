@@ -55,6 +55,7 @@
       .map(([name, value]) => `${name} ${value}`)
       .join(" // ");
     const primaryFrequency = api.safeString(record.primaryFrequency || status.selectedLotusPetal || Object.keys(lotus).find((name) => Number(lotus[name] || 0) > 0), 80);
+    const equipment = equipmentSummary(payload.operatorEquipment || payload.equipment || payload.consoleState?.equipment);
     const operatorName = api.safeString(payload.operatorName || status.operatorName || record.operatorName || record.designation || status.designation || "Operator", 80);
     const sourceId = api.safeString(payload.operatorId || record.id || record.operatorId || record.designation || status.designation || "", 120);
     const stabilityBand = api.safeString(status.stabilityBand || status.stabilityState || "", 40);
@@ -79,15 +80,29 @@
       relationshipPressure: compactJoin([status.relationshipPressure, relationshipSummary(payload.relationships || payload.consoleState?.relationships)]),
       primaryFrequency,
       frequencyPips: pips,
+      equipment,
       sourceExportedAt: api.safeString(payload.exportedAt || payload.updatedAt || status.updatedAt, 80),
       lastImported: new Date().toISOString()
     };
   }
 
+  function equipmentSummary(equipment) {
+    if (!Array.isArray(equipment) || !equipment.length) return "";
+    const optional = equipment
+      .filter((item) => item && item.category !== "Default Kit")
+      .map((item) => api.safeString(item.item || item.name, 80))
+      .filter(Boolean);
+    const defaults = equipment
+      .filter((item) => item && item.category === "Default Kit")
+      .map((item) => api.safeString(item.item || item.name, 80))
+      .filter(Boolean);
+    return optional.slice(0, 5).join(" // ") || defaults.slice(0, 5).join(" // ");
+  }
+
   function operatorIsBlank(operator) {
     const defaultName = /^Operator \d+$/.test(api.safeString(operator.name, 80));
     return (defaultName || !api.safeString(operator.name, 80))
-      && !["stability", "harm", "misfire", "voidBreach", "anchors", "emotionalState", "relationshipPressure", "primaryFrequency", "frequencyPips"].some((field) => api.safeString(operator[field], 180));
+      && !["stability", "harm", "misfire", "voidBreach", "anchors", "emotionalState", "relationshipPressure", "primaryFrequency", "frequencyPips", "equipment"].some((field) => api.safeString(operator[field], 180));
   }
 
   function upsertImportedOperator(summary) {
@@ -300,6 +315,7 @@
           <label>Frequency Pips<input data-operator="${index}" data-field="frequencyPips" maxlength="180" /></label>
         </div>
         <label>Relationship Pressure<input data-operator="${index}" data-field="relationshipPressure" maxlength="180" /></label>
+        <label>Equipment Summary<input data-operator="${index}" data-field="equipment" maxlength="260" /></label>
         <div class="import-meta">
           <span>Source Timestamp: ${api.safeString(formatStamp(operator.sourceExportedAt), 80) || "Not imported"}</span>
           <span>Last Imported: ${api.safeString(formatStamp(operator.lastImported), 80) || "Manual summary"}</span>
@@ -382,7 +398,7 @@
     const button = document.getElementById("add-operator");
     if (button) button.addEventListener("click", () => {
       const next = state.players.length + 1;
-      state.players.push({ id: `operator-${Date.now()}`, name: `Operator ${next}`, stability: "", harm: "", misfire: "", voidBreach: "", anchors: "", emotionalState: "", relationshipPressure: "", primaryFrequency: "", frequencyPips: "", sourceExportedAt: "", lastImported: "", sourceId: "" });
+      state.players.push({ id: `operator-${Date.now()}`, name: `Operator ${next}`, stability: "", harm: "", misfire: "", voidBreach: "", anchors: "", emotionalState: "", relationshipPressure: "", primaryFrequency: "", frequencyPips: "", equipment: "", sourceExportedAt: "", lastImported: "", sourceId: "" });
       writeState();
       renderOperators();
     });

@@ -1,5 +1,17 @@
 const { test, expect } = require("@playwright/test");
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
+      designation: "TEST-OP",
+      primaryFrequency: "Dream",
+      observerClassification: "Operator",
+      attentionStatus: "Local",
+      accessLevel: "LOCAL"
+    }));
+  });
+});
+
 test("operator sheet exposes at-table controls", async ({ page }) => {
   await page.goto("/operator/");
 
@@ -102,6 +114,28 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await expect(page.getByText("Case files, residue records, and slower notes.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Case File", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Residue", exact: true })).toBeVisible();
+});
+
+test("operator equipment supports default kit and selectable carry", async ({ page }) => {
+  await page.goto("/operator/");
+
+  await page.getByRole("button", { name: "Equipment" }).click();
+  await expect(page.getByText("Ordinary tools, plausible carry")).toBeVisible();
+  await expect(page.locator("#equipment-list")).toContainText("Phone");
+  await expect(page.locator("#equipment-list")).toContainText("One personal Anchor item");
+  await expect(page.getByText("Field Law:")).toBeVisible();
+
+  await page.getByLabel("Category").selectOption("Optional Carry");
+  await page.getByLabel("Equipment item").selectOption("Chalk or marker");
+  await page.getByLabel("Why you have it").fill("Marks doors that keep lying.");
+  await page.getByRole("button", { name: "Add Equipment" }).click();
+  await expect(page.locator("#equipment-list")).toContainText("Chalk or marker");
+  await expect(page.locator("#equipment-list")).toContainText("Marks doors that keep lying.");
+
+  await page.getByLabel("Category").selectOption("Background Tool");
+  await page.getByLabel("Equipment item").selectOption("Technician: toolkit, cables, diagnostic meter");
+  await page.getByRole("button", { name: "Add Equipment" }).click();
+  await expect(page.locator("#equipment-list")).toContainText("Technician: toolkit, cables, diagnostic meter");
 });
 
 test("creation bonus breach refunds when attributes are lowered", async ({ page }) => {

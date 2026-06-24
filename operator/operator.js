@@ -12,6 +12,17 @@
     createdAt: "",
     updatedAt: "",
     cases: [],
+    equipment: [
+      { id: "default-phone", category: "Default Kit", item: "Phone", reason: "Default kit", locked: true },
+      { id: "default-power", category: "Default Kit", item: "Charger or power bank", reason: "Default kit", locked: true },
+      { id: "default-flashlight", category: "Default Kit", item: "Flashlight", reason: "Default kit", locked: true },
+      { id: "default-notebook", category: "Default Kit", item: "Pen and notebook", reason: "Default kit", locked: true },
+      { id: "default-first-aid", category: "Default Kit", item: "Basic first-aid kit", reason: "Default kit", locked: true },
+      { id: "default-water", category: "Default Kit", item: "Water bottle", reason: "Default kit", locked: true },
+      { id: "default-carry", category: "Default Kit", item: "Backpack, messenger bag, or jacket pockets", reason: "Default kit", locked: true },
+      { id: "default-anchor", category: "Default Kit", item: "One personal Anchor item", reason: "Name it in Frequency notes", locked: true },
+      { id: "default-background", category: "Default Kit", item: "One practical tool tied to your background", reason: "Add the specific tool below", locked: true }
+    ],
     operatorStatus: {
       stability: "10",
       stabilityBand: "Calm",
@@ -76,6 +87,7 @@
 
   const lists = {
     cases: document.getElementById("case-list"),
+    equipment: document.getElementById("equipment-list"),
     anomalies: document.getElementById("anomaly-list"),
     relationships: document.getElementById("relationship-list"),
     residue: document.getElementById("residue-list")
@@ -83,11 +95,52 @@
 
   const forms = {
     cases: document.getElementById("case-form"),
+    equipment: document.getElementById("equipment-form"),
     status: document.getElementById("status-form"),
     frequency: document.getElementById("frequency-form"),
     anomalies: document.getElementById("anomaly-form"),
     relationships: document.getElementById("relationship-form"),
     residue: document.getElementById("residue-form")
+  };
+
+  const equipmentOptions = {
+    "Default Kit": [
+      "Phone",
+      "Charger or power bank",
+      "Flashlight",
+      "Pen and notebook",
+      "Basic first-aid kit",
+      "Water bottle",
+      "Backpack, messenger bag, or jacket pockets",
+      "One personal Anchor item",
+      "One practical tool tied to your background"
+    ],
+    "Optional Carry": [
+      "Pocket knife or multitool",
+      "Pepper spray",
+      "Handgun with one spare magazine",
+      "Work gloves",
+      "Lighter",
+      "Duct tape",
+      "Cheap audio recorder",
+      "Camera",
+      "Chalk or marker",
+      "Basic lockpick set",
+      "Laptop or tablet",
+      "Religious, occult, or family keepsake"
+    ],
+    "Background Tool": [
+      "Mechanic: socket wrench, jumper cables, work light",
+      "Nurse / EMT: better first-aid kit, gloves, trauma shears",
+      "Student: laptop, school bag, campus ID",
+      "Security: radio, flashlight, restraints",
+      "Occultist: chalk, salt, candles, notebook",
+      "Technician: toolkit, cables, diagnostic meter",
+      "Journalist: recorder, camera, press badge",
+      "Parent: snacks, wipes, blanket, kid's toy",
+      "Driver: tire iron, roadside kit, maps"
+    ],
+    Custom: ["Custom item"]
   };
 
   let consoleState = readConsoleState();
@@ -114,12 +167,14 @@
     const fallback = cloneDefaultState();
     const now = nowStamp();
     const state = value && typeof value === "object" ? value : {};
+    const hasEquipment = Object.prototype.hasOwnProperty.call(state, "equipment");
 
     return {
       version: 1,
       createdAt: safeString(state.createdAt) || now,
       updatedAt: safeString(state.updatedAt) || now,
       cases: normalizeArray(state.cases),
+      equipment: normalizeEquipment(hasEquipment ? state.equipment : fallback.equipment),
       operatorStatus: migrateOperatorStatus({
         ...fallback.operatorStatus,
         ...(state.operatorStatus && typeof state.operatorStatus === "object" ? state.operatorStatus : {})
@@ -128,6 +183,17 @@
       relationships: normalizeArray(state.relationships),
       residue: normalizeArray(state.residue)
     };
+  }
+
+  function normalizeEquipment(value) {
+    const list = Array.isArray(value) ? value : [];
+    return list.slice(0, 30).map((item, index) => ({
+      id: safeString(item.id, 120) || `equipment-${index + 1}`,
+      category: safeString(item.category, 80) || "Custom",
+      item: safeString(item.item || item.name, 120),
+      reason: safeString(item.reason || item.notes, 220),
+      locked: Boolean(item.locked)
+    })).filter((item) => item.item);
   }
 
   function migrateOperatorStatus(status) {
@@ -243,6 +309,7 @@
   function entry(title, rows, collection, id) {
     const article = document.createElement("article");
     article.className = "console-entry";
+    const source = (consoleState[collection] || []).find((item) => item.id === id);
 
     const header = document.createElement("div");
     header.className = "entry-header";
@@ -252,11 +319,16 @@
     remove.type = "button";
     remove.className = "entry-remove";
     remove.textContent = "Remove";
-    remove.addEventListener("click", () => {
-      consoleState[collection] = consoleState[collection].filter((item) => item.id !== id);
-      writeConsoleState();
-      renderAll();
-    });
+    if (source && source.locked) {
+      remove.disabled = true;
+      remove.textContent = "Default";
+    } else {
+      remove.addEventListener("click", () => {
+        consoleState[collection] = consoleState[collection].filter((item) => item.id !== id);
+        writeConsoleState();
+        renderAll();
+      });
+    }
     header.append(h3, remove);
     article.append(header);
 
@@ -286,6 +358,22 @@
 
     consoleState[collection].forEach((item) => {
       list.append(entry(getTitle(item), getRows(item), collection, item.id));
+    });
+  }
+
+  function renderEquipmentPicker() {
+    const form = forms.equipment;
+    if (!form) return;
+    const category = form.elements.category;
+    const preset = document.getElementById("equipment-preset");
+    if (!category || !preset) return;
+    const selected = category.value || "Optional Carry";
+    preset.textContent = "";
+    (equipmentOptions[selected] || equipmentOptions.Custom).forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      preset.append(option);
     });
   }
 
@@ -1507,6 +1595,7 @@
   function renderAll() {
     renderSnapshot();
     renderStatusForm();
+    renderEquipmentPicker();
     renderList("cases", "No cases recorded in this browser.", (item) => item.title, (item) => [
       ["Needlepoint", item.needlepoint],
       ["Clues", item.clues],
@@ -1514,6 +1603,10 @@
       ["Timeline", item.timeline],
       ["Unresolved questions", item.questions],
       ["Recorded", formatDate(item.createdAt)]
+    ]);
+    renderList("equipment", "No equipment recorded.", (item) => item.item, (item) => [
+      ["Category", item.category],
+      ["Why you have it", item.reason]
     ]);
     renderList("anomalies", "No anomalies logged.", (item) => item.scene, (item) => [
       ["Impossible detail", item.detail],
@@ -1561,6 +1654,10 @@
     form.querySelectorAll('input[type="checkbox"]').forEach((input) => {
       payload[input.name] = input.checked;
     });
+    if (form.id === "equipment-form") {
+      payload.item = payload.category === "Custom" && payload.customItem ? payload.customItem : payload.item;
+      delete payload.customItem;
+    }
     return payload;
   }
 
@@ -1664,6 +1761,20 @@
       event.preventDefault();
       addEntry("cases", forms.cases);
     });
+    if (forms.equipment) {
+      renderEquipmentPicker();
+      forms.equipment.elements.category.addEventListener("change", renderEquipmentPicker);
+      forms.equipment.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const record = addEntry("equipment", forms.equipment);
+        if (!record.item) {
+          consoleState.equipment = consoleState.equipment.filter((item) => item.id !== record.id);
+          writeConsoleState();
+          renderAll();
+          setStorageStatus("Choose or name an equipment item first.", true);
+        }
+      });
+    }
     if (forms.anomalies) forms.anomalies.addEventListener("submit", (event) => {
       event.preventDefault();
       const shouldVolunteer = event.submitter && event.submitter.getAttribute("data-anomaly-submit") === "volunteer";
@@ -1863,7 +1974,8 @@
         operatorId: exportId,
         source: "veildaemon.operatorConsole.v1",
         operatorRecord: operatorRecord || null,
-        operatorStatus: status
+        operatorStatus: status,
+        operatorEquipment: consoleState.equipment
       };
       const safeName = operatorName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "operator";
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });

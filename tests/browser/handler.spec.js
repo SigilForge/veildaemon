@@ -98,7 +98,12 @@ test("handler imports Operator JSON summaries", async ({ page }) => {
         Empyrean: "0",
         Becoming: "0"
       }
-    }
+    },
+    operatorEquipment: [
+      { category: "Default Kit", item: "Phone" },
+      { category: "Optional Carry", item: "Chalk or marker" },
+      { category: "Background Tool", item: "Technician: toolkit, cables, diagnostic meter" }
+    ]
   };
 
   await page.locator("#import-operator-file").setInputFiles({
@@ -111,6 +116,7 @@ test("handler imports Operator JSON summaries", async ({ page }) => {
   await expect(page.locator('[data-operator="0"][data-field="name"]')).toHaveValue("June Rook");
   await expect(page.locator('[data-operator="0"][data-field="stability"]')).toHaveValue("Echoed (8/10)");
   await expect(page.locator('[data-operator="0"][data-field="frequencyPips"]')).toHaveValue("Dream 2 // Silence 1");
+  await expect(page.locator('[data-operator="0"][data-field="equipment"]')).toHaveValue("Chalk or marker // Technician: toolkit, cables, diagnostic meter");
   await expect(page.locator("#operator-grid")).toContainText("Last Imported");
 
   await page.goto("/handler/");
