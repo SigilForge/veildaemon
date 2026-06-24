@@ -1185,6 +1185,19 @@ footer {
   width: 100%;
   margin-top: 0;
 }
+.file-button {
+  position: relative;
+  overflow: hidden;
+}
+.file-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.operator-file-import {
+  width: 100%;
+}
 .route-actions {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;

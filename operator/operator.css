@@ -237,6 +237,34 @@ h3 {
 .module-panel.is-active {
   display: block;
 }
+.sealed-panel {
+  display: grid;
+  gap: .75rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(185,84,255,.34);
+  background:
+    linear-gradient(135deg, rgba(0,0,0,.5), rgba(26,4,37,.32)),
+    repeating-linear-gradient(0deg, rgba(102,255,220,.035) 0 1px, transparent 1px 7px);
+  box-shadow: inset 0 0 24px rgba(185,84,255,.08);
+}
+.sealed-panel[hidden] {
+  display: none;
+}
+.sealed-panel h2,
+.sealed-panel p {
+  margin: 0;
+}
+.sealed-panel .route-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .7rem;
+}
+body.operator-record-sealed .console-nav,
+body.operator-record-sealed .module-panel,
+body.operator-record-sealed .data-panel {
+  display: none;
+}
 .module-heading {
   display: flex;
   justify-content: space-between;
