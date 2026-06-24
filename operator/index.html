@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260623-import1" />
+  <link rel="stylesheet" href="./operator.css?v=20260624-tabimport1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -113,6 +113,16 @@
       <div><span>Primary Frequency</span><strong id="snapshot-frequency">UNASSIGNED</strong></div>
       <div><span>Attention</span><strong id="snapshot-attention">UNMEASURED</strong></div>
       <div><span>Access</span><strong id="snapshot-access">LOCAL</strong></div>
+    </section>
+
+    <section class="sealed-panel" id="operator-sealed-panel" aria-label="Sealed operator node" hidden>
+      <p class="kicker">LOCAL NODE SEALED</p>
+      <h2>Operator file required.</h2>
+      <p><span class="prompt">&gt;</span> Complete intake or import an operator file before field controls are exposed.</p>
+      <div class="route-actions">
+        <a class="button primary" href="/#intake-node"><span>Start Intake</span></a>
+        <label class="button file-button">Import Operator File<input data-operator-file-import type="file" accept="application/json" /></label>
+      </div>
     </section>
 
     <nav class="console-nav" aria-label="Console modules">
@@ -359,7 +369,7 @@
       </div>
       <div class="data-actions">
         <button class="button" type="button" id="export-operator-file">Export Operator File</button>
-        <label class="button file-button">Import Operator File<input id="import-operator-file" type="file" accept="application/json" /></label>
+        <label class="button file-button">Import Operator File<input data-operator-file-import type="file" accept="application/json" /></label>
         <button class="button" type="button" id="export-console">Export Console Data</button>
         <label class="button file-button">Import Console Data<input id="import-console" type="file" accept="application/json" /></label>
         <button class="button danger" type="button" id="purge-console">Purge Local Console</button>
@@ -367,7 +377,7 @@
       </div>
     </section>
   </main>
-  <script src="../surface-nav.js?v=20260622-hscroll2"></script>
-  <script src="./operator.js?v=20260623-import1"></script>
+  <script src="../surface-nav.js?v=20260624-tabimport1"></script>
+  <script src="./operator.js?v=20260624-tabimport1"></script>
 </body>
 </html>

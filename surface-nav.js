@@ -37,6 +37,71 @@
     return readJson(recordStorageKey) || readJson(legacyRecordStorageKey);
   }
 
+  function importCandidate(payload) {
+    if (!payload || typeof payload !== "object") return null;
+    if (payload.operatorRecord && typeof payload.operatorRecord === "object") return payload.operatorRecord;
+    if (payload.record && typeof payload.record === "object") return payload.record;
+    return payload;
+  }
+
+  function normalizeTextArray(value) {
+    if (!Array.isArray(value)) return [];
+    return value.map((item) => safe(item, "")).filter(Boolean).slice(0, 24);
+  }
+
+  function normalizeImportedOperatorRecord(payload) {
+    const record = importCandidate(payload);
+    if (!record || typeof record !== "object") return null;
+
+    const designation = safe(record.designation, "");
+    const primaryFrequency = safe(record.primaryFrequency || record.frequency, "");
+    if (!designation || !primaryFrequency) return null;
+
+    const updatedAt = safe(record.updatedAt, new Date().toISOString());
+    return {
+      operatorRecordVersion: 1,
+      designation,
+      primaryFrequency,
+      stabilityState: safe(record.stabilityState || record.stability, "NOMINAL"),
+      attentionStatus: safe(record.attentionStatus || record.attention, "LOW"),
+      accessLevel: safe(record.accessLevel || record.access, "PROVISIONAL"),
+      observerClassification: safe(record.observerClassification, "POTENTIAL OPERATOR"),
+      assignmentGroup: safe(record.assignmentGroup, "THE REDACTED"),
+      handlerSignal: safe(record.handlerSignal, "SHADE"),
+      archiveAuthority: safe(record.archiveAuthority, "VEILCORP"),
+      intakeNode: safe(record.intakeNode, "VEILDAEMON"),
+      observedTraits: normalizeTextArray(record.observedTraits || record.traits),
+      frequencyDrift: Array.isArray(record.frequencyDrift) ? record.frequencyDrift : [{ frequency: primaryFrequency, value: 2 }],
+      knownIncidents: normalizeTextArray(record.knownIncidents || record.incidents),
+      incidentExposure: normalizeTextArray(record.incidentExposure || record.knownIncidents || record.incidents),
+      archiveFlags: normalizeTextArray(record.archiveFlags).length ? normalizeTextArray(record.archiveFlags) : ["IMPORTED: Operator File"],
+      relatedRecords: normalizeTextArray(record.relatedRecords),
+      recommendedTraining: safe(record.recommendedTraining || record.training, "Operator field review"),
+      archiveRoute: safe(record.archiveRoute, "https://wiki.veildaemon.app/"),
+      routeKey: safe(record.routeKey || record.discordRoute, ""),
+      classificationHistory: Array.isArray(record.classificationHistory || record.history) ? record.classificationHistory || record.history : [],
+      createdAt: safe(record.createdAt, updatedAt),
+      updatedAt,
+      visits: Number(record.visits) || 0,
+      filesReviewed: Number(record.filesReviewed) || 0,
+      lastSeen: safe(record.lastSeen, updatedAt),
+      lastActivity: safe(record.lastActivity || record.lastSeen, updatedAt)
+    };
+  }
+
+  function writeImportedOperatorRecord(record) {
+    window.localStorage.setItem(recordStorageKey, JSON.stringify(record));
+    window.localStorage.removeItem(legacyRecordStorageKey);
+    window.dispatchEvent(new CustomEvent("veildaemon:operator-record-updated"));
+  }
+
+  function importOperatorControlHtml() {
+    return `
+      <label class="button file-button operator-file-import">Import Operator File<input data-operator-file-import type="file" accept="application/json" /></label>
+      <p class="local-note operator-import-status" data-operator-import-status></p>
+    `;
+  }
+
   function renderOperatorPreviewState() {
     const preview = document.getElementById("operator-preview");
     if (!preview || document.getElementById("operator-preview-primary-action")) return;
@@ -68,8 +133,36 @@
     if (actions) {
       actions.innerHTML = intakeRecord
         ? '<a class="button primary" href="/operator/"><span>Enter Node</span></a>'
-        : '<a class="button primary" href="/#intake-node"><span>Start Intake</span></a>';
+        : `<a class="button primary" href="/#intake-node"><span>Start Intake</span></a>${importOperatorControlHtml()}`;
     }
+  }
+
+  function bindOperatorFileImport() {
+    document.addEventListener("change", async (event) => {
+      const input = event.target && event.target.matches && event.target.matches("[data-operator-file-import]") ? event.target : null;
+      if (!input) return;
+
+      const status = input.closest(".drawer-actions")?.querySelector("[data-operator-import-status]");
+      const file = input.files && input.files[0];
+      if (!file) return;
+
+      try {
+        const record = normalizeImportedOperatorRecord(JSON.parse(await file.text()));
+        if (!record) throw new Error("Import refused. Operator file unreadable.");
+        writeImportedOperatorRecord(record);
+        if (status) {
+          status.textContent = `Operator file imported: ${safe(record.designation, "UNRECORDED")}.`;
+          status.classList.remove("is-error");
+        }
+      } catch (error) {
+        if (status) {
+          status.textContent = error.message || "Import refused. Operator file unreadable.";
+          status.classList.add("is-error");
+        }
+      } finally {
+        input.value = "";
+      }
+    });
   }
 
   function renderCaseFileRecord() {
@@ -331,6 +424,7 @@
 
   bindDirectTabShortcuts();
   bindDrawerControls();
+  bindOperatorFileImport();
   window.addEventListener("veildaemon:operator-record-updated", () => {
     renderOperatorPreviewState();
     renderCaseFileRecord();

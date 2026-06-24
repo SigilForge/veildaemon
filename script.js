@@ -1195,12 +1195,20 @@ function renderOperatorPreviewScreen(record) {
 function renderOperatorPreviewActions(record) {
   const tabStatus = document.getElementById("operator-preview-tab-status");
   const primaryAction = document.getElementById("operator-preview-primary-action");
+  const actions = primaryAction && primaryAction.closest(".drawer-actions");
+  const existingImport = actions && actions.querySelector(".operator-file-import");
   if (tabStatus) {
     tabStatus.textContent = record ? "LOCAL NODE" : "START INTAKE";
   }
   if (primaryAction) {
     primaryAction.dataset.mode = record ? "node" : "intake";
     setButtonLabel(primaryAction, record ? "Enter Node" : "Start Intake");
+  }
+  if (actions && !record && !existingImport) {
+    actions.insertAdjacentHTML("beforeend", '<label class="button file-button operator-file-import">Import Operator File<input data-operator-file-import type="file" accept="application/json" /></label>');
+  }
+  if (record && existingImport) {
+    existingImport.remove();
   }
   renderOperatorPreviewScreen(record);
 }
@@ -1213,6 +1221,7 @@ function renderOperatorRecord(record) {
   const recordPanel = document.getElementById("operator-record");
   const purgeButton = document.getElementById("purge-record");
   const purgeNote = document.getElementById("purge-record-note");
+  const consoleRoute = document.querySelector(".casefile-console-route");
   const recordGrid = document.getElementById("record-grid");
   const recordSheet = document.getElementById("record-sheet");
   const recordMeta = document.getElementById("record-meta");
@@ -1231,6 +1240,7 @@ function renderOperatorRecord(record) {
     purgeButton.hidden = true;
     purgeButton.disabled = true;
     purgeNote.hidden = true;
+    if (consoleRoute) consoleRoute.hidden = true;
     renderOperatorTasking(null);
     renderSystemState(null);
     return;
@@ -1330,6 +1340,7 @@ function renderOperatorRecord(record) {
   purgeButton.hidden = false;
   purgeButton.disabled = false;
   purgeNote.hidden = false;
+  if (consoleRoute) consoleRoute.hidden = false;
   renderOperatorTasking(record);
   renderSystemState(record);
 }
@@ -2490,6 +2501,11 @@ const operatorPreviewPrimaryAction = document.getElementById("operator-preview-p
 if (operatorPreviewPrimaryAction) {
   operatorPreviewPrimaryAction.addEventListener("click", activateOperatorPreviewPrimaryAction);
 }
+window.addEventListener("veildaemon:operator-record-updated", () => {
+  intakeState.record = readOperatorRecord();
+  renderOperatorRecord(intakeState.record);
+  renderSystemState(intakeState.record);
+});
 document.getElementById("open-transmission").addEventListener("click", toggleTransmissionViewer);
 document.getElementById("archive-route").addEventListener("click", () => recordArchiveInteraction("archive"));
 document.getElementById("case-file-route").addEventListener("click", () => recordArchiveInteraction("caseFile"));
