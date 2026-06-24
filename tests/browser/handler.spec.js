@@ -64,3 +64,56 @@ test("handler module pages share case state", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "PLAYER VIEW" })).toBeVisible();
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toHaveCount(0);
 });
+
+test("handler imports Operator JSON summaries", async ({ page }) => {
+  await page.goto("/handler/operators/");
+
+  const exportPayload = {
+    exportType: "cradlepoint.operator",
+    version: 1,
+    exportedAt: "2026-06-24T20:00:00.000Z",
+    operatorName: "June Rook",
+    operatorId: "june-rook",
+    operatorRecord: {
+      designation: "JR-01",
+      primaryFrequency: "Dream"
+    },
+    operatorStatus: {
+      stability: "8",
+      stabilityBand: "Echoed",
+      harm: "Bruised",
+      harmBoxes: "1",
+      activeMisfire: "Door remembers the wrong name.",
+      voidMarks: "2",
+      breachPoints: "5",
+      anchorPerson: "Blue lighter",
+      emotionalState: "Afraid but focused",
+      relationshipPressure: "Trust strained",
+      selectedLotusPetal: "Dream",
+      lotus: {
+        Dream: "2",
+        Hunger: "0",
+        Silence: "1",
+        Stillness: "0",
+        Empyrean: "0",
+        Becoming: "0"
+      }
+    }
+  };
+
+  await page.locator("#import-operator-file").setInputFiles({
+    name: "june-rook.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(exportPayload))
+  });
+
+  await expect(page.locator("#operator-import-results")).toContainText("ACCEPTED - June Rook");
+  await expect(page.locator('[data-operator="0"][data-field="name"]')).toHaveValue("June Rook");
+  await expect(page.locator('[data-operator="0"][data-field="stability"]')).toHaveValue("Echoed (8/10)");
+  await expect(page.locator('[data-operator="0"][data-field="frequencyPips"]')).toHaveValue("Dream 2 // Silence 1");
+  await expect(page.locator("#operator-grid")).toContainText("Last Imported");
+
+  await page.goto("/handler/");
+  await expect(page.locator("#overview-operators")).toContainText("June Rook");
+  await expect(page.locator("#overview-operators")).toContainText("Dream");
+});

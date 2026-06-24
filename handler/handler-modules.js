@@ -19,6 +19,142 @@
     }
   }
 
+  function slug(value) {
+    return api.safeString(value, 120).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "operator";
+  }
+
+  function formatStamp(value) {
+    const source = api.safeString(value, 80);
+    if (!source) return "";
+    const date = new Date(source);
+    if (Number.isNaN(date.getTime())) return source;
+    return date.toLocaleString([], { dateStyle: "short", timeStyle: "short" });
+  }
+
+  function compactJoin(parts, fallback = "") {
+    return parts.map((part) => api.safeString(part, 180)).filter(Boolean).join(" // ") || fallback;
+  }
+
+  function relationshipSummary(relationships) {
+    if (!Array.isArray(relationships) || !relationships.length) return "";
+    return relationships.slice(0, 2).map((item) => compactJoin([item.name, item.pressure, item.status], "")).filter(Boolean).join(" // ");
+  }
+
+  function readOperatorExport(payload) {
+    const isModern = payload && payload.exportType === "cradlepoint.operator";
+    const record = payload && (payload.operatorRecord || payload.record || payload.operator || {});
+    const status = payload && (payload.operatorStatus || payload.status || payload.consoleState?.operatorStatus || {});
+    const hasLegacyShape = record && typeof record === "object" && (record.designation || record.primaryFrequency || record.observerClassification);
+    const hasStatusShape = status && typeof status === "object" && (status.operatorName || status.designation || status.stability || status.lotus);
+    if (!isModern && !hasLegacyShape && !hasStatusShape) return null;
+
+    const lotus = status.lotus && typeof status.lotus === "object" ? status.lotus : {};
+    const pips = Object.entries(lotus)
+      .map(([name, value]) => [api.safeString(name, 40), Number(value || 0)])
+      .filter(([name, value]) => name && value > 0)
+      .map(([name, value]) => `${name} ${value}`)
+      .join(" // ");
+    const primaryFrequency = api.safeString(record.primaryFrequency || status.selectedLotusPetal || Object.keys(lotus).find((name) => Number(lotus[name] || 0) > 0), 80);
+    const operatorName = api.safeString(payload.operatorName || status.operatorName || record.operatorName || record.designation || status.designation || "Operator", 80);
+    const sourceId = api.safeString(payload.operatorId || record.id || record.operatorId || record.designation || status.designation || "", 120);
+    const stabilityBand = api.safeString(status.stabilityBand || status.stabilityState || "", 40);
+    const stabilityValue = api.safeString(status.stability, 20);
+    const stability = stabilityBand && stabilityValue ? `${stabilityBand} (${stabilityValue}/10)` : stabilityBand || stabilityValue;
+    const voidBreach = compactJoin([
+      status.voidBreach,
+      status.voidMarks ? `Void ${status.voidMarks}` : "",
+      status.breachPoints ? `Breach ${status.breachPoints}` : ""
+    ]);
+
+    return {
+      id: sourceId ? `operator-${slug(sourceId)}` : `operator-${slug(operatorName)}-${Date.now()}`,
+      sourceId,
+      name: operatorName,
+      stability,
+      harm: compactJoin([status.harm, status.harmBoxes ? `Harm ${status.harmBoxes}/5` : ""]),
+      misfire: compactJoin([status.activeMisfire, status.misfireSeverity && status.misfireSeverity !== "None" ? status.misfireSeverity : "", status.misfires]),
+      voidBreach,
+      anchors: compactJoin([status.anchorPerson, status.anchors, status.totemObject]),
+      emotionalState: compactJoin([status.emotionalState, status.attentionState]),
+      relationshipPressure: compactJoin([status.relationshipPressure, relationshipSummary(payload.relationships || payload.consoleState?.relationships)]),
+      primaryFrequency,
+      frequencyPips: pips,
+      sourceExportedAt: api.safeString(payload.exportedAt || payload.updatedAt || status.updatedAt, 80),
+      lastImported: new Date().toISOString()
+    };
+  }
+
+  function operatorIsBlank(operator) {
+    const defaultName = /^Operator \d+$/.test(api.safeString(operator.name, 80));
+    return (defaultName || !api.safeString(operator.name, 80))
+      && !["stability", "harm", "misfire", "voidBreach", "anchors", "emotionalState", "relationshipPressure", "primaryFrequency", "frequencyPips"].some((field) => api.safeString(operator[field], 180));
+  }
+
+  function upsertImportedOperator(summary) {
+    const sourceMatch = summary.sourceId
+      ? state.players.findIndex((operator) => operator.sourceId === summary.sourceId || operator.id === summary.id)
+      : -1;
+    if (sourceMatch >= 0) {
+      state.players[sourceMatch] = { ...state.players[sourceMatch], ...summary };
+      return "replaced";
+    }
+
+    const blankIndex = state.players.findIndex(operatorIsBlank);
+    if (blankIndex >= 0) {
+      state.players[blankIndex] = { ...state.players[blankIndex], ...summary };
+      return "accepted";
+    }
+
+    const nameMatch = state.players.findIndex((operator) => operator.name.toLowerCase() === summary.name.toLowerCase());
+    if (nameMatch >= 0) {
+      const replace = window.confirm(`Replace existing Operator summary for ${summary.name}?`);
+      if (!replace) return "skipped";
+      state.players[nameMatch] = { ...state.players[nameMatch], ...summary };
+      return "replaced";
+    }
+
+    state.players.push(summary);
+    return "accepted";
+  }
+
+  function renderImportResults(results) {
+    const node = document.getElementById("operator-import-results");
+    if (!node) return;
+    node.textContent = "";
+    results.forEach((result) => {
+      const line = document.createElement("p");
+      line.className = `import-result is-${result.action}`;
+      line.textContent = `${result.file}: ${result.action.toUpperCase()}${result.name ? ` - ${result.name}` : ""}`;
+      node.append(line);
+    });
+  }
+
+  function bindOperatorImport() {
+    const input = document.getElementById("import-operator-file");
+    if (!input) return;
+    input.addEventListener("change", async () => {
+      const files = Array.from(input.files || []);
+      if (!files.length) return;
+      const results = [];
+      for (const file of files) {
+        try {
+          const payload = JSON.parse(await file.text());
+          const summary = readOperatorExport(payload);
+          if (!summary) throw new Error("Not an Operator export.");
+          const action = upsertImportedOperator(summary);
+          results.push({ file: file.name, action, name: summary.name });
+        } catch (error) {
+          results.push({ file: file.name, action: "refused", name: error.message });
+        }
+      }
+      state = api.normalizeState(state);
+      writeState("OPERATOR IMPORTED");
+      renderOperators();
+      renderImportResults(results);
+      input.value = "";
+    });
+  }
+
   function syncForm() {
     document.querySelectorAll("[name]").forEach((input) => {
       const value = api.getPath(state, input.name);
@@ -160,8 +296,14 @@
           <label>Anchor Note<input data-operator="${index}" data-field="anchors" maxlength="180" /></label>
           <label>Void / Breach Notes<input data-operator="${index}" data-field="voidBreach" maxlength="180" /></label>
           <label>Current Emotional State<input data-operator="${index}" data-field="emotionalState" maxlength="160" /></label>
+          <label>Primary Frequency<input data-operator="${index}" data-field="primaryFrequency" maxlength="80" /></label>
+          <label>Frequency Pips<input data-operator="${index}" data-field="frequencyPips" maxlength="180" /></label>
         </div>
         <label>Relationship Pressure<input data-operator="${index}" data-field="relationshipPressure" maxlength="180" /></label>
+        <div class="import-meta">
+          <span>Source Timestamp: ${api.safeString(formatStamp(operator.sourceExportedAt), 80) || "Not imported"}</span>
+          <span>Last Imported: ${api.safeString(formatStamp(operator.lastImported), 80) || "Manual summary"}</span>
+        </div>
       `;
       grid.append(card);
     });
@@ -240,7 +382,7 @@
     const button = document.getElementById("add-operator");
     if (button) button.addEventListener("click", () => {
       const next = state.players.length + 1;
-      state.players.push({ id: `operator-${Date.now()}`, name: `Operator ${next}`, stability: "", harm: "", misfire: "", voidBreach: "", anchors: "", emotionalState: "", relationshipPressure: "" });
+      state.players.push({ id: `operator-${Date.now()}`, name: `Operator ${next}`, stability: "", harm: "", misfire: "", voidBreach: "", anchors: "", emotionalState: "", relationshipPressure: "", primaryFrequency: "", frequencyPips: "", sourceExportedAt: "", lastImported: "", sourceId: "" });
       writeState();
       renderOperators();
     });
@@ -319,6 +461,7 @@
 
   bindSimpleForm();
   bindDataControls();
+  bindOperatorImport();
   addNpcs();
   addOperators();
   addResidue();

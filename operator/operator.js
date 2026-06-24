@@ -1845,20 +1845,37 @@
 
     if (exportOperatorFile) exportOperatorFile.addEventListener("click", () => {
       operatorRecord = readOperatorRecord();
-      if (!operatorRecord) {
-        setStorageStatus("No operator file found. Complete intake or import an operator file first.", true);
+      const status = collectStatusPayload();
+      consoleState.operatorStatus = status;
+      writeConsoleState();
+      const operatorName = safeString(status.operatorName || operatorRecord?.designation || status.designation || "Operator", 120);
+      if (!operatorRecord && !operatorName) {
+        setStorageStatus("No operator sheet found. Complete intake or fill the Operator console first.", true);
         return;
       }
-      const blob = new Blob([JSON.stringify({ operatorRecord }, null, 2)], { type: "application/json" });
+      const exportedAt = nowStamp();
+      const exportId = safeString(operatorRecord?.id || status.operatorId || status.designation || operatorName, 120);
+      const payload = {
+        exportType: "cradlepoint.operator",
+        version: 1,
+        exportedAt,
+        operatorName,
+        operatorId: exportId,
+        source: "veildaemon.operatorConsole.v1",
+        operatorRecord: operatorRecord || null,
+        operatorStatus: status
+      };
+      const safeName = operatorName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "operator";
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `veildaemon-operator-file-${new Date().toISOString().slice(0, 10)}.json`;
+      link.download = `cradlepoint-operator-${safeName}-${exportedAt.slice(0, 10)}.json`;
       document.body.append(link);
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      setStorageStatus("Operator file exported.");
+      setStorageStatus("Operator JSON exported.");
     });
 
     if (exportButton) exportButton.addEventListener("click", () => {
