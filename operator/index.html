@@ -260,11 +260,12 @@
       <form class="console-form equipment-form" id="equipment-form">
         <label>Category<select name="category"><option>Optional Carry</option><option>Background Tool</option><option>Custom</option></select></label>
         <label>Equipment item<select name="item" id="equipment-preset"></select></label>
+        <label>Slot<select name="slot" id="equipment-slot"><option>No slot</option><option>Minor</option><option>Major</option></select></label>
         <label>Custom item<input name="customItem" type="text" maxlength="120" placeholder="Only if it is not in the list." /></label>
         <label>Why you have it<input name="reason" type="text" maxlength="180" placeholder="Background, scene, mistake, or Anchor logic." /></label>
         <button class="button primary" type="submit">Add Equipment</button>
       </form>
-      <p class="tracker-note">Default kit is already listed. Optional carry is usually one item. Background tools should be boring, plausible, and useful under pressure.</p>
+      <p class="tracker-note" id="equipment-cap-status">Major 0/3 // Minor 0/6. Default kit is already listed. Optional carry is usually one item.</p>
       <div class="entry-list" id="equipment-list"></div>
     </section>
 

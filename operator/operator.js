@@ -13,15 +13,15 @@
     updatedAt: "",
     cases: [],
     equipment: [
-      { id: "default-phone", category: "Default Kit", item: "Phone", reason: "Default kit", locked: true },
-      { id: "default-power", category: "Default Kit", item: "Charger or power bank", reason: "Default kit", locked: true },
-      { id: "default-flashlight", category: "Default Kit", item: "Flashlight", reason: "Default kit", locked: true },
-      { id: "default-notebook", category: "Default Kit", item: "Pen and notebook", reason: "Default kit", locked: true },
-      { id: "default-first-aid", category: "Default Kit", item: "Basic first-aid kit", reason: "Default kit", locked: true },
-      { id: "default-water", category: "Default Kit", item: "Water bottle", reason: "Default kit", locked: true },
-      { id: "default-carry", category: "Default Kit", item: "Backpack, messenger bag, or jacket pockets", reason: "Default kit", locked: true },
-      { id: "default-anchor", category: "Default Kit", item: "One personal Anchor item", reason: "Name it in Frequency notes", locked: true },
-      { id: "default-background", category: "Default Kit", item: "One practical tool tied to your background", reason: "Add the specific tool below", locked: true }
+      { id: "default-phone", category: "Default Kit", item: "Phone", slot: "No slot", reason: "Default kit", locked: true },
+      { id: "default-power", category: "Default Kit", item: "Charger or power bank", slot: "No slot", reason: "Default kit", locked: true },
+      { id: "default-flashlight", category: "Default Kit", item: "Flashlight", slot: "No slot", reason: "Default kit", locked: true },
+      { id: "default-notebook", category: "Default Kit", item: "Pen and notebook", slot: "No slot", reason: "Default kit", locked: true },
+      { id: "default-first-aid", category: "Default Kit", item: "Basic first-aid kit", slot: "No slot", reason: "Default kit", locked: true },
+      { id: "default-water", category: "Default Kit", item: "Water bottle", slot: "No slot", reason: "Default kit", locked: true },
+      { id: "default-carry", category: "Default Kit", item: "Backpack, messenger bag, or jacket pockets", slot: "No slot", reason: "Default kit", locked: true },
+      { id: "default-anchor", category: "Default Kit", item: "One personal Anchor item", slot: "No slot", reason: "Name it in Frequency notes", locked: true },
+      { id: "default-background", category: "Default Kit", item: "One practical tool tied to your background", slot: "No slot", reason: "Add the specific tool below", locked: true }
     ],
     operatorStatus: {
       stability: "10",
@@ -119,6 +119,7 @@
       "Pocket knife or multitool",
       "Pepper spray",
       "Handgun with one spare magazine",
+      "Basic flak jacket",
       "Work gloves",
       "Lighter",
       "Duct tape",
@@ -141,6 +142,41 @@
       "Driver: tire iron, roadside kit, maps"
     ],
     Custom: ["Custom item"]
+  };
+
+  const equipmentSlots = {
+    "Phone": "No slot",
+    "Charger or power bank": "No slot",
+    "Flashlight": "No slot",
+    "Pen and notebook": "No slot",
+    "Basic first-aid kit": "No slot",
+    "Water bottle": "No slot",
+    "Backpack, messenger bag, or jacket pockets": "No slot",
+    "One personal Anchor item": "No slot",
+    "One practical tool tied to your background": "No slot",
+    "Pocket knife or multitool": "Minor",
+    "Pepper spray": "Minor",
+    "Handgun with one spare magazine": "Minor",
+    "Basic flak jacket": "Major",
+    "Work gloves": "No slot",
+    "Lighter": "No slot",
+    "Duct tape": "Minor",
+    "Cheap audio recorder": "Minor",
+    "Camera": "Minor",
+    "Chalk or marker": "No slot",
+    "Basic lockpick set": "Minor",
+    "Laptop or tablet": "Minor",
+    "Religious, occult, or family keepsake": "No slot",
+    "Mechanic: socket wrench, jumper cables, work light": "Major",
+    "Nurse / EMT: better first-aid kit, gloves, trauma shears": "Minor",
+    "Student: laptop, school bag, campus ID": "Minor",
+    "Security: radio, flashlight, restraints": "Minor",
+    "Occultist: chalk, salt, candles, notebook": "Minor",
+    "Technician: toolkit, cables, diagnostic meter": "Major",
+    "Journalist: recorder, camera, press badge": "Minor",
+    "Parent: snacks, wipes, blanket, kid's toy": "Minor",
+    "Driver: tire iron, roadside kit, maps": "Major",
+    "Custom item": "Minor"
   };
 
   let consoleState = readConsoleState();
@@ -191,9 +227,15 @@
       id: safeString(item.id, 120) || `equipment-${index + 1}`,
       category: safeString(item.category, 80) || "Custom",
       item: safeString(item.item || item.name, 120),
+      slot: normalizeEquipmentSlot(item.slot || equipmentSlots[item.item || item.name]),
       reason: safeString(item.reason || item.notes, 220),
       locked: Boolean(item.locked)
     })).filter((item) => item.item);
+  }
+
+  function normalizeEquipmentSlot(value) {
+    const slot = safeString(value, 20);
+    return ["No slot", "Minor", "Major"].includes(slot) ? slot : "Minor";
   }
 
   function migrateOperatorStatus(status) {
@@ -366,6 +408,7 @@
     if (!form) return;
     const category = form.elements.category;
     const preset = document.getElementById("equipment-preset");
+    const slot = document.getElementById("equipment-slot");
     if (!category || !preset) return;
     const selected = category.value || "Optional Carry";
     preset.textContent = "";
@@ -375,6 +418,38 @@
       option.textContent = value;
       preset.append(option);
     });
+    if (slot) slot.value = equipmentSlots[preset.value] || "Minor";
+  }
+
+  function syncEquipmentSlot() {
+    const preset = document.getElementById("equipment-preset");
+    const slot = document.getElementById("equipment-slot");
+    if (!preset || !slot) return;
+    slot.value = equipmentSlots[preset.value] || slot.value || "Minor";
+  }
+
+  function equipmentCounts(extra) {
+    return [...consoleState.equipment, extra].filter(Boolean).reduce((counts, item) => {
+      const slot = normalizeEquipmentSlot(item.slot);
+      if (slot === "Major") counts.major += 1;
+      if (slot === "Minor") counts.minor += 1;
+      return counts;
+    }, { major: 0, minor: 0 });
+  }
+
+  function equipmentCapMessage(extra) {
+    const counts = equipmentCounts(extra);
+    if (counts.major > 3) return `Major item cap exceeded: ${counts.major}/3. Ask the Handler or leave something behind.`;
+    if (counts.minor > 6) return `Minor item cap exceeded: ${counts.minor}/6. Ask the Handler or leave something behind.`;
+    return "";
+  }
+
+  function renderEquipmentCapStatus() {
+    const status = document.getElementById("equipment-cap-status");
+    if (!status) return;
+    const counts = equipmentCounts();
+    status.textContent = `Major ${counts.major}/3 // Minor ${counts.minor}/6. Default kit is already listed. Optional carry is usually one item.`;
+    status.classList.toggle("is-error", counts.major > 3 || counts.minor > 6);
   }
 
   function renderStatusForm() {
@@ -1606,8 +1681,10 @@
     ]);
     renderList("equipment", "No equipment recorded.", (item) => item.item, (item) => [
       ["Category", item.category],
+      ["Slot", item.slot],
       ["Why you have it", item.reason]
     ]);
+    renderEquipmentCapStatus();
     renderList("anomalies", "No anomalies logged.", (item) => item.scene, (item) => [
       ["Impossible detail", item.detail],
       ["Severity", item.severity],
@@ -1656,6 +1733,7 @@
     });
     if (form.id === "equipment-form") {
       payload.item = payload.category === "Custom" && payload.customItem ? payload.customItem : payload.item;
+      payload.slot = normalizeEquipmentSlot(payload.slot || equipmentSlots[payload.item]);
       delete payload.customItem;
     }
     return payload;
@@ -1764,15 +1842,21 @@
     if (forms.equipment) {
       renderEquipmentPicker();
       forms.equipment.elements.category.addEventListener("change", renderEquipmentPicker);
+      forms.equipment.querySelector('[name="item"]').addEventListener("change", syncEquipmentSlot);
       forms.equipment.addEventListener("submit", (event) => {
         event.preventDefault();
-        const record = addEntry("equipment", forms.equipment);
-        if (!record.item) {
-          consoleState.equipment = consoleState.equipment.filter((item) => item.id !== record.id);
-          writeConsoleState();
-          renderAll();
+        const payload = formPayload(forms.equipment);
+        if (!payload.item) {
           setStorageStatus("Choose or name an equipment item first.", true);
+          return;
         }
+        const capMessage = equipmentCapMessage(payload);
+        if (capMessage) {
+          setStorageStatus(capMessage, true);
+          renderEquipmentCapStatus();
+          return;
+        }
+        addEntry("equipment", forms.equipment);
       });
     }
     if (forms.anomalies) forms.anomalies.addEventListener("submit", (event) => {
