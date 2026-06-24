@@ -215,7 +215,12 @@
         voidBreach: "",
         anchors: "",
         emotionalState: "",
-        relationshipPressure: ""
+        relationshipPressure: "",
+        primaryFrequency: "",
+        frequencyPips: "",
+        sourceExportedAt: "",
+        lastImported: "",
+        sourceId: ""
       }
     ],
     caseFile: {
@@ -370,7 +375,12 @@
       voidBreach: safeString(player.voidBreach, 180),
       anchors: safeString(player.anchors, 180),
       emotionalState: safeString(player.emotionalState, 160),
-      relationshipPressure: safeString(player.relationshipPressure, 180)
+      relationshipPressure: safeString(player.relationshipPressure, 180),
+      primaryFrequency: safeString(player.primaryFrequency, 80),
+      frequencyPips: safeString(player.frequencyPips, 180),
+      sourceExportedAt: safeString(player.sourceExportedAt, 80),
+      lastImported: safeString(player.lastImported, 80),
+      sourceId: safeString(player.sourceId, 120)
     }));
   }
 

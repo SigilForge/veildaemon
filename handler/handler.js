@@ -124,8 +124,11 @@
           <label>Void / Breach Notes<input data-player="${index}" data-field="voidBreach" maxlength="180" /></label>
           <label>Anchors<input data-player="${index}" data-field="anchors" maxlength="180" /></label>
           <label>Current Emotional State<input data-player="${index}" data-field="emotionalState" maxlength="160" /></label>
+          <label>Primary Frequency<input data-player="${index}" data-field="primaryFrequency" maxlength="80" /></label>
+          <label>Frequency Pips<input data-player="${index}" data-field="frequencyPips" maxlength="180" /></label>
         </div>
         <label>Relationship Pressure<input data-player="${index}" data-field="relationshipPressure" maxlength="180" /></label>
+        <p class="helper-copy">Last Imported: ${api.safeString(player.lastImported ? player.lastImported.slice(0, 10) : "", 80) || "Manual summary"}</p>
       `;
       grid.append(card);
     });
@@ -265,7 +268,12 @@
         voidBreach: "",
         anchors: "",
         emotionalState: "",
-        relationshipPressure: ""
+        relationshipPressure: "",
+        primaryFrequency: "",
+        frequencyPips: "",
+        sourceExportedAt: "",
+        lastImported: "",
+        sourceId: ""
       });
       writeState();
       renderPlayers();

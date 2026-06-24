@@ -477,6 +477,35 @@ select:focus {
   background: rgba(0,0,0,.2);
 }
 
+.import-results {
+  display: grid;
+  gap: .35rem;
+  margin: .65rem 0;
+}
+
+.import-result,
+.import-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: .68rem;
+  line-height: 1.4;
+}
+
+.import-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem .75rem;
+}
+
+.import-result.is-refused {
+  color: #ffd8e4;
+}
+
+.import-result.is-accepted,
+.import-result.is-replaced {
+  color: var(--mint);
+}
+
 .player-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

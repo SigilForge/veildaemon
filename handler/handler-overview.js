@@ -86,7 +86,7 @@
     list.textContent = "";
     state.players.slice(0, 6).forEach((operator) => {
       const row = document.createElement("p");
-      row.innerHTML = `<strong>${api.safeString(operator.name || "Operator", 80)}</strong><span>${api.safeString([operator.stability, operator.harm, operator.misfire].filter(Boolean).join(" // "), 180) || "No table summary."}</span><em>${api.safeString(operator.anchors, 120) || "Anchor pending"}</em>`;
+      row.innerHTML = `<strong>${api.safeString(operator.name || "Operator", 80)}</strong><span>${api.safeString([operator.stability, operator.harm, operator.misfire, operator.primaryFrequency].filter(Boolean).join(" // "), 220) || "No table summary."}</span><em>${api.safeString(operator.lastImported ? `Imported ${operator.lastImported.slice(0, 10)}` : operator.anchors, 120) || "Anchor pending"}</em>`;
       list.append(row);
     });
   }
