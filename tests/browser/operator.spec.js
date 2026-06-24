@@ -127,6 +127,7 @@ test("operator equipment supports default kit and selectable carry", async ({ pa
 
   await page.getByLabel("Category").selectOption("Optional Carry");
   await page.getByLabel("Equipment item").selectOption("Chalk or marker");
+  await expect(page.getByLabel("Slot")).toHaveValue("No slot");
   await page.getByLabel("Why you have it").fill("Marks doors that keep lying.");
   await page.getByRole("button", { name: "Add Equipment" }).click();
   await expect(page.locator("#equipment-list")).toContainText("Chalk or marker");
@@ -134,8 +135,29 @@ test("operator equipment supports default kit and selectable carry", async ({ pa
 
   await page.getByLabel("Category").selectOption("Background Tool");
   await page.getByLabel("Equipment item").selectOption("Technician: toolkit, cables, diagnostic meter");
+  await expect(page.getByLabel("Slot")).toHaveValue("Major");
   await page.getByRole("button", { name: "Add Equipment" }).click();
   await expect(page.locator("#equipment-list")).toContainText("Technician: toolkit, cables, diagnostic meter");
+  await expect(page.locator("#equipment-cap-status")).toContainText("Major 1/3");
+
+  await page.getByLabel("Category").selectOption("Optional Carry");
+  await page.getByLabel("Equipment item").selectOption("Basic flak jacket");
+  await expect(page.getByLabel("Slot")).toHaveValue("Major");
+  await page.getByRole("button", { name: "Add Equipment" }).click();
+  await expect(page.locator("#equipment-list")).toContainText("Basic flak jacket");
+  await expect(page.locator("#equipment-cap-status")).toContainText("Major 2/3");
+
+  const minorItems = ["Pocket knife or multitool", "Pepper spray", "Handgun with one spare magazine", "Duct tape", "Cheap audio recorder", "Camera"];
+  for (const item of minorItems) {
+    await page.getByLabel("Equipment item").selectOption(item);
+    await expect(page.getByLabel("Slot")).toHaveValue("Minor");
+    await page.getByRole("button", { name: "Add Equipment" }).click();
+  }
+  await expect(page.locator("#equipment-cap-status")).toContainText("Minor 6/6");
+  await page.getByLabel("Equipment item").selectOption("Basic lockpick set");
+  await page.getByRole("button", { name: "Add Equipment" }).click();
+  await expect(page.locator("#storage-status")).toContainText("Minor item cap exceeded");
+  await expect(page.locator("#equipment-list")).not.toContainText("Basic lockpick set");
 });
 
 test("creation bonus breach refunds when attributes are lowered", async ({ page }) => {
