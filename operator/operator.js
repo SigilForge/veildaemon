@@ -12,6 +12,8 @@
     createdAt: "",
     updatedAt: "",
     cases: [],
+    unlocks: [],
+    appliedUnlocks: [],
     equipment: [
       { id: "default-phone", category: "Default Kit", item: "Phone", slot: "No slot", reason: "Default kit", locked: true },
       { id: "default-power", category: "Default Kit", item: "Charger or power bank", slot: "No slot", reason: "Default kit", locked: true },
@@ -31,6 +33,8 @@
       designation: "",
       role: "Operator",
       activeNeedlepoint: "",
+      background: "",
+      ontologyPresentation: "",
       creationMode: false,
       harm: "None recorded",
       harmBoxes: "0",
@@ -210,6 +214,8 @@
       createdAt: safeString(state.createdAt) || now,
       updatedAt: safeString(state.updatedAt) || now,
       cases: normalizeArray(state.cases),
+      unlocks: normalizeUnlocks(state.unlocks),
+      appliedUnlocks: normalizeArray(state.appliedUnlocks).map((value) => safeString(value, 120)).filter(Boolean),
       equipment: normalizeEquipment(hasEquipment ? state.equipment : fallback.equipment),
       operatorStatus: migrateOperatorStatus({
         ...fallback.operatorStatus,
@@ -236,6 +242,25 @@
   function normalizeEquipmentSlot(value) {
     const slot = safeString(value, 20);
     return ["No slot", "Minor", "Major"].includes(slot) ? slot : "Minor";
+  }
+
+  function normalizeUnlocks(value) {
+    const list = Array.isArray(value) ? value : [];
+    return list.slice(0, 40).map((item, index) => ({
+      id: safeString(item.id, 120) || `unlock-${index + 1}`,
+      type: normalizeUnlockType(item.type),
+      key: safeString(item.key, 80).toUpperCase().replace(/[^A-Z0-9_]+/g, "_"),
+      label: safeString(item.label, 120),
+      note: safeString(item.note, 1000),
+      importedAt: safeString(item.importedAt, 80) || nowStamp(),
+      applied: Boolean(item.applied)
+    })).filter((item) => item.type && item.key);
+  }
+
+  function normalizeUnlockType(value) {
+    const type = safeString(value, 40).toLowerCase();
+    if (["ontology", "background", "case"].includes(type)) return type;
+    return "";
   }
 
   function migrateOperatorStatus(status) {
@@ -452,12 +477,129 @@
     status.classList.toggle("is-error", counts.major > 3 || counts.minor > 6);
   }
 
+  function renderAuthorization() {
+    const backgroundUnlocks = consoleState.unlocks.filter((item) => item.type === "background");
+    const ontologyUnlocks = consoleState.unlocks.filter((item) => item.type === "ontology");
+    toggleUnlockPanel("background", backgroundUnlocks.length > 0);
+    toggleUnlockPanel("ontology", ontologyUnlocks.length > 0);
+    renderUnlockList("background", backgroundUnlocks);
+    renderUnlockList("ontology", ontologyUnlocks);
+  }
+
+  function toggleUnlockPanel(kind, enabled) {
+    document.querySelectorAll(`[data-unlock-tab="${kind}"], [data-unlock-panel="${kind}"]`).forEach((node) => {
+      node.hidden = !enabled;
+    });
+  }
+
+  function renderUnlockList(kind, unlocks) {
+    const notice = document.getElementById(`${kind}-unlock-notice`);
+    const list = document.getElementById(`${kind}-unlock-list`);
+    if (!list) return;
+    list.textContent = "";
+    if (notice) {
+      notice.textContent = unlocks.length
+        ? authorizationNotice(kind, unlocks[0])
+        : `No ${kind} authorization packet imported.`;
+    }
+    unlocks.forEach((unlock) => {
+      list.append(entry(unlock.label || unlock.key, [
+        ["Authorization", `${unlock.type.toUpperCase()}_UNLOCK:${unlock.key}`],
+        ["Status", unlock.applied ? "Applied" : "Available"],
+        ["Handler note", unlock.note],
+        ["Imported", formatDate(unlock.importedAt)]
+      ], "unlocks", unlock.id));
+    });
+  }
+
+  function authorizationNotice(kind, unlock) {
+    if (kind === "ontology") {
+      return unlock.note || "NEW ONTOLOGY SIGNAL DETECTED\n\nHandler authorization received.\n\nSanguine Presentation available for review.";
+    }
+    return unlock.note || "BACKGROUND AUTHORIZATION RECEIVED\n\nHandler authorization received.\n\nNew origin thread available for review.";
+  }
+
+  function parseAuthorizationPacket(text) {
+    let payload = null;
+    try {
+      payload = JSON.parse(text);
+    } catch (error) {
+      payload = null;
+    }
+    const note = safeString(payload?.note || payload?.handlerNote, 1000);
+    const rawFlags = Array.isArray(payload?.flags)
+      ? payload.flags
+      : Array.isArray(payload?.unlocks)
+        ? payload.unlocks.map((item) => item.flag || `${String(item.type || "").toUpperCase()}_UNLOCK:${item.key || item.value || ""}`)
+        : [];
+    const source = rawFlags.length ? rawFlags.join("\n") : text;
+    const matches = Array.from(source.matchAll(/\b(ONTOLOGY|BACKGROUND|CASE)_UNLOCK\s*:\s*([A-Z0-9_ -]+)/gi));
+    return matches.map((match) => {
+      const type = match[1].toLowerCase();
+      const key = safeString(match[2], 80).toUpperCase().replace(/[^A-Z0-9_]+/g, "_").replace(/^_|_$/g, "");
+      return {
+        id: `${type}-${key.toLowerCase()}-${Date.now()}`,
+        type,
+        key,
+        label: unlockLabel(type, key),
+        note,
+        importedAt: nowStamp(),
+        applied: false
+      };
+    }).filter((item) => item.type && item.key);
+  }
+
+  function unlockLabel(type, key) {
+    if (type === "ontology" && key === "SANGUINE") return "Sanguine Presentation";
+    if (type === "background" && key === "FIELD_MEDIC") return "Field Medic";
+    if (type === "case" && key === "NEEDLEPOINT_SURVIVOR") return "Needlepoint Survivor";
+    return key.split("_").map((part) => part.charAt(0) + part.slice(1).toLowerCase()).join(" ");
+  }
+
+  function mergeUnlocks(unlocks) {
+    let added = 0;
+    unlocks.forEach((unlock) => {
+      const existing = consoleState.unlocks.find((item) => item.type === unlock.type && item.key === unlock.key);
+      if (existing) {
+        existing.note = unlock.note || existing.note;
+        existing.importedAt = unlock.importedAt;
+        return;
+      }
+      consoleState.unlocks.push(unlock);
+      added += 1;
+    });
+    return added;
+  }
+
+  function applyUnlockEffects() {
+    consoleState.unlocks.forEach((unlock) => {
+      const key = `${unlock.type}:${unlock.key}`;
+      if (consoleState.appliedUnlocks.includes(key)) {
+        unlock.applied = true;
+        return;
+      }
+      if (unlock.type === "background" && unlock.key === "FIELD_MEDIC") {
+        consoleState.operatorStatus.background = "Field Medic";
+        const skills = normalizeSkills(consoleState.operatorStatus.skills);
+        skills.Medicine = String(Math.min(5, Number(skills.Medicine || 0) + 1));
+        consoleState.operatorStatus.skills = skills;
+        unlock.applied = true;
+        consoleState.appliedUnlocks.push(key);
+      }
+      if (unlock.type === "ontology" && unlock.key === "SANGUINE") {
+        consoleState.operatorStatus.ontologyPresentation = "Sanguine";
+      }
+    });
+  }
+
   function renderStatusForm() {
     const status = consoleState.operatorStatus;
     setNamedValue("operatorName", status.operatorName || "");
     setNamedValue("designation", status.designation || operatorRecord?.designation || "");
     setNamedValue("role", status.role || "Operator");
     setNamedValue("activeNeedlepoint", status.activeNeedlepoint || "");
+    setNamedValue("background", status.background || "");
+    setNamedValue("ontologyPresentation", status.ontologyPresentation || "");
     consoleState.operatorStatus.creationMode = Boolean(status.creationMode);
     consoleState.operatorStatus.stability = normalizeStabilityValue(status.stability);
     consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(consoleState.operatorStatus.stability);
@@ -1707,6 +1849,7 @@
       ["Mundane record", item.mundaneRecord],
       ["Recovery opening", item.recoveryOpening]
     ]);
+    renderAuthorization();
     setStorageStatus("Local console record held in this browser.");
   }
 
@@ -2036,6 +2179,7 @@
     const exportOperatorFile = document.getElementById("export-operator-file");
     const exportButton = document.getElementById("export-console");
     const importInput = document.getElementById("import-console");
+    const importAuthorization = document.getElementById("import-authorization");
     const purgeButton = document.getElementById("purge-console");
 
     if (exportOperatorFile) exportOperatorFile.addEventListener("click", () => {
@@ -2098,6 +2242,26 @@
         setStorageStatus("Import refused. File did not match console record shape.", true);
       } finally {
         importInput.value = "";
+      }
+    });
+
+    if (importAuthorization) importAuthorization.addEventListener("change", async () => {
+      const file = importAuthorization.files && importAuthorization.files[0];
+      if (!file) return;
+      try {
+        const unlocks = parseAuthorizationPacket(await file.text());
+        if (!unlocks.length) throw new Error("No unlock flags found.");
+        const added = mergeUnlocks(unlocks);
+        applyUnlockEffects();
+        consoleState = normalizeConsoleState(consoleState);
+        writeConsoleState();
+        renderAll();
+        const ontology = unlocks.find((item) => item.type === "ontology");
+        setStorageStatus(ontology ? "NEW ONTOLOGY SIGNAL DETECTED" : `${added || unlocks.length} authorization flag processed.`);
+      } catch (error) {
+        setStorageStatus("Authorization refused. No valid unlock flags found.", true);
+      } finally {
+        importAuthorization.value = "";
       }
     });
 

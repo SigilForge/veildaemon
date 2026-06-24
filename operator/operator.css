@@ -874,6 +874,16 @@ a:focus-visible {
   margin: 0;
 }
 
+.authorization-notice {
+  margin-bottom: .85rem;
+  padding: .85rem;
+  border: 1px solid rgba(185,84,255,.3);
+  background: rgba(26,4,37,.26);
+  color: var(--text);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
 .console-entry {
   padding: .9rem;
   border: 1px solid rgba(137,255,218,.18);
