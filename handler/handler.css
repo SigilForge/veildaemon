@@ -293,6 +293,7 @@ h2 {
 
 .field-grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .field-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.field-grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .field-grid.five { grid-template-columns: 1.15fr .42fr .42fr 1.35fr 1.05fr; }
 
 input,
@@ -498,6 +499,92 @@ select:focus {
   border-color: rgba(185,84,255,.3);
 }
 
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .75rem;
+  margin-top: .75rem;
+}
+
+.overview-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: .75rem;
+  min-height: 18rem;
+  min-width: 0;
+  padding: .85rem;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(8,12,14,.94), rgba(5,7,9,.88)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 1px, transparent 1px 8px);
+  box-shadow: 0 18px 60px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.05);
+}
+
+.overview-card:first-child {
+  grid-column: span 2;
+}
+
+.overview-readouts,
+.overview-list {
+  display: grid;
+  gap: .5rem;
+  align-content: start;
+}
+
+.overview-readouts p,
+.overview-list p {
+  display: grid;
+  gap: .25rem;
+  margin: 0;
+  min-width: 0;
+  padding: .55rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.22);
+}
+
+.overview-readouts strong,
+.overview-list strong {
+  color: var(--cyan);
+  font-size: .64rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.overview-readouts span,
+.overview-list span,
+.overview-list em {
+  color: var(--text);
+  font-size: .78rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  font-style: normal;
+}
+
+.overview-list em {
+  color: var(--muted);
+  font-size: .68rem;
+  text-transform: uppercase;
+}
+
+.flag-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: .35rem;
+  margin: 0;
+  padding: .55rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.18);
+}
+
+.flag-grid label {
+  display: flex;
+  gap: .35rem;
+  align-items: center;
+  color: var(--text);
+  font-size: .64rem;
+  letter-spacing: .04em;
+}
+
 .player-view {
   margin-top: .75rem;
   padding: .85rem;
@@ -513,7 +600,9 @@ body.is-player-view .private-panel {
 
 @media (max-width: 1100px) {
   .dashboard-form,
+  .overview-grid,
   .field-grid.three,
+  .field-grid.four,
   .field-grid.five,
   .loop-grid,
   .roll-row,
@@ -528,8 +617,13 @@ body.is-player-view .private-panel {
   }
 
   .scene-state-row,
-  .status-strip {
+  .status-strip,
+  .flag-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .overview-card:first-child {
+    grid-column: auto;
   }
 }
 
@@ -557,6 +651,8 @@ body.is-player-view .private-panel {
 
   .scene-state-row,
   .status-strip,
+  .overview-grid,
+  .flag-grid,
   .field-grid.two {
     grid-template-columns: 1fr;
   }

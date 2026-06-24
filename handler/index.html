@@ -3,197 +3,151 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VEILDAEMON // Handler Dashboard</title>
-  <meta name="description" content="Local-only Handler dashboard for running Cradlepoint Needlepoints from one screen." />
+  <title>VEILDAEMON // Handler Overview Console</title>
+  <meta name="description" content="Local-first Handler overview console for Cradlepoint Needlepoints, clocks, NPCs, entities, residue, and safe table display." />
   <meta name="robots" content="noindex, nofollow" />
   <meta name="theme-color" content="#050709" />
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./handler.css?v=20260624-handler1" />
+  <link rel="stylesheet" href="./handler.css?v=20260624-handler2" />
 </head>
-<body class="handler-surface">
+<body class="handler-surface overview-surface">
   <div class="noise" aria-hidden="true"></div>
-  <main class="handler-shell" aria-label="Handler dashboard">
+  <main class="handler-shell" aria-label="Handler overview console">
     <header class="handler-header">
       <div class="seal-wrap">
         <img src="../assets/veilcorp-avatar.png" alt="VeilCorp sigil" class="seal" />
       </div>
       <div>
         <p class="kicker">VEILDAEMON.APP // HANDLER CONSOLE</p>
-        <h1>HANDLER DASHBOARD</h1>
-        <p class="subhead">One Scene State. One Clock. One Loop. One Room Answer. Local record only.</p>
+        <h1>HANDLER OVERVIEW</h1>
+        <p class="subhead">Live case control, modular drill-downs, local record only.</p>
       </div>
-      <div class="header-actions no-print">
-        <label class="toggle-line"><input id="player-view-toggle" type="checkbox" /> Player View</label>
-        <button class="button" id="print-dashboard" type="button">Print</button>
-      </div>
+      <nav class="header-actions no-print" aria-label="Handler routes">
+        <a class="button primary" href="./live/">Open Live Dashboard</a>
+        <a class="button ghost" href="../">Return Home</a>
+      </nav>
     </header>
 
-    <section class="status-strip" aria-label="Dashboard status">
-      <div><span>Terminology</span><strong>Handler Exterior</strong></div>
+    <section class="status-strip" aria-label="Handler status">
+      <div><span>Terminology</span><strong>Handler</strong></div>
       <div><span>Core Roll</span><strong>3d6 + Attribute + Skill</strong></div>
       <div><span>Tracking Limit</span><strong>3-5 Live Items</strong></div>
       <div><span>Storage</span><strong id="storage-status">LOCAL READY</strong></div>
     </section>
 
-    <section class="control-bar no-print" aria-label="Dashboard controls">
+    <section class="control-bar no-print" aria-label="Overview controls">
       <label>Template<select id="template-picker"></select></label>
       <button class="button primary" id="apply-template" type="button">Apply Template</button>
       <button class="button" id="export-case" type="button">Export JSON</button>
       <label class="button file-button">Import JSON<input id="import-case" type="file" accept="application/json" /></label>
       <button class="button danger" id="reset-dashboard" type="button">Reset Local</button>
-      <a class="button ghost" href="../operator/">Operator Node</a>
-      <a class="button ghost" href="../">Return Home</a>
     </section>
 
-    <form class="dashboard-form" id="handler-form">
-      <section class="panel case-panel" aria-label="Session case location">
+    <section class="overview-grid" aria-label="Handler subsystem overview">
+      <article class="overview-card">
         <div class="panel-heading">
-          <p class="kicker">CASE HEADER</p>
-          <h2>Session / Case / Location</h2>
+          <p class="kicker">LIVE DASHBOARD</p>
+          <h2>Scene, Clock, Loop, Room Answer</h2>
         </div>
-        <div class="field-grid three">
-          <label>Session<input name="session.title" maxlength="120" autocomplete="off" /></label>
-          <label>Case<input name="session.caseTitle" maxlength="120" autocomplete="off" /></label>
-          <label>Location<input name="session.location" maxlength="160" autocomplete="off" /></label>
+        <div class="overview-readouts">
+          <p><strong>Scene State</strong><span id="overview-scene-state">Stable</span></p>
+          <p><strong>Primary Clock</strong><span id="overview-primary-clock">0/6</span></p>
+          <p><strong>Entity / Zone</strong><span id="overview-loop-summary">Need / Pressure / Exit pending.</span></p>
+          <p><strong>Room Answer</strong><span id="overview-room-answer">Object, feeling, consequence pending.</span></p>
         </div>
-        <label>Public scene label<input name="session.safeSceneLabel" maxlength="160" autocomplete="off" /></label>
-      </section>
+        <a class="button primary" href="./live/">Open Live Dashboard</a>
+      </article>
 
-      <section class="panel scene-panel" aria-label="Active scene state">
+      <article class="overview-card">
         <div class="panel-heading">
-          <p class="kicker">ACTIVE SCENE STATE</p>
-          <h2>Track the room, not the ontology.</h2>
+          <p class="kicker">NPCS</p>
+          <h2>Active people in the pressure field</h2>
         </div>
-        <div class="scene-state-row" id="scene-state-row" role="group" aria-label="Scene State"></div>
-        <input name="sceneState.current" type="hidden" />
-        <label>Primary consequence<input name="sceneState.primaryConsequence" maxlength="220" autocomplete="off" /></label>
-      </section>
+        <div class="overview-list" id="overview-npcs"></div>
+        <a class="button primary" href="./npcs/">Manage NPCs</a>
+      </article>
 
-      <section class="panel clock-panel" aria-label="Primary clock">
+      <article class="overview-card">
         <div class="panel-heading">
-          <p class="kicker">PRIMARY CLOCK</p>
-          <h2>What is ticking right now?</h2>
+          <p class="kicker">ENTITIES / ZONES</p>
+          <h2>Need, Pressure, Exit</h2>
         </div>
-        <div class="field-grid five">
-          <label>Name<input name="primaryClock.name" maxlength="100" autocomplete="off" /></label>
-          <label>Segments<select name="primaryClock.segments"><option>4</option><option selected>6</option><option>8</option></select></label>
-          <label>Current<input name="primaryClock.current" type="number" min="0" max="12" step="1" /></label>
-          <label>Ticks When<input name="primaryClock.ticksWhen" maxlength="180" autocomplete="off" /></label>
-          <label>Stabilizer<input name="primaryClock.stabilizer" maxlength="160" autocomplete="off" /></label>
+        <div class="overview-readouts">
+          <p><strong>Active</strong><span id="overview-entity-active">No active Entity or Zone.</span></p>
+          <p><strong>Pressure</strong><span id="overview-entity-pressure">Pressure pending.</span></p>
+          <p><strong>Exit</strong><span id="overview-entity-exit">Exit pending.</span></p>
+          <p><strong>Escalation</strong><span id="overview-entity-state">Stable</span></p>
         </div>
-        <div class="clock-track" id="primary-clock-track" aria-label="Primary clock segments"></div>
-        <div class="field-grid two">
-          <label>Midpoint Event<textarea name="primaryClock.midpointEvent" rows="3"></textarea></label>
-          <label>Full Clock Event<textarea name="primaryClock.fullClockEvent" rows="3"></textarea></label>
-        </div>
-      </section>
+        <a class="button primary" href="./entities/">Open Entity Library</a>
+      </article>
 
-      <section class="panel loop-panel" aria-label="Entity or Zone Loop">
+      <article class="overview-card">
         <div class="panel-heading">
-          <p class="kicker">ENTITY / ZONE LOOP</p>
-          <h2>Need -> Lure -> Pressure -> Gift -> Violence -> Exit</h2>
+          <p class="kicker">CLOCKS</p>
+          <h2>Warnings and live progress</h2>
         </div>
-        <div class="loop-grid" id="entity-loop-grid"></div>
-      </section>
+        <div class="overview-readouts">
+          <p><strong>Primary</strong><span id="overview-clock-primary">0/6</span></p>
+          <p><strong>Secondary</strong><span id="overview-clock-secondary">Disabled</span></p>
+          <p><strong>Next Warning</strong><span id="overview-clock-warning">No warning.</span></p>
+        </div>
+        <a class="button primary" href="./clocks/">Manage Clocks</a>
+      </article>
 
-      <section class="panel aftermath-panel" aria-label="Attention and Aftermath">
+      <article class="overview-card">
         <div class="panel-heading">
-          <p class="kicker">ATTENTION / AFTERMATH</p>
-          <h2>What follows them home?</h2>
+          <p class="kicker">CASES / NEEDLEPOINTS</p>
+          <h2>Case file and next beat</h2>
         </div>
-        <div class="field-grid three">
-          <label>Current Attention<select name="attention.current"></select></label>
-          <label>Residue<input name="attention.residue" maxlength="180" autocomplete="off" /></label>
-          <label>Follows Them Home<input name="attention.followsHome" maxlength="180" autocomplete="off" /></label>
+        <div class="overview-readouts">
+          <p><strong>Current Case</strong><span id="overview-case">No case selected.</span></p>
+          <p><strong>Location</strong><span id="overview-location">No location.</span></p>
+          <p><strong>Next Clue</strong><span id="overview-next-clue">No clue staged.</span></p>
+          <p><strong>Next Pressure Beat</strong><span id="overview-next-pressure">No beat staged.</span></p>
         </div>
-      </section>
+        <a class="button primary" href="./cases/">Open Case File</a>
+      </article>
 
-      <section class="panel secondary-panel no-print" aria-label="Optional secondary clock">
-        <details id="secondary-clock-details">
-          <summary>Optional Secondary Clock</summary>
-          <div class="field-grid five">
-            <label>Show<input name="secondaryClock.enabled" type="checkbox" /></label>
-            <label>Name<input name="secondaryClock.name" maxlength="100" autocomplete="off" /></label>
-            <label>Segments<select name="secondaryClock.segments"><option>4</option><option selected>6</option><option>8</option></select></label>
-            <label>Current<input name="secondaryClock.current" type="number" min="0" max="12" step="1" /></label>
-            <label>Decision It Changes<input name="secondaryClock.liveDecision" maxlength="180" autocomplete="off" /></label>
-          </div>
-          <div class="clock-track compact" id="secondary-clock-track" aria-label="Secondary clock segments"></div>
-        </details>
-      </section>
-
-      <section class="panel helper-panel" aria-label="Room Answer helper">
+      <article class="overview-card">
         <div class="panel-heading">
-          <p class="kicker">ROOM ANSWER</p>
-          <h2>Ordinary object. Emotional input. Consequence.</h2>
+          <p class="kicker">RESIDUE / AFTERMATH</p>
+          <h2>Attention, follows-home, consequences</h2>
         </div>
-        <div class="field-grid three">
-          <label>Ordinary Object<input name="roomAnswer.object" maxlength="130" autocomplete="off" /></label>
-          <label>Emotional Input<input name="roomAnswer.emotionalInput" maxlength="130" autocomplete="off" /></label>
-          <label>Consequence<input name="roomAnswer.consequence" maxlength="200" autocomplete="off" /></label>
+        <div class="overview-readouts">
+          <p><strong>Attention</strong><span id="overview-attention">Unseen</span></p>
+          <p><strong>Residue</strong><span id="overview-residue">None logged.</span></p>
+          <p><strong>Follows Home</strong><span id="overview-follows-home">None logged.</span></p>
+          <p><strong>Unresolved</strong><span id="overview-unresolved">No unresolved consequences.</span></p>
         </div>
-        <p class="helper-copy" id="room-answer-preview">The room is waiting for an object, a feeling, and a cost.</p>
-      </section>
+        <a class="button primary" href="./residue/">Open Residue Log</a>
+      </article>
 
-      <section class="panel roll-panel" aria-label="Quick roll helper">
-        <div class="panel-heading">
-          <p class="kicker">QUICK ROLL</p>
-          <h2>Standard Operator tests stay 3d6 + Attribute + Skill.</h2>
-        </div>
-        <div class="roll-row">
-          <label>Attribute<input name="roll.attribute" type="number" min="0" max="8" step="1" /></label>
-          <label>Skill<input name="roll.skill" type="number" min="0" max="8" step="1" /></label>
-          <label>Modifier<input name="roll.modifier" type="number" min="-10" max="10" step="1" /></label>
-          <fieldset class="roll-mode">
-            <label><input name="roll.advantage" type="checkbox" /> Advantage</label>
-            <label><input name="roll.disadvantage" type="checkbox" /> Disadvantage</label>
-          </fieldset>
-          <button class="button primary" id="roll-button" type="button">Roll 3d6</button>
-        </div>
-        <output class="roll-output" id="roll-output">Awaiting Operator test.</output>
-      </section>
-
-      <section class="panel player-panel" aria-label="Player tracker summary">
+      <article class="overview-card">
         <div class="panel-heading">
           <p class="kicker">OPERATOR SUMMARY</p>
-          <h2>Read-only compact trackers. Operators own their sheets.</h2>
+          <h2>Handler-side compact view</h2>
         </div>
-        <div class="player-toolbar no-print">
-          <button class="button" id="add-player" type="button">Add Operator</button>
-          <p>Summary fields only: Stability, Harm, Misfire, Void/Breach notes, Anchors, emotional state, relationship pressure.</p>
-        </div>
-        <div class="player-grid" id="player-grid"></div>
-      </section>
+        <div class="overview-list" id="overview-operators"></div>
+        <a class="button primary" href="./operators/">View Operator Summaries</a>
+      </article>
 
-      <section class="panel notes-panel private-panel" aria-label="Handler notes">
+      <article class="overview-card">
         <div class="panel-heading">
-          <p class="kicker">PRIVATE HANDLER NOTES</p>
-          <h2>Clues, consequences, residue log.</h2>
+          <p class="kicker">PLAYER VIEW</p>
+          <h2>Safe table-facing display</h2>
         </div>
-        <div class="field-grid three">
-          <label>Private Notes<textarea name="handlerNotes.privateNotes" rows="6"></textarea></label>
-          <label>Clue List<textarea name="handlerNotes.clueList" rows="6"></textarea></label>
-          <label>Consequence Queue<textarea name="handlerNotes.consequenceQueue" rows="6"></textarea></label>
+        <div class="overview-readouts">
+          <p><strong>Scene</strong><span id="overview-player-scene">Scene pending.</span></p>
+          <p><strong>Clock</strong><span id="overview-player-clock">Clock pending.</span></p>
+          <p><strong>Visible Consequence</strong><span id="overview-player-consequence">Watch the room.</span></p>
         </div>
-        <label>Residue Log<textarea name="handlerNotes.residueLog" rows="4"></textarea></label>
-      </section>
-    </form>
-
-    <section class="player-view" id="player-view" aria-label="Player-facing display" hidden>
-      <div class="panel-heading">
-        <p class="kicker">PLAYER VIEW // SAFE DISPLAY</p>
-        <h2 id="player-view-title">Scene pending.</h2>
-      </div>
-      <div class="status-strip">
-        <div><span>Scene</span><strong id="player-view-scene">UNSET</strong></div>
-        <div><span>State</span><strong id="player-view-state">STABLE</strong></div>
-        <div><span>Clock</span><strong id="player-view-clock">UNNAMED</strong></div>
-        <div><span>Consequence</span><strong id="player-view-consequence">WATCH THE ROOM</strong></div>
-      </div>
+        <a class="button primary" href="./player-view/">Open Player View</a>
+      </article>
     </section>
   </main>
-  <script src="./handler.js?v=20260624-handler1"></script>
+  <script src="./handler-state.js?v=20260624-handler2"></script>
+  <script src="./handler-overview.js?v=20260624-handler2"></script>
 </body>
 </html>
