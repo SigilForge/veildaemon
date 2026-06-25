@@ -36,6 +36,7 @@
       background: "",
       ontologyPresentation: "",
       creationMode: false,
+      frequencyEditMode: false,
       harm: "None recorded",
       harmBoxes: "0",
       voidMarks: "0",
@@ -277,6 +278,7 @@
       ...status,
       anchorPerson: status.anchorPerson || status.anchors || "",
       attentionState: normalizeAttentionState(status.attentionState),
+      frequencyEditMode: Boolean(status.frequencyEditMode),
       creationMode: Boolean(status.creationMode),
       stability: normalizeStabilityValue(status.stability),
       harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
@@ -653,6 +655,7 @@
     renderSkills();
     renderRollSelectors();
     renderCreationMode();
+    renderFrequencyEditMode();
     renderStatusSummary();
   }
 
@@ -980,6 +983,16 @@
     return true;
   }
 
+  function applyFrequencyBreachDelta(delta) {
+    if (delta > 0) return spendBreach(delta);
+    if (delta < 0) {
+      const current = Number(normalizeNonNegative(consoleState.operatorStatus.breachPoints));
+      consoleState.operatorStatus.breachPoints = String(Math.min(99, current + Math.abs(delta)));
+      setNamedValue("breachPoints", consoleState.operatorStatus.breachPoints);
+    }
+    return true;
+  }
+
   function skillChangeAllowed(skills, skill, targetRank) {
     const next = normalizeSkills({ ...skills, [skill]: String(targetRank) });
     if (consoleState.operatorStatus.creationMode) {
@@ -1096,6 +1109,7 @@
     const normalizedLotus = normalizeLotus(lotus);
     const oldLevel = Number(normalizedLotus[frequency] || 0);
     const target = Number(normalizeBoxValue(targetLevel, 6));
+    const lowering = target < oldLevel;
     const totalAfter = totalCultivatedPips({
       ...normalizedLotus,
       [frequency]: String(target)
@@ -1105,6 +1119,9 @@
 
     if (frequency === normalizeFrequencyName(consoleState.operatorStatus.blindPetal)) {
       return { ok: false, message: "Blind petal cannot be cultivated." };
+    }
+    if (lowering && !consoleState.operatorStatus.creationMode && !consoleState.operatorStatus.frequencyEditMode) {
+      return { ok: false, message: "Frequency Edit Mode required to remove pips." };
     }
     if (requiredVoid > availableVoid) {
       return { ok: false, message: `Gate locked. ${target} pips require ${requiredVoid} Void on that Frequency.` };
@@ -1442,6 +1459,21 @@
       }
     }
     renderSkillCostPreview();
+  }
+
+  function renderFrequencyEditMode() {
+    const toggle = document.getElementById("frequency-edit-toggle");
+    const status = document.getElementById("frequency-edit-status");
+    const enabled = Boolean(consoleState.operatorStatus.frequencyEditMode);
+    if (toggle) {
+      toggle.textContent = enabled ? "Frequency Edit Mode: On" : "Frequency Edit Mode: Off";
+      toggle.classList.toggle("primary", enabled);
+    }
+    if (status) {
+      status.textContent = enabled
+        ? "Pip removal unlocked. Refunds apply to removed Frequency pips."
+        : "Pip removal locked during field play.";
+    }
   }
 
   function renderSkillCostPreview() {
@@ -1865,7 +1897,7 @@
             renderLotus();
             return;
           }
-          if (!applyBreachDelta(allowed.cost || 0)) {
+          if (!applyFrequencyBreachDelta(allowed.cost || 0)) {
             renderLotus();
             return;
           }
@@ -2037,6 +2069,7 @@
       voidMarks: clampVoidBank(status.voidMarks, status.voidByFrequency),
       breachPoints: normalizeNonNegative(status.breachPoints),
       creationMode: Boolean(status.creationMode),
+      frequencyEditMode: Boolean(status.frequencyEditMode),
       activeMisfire: safeString(status.activeMisfire, 1000),
       misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity),
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
@@ -2059,6 +2092,7 @@
     setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
     renderBandMeter();
     renderLotus();
+    renderFrequencyEditMode();
     renderStatusSummary();
     renderSegmentedControls();
     renderRollSelectors();
@@ -2254,6 +2288,13 @@
       renderCreationMode();
       renderAttributes();
       renderSkills();
+    });
+    const frequencyEdit = document.getElementById("frequency-edit-toggle");
+    if (frequencyEdit) frequencyEdit.addEventListener("click", () => {
+      consoleState.operatorStatus.frequencyEditMode = !consoleState.operatorStatus.frequencyEditMode;
+      writeConsoleState();
+      renderFrequencyEditMode();
+      renderLotus();
     });
     const skillPicker = document.getElementById("skill-picker");
     const skillRank = document.getElementById("skill-rank");
