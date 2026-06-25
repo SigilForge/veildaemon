@@ -593,48 +593,123 @@ fieldset.recovery-field.compact label {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(16rem, .75fr);
   gap: .9rem;
+  align-items: start;
 }
 .lotus-map {
   position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .75rem;
-  min-height: 25rem;
-  padding: 1rem;
+  grid-auto-rows: max-content;
+  gap: .55rem;
+  align-content: start;
+  align-items: start;
+  min-height: 16rem;
+  padding: .75rem;
   border: 1px solid rgba(185,84,255,.28);
   background:
-    radial-gradient(circle at 50% 50%, rgba(185,84,255,.18), transparent 10rem),
+    linear-gradient(90deg, rgba(137,255,218,.055) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(137,255,218,.045) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, rgba(185,84,255,.16), transparent 8rem),
     rgba(0,0,0,.22);
+  background-size: 2.4rem 2.4rem, 2.4rem 2.4rem, auto;
 }
 .lotus-map::before {
   content: "";
   position: absolute;
   inset: 50% auto auto 50%;
-  width: 4.4rem;
+  width: min(15rem, 34%);
   aspect-ratio: 1;
   border: 1px solid rgba(137,255,218,.22);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 28px rgba(185,84,255,.18);
+  box-shadow:
+    0 0 0 3.2rem rgba(137,255,218,.018),
+    0 0 0 6.4rem rgba(185,84,255,.012),
+    0 0 28px rgba(185,84,255,.18);
+  pointer-events: none;
+}
+.lotus-map::after {
+  content: "";
+  position: absolute;
+  inset: .75rem;
+  background:
+    linear-gradient(90deg, transparent 0 18%, rgba(137,255,218,.18) 18% 18.2%, transparent 18.2% 48%, rgba(137,255,218,.12) 48% 48.2%, transparent 48.2% 82%, rgba(137,255,218,.18) 82% 82.2%, transparent 82.2%),
+    linear-gradient(0deg, transparent 0 22%, rgba(185,84,255,.13) 22% 22.2%, transparent 22.2% 77%, rgba(185,84,255,.13) 77% 77.2%, transparent 77.2%);
+  opacity: .22;
   pointer-events: none;
 }
 .lotus-petal {
   position: relative;
   display: grid;
   align-content: start;
-  gap: .6rem;
-  min-height: 11rem;
-  padding: .75rem;
-  border: 1px solid rgba(137,255,218,.18);
-  border-radius: 44% 44% 12% 12%;
-  background: rgba(0,0,0,.3);
+  gap: .45rem;
+  min-height: 6.8rem;
+  padding: .55rem .62rem .62rem;
+  overflow: hidden;
+  border: 1px solid rgba(137,255,218,.14);
+  border-radius: .18rem;
+  background:
+    linear-gradient(90deg, rgba(137,255,218,.08) 0 1px, transparent 1px 34%, rgba(137,255,218,.055) 34% calc(34% + 1px), transparent calc(34% + 1px) 66%, rgba(137,255,218,.055) 66% calc(66% + 1px), transparent calc(66% + 1px)),
+    radial-gradient(ellipse at 50% 130%, rgba(137,255,218,.1), transparent 58%),
+    rgba(0,0,0,.26);
+  opacity: .58;
+  transition: border-color .18s ease, box-shadow .18s ease, opacity .18s ease, transform .18s ease;
+}
+.lotus-petal > * {
+  position: relative;
+  z-index: 1;
+}
+.lotus-petal::before {
+  content: "";
+  position: absolute;
+  inset: .34rem .48rem auto;
+  height: 3.5rem;
+  border: 1px solid rgba(137,255,218,.16);
+  border-bottom: 0;
+  border-radius: 50% 50% 0 0 / 84% 84% 0 0;
+  opacity: .55;
+  pointer-events: none;
+}
+.lotus-petal::after {
+  content: "";
+  position: absolute;
+  inset: auto .75rem .72rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(137,255,218,.28), rgba(185,84,255,.22), transparent);
+  opacity: .48;
+  pointer-events: none;
 }
 .lotus-petal.is-selected {
   border-color: rgba(185,84,255,.72);
+  opacity: 1;
   box-shadow: inset 0 0 24px rgba(185,84,255,.1), 0 0 20px rgba(185,84,255,.12);
+  transform: translateY(-1px);
+}
+.lotus-petal.is-powered {
+  opacity: .88;
+  border-color: rgba(137,255,218,.3);
+  box-shadow: inset 0 0 18px rgba(137,255,218,.055);
+}
+.lotus-petal.is-gate-open .lotus-pips {
+  border-color: rgba(137,255,218,.34);
+  box-shadow: inset 0 0 0 1px rgba(137,255,218,.08), 0 0 18px rgba(137,255,218,.08);
+}
+.lotus-petal[data-gate="2"] .lotus-pips,
+.lotus-petal[data-gate="3"] .lotus-pips {
+  border-color: rgba(185,84,255,.34);
+}
+.lotus-petal[data-gate="3"] .lotus-pips {
+  box-shadow: inset 0 0 0 1px rgba(185,84,255,.18), 0 0 22px rgba(185,84,255,.12);
+}
+.lotus-petal.is-pulsing::before {
+  animation: lotus-resonance .72s ease-out;
+}
+.lotus-petal.is-pulsing::after {
+  animation: lotus-trace .72s ease-out;
 }
 .lotus-petal.is-blind {
   border-color: rgba(255,92,138,.44);
+  opacity: .76;
 }
 .lotus-petal-name,
 .blind-toggle {
@@ -646,21 +721,42 @@ fieldset.recovery-field.compact label {
   font-size: .68rem;
   font-weight: 800;
   letter-spacing: .08em;
-  min-height: 2.25rem;
+  min-height: 2rem;
   text-transform: uppercase;
 }
 .lotus-petal-name {
+  justify-self: stretch;
   color: var(--cyan);
+  background:
+    linear-gradient(90deg, rgba(137,255,218,.08), rgba(0,0,0,.28) 38%, rgba(137,255,218,.04)),
+    rgba(0,0,0,.32);
 }
 .lotus-pips {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: .3rem;
+  gap: .18rem;
+  align-items: center;
+  padding: .26rem;
+  border: 1px solid rgba(137,255,218,.12);
+  background:
+    linear-gradient(90deg, transparent 32%, rgba(137,255,218,.14) 32% 33%, transparent 33% 66%, rgba(137,255,218,.14) 66% 67%, transparent 67%),
+    rgba(0,0,0,.22);
+}
+.lotus-pips .pip {
+  position: relative;
+  min-height: .68rem;
+  border-color: rgba(137,255,218,.18);
+  background: rgba(0,0,0,.34);
+}
+.lotus-pips .pip.is-filled {
+  background: linear-gradient(90deg, rgba(102,255,220,.72), rgba(137,255,218,.98));
+  box-shadow: 0 0 12px rgba(102,255,220,.28);
+  animation: pip-online .62s ease-out;
 }
 .lotus-void {
   display: grid;
   grid-template-columns: auto minmax(3.4rem, 1fr);
-  gap: .45rem;
+  gap: .36rem;
   align-items: center;
   min-width: 0;
   font-size: .66rem;
@@ -669,13 +765,39 @@ fieldset.recovery-field.compact label {
   text-transform: uppercase;
 }
 .lotus-void input {
-  min-height: 2rem;
-  padding: .35rem .45rem;
+  min-height: 1.85rem;
+  padding: .25rem .45rem;
   text-align: center;
 }
 .pip.is-locked {
   border-color: rgba(255,255,255,.08);
   background: rgba(255,255,255,.025);
+}
+@keyframes pip-online {
+  0% { box-shadow: 0 0 0 rgba(102,255,220,0); transform: scaleX(.7); }
+  48% { box-shadow: 0 0 20px rgba(102,255,220,.46); transform: scaleX(1.08); }
+  100% { box-shadow: 0 0 12px rgba(102,255,220,.28); transform: scaleX(1); }
+}
+@keyframes lotus-resonance {
+  0% { opacity: .24; transform: scale(.84); }
+  45% { opacity: .95; transform: scale(1.04); }
+  100% { opacity: .55; transform: scale(1); }
+}
+@keyframes lotus-trace {
+  0% { opacity: .16; transform: scaleX(.3); }
+  50% { opacity: .85; transform: scaleX(1); }
+  100% { opacity: .48; transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lotus-petal,
+  .lotus-pips .pip {
+    transition: none;
+  }
+  .lotus-petal.is-pulsing::before,
+  .lotus-petal.is-pulsing::after,
+  .lotus-pips .pip.is-filled {
+    animation: none;
+  }
 }
 .attribute-grid,
 .skill-list {

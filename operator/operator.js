@@ -194,6 +194,7 @@
   let consoleState = readConsoleState();
   let operatorRecord = readOperatorRecord();
   const artifactState = readArtifactState();
+  let lotusPulseFrequency = "";
 
   function nowStamp() {
     return new Date().toISOString();
@@ -619,7 +620,9 @@
     consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(consoleState.operatorStatus.stability);
     setNamedValue("attentionState", normalizeAttentionState(status.attentionState));
     setNamedValue("emotionalState", status.emotionalState || operatorRecord?.attentionStatus || "");
-    setNamedValue("voidMarks", normalizeNonNegative(status.voidMarks));
+    consoleState.operatorStatus.voidByFrequency = normalizeVoidByFrequency(status.voidByFrequency);
+    consoleState.operatorStatus.voidMarks = clampVoidBank(status.voidMarks, consoleState.operatorStatus.voidByFrequency);
+    setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
     setNamedValue("breachPoints", normalizeNonNegative(status.breachPoints));
     setNamedValue("activeMisfire", status.activeMisfire || "");
     setNamedValue("commonTell", status.commonTell || "");
@@ -926,6 +929,14 @@
     return 3;
   }
 
+  function maxFrequencyPips() {
+    return 20;
+  }
+
+  function maxTotalVoid() {
+    return 13;
+  }
+
   function creationBonusSpent(attributes) {
     return Math.max(0, totalAttributeBoosts(attributes) - creationAttributeSpreadBudget());
   }
@@ -1010,7 +1021,7 @@
 
   function requiredVoidForFrequencyLevel(level) {
     const value = Number(normalizeBoxValue(level, 6));
-    if (value >= 5) return 3;
+    if (value >= 5) return 4;
     if (value >= 3) return 2;
     if (value >= 1) return 1;
     return 0;
@@ -1025,6 +1036,19 @@
     return voidByFrequency;
   }
 
+  function totalInvestedVoid(voidByFrequency) {
+    return Object.values(normalizeVoidByFrequency(voidByFrequency)).reduce((sum, value) => sum + Number(value || 0), 0);
+  }
+
+  function clampVoidBank(value, voidByFrequency) {
+    const available = Math.max(0, maxTotalVoid() - totalInvestedVoid(voidByFrequency));
+    return String(Math.min(available, Number(normalizeNonNegative(value))));
+  }
+
+  function totalCultivatedPips(lotus) {
+    return Object.values(normalizeLotus(lotus)).reduce((sum, value) => sum + Number(value || 0), 0);
+  }
+
   function voidForFrequency(frequency) {
     const voidByFrequency = normalizeVoidByFrequency(consoleState.operatorStatus.voidByFrequency);
     return Number(voidByFrequency[frequency] || 0);
@@ -1035,6 +1059,14 @@
     const current = Number(consoleState.operatorStatus.voidByFrequency[frequency] || 0);
     const target = Number(normalizeNonNegative(value));
     const delta = target - current;
+    const investedIfApplied = totalInvestedVoid({
+      ...consoleState.operatorStatus.voidByFrequency,
+      [frequency]: String(target)
+    });
+    if (investedIfApplied > maxTotalVoid()) {
+      setStorageStatus(`Void cap exceeded. Total Void cannot exceed ${maxTotalVoid()}.`, true);
+      return false;
+    }
     if (delta > 0) {
       const bank = Number(normalizeNonNegative(consoleState.operatorStatus.voidMarks));
       if (bank < delta) {
@@ -1048,6 +1080,7 @@
       consoleState.operatorStatus.voidMarks = String(bank + Math.abs(delta));
     }
     consoleState.operatorStatus.voidByFrequency[frequency] = String(target);
+    consoleState.operatorStatus.voidMarks = clampVoidBank(consoleState.operatorStatus.voidMarks, consoleState.operatorStatus.voidByFrequency);
     consoleState.operatorStatus.selectedLotusPetal = frequency;
     setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
     writeConsoleState();
@@ -1063,6 +1096,10 @@
     const normalizedLotus = normalizeLotus(lotus);
     const oldLevel = Number(normalizedLotus[frequency] || 0);
     const target = Number(normalizeBoxValue(targetLevel, 6));
+    const totalAfter = totalCultivatedPips({
+      ...normalizedLotus,
+      [frequency]: String(target)
+    });
     const requiredVoid = requiredVoidForFrequencyLevel(target);
     const availableVoid = voidForFrequency(frequency);
 
@@ -1071,6 +1108,9 @@
     }
     if (requiredVoid > availableVoid) {
       return { ok: false, message: `Gate locked. ${target} pips require ${requiredVoid} Void on that Frequency.` };
+    }
+    if (totalAfter > maxFrequencyPips()) {
+      return { ok: false, message: `Frequency pip cap exceeded: ${totalAfter}/${maxFrequencyPips()}.` };
     }
 
     if (consoleState.operatorStatus.creationMode) {
@@ -1784,8 +1824,13 @@
       }
       const petal = document.createElement("article");
       petal.className = "lotus-petal";
+      const openGate = petalVoid >= 4 ? 3 : petalVoid >= 2 ? 2 : petalVoid >= 1 ? 1 : 0;
+      petal.dataset.gate = String(openGate);
       petal.classList.toggle("is-selected", frequency === status.selectedLotusPetal);
       petal.classList.toggle("is-blind", frequency === status.blindPetal);
+      petal.classList.toggle("is-powered", frequency !== status.blindPetal && level > 0);
+      petal.classList.toggle("is-gate-open", frequency !== status.blindPetal && openGate > 0);
+      petal.classList.toggle("is-pulsing", frequency === lotusPulseFrequency);
 
       const header = document.createElement("button");
       header.type = "button";
@@ -1826,9 +1871,16 @@
           }
           status.lotus[frequency] = normalizeBoxValue(targetLevel, 6);
           status.selectedLotusPetal = frequency;
+          lotusPulseFrequency = frequency;
           writeConsoleState();
           renderCreationMode();
           renderLotus();
+          window.setTimeout(() => {
+            if (lotusPulseFrequency === frequency) {
+              lotusPulseFrequency = "";
+              renderLotus();
+            }
+          }, 760);
         });
         pips.append(pip);
       }
@@ -1981,8 +2033,8 @@
       stabilityBand: bandFromLegacyStability(status.stability),
       attentionState: normalizeAttentionState(status.attentionState),
       harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
-      voidMarks: normalizeNonNegative(status.voidMarks),
       voidByFrequency: normalizeVoidByFrequency(status.voidByFrequency),
+      voidMarks: clampVoidBank(status.voidMarks, status.voidByFrequency),
       breachPoints: normalizeNonNegative(status.breachPoints),
       creationMode: Boolean(status.creationMode),
       activeMisfire: safeString(status.activeMisfire, 1000),
@@ -2004,6 +2056,7 @@
   function autosaveStatus() {
     consoleState.operatorStatus = collectStatusPayload();
     writeConsoleState();
+    setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
     renderBandMeter();
     renderLotus();
     renderStatusSummary();

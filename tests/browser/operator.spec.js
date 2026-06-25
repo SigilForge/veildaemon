@@ -35,9 +35,11 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.getByLabel("Operator Name")).toBeVisible();
   await expect(page.locator('input[name="voidMarks"]')).toBeVisible();
   await expect(page.locator('input[name="breachPoints"]')).toBeVisible();
-  await expect(page.locator('input[name="voidMarks"]')).toHaveAttribute("max", "99");
+  await expect(page.locator('input[name="voidMarks"]')).toHaveAttribute("max", "13");
   await expect(page.locator('input[name="breachPoints"]')).toHaveAttribute("max", "99");
 
+  await page.locator('input[name="voidMarks"]').fill("99");
+  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("13");
   await page.locator('input[name="voidMarks"]').fill("12");
   await page.locator('input[name="breachPoints"]').fill("3");
   await page.getByLabel("Current consequence").fill("The wrong door remembers the Operator.");
@@ -93,7 +95,7 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.getByRole("button", { name: "Sheet" }).click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
-  await page.locator('input[name="voidMarks"]').fill("6");
+  await page.locator('input[name="voidMarks"]').fill("7");
   await page.locator('input[name="breachPoints"]').fill("30");
   await page.getByRole("button", { name: "Frequency" }).click();
   await expect(page.getByText("Abilities, tells, grounding, and misfire language.")).toBeVisible();
@@ -101,12 +103,12 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await expect(page.locator("#lotus-tier")).toHaveText("Basic");
   await page.getByLabel("Dream Void").fill("2");
   await page.getByLabel("Dream Void").blur();
-  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("5");
+  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("6");
   await page.getByLabel("Dream pip 3").click();
   await expect(page.locator("#lotus-frequency")).toHaveText("Dream");
   await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
   await expect(page.getByLabel("Silence pip 6")).toBeDisabled();
-  await page.getByLabel("Silence Void").fill("3");
+  await page.getByLabel("Silence Void").fill("4");
   await page.getByLabel("Silence Void").blur();
   await expect(page.locator('input[name="voidMarks"]')).toHaveValue("2");
   await page.getByLabel("Silence pip 6").click();
@@ -216,6 +218,41 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await page.getByRole("button", { name: "Ontology" }).click();
   await expect(page.locator("#ontology-unlock-notice")).toContainText("Sanguine Presentation available for review");
   await expect(page.locator("#ontology-unlock-list")).toContainText("Sanguine Presentation");
+});
+
+test("frequency advancement enforces released Lotus caps", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify({
+      operatorStatus: {
+        breachPoints: "99",
+        voidMarks: "0",
+        selectedLotusPetal: "Empyrean",
+        lotus: {
+          Dream: "6",
+          Hunger: "6",
+          Silence: "4",
+          Stillness: "4",
+          Empyrean: "0",
+          Becoming: "0"
+        },
+        voidByFrequency: {
+          Dream: "4",
+          Hunger: "4",
+          Silence: "2",
+          Stillness: "2",
+          Empyrean: "1",
+          Becoming: "0"
+        }
+      }
+    }));
+  });
+
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Frequency" }).click();
+  await expect(page.locator("#lotus-unlocks")).toContainText("Empyrean unlocked // Void 1");
+  await page.getByLabel("Empyrean pip 1").click();
+  await expect(page.locator("#storage-status")).toContainText("Frequency pip cap exceeded: 21/20.");
+  await expect(page.locator("#lotus-tier")).toHaveText("None");
 });
 
 test("creation bonus breach refunds when attributes are lowered", async ({ page }) => {
