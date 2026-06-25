@@ -912,14 +912,36 @@ fieldset.recovery-field.compact label {
 }
 .lotus-detail {
   min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .55rem;
   padding: .9rem;
   border: 1px solid rgba(137,255,218,.2);
   background: rgba(0,0,0,.24);
+}
+.lotus-detail .card-label,
+.lotus-detail .lotus-stat-grid,
+.lotus-detail .lotus-copy,
+.lotus-detail .lotus-unlocks {
+  grid-column: 1 / -1;
+}
+.lotus-detail > .readout-block,
+.lotus-stat-grid .readout-block {
+  margin-bottom: 0;
 }
 .lotus-copy {
   margin: 0;
   color: var(--muted);
   line-height: 1.45;
+}
+.lotus-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
+  margin: .65rem 0;
+}
+.lotus-stat-grid .readout-block {
+  min-width: 0;
 }
 .lotus-unlocks {
   display: grid;
@@ -952,6 +974,27 @@ fieldset.recovery-field.compact label {
 .lotus-unlocks strong {
   color: var(--text);
 }
+.compact-rule-entry {
+  list-style: none;
+}
+.compact-rule-entry details {
+  border: 1px solid rgba(137,255,218,.12);
+  background: rgba(0,0,0,.18);
+}
+.compact-rule-entry summary {
+  cursor: pointer;
+  padding: .45rem .55rem;
+  color: var(--text);
+  font-weight: 800;
+}
+.compact-rule-entry details[open] {
+  border-color: rgba(137,255,218,.28);
+  box-shadow: inset 0 0 16px rgba(137,255,218,.06);
+}
+.compact-rule-entry details p {
+  margin: 0;
+  padding: 0 .55rem .5rem;
+}
 .expression-meta {
   color: rgba(146, 170, 164, .86);
   font-size: .68rem;
@@ -963,6 +1006,80 @@ fieldset.recovery-field.compact label {
   font-weight: 800;
   line-height: 1.4;
   text-transform: uppercase;
+}
+.frequency-dashboard {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(16rem, .75fr);
+  gap: .8rem;
+}
+.frequency-profile,
+.frequency-summary {
+  min-width: 0;
+  padding: .85rem;
+  border: 1px solid rgba(137,255,218,.18);
+  background:
+    linear-gradient(180deg, rgba(137,255,218,.04), transparent 42%),
+    rgba(0,0,0,.24);
+}
+.resonance-profile {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .55rem;
+}
+.resonance-group {
+  min-width: 0;
+  padding: .55rem;
+  border: 1px solid rgba(137,255,218,.12);
+  background: rgba(0,0,0,.18);
+}
+.resonance-group h3 {
+  margin: 0 0 .4rem;
+  color: var(--cyan);
+  font-size: .66rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.resonance-group ul {
+  display: grid;
+  gap: .35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.resonance-group li {
+  display: grid;
+  gap: .16rem;
+  color: var(--muted);
+  font-size: .68rem;
+  line-height: 1.35;
+}
+.resonance-group strong {
+  color: var(--text);
+  font-size: .7rem;
+}
+.build-summary {
+  display: grid;
+  gap: .45rem;
+}
+.summary-row {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1fr);
+  gap: .65rem;
+  align-items: start;
+  padding-bottom: .42rem;
+  border-bottom: 1px solid rgba(137,255,218,.1);
+}
+.summary-row span {
+  color: var(--muted);
+  font-size: .66rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.summary-row strong {
+  color: var(--text);
+  font-size: .78rem;
+  line-height: 1.35;
 }
 input,
 textarea,
@@ -1365,9 +1482,13 @@ body.has-reports-drawer-open .surface-tabs {
   .line-tracker,
   .roll-row,
   .lotus-workspace,
+  .frequency-dashboard,
   .archive-grid,
   .data-panel {
     grid-template-columns: 1fr;
+  }
+  .resonance-profile {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .identity-card {
     grid-template-columns: 1fr;

@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260625-lotus-topology1" />
+  <link rel="stylesheet" href="./operator.css?v=20260625-frequency-dashboard1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -311,11 +311,34 @@
               <span>Unlock Tier</span>
               <strong id="lotus-tier">NONE</strong>
             </div>
+            <div class="lotus-stat-grid">
+              <div class="readout-block">
+                <span>Void Gate</span>
+                <strong id="lotus-gate">0 VOID</strong>
+              </div>
+              <div class="readout-block">
+                <span>Pip Count</span>
+                <strong id="lotus-pips-readout">0 / 6</strong>
+              </div>
+              <div class="readout-block">
+                <span>Next Pip</span>
+                <strong id="lotus-next">1 VOID // 1 BREACH</strong>
+              </div>
+            </div>
             <p id="lotus-copy" class="lotus-copy">Select a Frequency petal to review unlocked material.</p>
             <div id="lotus-unlocks" class="lotus-unlocks" aria-live="polite"></div>
           </article>
         </section>
-        <label>Frequency abilities / expressions<textarea name="expressions" rows="5"></textarea></label>
+        <section class="frequency-dashboard" aria-label="Frequency diagnostics">
+          <article class="frequency-profile">
+            <p class="card-label">Active Resonance Profile</p>
+            <div id="active-resonance-profile" class="resonance-profile" aria-live="polite"></div>
+          </article>
+          <article class="frequency-summary">
+            <p class="card-label">Build Summary</p>
+            <div id="frequency-build-summary" class="build-summary" aria-live="polite"></div>
+          </article>
+        </section>
         <label>Misfire flavor<textarea name="misfireFlavor" rows="4"></textarea></label>
         <details open>
           <summary>Anchor memory</summary>
@@ -426,6 +449,6 @@
     </section>
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
-  <script src="./operator.js?v=20260625-frequency-edit1"></script>
+  <script src="./operator.js?v=20260625-frequency-dashboard1"></script>
 </body>
 </html>
