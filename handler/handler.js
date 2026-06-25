@@ -391,7 +391,12 @@
     setStatus("LOCAL READY");
   }
 
-  bindForm();
-  bindDataControls();
-  renderAll();
+  async function init() {
+    await api.loadTemplates();
+    bindForm();
+    bindDataControls();
+    renderAll();
+  }
+
+  init();
 }());

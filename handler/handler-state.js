@@ -27,99 +27,100 @@
   const attentionStates = ["Unseen", "Observed", "Focused", "Witnessed", "Mythic"];
   const loopFields = ["Need", "Lure", "Pressure", "Gift", "Violence", "Exit"];
   const npcFlags = ["Ally", "Witness", "Threat", "Missing", "Compromised"];
+  const templateCatalogUrl = new URL("templates.json", document.currentScript && document.currentScript.src || window.location.href).href;
 
   const templates = [
-    {
-      id: "blank",
-      name: "Blank Handler Dashboard",
-      data: {}
-    },
-    {
-      id: "needlepoint",
-      name: "Needlepoint Runtime",
-      data: {
-        session: {
-          title: "Field Assignment",
-          caseTitle: "Needlepoint",
-          location: "Active scene",
-          safeSceneLabel: "Pressure scene active"
-        },
-        sceneState: {
-          current: "Stable",
-          primaryConsequence: "The room answers what the Operators do through feeling."
-        },
-        primaryClock: {
-          name: "Pressure Clock",
-          segments: 6,
-          current: 0,
-          ticksWhen: "Operators ignore the lure, split attention, escalate, or feed the Need.",
-          midpointEvent: "The room changes in a visible ordinary way.",
-          fullClockEvent: "The entity or Zone acts openly.",
-          stabilizer: "Observe, ground, name the truth, leave, or change the pattern."
-        },
-        entityLoop: {
-          Need: "What the entity or Zone must have to remain in pressure.",
-          Lure: "What draws Operators in or keeps them engaged.",
-          Pressure: "What happens when the Need is ignored.",
-          Gift: "What truth, power, or resource it offers in exchange.",
-          Violence: "What happens if the Need is denied or blocked.",
-          Exit: "What satisfies, breaks, redirects, or contains the loop."
-        },
-        roomAnswer: {
-          object: "Door, light, receipt, voicemail, elevator, mirror, coffee cup",
-          emotionalInput: "Fear, hunger, denial, grief, awe, refusal, hope",
-          consequence: "A normal object behaves as if it understood the feeling."
-        },
-        caseFile: {
-          nextClue: "What cannot be blocked.",
-          nextPressureBeat: "What changes if the table waits."
-        }
-      }
-    },
     {
       id: "veilcorp-intake",
       name: "VeilCorp Intake",
       data: {
         session: {
-          title: "Intake Session",
+          title: "Needlepoint 001",
           caseTitle: "VeilCorp Intake",
-          location: "First contact location",
-          safeSceneLabel: "Intake pressure rising"
+          location: "Ruined church north of Kansas City",
+          safeSceneLabel: "Broken Mirror Chamber active"
         },
         sceneState: {
           current: "Echoed",
-          primaryConsequence: "Observation creates relevance."
+          primaryConsequence: "The church reflects refused selves."
         },
         primaryClock: {
-          name: "Intake Exposure Clock",
+          name: "Broken Mirror Chamber",
           segments: 6,
           current: 1,
-          ticksWhen: "Operators over-explain, deny the obvious, draw public attention, or repeat the pattern.",
-          midpointEvent: "Records, devices, or bystanders begin noticing the same detail.",
-          fullClockEvent: "VeilCorp contact becomes unavoidable and the scene answers back.",
-          stabilizer: "Limit exposure, verify assumptions, connect to an anchor, or leave cleanly."
+          ticksWhen: "Operators stall, split up, deny the obvious, fail under pressure, or stare too long into reflective surfaces.",
+          midpointEvent: "Shade interrupts with a useful but invasive warning while Alex tries to soften it.",
+          fullClockEvent: "The mirror entity acts directly and offers someone a cleaner self.",
+          stabilizer: "Protected truthful speech, Anchors and Totems against the mirror, binding or breaking the altar mirror, or leaving together."
         },
         entityLoop: {
-          Need: "Classification before contact spreads.",
-          Lure: "Answers, recognition, help, and the feeling of being seen.",
-          Pressure: "The more they look, the more the signal treats them as relevant.",
-          Gift: "A route, warning, contact point, or impossible confirmation.",
-          Violence: "Exposure, attention, misclassification, or public residue.",
-          Exit: "Accept intake boundaries, stabilize, and choose the next case route."
+          Need: "A complete self to copy, correct, or preserve.",
+          Lure: "Reflections showing a cleaner choice, safer name, or version of the Operator who never broke.",
+          Pressure: "Mirrors, phone screens, rainwater, and stained glass edit identity toward the easiest acceptable version.",
+          Gift: "One true thing the Operator has been avoiding, revealed through reflection or wrong name.",
+          Violence: "It separates an Operator from the group and makes the corrected self feel easier than the real one.",
+          Exit: "Refuse the false self, speak one specific truth while witnessed, and leave together before the chamber chooses."
         },
         attention: {
           current: "Observed",
-          residue: "A record updates too early.",
-          followsHome: "A public system predicts what they almost said."
+          residue: "VeilCorp knows too much too early.",
+          followsHome: "A reflection lags half a heartbeat behind."
         },
         roomAnswer: {
-          object: "Phone lock screen",
-          emotionalInput: "The fear that someone already knows",
-          consequence: "A notification arrives with no sender and the correct case label."
+          object: "Mirror, phone screen, rainwater, stained glass, altar shard",
+          emotionalInput: "Refused self, wrong name, control, omission, fear",
+          consequence: "The reflected version answers before the Operator does."
         },
         caseFile: {
-          nextClue: "A public system knows the case label before the Operators do.",
-          nextPressureBeat: "The intake route stops feeling optional."
+          nextClue: "The basement appears after truth, lie, Frequency use, or blood-glass contact.",
+          nextPressureBeat: "An extra reflection chooses the easiest version of someone."
+        }
+      }
+    },
+    {
+      id: "viridian-house",
+      name: "Viridian House",
+      data: {
+        session: {
+          title: "Needlepoint 001a",
+          caseTitle: "Viridian House",
+          location: "Viridian House apartment building",
+          safeSceneLabel: "Mara Venn missing inside the building"
+        },
+        sceneState: {
+          current: "Echoed",
+          primaryConsequence: "Observation starts behaving like an audience."
+        },
+        primaryClock: {
+          name: "Audience Before Clock",
+          segments: 6,
+          current: 0,
+          ticksWhen: "Operators stall, lie under observation, feed the audience, split someone off, force the site, or treat Mara as content.",
+          midpointEvent: "Every screen shows a comment that is cruel but useful.",
+          fullClockEvent: "The Audience Before offers one Operator a clean role and asks the others to confirm it.",
+          stabilizer: "One honest sentence spoken while another Operator protects the speaker from audience pressure."
+        },
+        entityLoop: {
+          Need: "The moment before confession, when someone edits themselves to survive being seen.",
+          Lure: "Comments that understand too much, footage from impossible angles, and doors offering easier selves.",
+          Pressure: "It predicts, captions, and redirects behavior until Operators start performing for it.",
+          Gift: "It reveals what someone is hiding, including the clue they cannot admit they already noticed.",
+          Violence: "It assigns roles, locks people inside performed selves, and turns audience attention into environmental force.",
+          Exit: "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience."
+        },
+        attention: {
+          current: "Focused",
+          residue: "A comment arrives before anyone types it.",
+          followsHome: "A device predicts a useful lie."
+        },
+        roomAnswer: {
+          object: "Lobby camera, elevator panel, comment thread, ring light, apartment door",
+          emotionalInput: "Shame, performance, concealment, audience pressure, confession",
+          consequence: "The building captions the choice before anyone admits it."
+        },
+        caseFile: {
+          nextClue: "Mara entered the elevator at 2:13 a.m.; her reflection stayed behind.",
+          nextPressureBeat: "The elevator opens toward Floor 13 after a lie under observation."
         }
       }
     }
@@ -245,6 +246,31 @@
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
+  }
+
+  function normalizeTemplateCatalog(value) {
+    if (!Array.isArray(value)) return null;
+    const catalog = value
+      .filter((template) => template && typeof template === "object" && template.id && template.name)
+      .map((template) => ({
+        id: safeString(template.id, 80),
+        name: safeString(template.name, 120),
+        data: template.data && typeof template.data === "object" ? template.data : {}
+      }));
+    return catalog.length ? catalog : null;
+  }
+
+  async function loadTemplates() {
+    try {
+      const response = await fetch(templateCatalogUrl, { cache: "no-store" });
+      if (!response.ok) throw new Error("Template catalog unavailable.");
+      const catalog = normalizeTemplateCatalog(await response.json());
+      if (!catalog) throw new Error("Template catalog empty.");
+      templates.splice(0, templates.length, ...catalog);
+      return templates;
+    } catch (error) {
+      return templates;
+    }
   }
 
   function safeString(value, max = 3000) {
@@ -462,6 +488,7 @@
     loopFields,
     npcFlags,
     templates,
+    loadTemplates,
     defaultState,
     readState,
     writeState,
