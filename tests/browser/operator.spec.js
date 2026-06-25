@@ -128,15 +128,24 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.getByLabel("Becoming Void").blur();
   await expect(page.locator('input[name="voidMarks"]')).toHaveValue("0");
   await page.getByLabel("Becoming pip 4").click();
-  await expect(page.locator("#lotus-unlocks")).toContainText("Silence 5: CONCEPT EROSION");
-  await expect(page.locator("#lotus-unlocks")).toContainText("Becoming 3: PATTERN MIMIC");
+  await expect(page.locator("#lotus-unlocks")).not.toContainText("Silence 5: CONCEPT EROSION");
+  await expect(page.locator("#lotus-unlocks")).toContainText("3: PATTERN MIMIC");
   await expect(page.locator("#lotus-unlocks")).toContainText("Fusion: IDENTITY ERASURE");
   await expect(page.locator("#lotus-unlocks")).toContainText("Silence 6 + Becoming 4");
   await expect(page.locator("#lotus-unlocks")).not.toContainText("Fusion: NULL ILLUSION");
+  await expect(page.locator("#active-resonance-profile")).toContainText("Silence");
+  await expect(page.locator("#active-resonance-profile")).toContainText("5. CONCEPT EROSION");
+  await expect(page.locator("#active-resonance-profile")).toContainText("Becoming");
+  await expect(page.locator("#active-resonance-profile")).toContainText("3. PATTERN MIMIC");
+  await expect(page.locator("#frequency-build-summary")).toContainText("Total cultivated pips");
+  await expect(page.locator("#frequency-build-summary")).toContainText("13 / 20");
+  await expect(page.locator("#frequency-build-summary")).toContainText("Total Void committed");
+  await expect(page.locator("#frequency-build-summary")).toContainText("8 / 13");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("9");
   await page.locator(".lotus-petal").filter({ hasText: "Hunger" }).getByRole("button", { name: "Mark Blind" }).click();
   await expect(page.getByLabel("Hunger pip 1")).toBeDisabled();
-  await expect(page.locator("#lotus-unlocks")).toContainText("Blind petal: Hunger");
+  await expect(page.locator("#lotus-unlocks")).toContainText("HUNGER // BLIND");
+  await expect(page.locator("#active-resonance-profile")).toContainText("HUNGER // BLIND");
   await expect(page.getByRole("button", { name: "Mark Blind" })).toHaveCount(0);
   await page.getByRole("button", { name: "Sheet" }).click();
   await page.getByRole("button", { name: "Creation Mode: Off" }).click();
@@ -148,6 +157,61 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await expect(page.getByText("Case files, residue records, and slower notes.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Case File", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Residue", exact: true })).toBeVisible();
+});
+
+test("frequency dossier stays selected while resonance profile summarizes the build", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify({
+      operatorStatus: {
+        selectedLotusPetal: "Silence",
+        blindPetal: "Empyrean",
+        breachPoints: "10",
+        voidMarks: "4",
+        lotus: {
+          Dream: "0",
+          Hunger: "0",
+          Silence: "2",
+          Stillness: "0",
+          Empyrean: "0",
+          Becoming: "0"
+        },
+        voidByFrequency: {
+          Dream: "0",
+          Hunger: "0",
+          Silence: "1",
+          Stillness: "0",
+          Empyrean: "0",
+          Becoming: "0"
+        }
+      }
+    }));
+  });
+
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Frequency" }).click();
+  await expect(page.locator("#lotus-frequency")).toHaveText("Silence");
+  await expect(page.locator("#lotus-tier")).toHaveText("Basic");
+  await expect(page.locator("#lotus-gate")).toHaveText("Gate 1 // 1 Void");
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
+  await expect(page.locator("#lotus-next")).toHaveText("2 Void // 2 Breach");
+  await expect(page.locator("#lotus-unlocks")).toContainText("1: SOFT FOOTPRINT");
+  await expect(page.locator("#lotus-unlocks")).toContainText("2: DAMPENING");
+  await expect(page.locator("#lotus-unlocks")).not.toContainText("All active expressions");
+  await expect(page.locator("#lotus-unlocks")).not.toContainText("Dream 1:");
+  await page.locator("#lotus-unlocks").getByText("2: DAMPENING").click();
+  await expect(page.getByText("Mute or soften one immediate detail")).toBeVisible();
+  await expect(page.locator("#active-resonance-profile")).toContainText("Silence");
+  await expect(page.locator("#active-resonance-profile")).toContainText("1. SOFT FOOTPRINT");
+  await expect(page.locator("#active-resonance-profile")).toContainText("2. DAMPENING");
+  await expect(page.locator("#active-resonance-profile")).toContainText("Dream");
+  await expect(page.locator("#active-resonance-profile")).toContainText("No cultivated pips.");
+  await expect(page.locator("#active-resonance-profile")).toContainText("EMPYREAN // BLIND");
+
+  await page.getByRole("button", { name: "Dream", exact: true }).click();
+  await expect(page.locator("#lotus-frequency")).toHaveText("Dream");
+  await expect(page.locator("#lotus-unlocks")).toContainText("No pips selected for this Frequency.");
+  await expect(page.locator("#lotus-unlocks")).not.toContainText("SOFT FOOTPRINT");
+  await expect(page.locator("#active-resonance-profile")).toContainText("2. DAMPENING");
 });
 
 test("operator equipment supports default kit and selectable carry", async ({ page }) => {

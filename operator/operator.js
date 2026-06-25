@@ -1746,21 +1746,24 @@
     const blind = normalizeFrequencyName(status.blindPetal);
     const selectedVoid = voidForFrequency(selected);
     const selectedLevel = Number(normalizeLotus(status.lotus)[selected] || 0);
-    const entries = unlockedLotusEntries();
     list.textContent = "";
 
-    const blindNotice = document.createElement("p");
-    blindNotice.className = "lotus-warning";
-    blindNotice.textContent = blind
-      ? `Blind petal: ${blind}. No pips can be cultivated in that Frequency.`
-      : "Blind petal unmarked. Select one Frequency as the permanent blind spot.";
-    list.append(blindNotice);
+    if (selected === blind) {
+      const blindNotice = document.createElement("p");
+      blindNotice.className = "lotus-warning";
+      blindNotice.textContent = `${selected.toUpperCase()} // BLIND — LOCKED`;
+      list.append(blindNotice);
+    }
 
     const selectedTitle = document.createElement("h3");
     selectedTitle.textContent = selected === blind ? `${selected} // Blind` : `${selected} unlocked // Void ${selectedVoid}`;
     list.append(selectedTitle);
 
-    const selectedEntries = entries.filter((entry) => entry.frequency === selected);
+    const selectedEntries = frequencyExpressions(selected).slice(0, selectedLevel).map((expression, index) => ({
+      frequency: selected,
+      pip: index + 1,
+      ...expression
+    }));
     if (selected === blind) {
       const blocked = document.createElement("p");
       blocked.className = "empty-line";
@@ -1773,33 +1776,20 @@
       list.append(empty);
     } else {
       const selectedList = document.createElement("ol");
-      selectedEntries.forEach((entry) => selectedList.append(lotusUnlockEntry(entry)));
+      selectedEntries.forEach((entry) => selectedList.append(lotusUnlockEntry(entry, { compact: true })));
       list.append(selectedList);
     }
 
-    const allTitle = document.createElement("h3");
-    allTitle.textContent = "All active expressions";
-    list.append(allTitle);
-    if (!entries.length) {
-      const empty = document.createElement("p");
-      empty.className = "empty-line";
-      empty.textContent = "No cultivated expressions recorded.";
-      list.append(empty);
-    } else {
-      const allList = document.createElement("ol");
-      entries.forEach((entry) => allList.append(lotusUnlockEntry(entry, true)));
-      list.append(allList);
-    }
-
+    const fusions = eligibleFusionEntries().filter((entry) => entry.initiator === selected || entry.receiver === selected);
     const fusionTitle = document.createElement("h3");
-    fusionTitle.textContent = "Legal fusion signatures";
+    fusionTitle.textContent = fusions.length ? "Selected fusion status" : "Fusion status";
     list.append(fusionTitle);
-
-    const fusions = eligibleFusionEntries();
     if (!fusions.length) {
       const empty = document.createElement("p");
       empty.className = "empty-line";
-      empty.textContent = "No 6-to-4 Fusion pair recorded. One petal must be Pip 6 and a different cultivated petal must be Pip 4.";
+      empty.textContent = selected === blind
+        ? "Blind petal cannot participate in legal Fusion."
+        : "No legal Fusion currently uses this Frequency.";
       list.append(empty);
       return;
     }
@@ -1809,16 +1799,104 @@
     list.append(fusionList);
   }
 
-  function lotusUnlockEntry(entry, includeFrequency) {
+  function renderActiveResonanceProfile() {
+    const profile = document.getElementById("active-resonance-profile");
+    if (!profile) return;
+    const status = consoleState.operatorStatus;
+    const lotus = normalizeLotus(status.lotus);
+    const blind = normalizeFrequencyName(status.blindPetal);
+    profile.textContent = "";
+    frequencies().forEach((frequency) => {
+      const group = document.createElement("section");
+      group.className = "resonance-group";
+      const title = document.createElement("h3");
+      title.textContent = frequency === blind ? `${frequency.toUpperCase()} // BLIND — LOCKED` : frequency;
+      group.append(title);
+      if (frequency === blind) {
+        const locked = document.createElement("p");
+        locked.className = "empty-line";
+        locked.textContent = "Petal unavailable.";
+        group.append(locked);
+        profile.append(group);
+        return;
+      }
+      const level = Number(lotus[frequency] || 0);
+      if (level <= 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty-line";
+        empty.textContent = "No cultivated pips.";
+        group.append(empty);
+        profile.append(group);
+        return;
+      }
+      const groupList = document.createElement("ul");
+      frequencyExpressions(frequency).slice(0, level).forEach((entry) => {
+        const item = document.createElement("li");
+        const name = document.createElement("strong");
+        name.textContent = `${entry.pip}. ${entry.name}`;
+        item.append(name);
+        groupList.append(item);
+      });
+      group.append(groupList);
+      profile.append(group);
+    });
+  }
+
+  function renderFrequencyBuildSummary() {
+    const summary = document.getElementById("frequency-build-summary");
+    if (!summary) return;
+    const status = consoleState.operatorStatus;
+    const lotus = normalizeLotus(status.lotus);
+    const blind = normalizeFrequencyName(status.blindPetal);
+    const levels = Object.values(lotus).map((value) => Number(value || 0));
+    const highestLevel = Math.max(0, ...levels);
+    const fusions = eligibleFusionEntries();
+    summary.textContent = "";
+    [
+      ["Blind petal", blind ? `${blind} // LOCKED` : "Unmarked"],
+      ["Total cultivated pips", `${totalCultivatedPips(lotus)} / ${maxFrequencyPips()}`],
+      ["Total Void committed", `${totalInvestedVoid(status.voidByFrequency)} / ${maxTotalVoid()}`],
+      ["Breach bank", normalizeNonNegative(status.breachPoints)],
+      ["Fusion eligibility", fusions.length ? `${fusions.length} legal signature${fusions.length === 1 ? "" : "s"}` : "No legal 6-to-4 pair"],
+      ["Highest unlocked tier", lotusTier(highestLevel)]
+    ].forEach(([label, value]) => {
+      const row = document.createElement("div");
+      row.className = "summary-row";
+      const key = document.createElement("span");
+      key.textContent = label;
+      const data = document.createElement("strong");
+      data.textContent = value;
+      row.append(key, data);
+      summary.append(row);
+    });
+  }
+
+  function lotusUnlockEntry(entry, options = {}) {
     const item = document.createElement("li");
+    if (options.compact) {
+      item.className = "compact-rule-entry";
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = `${entry.pip}: ${pipLabel(entry.frequency, entry.pip)} // ${entry.type}`;
+      const effect = document.createElement("p");
+      effect.textContent = entry.effect;
+      const meta = document.createElement("p");
+      meta.className = "expression-meta";
+      meta.textContent = `${entry.actionCost} // ${entry.roll} // Misfire: ${entry.misfire}`;
+      details.append(summary, effect, meta);
+      item.append(details);
+      return item;
+    }
     const label = document.createElement("strong");
+    const includeFrequency = Boolean(options.includeFrequency);
     label.textContent = `${includeFrequency ? `${entry.frequency} ` : ""}${entry.pip}: ${pipLabel(entry.frequency, entry.pip)}`;
     const effect = document.createElement("p");
     effect.textContent = `${entry.type}. ${entry.effect}`;
+    item.append(label, effect);
     const meta = document.createElement("p");
     meta.className = "expression-meta";
     meta.textContent = `${entry.actionCost} // ${entry.roll} // Misfire: ${entry.misfire}`;
-    item.append(label, effect, meta);
+    item.append(meta);
     return item;
   }
 
@@ -1959,15 +2037,26 @@
 
     const selectedLevel = Number(lotus[status.selectedLotusPetal] || 0);
     const tier = lotusTier(selectedLevel);
+    const selectedVoid = voidForFrequency(status.selectedLotusPetal);
+    const selectedGate = selectedVoid >= 4 ? "Gate 3" : selectedVoid >= 2 ? "Gate 2" : selectedVoid >= 1 ? "Gate 1" : "Gate 0";
+    const nextPip = Math.min(6, selectedLevel + 1);
+    const nextRequirement = selectedLevel >= 6
+      ? "Ceiling reached"
+      : `${requiredVoidForFrequencyLevel(nextPip)} Void // ${frequencyPipBreachCost(nextPip)} Breach`;
     setText("lotus-frequency", status.selectedLotusPetal + (status.selectedLotusPetal === status.blindPetal ? " // BLIND" : ""));
     setText("lotus-tier", status.selectedLotusPetal === status.blindPetal ? "LOCKED" : tier);
+    setText("lotus-gate", status.selectedLotusPetal === status.blindPetal ? "LOCKED" : `${selectedGate} // ${selectedVoid} Void`);
+    setText("lotus-pips-readout", status.selectedLotusPetal === status.blindPetal ? "0 / 6" : `${selectedLevel} / 6`);
+    setText("lotus-next", status.selectedLotusPetal === status.blindPetal ? "LOCKED" : nextRequirement);
     const copy = document.getElementById("lotus-copy");
     if (copy) {
       copy.textContent = status.selectedLotusPetal === status.blindPetal
         ? frequencyCard(status.selectedLotusPetal).blind
-        : `${tierCopy(status.selectedLotusPetal, tier, selectedLevel)} ${lotusEconomyCopy(status.selectedLotusPetal, selectedLevel)}`;
+        : tierCopy(status.selectedLotusPetal, tier, selectedLevel);
     }
     renderLotusUnlocks();
+    renderActiveResonanceProfile();
+    renderFrequencyBuildSummary();
   }
 
   function formatDrift(record) {
