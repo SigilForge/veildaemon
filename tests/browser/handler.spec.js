@@ -32,6 +32,24 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.getByText("Handler Exterior")).toHaveCount(0);
   await expect(page.getByText("Need -> Lure -> Pressure -> Gift -> Violence -> Exit")).toBeVisible();
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toBeVisible();
+  const rollMetrics = await page.evaluate(() => {
+    const box = (selector) => {
+      const rect = document.querySelector(selector)?.getBoundingClientRect();
+      return rect ? { width: rect.width, top: rect.top } : { width: 0, top: 0 };
+    };
+    return {
+      attribute: box('[name="roll.attribute"]'),
+      skill: box('[name="roll.skill"]'),
+      modifier: box('[name="roll.modifier"]'),
+      mode: box(".roll-mode"),
+      button: box("#roll-button")
+    };
+  });
+  expect(rollMetrics.attribute.width).toBeGreaterThan(90);
+  expect(rollMetrics.skill.width).toBeGreaterThan(90);
+  expect(rollMetrics.modifier.width).toBeGreaterThan(90);
+  expect(rollMetrics.mode.top).toBeGreaterThan(rollMetrics.attribute.top);
+  expect(rollMetrics.button.top).toBeGreaterThan(rollMetrics.attribute.top);
 
   await page.getByLabel("Template").selectOption("veilcorp-intake");
   await page.getByRole("button", { name: "Apply Template" }).click();
