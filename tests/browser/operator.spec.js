@@ -142,6 +142,18 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await expect(page.locator("#frequency-build-summary")).toContainText("Total Void committed");
   await expect(page.locator("#frequency-build-summary")).toContainText("8 / 13");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("9");
+  await page.getByLabel("Silence Void").fill("1");
+  await page.getByLabel("Silence Void").blur();
+  await expect(page.locator("#lotus-frequency")).toHaveText("Silence");
+  await expect(page.locator("#lotus-tier")).toHaveText("Basic");
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
+  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("3");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("19");
+  await expect(page.locator("#active-resonance-profile")).not.toContainText("5. CONCEPT EROSION");
+  await expect(page.locator("#frequency-build-summary")).toContainText("9 / 20");
+  await page.getByLabel("Silence Void").fill("4");
+  await page.getByLabel("Silence Void").blur();
+  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("0");
   await page.locator(".lotus-petal").filter({ hasText: "Hunger" }).getByRole("button", { name: "Mark Blind" }).click();
   await expect(page.getByLabel("Hunger pip 1")).toBeDisabled();
   await expect(page.locator("#lotus-unlocks")).toContainText("HUNGER // BLIND");

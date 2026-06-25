@@ -1040,6 +1040,14 @@
     return 0;
   }
 
+  function maxFrequencyLevelForVoid(value) {
+    const voidValue = Number(normalizeNonNegative(value));
+    if (voidValue >= 4) return 6;
+    if (voidValue >= 2) return 4;
+    if (voidValue >= 1) return 2;
+    return 0;
+  }
+
   function normalizeVoidByFrequency(value) {
     const source = value && typeof value === "object" ? value : {};
     const voidByFrequency = {};
@@ -1091,6 +1099,15 @@
     if (delta < 0) {
       const bank = Number(normalizeNonNegative(consoleState.operatorStatus.voidMarks));
       consoleState.operatorStatus.voidMarks = String(bank + Math.abs(delta));
+    }
+    consoleState.operatorStatus.lotus = normalizeLotus(consoleState.operatorStatus.lotus);
+    const currentLevel = Number(consoleState.operatorStatus.lotus[frequency] || 0);
+    const maxLevel = maxFrequencyLevelForVoid(target);
+    if (currentLevel > maxLevel) {
+      const refund = cumulativeFrequencyBreachCost(currentLevel) - cumulativeFrequencyBreachCost(maxLevel);
+      consoleState.operatorStatus.lotus[frequency] = String(maxLevel);
+      applyFrequencyBreachDelta(-refund);
+      setStorageStatus(`Void gate reduced. ${frequency} pips above ${maxLevel} refunded.`, true);
     }
     consoleState.operatorStatus.voidByFrequency[frequency] = String(target);
     consoleState.operatorStatus.voidMarks = clampVoidBank(consoleState.operatorStatus.voidMarks, consoleState.operatorStatus.voidByFrequency);
