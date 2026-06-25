@@ -355,6 +355,14 @@
   }
 
   function rollDie() {
+    const cryptoSource = window.crypto || window.msCrypto;
+    if (cryptoSource && typeof cryptoSource.getRandomValues === "function") {
+      const values = new Uint32Array(1);
+      do {
+        cryptoSource.getRandomValues(values);
+      } while (values[0] >= 4294967292);
+      return (values[0] % 6) + 1;
+    }
     return Math.floor(Math.random() * 6) + 1;
   }
 
