@@ -39,6 +39,14 @@
       harm: "None recorded",
       harmBoxes: "0",
       voidMarks: "0",
+      voidByFrequency: {
+        Dream: "0",
+        Hunger: "0",
+        Silence: "0",
+        Stillness: "0",
+        Empyrean: "0",
+        Becoming: "0"
+      },
       breachPoints: "0",
       activeMisfire: "",
       misfireSeverity: "None",
@@ -272,6 +280,7 @@
       stability: normalizeStabilityValue(status.stability),
       harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
       voidMarks: normalizeNonNegative(status.voidMarks),
+      voidByFrequency: normalizeVoidByFrequency(status.voidByFrequency),
       breachPoints: normalizeNonNegative(status.breachPoints),
       activeMisfire: normalizeActiveMisfire(status),
       misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity || severityFromLegacyMisfire(status.misfireBoxes)),
@@ -443,14 +452,19 @@
       option.textContent = value;
       preset.append(option);
     });
-    if (slot) slot.value = equipmentSlots[preset.value] || "Minor";
+    if (slot) slot.value = equipmentSlotForSelection(preset.value, selected === "Custom");
   }
 
   function syncEquipmentSlot() {
     const preset = document.getElementById("equipment-preset");
     const slot = document.getElementById("equipment-slot");
     if (!preset || !slot) return;
-    slot.value = equipmentSlots[preset.value] || slot.value || "Minor";
+    slot.value = equipmentSlotForSelection(preset.value, preset.value === "Custom item");
+  }
+
+  function equipmentSlotForSelection(item, custom = false) {
+    if (custom) return equipmentSlots["Custom item"];
+    return equipmentSlots[item] || equipmentSlots["Custom item"];
   }
 
   function equipmentCounts(extra) {
@@ -1002,6 +1016,44 @@
     return 0;
   }
 
+  function normalizeVoidByFrequency(value) {
+    const source = value && typeof value === "object" ? value : {};
+    const voidByFrequency = {};
+    frequencies().forEach((frequency) => {
+      voidByFrequency[frequency] = normalizeNonNegative(source[frequency]);
+    });
+    return voidByFrequency;
+  }
+
+  function voidForFrequency(frequency) {
+    const voidByFrequency = normalizeVoidByFrequency(consoleState.operatorStatus.voidByFrequency);
+    return Number(voidByFrequency[frequency] || 0);
+  }
+
+  function setFrequencyVoid(frequency, value) {
+    consoleState.operatorStatus.voidByFrequency = normalizeVoidByFrequency(consoleState.operatorStatus.voidByFrequency);
+    const current = Number(consoleState.operatorStatus.voidByFrequency[frequency] || 0);
+    const target = Number(normalizeNonNegative(value));
+    const delta = target - current;
+    if (delta > 0) {
+      const bank = Number(normalizeNonNegative(consoleState.operatorStatus.voidMarks));
+      if (bank < delta) {
+        setStorageStatus(`Insufficient Void. Required ${delta}; banked ${bank}.`, true);
+        return false;
+      }
+      consoleState.operatorStatus.voidMarks = String(bank - delta);
+    }
+    if (delta < 0) {
+      const bank = Number(normalizeNonNegative(consoleState.operatorStatus.voidMarks));
+      consoleState.operatorStatus.voidMarks = String(bank + Math.abs(delta));
+    }
+    consoleState.operatorStatus.voidByFrequency[frequency] = String(target);
+    consoleState.operatorStatus.selectedLotusPetal = frequency;
+    setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
+    writeConsoleState();
+    return true;
+  }
+
   function creationOpenedFrequency(lotus) {
     const cultivated = Object.entries(normalizeLotus(lotus)).find(([, level]) => Number(level || 0) > 0);
     return cultivated && cultivated[0] || selectedCoreFrequency();
@@ -1012,7 +1064,7 @@
     const oldLevel = Number(normalizedLotus[frequency] || 0);
     const target = Number(normalizeBoxValue(targetLevel, 6));
     const requiredVoid = requiredVoidForFrequencyLevel(target);
-    const availableVoid = Number(normalizeNonNegative(consoleState.operatorStatus.voidMarks));
+    const availableVoid = voidForFrequency(frequency);
 
     if (frequency === normalizeFrequencyName(consoleState.operatorStatus.blindPetal)) {
       return { ok: false, message: "Blind petal cannot be cultivated." };
@@ -1473,10 +1525,11 @@
     const next = Math.min(6, current + 1);
     const nextVoid = requiredVoidForFrequencyLevel(next);
     const nextCost = current >= 6 ? 0 : frequencyPipBreachCost(next);
+    const petalVoid = voidForFrequency(frequency);
     const bank = normalizeNonNegative(consoleState.operatorStatus.breachPoints);
     const gate = current > 0
-      ? `Current gate: ${requiredVoid} Void on ${frequency}.`
-      : `Gate 1 requires 1 Void on ${frequency}.`;
+      ? `Current gate: ${requiredVoid} Void on ${frequency}. Recorded: ${petalVoid}.`
+      : `Gate 1 requires 1 Void on ${frequency}. Recorded: ${petalVoid}.`;
     const nextLine = current >= 6
       ? "Pip ceiling reached."
       : `Next pip: ${nextCost} Breach after ${nextVoid} Void gate access.`;
@@ -1619,6 +1672,7 @@
     const status = consoleState.operatorStatus;
     const selected = normalizeFrequencyName(status.selectedLotusPetal) || "Dream";
     const blind = normalizeFrequencyName(status.blindPetal);
+    const selectedVoid = voidForFrequency(selected);
     const selectedLevel = Number(normalizeLotus(status.lotus)[selected] || 0);
     const entries = unlockedLotusEntries();
     list.textContent = "";
@@ -1631,7 +1685,7 @@
     list.append(blindNotice);
 
     const selectedTitle = document.createElement("h3");
-    selectedTitle.textContent = selected === blind ? `${selected} // Blind` : `${selected} unlocked`;
+    selectedTitle.textContent = selected === blind ? `${selected} // Blind` : `${selected} unlocked // Void ${selectedVoid}`;
     list.append(selectedTitle);
 
     const selectedEntries = entries.filter((entry) => entry.frequency === selected);
@@ -1716,6 +1770,7 @@
     if (!map) return;
     const status = consoleState.operatorStatus;
     const lotus = normalizeLotus(status.lotus);
+    status.voidByFrequency = normalizeVoidByFrequency(status.voidByFrequency);
     const selected = normalizeFrequencyName(status.selectedLotusPetal) || operatorRecord?.primaryFrequency || "Dream";
     status.selectedLotusPetal = normalizeFrequencyName(selected) || "Dream";
     status.lotus = lotus;
@@ -1723,6 +1778,7 @@
 
     frequencies().forEach((frequency) => {
       const level = Number(lotus[frequency] || 0);
+      const petalVoid = voidForFrequency(frequency);
       if (frequency === status.blindPetal && level > 0) {
         lotus[frequency] = "0";
       }
@@ -1744,12 +1800,17 @@
       const pips = document.createElement("div");
       pips.className = "lotus-pips";
       for (let index = 1; index <= 6; index += 1) {
+        const lockedByVoid = index > level && requiredVoidForFrequencyLevel(index) > petalVoid;
         const pip = document.createElement("button");
         pip.type = "button";
         pip.className = "pip";
-        pip.disabled = frequency === status.blindPetal;
+        pip.disabled = frequency === status.blindPetal || lockedByVoid;
         pip.classList.toggle("is-filled", frequency !== status.blindPetal && index <= Number(lotus[frequency] || 0));
+        pip.classList.toggle("is-locked", frequency !== status.blindPetal && lockedByVoid);
         pip.setAttribute("aria-label", `${frequency} pip ${index}`);
+        if (lockedByVoid) {
+          pip.title = `Requires ${requiredVoidForFrequencyLevel(index)} Void on ${frequency}.`;
+        }
         pip.addEventListener("click", () => {
           if (frequency === status.blindPetal) return;
           const targetLevel = index === level ? index - 1 : index;
@@ -1772,10 +1833,34 @@
         pips.append(pip);
       }
 
+      const voidField = document.createElement("label");
+      voidField.className = "lotus-void";
+      const voidText = document.createElement("span");
+      voidText.textContent = "Void";
+      const voidInput = document.createElement("input");
+      voidInput.type = "number";
+      voidInput.min = "0";
+      voidInput.max = "99";
+      voidInput.step = "1";
+      voidInput.inputMode = "numeric";
+      voidInput.value = status.voidByFrequency[frequency];
+      voidInput.setAttribute("aria-label", `${frequency} Void`);
+      voidInput.addEventListener("change", () => {
+        setFrequencyVoid(frequency, voidInput.value);
+        renderLotus();
+      });
+      voidField.append(voidText, voidInput);
+
       const blind = document.createElement("button");
       blind.type = "button";
       blind.className = "blind-toggle";
       blind.textContent = frequency === status.blindPetal ? "Blind Petal" : "Mark Blind";
+      if (status.blindPetal && !status.creationMode && frequency !== status.blindPetal) {
+        blind.hidden = true;
+      }
+      if (status.blindPetal && !status.creationMode && frequency === status.blindPetal) {
+        blind.disabled = true;
+      }
       blind.addEventListener("click", () => {
         status.blindPetal = frequency;
         if (status.blindPetal === frequency) status.lotus[frequency] = "0";
@@ -1784,7 +1869,7 @@
         renderLotus();
       });
 
-      petal.append(header, pips, blind);
+      petal.append(header, pips, voidField, blind);
       map.append(petal);
     });
 
@@ -1875,8 +1960,10 @@
       payload[input.name] = input.checked;
     });
     if (form.id === "equipment-form") {
-      payload.item = payload.category === "Custom" && payload.customItem ? payload.customItem : payload.item;
-      payload.slot = normalizeEquipmentSlot(payload.slot || equipmentSlots[payload.item]);
+      const custom = payload.category === "Custom";
+      const selectedItem = payload.item;
+      payload.item = custom && payload.customItem ? payload.customItem : selectedItem;
+      payload.slot = normalizeEquipmentSlot(equipmentSlotForSelection(selectedItem, custom));
       delete payload.customItem;
     }
     return payload;
@@ -1895,6 +1982,7 @@
       attentionState: normalizeAttentionState(status.attentionState),
       harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
       voidMarks: normalizeNonNegative(status.voidMarks),
+      voidByFrequency: normalizeVoidByFrequency(status.voidByFrequency),
       breachPoints: normalizeNonNegative(status.breachPoints),
       creationMode: Boolean(status.creationMode),
       activeMisfire: safeString(status.activeMisfire, 1000),
@@ -2093,7 +2181,9 @@
       const status = consoleState.operatorStatus;
       const frequency = selectedCoreFrequency();
       status.creationMode = true;
-      status.voidMarks = "1";
+      status.voidMarks = "0";
+      status.voidByFrequency = normalizeVoidByFrequency(status.voidByFrequency);
+      status.voidByFrequency[frequency] = String(Math.max(1, Number(status.voidByFrequency[frequency] || 0)));
       status.breachPoints = String(creationBonusBreachBudget());
       status.lotus = normalizeLotus(status.lotus);
       status.lotus[frequency] = String(Math.max(1, Number(status.lotus[frequency] || 0)));
@@ -2102,7 +2192,7 @@
       setNamedValue("breachPoints", status.breachPoints);
       writeConsoleState();
       renderAll();
-      setStorageStatus(`Core start applied: ${frequency} pip 1, 1 Void, 3 Bonus Breach.`);
+      setStorageStatus(`Core start applied: ${frequency} pip 1, 1 Void invested, 3 Bonus Breach.`);
     });
     const creationMode = document.getElementById("creation-mode-toggle");
     if (creationMode) creationMode.addEventListener("click", () => {
@@ -2160,6 +2250,14 @@
   }
 
   function rollDie() {
+    const cryptoSource = window.crypto || window.msCrypto;
+    if (cryptoSource && typeof cryptoSource.getRandomValues === "function") {
+      const values = new Uint32Array(1);
+      do {
+        cryptoSource.getRandomValues(values);
+      } while (values[0] >= 4294967292);
+      return (values[0] % 6) + 1;
+    }
     return Math.floor(Math.random() * 6) + 1;
   }
 

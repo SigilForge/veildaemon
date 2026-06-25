@@ -50,8 +50,13 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
 
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
-  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("1");
+  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("0");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await page.getByRole("button", { name: "Frequency" }).click();
+  await expect(page.getByLabel("Dream Void")).toHaveValue("1");
+  await expect(page.getByLabel("Dream pip 1")).toBeEnabled();
+  await expect(page.getByLabel("Dream pip 3")).toBeDisabled();
+  await page.getByRole("button", { name: "Sheet" }).click();
   await expect(page.getByLabel("Body 1")).toBeVisible();
   await page.getByLabel("Body 3").click();
   await page.locator("#skill-picker").selectOption("Investigation");
@@ -88,16 +93,26 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.getByRole("button", { name: "Sheet" }).click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
-  await page.locator('input[name="voidMarks"]').fill("3");
+  await page.locator('input[name="voidMarks"]').fill("6");
   await page.locator('input[name="breachPoints"]').fill("30");
   await page.getByRole("button", { name: "Frequency" }).click();
   await expect(page.getByText("Abilities, tells, grounding, and misfire language.")).toBeVisible();
   await expect(page.locator(".lotus-petal")).toHaveCount(6);
   await expect(page.locator("#lotus-tier")).toHaveText("Basic");
+  await page.getByLabel("Dream Void").fill("2");
+  await page.getByLabel("Dream Void").blur();
+  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("5");
   await page.getByLabel("Dream pip 3").click();
   await expect(page.locator("#lotus-frequency")).toHaveText("Dream");
   await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
+  await expect(page.getByLabel("Silence pip 6")).toBeDisabled();
+  await page.getByLabel("Silence Void").fill("3");
+  await page.getByLabel("Silence Void").blur();
+  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("2");
   await page.getByLabel("Silence pip 6").click();
+  await page.getByLabel("Becoming Void").fill("2");
+  await page.getByLabel("Becoming Void").blur();
+  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("0");
   await page.getByLabel("Becoming pip 4").click();
   await expect(page.locator("#lotus-unlocks")).toContainText("Silence 5: CONCEPT EROSION");
   await expect(page.locator("#lotus-unlocks")).toContainText("Becoming 3: PATTERN MIMIC");
@@ -108,6 +123,11 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.locator(".lotus-petal").filter({ hasText: "Hunger" }).getByRole("button", { name: "Mark Blind" }).click();
   await expect(page.getByLabel("Hunger pip 1")).toBeDisabled();
   await expect(page.locator("#lotus-unlocks")).toContainText("Blind petal: Hunger");
+  await expect(page.getByRole("button", { name: "Mark Blind" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Sheet" }).click();
+  await page.getByRole("button", { name: "Creation Mode: Off" }).click();
+  await page.getByRole("button", { name: "Frequency" }).click();
+  await expect(page.getByRole("button", { name: "Mark Blind" })).toHaveCount(5);
   await expect(page.getByText("Anchor memory")).toBeVisible();
 
   await page.getByRole("button", { name: "Archive" }).click();

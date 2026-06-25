@@ -657,6 +657,26 @@ fieldset.recovery-field.compact label {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: .3rem;
 }
+.lotus-void {
+  display: grid;
+  grid-template-columns: auto minmax(3.4rem, 1fr);
+  gap: .45rem;
+  align-items: center;
+  min-width: 0;
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.lotus-void input {
+  min-height: 2rem;
+  padding: .35rem .45rem;
+  text-align: center;
+}
+.pip.is-locked {
+  border-color: rgba(255,255,255,.08);
+  background: rgba(255,255,255,.025);
+}
 .attribute-grid,
 .skill-list {
   display: grid;
