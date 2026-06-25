@@ -107,6 +107,18 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.getByLabel("Dream pip 3").click();
   await expect(page.locator("#lotus-frequency")).toHaveText("Dream");
   await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("27");
+  await page.getByLabel("Dream pip 3").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("27");
+  await expect(page.locator("#storage-status")).toContainText("Frequency Edit Mode required to remove pips.");
+  await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
+  await page.getByRole("button", { name: "Frequency Edit Mode: Off" }).click();
+  await expect(page.getByRole("button", { name: "Frequency Edit Mode: On" })).toBeVisible();
+  await expect(page.locator("#frequency-edit-status")).toContainText("Pip removal unlocked.");
+  await page.getByLabel("Dream pip 3").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("29");
+  await page.getByLabel("Dream pip 3").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("27");
   await expect(page.getByLabel("Silence pip 6")).toBeDisabled();
   await page.getByLabel("Silence Void").fill("4");
   await page.getByLabel("Silence Void").blur();
