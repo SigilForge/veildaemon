@@ -156,7 +156,12 @@
     });
   }
 
-  renderTemplates();
-  bindControls();
-  renderOverview();
+  async function init() {
+    await api.loadTemplates();
+    renderTemplates();
+    bindControls();
+    renderOverview();
+  }
+
+  init();
 }());
