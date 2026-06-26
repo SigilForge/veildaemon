@@ -744,11 +744,16 @@
     setNamedValue("activeNeedlepoint", status.activeNeedlepoint || "");
     setNamedValue("background", status.background || "");
     setNamedValue("ontologyPresentation", status.ontologyPresentation || "");
+    setText("live-operator-name", status.operatorName || "Unnamed");
+    setText("live-designation", status.designation || operatorRecord?.designation || "Unassigned");
+    setText("live-needlepoint", status.activeNeedlepoint || "Viridian House");
     consoleState.operatorStatus.creationMode = Boolean(status.creationMode);
     consoleState.operatorStatus.stability = normalizeStabilityValue(status.stability);
     consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(consoleState.operatorStatus.stability);
     setNamedValue("attentionState", normalizeAttentionState(status.attentionState));
+    setText("sheet-attention-status", normalizeAttentionState(status.attentionState));
     setNamedValue("emotionalState", status.emotionalState || operatorRecord?.attentionStatus || "");
+    setText("live-emotional-state", status.emotionalState || operatorRecord?.attentionStatus || "Stable enough");
     consoleState.operatorStatus.voidByFrequency = normalizeVoidByFrequency(status.voidByFrequency);
     consoleState.operatorStatus.voidMarks = clampVoidBank(status.voidMarks, consoleState.operatorStatus.voidByFrequency);
     setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
@@ -1391,7 +1396,9 @@
     status.stabilityBand = bandFromLegacyStability(status.stability);
     if (band) band.textContent = status.stabilityBand.toUpperCase();
     if (bleedCue) bleedCue.textContent = frequencyCard(operatorRecord?.primaryFrequency).bleedCue.toUpperCase();
+    setText("status-bleed-cue-detail", frequencyCard(operatorRecord?.primaryFrequency).bleedCue.toUpperCase());
     setText("sheet-frequency", operatorRecord && operatorRecord.primaryFrequency || "UNASSIGNED");
+    setText("sheet-frequency-detail", operatorRecord && operatorRecord.primaryFrequency || "UNASSIGNED");
   }
 
   function renderTrackers() {
@@ -1504,6 +1511,7 @@
   function renderSkills() {
     const picker = document.getElementById("skill-picker");
     const list = document.getElementById("skill-list");
+    const summary = document.getElementById("skill-summary-list");
     if (picker) {
       const current = picker.value;
       picker.textContent = "";
@@ -1515,11 +1523,15 @@
       });
       picker.value = normalizeSkillName(current) || "Athletics";
     }
-    if (!list) return;
     const skills = normalizeSkills(consoleState.operatorStatus.skills);
     consoleState.operatorStatus.skills = skills;
-    list.textContent = "";
     const entries = Object.entries(skills);
+    renderSkillSummary(summary, entries);
+    if (!list) {
+      renderRollSelectors();
+      return;
+    }
+    list.textContent = "";
     if (!entries.length) {
       const empty = document.createElement("p");
       empty.className = "empty-line";
@@ -1529,8 +1541,9 @@
       return;
     }
     entries.forEach(([name, rank]) => {
-      const row = document.createElement("article");
+      const row = document.createElement("details");
       row.className = "skill-row";
+      const summaryNode = document.createElement("summary");
       const pick = document.createElement("button");
       pick.type = "button";
       pick.className = "skill-name";
@@ -1579,10 +1592,39 @@
       const descriptor = document.createElement("p");
       descriptor.className = "skill-scale";
       descriptor.textContent = `${name} ${rank} // ${skillRankLabel(rank)}: ${skillRankDescription(name, rank)}`;
-      row.append(pick, input, remove, descriptor);
+      summaryNode.append(pick, input, remove);
+      row.append(summaryNode, descriptor);
       list.append(row);
     });
     renderRollSelectors();
+  }
+
+  function renderSkillSummary(summary, entries) {
+    if (!summary) return;
+    summary.textContent = "";
+    if (!entries.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-line";
+      empty.textContent = "No trained skills assigned.";
+      summary.append(empty);
+      return;
+    }
+    entries.forEach(([name, rank]) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "skill-summary-chip";
+      const title = document.createElement("strong");
+      title.textContent = name;
+      const value = document.createElement("span");
+      value.textContent = `+${rank}`;
+      chip.append(title, value);
+      chip.addEventListener("click", () => {
+        consoleState.operatorStatus.rollSkillKey = name;
+        writeConsoleState();
+        renderRollSelectors();
+      });
+      summary.append(chip);
+    });
   }
 
   function renderCreationMode() {

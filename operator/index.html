@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260625-authsurface1" />
+  <link rel="stylesheet" href="./operator.css?v=20260625-sheetflow1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -144,81 +144,37 @@
       </div>
       <form class="console-form status-form" id="status-form">
         <section class="sheet-grid">
-          <article class="sheet-card identity-card">
-            <p class="card-label">Identity</p>
-            <label>Operator Name<input name="operatorName" type="text" maxlength="80" autocomplete="off" /></label>
-            <label>Designation<input name="designation" type="text" maxlength="80" autocomplete="off" /></label>
-            <label>Role<input name="role" type="text" maxlength="80" placeholder="Operator" autocomplete="off" /></label>
-            <label>Needlepoint<input name="activeNeedlepoint" type="text" maxlength="90" placeholder="Viridian House" autocomplete="off" /></label>
-            <label>Background<input name="background" type="text" maxlength="120" autocomplete="off" /></label>
-            <label>Ontology / Presentation<input name="ontologyPresentation" type="text" maxlength="120" autocomplete="off" /></label>
-            <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" autocomplete="off" /></label>
-            <div class="tiny-counters" aria-label="Operator currencies">
-              <label>Void<input name="voidMarks" type="number" min="0" max="13" step="1" inputmode="numeric" readonly /></label>
-              <label>Breach<input name="breachPoints" type="number" min="0" max="99" step="1" inputmode="numeric" readonly /></label>
+          <article class="sheet-card operator-case-strip wide">
+            <p class="card-label">Identity / Active Case / Frequency</p>
+            <div class="case-strip-grid">
+              <div class="status-chip">
+                <span>Operator</span>
+                <strong id="live-operator-name">UNNAMED</strong>
+              </div>
+              <div class="status-chip">
+                <span>Designation</span>
+                <strong id="live-designation">UNASSIGNED</strong>
+              </div>
+              <div class="status-chip">
+                <span>Needlepoint</span>
+                <strong id="live-needlepoint">VIRIDIAN HOUSE</strong>
+              </div>
+              <div class="status-chip">
+                <span>Primary</span>
+                <strong id="sheet-frequency">UNASSIGNED</strong>
+              </div>
+              <div class="status-chip">
+                <span>Bleed Cue</span>
+                <strong id="status-bleed-cue">PENDING FREQUENCY</strong>
+              </div>
+              <div class="status-chip">
+                <span>Pressure</span>
+                <strong id="live-emotional-state">STABLE ENOUGH</strong>
+              </div>
             </div>
           </article>
 
-          <article class="sheet-card">
-            <p class="card-label">Frequency</p>
-            <div class="readout-block">
-              <span>Primary</span>
-              <strong id="sheet-frequency">UNASSIGNED</strong>
-            </div>
-            <div class="readout-block">
-              <span>Bleed Cue</span>
-              <strong id="status-bleed-cue">PENDING FREQUENCY</strong>
-            </div>
-            <label>Common tell<input name="commonTell" type="text" maxlength="160" autocomplete="off" /></label>
-          </article>
-
-          <article class="condition-strip wide">
-            <div class="tracker-board" id="tracker-board"></div>
-          </article>
-
-          <article class="sheet-card compact-control-card">
-            <p class="card-label">Active Misfire</p>
-            <label>Current consequence<textarea name="activeMisfire" rows="3" placeholder="Describe the wrong-success consequence currently in play."></textarea></label>
-            <button type="button" class="button" id="clear-active-misfire">Clear Active Misfire</button>
-            <label>Misfires recorded<textarea name="misfires" rows="3" placeholder="Consequence, flavor, who noticed."></textarea></label>
-          </article>
-
-          <article class="sheet-card">
-            <p class="card-label">Attributes</p>
-            <div class="attribute-grid" id="attribute-grid"></div>
-          </article>
-
-          <article class="sheet-card">
-            <p class="card-label">Skills</p>
-            <div class="creation-row">
-              <button type="button" class="button" id="creation-mode-toggle">Creation Mode: Off</button>
-              <button type="button" class="button" id="apply-core-start">Apply Core Start</button>
-              <span id="creation-budget">Advancement spends Breach.</span>
-            </div>
-            <div class="skill-builder">
-              <label>Skill<select id="skill-picker"></select></label>
-              <label>Rank<input id="skill-rank" type="number" min="1" max="5" step="1" value="1" /></label>
-              <span class="cost-preview" id="skill-cost-preview">Cost: 1 Breach</span>
-              <button type="button" class="button" id="add-skill">Add Skill</button>
-            </div>
-            <p class="skill-rank-preview" id="skill-rank-preview">Rank meaning pending.</p>
-            <div class="skill-list" id="skill-list"></div>
-          </article>
-
-          <article class="sheet-card compact-control-card">
-            <p class="card-label">Attention</p>
-            <div class="segmented attention" data-segmented="attentionState">
-              <button type="button" data-value="Unnoticed">Unnoticed</button>
-              <button type="button" data-value="Brushed">Brushed</button>
-              <button type="button" data-value="Noted">Noted</button>
-              <button type="button" data-value="Marked">Marked</button>
-              <button type="button" data-value="Pursued">Pursued</button>
-              <button type="button" data-value="Claimed">Claimed</button>
-            </div>
-            <input name="attentionState" type="hidden" />
-          </article>
-
-          <article class="sheet-card wide">
+          <article class="sheet-card operator-roll-dock wide">
             <p class="card-label">Action Roll</p>
             <div class="roll-row">
               <label>Attribute<select name="rollAttributeKey" id="roll-attribute"></select></label>
@@ -233,7 +189,42 @@
             <div class="roll-output" id="roll-output">Awaiting action.</div>
           </article>
 
-          <article class="sheet-card wide">
+          <article class="condition-strip operator-harm-stability wide">
+            <div class="tracker-board" id="tracker-board"></div>
+          </article>
+
+          <div class="operator-core-grid wide">
+            <article class="sheet-card">
+              <p class="card-label">Attributes</p>
+              <div class="attribute-grid" id="attribute-grid"></div>
+            </article>
+
+            <article class="sheet-card skill-summary-card">
+              <p class="card-label">Skill Summary</p>
+              <div class="skill-summary-list" id="skill-summary-list"></div>
+            </article>
+          </div>
+
+          <div class="operator-pressure-grid wide">
+            <article class="sheet-card compact-control-card observation-panel">
+              <p class="card-label">Observation Status</p>
+              <div class="readout-block">
+                <span>Handler controlled</span>
+                <strong id="sheet-attention-status">UNNOTICED</strong>
+              </div>
+              <p class="local-note">Local display only. The Handler controls observation pressure.</p>
+              <input name="attentionState" type="hidden" />
+            </article>
+
+            <article class="sheet-card compact-control-card misfire-panel">
+              <p class="card-label">Active Misfire</p>
+              <label>Current consequence<textarea name="activeMisfire" rows="3" placeholder="Describe the wrong-success consequence currently in play."></textarea></label>
+              <button type="button" class="button" id="clear-active-misfire">Clear Active Misfire</button>
+              <label>Misfires recorded<textarea name="misfires" rows="3" placeholder="Consequence, flavor, who noticed."></textarea></label>
+            </article>
+          </div>
+
+          <article class="sheet-card operator-recovery wide">
             <p class="card-label">Recovery</p>
             <fieldset class="recovery-field compact">
               <label><input name="recoveryGround" type="checkbox" /> Ground</label>
@@ -244,9 +235,54 @@
             </fieldset>
           </article>
 
-          <article class="sheet-card wide">
+          <article class="sheet-card operator-notes wide">
             <p class="card-label">Immediate Notes</p>
             <textarea name="quickNotes" rows="4" placeholder="Scene facts, table reminders, current risk."></textarea>
+          </article>
+
+          <article class="sheet-card identity-card operator-live-readout">
+            <p class="card-label">Identity Details</p>
+            <label>Operator Name<input name="operatorName" type="text" maxlength="80" autocomplete="off" /></label>
+            <label>Designation<input name="designation" type="text" maxlength="80" autocomplete="off" /></label>
+            <label>Role<input name="role" type="text" maxlength="80" placeholder="Operator" autocomplete="off" /></label>
+            <label>Needlepoint<input name="activeNeedlepoint" type="text" maxlength="90" placeholder="Viridian House" autocomplete="off" /></label>
+            <label>Background<input name="background" type="text" maxlength="120" autocomplete="off" /></label>
+            <label>Ontology / Presentation<input name="ontologyPresentation" type="text" maxlength="120" autocomplete="off" /></label>
+            <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" autocomplete="off" /></label>
+            <div class="tiny-counters" aria-label="Operator currencies">
+              <label>Void<input name="voidMarks" type="number" min="0" max="13" step="1" inputmode="numeric" readonly /></label>
+              <label>Breach<input name="breachPoints" type="number" min="0" max="99" step="1" inputmode="numeric" readonly /></label>
+            </div>
+          </article>
+
+          <article class="sheet-card operator-live-readout">
+            <p class="card-label">Frequency Details</p>
+            <div class="readout-block">
+              <span>Primary</span>
+              <strong id="sheet-frequency-detail">UNASSIGNED</strong>
+            </div>
+            <div class="readout-block">
+              <span>Bleed Cue</span>
+              <strong id="status-bleed-cue-detail">PENDING FREQUENCY</strong>
+            </div>
+            <label>Common tell<input name="commonTell" type="text" maxlength="160" autocomplete="off" /></label>
+          </article>
+
+          <article class="sheet-card skill-manager wide">
+            <p class="card-label">Skill Manager</p>
+            <div class="creation-row">
+              <button type="button" class="button" id="creation-mode-toggle">Creation Mode: Off</button>
+              <button type="button" class="button" id="apply-core-start">Apply Core Start</button>
+              <span id="creation-budget">Advancement spends Breach.</span>
+            </div>
+            <div class="skill-builder">
+              <label>Skill<select id="skill-picker"></select></label>
+              <label>Rank<input id="skill-rank" type="number" min="1" max="5" step="1" value="1" /></label>
+              <span class="cost-preview" id="skill-cost-preview">Cost: 1 Breach</span>
+              <button type="button" class="button" id="add-skill">Add Skill</button>
+            </div>
+            <p class="skill-rank-preview" id="skill-rank-preview">Rank meaning pending.</p>
+            <div class="skill-list" id="skill-list"></div>
           </article>
         </section>
       </form>
@@ -493,6 +529,6 @@
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="./operator.js?v=20260625-authsurface1"></script>
+  <script src="./operator.js?v=20260625-sheetflow1"></script>
 </body>
 </html>

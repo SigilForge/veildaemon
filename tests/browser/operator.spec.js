@@ -37,6 +37,15 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
 
   await page.getByRole("button", { name: "Sheet" }).click();
   await expect(page.getByRole("button", { name: "Sheet" })).toHaveClass(/is-active/);
+  await expect(page.locator(".operator-roll-dock")).toBeVisible();
+  const initialLayout = await page.evaluate(() => {
+    const sheetTop = document.querySelector("#module-sheet")?.getBoundingClientRect().top || 0;
+    const rollTop = document.querySelector(".operator-roll-dock")?.getBoundingClientRect().top || 0;
+    const managerTop = document.querySelector(".skill-manager")?.getBoundingClientRect().top || 0;
+    return { rollOffset: rollTop - sheetTop, managerAfterRoll: managerTop > rollTop };
+  });
+  expect(initialLayout.rollOffset).toBeLessThan(420);
+  expect(initialLayout.managerAfterRoll).toBe(true);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   const stickyNav = await page.locator(".console-nav").boundingBox();
   expect(stickyNav.y).toBeGreaterThanOrEqual(0);
@@ -60,8 +69,8 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await page.getByRole("button", { name: "Clear Active Misfire" }).click();
   await expect(page.getByLabel("Current consequence")).toHaveValue("");
 
-  await page.getByRole("button", { name: "Marked" }).click();
-  await expect(page.getByRole("button", { name: "Marked" })).toHaveClass(/is-active/);
+  await expect(page.locator("#sheet-attention-status")).toContainText("Unnoticed");
+  await expect(page.getByRole("button", { name: "Marked" })).toHaveCount(0);
 
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
@@ -79,7 +88,10 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator("#skill-rank-preview")).toContainText("connect evidence");
   await page.getByRole("button", { name: "Add Skill" }).click();
   await expect(page.getByText("Creation: skills 2/8 // attribute spread 2/6 // Bonus Breach 3/3")).toBeVisible();
-  await expect(page.locator("#skill-list").getByText(/Investigation 2 .* connect evidence/)).toBeVisible();
+  await expect(page.locator("#skill-list")).toContainText("Investigation");
+  await expect(page.locator("#skill-list")).toContainText("Investigation 2");
+  await expect(page.locator("#skill-summary-list")).toContainText("Investigation");
+  await expect(page.locator("#skill-summary-list")).toContainText("+2");
   await page.locator("#roll-attribute").selectOption("Body");
   await page.locator("#roll-skill").selectOption("Investigation");
   await page.getByRole("button", { name: "Roll 3D6" }).click();
