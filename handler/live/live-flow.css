@@ -1,0 +1,90 @@
+/* Live dashboard flow overrides: keep the table controls in vertical rails. */
+@media (min-width: 1101px) {
+  body[data-handler-mode="live"] .dashboard-form {
+    display: block;
+  }
+
+  body[data-handler-mode="live"] .live-flow-grid {
+    display: grid;
+    grid-template-columns: minmax(19rem, 1.05fr) minmax(20rem, 1fr) minmax(19rem, .95fr);
+    gap: .75rem;
+    align-items: start;
+    margin-top: .75rem;
+  }
+
+  body[data-handler-mode="live"] .live-flow-column {
+    display: grid;
+    gap: .75rem;
+    align-content: start;
+    min-width: 0;
+  }
+
+  body[data-handler-mode="live"] .live-flow-column > .panel {
+    grid-column: auto;
+    align-self: start;
+    min-height: 0;
+  }
+
+  body[data-handler-mode="live"] .live-side-column .aftermath-live-layout {
+    grid-template-columns: 1fr;
+    gap: .55rem;
+  }
+
+  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-panel-heading {
+    margin-bottom: .6rem;
+  }
+
+  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .5rem;
+    align-items: end;
+  }
+
+  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-mode {
+    grid-column: 1 / 3;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .live-side-column .roll-panel #roll-button {
+    grid-column: 3;
+    min-height: 100%;
+  }
+
+  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-output {
+    min-height: 2.5rem;
+    font-size: .72rem;
+  }
+
+  body[data-handler-mode="live"] .live-main-column .scene-state-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .live-main-column .scene-state-button {
+    min-height: 5.8rem;
+  }
+
+  body[data-handler-mode="live"] .live-side-column .loop-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-handler-mode="live"] .live-side-column .loop-grid textarea {
+    min-height: 4.75rem;
+  }
+
+  body[data-handler-mode="live"] .live-side-column .npc-summary-grid,
+  body[data-handler-mode="live"] .live-main-column .operator-risk-strip {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1100px) {
+  .live-flow-grid,
+  .live-flow-column {
+    display: grid;
+    gap: .75rem;
+  }
+
+  .live-flow-grid {
+    grid-template-columns: 1fr;
+  }
+}
