@@ -635,7 +635,6 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 .case-panel,
 .clock-panel,
 .loop-panel,
-.aftermath-panel,
 .helper-panel,
 .secondary-panel,
 .player-panel,
@@ -650,24 +649,15 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 
 .aftermath-live-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(16.5rem, 0.85fr);
-  gap: .85rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .65rem;
   align-items: start;
 }
 
-.aftermath-live-layout:has(.aftermath-roll[hidden]) {
-  grid-template-columns: 1fr;
-}
-
-.aftermath-fields {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .65rem;
-  align-items: end;
-}
-
 .aftermath-roll {
-  padding: .65rem .7rem;
+  grid-column: 2 / -1;
+  grid-row: 2;
+  padding: .6rem .65rem;
   border: 1px solid rgba(137,255,218,.16);
   background: rgba(0,0,0,.22);
 }
@@ -984,18 +974,19 @@ select:focus {
   line-height: 1.45;
 }
 
-.aftermath-roll .roll-row {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.live-surface .aftermath-roll .roll-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(7.5rem, .85fr) minmax(6.5rem, .7fr);
   gap: .5rem;
+  align-items: end;
 }
 
-.aftermath-roll .roll-mode {
-  grid-column: 1 / -1;
+.live-surface .aftermath-roll .roll-mode {
+  grid-column: auto;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.aftermath-roll .roll-row #roll-button {
-  grid-column: 1 / -1;
+.live-surface .aftermath-roll .roll-row #roll-button {
+  grid-column: auto;
   min-height: 2.55rem;
 }
 
@@ -1404,14 +1395,24 @@ body.is-player-view .private-panel {
     grid-column: 1 / -1;
   }
 
-  .aftermath-live-layout,
-  .aftermath-fields {
+  .aftermath-live-layout {
     grid-template-columns: 1fr;
   }
 
+  .aftermath-roll {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
   .live-surface .roll-row,
-  .live-surface .aftermath-roll-row {
+  .live-surface .aftermath-roll-row,
+  .aftermath-roll .roll-row {
     grid-template-columns: 1fr;
+  }
+
+  .aftermath-roll .roll-mode,
+  .aftermath-roll .roll-row #roll-button {
+    grid-column: 1;
   }
 
   .live-surface .roll-mode,
