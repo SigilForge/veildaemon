@@ -386,24 +386,16 @@ body.operator-record-sealed .data-panel {
   gap: .55rem;
 }
 .identity-card .card-label,
-.tiny-counters {
+.currency-readouts {
   grid-column: 1 / -1;
 }
-.tiny-counters {
+.currency-readouts {
   display: grid;
-  grid-template-columns: repeat(2, 5.2rem);
-  gap: .55rem;
-  justify-content: start;
+  grid-template-columns: repeat(2, minmax(6rem, 1fr));
+  gap: .5rem;
 }
-.tiny-counters label {
-  gap: .2rem;
-}
-.tiny-counters input {
-  min-height: 2.1rem;
-  padding: .35rem;
-  font-size: .88rem;
-  font-weight: 800;
-  text-align: center;
+.currency-chip {
+  min-height: 2.85rem;
 }
 .card-label {
   margin: 0 0 .7rem;
@@ -433,46 +425,6 @@ body.operator-record-sealed .data-panel {
   font-size: .82rem;
   line-height: 1.35;
   overflow-wrap: anywhere;
-}
-.collapsible-card {
-  align-self: start;
-  height: auto;
-  min-height: 0;
-  padding: 0;
-}
-.collapsible-card > summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 2.75rem;
-  padding: .75rem .9rem;
-  color: var(--cyan);
-  cursor: pointer;
-  font-size: .68rem;
-  font-weight: 800;
-  letter-spacing: .14em;
-  list-style: none;
-  text-transform: uppercase;
-}
-.collapsible-card > summary::-webkit-details-marker {
-  display: none;
-}
-.collapsible-card > summary::before {
-  content: ">";
-  margin-right: .5rem;
-  color: var(--purple);
-}
-.collapsible-card[open] > summary {
-  border-bottom: 1px solid rgba(137,255,218,.18);
-}
-.collapsible-card[open] > summary::before {
-  content: "v";
-}
-.collapsible-card > *:not(summary) {
-  margin: .9rem;
-}
-.operator-details-panel .identity-card {
-  margin: .9rem;
 }
 .condition-strip {
   grid-column: 1 / -1;

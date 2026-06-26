@@ -58,10 +58,10 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("10/10")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("Band: Calm")).toBeVisible();
   await expect(page.getByLabel("Operator Name")).toBeVisible();
-  await expect(page.locator('input[name="voidMarks"]')).toBeVisible();
-  await expect(page.locator('input[name="breachPoints"]')).toBeVisible();
-  await expect(page.locator('input[name="voidMarks"]')).toHaveAttribute("max", "13");
-  await expect(page.locator('input[name="breachPoints"]')).toHaveAttribute("max", "99");
+  await expect(page.locator("#void-bank-readout")).toHaveText("0");
+  await expect(page.locator("#breach-bank-readout")).toHaveText("0");
+  await expect(page.locator('input[name="voidMarks"]')).toHaveAttribute("type", "hidden");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveAttribute("type", "hidden");
   await expect(page.locator('input[name="voidMarks"]')).toHaveAttribute("readonly", "");
   await expect(page.locator('input[name="breachPoints"]')).toHaveAttribute("readonly", "");
   await page.getByLabel("Current consequence").fill("The wrong door remembers the Operator.");
@@ -72,11 +72,12 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator("#sheet-attention-status")).toContainText("Unnoticed");
   await expect(page.getByRole("button", { name: "Marked" })).toHaveCount(0);
 
-  await page.getByText("Manage Skills").click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
   await expect(page.locator('input[name="voidMarks"]')).toHaveValue("0");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await expect(page.locator("#void-bank-readout")).toHaveText("0");
+  await expect(page.locator("#breach-bank-readout")).toHaveText("3");
   await page.getByRole("button", { name: "Frequency" }).click();
   await expect(page.getByLabel("Dream Void")).toHaveValue("1");
   await expect(page.getByLabel("Dream pip 1")).toBeEnabled();
@@ -118,7 +119,6 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.goto("/operator/");
 
   await page.getByRole("button", { name: "Sheet" }).click();
-  await page.getByText("Manage Skills").click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await importAuthorizationPacket(page, ["VOID_REWARD:7", "BREACH_REWARD:27"]);
   await page.getByRole("button", { name: "Sheet" }).click();
@@ -398,7 +398,6 @@ test("creation bonus breach refunds when attributes are lowered", async ({ page 
   await page.goto("/operator/");
 
   await page.getByRole("button", { name: "Sheet" }).click();
-  await page.getByText("Manage Skills").click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
 
