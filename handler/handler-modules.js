@@ -2,7 +2,7 @@
   const api = window.HandlerState;
   let state = api.readState();
   const moduleName = document.body.dataset.handlerModule || "";
-  const templateLockedLoopFields = ["Need", "Lure", "Pressure"];
+
 
   function setStatus(message, isError) {
     const node = document.getElementById("storage-status");
@@ -592,28 +592,9 @@
     if (consequenceNode) consequenceNode.closest("div").hidden = !payload.consequence;
   }
 
-  function renderAttentionLockout() {
-    const locked = api.hasActiveNeedlepoint(state);
-    ["attention.residue", "attention.followsHome", "sceneState.primaryConsequence"].forEach((name) => {
-      const input = document.querySelector(`[name="${name}"]`);
-      if (!input) return;
-      input.readOnly = locked;
-      input.classList.toggle("is-needlepoint-locked", locked);
-    });
+  function renderAttentionHint() {
     const hint = document.getElementById("attention-deterministic-hint");
-    if (hint) hint.hidden = !locked;
-  }
-
-  function renderLoopLockout() {
-    const locked = api.isLoopLocked(state);
-    const hint = document.getElementById("entity-loop-lock-hint");
-    if (hint) hint.hidden = !locked;
-    templateLockedLoopFields.forEach((field) => {
-      const input = document.querySelector(`[name="entityLoop.${field}"]`);
-      if (!input) return;
-      input.readOnly = locked;
-      input.classList.toggle("is-needlepoint-locked", locked);
-    });
+    if (hint) hint.hidden = !api.hasActiveNeedlepoint(state);
   }
 
   function entityCardSummary(entity) {
@@ -702,7 +683,7 @@
     syncForm();
     writeState("ENTITY ACTIVATED");
     renderEntityLibrary();
-    renderLoopLockout();
+    if (window.HandlerNav) window.HandlerNav.renderFieldLock();
   }
 
   function addEntity() {
@@ -728,6 +709,7 @@
       });
       writeState("ENTITY ADDED");
       renderEntityLibrary();
+      if (window.HandlerNav) window.HandlerNav.renderFieldLock();
     });
   }
 
@@ -748,9 +730,9 @@
   function renderDynamic() {
     renderClock("primary-clock-track", state.primaryClock, "primaryClock", true);
     renderClock("secondary-clock-track", state.secondaryClock, "secondaryClock", state.secondaryClock.enabled);
-    renderAttentionLockout();
-    renderLoopLockout();
+    renderAttentionHint();
     renderModuleContext();
+    if (window.HandlerNav) window.HandlerNav.renderFieldLock();
     renderPlayerView();
     text("clock-warning", api.clockWarning(state.primaryClock), "No warning.");
   }

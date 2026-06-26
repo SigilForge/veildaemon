@@ -459,6 +459,7 @@
     createdAt: "",
     updatedAt: "",
     playerViewEnabled: false,
+    fieldEditMode: false,
     session: {
       title: "",
       caseTitle: "",
@@ -859,8 +860,14 @@
     return normalizeState(draft);
   }
 
-  function isLoopLocked(state) {
-    return hasActiveNeedlepoint(state);
+  function fieldEditUnlocked(state) {
+    return Boolean(state && state.fieldEditMode);
+  }
+
+  function toggleFieldEditMode(state) {
+    const next = clone(normalizeState(state));
+    next.fieldEditMode = !next.fieldEditMode;
+    return next;
   }
 
   function resolveClockAttentionConsequence(state) {
@@ -936,6 +943,7 @@
       createdAt: safeString(merged.createdAt) || now,
       updatedAt: safeString(merged.updatedAt) || now,
       playerViewEnabled: Boolean(merged.playerViewEnabled),
+      fieldEditMode: Boolean(merged.fieldEditMode),
       session: normalizeTextObject(merged.session, defaultState.session),
       sceneState: {
         current: normalizeChoice(merged.sceneState.current, sceneStates.map((item) => item.name), "Stable"),
@@ -1143,7 +1151,8 @@
     applyNeedlepointAttention,
     playerViewPayload,
     hasActiveNeedlepoint,
-    isLoopLocked,
+    fieldEditUnlocked,
+    toggleFieldEditMode,
     normalizeAttentionDisplay,
     genericTableTriggers,
     getTableTriggers,

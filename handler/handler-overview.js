@@ -58,7 +58,10 @@
     text("overview-player-scene", playerSafe.scene, "Scene pending.");
     text("overview-player-clock", playerSafe.consequence ? "Player-safe only" : "Hidden from Player View");
     text("overview-player-consequence", playerSafe.consequence || "No player-safe consequence set.");
-    if (window.HandlerNav) window.HandlerNav.render();
+    if (window.HandlerNav) {
+      window.HandlerNav.render();
+      window.HandlerNav.renderFieldLock();
+    }
   }
 
   function roomAnswer() {
