@@ -450,11 +450,11 @@
       event.preventDefault();
       const data = new FormData(form);
       const flags = [];
-      const ontology = api.safeString(data.get("ontology"), 80);
-      const background = api.safeString(data.get("background"), 80);
+      const ontologies = data.getAll("ontology").map((value) => api.safeString(value, 80)).filter(Boolean);
+      const backgrounds = data.getAll("background").map((value) => api.safeString(value, 80)).filter(Boolean);
       const caseUnlock = api.safeString(data.get("case"), 80);
-      if (ontology) flags.push(`ONTOLOGY_UNLOCK:${ontology}`);
-      if (background) flags.push(`BACKGROUND_UNLOCK:${background}`);
+      ontologies.forEach((ontology) => flags.push(`ONTOLOGY_UNLOCK:${ontology}`));
+      backgrounds.forEach((background) => flags.push(`BACKGROUND_UNLOCK:${background}`));
       if (caseUnlock) flags.push(`CASE_UNLOCK:${caseUnlock}`);
       if (!flags.length) {
         setStatus("NO AUTHORIZATION FLAGS", true);
@@ -484,10 +484,42 @@
   }
 
   function defaultAuthorizationNote(flags) {
-    if (flags.some((flag) => flag.startsWith("ONTOLOGY_UNLOCK:SANGUINE"))) {
-      return "NEW ONTOLOGY SIGNAL DETECTED\n\nHandler authorization received.\n\nSanguine Presentation available for review.";
+    const ontologyLabels = flags
+      .filter((flag) => flag.startsWith("ONTOLOGY_UNLOCK:"))
+      .map((flag) => api.presentationEntry(flag.split(":")[1]).displayName);
+    const backgroundLabels = flags
+      .filter((flag) => flag.startsWith("BACKGROUND_UNLOCK:"))
+      .map((flag) => api.backgroundEntry(flag.split(":")[1]).displayName);
+    if (ontologyLabels.length) {
+      return `NEW ONTOLOGY SIGNAL DETECTED\n\nHandler authorization received.\n\n${ontologyLabels.join(", ")} available for review.`;
+    }
+    if (backgroundLabels.length) {
+      return `BACKGROUND AUTHORIZATION RECEIVED\n\nHandler authorization received.\n\n${backgroundLabels.join(", ")} available for review.`;
     }
     return "HANDLER AUTHORIZATION RECEIVED\n\nNew Operator option available for review.";
+  }
+
+  function renderAuthorizationCatalogs() {
+    const ontology = document.querySelector('[name="ontology"]');
+    const background = document.querySelector('[name="background"]');
+    if (ontology) {
+      ontology.textContent = "";
+      api.presentationOptions().forEach((entry) => {
+        const option = document.createElement("option");
+        option.value = entry.key;
+        option.textContent = `${entry.label} // ${entry.access}`;
+        ontology.append(option);
+      });
+    }
+    if (background) {
+      background.textContent = "";
+      api.backgroundOptions().forEach((entry) => {
+        const option = document.createElement("option");
+        option.value = entry.key;
+        option.textContent = `${entry.label} // ${entry.access}`;
+        background.append(option);
+      });
+    }
   }
 
   function renderPlayerView() {
@@ -511,6 +543,7 @@
 
   function renderAll() {
     state = api.readState();
+    renderAuthorizationCatalogs();
     fillSelect("attention.current", api.attentionStates);
     fillSelect("activeEntity.kind", ["Entity", "Zone"]);
     fillSelect("activeEntity.sceneState", api.sceneStates.map((item) => item.name));

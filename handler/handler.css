@@ -193,6 +193,32 @@ h2 {
   padding: .75rem;
 }
 
+.mode-switch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .55rem;
+  margin-top: .75rem;
+}
+
+.mode-button {
+  min-height: 2.8rem;
+  border: 1px solid rgba(137,255,218,.22);
+  background: rgba(0,0,0,.28);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.mode-button.is-active {
+  border-color: rgba(102,255,220,.72);
+  color: var(--text);
+  box-shadow: inset 0 0 22px rgba(102,255,220,.1), 0 0 18px rgba(102,255,220,.08);
+}
+
 .control-bar label {
   display: grid;
   gap: .3rem;
@@ -487,6 +513,78 @@ select:focus {
   padding: .68rem;
   border: 1px solid rgba(137,255,218,.16);
   background: rgba(0,0,0,.24);
+}
+
+.room-answer-preview {
+  display: grid;
+  gap: .38rem;
+  margin-top: .65rem;
+  padding: .7rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.24);
+}
+
+.room-answer-line {
+  display: grid;
+  grid-template-columns: minmax(8rem, .32fr) minmax(0, 1fr);
+  gap: .65rem;
+  align-items: start;
+  min-width: 0;
+  margin: 0;
+  color: var(--text);
+  font-size: .78rem;
+  line-height: 1.35;
+}
+
+.room-answer-line strong {
+  color: var(--cyan);
+  font-size: .64rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.room-answer-line span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.operator-risk-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .55rem;
+}
+
+.risk-chip {
+  min-width: 0;
+  padding: .58rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.22);
+}
+
+.risk-chip span {
+  display: block;
+  color: var(--cyan);
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.risk-chip strong {
+  display: block;
+  margin-top: .3rem;
+  overflow-wrap: anywhere;
+  font-size: .76rem;
+  line-height: 1.35;
+}
+
+body[data-handler-mode="prep"] .operator-risk-strip {
+  display: none;
+}
+
+body[data-handler-mode="live"] .player-toolbar,
+body[data-handler-mode="live"] .player-grid {
+  display: none;
 }
 
 .player-toolbar {

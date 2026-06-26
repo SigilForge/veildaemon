@@ -1,4 +1,5 @@
 (function () {
+  const catalogs = window.CradlepointCatalogs || {};
   const consoleStorageKey = "veildaemon.operatorConsole.v1";
   const recordStorageKey = "veildaemon.operatorRecord.v2";
   const legacyRecordStorageKey = "veildaemon.operatorRecord.v1";
@@ -207,6 +208,28 @@
 
   function safeString(value, max = 2000) {
     return String(value || "").trim().slice(0, max);
+  }
+
+  function titleCaseKey(key) {
+    if (typeof catalogs.titleCaseKey === "function") return catalogs.titleCaseKey(key);
+    return String(key || "")
+      .toLowerCase()
+      .split(/[_\s-]+/)
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+  }
+
+  function presentationEntry(key) {
+    if (typeof catalogs.presentationEntry === "function") return catalogs.presentationEntry(key);
+    const label = titleCaseKey(key);
+    return { label, displayName: label, access: "unknown" };
+  }
+
+  function backgroundEntry(key) {
+    if (typeof catalogs.backgroundEntry === "function") return catalogs.backgroundEntry(key);
+    const label = titleCaseKey(key);
+    return { label, displayName: label, access: "unknown" };
   }
 
   function normalizeArray(value) {
@@ -531,9 +554,11 @@
 
   function authorizationNotice(kind, unlock) {
     if (kind === "ontology") {
-      return unlock.note || "NEW ONTOLOGY SIGNAL DETECTED\n\nHandler authorization received.\n\nSanguine Presentation available for review.";
+      const entry = presentationEntry(unlock.key);
+      return unlock.note || `NEW ONTOLOGY SIGNAL DETECTED\n\nHandler authorization received.\n\n${entry.displayName} available for review.`;
     }
-    return unlock.note || "BACKGROUND AUTHORIZATION RECEIVED\n\nHandler authorization received.\n\nNew origin thread available for review.";
+    const entry = backgroundEntry(unlock.key);
+    return unlock.note || `BACKGROUND AUTHORIZATION RECEIVED\n\nHandler authorization received.\n\n${entry.displayName} available for review.`;
   }
 
   function parseAuthorizationPacket(text) {
@@ -567,10 +592,10 @@
   }
 
   function unlockLabel(type, key) {
-    if (type === "ontology" && key === "SANGUINE") return "Sanguine Presentation";
-    if (type === "background" && key === "FIELD_MEDIC") return "Field Medic";
+    if (type === "ontology") return presentationEntry(key).displayName;
+    if (type === "background") return backgroundEntry(key).displayName;
     if (type === "case" && key === "NEEDLEPOINT_SURVIVOR") return "Needlepoint Survivor";
-    return key.split("_").map((part) => part.charAt(0) + part.slice(1).toLowerCase()).join(" ");
+    return titleCaseKey(key);
   }
 
   function mergeUnlocks(unlocks) {
@@ -602,9 +627,18 @@
         consoleState.operatorStatus.skills = skills;
         unlock.applied = true;
         consoleState.appliedUnlocks.push(key);
+        return;
       }
-      if (unlock.type === "ontology" && unlock.key === "SANGUINE") {
-        consoleState.operatorStatus.ontologyPresentation = "Sanguine";
+      if (unlock.type === "background") {
+        consoleState.operatorStatus.background = backgroundEntry(unlock.key).displayName;
+        unlock.applied = true;
+        consoleState.appliedUnlocks.push(key);
+        return;
+      }
+      if (unlock.type === "ontology") {
+        consoleState.operatorStatus.ontologyPresentation = presentationEntry(unlock.key).displayName;
+        unlock.applied = true;
+        consoleState.appliedUnlocks.push(key);
       }
     });
   }
