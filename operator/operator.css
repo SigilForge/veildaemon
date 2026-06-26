@@ -366,6 +366,16 @@ body.operator-record-sealed .data-panel {
   font-size: .78rem;
   color: var(--warning, #c9a227);
 }
+.identity-build-controls {
+  grid-column: 1 / -1;
+  padding-bottom: .55rem;
+  margin-bottom: .15rem;
+  border-bottom: 1px solid rgba(137,255,218,.16);
+}
+.identity-build-controls .creation-row {
+  margin-bottom: 0;
+  grid-template-columns: auto auto minmax(0, 1fr);
+}
 select.is-locked {
   opacity: .72;
   cursor: not-allowed;
@@ -1239,9 +1249,6 @@ fieldset.recovery-field.compact label {
   margin-top: .65rem;
   padding-top: .65rem;
   border-top: 1px solid rgba(137,255,218,.16);
-}
-.skill-editor-tools .creation-row {
-  margin-top: 0;
 }
 .skill-editor-tools .skill-builder {
   margin-bottom: .5rem;
