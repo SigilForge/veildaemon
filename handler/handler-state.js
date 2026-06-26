@@ -539,8 +539,11 @@
       {
         id: "operator-1",
         name: "Operator 1",
-        stability: "",
-        harm: "",
+        stabilityPoints: 10,
+        harmBoxes: 0,
+        stabilityBand: "Calm",
+        stability: "Calm (10/10)",
+        harm: "Fine",
         misfire: "",
         voidBreach: "",
         anchors: "",
@@ -1051,13 +1054,76 @@
     }));
   }
 
+  function normalizeTrackerValue(value, max, fallback = 0) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.max(0, Math.min(max, Math.round(parsed)));
+  }
+
+  function parseStabilityPoints(value) {
+    const raw = safeString(value, 80);
+    const fraction = raw.match(/(\d+)\s*\/\s*10\b/i);
+    if (fraction) return normalizeTrackerValue(fraction[1], 10, 10);
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 10) return Math.round(parsed);
+    return 10;
+  }
+
+  function parseHarmBoxes(harmBoxesValue, harmText) {
+    const rawBoxes = safeString(harmBoxesValue, 20);
+    if (rawBoxes !== "") return normalizeTrackerValue(rawBoxes, 5, 0);
+    const raw = safeString(harmText, 120);
+    const fraction = raw.match(/(\d+)\s*\/\s*5\b/i);
+    if (fraction) return normalizeTrackerValue(fraction[1], 5, 0);
+    const parsed = Number(raw);
+    if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 5) return Math.round(parsed);
+    const labels = ["fine", "injured", "wounded", "impaired", "critical", "dying"];
+    const labelIndex = labels.findIndex((label) => raw.toLowerCase().includes(label));
+    return labelIndex >= 0 ? labelIndex : 0;
+  }
+
+  function stabilityBandFromPoints(value) {
+    const stability = normalizeTrackerValue(value, 10, 10);
+    if (stability >= 8) return "Calm";
+    if (stability >= 5) return "Strained";
+    if (stability >= 3) return "Unraveling";
+    return "Collapse Risk";
+  }
+
+  function harmConditionFromBoxes(value) {
+    const harm = normalizeTrackerValue(value, 5, 0);
+    return ["Fine", "Injured", "Wounded", "Impaired", "Critical", "Dying"][harm] || "Fine";
+  }
+
+  function formatPlayerStability(points, band) {
+    const resolvedBand = band || stabilityBandFromPoints(points);
+    return `${resolvedBand} (${normalizeTrackerValue(points, 10, 10)}/10)`;
+  }
+
+  function formatPlayerHarm(boxes) {
+    const harm = normalizeTrackerValue(boxes, 5, 0);
+    const condition = harmConditionFromBoxes(harm);
+    return harm ? `${condition} (${harm}/5)` : condition;
+  }
+
   function normalizePlayers(players) {
     const list = Array.isArray(players) ? players : [];
-    return list.slice(0, 8).map((player, index) => ({
+    return list.slice(0, 8).map((player, index) => {
+      const stabilityPoints = player.stabilityPoints !== undefined && player.stabilityPoints !== ""
+        ? normalizeTrackerValue(player.stabilityPoints, 10, 10)
+        : parseStabilityPoints(player.stability);
+      const harmBoxes = player.harmBoxes !== undefined && player.harmBoxes !== ""
+        ? normalizeTrackerValue(player.harmBoxes, 5, 0)
+        : parseHarmBoxes(player.harmBoxes, player.harm);
+      const stabilityBand = stabilityBandFromPoints(stabilityPoints);
+      return {
       id: safeString(player.id, 80) || `operator-${index + 1}`,
       name: safeString(player.name, 80) || `Operator ${index + 1}`,
-      stability: safeString(player.stability, 80),
-      harm: safeString(player.harm, 120),
+      stabilityPoints,
+      harmBoxes,
+      stabilityBand,
+      stability: safeString(player.stability, 80) || formatPlayerStability(stabilityPoints, stabilityBand),
+      harm: safeString(player.harm, 120) || formatPlayerHarm(harmBoxes),
       misfire: safeString(player.misfire, 180),
       voidBreach: safeString(player.voidBreach, 180),
       anchors: safeString(player.anchors, 180),
@@ -1069,7 +1135,8 @@
       sourceExportedAt: safeString(player.sourceExportedAt, 80),
       lastImported: safeString(player.lastImported, 80),
       sourceId: safeString(player.sourceId, 120)
-    }));
+    };
+    });
   }
 
   function normalizeEntityLibrary(entities) {
@@ -1177,6 +1244,13 @@
     getTableTriggers,
     findTableTrigger,
     previewTableTrigger,
-    applyTableTrigger
+    applyTableTrigger,
+    normalizeTrackerValue,
+    parseStabilityPoints,
+    parseHarmBoxes,
+    stabilityBandFromPoints,
+    harmConditionFromBoxes,
+    formatPlayerStability,
+    formatPlayerHarm
   };
 }());
