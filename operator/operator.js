@@ -38,7 +38,6 @@
       ontologyPresentation: "",
       sheetEditMode: false,
       creationMode: false,
-      frequencyEditMode: false,
       harm: "None recorded",
       harmBoxes: "0",
       voidMarks: "0",
@@ -330,8 +329,26 @@
       .filter((entry) => entry.baseRank > 0 || entry.effectiveRank > 0);
   }
 
+  function pageEditUnlocked() {
+    return Boolean(consoleState.operatorStatus.sheetEditMode);
+  }
+
+  function creationActive() {
+    return Boolean(consoleState.operatorStatus.creationMode);
+  }
+
   function buildDefiningChoiceEditable() {
-    return Boolean(consoleState.operatorStatus.sheetEditMode) && Boolean(consoleState.operatorStatus.creationMode);
+    return pageEditUnlocked() && creationActive();
+  }
+
+  function togglePageEdit() {
+    const status = consoleState.operatorStatus;
+    status.sheetEditMode = !status.sheetEditMode;
+    if (!status.sheetEditMode) status.creationMode = false;
+  }
+
+  function toggleCreationMode() {
+    consoleState.operatorStatus.creationMode = !consoleState.operatorStatus.creationMode;
   }
 
   function guardBuildDefiningField(field, incomingValue) {
@@ -419,7 +436,6 @@
       anchorPerson: status.anchorPerson || status.anchors || "",
       attentionState: normalizeAttentionState(status.attentionState),
       sheetEditMode: Boolean(status.sheetEditMode),
-      frequencyEditMode: Boolean(status.frequencyEditMode),
       creationMode: Boolean(status.creationMode),
       stability: normalizeStabilityValue(status.stability),
       harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
@@ -891,8 +907,7 @@
     renderSkills();
     renderRollSelectors();
     renderCreationMode();
-    renderFrequencyEditMode();
-    renderSheetEditMode();
+    renderPageLock();
     renderStatusSummary();
   }
 
@@ -906,18 +921,24 @@
     if (input) input.checked = Boolean(value);
   }
 
-  function renderSheetEditMode() {
-    const editing = Boolean(consoleState.operatorStatus.sheetEditMode);
-    const panel = document.getElementById("module-sheet");
-    const toggle = document.getElementById("sheet-edit-toggle");
-    if (!editing) consoleState.operatorStatus.frequencyEditMode = false;
-    if (panel) panel.classList.toggle("is-editing", editing);
-    if (toggle) {
-      toggle.textContent = editing ? "Edit Sheet: On" : "Edit Sheet: Off";
-      toggle.setAttribute("aria-pressed", editing ? "true" : "false");
-      toggle.classList.toggle("primary", editing);
-    }
-    renderFrequencyEditMode();
+  function renderPageLock() {
+    const unlocked = pageEditUnlocked();
+    const creating = creationActive();
+    document.querySelectorAll("#module-sheet, #module-frequency").forEach((panel) => {
+      panel.classList.toggle("is-editing", unlocked);
+    });
+    document.querySelectorAll("[data-page-edit-toggle]").forEach((toggle) => {
+      toggle.textContent = unlocked ? "Edit Sheet: On" : "Edit Sheet: Off";
+      toggle.setAttribute("aria-pressed", unlocked ? "true" : "false");
+      toggle.classList.toggle("primary", unlocked);
+    });
+    document.querySelectorAll("[data-page-lock-status]").forEach((node) => {
+      node.textContent = !unlocked
+        ? "Field play: Sheet and Frequency maintenance locked."
+        : creating
+        ? "Creation Mode: build rules active."
+        : "Edit stats mode: Sheet and Frequency maintenance unlocked.";
+    });
     renderBuildDefiningChoices();
   }
 
@@ -1330,7 +1351,7 @@
   function applyBreachDelta(delta) {
     if (delta > 0) return spendBreach(delta);
     if (delta < 0) {
-      if (consoleState.operatorStatus.creationMode) {
+      if (creationActive()) {
         refundCreationBreach(Math.abs(delta));
       } else {
         const current = Number(normalizeNonNegative(consoleState.operatorStatus.breachPoints));
@@ -1361,7 +1382,7 @@
 
   function skillChangeAllowed(skills, skill, targetRank) {
     const next = normalizeSkills({ ...skills, [skill]: String(targetRank) });
-    if (consoleState.operatorStatus.creationMode) {
+    if (creationActive()) {
       if (targetRank > 3) return { ok: false, message: "Creation skill cap is Rank 3." };
       const oldOverage = Math.max(0, totalSkillRanks(skills) - creationSkillBudget());
       const newOverage = Math.max(0, totalSkillRanks(next) - creationSkillBudget());
@@ -1377,7 +1398,7 @@
   }
 
   function attributeChangeAllowed(attributes, attribute, targetRank) {
-    if (!consoleState.operatorStatus.sheetEditMode) {
+    if (!pageEditUnlocked()) {
       return { ok: false, message: "Edit Sheet required to change Attributes." };
     }
     const oldRank = Number(normalizeAttributes(attributes)[attribute] || 1);
@@ -1385,7 +1406,7 @@
     if (nextRank === oldRank) {
       return { ok: false, message: "" };
     }
-    if (consoleState.operatorStatus.creationMode) {
+    if (creationActive()) {
       if (nextRank > creationAttributeRankCap()) {
         return { ok: false, message: `Creation attribute cap is ${creationAttributeRankCap()}.` };
       }
@@ -1461,7 +1482,7 @@
   }
 
   function setFrequencyVoid(frequency, value) {
-    if (!consoleState.operatorStatus.sheetEditMode) {
+    if (!pageEditUnlocked()) {
       setStorageStatus("Edit Sheet required to change Frequency Void gates.", true);
       renderLotus();
       return false;
@@ -1514,13 +1535,12 @@
   }
 
   function frequencyChangeAllowed(lotus, frequency, targetLevel) {
-    if (!consoleState.operatorStatus.sheetEditMode) {
+    if (!pageEditUnlocked()) {
       return { ok: false, message: "Edit Sheet required to change Frequency pips." };
     }
     const normalizedLotus = normalizeLotus(lotus);
     const oldLevel = Number(normalizedLotus[frequency] || 0);
     const target = Number(normalizeBoxValue(targetLevel, 6));
-    const lowering = target < oldLevel;
     const totalAfter = totalCultivatedPips({
       ...normalizedLotus,
       [frequency]: String(target)
@@ -1531,9 +1551,6 @@
     if (frequency === normalizeFrequencyName(consoleState.operatorStatus.blindPetal)) {
       return { ok: false, message: "Blind petal cannot be cultivated." };
     }
-    if (lowering && !consoleState.operatorStatus.sheetEditMode) {
-      return { ok: false, message: "Edit Sheet required to remove Frequency pips." };
-    }
     if (requiredVoid > availableVoid) {
       return { ok: false, message: `Gate locked. ${target} pips require ${requiredVoid} Void on that Frequency.` };
     }
@@ -1541,7 +1558,7 @@
       return { ok: false, message: `Frequency pip cap exceeded: ${totalAfter}/${maxFrequencyPips()}.` };
     }
 
-    if (consoleState.operatorStatus.creationMode) {
+    if (creationActive()) {
       if (target > 2) return { ok: false, message: "Creation cap is Pip 2 on the opened Gate." };
       const opened = creationOpenedFrequency(normalizedLotus);
       const hasCultivatedPetal = Object.values(normalizedLotus).some((level) => Number(level || 0) > 0);
@@ -1752,7 +1769,7 @@
     const grid = document.getElementById("attribute-grid");
     if (!grid) return;
     const attrs = normalizeAttributes(consoleState.operatorStatus.attributes);
-    const editing = Boolean(consoleState.operatorStatus.sheetEditMode);
+    const editing = pageEditUnlocked();
     consoleState.operatorStatus.attributes = attrs;
     grid.textContent = "";
     attributeNames().forEach((name) => {
@@ -1871,7 +1888,7 @@
       summary.append(empty);
       return;
     }
-    const editing = Boolean(consoleState.operatorStatus.sheetEditMode);
+    const editing = pageEditUnlocked();
     entries.forEach(({ name, baseRank, bonusRank, effectiveRank }) => {
       const numericBaseRank = Number(normalizeBoxValue(baseRank, 5));
       const numericEffectiveRank = Number(normalizeBoxValue(effectiveRank, 5));
@@ -1962,11 +1979,12 @@
     const budget = document.getElementById("creation-budget");
     const status = consoleState.operatorStatus;
     if (toggle) {
-      toggle.textContent = status.creationMode ? "Creation Mode: On" : "Creation Mode: Off";
-      toggle.classList.toggle("primary", Boolean(status.creationMode));
+      toggle.textContent = creationActive() ? "Creation Mode: On" : "Creation Mode: Off";
+      toggle.classList.toggle("primary", creationActive());
+      toggle.disabled = !pageEditUnlocked();
     }
     if (budget) {
-      if (status.creationMode) {
+      if (creationActive()) {
         const skillUsed = totalSkillRanks(status.skills);
         const attrUsed = totalAttributeBoosts(status.attributes);
         budget.textContent = `Creation: skills ${Math.min(skillUsed, creationSkillBudget())}/${creationSkillBudget()} // attribute spread ${Math.min(attrUsed, creationAttributeSpreadBudget())}/${creationAttributeSpreadBudget()} // Bonus Breach ${normalizeNonNegative(status.breachPoints)}/${creationBonusBreachBudget()}`;
@@ -1975,22 +1993,7 @@
       }
     }
     renderSkillCostPreview();
-  }
-
-  function renderFrequencyEditMode() {
-    const toggle = document.getElementById("frequency-edit-toggle");
-    const status = document.getElementById("frequency-edit-status");
-    const sheetEditing = Boolean(consoleState.operatorStatus.sheetEditMode);
-    const creating = Boolean(consoleState.operatorStatus.creationMode);
-    if (!sheetEditing) consoleState.operatorStatus.frequencyEditMode = false;
-    if (toggle) toggle.hidden = true;
-    if (status) {
-      status.textContent = !sheetEditing
-        ? "Edit Sheet required for Frequency maintenance."
-        : creating
-        ? "Creation Mode: Frequency build rules active."
-        : "Edit stats mode: pip removal and Void gates unlocked.";
-    }
+    renderPageLock();
   }
 
   function renderSkillCostPreview() {
@@ -2014,7 +2017,7 @@
       return;
     }
     const cost = allowed.cost || 0;
-    preview.textContent = consoleState.operatorStatus.creationMode
+    preview.textContent = creationActive()
       ? cost < 0
         ? `Refund: ${Math.abs(cost)} Bonus Breach`
         : `Creation cost: ${cost} Bonus Breach`
@@ -2437,7 +2440,7 @@
     const map = document.getElementById("lotus-map");
     if (!map) return;
     const status = consoleState.operatorStatus;
-    const editing = Boolean(status.sheetEditMode);
+    const editing = pageEditUnlocked();
     const lotus = normalizeLotus(status.lotus);
     status.voidByFrequency = normalizeVoidByFrequency(status.voidByFrequency);
     const selected = normalizeFrequencyName(status.selectedLotusPetal) || operatorRecord?.primaryFrequency || "Dream";
@@ -2538,10 +2541,10 @@
       blind.className = "blind-toggle";
       blind.textContent = frequency === status.blindPetal ? "Blind Petal" : "Mark Blind";
       blind.disabled = !editing;
-      if (status.blindPetal && !status.creationMode && frequency !== status.blindPetal) {
+      if (status.blindPetal && !creationActive() && frequency !== status.blindPetal) {
         blind.hidden = true;
       }
-      if (status.blindPetal && !status.creationMode && frequency === status.blindPetal) {
+      if (status.blindPetal && !creationActive() && frequency === status.blindPetal) {
         blind.disabled = true;
       }
       blind.addEventListener("click", () => {
@@ -2687,7 +2690,6 @@
       breachPoints: normalizeNonNegative(status.breachPoints),
       sheetEditMode: Boolean(status.sheetEditMode),
       creationMode: Boolean(status.creationMode),
-      frequencyEditMode: Boolean(status.frequencyEditMode),
       activeMisfire: safeString(status.activeMisfire, 1000),
       misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity),
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
@@ -2711,12 +2713,11 @@
     renderCurrencyBanks();
     renderBandMeter();
     renderLotus();
-    renderFrequencyEditMode();
+    renderPageLock();
     renderStatusSummary();
     renderSegmentedControls();
     renderRollSelectors();
     renderCreationMode();
-    renderBuildDefiningChoices();
   }
 
   function addEntry(collection, form) {
@@ -2878,16 +2879,17 @@
     });
     const rollButton = document.getElementById("roll-action");
     if (rollButton) rollButton.addEventListener("click", rollAction);
-    const sheetEditToggle = document.getElementById("sheet-edit-toggle");
-    if (sheetEditToggle) sheetEditToggle.addEventListener("click", () => {
-      consoleState.operatorStatus.sheetEditMode = !consoleState.operatorStatus.sheetEditMode;
-      if (!consoleState.operatorStatus.sheetEditMode) consoleState.operatorStatus.frequencyEditMode = false;
-      writeConsoleState();
-      renderSheetEditMode();
-      renderAuthorizationSelects();
-      renderAttributes();
-      renderSkills();
-      renderLotus();
+    document.querySelectorAll("[data-page-edit-toggle]").forEach((button) => {
+      button.addEventListener("click", () => {
+        togglePageEdit();
+        writeConsoleState();
+        renderPageLock();
+        renderCreationMode();
+        renderAuthorizationSelects();
+        renderAttributes();
+        renderSkills();
+        renderLotus();
+      });
     });
     const addSkill = document.getElementById("add-skill");
     if (addSkill) addSkill.addEventListener("click", () => {
@@ -2933,14 +2935,17 @@
     });
     const creationMode = document.getElementById("creation-mode-toggle");
     if (creationMode) creationMode.addEventListener("click", () => {
-      consoleState.operatorStatus.creationMode = !consoleState.operatorStatus.creationMode;
+      if (!pageEditUnlocked()) {
+        setStorageStatus("Edit Sheet required before Creation Mode.", true);
+        renderCreationMode();
+        return;
+      }
+      toggleCreationMode();
       writeConsoleState();
       renderCreationMode();
-      renderBuildDefiningChoices();
       renderAuthorizationSelects();
       renderAttributes();
       renderSkills();
-      renderFrequencyEditMode();
     });
     const skillPicker = document.getElementById("skill-picker");
     const skillRank = document.getElementById("skill-rank");
