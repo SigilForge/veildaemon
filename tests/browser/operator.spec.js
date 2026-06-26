@@ -349,24 +349,55 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator("#authorized-background-list")).toContainText("Local Witness");
   await expect(page.locator("#authorized-background-list")).toContainText("Sanguine Adjacent");
   await expect(page.locator("#authorized-background-list")).toContainText("Safehouse Brat");
-  await expect(page.locator("#authorized-background-list")).toContainText("Applied");
+  await expect(page.locator("#authorized-background-list")).toContainText("Available");
   await expect(page.locator("#authorized-ontology-list")).toContainText("Sanguine Presentation");
   await expect(page.locator("#authorized-ontology-list")).toContainText("Mythic Echo");
   await expect(page.locator("#authorized-ontology-list")).toContainText("Technomancer / Daemon-Aligned");
   await expect(page.locator("#authorized-ontology-list")).toContainText("Red Ledger Adjacent");
   await expect(page.locator("#authorized-reward-list")).toContainText("2 Void");
   await expect(page.locator("#authorized-reward-list")).toContainText("5 Breach");
+  await expect(page.locator("#authorized-reward-list")).toContainText("Applied");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
-  await expect(page.locator("#skill-summary-list")).toContainText("Medicine");
-  await expect(page.locator("#skill-summary-list")).toContainText("+1");
-  await expect(page.locator('[name="background"]')).toHaveValue("Safehouse Brat");
-  await expect(page.locator('[name="ontologyPresentation"]')).toHaveValue("Red Ledger Adjacent");
+  await expect(page.locator('[name="background"]')).toHaveValue("");
+  await expect(page.locator('[name="ontologyPresentation"]')).toHaveValue("");
   await expect(page.locator('[name="background"]')).toContainText("Field Medic");
   await expect(page.locator('[name="background"]')).toContainText("Safehouse Brat");
   await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Sanguine Presentation");
   await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Red Ledger Adjacent");
+  await expect(page.locator("#background-grant-preview")).toHaveText("Grants: —");
+  await expect(page.locator("#ontology-grant-preview")).toHaveText("Grants: —");
   await expect(page.locator('input[name="voidMarks"]')).toHaveValue("2");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("5");
+
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await expect(page.getByRole("button", { name: "Edit Sheet: On" })).toBeVisible();
+  await page.evaluate(() => {
+    const select = document.querySelector('[name="background"]');
+    select.removeAttribute("disabled");
+    select.value = "Field Medic";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await expect(page.locator('[name="background"]')).toHaveValue("");
+  await expect(page.locator("#storage-status")).toContainText("Creation Mode required");
+
+  await page.getByRole("button", { name: "Creation Mode: Off" }).click();
+  await page.locator('[name="background"]').selectOption("Field Medic");
+  await expect(page.locator('[name="background"]')).toHaveValue("Field Medic");
+  await expect(page.locator("#background-grant-preview")).toHaveText("Grants: Medicine +1");
+  await expect(page.locator("#skill-summary-list")).toContainText("Medicine");
+  await expect(page.locator("#skill-summary-list")).toContainText("+1");
+  await page.locator('[name="ontologyPresentation"]').selectOption("Sanguine Presentation");
+  await expect(page.locator("#ontology-grant-preview")).toHaveText("Grants: none loaded");
+
+  await page.getByRole("button", { name: "Creation Mode: On" }).click();
+  await expect(page.locator('[name="background"]')).toHaveValue("Field Medic");
+  await page.evaluate(() => {
+    const select = document.querySelector('[name="background"]');
+    select.removeAttribute("disabled");
+    select.value = "Safehouse Brat";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await expect(page.locator('[name="background"]')).toHaveValue("Field Medic");
 });
 
 test("frequency advancement enforces released Lotus caps", async ({ page }) => {

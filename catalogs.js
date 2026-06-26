@@ -1,26 +1,26 @@
 (function () {
   const presentationCatalog = {
-    BASELINE_HUMAN: { label: "Baseline Human", displayName: "Baseline Human", category: "presentation", access: "starter" },
-    RESONANT_SENSITIVE: { label: "Resonant Sensitive", displayName: "Resonant Sensitive", category: "presentation", access: "starter" },
-    SANGUINE: { label: "Sanguine Presentation", displayName: "Sanguine Presentation", category: "presentation", access: "handler" },
-    ECHO_ALTERED: { label: "Echo-Altered Presentation", displayName: "Echo-Altered Presentation", category: "presentation", access: "handler" },
-    THERIAN_ADAPTATION: { label: "Therian Adaptation", displayName: "Therian Adaptation", category: "presentation", access: "handler" },
-    HOLLOW_SILENCE_ALTERED: { label: "Hollow / Silence-Altered", displayName: "Hollow / Silence-Altered", category: "presentation", access: "handler" },
-    WRAITH_TOUCHED_ANCHOR_BOUND: { label: "Wraith-Touched / Anchor-Bound", displayName: "Wraith-Touched / Anchor-Bound", category: "presentation", access: "handler" },
-    TECHNOMANCER_DAEMON_ALIGNED: { label: "Technomancer / Daemon-Aligned", displayName: "Technomancer / Daemon-Aligned", category: "presentation", access: "handler" },
-    CONSTRUCT_VESSEL: { label: "Construct / Vessel", displayName: "Construct / Vessel", category: "presentation", access: "handler" },
-    MYTHIC_ECHO: { label: "Mythic Echo", displayName: "Mythic Echo", category: "ontology", access: "advanced" },
-    GHOST: { label: "Ghost", displayName: "Ghost", category: "ontology", access: "advanced" },
-    WRAITH: { label: "Wraith", displayName: "Wraith", category: "ontology", access: "advanced" },
-    VESSEL: { label: "Vessel", displayName: "Vessel", category: "ontology", access: "advanced" },
-    TECHNOMANCER: { label: "Technomancer", displayName: "Technomancer", category: "ontology", access: "advanced" },
-    CONSTRUCT: { label: "Construct", displayName: "Construct", category: "ontology", access: "advanced" },
-    VOID_SHARD: { label: "Void-Shard", displayName: "Void-Shard", category: "ontology", access: "advanced" },
-    MYTH_TECH_SYMBIOTE: { label: "Myth-Tech Symbiote", displayName: "Myth-Tech Symbiote", category: "ontology", access: "advanced" },
-    VEILWALKER: { label: "Veilwalker", displayName: "Veilwalker", category: "ontology", access: "advanced" },
-    DOMAIN_TOUCHED: { label: "Domain-Touched", displayName: "Domain-Touched", category: "ontology", access: "advanced" },
-    FREQUENCY_DISTORTION: { label: "Frequency Distortion", displayName: "Frequency Distortion", category: "ontology", access: "advanced" },
-    ENTITY_ADJACENT: { label: "Entity-Adjacent", displayName: "Entity-Adjacent", category: "ontology", access: "advanced" }
+    BASELINE_HUMAN: { label: "Baseline Human", displayName: "Baseline Human", category: "presentation", access: "starter", grants: {} },
+    RESONANT_SENSITIVE: { label: "Resonant Sensitive", displayName: "Resonant Sensitive", category: "presentation", access: "starter", grants: {} },
+    SANGUINE: { label: "Sanguine Presentation", displayName: "Sanguine Presentation", category: "presentation", access: "handler", grants: {} },
+    ECHO_ALTERED: { label: "Echo-Altered Presentation", displayName: "Echo-Altered Presentation", category: "presentation", access: "handler", grants: {} },
+    THERIAN_ADAPTATION: { label: "Therian Adaptation", displayName: "Therian Adaptation", category: "presentation", access: "handler", grants: {} },
+    HOLLOW_SILENCE_ALTERED: { label: "Hollow / Silence-Altered", displayName: "Hollow / Silence-Altered", category: "presentation", access: "handler", grants: {} },
+    WRAITH_TOUCHED_ANCHOR_BOUND: { label: "Wraith-Touched / Anchor-Bound", displayName: "Wraith-Touched / Anchor-Bound", category: "presentation", access: "handler", grants: {} },
+    TECHNOMANCER_DAEMON_ALIGNED: { label: "Technomancer / Daemon-Aligned", displayName: "Technomancer / Daemon-Aligned", category: "presentation", access: "handler", grants: {} },
+    CONSTRUCT_VESSEL: { label: "Construct / Vessel", displayName: "Construct / Vessel", category: "presentation", access: "handler", grants: {} },
+    MYTHIC_ECHO: { label: "Mythic Echo", displayName: "Mythic Echo", category: "ontology", access: "advanced", grants: {} },
+    GHOST: { label: "Ghost", displayName: "Ghost", category: "ontology", access: "advanced", grants: {} },
+    WRAITH: { label: "Wraith", displayName: "Wraith", category: "ontology", access: "advanced", grants: {} },
+    VESSEL: { label: "Vessel", displayName: "Vessel", category: "ontology", access: "advanced", grants: {} },
+    TECHNOMANCER: { label: "Technomancer", displayName: "Technomancer", category: "ontology", access: "advanced", grants: {} },
+    CONSTRUCT: { label: "Construct", displayName: "Construct", category: "ontology", access: "advanced", grants: {} },
+    VOID_SHARD: { label: "Void-Shard", displayName: "Void-Shard", category: "ontology", access: "advanced", grants: {} },
+    MYTH_TECH_SYMBIOTE: { label: "Myth-Tech Symbiote", displayName: "Myth-Tech Symbiote", category: "ontology", access: "advanced", grants: {} },
+    VEILWALKER: { label: "Veilwalker", displayName: "Veilwalker", category: "ontology", access: "advanced", grants: {} },
+    DOMAIN_TOUCHED: { label: "Domain-Touched", displayName: "Domain-Touched", category: "ontology", access: "advanced", grants: {} },
+    FREQUENCY_DISTORTION: { label: "Frequency Distortion", displayName: "Frequency Distortion", category: "ontology", access: "advanced", grants: {} },
+    ENTITY_ADJACENT: { label: "Entity-Adjacent", displayName: "Entity-Adjacent", category: "ontology", access: "advanced", grants: {} }
   };
 
   const backgroundCatalog = {
@@ -56,16 +56,70 @@
   }
 
   function catalogEntry(catalog, key) {
-    const normalized = String(key || "").toUpperCase();
-    return catalog[normalized] || { label: titleCaseKey(normalized), displayName: titleCaseKey(normalized), access: "unknown" };
+    const normalized = String(key || "").toUpperCase().replace(/[^A-Z0-9_]+/g, "_").replace(/^_|_$/g, "");
+    if (catalog[normalized]) return { key: normalized, ...catalog[normalized] };
+    const label = titleCaseKey(normalized);
+    return {
+      key: normalized,
+      label,
+      displayName: label,
+      access: "unknown",
+      skillBonus: [],
+      grants: {}
+    };
+  }
+
+  function entryByDisplayName(catalog, keyList, displayName) {
+    const value = String(displayName || "").trim();
+    if (!value) return null;
+    const direct = keyList
+      .map((key) => ({ key, ...catalog[key] }))
+      .find((entry) => entry.displayName === value || entry.label === value);
+    return direct || null;
+  }
+
+  function skillBonusGrantLabel(bonuses) {
+    if (!Array.isArray(bonuses) || !bonuses.length) return "";
+    return bonuses.map((skill) => `${skill} +1`).join(", ");
+  }
+
+  function grantsSkillBonuses(grants) {
+    if (!grants) return [];
+    if (Array.isArray(grants)) return grants.filter((item) => typeof item === "string");
+    if (typeof grants === "object" && Array.isArray(grants.skillBonus)) return grants.skillBonus;
+    return [];
+  }
+
+  function ontologyGrantLabel(grants) {
+    const skillBonus = grantsSkillBonuses(grants);
+    if (skillBonus.length) return skillBonusGrantLabel(skillBonus);
+    if (!grants || (typeof grants === "object" && !Array.isArray(grants) && !Object.keys(grants).length)) return "none loaded";
+    if (Array.isArray(grants) && !grants.length) return "none loaded";
+    return "none loaded";
+  }
+
+  function backgroundGrantLabel(entry) {
+    return skillBonusGrantLabel(entry && entry.skillBonus) || "none loaded";
   }
 
   window.CradlepointCatalogs = {
     presentationCatalog,
     backgroundCatalog,
     titleCaseKey,
+    skillBonusGrantLabel,
+    ontologyGrantLabel,
+    backgroundGrantLabel,
+    grantsSkillBonuses,
     presentationEntry: (key) => catalogEntry(presentationCatalog, key),
     backgroundEntry: (key) => catalogEntry(backgroundCatalog, key),
+    presentationKeyFromDisplayName: (displayName) => {
+      const entry = entryByDisplayName(presentationCatalog, Object.keys(presentationCatalog), displayName);
+      return entry ? entry.key : "";
+    },
+    backgroundKeyFromDisplayName: (displayName) => {
+      const entry = entryByDisplayName(backgroundCatalog, Object.keys(backgroundCatalog), displayName);
+      return entry ? entry.key : "";
+    },
     presentationOptions: () => Object.entries(presentationCatalog).map(([key, entry]) => ({ key, ...entry })),
     backgroundOptions: () => Object.entries(backgroundCatalog).map(([key, entry]) => ({ key, ...entry }))
   };
