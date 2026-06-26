@@ -243,7 +243,8 @@ body.handler-surface:not(.is-field-edit) .handler-shell select:not([data-live-co
 body.handler-surface:not(.is-field-edit) .handler-shell [data-live-control-zone] input,
 body.handler-surface:not(.is-field-edit) .handler-shell [data-live-control-zone] textarea,
 body.handler-surface:not(.is-field-edit) .handler-shell [data-live-control-zone] select,
-body.handler-surface:not(.is-field-edit) .handler-shell [data-live-control] {
+body.handler-surface:not(.is-field-edit) .handler-shell [data-live-control],
+body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   pointer-events: auto;
   opacity: 1;
 }
