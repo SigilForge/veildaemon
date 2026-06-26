@@ -232,6 +232,16 @@
     return { label, displayName: label, access: "unknown" };
   }
 
+  function presentationOptions() {
+    if (typeof catalogs.presentationOptions === "function") return catalogs.presentationOptions();
+    return [];
+  }
+
+  function backgroundOptions() {
+    if (typeof catalogs.backgroundOptions === "function") return catalogs.backgroundOptions();
+    return [];
+  }
+
   function normalizeArray(value) {
     return Array.isArray(value) ? value : [];
   }
@@ -738,6 +748,7 @@
 
   function renderStatusForm() {
     const status = consoleState.operatorStatus;
+    renderAuthorizationSelects();
     setNamedValue("operatorName", status.operatorName || "");
     setNamedValue("designation", status.designation || operatorRecord?.designation || "");
     setNamedValue("role", status.role || "Operator");
@@ -799,6 +810,55 @@
   function setNamedChecked(name, value) {
     const input = document.querySelector(`[name="${name}"]`);
     if (input) input.checked = Boolean(value);
+  }
+
+  function optionNode(value, label) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    return option;
+  }
+
+  function buildUnlockedOptions(kind, currentValue) {
+    const source = kind === "background" ? backgroundOptions() : presentationOptions();
+    const entryFor = kind === "background" ? backgroundEntry : presentationEntry;
+    const allowed = source
+      .filter((entry) => entry.access === "starter")
+      .map((entry) => ({ value: entry.displayName, label: entry.displayName }));
+    consoleState.unlocks
+      .filter((unlock) => unlock.type === kind)
+      .forEach((unlock) => {
+        const entry = entryFor(unlock.key);
+        allowed.push({ value: entry.displayName, label: entry.displayName });
+      });
+    if (currentValue) allowed.push({ value: currentValue, label: currentValue });
+    const seen = new Set();
+    return allowed.filter((item) => {
+      const key = item.value.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function renderAuthorizationSelects() {
+    const backgroundSelect = document.getElementById("status-background");
+    const presentationSelect = document.getElementById("status-ontology-presentation");
+    const status = consoleState.operatorStatus;
+    if (backgroundSelect) {
+      const current = status.background || "";
+      backgroundSelect.textContent = "";
+      backgroundSelect.append(optionNode("", "No Background selected"));
+      buildUnlockedOptions("background", current).forEach((item) => backgroundSelect.append(optionNode(item.value, item.label)));
+      backgroundSelect.value = current;
+    }
+    if (presentationSelect) {
+      const current = status.ontologyPresentation || "";
+      presentationSelect.textContent = "";
+      presentationSelect.append(optionNode("", "No Presentation selected"));
+      buildUnlockedOptions("ontology", current).forEach((item) => presentationSelect.append(optionNode(item.value, item.label)));
+      presentationSelect.value = current;
+    }
   }
 
   function normalizeStabilityValue(value) {
