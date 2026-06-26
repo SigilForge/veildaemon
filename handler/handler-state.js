@@ -287,7 +287,7 @@
         "safeSceneLabel": "Mara Venn missing; observation indexing withheld speech"
       },
       "sceneState": {
-        "current": "Echoed"
+        "current": "Stable"
       },
       "primaryClock": {
         "name": "Audience Before Clock",
@@ -309,11 +309,11 @@
       "activeEntity": {
         "name": "The Audience Before",
         "kind": "Entity",
-        "sceneState": "Echoed",
+        "sceneState": "Stable",
         "notes": "First-contact observation entity. Do not add Monster Manual stats for Needlepoint 001a. Exit requires honest speech under observation, protected by the group."
       },
       "attention": {
-        "current": "Focused"
+        "current": "Noticed"
       },
       "roomAnswer": {
         "object": "Lobby camera, elevator panel, comment thread, ring light, apartment door",
@@ -776,9 +776,10 @@
     }
 
     if (options.persist) {
+      const residueStamp = () => `residue-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
       if (effects.reveal_next_clue && draft.caseFile.nextClue) {
         draft.residueLog.unshift({
-          id: `residue-${Date.now()}`,
+          id: residueStamp(),
           scene: safeString(draft.session.location || draft.session.caseTitle, 140),
           attention: draft.attention.current,
           residue: `Clue surfaced: ${draft.caseFile.nextClue}`,
@@ -787,7 +788,7 @@
         });
       }
       draft.residueLog.unshift({
-        id: `residue-${Date.now() + 1}`,
+        id: residueStamp(),
         scene: safeString(draft.session.location || draft.session.caseTitle, 140),
         attention: draft.attention.current,
         residue: `Trigger applied: ${trigger.label}`,

@@ -249,7 +249,7 @@
         "safeSceneLabel": "Mara Venn missing; observation indexing withheld speech"
       },
       "sceneState": {
-        "current": "Echoed"
+        "current": "Stable"
       },
       "primaryClock": {
         "name": "Audience Before Clock",
@@ -271,11 +271,11 @@
       "activeEntity": {
         "name": "The Audience Before",
         "kind": "Entity",
-        "sceneState": "Echoed",
+        "sceneState": "Stable",
         "notes": "First-contact observation entity. Do not add Monster Manual stats for Needlepoint 001a. Exit requires honest speech under observation, protected by the group."
       },
       "attention": {
-        "current": "Focused"
+        "current": "Noticed"
       },
       "roomAnswer": {
         "object": "Lobby camera, elevator panel, comment thread, ring light, apartment door",
