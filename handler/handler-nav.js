@@ -107,7 +107,7 @@
       bar.className = "handler-field-lock-bar no-print";
       bar.setAttribute("aria-label", "Field edit lock");
       bar.innerHTML = `
-        <p class="handler-field-lock-status" data-handler-field-lock-status>Live play: typing locked. Triggers, clocks, and rolls stay active.</p>
+        <p class="handler-field-lock-status" data-handler-field-lock-status>Live play: scaffold fields locked. Notes and Stability/Harm stay editable.</p>
         <button class="button field-edit-toggle" type="button" data-handler-field-edit-toggle aria-pressed="false">Edit Fields: Off</button>
       `;
       anchor.insertAdjacentElement("afterend", bar);
@@ -123,12 +123,36 @@
     return bar;
   }
 
+  function fieldEditSafe(el) {
+    if (!el || el.matches("[type='button'], [type='file'], [type='checkbox'], [type='radio']")) return false;
+    if (el.hasAttribute("data-live-control") || el.closest("[data-live-control-zone]")) return true;
+
+    const name = el.getAttribute("name") || "";
+    const dataField = el.getAttribute("data-field") || "";
+
+    if (dataField === "stability" || dataField === "harm" || dataField === "notes") return true;
+    if (el.hasAttribute("data-residue") || el.hasAttribute("data-entity-notes")) return true;
+    if (name === "attention.current") return true;
+    if (/^handlerNotes\./.test(name)) return true;
+    if (name === "caseFile.notes" || name === "caseFile.nextClue" || name === "caseFile.nextPressureBeat") return true;
+    if (name === "unresolvedConsequences" || name === "activeEntity.notes" || name === "note") return true;
+    if (name === "attention.residue" || name === "attention.followsHome") return true;
+    return false;
+  }
+
+  function markSafeEditFields() {
+    document.querySelectorAll(".handler-shell input, .handler-shell textarea, .handler-shell select").forEach((el) => {
+      el.toggleAttribute("data-field-edit-safe", fieldEditSafe(el));
+    });
+  }
+
   function renderFieldLock() {
     if (!api) return;
     const state = api.readState();
     const unlocked = api.fieldEditUnlocked(state);
     document.body.classList.toggle("is-field-edit", unlocked);
     ensureFieldLockBar();
+    markSafeEditFields();
     document.querySelectorAll("[data-handler-field-edit-toggle]").forEach((toggle) => {
       toggle.textContent = unlocked ? "Edit Fields: On" : "Edit Fields: Off";
       toggle.setAttribute("aria-pressed", unlocked ? "true" : "false");
@@ -136,8 +160,8 @@
     });
     document.querySelectorAll("[data-handler-field-lock-status]").forEach((node) => {
       node.textContent = unlocked
-        ? "Prep mode: form fields unlocked for typing."
-        : "Live play: typing locked. Triggers, clocks, and rolls stay active.";
+        ? "Prep mode: scaffold and case fields unlocked for typing."
+        : "Live play: scaffold fields locked. Notes and Stability/Harm stay editable.";
     });
   }
 
