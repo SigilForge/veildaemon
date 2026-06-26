@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260626-skillpanel1" />
+  <link rel="stylesheet" href="./operator.css?v=20260626-identitybuild1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -148,6 +148,13 @@
           <article class="sheet-card operator-case-strip wide">
             <p class="card-label">Identity / Access Strip</p>
             <div class="case-strip-grid editable-case-strip">
+              <div class="identity-build-controls sheet-edit-only">
+                <div class="creation-row">
+                  <button type="button" class="button" id="creation-mode-toggle">Creation Mode: Off</button>
+                  <button type="button" class="button" id="apply-core-start">Apply Core Start</button>
+                  <span id="creation-budget">Advancement spends Breach.</span>
+                </div>
+              </div>
               <label>Operator Name<input name="operatorName" type="text" maxlength="80" autocomplete="off" /></label>
               <label>Record ID<input name="designation" type="text" maxlength="80" autocomplete="off" /></label>
               <label>Role<input name="role" type="text" maxlength="80" placeholder="Operator" autocomplete="off" /></label>
@@ -234,11 +241,6 @@
               <p class="card-label">Skill Summary</p>
               <div class="skill-summary-list" id="skill-summary-list"></div>
               <div class="skill-editor-tools sheet-edit-only">
-                <div class="creation-row">
-                  <button type="button" class="button" id="creation-mode-toggle">Creation Mode: Off</button>
-                  <button type="button" class="button" id="apply-core-start">Apply Core Start</button>
-                  <span id="creation-budget">Advancement spends Breach.</span>
-                </div>
                 <div class="skill-builder">
                   <label>Skill<select id="skill-picker"></select></label>
                   <label>Rank<input id="skill-rank" type="number" min="1" max="5" step="1" value="1" /></label>
