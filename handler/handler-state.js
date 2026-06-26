@@ -28,6 +28,7 @@
   const loopFields = ["Need", "Lure", "Pressure", "Gift", "Violence", "Exit"];
   const npcFlags = ["Ally", "Witness", "Threat", "Missing", "Compromised"];
   const templateCatalogUrl = new URL("templates.json", document.currentScript && document.currentScript.src || window.location.href).href;
+  const catalogs = window.CradlepointCatalogs || {};
 
   const templates = [
     {
@@ -487,6 +488,13 @@
     attentionStates,
     loopFields,
     npcFlags,
+    presentationCatalog: catalogs.presentationCatalog || {},
+    backgroundCatalog: catalogs.backgroundCatalog || {},
+    presentationOptions: catalogs.presentationOptions || (() => []),
+    backgroundOptions: catalogs.backgroundOptions || (() => []),
+    presentationEntry: catalogs.presentationEntry || ((key) => ({ label: safeString(key), displayName: safeString(key), access: "unknown" })),
+    backgroundEntry: catalogs.backgroundEntry || ((key) => ({ label: safeString(key), displayName: safeString(key), access: "unknown" })),
+    titleCaseKey: catalogs.titleCaseKey || ((key) => safeString(key).toLowerCase().replace(/(^|_)([a-z])/g, (match, prefix, char) => `${prefix ? " " : ""}${char.toUpperCase()}`)),
     templates,
     loadTemplates,
     defaultState,

@@ -26,12 +26,26 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await page.goto("/handler/live/");
 
   await expect(page.getByRole("heading", { name: "LIVE DASHBOARD" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "LIVE MODE" })).toHaveClass(/is-active/);
   await expect(page.getByLabel("Scene State").getByRole("button", { name: /Stable/ })).toHaveClass(/is-active/);
   await expect(page.getByLabel("Primary clock segments")).toBeVisible();
   await expect(page.locator(".status-strip").getByText("Handler", { exact: true })).toBeVisible();
   await expect(page.getByText("Handler Exterior")).toHaveCount(0);
   await expect(page.getByText("Need -> Lure -> Pressure -> Gift -> Violence -> Exit")).toBeVisible();
-  await expect(page.getByText("PRIVATE HANDLER NOTES")).toBeVisible();
+  await expect(page.getByText("THE ROOM ANSWERS", { exact: true })).toBeVisible();
+  await expect(page.locator("#operator-risk-strip")).toBeVisible();
+  await expect(page.getByText("PRIVATE HANDLER NOTES")).toBeHidden();
+  await expect(page.getByLabel("Template")).toBeHidden();
+
+  await expect(page.locator("#room-answer-preview")).toContainText("Object");
+  await expect(page.locator("#room-answer-preview")).toContainText("ordinary detail not selected");
+  await expect(page.locator("#room-answer-preview")).toContainText("Choose one ordinary detail, one emotional pressure, and one consequence.");
+  await page.getByLabel("Ordinary Object").fill("mirror");
+  await page.getByLabel("Emotional Input").fill("refused self");
+  await page.getByLabel("Consequence", { exact: true }).fill("the reflected version answers first");
+  await expect(page.locator("#room-answer-preview")).toContainText("Make mirror answer refused self by revealing the reflected version answers first.");
+  await expect(page.locator("#room-answer-preview")).toContainText("The mirror changes first.");
+
   const rollMetrics = await page.evaluate(() => {
     const box = (selector) => {
       const rect = document.querySelector(selector)?.getBoundingClientRect();
@@ -51,19 +65,24 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   expect(rollMetrics.mode.top).toBeGreaterThan(rollMetrics.attribute.top);
   expect(rollMetrics.button.top).toBeGreaterThan(rollMetrics.attribute.top);
 
+  await page.getByRole("button", { name: "PREP" }).click();
+  await expect(page.getByRole("button", { name: "PREP" })).toHaveClass(/is-active/);
   await expect(page.getByLabel("Template")).toHaveValue("veilcorp-intake");
   await page.getByRole("button", { name: "Apply Template" }).click();
   await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("VeilCorp Intake");
   await expect(page.locator('[name="entityLoop.Need"]')).toHaveValue("A complete self to copy, correct, or preserve.");
   await expect(page.locator('[name="entityLoop.Exit"]')).toHaveValue("Refuse the false self, speak one specific truth while witnessed, and leave together before the chamber chooses.");
   await expect(page.getByLabel("Current Attention")).toHaveValue("Observed");
+  await page.getByRole("button", { name: "LIVE MODE" }).click();
   await expect(page.getByLabel("Scene State").getByRole("button", { name: /Echoed/ })).toHaveClass(/is-active/);
+  await page.getByRole("button", { name: "PREP" }).click();
   await page.getByLabel("Template").selectOption("viridian-house");
   await page.getByRole("button", { name: "Apply Template" }).click();
   await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("Viridian House");
   await expect(page.locator('[name="entityLoop.Need"]')).toHaveValue("The moment before confession, when someone edits themselves to survive being seen.");
   await expect(page.locator('[name="primaryClock.name"]')).toHaveValue("Audience Before Clock");
 
+  await page.getByRole("button", { name: "LIVE MODE" }).click();
   await page.locator('[name="roll.attribute"]').fill("3");
   await page.locator('[name="roll.skill"]').fill("2");
   await page.getByRole("button", { name: "Roll 3d6" }).click();
@@ -74,6 +93,10 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.getByLabel("Player-facing display")).toBeVisible();
   await expect(page.getByLabel("Player-facing display")).toContainText("Mara Venn missing inside the building");
   await expect(page.getByLabel("Player-facing display")).not.toContainText("PRIVATE HANDLER NOTES");
+
+  await page.getByRole("button", { name: "ARCHIVE" }).click();
+  await expect(page.getByText("PRIVATE HANDLER NOTES")).toBeVisible();
+  await expect(page.getByLabel("Dashboard controls")).toBeVisible();
 });
 
 test("handler module pages share case state", async ({ page }) => {
@@ -152,8 +175,12 @@ test("handler imports Operator JSON summaries", async ({ page }) => {
 test("handler exports Operator authorization packets", async ({ page }) => {
   await page.goto("/handler/operators/");
 
-  await page.getByLabel("Ontology Unlock").selectOption("SANGUINE");
-  await page.getByLabel("Background Unlock").selectOption("FIELD_MEDIC");
+  await expect(page.getByLabel("Ontology Unlock")).toContainText("Sanguine Presentation");
+  await expect(page.getByLabel("Ontology Unlock")).toContainText("Void-Shard");
+  await expect(page.getByLabel("Background Unlock")).toContainText("Field Medic");
+  await expect(page.getByLabel("Background Unlock")).toContainText("Sanguine Adjacent");
+  await page.getByLabel("Ontology Unlock").selectOption(["SANGUINE", "VOID_SHARD"]);
+  await page.getByLabel("Background Unlock").selectOption(["FIELD_MEDIC", "LOCAL_WITNESS"]);
   await page.getByLabel("Case Unlock").selectOption("NEEDLEPOINT_SURVIVOR");
   await page.getByLabel("Operator Name").fill("June Rook");
 
@@ -165,8 +192,10 @@ test("handler exports Operator authorization packets", async ({ page }) => {
   expect(payload.exportType).toBe("cradlepoint.authorization");
   expect(payload.flags).toEqual([
     "ONTOLOGY_UNLOCK:SANGUINE",
+    "ONTOLOGY_UNLOCK:VOID_SHARD",
     "BACKGROUND_UNLOCK:FIELD_MEDIC",
+    "BACKGROUND_UNLOCK:LOCAL_WITNESS",
     "CASE_UNLOCK:NEEDLEPOINT_SURVIVOR"
   ]);
-  expect(payload.note).toContain("Sanguine Presentation available for review");
+  expect(payload.note).toContain("Sanguine Presentation, Void-Shard available for review");
 });

@@ -282,10 +282,16 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
     exportedAt: "2026-06-24T21:00:00.000Z",
     flags: [
       "ONTOLOGY_UNLOCK:SANGUINE",
+      "ONTOLOGY_UNLOCK:MYTHIC_ECHO",
+      "ONTOLOGY_UNLOCK:TECHNOMANCER_DAEMON_ALIGNED",
+      "ONTOLOGY_UNLOCK:RED_LEDGER_ADJACENT",
       "BACKGROUND_UNLOCK:FIELD_MEDIC",
+      "BACKGROUND_UNLOCK:LOCAL_WITNESS",
+      "BACKGROUND_UNLOCK:SANGUINE_ADJACENT",
+      "BACKGROUND_UNLOCK:SAFEHOUSE_BRAT",
       "CASE_UNLOCK:NEEDLEPOINT_SURVIVOR"
     ],
-    note: "NEW ONTOLOGY SIGNAL DETECTED\n\nHandler authorization received.\n\nSanguine Presentation available for review."
+    note: ""
   };
 
   await page.locator("#import-authorization").setInputFiles({
@@ -299,13 +305,21 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.getByRole("button", { name: "Ontology" })).toBeVisible();
   await page.getByRole("button", { name: "Background" }).click();
   await expect(page.locator("#background-unlock-list")).toContainText("Field Medic");
+  await expect(page.locator("#background-unlock-list")).toContainText("Local Witness");
+  await expect(page.locator("#background-unlock-list")).toContainText("Sanguine Adjacent");
+  await expect(page.locator("#background-unlock-list")).toContainText("Safehouse Brat");
   await expect(page.locator("#background-unlock-list")).toContainText("Applied");
   await page.getByRole("button", { name: "Sheet" }).click();
   await expect(page.locator("#skill-list")).toContainText("Medicine 1");
+  await expect(page.locator('[name="background"]')).toHaveValue("Safehouse Brat");
 
   await page.getByRole("button", { name: "Ontology" }).click();
-  await expect(page.locator("#ontology-unlock-notice")).toContainText("Sanguine Presentation available for review");
   await expect(page.locator("#ontology-unlock-list")).toContainText("Sanguine Presentation");
+  await expect(page.locator("#ontology-unlock-list")).toContainText("Mythic Echo");
+  await expect(page.locator("#ontology-unlock-list")).toContainText("Technomancer / Daemon-Aligned");
+  await expect(page.locator("#ontology-unlock-list")).toContainText("Red Ledger Adjacent");
+  await page.getByRole("button", { name: "Sheet" }).click();
+  await expect(page.locator('[name="ontologyPresentation"]')).toHaveValue("Red Ledger Adjacent");
 });
 
 test("frequency advancement enforces released Lotus caps", async ({ page }) => {

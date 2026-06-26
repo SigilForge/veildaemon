@@ -1,6 +1,8 @@
 (function () {
   const api = window.HandlerState;
+  const modeStorageKey = "veildaemon.handlerLiveMode.v1";
   let state = api.readState();
+  let dashboardMode = readDashboardMode();
 
   function setStatus(message, isError) {
     const node = document.getElementById("storage-status");
@@ -155,6 +157,37 @@
     });
   }
 
+  function renderRiskStrip() {
+    const strip = document.getElementById("operator-risk-strip");
+    if (!strip) return;
+    strip.textContent = "";
+    const players = Array.isArray(state.players) ? state.players : [];
+    if (!players.length) {
+      strip.append(riskChip("Operator", "No Operator summary imported."));
+      return;
+    }
+    players.slice(0, 3).forEach((player, index) => {
+      strip.append(riskChip(player.name || `Operator ${index + 1}`, [
+        player.stability ? `Stability ${player.stability}` : "",
+        player.harm ? `Harm ${player.harm}` : "",
+        player.misfire ? `Misfire ${player.misfire}` : "",
+        player.voidBreach ? player.voidBreach : "",
+        player.primaryFrequency ? `Freq ${player.primaryFrequency}` : ""
+      ].filter(Boolean).join(" // ") || "No live risk flags."));
+    });
+  }
+
+  function riskChip(label, value) {
+    const chip = document.createElement("div");
+    chip.className = "risk-chip";
+    const title = document.createElement("span");
+    title.textContent = label;
+    const body = document.createElement("strong");
+    body.textContent = value;
+    chip.append(title, body);
+    return chip;
+  }
+
   function syncForm() {
     document.querySelectorAll("[name]").forEach((input) => {
       if (input.id === "template-picker") return;
@@ -184,10 +217,49 @@
   function renderRoomAnswer() {
     const preview = document.getElementById("room-answer-preview");
     if (!preview) return;
-    const object = state.roomAnswer.object || "ordinary object";
-    const feeling = state.roomAnswer.emotionalInput || "emotional input";
-    const consequence = state.roomAnswer.consequence || "consequence";
-    preview.textContent = `${object} receives ${feeling}. Result: ${consequence}.`;
+    preview.textContent = "";
+    const rawObject = api.safeString(state.roomAnswer.object, 130);
+    const rawFeeling = api.safeString(state.roomAnswer.emotionalInput, 130);
+    const rawConsequence = api.safeString(state.roomAnswer.consequence, 200);
+    const object = rawObject || "ordinary detail not selected";
+    const feeling = rawFeeling || "pressure not named yet";
+    const consequence = rawConsequence || "no consequence chosen yet";
+    const handlerMove = roomAnswerMove(rawObject, rawFeeling, rawConsequence);
+    const playerLine = roomAnswerPlayerLine(rawObject, rawConsequence);
+    [
+      ["Object", object],
+      ["Emotional input", feeling],
+      ["Consequence", consequence],
+      ["Handler move", handlerMove],
+      ["Player-facing line", playerLine]
+    ].forEach(([label, value]) => {
+      const row = document.createElement("p");
+      row.className = "room-answer-line";
+      const strong = document.createElement("strong");
+      strong.textContent = label;
+      const span = document.createElement("span");
+      span.textContent = value;
+      row.append(strong, span);
+      preview.append(row);
+    });
+  }
+
+  function roomAnswerMove(object, feeling, consequence) {
+    if (object && feeling && consequence) return `Make ${object} answer ${feeling} by revealing ${consequence}.`;
+    if (!object && !feeling && !consequence) return "Choose one ordinary detail, one emotional pressure, and one consequence.";
+    if (object && feeling) return `Let ${object} react to ${feeling}; choose the consequence it reveals.`;
+    if (object && consequence) return `Use ${object} to reveal ${consequence}; name the pressure driving it.`;
+    if (feeling && consequence) return `Let the room answer ${feeling} by revealing ${consequence}.`;
+    if (object) return `Choose what pressure makes ${object} answer.`;
+    if (feeling) return `Choose what ordinary detail answers ${feeling}.`;
+    return `Choose what ordinary detail reveals ${consequence}.`;
+  }
+
+  function roomAnswerPlayerLine(object, consequence) {
+    if (object && consequence) return `The ${object} changes first.`;
+    if (object) return `The ${object} notices before anyone speaks.`;
+    if (consequence) return `Something ordinary reveals ${consequence}.`;
+    return "Something ordinary answers before anyone explains it.";
   }
 
   function renderPlayerView() {
@@ -212,6 +284,7 @@
     renderClock("primary-clock-track", state.primaryClock, true);
     renderClock("secondary-clock-track", state.secondaryClock, state.secondaryClock.enabled);
     renderRoomAnswer();
+    renderRiskStrip();
     renderPlayerView();
   }
 
@@ -339,6 +412,42 @@
     });
   }
 
+  function readDashboardMode() {
+    try {
+      const value = window.localStorage.getItem(modeStorageKey);
+      return ["live", "prep", "archive"].includes(value) ? value : "live";
+    } catch (error) {
+      return "live";
+    }
+  }
+
+  function writeDashboardMode(mode) {
+    try {
+      window.localStorage.setItem(modeStorageKey, mode);
+    } catch (error) {
+      // Mode persistence is convenience only.
+    }
+  }
+
+  function applyDashboardMode(mode) {
+    dashboardMode = ["live", "prep", "archive"].includes(mode) ? mode : "live";
+    document.body.dataset.handlerMode = dashboardMode;
+    document.querySelectorAll("[data-dashboard-mode]").forEach((button) => {
+      button.classList.toggle("is-active", button.dataset.dashboardMode === dashboardMode);
+    });
+    document.querySelectorAll("[data-mode-panel]").forEach((panel) => {
+      const modes = String(panel.dataset.modePanel || "").split(/\s+/).filter(Boolean);
+      panel.hidden = modes.length > 0 && !modes.includes(dashboardMode);
+    });
+    writeDashboardMode(dashboardMode);
+  }
+
+  function bindDashboardMode() {
+    document.querySelectorAll("[data-dashboard-mode]").forEach((button) => {
+      button.addEventListener("click", () => applyDashboardMode(button.dataset.dashboardMode));
+    });
+  }
+
   function rollTest() {
     collectForm();
     const mode = state.roll.advantage ? "ADVANTAGE" : state.roll.disadvantage ? "DISADVANTAGE" : "STANDARD";
@@ -388,6 +497,7 @@
     syncForm();
     renderPlayers();
     renderDynamic();
+    applyDashboardMode(dashboardMode);
     setStatus("LOCAL READY");
   }
 
@@ -395,6 +505,7 @@
     await api.loadTemplates();
     bindForm();
     bindDataControls();
+    bindDashboardMode();
     renderAll();
   }
 
