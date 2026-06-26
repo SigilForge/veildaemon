@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260626-bankreadout1" />
+  <link rel="stylesheet" href="./operator.css?v=20260626-sheetgrid1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -201,47 +201,49 @@
             <div class="tracker-board" id="tracker-board"></div>
           </article>
 
-          <div class="operator-core-grid wide">
-            <article class="sheet-card">
-              <p class="card-label">Attributes</p>
-              <div class="attribute-grid" id="attribute-grid"></div>
-            </article>
+          <div class="operator-live-grid wide">
+            <div class="operator-live-column">
+              <article class="sheet-card">
+                <p class="card-label">Attributes</p>
+                <div class="attribute-grid" id="attribute-grid"></div>
+              </article>
 
-            <article class="sheet-card skill-summary-card">
-              <p class="card-label">Skill Summary</p>
-              <div class="skill-summary-list" id="skill-summary-list"></div>
-            </article>
+              <article class="sheet-card skill-summary-card">
+                <p class="card-label">Skill Summary</p>
+                <div class="skill-summary-list" id="skill-summary-list"></div>
+              </article>
+            </div>
+
+            <div class="operator-live-column">
+              <article class="sheet-card compact-control-card observation-panel">
+                <p class="card-label">Observation Status</p>
+                <div class="readout-block">
+                  <span>Handler controlled</span>
+                  <strong id="sheet-attention-status">UNNOTICED</strong>
+                </div>
+                <p class="local-note">Local display only. The Handler controls observation pressure.</p>
+                <input name="attentionState" type="hidden" />
+              </article>
+
+              <article class="sheet-card compact-control-card misfire-panel">
+                <p class="card-label">Active Misfire</p>
+                <label>Current consequence<textarea name="activeMisfire" rows="3" placeholder="Describe the wrong-success consequence currently in play."></textarea></label>
+                <button type="button" class="button" id="clear-active-misfire">Clear Active Misfire</button>
+                <label>Misfires recorded<textarea name="misfires" rows="3" placeholder="Consequence, flavor, who noticed."></textarea></label>
+              </article>
+
+              <article class="sheet-card operator-recovery">
+                <p class="card-label">Recovery</p>
+                <fieldset class="recovery-field compact">
+                  <label><input name="recoveryGround" type="checkbox" /> Ground</label>
+                  <label><input name="recoveryBreathe" type="checkbox" /> Breathe</label>
+                  <label><input name="recoveryConnect" type="checkbox" /> Connect</label>
+                  <label><input name="recoveryLeave" type="checkbox" /> Leave</label>
+                  <label><input name="recoveryNameIt" type="checkbox" /> Name It</label>
+                </fieldset>
+              </article>
+            </div>
           </div>
-
-          <div class="operator-pressure-grid wide">
-            <article class="sheet-card compact-control-card observation-panel">
-              <p class="card-label">Observation Status</p>
-              <div class="readout-block">
-                <span>Handler controlled</span>
-                <strong id="sheet-attention-status">UNNOTICED</strong>
-              </div>
-              <p class="local-note">Local display only. The Handler controls observation pressure.</p>
-              <input name="attentionState" type="hidden" />
-            </article>
-
-            <article class="sheet-card compact-control-card misfire-panel">
-              <p class="card-label">Active Misfire</p>
-              <label>Current consequence<textarea name="activeMisfire" rows="3" placeholder="Describe the wrong-success consequence currently in play."></textarea></label>
-              <button type="button" class="button" id="clear-active-misfire">Clear Active Misfire</button>
-              <label>Misfires recorded<textarea name="misfires" rows="3" placeholder="Consequence, flavor, who noticed."></textarea></label>
-            </article>
-          </div>
-
-          <article class="sheet-card operator-recovery wide">
-            <p class="card-label">Recovery</p>
-            <fieldset class="recovery-field compact">
-              <label><input name="recoveryGround" type="checkbox" /> Ground</label>
-              <label><input name="recoveryBreathe" type="checkbox" /> Breathe</label>
-              <label><input name="recoveryConnect" type="checkbox" /> Connect</label>
-              <label><input name="recoveryLeave" type="checkbox" /> Leave</label>
-              <label><input name="recoveryNameIt" type="checkbox" /> Name It</label>
-            </fieldset>
-          </article>
 
           <article class="sheet-card operator-notes wide">
             <p class="card-label">Immediate Notes</p>
@@ -266,18 +268,21 @@
 
           <article class="sheet-card skill-manager wide">
             <p class="card-label">Skill Manager</p>
-            <div class="creation-row">
-              <button type="button" class="button" id="creation-mode-toggle">Creation Mode: Off</button>
-              <button type="button" class="button" id="apply-core-start">Apply Core Start</button>
-              <span id="creation-budget">Advancement spends Breach.</span>
-            </div>
-            <div class="skill-builder">
-              <label>Skill<select id="skill-picker"></select></label>
-              <label>Rank<input id="skill-rank" type="number" min="1" max="5" step="1" value="1" /></label>
-              <span class="cost-preview" id="skill-cost-preview">Cost: 1 Breach</span>
-              <button type="button" class="button" id="add-skill">Add Skill</button>
-            </div>
-            <p class="skill-rank-preview" id="skill-rank-preview">Rank meaning pending.</p>
+            <details class="skill-editor-panel">
+              <summary>Add / Edit Skills</summary>
+              <div class="creation-row">
+                <button type="button" class="button" id="creation-mode-toggle">Creation Mode: Off</button>
+                <button type="button" class="button" id="apply-core-start">Apply Core Start</button>
+                <span id="creation-budget">Advancement spends Breach.</span>
+              </div>
+              <div class="skill-builder">
+                <label>Skill<select id="skill-picker"></select></label>
+                <label>Rank<input id="skill-rank" type="number" min="1" max="5" step="1" value="1" /></label>
+                <span class="cost-preview" id="skill-cost-preview">Cost: 1 Breach</span>
+                <button type="button" class="button" id="add-skill">Add Skill</button>
+              </div>
+              <p class="skill-rank-preview" id="skill-rank-preview">Rank meaning pending.</p>
+            </details>
             <div class="skill-list" id="skill-list"></div>
           </article>
         </section>
@@ -525,6 +530,6 @@
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="./operator.js?v=20260626-bankreadout1"></script>
+  <script src="./operator.js?v=20260626-sheetgrid1"></script>
 </body>
 </html>

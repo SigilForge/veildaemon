@@ -72,6 +72,7 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator("#sheet-attention-status")).toContainText("Unnoticed");
   await expect(page.getByRole("button", { name: "Marked" })).toHaveCount(0);
 
+  await page.getByText("Add / Edit Skills").click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
   await expect(page.locator('input[name="voidMarks"]')).toHaveValue("0");
@@ -119,6 +120,7 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.goto("/operator/");
 
   await page.getByRole("button", { name: "Sheet" }).click();
+  await page.getByText("Add / Edit Skills").click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await importAuthorizationPacket(page, ["VOID_REWARD:7", "BREACH_REWARD:27"]);
   await page.getByRole("button", { name: "Sheet" }).click();
@@ -398,6 +400,7 @@ test("creation bonus breach refunds when attributes are lowered", async ({ page 
   await page.goto("/operator/");
 
   await page.getByRole("button", { name: "Sheet" }).click();
+  await page.getByText("Add / Edit Skills").click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
 

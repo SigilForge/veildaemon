@@ -325,7 +325,7 @@ body.operator-record-sealed .data-panel {
   border: 1px solid rgba(137,255,218,.2);
   background: rgba(0,0,0,.24);
 }
-.sheet-card.wide {
+.sheet-grid > .wide {
   grid-column: 1 / -1;
 }
 .operator-live-readout {
@@ -594,16 +594,22 @@ body.operator-record-sealed .data-panel {
   box-shadow: inset 0 0 28px rgba(185,84,255,.07), 0 0 24px rgba(185,84,255,.08);
 }
 
-.operator-core-grid,
-.operator-pressure-grid {
+.operator-live-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  width: 100%;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1fr);
   gap: .9rem;
   align-items: start;
 }
 
-.operator-core-grid > *,
-.operator-pressure-grid > * {
+.operator-live-column {
+  display: grid;
+  gap: .75rem;
+  align-content: start;
+}
+
+.operator-live-grid > *,
+.operator-live-column > * {
   min-width: 0;
 }
 
@@ -615,6 +621,10 @@ body.operator-record-sealed .data-panel {
   align-self: start;
   height: auto;
   min-height: 0;
+}
+
+.operator-recovery {
+  padding: .7rem;
 }
 
 .observation-panel .local-note {
@@ -670,7 +680,7 @@ details label {
   margin-top: .7rem;
 }
 fieldset.recovery-field.compact {
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(6.2rem, 1fr));
   padding: 0;
   border: 0;
 }
@@ -980,6 +990,48 @@ fieldset.recovery-field.compact label {
 
 .skill-list {
   gap: .55rem;
+}
+
+.skill-editor-panel {
+  margin-bottom: .8rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.18);
+}
+
+.skill-editor-panel > summary {
+  min-height: 2.6rem;
+  padding: .65rem .75rem;
+  color: var(--cyan);
+  cursor: pointer;
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  list-style: none;
+  text-transform: uppercase;
+}
+
+.skill-editor-panel > summary::-webkit-details-marker {
+  display: none;
+}
+
+.skill-editor-panel > summary::before {
+  content: ">";
+  margin-right: .5rem;
+  color: var(--purple);
+}
+
+.skill-editor-panel[open] > summary {
+  border-bottom: 1px solid rgba(137,255,218,.16);
+}
+
+.skill-editor-panel[open] > summary::before {
+  content: "v";
+}
+
+.skill-editor-panel > .creation-row,
+.skill-editor-panel > .skill-builder,
+.skill-editor-panel > .skill-rank-preview {
+  margin: .75rem;
 }
 
 .skill-list details {
@@ -1668,6 +1720,7 @@ body.has-reports-drawer-open .surface-tabs {
   }
   .console-form,
   .sheet-grid,
+  .operator-live-grid,
   .tracker-board,
   .line-tracker,
   .roll-row,
@@ -1688,8 +1741,8 @@ body.has-reports-drawer-open .surface-tabs {
   .skill-row {
     grid-template-columns: 1fr;
   }
-  .tiny-counters {
-    grid-template-columns: repeat(2, 5.2rem);
+  .currency-readouts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .attribute-row {
     grid-template-columns: minmax(5.6rem, .34fr) minmax(0, 1fr);
