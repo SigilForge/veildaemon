@@ -405,11 +405,11 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 
 .handler-line-tracker {
   display: grid;
-  grid-template-columns: minmax(7rem, .34fr) minmax(7rem, 1fr) minmax(6rem, .34fr) minmax(4.2rem, auto);
-  gap: .45rem;
+  grid-template-columns: minmax(5.2rem, auto) max-content minmax(4.8rem, 1fr) max-content;
+  gap: .35rem .45rem;
   align-items: center;
-  min-height: 2.8rem;
-  padding: .45rem .55rem;
+  min-height: 2.35rem;
+  padding: .4rem .5rem;
   border: 1px solid rgba(137,255,218,.14);
   background: rgba(0,0,0,.18);
 }
@@ -449,17 +449,20 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 }
 
 .handler-line-tracker .stability-pips {
-  grid-template-columns: repeat(10, minmax(.48rem, 1fr));
+  grid-template-columns: repeat(10, 0.46rem);
+  width: max-content;
 }
 
 .handler-line-tracker .harm-pips {
-  grid-template-columns: repeat(5, minmax(.56rem, 1fr));
+  grid-template-columns: repeat(5, 0.46rem);
+  width: max-content;
 }
 
 .handler-line-tracker .pip {
-  aspect-ratio: 2.2 / 1;
+  width: 0.46rem;
+  height: 0.62rem;
   min-width: 0;
-  min-height: .52rem;
+  min-height: 0;
   padding: 0;
   border: 1px solid rgba(137,255,218,.34);
   background: rgba(0,0,0,.28);
@@ -478,18 +481,23 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 
 .handler-line-tracker .pip-controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: .35rem;
+  grid-template-columns: repeat(2, 1.55rem);
+  gap: .28rem;
+  width: max-content;
 }
 
 .handler-line-tracker .pip-controls button {
-  min-height: 2.1rem;
+  min-height: 1.55rem;
+  min-width: 1.55rem;
+  padding: 0;
   border: 1px solid rgba(137,255,218,.22);
   background: rgba(0,0,0,.32);
   color: var(--text);
   cursor: pointer;
   font: inherit;
+  font-size: .78rem;
   font-weight: 800;
+  line-height: 1;
 }
 
 .handler-line-tracker .pip-controls button:hover {
