@@ -460,7 +460,7 @@
       if (preview) preview.textContent = text;
       try {
         await navigator.clipboard.writeText(text);
-        setStatus("AUTHORIZATION PACKET COPIED");
+        setStatus("Authorization packet copied.");
       } catch (error) {
         setStatus("COPY REFUSED", true);
       }

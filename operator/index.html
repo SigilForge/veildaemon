@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260626-skillclick1" />
+  <link rel="stylesheet" href="./operator.css?v=20260626-transferlabels1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -487,23 +487,35 @@
     </section>
 
     <section class="data-panel" aria-label="Local data controls">
-      <div>
+      <div class="data-panel-status">
         <p class="kicker">LOCAL RECORD CONTROLS</p>
         <p id="storage-status">Storage status pending.</p>
       </div>
-      <div class="data-actions">
-        <button class="button" type="button" id="export-operator-file">Export Operator Record</button>
-        <label class="button file-button">Import Operator Record<input data-operator-file-import type="file" accept="application/json" /></label>
-        <button class="button" type="button" id="open-authorizations">Authorized Unlocks</button>
-        <button class="button" type="button" id="export-console">Export Local Console Record</button>
-        <label class="button file-button">Import Local Console Record<input id="import-console" type="file" accept="application/json" /></label>
-        <button class="button danger" type="button" id="purge-console">Purge Local Console</button>
+      <div class="data-panel-groups">
+        <section class="data-transfer-group" aria-label="Operator Handler handoff">
+          <p class="kicker">OPERATOR — HANDLER HANDOFF</p>
+          <p class="local-note">Handler packets are for table transfer.</p>
+          <div class="data-actions">
+            <button class="button" type="button" id="export-operator-file">Create Handler Packet</button>
+            <label class="button file-button">Import Operator Record<input data-operator-file-import type="file" accept="application/json" /></label>
+            <button class="button" type="button" id="open-authorizations">Authorized Unlocks</button>
+          </div>
+        </section>
+        <section class="data-transfer-group" aria-label="Operator local backup">
+          <p class="kicker">OPERATOR — LOCAL BACKUP</p>
+          <p class="local-note">Local backups restore this browser's full local node.</p>
+          <div class="data-actions">
+            <button class="button" type="button" id="export-console">Export Local Backup</button>
+            <label class="button file-button">Restore Local Backup<input id="import-console" type="file" accept="application/json" /></label>
+            <button class="button danger" type="button" id="purge-console">Purge Local Console</button>
+          </div>
+        </section>
         <a class="button ghost" href="../">Return to Intake</a>
       </div>
     </section>
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="./operator.js?v=20260626-skillclick1"></script>
+  <script src="./operator.js?v=20260626-transferlabels1"></script>
 </body>
 </html>

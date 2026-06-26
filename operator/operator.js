@@ -2849,7 +2849,7 @@
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      setStorageStatus("Operator Record exported.");
+      setStorageStatus("Handler packet created.");
     });
 
     if (exportButton) exportButton.addEventListener("click", () => {
@@ -2862,6 +2862,7 @@
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
+      setStorageStatus("Local backup exported.");
     });
 
     if (importInput) importInput.addEventListener("change", async () => {
@@ -2872,8 +2873,9 @@
         consoleState = normalizeConsoleState(JSON.parse(text));
         writeConsoleState();
         renderAll();
+        setStorageStatus("Local backup restored.");
       } catch (error) {
-        setStorageStatus("Import refused. File did not match console record shape.", true);
+        setStorageStatus("Restore refused. File did not match a local backup.", true);
       } finally {
         importInput.value = "";
       }
