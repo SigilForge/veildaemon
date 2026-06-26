@@ -731,6 +731,59 @@ select.is-locked {
 .active-misfire-card {
   grid-area: misfire;
 }
+.active-misfire-card .active-misfire-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .35rem .65rem;
+  margin-bottom: .55rem;
+}
+.active-misfire-card .active-misfire-heading .card-label {
+  margin-bottom: 0;
+}
+.active-misfire-card .misfire-help-drawer {
+  flex: 1 1 12rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(137,255,218,.14);
+  background: rgba(0,0,0,.18);
+}
+.active-misfire-card .misfire-help-drawer summary {
+  padding: .3rem .5rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1.35;
+  list-style: none;
+  text-transform: none;
+}
+.active-misfire-card .misfire-help-drawer summary::-webkit-details-marker {
+  display: none;
+}
+.active-misfire-card .misfire-help-drawer[open] summary {
+  color: var(--cyan);
+  border-bottom: 1px solid rgba(137,255,218,.12);
+}
+.active-misfire-card .misfire-help-body {
+  padding: .45rem .55rem .55rem;
+  color: var(--muted);
+  font-size: .68rem;
+  line-height: 1.45;
+}
+.active-misfire-card .misfire-help-body p {
+  margin: 0 0 .45rem;
+}
+.active-misfire-card .misfire-help-body ul {
+  margin: 0 0 .45rem;
+  padding-left: 1.1rem;
+}
+.active-misfire-card .misfire-help-body li + li {
+  margin-top: .18rem;
+}
 
 .skill-summary-card {
   grid-area: skills;
