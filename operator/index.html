@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260626-primarycompact1" />
+  <link rel="stylesheet" href="./operator.css?v=20260626-livelower1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -216,33 +216,29 @@
             <div class="tracker-board" id="tracker-board"></div>
           </article>
 
-          <div class="operator-live-grid wide">
-            <div class="operator-live-column">
-              <article class="sheet-card">
-                <p class="card-label">Attributes</p>
-                <div class="attribute-grid" id="attribute-grid"></div>
-              </article>
+          <div class="operator-live-grid live-lower-grid wide">
+            <article class="sheet-card attributes-card">
+              <p class="card-label">Attributes</p>
+              <div class="attribute-grid" id="attribute-grid"></div>
+            </article>
 
-              <article class="sheet-card skill-summary-card">
-                <p class="card-label">Skill Summary</p>
-                <div class="skill-summary-list" id="skill-summary-list"></div>
-              </article>
-            </div>
+            <article class="sheet-card compact-control-card misfire-panel active-misfire-card">
+              <p class="card-label">Active Misfire</p>
+              <label>Current consequence<textarea name="activeMisfire" rows="3" placeholder="Describe the wrong-success consequence currently in play."></textarea></label>
+              <button type="button" class="button" id="clear-active-misfire">Clear Active Misfire</button>
+              <label>Misfires recorded<textarea name="misfires" rows="3" placeholder="Consequence, flavor, who noticed."></textarea></label>
+            </article>
 
-            <div class="operator-live-column">
-              <article class="sheet-card compact-control-card misfire-panel">
-                <p class="card-label">Active Misfire</p>
-                <label>Current consequence<textarea name="activeMisfire" rows="3" placeholder="Describe the wrong-success consequence currently in play."></textarea></label>
-                <button type="button" class="button" id="clear-active-misfire">Clear Active Misfire</button>
-                <label>Misfires recorded<textarea name="misfires" rows="3" placeholder="Consequence, flavor, who noticed."></textarea></label>
-              </article>
-            </div>
+            <article class="sheet-card skill-summary-card">
+              <p class="card-label">Skill Summary</p>
+              <div class="skill-summary-list" id="skill-summary-list"></div>
+            </article>
+
+            <article class="sheet-card operator-notes immediate-notes-card">
+              <p class="card-label">Immediate Notes</p>
+              <textarea name="quickNotes" rows="4" placeholder="Scene facts, table reminders, current risk."></textarea>
+            </article>
           </div>
-
-          <article class="sheet-card operator-notes wide">
-            <p class="card-label">Immediate Notes</p>
-            <textarea name="quickNotes" rows="4" placeholder="Scene facts, table reminders, current risk."></textarea>
-          </article>
 
           <article class="sheet-card skill-manager-card wide sheet-edit-only">
             <p class="card-label">Editable Skills</p>
