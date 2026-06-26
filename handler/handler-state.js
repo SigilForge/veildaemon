@@ -1,5 +1,6 @@
 (function () {
   const storageKey = "veildaemon.handlerDashboard.v1";
+  const fieldEditStorageKey = "veildaemon.handlerFieldEdit.v1";
 
   const canonTerminology = {
     ui: {
@@ -459,7 +460,6 @@
     createdAt: "",
     updatedAt: "",
     playerViewEnabled: false,
-    fieldEditMode: false,
     session: {
       title: "",
       caseTitle: "",
@@ -860,14 +860,34 @@
     return normalizeState(draft);
   }
 
-  function fieldEditUnlocked(state) {
-    return Boolean(state && state.fieldEditMode);
+  function readFieldEditMode() {
+    try {
+      const stored = window.localStorage.getItem(fieldEditStorageKey);
+      if (stored === "1" || stored === "0") return stored === "1";
+    } catch (error) {
+      // Lock preference is convenience only.
+    }
+    return false;
   }
 
-  function toggleFieldEditMode(state) {
-    const next = clone(normalizeState(state));
-    next.fieldEditMode = !next.fieldEditMode;
-    return next;
+  function writeFieldEditMode(unlocked) {
+    try {
+      window.localStorage.setItem(fieldEditStorageKey, unlocked ? "1" : "0");
+      window.dispatchEvent(new CustomEvent("veildaemon:handler-field-edit-toggled", {
+        detail: { unlocked: Boolean(unlocked) }
+      }));
+    } catch (error) {
+      // Lock preference is convenience only.
+    }
+  }
+
+  function fieldEditUnlocked() {
+    return readFieldEditMode();
+  }
+
+  function toggleFieldEditMode() {
+    writeFieldEditMode(!readFieldEditMode());
+    return readFieldEditMode();
   }
 
   function resolveClockAttentionConsequence(state) {
@@ -943,7 +963,6 @@
       createdAt: safeString(merged.createdAt) || now,
       updatedAt: safeString(merged.updatedAt) || now,
       playerViewEnabled: Boolean(merged.playerViewEnabled),
-      fieldEditMode: Boolean(merged.fieldEditMode),
       session: normalizeTextObject(merged.session, defaultState.session),
       sceneState: {
         current: normalizeChoice(merged.sceneState.current, sceneStates.map((item) => item.name), "Stable"),

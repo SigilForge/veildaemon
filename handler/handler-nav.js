@@ -107,15 +107,14 @@
       bar.className = "handler-field-lock-bar no-print";
       bar.setAttribute("aria-label", "Field edit lock");
       bar.innerHTML = `
-        <p class="handler-field-lock-status" data-handler-field-lock-status>Live play: scaffold fields locked. Notes and Stability/Harm stay editable.</p>
+        <p class="handler-field-lock-status" data-handler-field-lock-status>Live play: scaffold fields locked. Notes and Stability/Harm stay editable. Only this button changes the lock.</p>
         <button class="button field-edit-toggle" type="button" data-handler-field-edit-toggle aria-pressed="false">Edit Fields: Off</button>
       `;
       anchor.insertAdjacentElement("afterend", bar);
       const toggle = bar.querySelector("[data-handler-field-edit-toggle]");
       if (toggle) {
         toggle.addEventListener("click", () => {
-          const next = api.toggleFieldEditMode(api.readState());
-          api.writeState(next);
+          api.toggleFieldEditMode();
           renderFieldLock();
         });
       }
@@ -140,19 +139,28 @@
     return false;
   }
 
-  function markSafeEditFields() {
+  function applyFieldEditLock() {
+    const unlocked = api.fieldEditUnlocked();
     document.querySelectorAll(".handler-shell input, .handler-shell textarea, .handler-shell select").forEach((el) => {
-      el.toggleAttribute("data-field-edit-safe", fieldEditSafe(el));
+      if (el.matches("[type='button'], [type='file']")) return;
+      const safe = fieldEditSafe(el);
+      const editable = unlocked || safe;
+      el.toggleAttribute("data-field-edit-safe", safe);
+      el.classList.toggle("is-field-locked", !editable);
+      if (el.tagName === "SELECT" || el.type === "checkbox" || el.type === "radio") {
+        el.disabled = !editable;
+        return;
+      }
+      el.readOnly = !editable;
     });
   }
 
   function renderFieldLock() {
     if (!api) return;
-    const state = api.readState();
-    const unlocked = api.fieldEditUnlocked(state);
+    const unlocked = api.fieldEditUnlocked();
     document.body.classList.toggle("is-field-edit", unlocked);
     ensureFieldLockBar();
-    markSafeEditFields();
+    applyFieldEditLock();
     document.querySelectorAll("[data-handler-field-edit-toggle]").forEach((toggle) => {
       toggle.textContent = unlocked ? "Edit Fields: On" : "Edit Fields: Off";
       toggle.setAttribute("aria-pressed", unlocked ? "true" : "false");
@@ -161,7 +169,7 @@
     document.querySelectorAll("[data-handler-field-lock-status]").forEach((node) => {
       node.textContent = unlocked
         ? "Prep mode: scaffold and case fields unlocked for typing."
-        : "Live play: scaffold fields locked. Notes and Stability/Harm stay editable.";
+        : "Live play: scaffold fields locked. Notes and Stability/Harm stay editable. Only this button changes the lock.";
     });
   }
 
@@ -204,5 +212,6 @@
     renderSessionStrip();
     renderFieldLock();
   });
-  window.HandlerNav = { render, renderSessionStrip, renderNav, renderFieldLock };
+  window.addEventListener("veildaemon:handler-field-edit-toggled", renderFieldLock);
+  window.HandlerNav = { render, renderSessionStrip, renderNav, renderFieldLock, applyFieldEditLock };
 }());

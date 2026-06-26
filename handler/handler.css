@@ -249,6 +249,10 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   opacity: 1;
 }
 
+.is-field-locked {
+  cursor: not-allowed;
+}
+
 .handler-session-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
