@@ -1,0 +1,438 @@
+{
+  "needlepoint_id": "NP-001A",
+  "title": "Viridian House",
+  "public_label": "Needlepoint 001a",
+  "classification": "controlled resonance exposure event",
+  "handler_summary": "Recover Mara Venn from a twelve-floor apartment building that indexes withheld speech. The Audience Before turns observation into audience pressure. Floor 13 and Apartment 13F open after lies under camera, not after lore dumps.",
+  "operator_brief": "A missing streamer is still posting from a floor that does not exist. The building has twelve legal floors. The elevator has begun offering thirteen.",
+  "central_question": "What happens to a place where everyone edits themselves before being seen?",
+  "runtime": {
+    "expected_sessions": 1,
+    "expected_hours": "2.5-3",
+    "operator_count": "3-6",
+    "starting_pressure": "controlled"
+  },
+  "site": {
+    "ordinary_read": "Tired brick, twelve floors, old lobby tile, unreliable elevator, basement laundry that smells faintly of ozone.",
+    "wrong_read": "The building indexes withheld speech. Comments arrive before anyone types. The elevator display skips from 11 to 12, pauses, then briefly shows 13.",
+    "locus": "Apartment 13F",
+    "safe_first_tell": "The elevator display skips from 11 to 12, pauses, then briefly shows 13.",
+    "what_the_site_wants": "The moment before confession, when someone edits themselves to survive being seen.",
+    "what_makes_it_worse": [
+      "Mockery, spectacle, or recording for leverage",
+      "Lying under camera",
+      "Abandoning someone to be watched alone",
+      "Treating Mara as content instead of a person"
+    ],
+    "what_stabilizes_it": [
+      "One honest sentence spoken while another Operator protects the speaker from audience pressure",
+      "Step outside, look at each other, name one normal thing, or correct a lie before escalating",
+      "Cut the broadcast, ground Mara with a true memory, name what the performance costs"
+    ]
+  },
+  "pressure_loop": {
+    "need": "The moment before confession, when someone edits themselves to survive being seen.",
+    "lure": "Comments that understand too much, footage from impossible angles, and doors offering easier selves.",
+    "pressure": "It predicts, captions, and redirects behavior until Operators start performing for it.",
+    "gift": "It reveals what someone is hiding, including the clue they cannot admit they already noticed.",
+    "violence": "It assigns roles, locks people inside performed selves, and turns audience attention into environmental force.",
+    "exit": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience."
+  },
+  "core_clues": [
+    {
+      "clue": "Mara entered the elevator at 2:13 a.m.",
+      "first_route": "Security office timestamp on the lobby feed.",
+      "alternate_route": "Saffi remembers the lobby chime and Mara leaving alone.",
+      "failure_cost": "The footage loops an Operator into frame as if they were present at 2:13.",
+      "table_effect": "Clue is gained, but the Audience Before can target that Operator through any active screen once this scene."
+    },
+    {
+      "clue": "Mara's reflection stayed behind in the lobby glass.",
+      "first_route": "Camera still from the security office.",
+      "alternate_route": "Lobby mirror or elevator door reflection during a second pass.",
+      "failure_cost": "The reflection mouths one Operator's private phrase before anyone speaks it aloud.",
+      "table_effect": "Clue is gained; that Operator's next social roll under observation is TN 15 instead of TN 12."
+    },
+    {
+      "clue": "Floor 13 appears after a lie under observation.",
+      "first_route": "Manager denial while the elevator camera is active, then test the panel.",
+      "alternate_route": "Read the future comment thread in the security office.",
+      "failure_cost": "The elevator opens to Floor 13 at Tick 3 instead of Tick 4. Operators arrive with only two core clues. One hallway exit is already locked.",
+      "table_effect": "Floor 13 becomes reachable; Clock ticks; first action on Floor 13 is TN 15 under audience pressure."
+    },
+    {
+      "clue": "Apartment 13F is collecting performed selves.",
+      "first_route": "Hallway doors on Floor 13 show curated versions of the Operators.",
+      "alternate_route": "Mara's stream archive in Saffi's apartment.",
+      "failure_cost": "One Operator sees their easier self behind a door and must choose whether to approach it or warn the group.",
+      "table_effect": "Route to 13F opens; accepting the easier self ticks the Clock once."
+    },
+    {
+      "clue": "Mara can be reached by honest speech while recorded.",
+      "first_route": "Saffi's memory of Mara saying 'say it while watched.'",
+      "alternate_route": "Live comment prompt that demands confession before the door unlocks.",
+      "failure_cost": "The audience asks the question first; the Operator who answers gains the clue but loses 1 Stability unless another Operator shields them.",
+      "table_effect": "Apartment 13F door unlocks after honest speech while recorded, or remains locked until someone pays that cost."
+    }
+  ],
+  "clock": [
+    {
+      "tick": 1,
+      "name": "Camera Notices",
+      "visible_change": "One device tracks the quietest Operator and keeps the light on them.",
+      "mechanical_effect": "That Operator's next roll under observation has Disadvantage unless another Operator stands between them and the lens.",
+      "changed_options": [
+        "step out of frame together",
+        "name one normal thing aloud",
+        "send someone else to speak first",
+        "break or cover the camera and move pressure to the elevator"
+      ]
+    },
+    {
+      "tick": 2,
+      "name": "Comment Predicts",
+      "visible_change": "A comment thread describes the next likely choice before anyone types.",
+      "mechanical_effect": "If the predicted action happens, the site learns one Operator's preferred mask and can echo it on the next screen.",
+      "changed_options": [
+        "do the opposite of the prediction",
+        "confess a smaller true thing to poison the thread",
+        "let another Operator take the predicted action",
+        "disconnect devices and lose one alternate clue route"
+      ]
+    },
+    {
+      "tick": 3,
+      "name": "Elevator Listens",
+      "visible_change": "The elevator repeats a sentence an Operator avoided saying.",
+      "mechanical_effect": "The next elevator action is TN 15 instead of TN 12 unless someone speaks honestly while recorded.",
+      "changed_options": [
+        "confess a small operational truth",
+        "force the elevator and accept a Clock tick",
+        "leave and seek the security office route",
+        "ask another Operator to shield the speaker"
+      ]
+    },
+    {
+      "tick": 4,
+      "name": "Floor 13 Opens",
+      "visible_change": "The impossible floor becomes reachable; one exit on Floor 13 is already locked.",
+      "mechanical_effect": "Operators need at least three core clues or they arrive with worse positioning: first Floor 13 action at TN 15.",
+      "changed_options": [
+        "push forward with incomplete context",
+        "retreat to Saffi for one more clue",
+        "speak honestly to unlock one hallway exit",
+        "split the group and accept separated positioning"
+      ]
+    },
+    {
+      "tick": 5,
+      "name": "Audience Edits",
+      "visible_change": "A performed self becomes physically persuasive on a door, screen, or reflection.",
+      "mechanical_effect": "One Operator gains Advantage on one performance roll if they accept the role; all non-performance rolls take Disadvantage until the role is refused aloud.",
+      "changed_options": [
+        "refuse the role in front of the group",
+        "accept the role for one action and tick the Clock",
+        "name Mara as a person instead of content",
+        "cut power to the nearest broadcast surface"
+      ]
+    },
+    {
+      "tick": 6,
+      "name": "Performed Self Stabilizes",
+      "visible_change": "The Audience Before offers one Operator a clean role and asks the others to confirm it.",
+      "mechanical_effect": "If confirmed, Mara or that Operator may be replaced by the easier version unless the group refuses together before the next Pressure Round ends.",
+      "changed_options": [
+        "refuse the role as a group",
+        "name what the performance costs",
+        "ground Mara with Saffi's true memory",
+        "flee Floor 13 together and accept an aftermath hook"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "act_1_lobby",
+      "title": "Act 1 — Normalization",
+      "purpose": "Establish Mara as missing, the building as mundane, and observation as the first pressure.",
+      "normal_detail": "Cracked tile, mailboxes, manager office window, slow elevator.",
+      "wrong_detail": "The lobby camera follows the quietest Operator; the elevator button panel is warm.",
+      "dominant_pressure": "performance under observation",
+      "entry_condition": "Operators arrive after Mara's impossible post pings from inside the building.",
+      "available_clues": [
+        "Mara entered the elevator at 2:13 a.m.",
+        "Mara's reflection stayed behind"
+      ],
+      "npc_or_site_reactions": [
+        "Len Orra insists there is no thirteenth floor, then says 'not anymore.'",
+        "Saffi hears Mara's voice from the elevator and refuses to look.",
+        "The lobby camera turns away when someone tells the truth."
+      ],
+      "common_actions": [
+        {
+          "action": "Question Len or Saffi",
+          "roll": "3d6 + Presence + Persuasion or Mind + Investigation",
+          "tn": 12,
+          "success": "Learn Mara left alone and the building feels like it is waiting for her to go live.",
+          "partial": "Learn the fact, but the camera records which Operator pushed hardest.",
+          "miss": "Learn the fact publicly; Clock ticks once."
+        },
+        {
+          "action": "Test whether the elevator reacts to lies under the camera",
+          "roll": "3d6 + Nerves + Awareness",
+          "tn": 13,
+          "success": "The panel flickers 13 once; Operators know the route is lie-gated.",
+          "partial": "The panel flickers; the comment thread learns one avoided phrase.",
+          "miss": "The elevator opens empty and the Clock ticks."
+        }
+      ],
+      "pressure_moves": [
+        "A phone shows a comment before its owner unlocks it.",
+        "Len repeats 'there is no thirteenth floor' with a different expression each time."
+      ],
+      "failure_costs": [
+        "Footage loops an Operator into frame",
+        "Clock ticks",
+        "Saffi becomes harder to reach emotionally"
+      ],
+      "exit_conditions": [
+        "Operators recover one core clue",
+        "Clock ticks once from a lie under observation",
+        "The elevator arrives empty"
+      ]
+    },
+    {
+      "scene_id": "act_2_resonance",
+      "title": "Act 2 — Resonance",
+      "purpose": "Make emotional answers change evidence and open alternate clue routes.",
+      "normal_detail": "Security office monitors, basement laundry machines, Saffi's lived-in apartment.",
+      "wrong_detail": "One monitor shows comments from three minutes in the future; a dryer plays Mara's unreleased draft.",
+      "dominant_pressure": "confession under observation",
+      "entry_condition": "Operators leave the lobby pursuing Mara or the elevator tell.",
+      "available_clues": [
+        "Mara followed her own future comments toward Floor 13",
+        "Apartment 13F collects performed selves"
+      ],
+      "npc_or_site_reactions": [
+        "Comment text appears on blank walls.",
+        "The building Wi-Fi lists a network named after a hidden fear."
+      ],
+      "common_actions": [
+        {
+          "action": "Recover corrupted security footage",
+          "roll": "3d6 + Mind + Tech",
+          "tn": 15,
+          "success": "Footage shows Mara stepping out while her reflection remains.",
+          "partial": "Clue gained, but the comment thread learns one Operator's preferred mask.",
+          "miss": "Clue gained publicly; Clock ticks."
+        },
+        {
+          "action": "Answer what truth would become dangerous if strangers watched you admit it",
+          "roll": "3d6 + Presence + Empathy or Nerves + Awareness",
+          "tn": 13,
+          "success": "The site answers with a clear clue and light Stability pressure.",
+          "partial": "Clue gained with distorted public exposure.",
+          "miss": "The site answers with a cruel edited version; Clock ticks."
+        }
+      ],
+      "pressure_moves": [
+        "A hallway stretches when someone changes the subject.",
+        "A tenant door briefly becomes 13F when someone lies about why they came."
+      ],
+      "failure_costs": [
+        "Clue arrives publicly",
+        "Saffi becomes a target",
+        "Elevator opens, but not where intended"
+      ],
+      "exit_conditions": [
+        "Operators hold at least three core clues",
+        "A screen asks an emotional question the table cannot dodge",
+        "Tick 3 becomes imminent"
+      ]
+    },
+    {
+      "scene_id": "act_3_misfire",
+      "title": "Act 3 — Misfire",
+      "purpose": "Turn the comment thread into a live antagonist and open Floor 13.",
+      "normal_detail": "Elevator camera dome, phones in every pocket, lobby screens.",
+      "wrong_detail": "Every nearby screen fills with comments from impossible accounts.",
+      "dominant_pressure": "spectacle versus confession",
+      "entry_condition": "An Operator lies while the elevator camera is active, forces a Frequency without vulnerability, or treats the site as only technical.",
+      "available_clues": [
+        "Floor 13 route opens after the thread participates"
+      ],
+      "npc_or_site_reactions": [
+        "Mara reacts from a delayed stream.",
+        "The thread offers one true clue inside a cruel sentence."
+      ],
+      "common_actions": [
+        {
+          "action": "Resolve the comment-thread misfire",
+          "roll": "None; each Operator chooses a response",
+          "tn": 0,
+          "success": "Admit a small truth and regain 1 Stability.",
+          "partial": "Comfort another Operator and reduce their pressure.",
+          "miss": "Deny the comment and let the site gain leverage; Clock ticks."
+        }
+      ],
+      "pressure_moves": [
+        "Comments describe what Operators are about to do with cruel edits.",
+        "One Operator must name which comment hurts because it is almost right."
+      ],
+      "failure_costs": [
+        "Tick 5 begins immediately upon reaching Floor 13 if the group fed the thread",
+        "A device streams without permission"
+      ],
+      "exit_conditions": [
+        "Each Operator resolves the misfire",
+        "The elevator opens to Floor 13"
+      ]
+    },
+    {
+      "scene_id": "act_4_floor_13",
+      "title": "Act 4 — Observer Event",
+      "purpose": "Rescue, contain, or release Mara without accepting curated selves.",
+      "normal_detail": "Residential hallway, old carpet, apartment doors, ring-light glow.",
+      "wrong_detail": "Doors show curated versions of someone; Mara's dead camera still broadcasts.",
+      "dominant_pressure": "identity under audience",
+      "entry_condition": "Elevator opens to Floor 13.",
+      "available_clues": [
+        "Mara can be reached by honest speech while recorded"
+      ],
+      "npc_or_site_reactions": [
+        "The Audience Before offers each Operator an easier self.",
+        "Every spoken lie in Apartment 13F adds another locked door."
+      ],
+      "common_actions": [
+        {
+          "action": "Reach Mara through honest speech while recorded",
+          "roll": "3d6 + Presence + Empathy or Presence + Performance",
+          "tn": 15,
+          "success": "Mara responds as herself; one layer of broadcast strips away.",
+          "partial": "Mara responds, but the audience learns a true memory to sell back later.",
+          "miss": "Mara responds as performed content; Clock ticks and one exit locks."
+        },
+        {
+          "action": "Refuse the easier self the Audience offers",
+          "roll": "3d6 + Nerves + Ritual or Presence + Persuasion",
+          "tn": 13,
+          "success": "The offered role collapses for this scene.",
+          "partial": "The role falters, but returns on the next screen.",
+          "miss": "The Operator gains one action with Advantage and the Clock ticks."
+        }
+      ],
+      "pressure_moves": [
+        "Mara's reflection is delayed by thirteen seconds.",
+        "The chat scrolls upward from tomorrow."
+      ],
+      "failure_costs": [
+        "Mara or an Operator may be replaced by the easier version",
+        "One Operator's phone begins streaming without permission"
+      ],
+      "exit_conditions": [
+        "Broadcast is cut, grounded, or overloaded",
+        "Group refuses curated selves and names one cost of staying",
+        "Operators leave together without abandoning anyone in the hallway"
+      ]
+    },
+    {
+      "scene_id": "act_5_aftermath",
+      "title": "Act 5 — Aftermath",
+      "purpose": "Close the case with one scar and one unresolved hook.",
+      "normal_detail": "Twelve floors again, tired lobby, ordinary elevator hesitation after 12.",
+      "wrong_detail": "One Operator's phone receives comments from BEFORE_YOU_SAY_IT.",
+      "dominant_pressure": "what followed them home",
+      "entry_condition": "Floor 13 closes or Mara is recovered.",
+      "available_clues": [],
+      "npc_or_site_reactions": [
+        "Mara remembers one Operator saying something they never said aloud.",
+        "Len deletes the security footage, then receives it by mail."
+      ],
+      "common_actions": [],
+      "pressure_moves": [
+        "Saffi finds a video draft titled with tomorrow's date."
+      ],
+      "failure_costs": [
+        "The Audience follows one Operator into a later Needlepoint",
+        "Saffi becomes the next lure"
+      ],
+      "exit_conditions": [
+        "Each Operator receives one scar, clue, or relationship shift",
+        "Handler reads the closing line"
+      ]
+    }
+  ],
+  "failure_states": [
+    {
+      "trigger": "Operators treat Mara as content or evidence.",
+      "immediate_consequence": "Mara stops responding to off-camera comfort.",
+      "mechanical_effect": "Attempts to calm, guide, or rescue Mara off-camera have Disadvantage.",
+      "changed_options": [
+        "turn the camera on and risk feeding the Audience",
+        "name Mara as a person, not proof",
+        "use Saffi's true memory as an anchor",
+        "cut the broadcast and accept a harder rescue roll"
+      ],
+      "aftermath_hook": "Mara returns with edited memories if recovered through performance."
+    },
+    {
+      "trigger": "Operators lie constantly under observation.",
+      "immediate_consequence": "The elevator opens to Floor 13 at Tick 3 instead of Tick 4.",
+      "mechanical_effect": "Operators arrive with only two core clues. First action on Floor 13 is TN 15. One hallway exit is locked.",
+      "changed_options": [
+        "push forward with incomplete context",
+        "speak an honest sentence to unlock one door",
+        "break the streaming phone and move pressure into the elevator",
+        "retreat and let Saffi become exposed"
+      ],
+      "aftermath_hook": "The building still hesitates after 12 even if Mara returns."
+    },
+    {
+      "trigger": "Operators feed the comment thread for spectacle.",
+      "immediate_consequence": "Tick 5 begins immediately when they reach Floor 13.",
+      "mechanical_effect": "A performed self is already active on arrival; one Operator starts with Disadvantage on non-performance rolls.",
+      "changed_options": [
+        "refuse the assigned role as a group",
+        "sacrifice privacy to poison the thread with a true confession",
+        "extract Mara fast and accept a public residue hook",
+        "abandon Floor 13 and contain the residue in the lobby"
+      ],
+      "aftermath_hook": "The Audience escapes into a public feed."
+    }
+  ],
+  "success_states": [
+    {
+      "label": "Mara Returns",
+      "table_meaning": "Mara is alive, hoarse, and furious that part of her still wants to check the comments.",
+      "aftermath_hook": "Viridian House stabilizes to twelve floors, but one device still predicts useful lies."
+    },
+    {
+      "label": "Building Remembers",
+      "table_meaning": "The site is stable for now, but tenants dream of a hallway with too many doors.",
+      "aftermath_hook": "A future Needlepoint can reopen observation residue through ordinary rental life."
+    }
+  ],
+  "aftermath": [
+    "The elevator still hesitates after 12.",
+    "One Operator's phone occasionally receives comments from BEFORE_YOU_SAY_IT.",
+    "Mara remembers one Operator saying something they never said aloud.",
+    "Saffi finds a video draft titled with tomorrow's date."
+  ],
+  "handler_prompts": [
+    "FIRST 20 MIN: Start in the lobby. Show the camera before explaining anything. Ask what detail made each Operator come anyway.",
+    "When Len or Saffi speaks, let the camera answer the first lie, deflection, or honest admission.",
+    "Default Room Answer: lobby camera tracks the quietest Operator.",
+    "Ask once per screen scene: What truth would become dangerous if strangers watched you admit it?",
+    "If the table stalls in Act 1, give Saffi the memory that the building felt like it was waiting for Mara to go live.",
+    "Do not block progress if Operators jump ahead; let them reach Floor 13 with worse positioning instead.",
+    "Closing line: The haunting did not end because you solved it. It changed because you stopped performing long enough for reality to hear you."
+  ],
+  "validation": {
+    "is_visible_at_table": true,
+    "has_trigger": true,
+    "has_concrete_consequence": true,
+    "changes_operator_options": true,
+    "uses_handler_language": true,
+    "avoids_public_json_language": true,
+    "avoids_vague_vibe_only_terms": true
+  }
+}

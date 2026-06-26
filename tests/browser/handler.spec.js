@@ -118,7 +118,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
 
   await page.getByLabel("Player View").check();
   await expect(page.getByLabel("Player-facing display")).toBeVisible();
-  await expect(page.getByLabel("Player-facing display")).toContainText("Mara Venn missing inside the building");
+  await expect(page.getByLabel("Player-facing display")).toContainText("Mara Venn missing; observation indexing withheld speech");
   await expect(page.getByLabel("Player-facing display")).not.toContainText("PRIVATE HANDLER NOTES");
 
   await page.getByRole("button", { name: "ARCHIVE" }).click();

@@ -1,0 +1,384 @@
+{
+  "needlepoint_id": "NP-001",
+  "title": "VeilCorp Intake",
+  "public_label": "Needlepoint 001",
+  "classification": "canonical campaign starter / pre-foundation intake event",
+  "handler_summary": "Six emerging Operators converge at a ruined church north of Kansas City. VeilCorp is emergency scaffolding, not a stable agency. The Broken Mirror Chamber reflects refused selves and opens after truth, lie, Frequency use, or blood-glass contact.",
+  "operator_brief": "You received separate contacts from an organization that does not exist yet. They all end at the same ruined church. Something in the basement mirror is already awake enough to notice who is looking.",
+  "central_question": "What happens when help arrives before permission—and when noticing back changes what the room can do?",
+  "runtime": {
+    "expected_sessions": 1,
+    "expected_hours": "2-4",
+    "operator_count": "3-6",
+    "starting_pressure": "controlled"
+  },
+  "site": {
+    "ordinary_read": "Broken pews, rain through the roof, old blood under dust, melted candle wax, vandalized saints with mirrored eyes, locked basement door behind the altar.",
+    "wrong_read": "Reflections lag half a beat. Phone cameras show the room from thirteen seconds ago. Stained glass shows a different weather pattern.",
+    "locus": "Broken Mirror Chamber / altar mirror",
+    "safe_first_tell": "The church window reflects one more person than arrived; the extra reflection raises a hand.",
+    "what_the_site_wants": "A complete self to copy, correct, or preserve.",
+    "what_makes_it_worse": [
+      "Isolation or solo mirror contact",
+      "Staring too long into reflective surfaces",
+      "Accepting the corrected memory",
+      "Treating the church as only a puzzle",
+      "Letting Shade gather live data without consent"
+    ],
+    "what_stabilizes_it": [
+      "Protected truthful speech while witnessed",
+      "Anchors and Totems used against the mirror",
+      "Breaking or binding the altar mirror",
+      "Leaving together before the Witness completes a self"
+    ]
+  },
+  "pressure_loop": {
+    "need": "A complete self to copy, correct, or preserve.",
+    "lure": "Reflections showing a cleaner choice, safer name, or version of the Operator who never broke.",
+    "pressure": "Mirrors, phone screens, rainwater, and stained glass edit identity toward the easiest acceptable version.",
+    "gift": "One true thing the Operator has been avoiding, revealed through reflection or wrong name.",
+    "violence": "It separates an Operator from the group and makes the corrected self feel easier than the real one.",
+    "exit": "Refuse the false self, speak one specific truth while witnessed, and leave together before the chamber chooses."
+  },
+  "core_clues": [
+    {
+      "clue": "VeilCorp is emergency scaffolding, not a stable agency.",
+      "first_route": "Alex and Shade contradict each other during contact playback.",
+      "alternate_route": "Corrupted intake notice on a phone or printer output.",
+      "failure_cost": "Shade acts without social consent; one Operator's anchor object glitches on the next reflective surface.",
+      "table_effect": "Operators learn VeilCorp is pre-foundation; future trust checks with Alex/Shade become available."
+    },
+    {
+      "clue": "The church reflects refused selves.",
+      "first_route": "Extra reflection in the arrival window or stained glass.",
+      "alternate_route": "Hymn book crossed-out names.",
+      "failure_cost": "One Operator is addressed by the wrong name until they speak a specific truth aloud.",
+      "table_effect": "Reflection drift is confirmed; solo mirror contact gains Disadvantage for the scene."
+    },
+    {
+      "clue": "Prior cult activity opened the chamber.",
+      "first_route": "Altar residue and eye symbol scratched into the altar.",
+      "alternate_route": "Backward phrase under the floorboards: THE SELF BREAKS WHERE IT REFUSES TO BE SEEN.",
+      "failure_cost": "The cult symbol marks a phone photo and syncs to any device that stays unlocked.",
+      "table_effect": "Basement route becomes predictable; Operators know the chamber is not a fresh haunting."
+    },
+    {
+      "clue": "The basement appears after truth, lie, Frequency use, or blood-glass contact.",
+      "first_route": "Altar mirror reaction when someone admits a small truth or lies while reflected.",
+      "alternate_route": "Locked basement door behind the altar after blood-glass grit is disturbed.",
+      "failure_cost": "The chamber opens while someone is isolated; that Operator's first basement roll is TN 15.",
+      "table_effect": "Basement stairs appear; Clock advances toward Tick 4."
+    },
+    {
+      "clue": "The Unfinished Witness offers cleaner identities.",
+      "first_route": "Altar mirror shows each Operator as a version who made a different choice.",
+      "alternate_route": "Wrong reflection behavior on phone screens or rainwater.",
+      "failure_cost": "The offered self protects one cost, then asks to stay; accepting ticks the Clock.",
+      "table_effect": "Witness pressure becomes direct; Operators must choose break, bind, speak, or flee."
+    },
+    {
+      "clue": "Intake completes only after the cell survives pressure together.",
+      "first_route": "Alex/Shade cut-in after the chamber choice.",
+      "alternate_route": "Group stabilization with protected truthful speech.",
+      "failure_cost": "VeilCorp knows more than the Operators chose to share; Shade stores intimate pattern data.",
+      "table_effect": "Campaign door opens; each Operator receives one scar, clue, and trust decision."
+    }
+  ],
+  "clock": [
+    {
+      "tick": 1,
+      "name": "Wrong Reflection",
+      "visible_change": "One surface shows an extra person, delayed gesture, or wrong expression.",
+      "mechanical_effect": "The affected Operator's next roll involving identity, memory, or reflection is TN 15 instead of TN 12.",
+      "changed_options": [
+        "warn the group without looking directly at the surface",
+        "cover the surface and lose one clue route",
+        "speak a true name aloud",
+        "let Shade flag the breach and accept invasive guidance"
+      ]
+    },
+    {
+      "tick": 2,
+      "name": "Church Notices",
+      "visible_change": "Phones glitch, pews creak, rain pauses, or the building repeats a phrase.",
+      "mechanical_effect": "The next Operator who denies the obvious while reflected loses 1 Stability unless another Operator corroborates them.",
+      "changed_options": [
+        "admit one small obvious truth",
+        "move the group away from reflective surfaces",
+        "use an Anchor or Totem",
+        "split up and accept worse positioning"
+      ]
+    },
+    {
+      "tick": 3,
+      "name": "Contact Pressure",
+      "visible_change": "Shade interrupts with a useful but invasive warning; Alex tries to soften it.",
+      "mechanical_effect": "Operators gain one clear clue but Shade records emotional tells unless Alex overrides.",
+      "changed_options": [
+        "accept Shade's warning and move fast",
+        "make Alex translate the warning in human terms",
+        "disable devices and lose one future route",
+        "use the warning to bait the Witness into showing pattern"
+      ]
+    },
+    {
+      "tick": 4,
+      "name": "Basement Opens",
+      "visible_change": "The route below appears after truth, lie, Frequency use, or blood-glass contact.",
+      "mechanical_effect": "First Operator down the stairs alone has Disadvantage until reunited with the cell.",
+      "changed_options": [
+        "descend together",
+        "send scouts while others hold the altar",
+        "bind the altar mirror before entering",
+        "delay and risk Tick 5 arriving first"
+      ]
+    },
+    {
+      "tick": 5,
+      "name": "First Misfire",
+      "visible_change": "The site answers the wrong emotion and makes the premise undeniable.",
+      "mechanical_effect": "Choose one misfire: reflection walks behind the group, dead-relative voicemail, church repeats last honest sentence with different wording, everyone sees one Operator under a different name, or altar mirror shows Alex saying 'too soon' before he says it.",
+      "changed_options": [
+        "disprove one false reflection with action",
+        "comfort the targeted Operator",
+        "break a mirror and accept a lingering scar",
+        "push into the chamber before isolation completes"
+      ]
+    },
+    {
+      "tick": 6,
+      "name": "Witness Wakes",
+      "visible_change": "The mirror entity acts directly and offers someone a cleaner self.",
+      "mechanical_effect": "The Witness steps toward completion; Operators must break, bind, speak, or flee before the chamber chooses for them.",
+      "changed_options": [
+        "break the altar mirror",
+        "bind with Anchors and Totems while Shade isolates signal",
+        "each speak one truth the mirror is using against them",
+        "flee together and leave the site active"
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "arrival",
+      "title": "Arrival at the Ruined Church",
+      "purpose": "Let Operators meet through unease before exposition; prove reflection drift immediately.",
+      "normal_detail": "Rain, broken parking lot, boarded windows, separate arrivals.",
+      "wrong_detail": "The church window reflects one more person than arrived.",
+      "dominant_pressure": "mutual distrust under observation",
+      "entry_condition": "Each Operator followed their own VeilCorp contact to the coordinates.",
+      "available_clues": [
+        "VeilCorp is emergency scaffolding, not a stable agency",
+        "The church reflects refused selves"
+      ],
+      "npc_or_site_reactions": [
+        "Every phone speaks in Shade's voice: Operator cell assembled. Correction: partially assembled.",
+        "The extra reflection raises a hand."
+      ],
+      "common_actions": [
+        {
+          "action": "Explain what detail in the message made you believe",
+          "roll": "3d6 + Presence + Persuasion or Mind + Investigation",
+          "tn": 12,
+          "success": "The cell gains trust and one shared clue about the contact vector.",
+          "partial": "Trust forms, but one Operator's contact secret becomes readable on the next reflective surface.",
+          "miss": "The group fragments; first basement approach has Disadvantage."
+        }
+      ],
+      "pressure_moves": [
+        "Ask each Operator what detail in the message made them believe."
+      ],
+      "failure_costs": [
+        "Wrong-name addressing",
+        "Shade logs emotional tells"
+      ],
+      "exit_conditions": [
+        "Extra reflection is witnessed",
+        "Operators enter the church together or accept split positioning"
+      ]
+    },
+    {
+      "scene_id": "church_interior",
+      "title": "Entering the Church",
+      "purpose": "Show cult residue and safe first tells without lore dump.",
+      "normal_detail": "Broken pews, rain through roof, locked basement door behind altar.",
+      "wrong_detail": "Phone cameras show the room from thirteen seconds ago.",
+      "dominant_pressure": "denial versus admission",
+      "entry_condition": "Operators cross the threshold after the arrival proof.",
+      "available_clues": [
+        "Prior cult activity opened the chamber"
+      ],
+      "npc_or_site_reactions": [
+        "One pew creaks when no one sits.",
+        "Someone hears their own voice say 'not yet.'"
+      ],
+      "common_actions": [
+        {
+          "action": "Inspect altar residue or hymn book",
+          "roll": "3d6 + Mind + Investigation or Instinct + Awareness",
+          "tn": 13,
+          "success": "Identify cult residue and the mirror sketch with six silhouettes and one blank seventh shape.",
+          "partial": "Clue gained; cult symbol appears on a phone photo.",
+          "miss": "Clue gained publicly; one Operator is marked by wrong name on glass."
+        }
+      ],
+      "pressure_moves": [
+        "Stained glass shows a different weather pattern than outside."
+      ],
+      "failure_costs": [
+        "Isolation before basement opens",
+        "Clock ticks"
+      ],
+      "exit_conditions": [
+        "Operators recover two or more core clues",
+        "Someone admits a small truth or lies while reflected near the altar"
+      ]
+    },
+    {
+      "scene_id": "mirror_chamber",
+      "title": "The Broken Mirror Chamber",
+      "purpose": "Confront the Unfinished Witness and force break, bind, speak, or flee.",
+      "normal_detail": "Small damp basement room, broken mirror pieces on every wall.",
+      "wrong_detail": "None of the shards reflect the same room; altar mirror shows alternate choices.",
+      "dominant_pressure": "refused self under witness",
+      "entry_condition": "Basement route opens at Tick 4 or equivalent trigger.",
+      "available_clues": [
+        "The Unfinished Witness offers cleaner identities",
+        "Intake completes only after the cell survives pressure together"
+      ],
+      "npc_or_site_reactions": [
+        "Alex has seen a site like this before and is hiding how badly it ended.",
+        "Shade can isolate the signal only if the cell gives enough live data."
+      ],
+      "common_actions": [
+        {
+          "action": "Answer what version of yourself you wish had made a different choice",
+          "roll": "3d6 + Presence + Empathy or Nerves + Awareness",
+          "tn": 13,
+          "success": "Gain a clue and mark light Stability pressure; Witness weakens slightly.",
+          "partial": "Clue gained; reflection offers a tempting cleaner version.",
+          "miss": "Reflection answers with a false but tempting version; Clock ticks."
+        },
+        {
+          "action": "Speak one specific truth the mirror is using against you",
+          "roll": "3d6 + Presence + Performance or Nerves + Ritual",
+          "tn": 15,
+          "success": "Witness loses power; chamber can collapse inward without destroying the site.",
+          "partial": "Witness weakens, but one Operator gains a reflection scar.",
+          "miss": "Truth is partially edited; group must break or bind instead."
+        }
+      ],
+      "pressure_moves": [
+        "Witness speaks in a PC's voice.",
+        "Glass-edged double steps out with one true statement and one dangerous lie."
+      ],
+      "failure_costs": [
+        "Operator accepts cleaner self and Clock ticks",
+        "Shade stores intimate details",
+        "Lingering reflection scar on break"
+      ],
+      "exit_conditions": [
+        "Break, bind, speak, or flee resolves the chamber",
+        "Cell survives together or accepts who was left behind"
+      ]
+    },
+    {
+      "scene_id": "intake_aftermath",
+      "title": "Aftermath — Intake Completes",
+      "purpose": "Close the night with campaign doors, scars, and trust decisions.",
+      "normal_detail": "Phones display VEILCORP INTAKE // CELL STATUS: ACTIVE.",
+      "wrong_detail": "Alex and Shade argue about liability framework and human wording.",
+      "dominant_pressure": "whether to trust emergency help",
+      "entry_condition": "Chamber choice resolves.",
+      "available_clues": [],
+      "npc_or_site_reactions": [
+        "Alex: Okay. Nobody agree to anything the screen says until I rewrite it in human.",
+        "Shade: Delay may increase exposure."
+      ],
+      "common_actions": [],
+      "pressure_moves": [
+        "Ask campaign bridge questions after debrief, not during pressure."
+      ],
+      "failure_costs": [
+        "VeilCorp knows more than Operators chose to share",
+        "Reflection follows one Operator home"
+      ],
+      "exit_conditions": [
+        "Each Operator receives one scar, clue, and trust or distrust reason",
+        "Handler chooses containment, paranoia, or haunted track"
+      ]
+    }
+  ],
+  "failure_states": [
+    {
+      "trigger": "Operators solve the church as only a puzzle.",
+      "immediate_consequence": "Reflections stop offering clues and start offering corrections.",
+      "mechanical_effect": "Investigation rolls without emotional admission cost 1 Stability or tick the Clock.",
+      "changed_options": [
+        "admit one avoided truth to reopen clue routes",
+        "use an Anchor to hold identity steady",
+        "break a mirror and accept a scar",
+        "withdraw and come back with more protection"
+      ],
+      "aftermath_hook": "A reflective scar appears on one personal object."
+    },
+    {
+      "trigger": "One Operator accepts the cleaner self.",
+      "immediate_consequence": "The Witness stabilizes that version for the scene.",
+      "mechanical_effect": "That Operator gains Advantage on one roll using the false self, then all identity rolls have Disadvantage until the self is refused aloud while witnessed.",
+      "changed_options": [
+        "group refusal ritual",
+        "bind the altar mirror",
+        "let Alex loop the exit while others speak truth",
+        "flee and leave the site active"
+      ],
+      "aftermath_hook": "The easier self reappears in a mundane mirror within a week."
+    },
+    {
+      "trigger": "Operators split up before the basement opens.",
+      "immediate_consequence": "The chamber opens while someone is isolated.",
+      "mechanical_effect": "Isolated Operator faces the Witness first at TN 15 without Ally support.",
+      "changed_options": [
+        "rush reunion before the Witness speaks",
+        "Shade routes tactical guidance at privacy cost",
+        "sacrifice a device to buy thirty seconds",
+        "accept partial intake and return with more Operators"
+      ],
+      "aftermath_hook": "Missing contact vector Operators appear as reflections in a later case."
+    }
+  ],
+  "success_states": [
+    {
+      "label": "Speak Resolution",
+      "table_meaning": "Each Operator names one truth the mirror used against them; chamber collapses inward.",
+      "aftermath_hook": "VeilCorp intake completes with uneasy trust in Alex's human override."
+    },
+    {
+      "label": "Flee Resolution",
+      "table_meaning": "Cell escapes alive; site remains active.",
+      "aftermath_hook": "Haunted track: something follows one Operator home."
+    }
+  ],
+  "aftermath": [
+    "Every phone displays VEILCORP INTAKE // CELL STATUS: ACTIVE.",
+    "Each Operator receives one scar, one recovered clue, and one reason to trust or distrust VeilCorp.",
+    "Choose containment, paranoia, or haunted campaign track."
+  ],
+  "handler_prompts": [
+    "GM FAST START: Give each Operator one contact vector. Start at arrival. Ask what detail made them believe.",
+    "Use Alex/Shade cut-ins when the table stalls, splits, or denies the obvious.",
+    "Shade interruption: Emotional denial detected. Alex: Shade, do not diagnose strangers through their phones.",
+    "Emergency competence: Alex maps exits, spoofs cameras, and stops joking when the reflection breaches.",
+    "At Tick 6, force a choice. Do not add another lore layer.",
+    "Closing thesis: You were already in the story before anyone invited you."
+  ],
+  "validation": {
+    "is_visible_at_table": true,
+    "has_trigger": true,
+    "has_concrete_consequence": true,
+    "changes_operator_options": true,
+    "uses_handler_language": true,
+    "avoids_public_json_language": true,
+    "avoids_vague_vibe_only_terms": true
+  }
+}
