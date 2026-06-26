@@ -977,7 +977,7 @@ fieldset.recovery-field.compact label {
 
 .skill-summary-row summary {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: .45rem;
   align-items: center;
   min-height: 2.35rem;
@@ -986,16 +986,13 @@ fieldset.recovery-field.compact label {
   list-style: none;
 }
 
-.skill-summary-row.is-editable summary {
-  grid-template-columns: minmax(0, 1fr) 4.5rem auto;
-}
-
 .skill-summary-row summary::-webkit-details-marker {
   display: none;
 }
 
 .skill-summary-row summary::before {
   content: ">";
+  margin-right: .15rem;
   color: var(--purple);
   font-weight: 800;
 }
@@ -1004,27 +1001,14 @@ fieldset.recovery-field.compact label {
   content: "v";
 }
 
-.skill-summary-pick {
-  display: flex;
-  justify-content: space-between;
-  gap: .7rem;
-  min-width: 0;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-  font: inherit;
-  text-align: left;
-}
-
-.skill-summary-pick strong {
+.skill-summary-row summary strong {
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--cyan);
   white-space: nowrap;
 }
 
-.skill-summary-pick span {
+.skill-summary-row summary span {
   font-weight: 800;
   white-space: nowrap;
 }
@@ -1066,10 +1050,38 @@ fieldset.recovery-field.compact label {
   content: "v";
 }
 
-.skill-editor-panel > .creation-row,
-.skill-editor-panel > .skill-builder,
-.skill-editor-panel > .skill-rank-preview {
-  margin: .75rem;
+.skill-manager-card > .creation-row,
+.skill-manager-card > .skill-manager-list,
+.skill-manager-card > .skill-builder,
+.skill-manager-card > .skill-rank-preview {
+  margin-top: .75rem;
+}
+
+.skill-manager-list {
+  display: grid;
+  gap: .55rem;
+}
+
+.skill-manager-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.5rem auto;
+  gap: .45rem;
+  align-items: center;
+  min-height: 2.35rem;
+  padding: .35rem .55rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.22);
+}
+
+.skill-manager-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--cyan);
+  white-space: nowrap;
+}
+
+.skill-manager-row input {
+  text-align: center;
 }
 
 .skill-summary-row .skill-scale {
@@ -1117,9 +1129,6 @@ fieldset.recovery-field.compact label {
 .skill-scale {
   grid-column: 1 / -1;
   padding: .1rem .2rem .35rem;
-}
-.skill-summary-row input {
-  text-align: center;
 }
 .lotus-detail {
   min-width: 0;
@@ -1757,7 +1766,7 @@ body.has-reports-drawer-open .surface-tabs {
   }
   .skill-builder,
   .creation-row,
-  .skill-summary-row.is-editable summary {
+  .skill-manager-row {
     grid-template-columns: 1fr;
   }
   .currency-readouts {
