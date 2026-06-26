@@ -364,6 +364,86 @@
     "Each Operator receives one scar, one recovered clue, and one reason to trust or distrust VeilCorp.",
     "Choose containment, paranoia, or haunted campaign track."
   ],
+  "attention_states": {
+    "unseen": {
+      "residue": "Reflections lag half a beat on peripheral glass.",
+      "follows_home": "One mirror briefly shows a harmless wrong expression.",
+      "consequence": "No penalty; warning only."
+    },
+    "noticed": {
+      "residue": "The arrival window shows one extra reflection.",
+      "follows_home": "One avoided truth flickers in stained glass or phone glass.",
+      "consequence": "First lie while reflected has Disadvantage unless another Operator corroborates."
+    },
+    "focused": {
+      "residue": "The mirror knows one refused self and tests it on screens.",
+      "follows_home": "A reflection scar may persist on one personal object.",
+      "consequence": "Once per scene, the Witness may ask which version of yourself you wish had chosen differently."
+    },
+    "fixed": {
+      "residue": "The Unfinished Witness targets one Operator through mirrors and devices.",
+      "follows_home": "Comments or wrong names arrive near meaningful identity lies.",
+      "consequence": "Refusal costs 1 Stability or ticks the Clock."
+    },
+    "exposed": {
+      "residue": "The Witness escapes the church boundary.",
+      "follows_home": "A mundane mirror, feed, or record becomes a new access point.",
+      "consequence": "Aftermath hook becomes a future Needlepoint seed."
+    }
+  },
+  "clock_attention_consequences": [
+    {
+      "clock_min": 0,
+      "clock_max": 1,
+      "attention": "unseen",
+      "consequence": "Minor reflection lag only. No penalty; warning only."
+    },
+    {
+      "clock_min": 0,
+      "clock_max": 2,
+      "attention": "noticed",
+      "consequence": "First lie while reflected has Disadvantage unless another Operator corroborates."
+    },
+    {
+      "clock_min": 2,
+      "clock_max": 3,
+      "attention": "noticed",
+      "consequence": "Shade or Alex cut-in lands; denial while reflected costs 1 Stability without corroboration."
+    },
+    {
+      "clock_min": 3,
+      "clock_max": 4,
+      "attention": "focused",
+      "consequence": "Basement route opens; solo descent has Disadvantage until the cell reunites."
+    },
+    {
+      "clock_min": 4,
+      "clock_max": 5,
+      "attention": "focused",
+      "consequence": "First misfire is live: reflection walks, wrong name, or Alex says too soon early."
+    },
+    {
+      "clock_min": 5,
+      "clock_max": 6,
+      "attention": "fixed",
+      "consequence": "The Witness targets one Operator through mirrors. Refusal costs 1 Stability or ticks the Clock."
+    },
+    {
+      "clock_min": 6,
+      "clock_max": 6,
+      "attention": "focused",
+      "consequence": "Break, bind, speak, or flee before the chamber chooses a cleaner self."
+    },
+    {
+      "clock_min": 6,
+      "clock_max": 6,
+      "attention": "exposed",
+      "consequence": "The Witness escapes the church boundary. Aftermath becomes campaign continuity."
+    }
+  ],
+  "player_view": {
+    "safe_consequence": ""
+  },
   "handler_prompts": [
     "GM FAST START: Give each Operator one contact vector. Start at arrival. Ask what detail made them believe.",
     "Use Alex/Shade cut-ins when the table stalls, splits, or denies the obvious.",

@@ -83,9 +83,78 @@ Every Needlepoint must produce playable data in these categories:
   "success_states": [],
   "aftermath": [],
   "handler_prompts": [],
+  "attention_states": {},
+  "clock_attention_consequences": [],
+  "player_view": {
+    "safe_consequence": ""
+  },
   "validation": {}
 }
 ```
+
+## Deterministic Handler Attention
+
+Make Handler Attention deterministic.
+
+Attention = who or what is watching the Operators.
+Clock = how far the Needlepoint has progressed.
+Consequence = Attention + Clock + active Needlepoint table.
+
+Do not let Residue, Follows Home, or Consequences be static text once a Needlepoint is loaded.
+
+When the Handler changes Attention, update those fields from the active Needlepoint `attention_states` table.
+
+When the Clock advances, update Consequences from the active Needlepoint `clock_attention_consequences` matrix.
+
+Use these Attention states:
+
+- Unseen
+- Noticed
+- Focused
+- Fixed
+- Exposed
+
+Player View must not show Handler clocks, attention state, consequence tiers, or follows-home text unless explicitly marked `player_safe` in `player_view.safe_consequence`.
+
+Viridian House location is Kansas City / KC unless overridden by verified source text. Do not generate Chicago for Viridian House.
+
+Example shape:
+
+```json
+{
+  "attention_states": {
+    "unseen": {
+      "residue": "A comment arrives before anyone types it.",
+      "follows_home": "One device briefly predicts harmless phrasing.",
+      "consequence": "No penalty; warning only."
+    },
+    "noticed": {
+      "residue": "Screens hesitate before showing the Operator's reflection.",
+      "follows_home": "One useful lie is predicted.",
+      "consequence": "First lie under observation has Disadvantage unless shielded."
+    }
+  },
+  "clock_attention_consequences": [
+    {
+      "clock_min": 0,
+      "clock_max": 1,
+      "attention": "unseen",
+      "consequence": "Minor tell only."
+    },
+    {
+      "clock_min": 4,
+      "clock_max": 5,
+      "attention": "focused",
+      "consequence": "Once per scene, the Audience may target an Operator through a screen."
+    }
+  ],
+  "player_view": {
+    "safe_consequence": ""
+  }
+}
+```
+
+Generate Needlepoints as playable pressure machines. Attention picks the flavor of being watched. Clock picks how dangerous it is. The active Needlepoint decides what that means.
 
 ## Writing Rules For Codex
 

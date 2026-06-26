@@ -99,7 +99,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("VeilCorp Intake");
   await expect(page.locator('[name="entityLoop.Need"]')).toHaveValue("A complete self to copy, correct, or preserve.");
   await expect(page.locator('[name="entityLoop.Exit"]')).toHaveValue("Refuse the false self, speak one specific truth while witnessed, and leave together before the chamber chooses.");
-  await expect(page.getByLabel("Current Attention")).toHaveValue("Observed");
+  await expect(page.getByLabel("Current Attention")).toHaveValue("Noticed");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
   await expect(page.getByLabel("Scene State").getByRole("button", { name: /Echoed/ })).toHaveClass(/is-active/);
   await page.getByRole("button", { name: "PREP" }).click();
@@ -108,8 +108,11 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("Viridian House");
   await expect(page.locator('[name="entityLoop.Need"]')).toHaveValue("The moment before confession, when someone edits themselves to survive being seen.");
   await expect(page.locator('[name="primaryClock.name"]')).toHaveValue("Audience Before Clock");
-
   await page.getByRole("button", { name: "LIVE MODE" }).click();
+  await expect(page.locator('[name="attention.residue"]')).toHaveValue("The comment thread knows an Operator's preferred mask.");
+  await page.getByLabel("Current Attention").selectOption("Unseen");
+  await expect(page.locator('[name="attention.residue"]')).toHaveValue("A comment arrives before anyone types it.");
+  await expect(page.locator('[name="sceneState.primaryConsequence"]')).toHaveValue("Minor tell only. No penalty; warning only.");
   await page.locator('[name="roll.attribute"]').fill("3");
   await page.locator('[name="roll.skill"]').fill("2");
   await page.getByRole("button", { name: "Roll 3d6" }).click();
@@ -119,6 +122,9 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await page.getByLabel("Player View").check();
   await expect(page.getByLabel("Player-facing display")).toBeVisible();
   await expect(page.getByLabel("Player-facing display")).toContainText("Mara Venn missing; observation indexing withheld speech");
+  await expect(page.getByLabel("Player-facing display")).toContainText("Stay real. Stay alive.");
+  await expect(page.getByLabel("Player-facing display")).not.toContainText("Audience Before Clock");
+  await expect(page.getByLabel("Player-facing display")).not.toContainText("TN 15");
   await expect(page.getByLabel("Player-facing display")).not.toContainText("PRIVATE HANDLER NOTES");
 
   await page.getByRole("button", { name: "ARCHIVE" }).click();

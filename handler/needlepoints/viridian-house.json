@@ -417,6 +417,86 @@
     "Mara remembers one Operator saying something they never said aloud.",
     "Saffi finds a video draft titled with tomorrow's date."
   ],
+  "attention_states": {
+    "unseen": {
+      "residue": "A comment arrives before anyone types it.",
+      "follows_home": "One phone briefly predicts harmless phrasing.",
+      "consequence": "No penalty; warning only."
+    },
+    "noticed": {
+      "residue": "Screens hesitate before showing the Operator's reflection.",
+      "follows_home": "One useful lie is predicted.",
+      "consequence": "First lie under observation has Disadvantage unless shielded."
+    },
+    "focused": {
+      "residue": "The comment thread knows an Operator's preferred mask.",
+      "follows_home": "BEFORE_YOU_SAY_IT may persist after the case.",
+      "consequence": "Once per scene, screen pressure can ask what the Operator is performing."
+    },
+    "fixed": {
+      "residue": "The Audience targets one Operator through devices.",
+      "follows_home": "Their phone receives comments near meaningful lies.",
+      "consequence": "Refusal costs 1 Stability or ticks the Clock."
+    },
+    "exposed": {
+      "residue": "The Audience escapes the site boundary.",
+      "follows_home": "Public feed, witness, or device becomes a new access point.",
+      "consequence": "Aftermath hook becomes a future Needlepoint seed."
+    }
+  },
+  "clock_attention_consequences": [
+    {
+      "clock_min": 0,
+      "clock_max": 1,
+      "attention": "unseen",
+      "consequence": "Minor tell only. No penalty; warning only."
+    },
+    {
+      "clock_min": 0,
+      "clock_max": 2,
+      "attention": "noticed",
+      "consequence": "First lie under observation has Disadvantage unless shielded."
+    },
+    {
+      "clock_min": 1,
+      "clock_max": 3,
+      "attention": "noticed",
+      "consequence": "Lobby camera tracks the quietest Operator; first lie under observation has Disadvantage unless shielded."
+    },
+    {
+      "clock_min": 2,
+      "clock_max": 4,
+      "attention": "focused",
+      "consequence": "Once per scene, screen pressure may ask what the Operator is performing."
+    },
+    {
+      "clock_min": 4,
+      "clock_max": 5,
+      "attention": "focused",
+      "consequence": "Once per scene, the Audience may target an Operator through any active screen. Refusal costs 1 Stability or ticks the Clock."
+    },
+    {
+      "clock_min": 4,
+      "clock_max": 6,
+      "attention": "fixed",
+      "consequence": "The Audience targets one Operator through devices. Refusal costs 1 Stability or ticks the Clock."
+    },
+    {
+      "clock_min": 6,
+      "clock_max": 6,
+      "attention": "focused",
+      "consequence": "Audience Before offers a clean role; group refusal required or Mara or an Operator may be replaced."
+    },
+    {
+      "clock_min": 6,
+      "clock_max": 6,
+      "attention": "exposed",
+      "consequence": "The Audience escapes the site boundary. Aftermath becomes a future Needlepoint seed."
+    }
+  ],
+  "player_view": {
+    "safe_consequence": ""
+  },
   "handler_prompts": [
     "FIRST 20 MIN: Start in the lobby. Show the camera before explaining anything. Ask what detail made each Operator come anyway.",
     "When Len or Saffi speaks, let the camera answer the first lie, deflection, or honest admission.",

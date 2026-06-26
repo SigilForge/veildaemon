@@ -561,10 +561,27 @@
   }
 
   function renderPlayerView() {
-    text("safe-scene", state.session.safeSceneLabel || state.session.location, "Scene pending.");
-    text("safe-state", state.sceneState.current, "Stable");
-    text("safe-clock", api.publicClockLabel(state), "Clock pending.");
-    text("safe-consequence", state.sceneState.primaryConsequence || state.attention.residue, "Watch the room.");
+    const payload = api.playerViewPayload(state);
+    text("safe-scene", payload.scene, "Scene pending.");
+    text("safe-scene-detail", payload.scene, "Scene pending.");
+    text("safe-instruction", payload.instruction, "Stay real. Stay alive.");
+    text("safe-consequence", payload.consequence, "");
+    const stateNode = document.getElementById("safe-state");
+    const clockNode = document.getElementById("safe-clock");
+    const consequenceNode = document.getElementById("safe-consequence");
+    if (stateNode) stateNode.closest("div").hidden = true;
+    if (clockNode) clockNode.closest("div").hidden = true;
+    if (consequenceNode) consequenceNode.closest("div").hidden = !payload.consequence;
+  }
+
+  function renderAttentionLockout() {
+    const locked = api.hasActiveNeedlepoint(state);
+    ["attention.residue", "attention.followsHome", "unresolvedConsequences"].forEach((name) => {
+      const input = document.querySelector(`[name="${name}"]`);
+      if (!input) return;
+      input.readOnly = locked && name !== "unresolvedConsequences";
+      input.classList.toggle("is-needlepoint-locked", locked && name !== "unresolvedConsequences");
+    });
   }
 
   function text(id, value, fallback) {
@@ -575,6 +592,7 @@
   function renderDynamic() {
     renderClock("primary-clock-track", state.primaryClock, "primaryClock", true);
     renderClock("secondary-clock-track", state.secondaryClock, "secondaryClock", state.secondaryClock.enabled);
+    renderAttentionLockout();
     renderPlayerView();
     text("clock-warning", api.clockWarning(state.primaryClock), "No warning.");
   }

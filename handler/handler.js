@@ -99,6 +99,7 @@
           state.secondaryClock.current = index === state.secondaryClock.current ? index - 1 : index;
           state.secondaryClock.enabled = true;
         }
+        state = api.normalizeState(state);
         syncForm();
         writeState();
         renderDynamic();
@@ -362,11 +363,34 @@
     if (!panel) return;
     panel.hidden = !state.playerViewEnabled;
     document.body.classList.toggle("is-player-view", state.playerViewEnabled);
-    setText("player-view-title", state.session.safeSceneLabel || state.session.caseTitle || "Scene active.");
-    setText("player-view-scene", state.session.safeSceneLabel || state.session.location || "UNSET");
-    setText("player-view-state", state.sceneState.current);
-    setText("player-view-clock", api.publicClockLabel(state));
-    setText("player-view-consequence", state.sceneState.primaryConsequence || state.attention.residue || "WATCH THE ROOM");
+    const payload = api.playerViewPayload(state);
+    setText("player-view-title", payload.title);
+    setText("player-view-scene", payload.scene);
+    setText("player-view-instruction", payload.instruction);
+    setText("player-view-consequence", payload.consequence || "WATCH THE ROOM");
+    togglePlayerViewField("player-view-state", "");
+    togglePlayerViewField("player-view-clock", "");
+    togglePlayerViewField("player-view-consequence-wrap", payload.consequence);
+  }
+
+  function togglePlayerViewField(id, value) {
+    const node = document.getElementById(id);
+    if (!node) return;
+    const row = node.closest("div");
+    if (row) row.hidden = !value;
+    node.textContent = api.safeString(value, 220);
+  }
+
+  function renderAttentionLockout() {
+    const locked = api.hasActiveNeedlepoint(state);
+    ["attention.residue", "attention.followsHome", "sceneState.primaryConsequence"].forEach((name) => {
+      const input = document.querySelector(`[name="${name}"]`);
+      if (!input) return;
+      input.readOnly = locked;
+      input.classList.toggle("is-needlepoint-locked", locked);
+    });
+    const hint = document.getElementById("attention-deterministic-hint");
+    if (hint) hint.hidden = !locked;
   }
 
   function setText(id, value) {
@@ -380,6 +404,7 @@
     renderClock("secondary-clock-track", state.secondaryClock, state.secondaryClock.enabled);
     renderRoomAnswer();
     renderRiskStrip();
+    renderAttentionLockout();
     renderPlayerView();
   }
 
@@ -592,11 +617,26 @@
     return { values: dice };
   }
 
+  function syncAttentionFromNeedlepoint() {
+    collectForm();
+    state = api.normalizeState(state);
+    syncForm();
+    writeState();
+    renderDynamic();
+  }
+
+  function bindAttentionControl() {
+    const select = document.querySelector('[name="attention.current"]');
+    if (!select) return;
+    select.addEventListener("change", syncAttentionFromNeedlepoint);
+  }
+
   function renderAll() {
     state = api.readState();
     renderTemplates();
     fillSelect("attention.current", api.attentionStates);
     renderLoopFields();
+    bindAttentionControl();
     syncForm();
     renderPlayers();
     renderNpcs();
