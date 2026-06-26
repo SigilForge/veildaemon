@@ -189,14 +189,18 @@ test("handler imports Operator JSON summaries", async ({ page }) => {
 test("handler exports Operator authorization packets", async ({ page }) => {
   await page.goto("/handler/operators/");
 
-  await expect(page.getByLabel("Ontology Unlock")).toContainText("Sanguine Presentation");
-  await expect(page.getByLabel("Ontology Unlock")).toContainText("Void-Shard");
-  await expect(page.getByLabel("Background Unlock")).toContainText("Field Medic");
-  await expect(page.getByLabel("Background Unlock")).toContainText("Sanguine Adjacent");
-  await page.getByLabel("Ontology Unlock").selectOption(["SANGUINE", "VOID_SHARD"]);
-  await page.getByLabel("Background Unlock").selectOption(["FIELD_MEDIC", "LOCAL_WITNESS"]);
+  await expect(page.getByLabel("Presentation / Ontology")).toContainText("Sanguine Presentation");
+  await expect(page.getByLabel("Presentation / Ontology")).toContainText("Void-Shard");
+  await expect(page.getByLabel("Background")).toContainText("Field Medic");
+  await expect(page.getByLabel("Background")).toContainText("Sanguine Adjacent");
+  await page.getByLabel("Presentation / Ontology").selectOption(["SANGUINE", "VOID_SHARD"]);
+  await page.getByLabel("Background").selectOption(["FIELD_MEDIC", "LOCAL_WITNESS"]);
   await page.getByLabel("Case Unlock").selectOption("NEEDLEPOINT_SURVIVOR");
-  await page.getByLabel("Operator Name").fill("June Rook");
+  await page.getByLabel("Target Operator Name / Designation").fill("June Rook");
+  await page.getByLabel("Void Reward").fill("2");
+  await page.getByLabel("Breach Reward").fill("5");
+  await expect(page.locator("#authorization-preview")).toContainText("ONTOLOGY_UNLOCK:SANGUINE");
+  await expect(page.locator("#authorization-preview")).toContainText("BREACH_REWARD:5");
 
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export Authorization Packet" }).click();
@@ -209,7 +213,10 @@ test("handler exports Operator authorization packets", async ({ page }) => {
     "ONTOLOGY_UNLOCK:VOID_SHARD",
     "BACKGROUND_UNLOCK:FIELD_MEDIC",
     "BACKGROUND_UNLOCK:LOCAL_WITNESS",
-    "CASE_UNLOCK:NEEDLEPOINT_SURVIVOR"
+    "CASE_UNLOCK:NEEDLEPOINT_SURVIVOR",
+    "VOID_REWARD:2",
+    "BREACH_REWARD:5"
   ]);
+  expect(payload.operatorName).toBe("June Rook");
   expect(payload.note).toContain("Sanguine Presentation, Void-Shard available for review");
 });

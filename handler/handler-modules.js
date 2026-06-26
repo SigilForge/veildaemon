@@ -446,33 +446,38 @@
   function bindAuthorizationExport() {
     const form = document.getElementById("authorization-form");
     if (!form) return;
+    const preview = document.getElementById("authorization-preview");
+    const copy = document.getElementById("copy-authorization");
+    const refreshPreview = () => {
+      const payload = buildAuthorizationPayload(new FormData(form), { allowEmpty: true });
+      if (preview) preview.textContent = JSON.stringify(payload, null, 2);
+    };
+    form.addEventListener("input", refreshPreview);
+    form.addEventListener("change", refreshPreview);
+    if (copy) copy.addEventListener("click", async () => {
+      const payload = buildAuthorizationPayload(new FormData(form), { allowEmpty: true });
+      const text = JSON.stringify(payload, null, 2);
+      if (preview) preview.textContent = text;
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus("AUTHORIZATION JSON COPIED");
+      } catch (error) {
+        setStatus("COPY REFUSED", true);
+      }
+    });
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       const data = new FormData(form);
-      const flags = [];
-      const ontologies = data.getAll("ontology").map((value) => api.safeString(value, 80)).filter(Boolean);
-      const backgrounds = data.getAll("background").map((value) => api.safeString(value, 80)).filter(Boolean);
-      const caseUnlock = api.safeString(data.get("case"), 80);
-      ontologies.forEach((ontology) => flags.push(`ONTOLOGY_UNLOCK:${ontology}`));
-      backgrounds.forEach((background) => flags.push(`BACKGROUND_UNLOCK:${background}`));
-      if (caseUnlock) flags.push(`CASE_UNLOCK:${caseUnlock}`);
-      if (!flags.length) {
+      const payload = buildAuthorizationPayload(data);
+      if (!payload.flags.length) {
         setStatus("NO AUTHORIZATION FLAGS", true);
         return;
       }
-      const operatorName = api.safeString(data.get("operatorName"), 80);
-      const payload = {
-        exportType: "cradlepoint.authorization",
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        operatorName,
-        flags,
-        note: api.safeString(data.get("note"), 1000) || defaultAuthorizationNote(flags)
-      };
+      if (preview) preview.textContent = JSON.stringify(payload, null, 2);
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      const safeName = (operatorName || "operator").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const safeName = api.safeString(payload.packetLabel || payload.operatorName || "operator", 100).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       link.href = url;
       link.download = `cradlepoint-authorization-${safeName || "operator"}-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.append(link);
@@ -481,6 +486,39 @@
       URL.revokeObjectURL(url);
       setStatus("AUTHORIZATION PACKET EXPORTED");
     });
+    refreshPreview();
+  }
+
+  function buildAuthorizationPayload(data, options = {}) {
+    const flags = [];
+    const ontologies = data.getAll("ontology").map((value) => api.safeString(value, 80)).filter(Boolean);
+    const backgrounds = data.getAll("background").map((value) => api.safeString(value, 80)).filter(Boolean);
+    const caseUnlock = api.safeString(data.get("case"), 80);
+    const voidReward = Math.max(0, Math.min(13, Math.round(Number(data.get("voidReward") || 0))));
+    const breachReward = Math.max(0, Math.min(99, Math.round(Number(data.get("breachReward") || 0))));
+    ontologies.forEach((ontology) => flags.push(`ONTOLOGY_UNLOCK:${ontology}`));
+    backgrounds.forEach((background) => flags.push(`BACKGROUND_UNLOCK:${background}`));
+    if (caseUnlock) flags.push(`CASE_UNLOCK:${caseUnlock}`);
+    if (voidReward > 0) flags.push(`VOID_REWARD:${voidReward}`);
+    if (breachReward > 0) flags.push(`BREACH_REWARD:${breachReward}`);
+    api.safeString(data.get("customFlags"), 1000)
+      .split(/\r?\n/)
+      .map((line) => api.safeString(line, 120).toUpperCase().replace(/\s+/g, "_"))
+      .filter((line) => /^(ONTOLOGY|BACKGROUND|CASE)_UNLOCK:[A-Z0-9_ -]+$/.test(line) || /^(VOID|BREACH)_REWARD:\d+$/.test(line))
+      .forEach((line) => {
+        if (!flags.includes(line)) flags.push(line);
+      });
+    const packetLabel = api.safeString(data.get("packetLabel"), 100);
+    const operatorName = api.safeString(data.get("operatorName"), 80);
+    return {
+      exportType: "cradlepoint.authorization",
+      version: 1,
+      exportedAt: options.allowEmpty ? "PREVIEW" : new Date().toISOString(),
+      packetLabel,
+      operatorName,
+      flags,
+      note: api.safeString(data.get("note"), 1000) || defaultAuthorizationNote(flags)
+    };
   }
 
   function defaultAuthorizationNote(flags) {

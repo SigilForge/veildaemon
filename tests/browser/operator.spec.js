@@ -12,6 +12,22 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+async function importAuthorizationPacket(page, flags, operatorName = "TEST-OP") {
+  await page.getByLabel("Console modules").getByRole("button", { name: "Authorized Unlocks" }).click();
+  await page.locator("#import-authorization").setInputFiles({
+    name: "authorization.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify({
+      exportType: "cradlepoint.authorization",
+      version: 1,
+      exportedAt: "2026-06-24T21:00:00.000Z",
+      operatorName,
+      flags,
+      note: ""
+    }))
+  });
+}
+
 test("operator sheet exposes at-table controls", async ({ page }) => {
   await page.goto("/operator/");
 
@@ -37,11 +53,8 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator('input[name="breachPoints"]')).toBeVisible();
   await expect(page.locator('input[name="voidMarks"]')).toHaveAttribute("max", "13");
   await expect(page.locator('input[name="breachPoints"]')).toHaveAttribute("max", "99");
-
-  await page.locator('input[name="voidMarks"]').fill("99");
-  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("13");
-  await page.locator('input[name="voidMarks"]').fill("12");
-  await page.locator('input[name="breachPoints"]').fill("3");
+  await expect(page.locator('input[name="voidMarks"]')).toHaveAttribute("readonly", "");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveAttribute("readonly", "");
   await page.getByLabel("Current consequence").fill("The wrong door remembers the Operator.");
   await expect(page.getByLabel("Current consequence")).toHaveValue("The wrong door remembers the Operator.");
   await page.getByRole("button", { name: "Clear Active Misfire" }).click();
@@ -81,7 +94,6 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.getByText(/4D6 .* DISADVANTAGE KEEP WORST 3 .* DROP .* Body \+3 .* Investigation \+2 .* = /)).toBeVisible();
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
-  await page.locator('input[name="breachPoints"]').fill("3");
   await page.locator("#skill-picker").selectOption("Investigation");
   await page.locator("#skill-rank").fill("3");
   await expect(page.getByText("Cost: 3 Breach")).toBeVisible();
@@ -94,9 +106,9 @@ test("secondary material is separated into tabs", async ({ page }) => {
 
   await page.getByRole("button", { name: "Sheet" }).click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
+  await importAuthorizationPacket(page, ["VOID_REWARD:7", "BREACH_REWARD:27"]);
+  await page.getByRole("button", { name: "Sheet" }).click();
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
-  await page.locator('input[name="voidMarks"]').fill("7");
-  await page.locator('input[name="breachPoints"]').fill("30");
   await page.getByRole("button", { name: "Frequency" }).click();
   await expect(page.getByText("Abilities, tells, grounding, and misfire language.")).toBeVisible();
   await expect(page.locator(".lotus-petal")).toHaveCount(6);
@@ -273,13 +285,18 @@ test("operator equipment supports default kit and selectable carry", async ({ pa
 test("operator imports Handler authorization unlock packets", async ({ page }) => {
   await page.goto("/operator/");
 
+  await expect(page.getByLabel("Console modules").getByRole("button", { name: "Authorized Unlocks" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Background" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Ontology" })).toHaveCount(0);
+
+  await importAuthorizationPacket(page, ["ONTOLOGY_UNLOCK:SANGUINE"], "OTHER-OP");
+  await expect(page.locator("#storage-status")).toContainText("Authorization refused. Packet targets OTHER-OP.");
 
   const packet = {
     exportType: "cradlepoint.authorization",
     version: 1,
     exportedAt: "2026-06-24T21:00:00.000Z",
+    operatorName: "TEST-OP",
     flags: [
       "ONTOLOGY_UNLOCK:SANGUINE",
       "ONTOLOGY_UNLOCK:MYTHIC_ECHO",
@@ -289,6 +306,8 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
       "BACKGROUND_UNLOCK:LOCAL_WITNESS",
       "BACKGROUND_UNLOCK:SANGUINE_ADJACENT",
       "BACKGROUND_UNLOCK:SAFEHOUSE_BRAT",
+      "VOID_REWARD:2",
+      "BREACH_REWARD:5",
       "CASE_UNLOCK:NEEDLEPOINT_SURVIVOR"
     ],
     note: ""
@@ -303,23 +322,23 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator("#storage-status")).toContainText("NEW ONTOLOGY SIGNAL DETECTED");
   await expect(page.getByRole("button", { name: "Background" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Ontology" })).toBeVisible();
-  await page.getByRole("button", { name: "Background" }).click();
-  await expect(page.locator("#background-unlock-list")).toContainText("Field Medic");
-  await expect(page.locator("#background-unlock-list")).toContainText("Local Witness");
-  await expect(page.locator("#background-unlock-list")).toContainText("Sanguine Adjacent");
-  await expect(page.locator("#background-unlock-list")).toContainText("Safehouse Brat");
-  await expect(page.locator("#background-unlock-list")).toContainText("Applied");
+  await expect(page.locator("#authorized-background-list")).toContainText("Field Medic");
+  await expect(page.locator("#authorized-background-list")).toContainText("Local Witness");
+  await expect(page.locator("#authorized-background-list")).toContainText("Sanguine Adjacent");
+  await expect(page.locator("#authorized-background-list")).toContainText("Safehouse Brat");
+  await expect(page.locator("#authorized-background-list")).toContainText("Applied");
+  await expect(page.locator("#authorized-ontology-list")).toContainText("Sanguine Presentation");
+  await expect(page.locator("#authorized-ontology-list")).toContainText("Mythic Echo");
+  await expect(page.locator("#authorized-ontology-list")).toContainText("Technomancer / Daemon-Aligned");
+  await expect(page.locator("#authorized-ontology-list")).toContainText("Red Ledger Adjacent");
+  await expect(page.locator("#authorized-reward-list")).toContainText("2 Void");
+  await expect(page.locator("#authorized-reward-list")).toContainText("5 Breach");
   await page.getByRole("button", { name: "Sheet" }).click();
   await expect(page.locator("#skill-list")).toContainText("Medicine 1");
   await expect(page.locator('[name="background"]')).toHaveValue("Safehouse Brat");
-
-  await page.getByRole("button", { name: "Ontology" }).click();
-  await expect(page.locator("#ontology-unlock-list")).toContainText("Sanguine Presentation");
-  await expect(page.locator("#ontology-unlock-list")).toContainText("Mythic Echo");
-  await expect(page.locator("#ontology-unlock-list")).toContainText("Technomancer / Daemon-Aligned");
-  await expect(page.locator("#ontology-unlock-list")).toContainText("Red Ledger Adjacent");
-  await page.getByRole("button", { name: "Sheet" }).click();
   await expect(page.locator('[name="ontologyPresentation"]')).toHaveValue("Red Ledger Adjacent");
+  await expect(page.locator('input[name="voidMarks"]')).toHaveValue("2");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("5");
 });
 
 test("frequency advancement enforces released Lotus caps", async ({ page }) => {

@@ -285,6 +285,7 @@
       key: safeString(item.key, 80).toUpperCase().replace(/[^A-Z0-9_]+/g, "_"),
       label: safeString(item.label, 120),
       note: safeString(item.note, 1000),
+      target: safeString(item.target, 120),
       importedAt: safeString(item.importedAt, 80) || nowStamp(),
       applied: Boolean(item.applied)
     })).filter((item) => item.type && item.key);
@@ -292,7 +293,7 @@
 
   function normalizeUnlockType(value) {
     const type = safeString(value, 40).toLowerCase();
-    if (["ontology", "background", "case"].includes(type)) return type;
+    if (["ontology", "background", "case", "void", "breach"].includes(type)) return type;
     return "";
   }
 
@@ -520,10 +521,12 @@
   function renderAuthorization() {
     const backgroundUnlocks = consoleState.unlocks.filter((item) => item.type === "background");
     const ontologyUnlocks = consoleState.unlocks.filter((item) => item.type === "ontology");
+    const rewardUnlocks = consoleState.unlocks.filter((item) => item.type === "void" || item.type === "breach");
     toggleUnlockPanel("background", backgroundUnlocks.length > 0);
     toggleUnlockPanel("ontology", ontologyUnlocks.length > 0);
     renderUnlockList("background", backgroundUnlocks);
     renderUnlockList("ontology", ontologyUnlocks);
+    renderAuthorizedUnlockSurface(backgroundUnlocks, ontologyUnlocks, rewardUnlocks);
   }
 
   function toggleUnlockPanel(kind, enabled) {
@@ -535,6 +538,10 @@
   function renderUnlockList(kind, unlocks) {
     const notice = document.getElementById(`${kind}-unlock-notice`);
     const list = document.getElementById(`${kind}-unlock-list`);
+    renderUnlockListInto(notice, list, kind, unlocks);
+  }
+
+  function renderUnlockListInto(notice, list, kind, unlocks) {
     if (!list) return;
     list.textContent = "";
     if (notice) {
@@ -544,7 +551,7 @@
     }
     unlocks.forEach((unlock) => {
       list.append(entry(unlock.label || unlock.key, [
-        ["Authorization", `${unlock.type.toUpperCase()}_UNLOCK:${unlock.key}`],
+        ["Authorization", unlockFlag(unlock)],
         ["Status", unlock.applied ? "Applied" : "Available"],
         ["Handler note", unlock.note],
         ["Imported", formatDate(unlock.importedAt)]
@@ -552,39 +559,97 @@
     });
   }
 
+  function renderAuthorizedUnlockSurface(backgroundUnlocks, ontologyUnlocks, rewardUnlocks) {
+    setText("authorized-current-presentation", consoleState.operatorStatus.ontologyPresentation || "UNSET");
+    setText("authorized-current-background", consoleState.operatorStatus.background || "UNSET");
+    renderUnlockListInto(
+      document.getElementById("authorized-ontology-notice"),
+      document.getElementById("authorized-ontology-list"),
+      "ontology",
+      ontologyUnlocks
+    );
+    renderUnlockListInto(
+      document.getElementById("authorized-background-notice"),
+      document.getElementById("authorized-background-list"),
+      "background",
+      backgroundUnlocks
+    );
+    renderUnlockListInto(
+      document.getElementById("authorized-reward-notice"),
+      document.getElementById("authorized-reward-list"),
+      "reward",
+      rewardUnlocks
+    );
+  }
+
   function authorizationNotice(kind, unlock) {
     if (kind === "ontology") {
       const entry = presentationEntry(unlock.key);
       return unlock.note || `NEW ONTOLOGY SIGNAL DETECTED\n\nHandler authorization received.\n\n${entry.displayName} available for review.`;
     }
+    if (kind === "reward") {
+      return unlock.note || `VOID / BREACH REWARD RECEIVED\n\nHandler authorization received.\n\n${unlock.label || unlock.key} applied.`;
+    }
     const entry = backgroundEntry(unlock.key);
     return unlock.note || `BACKGROUND AUTHORIZATION RECEIVED\n\nHandler authorization received.\n\n${entry.displayName} available for review.`;
   }
 
-  function parseAuthorizationPacket(text) {
+  function operatorPacketTargetMatches(payload) {
+    const target = safeString(payload?.operatorName || payload?.targetOperator || payload?.target, 120);
+    if (!target) return { ok: false, message: "Authorization refused. Packet has no target Operator." };
+    const normalizedTarget = normalizeOperatorKey(target);
+    const keys = currentOperatorKeys().map(normalizeOperatorKey).filter(Boolean);
+    if (keys.includes(normalizedTarget)) return { ok: true, target };
+    return { ok: false, message: `Authorization refused. Packet targets ${target}.` };
+  }
+
+  function normalizeOperatorKey(value) {
+    return safeString(value, 120).toLowerCase().replace(/[^a-z0-9]+/g, "");
+  }
+
+  function currentOperatorKeys() {
+    const status = consoleState.operatorStatus || {};
+    return [
+      status.operatorName,
+      status.designation,
+      operatorRecord && operatorRecord.designation,
+      operatorRecord && operatorRecord.operatorName,
+      operatorRecord && operatorRecord.id
+    ];
+  }
+
+  function readAuthorizationPayload(text) {
     let payload = null;
     try {
       payload = JSON.parse(text);
     } catch (error) {
       payload = null;
     }
-    const note = safeString(payload?.note || payload?.handlerNote, 1000);
-    const rawFlags = Array.isArray(payload?.flags)
-      ? payload.flags
-      : Array.isArray(payload?.unlocks)
-        ? payload.unlocks.map((item) => item.flag || `${String(item.type || "").toUpperCase()}_UNLOCK:${item.key || item.value || ""}`)
+    return payload;
+  }
+
+  function parseAuthorizationPacket(text, payload = null) {
+    const packet = payload || readAuthorizationPayload(text);
+    const note = safeString(packet?.note || packet?.handlerNote, 1000);
+    const target = safeString(packet?.operatorName || packet?.targetOperator || packet?.target || "", 120);
+    const rawFlags = Array.isArray(packet?.flags)
+      ? packet.flags
+      : Array.isArray(packet?.unlocks)
+        ? packet.unlocks.map((item) => item.flag || `${String(item.type || "").toUpperCase()}_UNLOCK:${item.key || item.value || ""}`)
         : [];
     const source = rawFlags.length ? rawFlags.join("\n") : text;
-    const matches = Array.from(source.matchAll(/\b(ONTOLOGY|BACKGROUND|CASE)_UNLOCK\s*:\s*([A-Z0-9_ -]+)/gi));
+    const matches = Array.from(source.matchAll(/\b((?:ONTOLOGY|BACKGROUND|CASE)_UNLOCK|(?:VOID|BREACH)_REWARD)\s*:\s*([A-Z0-9_ -]+)/gi));
     return matches.map((match) => {
-      const type = match[1].toLowerCase();
+      const flagKind = match[1].toUpperCase();
+      const type = flagKind.includes("_REWARD") ? flagKind.split("_")[0].toLowerCase() : flagKind.split("_")[0].toLowerCase();
       const key = safeString(match[2], 80).toUpperCase().replace(/[^A-Z0-9_]+/g, "_").replace(/^_|_$/g, "");
       return {
-        id: `${type}-${key.toLowerCase()}-${Date.now()}`,
+        id: `${type}-${key.toLowerCase()}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         type,
         key,
         label: unlockLabel(type, key),
         note,
+        target,
         importedAt: nowStamp(),
         applied: false
       };
@@ -594,13 +659,25 @@
   function unlockLabel(type, key) {
     if (type === "ontology") return presentationEntry(key).displayName;
     if (type === "background") return backgroundEntry(key).displayName;
+    if (type === "void") return `${normalizeNonNegative(key)} Void`;
+    if (type === "breach") return `${normalizeNonNegative(key)} Breach`;
     if (type === "case" && key === "NEEDLEPOINT_SURVIVOR") return "Needlepoint Survivor";
     return titleCaseKey(key);
+  }
+
+  function unlockFlag(unlock) {
+    if (unlock.type === "void" || unlock.type === "breach") return `${unlock.type.toUpperCase()}_REWARD:${unlock.key}`;
+    return `${unlock.type.toUpperCase()}_UNLOCK:${unlock.key}`;
   }
 
   function mergeUnlocks(unlocks) {
     let added = 0;
     unlocks.forEach((unlock) => {
+      if (unlock.type === "void" || unlock.type === "breach") {
+        consoleState.unlocks.push(unlock);
+        added += 1;
+        return;
+      }
       const existing = consoleState.unlocks.find((item) => item.type === unlock.type && item.key === unlock.key);
       if (existing) {
         existing.note = unlock.note || existing.note;
@@ -615,7 +692,7 @@
 
   function applyUnlockEffects() {
     consoleState.unlocks.forEach((unlock) => {
-      const key = `${unlock.type}:${unlock.key}`;
+      const key = unlock.type === "void" || unlock.type === "breach" ? `${unlock.type}:${unlock.key}:${unlock.id}` : `${unlock.type}:${unlock.key}`;
       if (consoleState.appliedUnlocks.includes(key)) {
         unlock.applied = true;
         return;
@@ -637,6 +714,22 @@
       }
       if (unlock.type === "ontology") {
         consoleState.operatorStatus.ontologyPresentation = presentationEntry(unlock.key).displayName;
+        unlock.applied = true;
+        consoleState.appliedUnlocks.push(key);
+        return;
+      }
+      if (unlock.type === "void") {
+        const current = Number(normalizeNonNegative(consoleState.operatorStatus.voidMarks));
+        const amount = Number(normalizeNonNegative(unlock.key));
+        consoleState.operatorStatus.voidMarks = String(Math.min(13, current + amount));
+        unlock.applied = true;
+        consoleState.appliedUnlocks.push(key);
+        return;
+      }
+      if (unlock.type === "breach") {
+        const current = Number(normalizeNonNegative(consoleState.operatorStatus.breachPoints));
+        const amount = Number(normalizeNonNegative(unlock.key));
+        consoleState.operatorStatus.breachPoints = String(Math.min(99, current + amount));
         unlock.applied = true;
         consoleState.appliedUnlocks.push(key);
       }
@@ -2498,12 +2591,19 @@
   function bindTabs() {
     document.querySelectorAll("[data-module-tab]").forEach((tab) => {
       tab.addEventListener("click", () => {
-        const target = tab.getAttribute("data-module-tab");
-        document.querySelectorAll("[data-module-tab]").forEach((node) => node.classList.toggle("is-active", node === tab));
-        document.querySelectorAll("[data-module-panel]").forEach((panel) => {
-          panel.classList.toggle("is-active", panel.getAttribute("data-module-panel") === target);
-        });
+        activateTab(tab.getAttribute("data-module-tab"));
       });
+    });
+    const openAuthorizations = document.getElementById("open-authorizations");
+    if (openAuthorizations) openAuthorizations.addEventListener("click", () => activateTab("authorizations"));
+  }
+
+  function activateTab(target) {
+    document.querySelectorAll("[data-module-tab]").forEach((node) => {
+      node.classList.toggle("is-active", node.getAttribute("data-module-tab") === target);
+    });
+    document.querySelectorAll("[data-module-panel]").forEach((panel) => {
+      panel.classList.toggle("is-active", panel.getAttribute("data-module-panel") === target);
     });
   }
 
@@ -2581,7 +2681,11 @@
       const file = importAuthorization.files && importAuthorization.files[0];
       if (!file) return;
       try {
-        const unlocks = parseAuthorizationPacket(await file.text());
+        const text = await file.text();
+        const payload = readAuthorizationPayload(text);
+        const targetCheck = operatorPacketTargetMatches(payload);
+        if (!targetCheck.ok) throw new Error(targetCheck.message);
+        const unlocks = parseAuthorizationPacket(text, payload);
         if (!unlocks.length) throw new Error("No unlock flags found.");
         const added = mergeUnlocks(unlocks);
         applyUnlockEffects();
@@ -2591,7 +2695,7 @@
         const ontology = unlocks.find((item) => item.type === "ontology");
         setStorageStatus(ontology ? "NEW ONTOLOGY SIGNAL DETECTED" : `${added || unlocks.length} authorization flag processed.`);
       } catch (error) {
-        setStorageStatus("Authorization refused. No valid unlock flags found.", true);
+        setStorageStatus(error.message || "Authorization refused. No valid unlock flags found.", true);
       } finally {
         importAuthorization.value = "";
       }
