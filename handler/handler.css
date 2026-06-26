@@ -169,6 +169,75 @@ h2 {
   width: auto;
 }
 
+.handler-module-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  align-items: center;
+  margin-top: .75rem;
+  padding: .5rem;
+  border: 1px solid rgba(137,255,218,.18);
+  background: rgba(0,0,0,.24);
+}
+
+.handler-module-nav .module-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: .35rem .65rem;
+  border: 1px solid rgba(137,255,218,.14);
+  color: var(--muted);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.handler-module-nav .module-link:hover {
+  border-color: rgba(137,255,218,.34);
+  color: var(--text);
+}
+
+.handler-module-nav .module-link.is-active {
+  border-color: rgba(102,255,220,.62);
+  color: var(--text);
+  box-shadow: inset 0 0 18px rgba(102,255,220,.08);
+}
+
+.handler-module-nav .module-link-home {
+  margin-left: auto;
+}
+
+.handler-session-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .55rem;
+  margin-top: .55rem;
+}
+
+.handler-session-strip div {
+  min-width: 0;
+  padding: .62rem .72rem;
+  border: 1px solid rgba(137,255,218,.12);
+  background: rgba(0,0,0,.2);
+}
+
+.handler-session-strip span {
+  display: block;
+  color: var(--muted);
+  font-size: .64rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.handler-session-strip strong {
+  display: block;
+  margin-top: .28rem;
+  overflow-wrap: anywhere;
+  font-size: .8rem;
+}
+
 .status-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1073,6 +1142,7 @@ body.is-player-view .private-panel {
 
   .scene-state-row,
   .status-strip,
+  .handler-session-strip,
   .overview-grid,
   .operator-risk-strip,
   .npc-summary-grid,

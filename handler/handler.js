@@ -15,6 +15,7 @@
     try {
       state = api.writeState(state, message);
       setStatus(message || "LOCAL SAVED");
+      if (window.HandlerNav) window.HandlerNav.renderSessionStrip();
     } catch (error) {
       setStatus("STORAGE REFUSED", true);
     }
@@ -643,6 +644,7 @@
     renderDynamic();
     applyDashboardMode(dashboardMode);
     setStatus("LOCAL READY");
+    if (window.HandlerNav) window.HandlerNav.render();
   }
 
   async function init() {
