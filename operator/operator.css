@@ -1235,10 +1235,19 @@ fieldset.recovery-field.compact label {
   content: "v";
 }
 
-.skill-manager-card > .creation-row,
-.skill-manager-card > .skill-builder,
-.skill-manager-card > .skill-rank-preview {
-  margin-top: .75rem;
+.skill-editor-tools {
+  margin-top: .65rem;
+  padding-top: .65rem;
+  border-top: 1px solid rgba(137,255,218,.16);
+}
+.skill-editor-tools .creation-row {
+  margin-top: 0;
+}
+.skill-editor-tools .skill-builder {
+  margin-bottom: .5rem;
+}
+.skill-editor-tools .skill-rank-preview {
+  margin: 0;
 }
 
 .skill-summary-row .skill-scale {
