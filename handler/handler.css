@@ -311,6 +311,68 @@ h2 {
   grid-column: span 1;
 }
 
+.roll-panel-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .55rem .75rem;
+}
+
+.roll-panel-heading > div {
+  min-width: 0;
+}
+
+.misfire-target-guide-drawer {
+  flex: 1 1 14rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(137,255,218,.18);
+  background: rgba(0,0,0,.22);
+}
+
+.misfire-target-guide-drawer summary {
+  padding: .38rem .55rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1.35;
+  list-style: none;
+  text-transform: none;
+}
+
+.misfire-target-guide-drawer summary::-webkit-details-marker {
+  display: none;
+}
+
+.misfire-target-guide-drawer[open] summary {
+  color: var(--cyan);
+  border-bottom: 1px solid rgba(137,255,218,.14);
+}
+
+.misfire-target-guide-body {
+  padding: .5rem .6rem .6rem;
+  color: var(--muted);
+  font-size: .72rem;
+  line-height: 1.45;
+}
+
+.misfire-target-guide-body p {
+  margin: 0 0 .45rem;
+}
+
+.misfire-target-guide-body ul {
+  margin: 0 0 .45rem;
+  padding-left: 1.1rem;
+}
+
+.misfire-target-guide-body li + li {
+  margin-top: .18rem;
+}
+
 .panel label {
   display: grid;
   gap: .32rem;

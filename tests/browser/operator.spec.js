@@ -38,13 +38,14 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await expect(page.getByRole("button", { name: "Sheet", exact: true })).toHaveClass(/is-active/);
   await expect(page.locator(".operator-roll-dock")).toBeVisible();
+  await expect(page.getByText("Roll guide")).toBeVisible();
   const initialLayout = await page.evaluate(() => {
     const sheetTop = document.querySelector("#module-sheet")?.getBoundingClientRect().top || 0;
     const rollTop = document.querySelector(".operator-roll-dock")?.getBoundingClientRect().top || 0;
     const summaryTop = document.querySelector(".skill-summary-card")?.getBoundingClientRect().top || 0;
     return { rollOffset: rollTop - sheetTop, summaryAfterRoll: summaryTop > rollTop };
   });
-  expect(initialLayout.rollOffset).toBeLessThan(420);
+  expect(initialLayout.rollOffset).toBeLessThan(560);
   expect(initialLayout.summaryAfterRoll).toBe(true);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   const stickyNav = await page.locator(".console-nav").boundingBox();

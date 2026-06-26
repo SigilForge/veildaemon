@@ -35,6 +35,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.getByText("Handler Exterior")).toHaveCount(0);
   await expect(page.getByText("Need -> Lure -> Pressure -> Gift -> Violence -> Exit")).toBeVisible();
   await expect(page.getByText("THE ROOM ANSWERS", { exact: true })).toBeVisible();
+  await expect(page.getByText("Misfire / target guide")).toBeVisible();
   await expect(page.locator("#operator-risk-strip")).toBeVisible();
   await expect(page.getByText("NPC / ROSTER")).toBeVisible();
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toBeHidden();

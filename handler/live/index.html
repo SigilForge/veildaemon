@@ -10,7 +10,7 @@
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260626-canonui1" />
+  <link rel="stylesheet" href="../handler.css?v=20260626-rollguide1" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -146,9 +146,28 @@
       </section>
 
       <section class="panel roll-panel" aria-label="Quick roll helper" data-mode-panel="live">
-        <div class="panel-heading">
-          <p class="kicker">QUICK ROLL</p>
-          <h2>Standard Operator tests stay 3d6 + Attribute + Skill.</h2>
+        <div class="panel-heading roll-panel-heading">
+          <div>
+            <p class="kicker">QUICK ROLL</p>
+            <h2>Standard Operator tests stay 3d6 + Attribute + Skill.</h2>
+          </div>
+          <details class="misfire-target-guide-drawer">
+            <summary>Misfire / target guide</summary>
+            <div class="misfire-target-guide-body">
+              <p>Set the target number and tell the table what success, failure, or misfire means.</p>
+              <p><strong>Quick read:</strong> 10 = easy under pressure // 13 = risky / standard // 16 = hard // 19 = severe // 22 = nearly impossible</p>
+              <p><strong>Core rule:</strong> Misfire is margin-based.</p>
+              <ul>
+                <li>Total &ge; TN + 3: Clean success</li>
+                <li>Total &ge; TN: Success</li>
+                <li>Total is TN &minus; 1 or TN &minus; 2: Misfire / wrong-success</li>
+                <li>Total &le; TN &minus; 3: Failure</li>
+                <li>Natural 3: Hard failure or severe misfire, Handler choice</li>
+              </ul>
+              <p><strong>Misfire means:</strong> The Operator gets part or all of what they wanted, but the scene changes against them.</p>
+              <p><strong>Example (TN 13):</strong> 16+ = Clean success // 13&ndash;15 = Success // 11&ndash;12 = Misfire // 10 or less = Failure // Natural 3 = Hard failure / severe misfire</p>
+            </div>
+          </details>
         </div>
         <div class="roll-row">
           <label>Attribute<input name="roll.attribute" type="number" min="0" max="8" step="1" /></label>
