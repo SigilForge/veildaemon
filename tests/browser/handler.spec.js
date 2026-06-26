@@ -81,6 +81,16 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await page.getByRole("button", { name: "PREP" }).click();
   await expect(page.getByRole("button", { name: "PREP" })).toHaveClass(/is-active/);
   await expect(page.locator("#npc-grid")).toBeVisible();
+  const secondaryClockMetrics = await page.evaluate(() => {
+    const panel = document.querySelector(".secondary-panel details");
+    const fields = Array.from(document.querySelectorAll(".secondary-clock-grid input, .secondary-clock-grid select"));
+    return {
+      overflow: panel ? panel.scrollWidth - panel.clientWidth : 0,
+      narrowestField: Math.min(...fields.map((field) => field.getBoundingClientRect().width))
+    };
+  });
+  expect(secondaryClockMetrics.overflow).toBeLessThanOrEqual(2);
+  expect(secondaryClockMetrics.narrowestField).toBeGreaterThan(110);
   await expect(page.getByLabel("Template")).toHaveValue("veilcorp-intake");
   await page.getByRole("button", { name: "Apply Template" }).click();
   await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("VeilCorp Intake");
