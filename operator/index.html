@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260625-frequency-dashboard1" />
+  <link rel="stylesheet" href="./operator.css?v=20260625-authsurface1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -129,6 +129,7 @@
       <button type="button" class="module-tab is-active" data-module-tab="anomalies">Anomaly Log</button>
       <button type="button" class="module-tab" data-module-tab="sheet">Sheet</button>
       <button type="button" class="module-tab" data-module-tab="equipment">Equipment</button>
+      <button type="button" class="module-tab" data-module-tab="authorizations">Authorized Unlocks</button>
       <button type="button" class="module-tab locked-tab" data-module-tab="background" data-unlock-tab="background" hidden>Background</button>
       <button type="button" class="module-tab locked-tab" data-module-tab="ontology" data-unlock-tab="ontology" hidden>Ontology</button>
       <button type="button" class="module-tab" data-module-tab="frequency">Frequency</button>
@@ -153,8 +154,8 @@
             <label>Ontology / Presentation<input name="ontologyPresentation" type="text" maxlength="120" autocomplete="off" /></label>
             <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" autocomplete="off" /></label>
             <div class="tiny-counters" aria-label="Operator currencies">
-              <label>Void<input name="voidMarks" type="number" min="0" max="13" step="1" inputmode="numeric" /></label>
-              <label>Breach<input name="breachPoints" type="number" min="0" max="99" step="1" inputmode="numeric" /></label>
+              <label>Void<input name="voidMarks" type="number" min="0" max="13" step="1" inputmode="numeric" readonly /></label>
+              <label>Breach<input name="breachPoints" type="number" min="0" max="99" step="1" inputmode="numeric" readonly /></label>
             </div>
           </article>
 
@@ -271,6 +272,46 @@
       </form>
       <p class="tracker-note" id="equipment-cap-status">Major 0/3 // Minor 0/6. Default kit is already listed. Optional carry is usually one item.</p>
       <div class="entry-list" id="equipment-list"></div>
+    </section>
+
+    <section class="module-panel" id="module-authorizations" data-module-panel="authorizations" aria-label="Authorized Unlocks">
+      <div class="module-heading">
+        <p class="kicker">AUTHORIZED UNLOCKS</p>
+        <h2>Import Handler packets and review released options.</h2>
+      </div>
+      <div class="authorization-import-surface">
+        <label class="button file-button">Import Authorization Packet<input id="import-authorization" type="file" accept=".json,.txt,text/plain,application/json" /></label>
+        <div class="authorization-current-grid">
+          <div><span>Current Presentation</span><strong id="authorized-current-presentation">UNSET</strong></div>
+          <div><span>Current Background</span><strong id="authorized-current-background">UNSET</strong></div>
+        </div>
+      </div>
+      <div class="authorization-unlock-grid">
+        <section>
+          <div class="module-heading compact">
+            <p class="kicker">PRESENTATION / ONTOLOGY</p>
+            <h3>Catalog labels and future packet flags.</h3>
+          </div>
+          <div class="authorization-notice" id="authorized-ontology-notice">No ontology authorization packet imported.</div>
+          <div class="entry-list" id="authorized-ontology-list"></div>
+        </section>
+        <section>
+          <div class="module-heading compact">
+            <p class="kicker">BACKGROUND</p>
+            <h3>Origin threads and Handler-approved packages.</h3>
+          </div>
+          <div class="authorization-notice" id="authorized-background-notice">No Background authorization packet imported.</div>
+          <div class="entry-list" id="authorized-background-list"></div>
+        </section>
+        <section>
+          <div class="module-heading compact">
+            <p class="kicker">VOID / BREACH REWARDS</p>
+            <h3>Currency granted by targeted Handler packet.</h3>
+          </div>
+          <div class="authorization-notice" id="authorized-reward-notice">No Void or Breach reward packet imported.</div>
+          <div class="entry-list" id="authorized-reward-list"></div>
+        </section>
+      </div>
     </section>
 
     <section class="module-panel locked-panel" id="module-background" data-module-panel="background" data-unlock-panel="background" aria-label="Background authorization" hidden>
@@ -442,7 +483,7 @@
       <div class="data-actions">
         <button class="button" type="button" id="export-operator-file">Export Operator JSON</button>
         <label class="button file-button">Import Operator File<input data-operator-file-import type="file" accept="application/json" /></label>
-        <label class="button file-button">Import Authorization Packet<input id="import-authorization" type="file" accept=".json,.txt,text/plain,application/json" /></label>
+        <button class="button" type="button" id="open-authorizations">Authorized Unlocks</button>
         <button class="button" type="button" id="export-console">Export Console Data</button>
         <label class="button file-button">Import Console Data<input id="import-console" type="file" accept="application/json" /></label>
         <button class="button danger" type="button" id="purge-console">Purge Local Console</button>
@@ -452,6 +493,6 @@
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="./operator.js?v=20260625-live-catalog1"></script>
+  <script src="./operator.js?v=20260625-authsurface1"></script>
 </body>
 </html>
