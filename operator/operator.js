@@ -1640,9 +1640,14 @@
     renderRollSelectors();
   }
 
-  function blockSummaryToggle(event) {
+  function blockSummaryActivation(event) {
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  function selectRollSkill(name) {
+    consoleState.operatorStatus.rollSkillKey = name;
+    renderRollSelectors();
   }
 
   function applySkillRankChange(skills, name, targetRank) {
@@ -1667,6 +1672,11 @@
 
   function renderSkillSummary(summary, entries, skills = {}) {
     if (!summary) return;
+    const openSkills = new Set();
+    summary.querySelectorAll(".skill-summary-row[open]").forEach((node) => {
+      const skillName = node.querySelector(".skill-summary-select strong")?.textContent?.trim();
+      if (skillName) openSkills.add(skillName);
+    });
     summary.textContent = "";
     if (!entries.length) {
       const empty = document.createElement("p");
@@ -1681,9 +1691,33 @@
       const row = document.createElement("details");
       row.className = editing ? "skill-summary-row is-editable" : "skill-summary-row";
       const summaryNode = document.createElement("summary");
+
+      const caret = document.createElement("span");
+      caret.className = "skill-caret";
+      caret.setAttribute("aria-hidden", "true");
+      summaryNode.append(caret);
+
+      const selectButton = document.createElement("button");
+      selectButton.type = "button";
+      selectButton.className = "skill-summary-select";
       const title = document.createElement("strong");
       title.textContent = name;
-      summaryNode.append(title);
+      selectButton.append(title);
+      selectButton.addEventListener("click", (event) => {
+        blockSummaryActivation(event);
+        selectRollSkill(name);
+      });
+      summaryNode.append(selectButton);
+
+      const rankButton = document.createElement("button");
+      rankButton.type = "button";
+      rankButton.className = "skill-summary-rank";
+      rankButton.textContent = `+${rank}`;
+      rankButton.addEventListener("click", (event) => {
+        blockSummaryActivation(event);
+        selectRollSkill(name);
+      });
+      summaryNode.append(rankButton);
 
       if (editing) {
         const remove = document.createElement("button");
@@ -1691,7 +1725,7 @@
         remove.className = "skill-inline-remove";
         remove.textContent = "Remove";
         remove.addEventListener("click", (event) => {
-          blockSummaryToggle(event);
+          blockSummaryActivation(event);
           delete skills[name];
           if (consoleState.operatorStatus.rollSkillKey === name) consoleState.operatorStatus.rollSkillKey = "";
           consoleState.operatorStatus.skills = skills;
@@ -1699,22 +1733,16 @@
           renderSkills();
         });
         summaryNode.append(remove);
-      }
 
-      const rankControl = document.createElement("div");
-      rankControl.className = "skill-inline-rank";
-      const rankValue = document.createElement("span");
-      rankValue.textContent = `+${rank}`;
-      rankControl.append(rankValue);
-
-      if (editing) {
+        const rankControl = document.createElement("div");
+        rankControl.className = "skill-inline-rank";
         const decrease = document.createElement("button");
         decrease.type = "button";
         decrease.textContent = "−";
         decrease.setAttribute("aria-label", `Decrease ${name} rank`);
         decrease.disabled = numericRank <= 1;
         decrease.addEventListener("click", (event) => {
-          blockSummaryToggle(event);
+          blockSummaryActivation(event);
           applySkillRankChange(skills, name, numericRank - 1);
         });
         const increase = document.createElement("button");
@@ -1723,24 +1751,18 @@
         increase.setAttribute("aria-label", `Increase ${name} rank`);
         increase.disabled = numericRank >= 5;
         increase.addEventListener("click", (event) => {
-          blockSummaryToggle(event);
+          blockSummaryActivation(event);
           applySkillRankChange(skills, name, numericRank + 1);
         });
         rankControl.append(decrease, increase);
+        summaryNode.append(rankControl);
       }
-
-      summaryNode.append(rankControl);
-      summaryNode.addEventListener("click", (event) => {
-        if (event.target.closest(".skill-inline-remove, .skill-inline-rank button")) return;
-        consoleState.operatorStatus.rollSkillKey = name;
-        writeConsoleState();
-        renderRollSelectors();
-      });
 
       const descriptor = document.createElement("p");
       descriptor.className = "skill-scale";
       descriptor.textContent = `${skillRankLabel(rank)}: ${skillRankDescription(name, rank)}`;
       row.append(summaryNode, descriptor);
+      if (openSkills.has(name)) row.open = true;
       summary.append(row);
     });
   }
