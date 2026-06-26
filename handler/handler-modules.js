@@ -187,8 +187,24 @@
     state = api.normalizeState(state);
   }
 
+  function syncAttentionFromNeedlepoint() {
+    collectForm();
+    state = api.normalizeState(state);
+    syncForm();
+    writeState();
+    renderDynamic();
+    if (window.HandlerNav) window.HandlerNav.renderSessionStrip();
+  }
+
+  function bindAttentionControl() {
+    const select = document.querySelector('[name="attention.current"]');
+    if (!select) return;
+    select.addEventListener("change", syncAttentionFromNeedlepoint);
+  }
+
   function bindSimpleForm() {
     document.querySelectorAll("[name]").forEach((input) => {
+      if (input.name === "attention.current") return;
       input.addEventListener("input", () => {
         collectForm();
         writeState();
@@ -232,6 +248,7 @@
         syncForm();
         writeState();
         renderDynamic();
+        if (window.HandlerNav) window.HandlerNav.renderSessionStrip();
       });
       track.append(button);
     }
@@ -576,12 +593,23 @@
 
   function renderAttentionLockout() {
     const locked = api.hasActiveNeedlepoint(state);
-    ["attention.residue", "attention.followsHome", "unresolvedConsequences"].forEach((name) => {
+    ["attention.residue", "attention.followsHome", "sceneState.primaryConsequence"].forEach((name) => {
       const input = document.querySelector(`[name="${name}"]`);
       if (!input) return;
-      input.readOnly = locked && name !== "unresolvedConsequences";
-      input.classList.toggle("is-needlepoint-locked", locked && name !== "unresolvedConsequences");
+      input.readOnly = locked;
+      input.classList.toggle("is-needlepoint-locked", locked);
     });
+    const hint = document.getElementById("attention-deterministic-hint");
+    if (hint) hint.hidden = !locked;
+  }
+
+  function renderModuleContext() {
+    text("module-case", state.session.caseTitle, "No case loaded");
+    text("module-attention", state.attention.current, "Unseen");
+    text("module-clock", api.publicClockLabel(state), "0/6");
+    text("module-active-consequence", state.sceneState.primaryConsequence, "Set Attention and Clock.");
+    text("module-needlepoint-scaffold", state.activeNeedlepoint?.scaffold || state.caseFile.templates || "No active Needlepoint loaded.");
+    if (window.HandlerNav) window.HandlerNav.renderSessionStrip();
   }
 
   function text(id, value, fallback) {
@@ -593,6 +621,7 @@
     renderClock("primary-clock-track", state.primaryClock, "primaryClock", true);
     renderClock("secondary-clock-track", state.secondaryClock, "secondaryClock", state.secondaryClock.enabled);
     renderAttentionLockout();
+    renderModuleContext();
     renderPlayerView();
     text("clock-warning", api.clockWarning(state.primaryClock), "No warning.");
   }
@@ -603,12 +632,14 @@
     fillSelect("attention.current", api.attentionStates);
     fillSelect("activeEntity.kind", ["Entity", "Zone"]);
     fillSelect("activeEntity.sceneState", api.sceneStates.map((item) => item.name));
+    bindAttentionControl();
     syncForm();
     renderDynamic();
     renderNpcs();
     renderOperators();
     renderResidueLog();
     setStatus("LOCAL READY");
+    if (window.HandlerNav) window.HandlerNav.render();
   }
 
   bindSimpleForm();

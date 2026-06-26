@@ -54,9 +54,11 @@
     text("overview-unresolved", state.unresolvedConsequences || state.handlerNotes.consequenceQueue, "No unresolved consequences.");
 
     renderOperators();
-    text("overview-player-scene", state.session.safeSceneLabel || state.session.location, "Scene pending.");
-    text("overview-player-clock", api.publicClockLabel(state), "Clock pending.");
-    text("overview-player-consequence", state.sceneState.primaryConsequence || state.attention.residue, "Watch the room.");
+    const playerSafe = api.playerViewPayload(state);
+    text("overview-player-scene", playerSafe.scene, "Scene pending.");
+    text("overview-player-clock", playerSafe.consequence ? "Player-safe only" : "Hidden from Player View");
+    text("overview-player-consequence", playerSafe.consequence || "No player-safe consequence set.");
+    if (window.HandlerNav) window.HandlerNav.render();
   }
 
   function roomAnswer() {

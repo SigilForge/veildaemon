@@ -6,19 +6,29 @@
   <title>VEILDAEMON // Handler Clocks</title>
   <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
-  <link rel="stylesheet" href="../handler.css?v=20260625-secondaryclock1" />
+  <link rel="stylesheet" href="../handler.css?v=20260626-handlernav1" />
 </head>
 <body class="handler-surface module-surface" data-handler-module="clocks">
   <div class="noise" aria-hidden="true"></div>
   <main class="handler-shell">
-    <header class="handler-header"><div class="seal-wrap"><img src="../../assets/veilcorp-avatar.png" alt="VeilCorp sigil" class="seal" /></div><div><p class="kicker">HANDLER CONSOLE // CLOCKS</p><h1>CLOCK MANAGER</h1><p class="subhead">One primary clock. Secondary only if it changes a live decision.</p></div><nav class="header-actions"><a class="button primary" href="../">Overview</a><a class="button ghost" href="../live/">Live Dashboard</a></nav></header>
-    <section class="status-strip"><div><span>Terminology</span><strong>Handler</strong></div><div><span>Primary Clock</span><strong>Always Live</strong></div><div><span>Warning</span><strong id="clock-warning">No warning.</strong></div><div><span>Storage</span><strong id="storage-status">LOCAL READY</strong></div></section>
+    <header class="handler-header">
+      <div class="seal-wrap"><img src="../../assets/veilcorp-avatar.png" alt="VeilCorp sigil" class="seal" /></div>
+      <div><p class="kicker">HANDLER CONSOLE // CLOCKS</p><h1>CLOCK MANAGER</h1><p class="subhead">Clock advances update consequences when a Needlepoint scaffold is loaded.</p></div>
+    </header>
+    <section class="status-strip" aria-label="Clock status">
+      <div><span>Case</span><strong id="module-case">No case loaded</strong></div>
+      <div><span>Attention</span><strong id="module-attention">Unseen</strong></div>
+      <div><span>Warning</span><strong id="clock-warning">No warning.</strong></div>
+      <div><span>Storage</span><strong id="storage-status">LOCAL READY</strong></div>
+    </section>
     <form class="dashboard-form">
-      <section class="panel clock-panel"><div class="panel-heading"><p class="kicker">PRIMARY CLOCK</p><h2>Progress, midpoint, full event</h2></div><div class="field-grid five"><label>Name<input name="primaryClock.name" maxlength="100" /></label><label>Segments<select name="primaryClock.segments"><option>4</option><option>6</option><option>8</option></select></label><label>Current<input name="primaryClock.current" type="number" min="0" max="12" /></label><label>Ticks When<input name="primaryClock.ticksWhen" maxlength="180" /></label><label>Stabilizer<input name="primaryClock.stabilizer" maxlength="160" /></label></div><div class="clock-track" id="primary-clock-track"></div><div class="field-grid two"><label>Midpoint Event<textarea name="primaryClock.midpointEvent" rows="3"></textarea></label><label>Full Clock Event<textarea name="primaryClock.fullClockEvent" rows="3"></textarea></label></div></section>
+      <section class="panel clock-panel"><div class="panel-heading"><p class="kicker">PRIMARY CLOCK</p><h2>Progress, midpoint, full event</h2></div><div class="field-grid five"><label>Name<input name="primaryClock.name" maxlength="100" /></label><label>Segments<select name="primaryClock.segments"><option>4</option><option>6</option><option>8</option></select></label><label>Current<input name="primaryClock.current" type="number" min="0" max="12" /></label><label>Ticks When<input name="primaryClock.ticksWhen" maxlength="180" /></label><label>Stabilizer<input name="primaryClock.stabilizer" maxlength="160" /></label></div><div class="clock-track" id="primary-clock-track"></div><div class="field-grid two"><label>Midpoint Event<textarea name="primaryClock.midpointEvent" rows="3"></textarea></label><label>Full Clock Event<textarea name="primaryClock.fullClockEvent" rows="3"></textarea></label></div><label>Active Consequence<input name="sceneState.primaryConsequence" maxlength="220" /></label></section>
       <section class="panel clock-panel"><div class="panel-heading"><p class="kicker">SECONDARY CLOCK</p><h2>Hidden unless it changes a decision</h2></div><div class="field-grid five"><label>Enabled<input name="secondaryClock.enabled" type="checkbox" /></label><label>Name<input name="secondaryClock.name" maxlength="100" /></label><label>Segments<select name="secondaryClock.segments"><option>4</option><option>6</option><option>8</option></select></label><label>Current<input name="secondaryClock.current" type="number" min="0" max="12" /></label><label>Decision It Changes<input name="secondaryClock.liveDecision" maxlength="180" /></label></div><div class="clock-track" id="secondary-clock-track"></div></section>
     </form>
   </main>
-  <script src="../../catalogs.js?v=20260625-live-catalog1"></script><script src="../handler-state.js?v=20260625-live-catalog1"></script>
-  <script src="../handler-modules.js?v=20260625-authsurface1"></script>
+  <script src="../../catalogs.js?v=20260625-live-catalog1"></script>
+  <script src="../handler-state.js?v=20260626-attention1"></script>
+  <script src="../handler-nav.js?v=20260626-handlernav1"></script>
+  <script src="../handler-modules.js?v=20260626-handlernav1"></script>
 </body>
 </html>
