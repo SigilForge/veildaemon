@@ -33,6 +33,78 @@
   };
   const loopFields = ["Need", "Lure", "Pressure", "Gift", "Violence", "Exit"];
   const npcFlags = ["Ally", "Witness", "Threat", "Missing", "Compromised"];
+  const sceneStateRank = sceneStates.reduce((table, item, index) => {
+    table[item.name] = index;
+    return table;
+  }, {});
+
+  const genericTableTriggers = [
+    {
+      id: "lie-under-observation",
+      label: "Operator lies under observation",
+      hint: "Lie, deflection, or performance while watched.",
+      effects: { clock_delta: 1, attention_delta: 1, scene_state_min: "Echoed" }
+    },
+    {
+      id: "operators-split-up",
+      label: "Operators split up",
+      hint: "Isolation before the group can shield.",
+      effects: {
+        attention_delta: 1,
+        scene_state_min: "Echoed",
+        next_pressure_beat: "Attention targets the isolated Operator; site offers a private lure."
+      }
+    },
+    {
+      id: "npc-as-content",
+      label: "Operators treat NPC as evidence/content",
+      hint: "Person becomes proof, spectacle, or leverage.",
+      effects: { attention_delta: 1, scene_state_min: "Recursive" }
+    },
+    {
+      id: "protect-honest-speech",
+      label: "Operators protect honest speech",
+      hint: "Shielded truth under observation.",
+      effects: { attention_delta: -1, clock_tick: false, scene_state_set: "Stable" }
+    },
+    {
+      id: "force-without-vulnerability",
+      label: "Operators force the site without vulnerability",
+      hint: "Push through without admitting cost.",
+      effects: {
+        clock_delta: 1,
+        scene_state_min: "Breached",
+        next_pressure_beat: "Misfire risk rises; next forced action has Disadvantage."
+      }
+    },
+    {
+      id: "recover-clue-clean",
+      label: "Operators recover core clue cleanly",
+      hint: "Clue lands without extra exposure.",
+      effects: { clock_tick: false, reveal_next_clue: true }
+    },
+    {
+      id: "fail-clue-roll",
+      label: "Operators fail clue roll",
+      hint: "Clue still arrives, but the site collects a cost.",
+      effects: {
+        clock_delta: 1,
+        attention_delta: 1,
+        reveal_next_clue: true,
+        next_pressure_beat: "Clue gained, but Clock and Attention cost fires."
+      }
+    },
+    {
+      id: "cut-broadcast",
+      label: "Operators cut broadcast / cover lens",
+      hint: "Break the feed or step out of frame together.",
+      effects: {
+        attention_delta: -1,
+        clock_tick: false,
+        consequence: "Attention suppressed; one containment option unlocks."
+      }
+    }
+  ];
   const templateCatalogUrl = new URL("templates.json", document.currentScript && document.currentScript.src || window.location.href).href;
   const catalogs = window.CradlepointCatalogs || {};
 
@@ -586,6 +658,39 @@
     }).filter((entry) => entry.consequence);
   }
 
+  function normalizeTriggerEffects(value) {
+    const effects = value && typeof value === "object" ? value : {};
+    return {
+      clock_delta: safeNumber(effects.clock_delta, -6, 6, 0),
+      clock_tick: effects.clock_tick !== false,
+      attention_delta: safeNumber(effects.attention_delta, -4, 4, 0),
+      attention_set: effects.attention_set ? normalizeAttentionDisplay(effects.attention_set) : "",
+      attention_min: effects.attention_min ? normalizeAttentionDisplay(effects.attention_min) : "",
+      scene_state_min: effects.scene_state_min
+        ? normalizeChoice(effects.scene_state_min, sceneStates.map((item) => item.name), "")
+        : "",
+      scene_state_set: effects.scene_state_set
+        ? normalizeChoice(effects.scene_state_set, sceneStates.map((item) => item.name), "")
+        : "",
+      consequence: safeString(effects.consequence, 220),
+      next_pressure_beat: safeString(effects.next_pressure_beat, 500),
+      next_clue: safeString(effects.next_clue, 500),
+      reveal_next_clue: Boolean(effects.reveal_next_clue),
+      npc_pressure_note: safeString(effects.npc_pressure_note, 220),
+      npc_name_match: safeString(effects.npc_name_match, 80)
+    };
+  }
+
+  function normalizeTableTriggers(value) {
+    if (!Array.isArray(value)) return [];
+    return value.slice(0, 24).map((trigger, index) => ({
+      id: safeString(trigger.id, 80) || `trigger-${index + 1}`,
+      label: safeString(trigger.label, 140),
+      hint: safeString(trigger.hint, 220),
+      effects: normalizeTriggerEffects(trigger.effects)
+    })).filter((trigger) => trigger.label);
+  }
+
   function normalizeActiveNeedlepoint(value) {
     const source = value && typeof value === "object" ? value : {};
     return {
@@ -593,10 +698,169 @@
       scaffold: safeString(source.scaffold, 180),
       attention_states: normalizeAttentionStatesTable(source.attention_states),
       clock_attention_consequences: normalizeClockAttentionConsequences(source.clock_attention_consequences),
+      table_triggers: normalizeTableTriggers(source.table_triggers),
       player_view: {
         safe_consequence: safeString(source.player_view?.safe_consequence, 220)
       }
     };
+  }
+
+  function attentionIndex(label) {
+    const key = normalizeAttentionKey(label);
+    const index = attentionStates.findIndex((item) => item.toLowerCase() === key);
+    return index >= 0 ? index : 0;
+  }
+
+  function resolveAttentionValue(current, effects) {
+    if (effects.attention_set) return effects.attention_set;
+    let index = attentionIndex(current);
+    if (effects.attention_min) index = Math.max(index, attentionIndex(effects.attention_min));
+    if (effects.attention_delta) index += effects.attention_delta;
+    index = Math.max(0, Math.min(attentionStates.length - 1, index));
+    return attentionStates[index];
+  }
+
+  function resolveSceneStateValue(current, effects) {
+    if (effects.scene_state_set) return effects.scene_state_set;
+    const currentRank = sceneStateRank[current] ?? 0;
+    const minRank = effects.scene_state_min ? (sceneStateRank[effects.scene_state_min] ?? currentRank) : currentRank;
+    const nextRank = Math.max(currentRank, minRank);
+    return sceneStates[nextRank]?.name || current;
+  }
+
+  function getTableTriggers(state) {
+    const needlepoint = state?.activeNeedlepoint;
+    if (needlepoint?.table_triggers?.length) return needlepoint.table_triggers;
+    return genericTableTriggers;
+  }
+
+  function findTableTrigger(state, triggerId) {
+    return getTableTriggers(state).find((trigger) => trigger.id === triggerId) || null;
+  }
+
+  function buildTriggerDraft(state, trigger, options = {}) {
+    const draft = clone(normalizeState(state));
+    const effects = trigger.effects || {};
+    const beforeClock = draft.primaryClock.current;
+    const beforeAttention = draft.attention.current;
+    const beforeScene = draft.sceneState.current;
+
+    if (effects.clock_tick !== false && effects.clock_delta) {
+      draft.primaryClock.current = safeNumber(
+        beforeClock + effects.clock_delta,
+        0,
+        draft.primaryClock.segments,
+        beforeClock
+      );
+    }
+
+    draft.attention.current = resolveAttentionValue(beforeAttention, effects);
+    draft.sceneState.current = resolveSceneStateValue(beforeScene, effects);
+    draft.activeEntity.sceneState = draft.sceneState.current;
+
+    if (effects.consequence) draft.sceneState.primaryConsequence = effects.consequence;
+    if (effects.next_pressure_beat) draft.caseFile.nextPressureBeat = effects.next_pressure_beat;
+    if (effects.next_clue) draft.caseFile.nextClue = effects.next_clue;
+
+    if (options.persist && effects.npc_name_match) {
+      const match = effects.npc_name_match.toLowerCase();
+      draft.npcs.forEach((npc) => {
+        if (!npc.name || npc.name.toLowerCase().indexOf(match) < 0) return;
+        const note = effects.npc_pressure_note || "Pressure escalates from table trigger.";
+        npc.pressure = npc.pressure ? `${npc.pressure} // ${note}` : note;
+      });
+    }
+
+    if (options.persist) {
+      if (effects.reveal_next_clue && draft.caseFile.nextClue) {
+        draft.residueLog.unshift({
+          id: `residue-${Date.now()}`,
+          scene: safeString(draft.session.location || draft.session.caseTitle, 140),
+          attention: draft.attention.current,
+          residue: `Clue surfaced: ${draft.caseFile.nextClue}`,
+          followsHome: "",
+          consequence: draft.sceneState.primaryConsequence || ""
+        });
+      }
+      draft.residueLog.unshift({
+        id: `residue-${Date.now() + 1}`,
+        scene: safeString(draft.session.location || draft.session.caseTitle, 140),
+        attention: draft.attention.current,
+        residue: `Trigger applied: ${trigger.label}`,
+        followsHome: draft.attention.followsHome || "",
+        consequence: draft.sceneState.primaryConsequence || ""
+      });
+    }
+
+    const withNeedlepoint = hasActiveNeedlepoint(draft) ? applyNeedlepointAttention(draft) : draft;
+    return {
+      draft: withNeedlepoint,
+      delta: {
+        beforeClock,
+        beforeAttention,
+        beforeScene,
+        afterClock: withNeedlepoint.primaryClock.current,
+        afterAttention: withNeedlepoint.attention.current,
+        afterScene: withNeedlepoint.sceneState.current
+      }
+    };
+  }
+
+  function previewTableTrigger(state, triggerId) {
+    const trigger = findTableTrigger(state, triggerId);
+    if (!trigger) return null;
+    const { draft: withNeedlepoint, delta } = buildTriggerDraft(state, trigger, { persist: false });
+    const lines = [
+      {
+        label: "Clock",
+        before: `${state.primaryClock.current}/${state.primaryClock.segments}`,
+        after: `${withNeedlepoint.primaryClock.current}/${withNeedlepoint.primaryClock.segments}`
+      },
+      {
+        label: "Attention",
+        before: state.attention.current,
+        after: withNeedlepoint.attention.current
+      },
+      {
+        label: "Scene State",
+        before: state.sceneState.current,
+        after: withNeedlepoint.sceneState.current
+      },
+      {
+        label: "Residue",
+        before: state.attention.residue || "None logged.",
+        after: withNeedlepoint.attention.residue || "None logged."
+      },
+      {
+        label: "Consequence",
+        before: state.sceneState.primaryConsequence || "Unset",
+        after: withNeedlepoint.sceneState.primaryConsequence || "Unset"
+      },
+      {
+        label: "Next Pressure",
+        before: state.caseFile.nextPressureBeat || "No beat staged.",
+        after: withNeedlepoint.caseFile.nextPressureBeat || "No beat staged."
+      }
+    ];
+    if (trigger.effects.reveal_next_clue && state.caseFile.nextClue) {
+      lines.push({
+        label: "Next Clue",
+        before: "Staged only",
+        after: state.caseFile.nextClue
+      });
+    }
+    return { trigger, lines, nextState: withNeedlepoint, delta };
+  }
+
+  function applyTableTrigger(state, triggerId) {
+    const trigger = findTableTrigger(state, triggerId);
+    if (!trigger) return state;
+    const { draft } = buildTriggerDraft(state, trigger, { persist: true });
+    return normalizeState(draft);
+  }
+
+  function isLoopLocked(state) {
+    return hasActiveNeedlepoint(state);
   }
 
   function resolveClockAttentionConsequence(state) {
@@ -879,6 +1143,12 @@
     applyNeedlepointAttention,
     playerViewPayload,
     hasActiveNeedlepoint,
-    normalizeAttentionDisplay
+    isLoopLocked,
+    normalizeAttentionDisplay,
+    genericTableTriggers,
+    getTableTriggers,
+    findTableTrigger,
+    previewTableTrigger,
+    applyTableTrigger
   };
 }());

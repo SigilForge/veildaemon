@@ -2,6 +2,7 @@
   const api = window.HandlerState;
   let state = api.readState();
   const moduleName = document.body.dataset.handlerModule || "";
+  const templateLockedLoopFields = ["Need", "Lure", "Pressure"];
 
   function setStatus(message, isError) {
     const node = document.getElementById("storage-status");
@@ -603,6 +604,133 @@
     if (hint) hint.hidden = !locked;
   }
 
+  function renderLoopLockout() {
+    const locked = api.isLoopLocked(state);
+    const hint = document.getElementById("entity-loop-lock-hint");
+    if (hint) hint.hidden = !locked;
+    templateLockedLoopFields.forEach((field) => {
+      const input = document.querySelector(`[name="entityLoop.${field}"]`);
+      if (!input) return;
+      input.readOnly = locked;
+      input.classList.toggle("is-needlepoint-locked", locked);
+    });
+  }
+
+  function entityCardSummary(entity) {
+    return [
+      entity.kind,
+      entity.sceneState,
+      entity.loop?.Need,
+      entity.loop?.Pressure
+    ].map((part) => api.safeString(part, 120)).filter(Boolean).join(" // ") || "Loop pending.";
+  }
+
+  function renderEntityLibrary() {
+    const grid = document.getElementById("entity-library-grid");
+    if (!grid) return;
+    grid.textContent = "";
+    const library = Array.isArray(state.entityLibrary) ? state.entityLibrary : [];
+    if (!library.length) {
+      grid.append(emptyEntityLine("No extra Entities / Zones staged. Add one when a second pressure field is live."));
+      return;
+    }
+    library.forEach((entity, index) => {
+      const card = document.createElement("article");
+      card.className = "player-card entity-library-card";
+      card.innerHTML = `
+        <div class="player-head">
+          <strong>${api.safeString(entity.name || "Unnamed Entity / Zone", 120)}</strong>
+          <div class="entity-library-actions">
+            <button class="button primary no-print" type="button" data-activate-entity="${index}">Set Active</button>
+            <button class="entry-remove no-print" type="button" data-remove-entity="${index}">Remove</button>
+          </div>
+        </div>
+        <p class="helper-copy">${api.safeString(entityCardSummary(entity), 260)}</p>
+        <label>Notes<textarea data-entity-notes="${index}" rows="3"></textarea></label>
+      `;
+      grid.append(card);
+      const notes = card.querySelector(`[data-entity-notes="${index}"]`);
+      if (notes) {
+        notes.value = entity.notes || "";
+        notes.addEventListener("input", () => {
+          state.entityLibrary[index].notes = api.safeString(notes.value, 1200);
+          writeState();
+        });
+      }
+    });
+    grid.querySelectorAll("[data-activate-entity]").forEach((button) => {
+      button.addEventListener("click", () => activateEntity(Number(button.dataset.activateEntity)));
+    });
+    grid.querySelectorAll("[data-remove-entity]").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.entityLibrary.splice(Number(button.dataset.removeEntity), 1);
+        writeState();
+        renderEntityLibrary();
+      });
+    });
+  }
+
+  function emptyEntityLine(copy) {
+    const line = document.createElement("p");
+    line.className = "helper-copy";
+    line.textContent = copy;
+    return line;
+  }
+
+  function activateEntity(index) {
+    const library = Array.isArray(state.entityLibrary) ? state.entityLibrary : [];
+    const selected = library[index];
+    if (!selected) return;
+    const current = {
+      id: `entity-${Date.now()}`,
+      name: state.activeEntity.name,
+      kind: state.activeEntity.kind,
+      sceneState: state.activeEntity.sceneState,
+      loop: { ...state.entityLoop },
+      notes: state.activeEntity.notes
+    };
+    library[index] = current;
+    state.entityLibrary = library;
+    state.activeEntity = {
+      name: selected.name,
+      kind: selected.kind,
+      sceneState: selected.sceneState,
+      notes: selected.notes
+    };
+    state.entityLoop = { ...selected.loop };
+    state = api.normalizeState(state);
+    syncForm();
+    writeState("ENTITY ACTIVATED");
+    renderEntityLibrary();
+    renderLoopLockout();
+  }
+
+  function addEntity() {
+    const button = document.getElementById("add-entity");
+    if (!button) return;
+    button.addEventListener("click", () => {
+      const next = (state.entityLibrary?.length || 0) + 1;
+      if (!Array.isArray(state.entityLibrary)) state.entityLibrary = [];
+      state.entityLibrary.push({
+        id: `entity-${Date.now()}`,
+        name: `Entity / Zone ${next}`,
+        kind: "Entity",
+        sceneState: state.sceneState.current,
+        loop: {
+          Need: "",
+          Lure: "",
+          Pressure: "",
+          Gift: "",
+          Violence: "",
+          Exit: ""
+        },
+        notes: ""
+      });
+      writeState("ENTITY ADDED");
+      renderEntityLibrary();
+    });
+  }
+
   function renderModuleContext() {
     text("module-case", state.session.caseTitle, "No case loaded");
     text("module-attention", state.attention.current, "Unseen");
@@ -621,6 +749,7 @@
     renderClock("primary-clock-track", state.primaryClock, "primaryClock", true);
     renderClock("secondary-clock-track", state.secondaryClock, "secondaryClock", state.secondaryClock.enabled);
     renderAttentionLockout();
+    renderLoopLockout();
     renderModuleContext();
     renderPlayerView();
     text("clock-warning", api.clockWarning(state.primaryClock), "No warning.");
@@ -638,6 +767,7 @@
     renderNpcs();
     renderOperators();
     renderResidueLog();
+    renderEntityLibrary();
     setStatus("LOCAL READY");
     if (window.HandlerNav) window.HandlerNav.render();
   }
@@ -649,6 +779,7 @@
   addNpcs();
   addOperators();
   addResidue();
+  addEntity();
   renderAll();
   document.body.classList.add(`handler-module-${moduleName}`);
 }());

@@ -159,6 +159,79 @@
             "consequence": "The Witness escapes the church boundary. Aftermath becomes campaign continuity."
           }
         ],
+        "table_triggers": [
+          {
+            "id": "lie-reflected",
+            "label": "Operator lies while reflected",
+            "hint": "Denial under mirror, glass, or screen.",
+            "effects": {
+              "clock_delta": 1,
+              "attention_min": "Noticed",
+              "scene_state_min": "Echoed"
+            }
+          },
+          {
+            "id": "split-up",
+            "label": "Operators split up",
+            "effects": {
+              "attention_delta": 1,
+              "scene_state_min": "Echoed",
+              "next_pressure_beat": "Isolation lure activates; separated Operator faces the Witness first."
+            }
+          },
+          {
+            "id": "protected-truth",
+            "label": "Operators protect honest speech",
+            "effects": {
+              "attention_delta": -1,
+              "clock_tick": false,
+              "scene_state_set": "Stable"
+            }
+          },
+          {
+            "id": "force-chamber",
+            "label": "Operators force the chamber without vulnerability",
+            "effects": {
+              "clock_delta": 1,
+              "scene_state_min": "Breached",
+              "next_pressure_beat": "Misfire risk live; next forced move has Disadvantage."
+            }
+          },
+          {
+            "id": "clue-clean",
+            "label": "Operators recover core clue cleanly",
+            "effects": { "clock_tick": false, "reveal_next_clue": true }
+          },
+          {
+            "id": "clue-fail",
+            "label": "Operators fail clue roll",
+            "effects": {
+              "clock_delta": 1,
+              "attention_delta": 1,
+              "reveal_next_clue": true,
+              "next_pressure_beat": "Clue gained at a cost; reflection or wrong name may answer first."
+            }
+          },
+          {
+            "id": "accept-cleaner-self",
+            "label": "Operator accepts the cleaner self",
+            "effects": {
+              "clock_delta": 1,
+              "attention_min": "Focused",
+              "scene_state_min": "Recursive",
+              "consequence": "Advantage once, then Disadvantage on identity rolls until refused aloud while witnessed."
+            }
+          },
+          {
+            "id": "stare-too-long",
+            "label": "Operators stare too long into reflective surfaces",
+            "effects": {
+              "clock_delta": 1,
+              "attention_delta": 1,
+              "scene_state_min": "Echoed"
+            }
+          }
+        ],
         "player_view": {
           "safe_consequence": ""
         }
@@ -334,6 +407,102 @@
             "clock_max": 6,
             "attention": "exposed",
             "consequence": "The Audience escapes the site boundary. Aftermath becomes a future Needlepoint seed."
+          }
+        ],
+        "table_triggers": [
+          {
+            "id": "lie-lobby-camera",
+            "label": "Lie under lobby camera",
+            "effects": {
+              "clock_delta": 1,
+              "attention_min": "Noticed",
+              "scene_state_min": "Echoed",
+              "consequence": "Camera tracks the quietest Operator; next observed lie has Disadvantage."
+            }
+          },
+          {
+            "id": "lie-elevator",
+            "label": "Lie inside elevator",
+            "effects": {
+              "clock_delta": 1,
+              "attention_min": "Focused",
+              "scene_state_min": "Recursive",
+              "consequence": "Floor 13 can open early; next elevator action TN 15 unless honest speech while recorded."
+            }
+          },
+          {
+            "id": "mock-comment-thread",
+            "label": "Mock the comment thread",
+            "effects": {
+              "clock_delta": 1,
+              "attention_min": "Focused",
+              "scene_state_min": "Recursive",
+              "next_pressure_beat": "Tenant/public feed starts; thread predicts the next useful lie."
+            }
+          },
+          {
+            "id": "leave-saffi-alone",
+            "label": "Leave Saffi alone",
+            "effects": {
+              "clock_delta": 1,
+              "attention_set": "Fixed",
+              "scene_state_min": "Breached",
+              "next_pressure_beat": "Saffi becomes the next lure.",
+              "npc_name_match": "Saffi",
+              "npc_pressure_note": "Targeted by observation; next lure vector."
+            }
+          },
+          {
+            "id": "truth-protected",
+            "label": "Speak truth while protected",
+            "effects": {
+              "attention_delta": -1,
+              "clock_tick": false,
+              "scene_state_set": "Echoed",
+              "consequence": "One door unlocks or next consequence softens."
+            }
+          },
+          {
+            "id": "mara-as-content",
+            "label": "Operators treat Mara as content",
+            "effects": {
+              "attention_delta": 1,
+              "scene_state_min": "Recursive",
+              "next_pressure_beat": "Mara stops responding off-camera; rescue attempts have Disadvantage."
+            }
+          },
+          {
+            "id": "split-up",
+            "label": "Operators split up",
+            "effects": {
+              "attention_delta": 1,
+              "scene_state_min": "Echoed",
+              "next_pressure_beat": "Attention targets the isolated Operator; private offer arrives."
+            }
+          },
+          {
+            "id": "cut-broadcast",
+            "label": "Cut broadcast / cover lens",
+            "effects": {
+              "attention_delta": -1,
+              "clock_tick": false,
+              "consequence": "Attention suppressed; one containment option unlocks."
+            }
+          },
+          {
+            "id": "clue-clean",
+            "label": "Operators recover core clue cleanly",
+            "effects": { "clock_tick": false, "reveal_next_clue": true }
+          },
+          {
+            "id": "clue-fail",
+            "label": "Operators fail clue roll",
+            "effects": {
+              "clock_delta": 1,
+              "attention_delta": 1,
+              "reveal_next_clue": true,
+              "next_pressure_beat": "Clue gained, but Clock and Attention cost fires."
+            }
           }
         ],
         "player_view": {

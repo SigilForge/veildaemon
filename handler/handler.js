@@ -67,6 +67,8 @@
     });
   }
 
+  const templateLockedLoopFields = ["Need", "Lure", "Pressure"];
+
   function renderLoopFields() {
     const grid = document.getElementById("entity-loop-grid");
     if (!grid) return;
@@ -80,6 +82,32 @@
       label.append(textarea);
       grid.append(label);
     });
+    renderLoopLockout();
+    renderActiveEntityReadout();
+  }
+
+  function renderLoopLockout() {
+    const locked = api.isLoopLocked(state);
+    const hint = document.getElementById("entity-loop-lock-hint");
+    if (hint) hint.hidden = !locked;
+    document.querySelectorAll("#entity-loop-grid textarea").forEach((input) => {
+      const field = input.name.split(".")[1];
+      const fieldLocked = locked && templateLockedLoopFields.includes(field);
+      input.readOnly = fieldLocked;
+      input.classList.toggle("is-needlepoint-locked", fieldLocked);
+    });
+  }
+
+  function renderActiveEntityReadout() {
+    const node = document.getElementById("entity-active-readout");
+    if (!node) return;
+    const entity = state.activeEntity || {};
+    const kind = api.safeString(entity.kind, 40) || "Zone";
+    const name = api.safeString(entity.name, 120) || "Unnamed active Entity / Zone";
+    node.textContent = "";
+    const title = document.createElement("p");
+    title.innerHTML = `<strong>Active ${kind}</strong><span>${name}</span>`;
+    node.append(title);
   }
 
   function renderClock(trackId, clock, enabled = true) {
@@ -406,7 +434,19 @@
     renderRoomAnswer();
     renderRiskStrip();
     renderAttentionLockout();
+    renderLoopLockout();
+    renderActiveEntityReadout();
     renderPlayerView();
+    if (window.HandlerTriggers) window.HandlerTriggers.render(state);
+  }
+
+  function applyTriggerState(nextState) {
+    state = nextState;
+    syncForm();
+    writeState("TRIGGER APPLIED");
+    renderDynamic();
+    renderPlayers();
+    renderNpcs();
   }
 
   function bindForm() {
@@ -647,11 +687,19 @@
     if (window.HandlerNav) window.HandlerNav.render();
   }
 
+  function bindTriggerBridge() {
+    window.addEventListener("veildaemon:handler-trigger-applied", (event) => {
+      if (!event.detail?.state) return;
+      applyTriggerState(event.detail.state);
+    });
+  }
+
   async function init() {
     await api.loadTemplates();
     bindForm();
     bindDataControls();
     bindDashboardMode();
+    bindTriggerBridge();
     renderAll();
   }
 

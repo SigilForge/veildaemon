@@ -10,7 +10,7 @@
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260626-handlernav1" />
+  <link rel="stylesheet" href="../handler.css?v=20260626-triggers1" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -69,6 +69,24 @@
         <label>Public scene label<input name="session.safeSceneLabel" maxlength="160" autocomplete="off" /></label>
       </section>
 
+      <section class="panel trigger-panel no-print" aria-label="Table triggers" data-mode-panel="live">
+        <div class="panel-heading">
+          <p class="kicker">WHAT JUST HAPPENED?</p>
+          <h2>Click the table event. Clock, Attention, and Scene State update visibly.</h2>
+        </div>
+        <p class="panel-note">Triggers feed the meters below. Selectors remain available for manual override.</p>
+        <div class="trigger-rail" id="trigger-rail" role="group" aria-label="Table triggers"></div>
+        <div class="trigger-preview-panel" id="trigger-preview-panel" hidden>
+          <p class="trigger-preview-title">Apply Trigger?</p>
+          <p class="panel-note">This will:</p>
+          <ul class="trigger-preview-lines"></ul>
+          <div class="trigger-preview-actions">
+            <button class="button primary" id="trigger-apply" type="button">Apply</button>
+            <button class="button ghost" id="trigger-cancel" type="button">Cancel</button>
+          </div>
+        </div>
+      </section>
+
       <section class="panel scene-panel" aria-label="Active scene state" data-mode-panel="live">
         <div class="panel-heading">
           <p class="kicker">ACTIVE SCENE STATE</p>
@@ -103,6 +121,8 @@
           <p class="kicker">ENTITY / ZONE LOOP</p>
           <h2>Need -> Lure -> Pressure -> Gift -> Violence -> Exit</h2>
         </div>
+        <p class="panel-note" id="entity-loop-lock-hint" hidden>Need, Lure, and Pressure sync from the active Needlepoint template. Gift, Violence, and Exit stay editable unless the full loop is template-locked.</p>
+        <div class="entity-active-readout" id="entity-active-readout" aria-live="polite"></div>
         <div class="loop-grid" id="entity-loop-grid"></div>
       </section>
 
@@ -238,8 +258,9 @@
     </section>
   </main>
   <script src="../../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="../handler-state.js?v=20260626-attention1"></script>
+  <script src="../handler-state.js?v=20260626-triggers1"></script>
   <script src="../handler-nav.js?v=20260626-handlernav1"></script>
-  <script src="../handler.js?v=20260626-handlernav1"></script>
+  <script src="../handler-triggers.js?v=20260626-triggers1"></script>
+  <script src="../handler.js?v=20260626-triggers1"></script>
 </body>
 </html>
