@@ -467,14 +467,17 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
   await expect(page.locator("#roll-attribute")).toContainText("Body +3");
 
+  await importAuthorizationPacket(page, ["BREACH_REWARD:5"]);
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("8");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
-  await page.evaluate(() => {
-    const pip = document.querySelector('[aria-label="Body 3"]');
-    if (!pip) return;
-    pip.removeAttribute("disabled");
-    pip.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-  });
-  await expect(page.locator("#storage-status")).toContainText("Creation Mode required to change Attributes");
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await page.getByLabel("Body 4").click();
+  await expect(page.locator("#roll-attribute")).toContainText("Body +4");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("4");
+  await expect(page.locator("#storage-status")).not.toContainText("Creation attribute cap");
+
+  await page.getByLabel("Body 3").click();
   await expect(page.locator("#roll-attribute")).toContainText("Body +3");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("8");
 });

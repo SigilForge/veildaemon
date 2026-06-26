@@ -1329,8 +1329,23 @@
 
   function applyBreachDelta(delta) {
     if (delta > 0) return spendBreach(delta);
-    if (delta < 0 && consoleState.operatorStatus.creationMode) refundCreationBreach(Math.abs(delta));
+    if (delta < 0) {
+      if (consoleState.operatorStatus.creationMode) {
+        refundCreationBreach(Math.abs(delta));
+      } else {
+        const current = Number(normalizeNonNegative(consoleState.operatorStatus.breachPoints));
+        consoleState.operatorStatus.breachPoints = String(Math.min(99, current + Math.abs(delta)));
+        setNamedValue("breachPoints", consoleState.operatorStatus.breachPoints);
+        renderCurrencyBanks();
+      }
+    }
     return true;
+  }
+
+  function attributeAdvancementCostDelta(oldRank, nextRank) {
+    if (nextRank > oldRank) return advancementCost(oldRank, nextRank);
+    if (nextRank < oldRank) return -advancementCost(nextRank, oldRank);
+    return 0;
   }
 
   function applyFrequencyBreachDelta(delta) {
@@ -1365,18 +1380,22 @@
     if (!consoleState.operatorStatus.sheetEditMode) {
       return { ok: false, message: "Edit Sheet required to change Attributes." };
     }
-    if (!consoleState.operatorStatus.creationMode) {
-      return { ok: false, message: "Creation Mode required to change Attributes." };
-    }
     const oldRank = Number(normalizeAttributes(attributes)[attribute] || 1);
     const nextRank = Number(normalizeBoxValue(targetRank, 5));
     if (nextRank === oldRank) {
       return { ok: false, message: "" };
     }
-    if (nextRank > creationAttributeRankCap()) {
-      return { ok: false, message: `Creation attribute cap is ${creationAttributeRankCap()}.` };
+    if (consoleState.operatorStatus.creationMode) {
+      if (nextRank > creationAttributeRankCap()) {
+        return { ok: false, message: `Creation attribute cap is ${creationAttributeRankCap()}.` };
+      }
+      const cost = creationAttributeCostDelta(attributes, attribute, nextRank);
+      if (cost > 0 && !canSpendBreach(cost)) {
+        return { ok: false, message: `Insufficient Breach. Required ${cost}.` };
+      }
+      return { ok: true, cost };
     }
-    const cost = creationAttributeCostDelta(attributes, attribute, nextRank);
+    const cost = attributeAdvancementCostDelta(oldRank, nextRank);
     if (cost > 0 && !canSpendBreach(cost)) {
       return { ok: false, message: `Insufficient Breach. Required ${cost}.` };
     }
@@ -1734,7 +1753,6 @@
     if (!grid) return;
     const attrs = normalizeAttributes(consoleState.operatorStatus.attributes);
     const editing = Boolean(consoleState.operatorStatus.sheetEditMode);
-    const creationEditing = editing && Boolean(consoleState.operatorStatus.creationMode);
     consoleState.operatorStatus.attributes = attrs;
     grid.textContent = "";
     attributeNames().forEach((name) => {
@@ -1756,8 +1774,7 @@
         const pip = document.createElement("button");
         pip.type = "button";
         pip.className = "pip";
-        pip.disabled = !creationEditing;
-        pip.classList.toggle("is-locked", editing && !creationEditing);
+        pip.disabled = !editing;
         pip.classList.toggle("is-filled", index <= value);
         pip.setAttribute("aria-label", `${name} ${index}`);
         pip.addEventListener("click", () => {
