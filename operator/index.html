@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260626-livelower1" />
+  <link rel="stylesheet" href="./operator.css?v=20260626-builddefining1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -152,8 +152,9 @@
               <label>Record ID<input name="designation" type="text" maxlength="80" autocomplete="off" /></label>
               <label>Role<input name="role" type="text" maxlength="80" placeholder="Operator" autocomplete="off" /></label>
               <label>Needlepoint<input name="activeNeedlepoint" type="text" maxlength="90" placeholder="Viridian House" autocomplete="off" /></label>
-              <label>Background<select name="background" id="status-background"></select></label>
-              <label>Presentation / Ontology<select name="ontologyPresentation" id="status-ontology-presentation"></select></label>
+              <label>Background<select name="background" id="status-background"></select><span class="grant-preview" id="background-grant-preview">Grants: —</span></label>
+              <label>Presentation / Ontology<select name="ontologyPresentation" id="status-ontology-presentation"></select><span class="grant-preview" id="ontology-grant-preview">Grants: —</span></label>
+              <p class="build-defining-notice" id="build-defining-choice-notice" hidden>Creation Mode required to change Background or Ontology.</p>
             </div>
           </article>
 
@@ -512,7 +513,7 @@
     </section>
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
-  <script src="../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="./operator.js?v=20260626-freqreadout1"></script>
+  <script src="../catalogs.js?v=20260626-catalog-grants1"></script>
+  <script src="./operator.js?v=20260626-builddefining1"></script>
 </body>
 </html>

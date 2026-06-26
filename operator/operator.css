@@ -356,6 +356,24 @@ body.operator-record-sealed .data-panel {
 .editable-case-strip {
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 }
+.grant-preview {
+  display: block;
+  margin-top: .28rem;
+  font-size: .72rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--muted, #8a9aa8);
+}
+.build-defining-notice {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: .78rem;
+  color: var(--warning, #c9a227);
+}
+select.is-locked {
+  opacity: .72;
+  cursor: not-allowed;
+}
 .operator-case-strip input,
 .active-frequency-strip input {
   min-height: 2.2rem;

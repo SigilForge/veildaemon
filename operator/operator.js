@@ -243,6 +243,111 @@
     return [];
   }
 
+  function backgroundKeyFromDisplayName(displayName) {
+    if (typeof catalogs.backgroundKeyFromDisplayName === "function") return catalogs.backgroundKeyFromDisplayName(displayName);
+    return "";
+  }
+
+  function presentationKeyFromDisplayName(displayName) {
+    if (typeof catalogs.presentationKeyFromDisplayName === "function") return catalogs.presentationKeyFromDisplayName(displayName);
+    return "";
+  }
+
+  function backgroundGrantLabel(entry) {
+    if (typeof catalogs.backgroundGrantLabel === "function") return catalogs.backgroundGrantLabel(entry);
+    const bonuses = entry && entry.skillBonus;
+    return bonuses && bonuses.length ? bonuses.map((skill) => `${skill} +1`).join(", ") : "none loaded";
+  }
+
+  function ontologyGrantLabel(entry) {
+    if (typeof catalogs.ontologyGrantLabel === "function") return catalogs.ontologyGrantLabel(entry && entry.grants);
+    return "none loaded";
+  }
+
+  function grantsSkillBonuses(grants) {
+    if (typeof catalogs.grantsSkillBonuses === "function") return catalogs.grantsSkillBonuses(grants);
+    return [];
+  }
+
+  function backgroundSkillBonuses(status) {
+    const key = backgroundKeyFromDisplayName(status.background);
+    if (!key) return {};
+    const entry = backgroundEntry(key);
+    const bonuses = {};
+    (entry.skillBonus || []).forEach((skill) => {
+      bonuses[skill] = (bonuses[skill] || 0) + 1;
+    });
+    return bonuses;
+  }
+
+  function ontologySkillBonuses(status) {
+    const key = presentationKeyFromDisplayName(status.ontologyPresentation);
+    if (!key) return {};
+    const entry = presentationEntry(key);
+    const bonuses = {};
+    grantsSkillBonuses(entry.grants).forEach((skill) => {
+      bonuses[skill] = (bonuses[skill] || 0) + 1;
+    });
+    return bonuses;
+  }
+
+  function derivedSkillBonuses(status) {
+    const bonuses = {};
+    [backgroundSkillBonuses(status), ontologySkillBonuses(status)].forEach((source) => {
+      Object.entries(source).forEach(([skill, amount]) => {
+        bonuses[skill] = (bonuses[skill] || 0) + amount;
+      });
+    });
+    return bonuses;
+  }
+
+  function baseSkillRank(skills, skill) {
+    return Number(normalizeSkills(skills)[skill] || 0);
+  }
+
+  function effectiveSkillRank(skills, skill, status) {
+    const base = baseSkillRank(skills, skill);
+    const bonus = derivedSkillBonuses(status)[skill] || 0;
+    return Math.min(5, base + bonus);
+  }
+
+  function skillDisplayEntries(status) {
+    const skills = normalizeSkills(status.skills);
+    const bonuses = derivedSkillBonuses(status);
+    const names = new Set([...Object.keys(skills), ...Object.keys(bonuses)]);
+    return [...names]
+      .sort((left, right) => left.localeCompare(right))
+      .map((name) => {
+        const baseRank = baseSkillRank(skills, name);
+        const bonusRank = bonuses[name] || 0;
+        return {
+          name,
+          baseRank,
+          bonusRank,
+          effectiveRank: Math.min(5, baseRank + bonusRank)
+        };
+      })
+      .filter((entry) => entry.baseRank > 0 || entry.effectiveRank > 0);
+  }
+
+  function buildDefiningChoiceEditable() {
+    return Boolean(consoleState.operatorStatus.sheetEditMode) && Boolean(consoleState.operatorStatus.creationMode);
+  }
+
+  function guardBuildDefiningField(field, incomingValue) {
+    const current = safeString(consoleState.operatorStatus[field], 120);
+    const next = safeString(incomingValue, 120);
+    if (next === current) return true;
+    if (!buildDefiningChoiceEditable()) {
+      setNamedValue(field, current);
+      const select = document.querySelector(`[name="${field}"]`);
+      if (select) select.value = current;
+      setStorageStatus("Creation Mode required to change Background or Ontology.", true);
+      return false;
+    }
+    return true;
+  }
+
   function normalizeArray(value) {
     return Array.isArray(value) ? value : [];
   }
@@ -562,9 +667,10 @@
         : `No ${kind} authorization packet imported.`;
     }
     unlocks.forEach((unlock) => {
+      const reward = unlock.type === "void" || unlock.type === "breach";
       list.append(entry(unlock.label || unlock.key, [
         ["Authorization", unlockFlag(unlock)],
-        ["Status", unlock.applied ? "Applied" : "Available"],
+        ["Status", reward ? (unlock.applied ? "Applied" : "Pending") : "Available"],
         ["Handler note", unlock.note],
         ["Imported", formatDate(unlock.importedAt)]
       ], "unlocks", unlock.id));
@@ -706,27 +812,11 @@
     consoleState.unlocks.forEach((unlock) => {
       const key = unlock.type === "void" || unlock.type === "breach" ? `${unlock.type}:${unlock.key}:${unlock.id}` : `${unlock.type}:${unlock.key}`;
       if (consoleState.appliedUnlocks.includes(key)) {
-        unlock.applied = true;
+        unlock.applied = unlock.type === "void" || unlock.type === "breach";
         return;
       }
-      if (unlock.type === "background" && unlock.key === "FIELD_MEDIC") {
-        consoleState.operatorStatus.background = "Field Medic";
-        const skills = normalizeSkills(consoleState.operatorStatus.skills);
-        skills.Medicine = String(Math.min(5, Number(skills.Medicine || 0) + 1));
-        consoleState.operatorStatus.skills = skills;
-        unlock.applied = true;
-        consoleState.appliedUnlocks.push(key);
-        return;
-      }
-      if (unlock.type === "background") {
-        consoleState.operatorStatus.background = backgroundEntry(unlock.key).displayName;
-        unlock.applied = true;
-        consoleState.appliedUnlocks.push(key);
-        return;
-      }
-      if (unlock.type === "ontology") {
-        consoleState.operatorStatus.ontologyPresentation = presentationEntry(unlock.key).displayName;
-        unlock.applied = true;
+      if (unlock.type === "background" || unlock.type === "ontology") {
+        unlock.applied = false;
         consoleState.appliedUnlocks.push(key);
         return;
       }
@@ -828,6 +918,44 @@
       toggle.classList.toggle("primary", editing);
     }
     renderFrequencyEditMode();
+    renderBuildDefiningChoices();
+  }
+
+  function renderGrantPreviews() {
+    const status = consoleState.operatorStatus;
+    const backgroundPreview = document.getElementById("background-grant-preview");
+    const ontologyPreview = document.getElementById("ontology-grant-preview");
+    if (backgroundPreview) {
+      const key = backgroundKeyFromDisplayName(status.background);
+      const entry = key ? backgroundEntry(key) : null;
+      backgroundPreview.textContent = status.background
+        ? `Grants: ${backgroundGrantLabel(entry)}`
+        : "Grants: —";
+    }
+    if (ontologyPreview) {
+      const key = presentationKeyFromDisplayName(status.ontologyPresentation);
+      const entry = key ? presentationEntry(key) : null;
+      ontologyPreview.textContent = status.ontologyPresentation
+        ? `Grants: ${ontologyGrantLabel(entry)}`
+        : "Grants: —";
+    }
+  }
+
+  function renderBuildDefiningChoices() {
+    const editable = buildDefiningChoiceEditable();
+    const backgroundSelect = document.getElementById("status-background");
+    const presentationSelect = document.getElementById("status-ontology-presentation");
+    const notice = document.getElementById("build-defining-choice-notice");
+    [backgroundSelect, presentationSelect].forEach((select) => {
+      if (!select) return;
+      select.disabled = !editable;
+      select.classList.toggle("is-locked", !editable);
+    });
+    if (notice) {
+      notice.hidden = editable;
+      notice.textContent = editable ? "" : "Creation Mode required to change Background or Ontology.";
+    }
+    renderGrantPreviews();
   }
 
   function optionNode(value, label) {
@@ -877,6 +1005,7 @@
       buildUnlockedOptions("ontology", current).forEach((item) => presentationSelect.append(optionNode(item.value, item.label)));
       presentationSelect.value = current;
     }
+    renderBuildDefiningChoices();
   }
 
   function renderCurrencyBanks() {
@@ -1649,10 +1778,10 @@
       });
       picker.value = normalizeSkillName(current) || "Athletics";
     }
-    const skills = normalizeSkills(consoleState.operatorStatus.skills);
+    const status = consoleState.operatorStatus;
+    const skills = normalizeSkills(status.skills);
     consoleState.operatorStatus.skills = skills;
-    const entries = Object.entries(skills);
-    renderSkillSummary(summary, entries, skills);
+    renderSkillSummary(summary, skillDisplayEntries(status), skills, status);
     renderRollSelectors();
   }
 
@@ -1686,7 +1815,7 @@
     return true;
   }
 
-  function renderSkillSummary(summary, entries, skills = {}) {
+  function renderSkillSummary(summary, entries, skills = {}, status = consoleState.operatorStatus) {
     if (!summary) return;
     const openSkills = new Set();
     summary.querySelectorAll(".skill-summary-row[open]").forEach((node) => {
@@ -1702,8 +1831,9 @@
       return;
     }
     const editing = Boolean(consoleState.operatorStatus.sheetEditMode);
-    entries.forEach(([name, rank]) => {
-      const numericRank = Number(normalizeBoxValue(rank, 5));
+    entries.forEach(({ name, baseRank, bonusRank, effectiveRank }) => {
+      const numericBaseRank = Number(normalizeBoxValue(baseRank, 5));
+      const numericEffectiveRank = Number(normalizeBoxValue(effectiveRank, 5));
       const row = document.createElement("details");
       row.className = editing ? "skill-summary-row is-editable" : "skill-summary-row";
       const summaryNode = document.createElement("summary");
@@ -1728,7 +1858,9 @@
       const rankButton = document.createElement("button");
       rankButton.type = "button";
       rankButton.className = "skill-summary-rank";
-      rankButton.textContent = `+${rank}`;
+      rankButton.textContent = bonusRank > 0 && numericBaseRank > 0
+        ? `+${numericEffectiveRank} (${numericBaseRank}+${bonusRank})`
+        : `+${numericEffectiveRank}`;
       rankButton.addEventListener("click", (event) => {
         blockSummaryActivation(event);
         selectRollSkill(name);
@@ -1740,6 +1872,7 @@
         remove.type = "button";
         remove.className = "skill-inline-remove";
         remove.textContent = "Remove";
+        remove.disabled = numericBaseRank <= 0;
         remove.addEventListener("click", (event) => {
           blockSummaryActivation(event);
           delete skills[name];
@@ -1756,19 +1889,19 @@
         decrease.type = "button";
         decrease.textContent = "−";
         decrease.setAttribute("aria-label", `Decrease ${name} rank`);
-        decrease.disabled = numericRank <= 1;
+        decrease.disabled = numericBaseRank <= 0;
         decrease.addEventListener("click", (event) => {
           blockSummaryActivation(event);
-          applySkillRankChange(skills, name, numericRank - 1);
+          applySkillRankChange(skills, name, numericBaseRank - 1);
         });
         const increase = document.createElement("button");
         increase.type = "button";
         increase.textContent = "+";
         increase.setAttribute("aria-label", `Increase ${name} rank`);
-        increase.disabled = numericRank >= 5;
+        increase.disabled = numericBaseRank >= 5;
         increase.addEventListener("click", (event) => {
           blockSummaryActivation(event);
-          applySkillRankChange(skills, name, numericRank + 1);
+          applySkillRankChange(skills, name, numericBaseRank + 1);
         });
         rankControl.append(decrease, increase);
         summaryNode.append(rankControl);
@@ -1776,7 +1909,7 @@
 
       const descriptor = document.createElement("p");
       descriptor.className = "skill-scale";
-      descriptor.textContent = `${skillRankLabel(rank)}: ${skillRankDescription(name, rank)}`;
+      descriptor.textContent = `${skillRankLabel(numericEffectiveRank)}: ${skillRankDescription(name, numericEffectiveRank)}`;
       row.append(summaryNode, descriptor);
       if (openSkills.has(name)) row.open = true;
       summary.append(row);
@@ -1869,19 +2002,20 @@
     }
     if (skillSelect) {
       const current = normalizeSkillName(status.rollSkillKey);
-      const skills = normalizeSkills(status.skills);
+      const entries = skillDisplayEntries(status);
       skillSelect.textContent = "";
       const untrained = document.createElement("option");
       untrained.value = "";
       untrained.textContent = "Untrained +0";
       skillSelect.append(untrained);
-      Object.entries(skills).forEach(([name, rank]) => {
+      entries.forEach(({ name, effectiveRank }) => {
+        if (effectiveRank <= 0) return;
         const option = document.createElement("option");
         option.value = name;
-        option.textContent = `${name} +${rank}`;
+        option.textContent = `${name} +${effectiveRank}`;
         skillSelect.append(option);
       });
-      skillSelect.value = current && skills[current] ? current : "";
+      skillSelect.value = current && entries.some((entry) => entry.name === current && entry.effectiveRank > 0) ? current : "";
     }
   }
 
@@ -2493,11 +2627,18 @@
   }
 
   function collectStatusPayload() {
-    const status = { ...consoleState.operatorStatus };
+    const previous = consoleState.operatorStatus;
+    const status = { ...previous };
     document.querySelectorAll("#status-form input, #status-form textarea, #status-form select, #frequency-form input, #frequency-form textarea, #frequency-form select").forEach((input) => {
       if (!input.name) return;
       status[input.name] = input.type === "checkbox" ? input.checked : safeString(input.value, 3000);
     });
+    if (!guardBuildDefiningField("background", status.background)) {
+      status.background = safeString(previous.background, 120);
+    }
+    if (!guardBuildDefiningField("ontologyPresentation", status.ontologyPresentation)) {
+      status.ontologyPresentation = safeString(previous.ontologyPresentation, 120);
+    }
     return {
       ...status,
       stability: normalizeStabilityValue(status.stability),
@@ -2538,6 +2679,7 @@
     renderSegmentedControls();
     renderRollSelectors();
     renderCreationMode();
+    renderBuildDefiningChoices();
   }
 
   function addEntry(collection, form) {
@@ -2655,9 +2797,26 @@
       setStorageStatus("Active Misfire cleared. Recorded log retained.");
     });
     document.querySelectorAll("#status-form input, #status-form textarea, #status-form select, #frequency-form input, #frequency-form textarea, #frequency-form select").forEach((input) => {
+      if (input.name === "background" || input.name === "ontologyPresentation") return;
       input.addEventListener("input", autosaveStatus);
       input.addEventListener("change", autosaveStatus);
     });
+    const backgroundSelect = document.getElementById("status-background");
+    const presentationSelect = document.getElementById("status-ontology-presentation");
+    if (backgroundSelect) {
+      backgroundSelect.addEventListener("change", () => {
+        if (!guardBuildDefiningField("background", backgroundSelect.value)) return;
+        autosaveStatus();
+        renderSkills();
+      });
+    }
+    if (presentationSelect) {
+      presentationSelect.addEventListener("change", () => {
+        if (!guardBuildDefiningField("ontologyPresentation", presentationSelect.value)) return;
+        autosaveStatus();
+        renderSkills();
+      });
+    }
     const rollAdvantage = document.querySelector('[name="rollAdvantage"]');
     const rollDisadvantage = document.querySelector('[name="rollDisadvantage"]');
     if (rollAdvantage && rollDisadvantage) {
@@ -2688,6 +2847,7 @@
       if (!consoleState.operatorStatus.sheetEditMode) consoleState.operatorStatus.frequencyEditMode = false;
       writeConsoleState();
       renderSheetEditMode();
+      renderAuthorizationSelects();
       renderAttributes();
       renderSkills();
       renderLotus();
@@ -2737,6 +2897,8 @@
       consoleState.operatorStatus.creationMode = !consoleState.operatorStatus.creationMode;
       writeConsoleState();
       renderCreationMode();
+      renderBuildDefiningChoices();
+      renderAuthorizationSelects();
       renderAttributes();
       renderSkills();
     });
@@ -2765,7 +2927,7 @@
     const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
     const skillKey = normalizeSkillName(status.rollSkillKey);
     const attrValue = Number(attrs[attrKey] || 0);
-    const skillValue = skillKey ? Number(skills[skillKey] || 0) : 0;
+    const skillValue = skillKey ? effectiveSkillRank(skills, skillKey, status) : 0;
     const total = keptDice.values.reduce((sum, value) => sum + value, 0)
       + attrValue
       + skillValue
