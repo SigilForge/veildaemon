@@ -1611,7 +1611,6 @@
 
   function renderSkills() {
     const picker = document.getElementById("skill-picker");
-    const list = document.getElementById("skill-list");
     const summary = document.getElementById("skill-summary-list");
     if (picker) {
       const current = picker.value;
@@ -1627,41 +1626,39 @@
     const skills = normalizeSkills(consoleState.operatorStatus.skills);
     consoleState.operatorStatus.skills = skills;
     const entries = Object.entries(skills);
-    renderSkillSummary(summary, entries);
-    if (!list) {
-      renderRollSelectors();
-      return;
-    }
-    list.textContent = "";
+    renderSkillSummary(summary, entries, skills);
+    renderRollSelectors();
+  }
+
+  function renderSkillSummary(summary, entries, skills = {}) {
+    if (!summary) return;
+    summary.textContent = "";
     if (!entries.length) {
       const empty = document.createElement("p");
       empty.className = "empty-line";
       empty.textContent = "No trained skills assigned.";
-      list.append(empty);
-      renderRollSelectors();
+      summary.append(empty);
       return;
     }
     const editing = Boolean(consoleState.operatorStatus.sheetEditMode);
     entries.forEach(([name, rank]) => {
       const row = document.createElement("details");
-      row.className = editing ? "skill-row is-editable" : "skill-row";
+      row.className = editing ? "skill-summary-row is-editable" : "skill-summary-row";
       const summaryNode = document.createElement("summary");
+      const title = document.createElement("strong");
+      title.textContent = name;
+      const value = document.createElement("span");
+      value.textContent = `+${rank}`;
       const pick = document.createElement("button");
       pick.type = "button";
-      pick.className = "skill-name";
-      pick.textContent = name;
+      pick.className = "skill-summary-pick";
+      pick.append(title, value);
       pick.addEventListener("click", () => {
         consoleState.operatorStatus.rollSkillKey = name;
         writeConsoleState();
         renderRollSelectors();
       });
-      const staticRank = document.createElement("span");
-      staticRank.className = "skill-static-rank";
-      staticRank.textContent = `+${rank}`;
-      const descriptor = document.createElement("p");
-      descriptor.className = "skill-scale";
-      descriptor.textContent = `${name} ${rank} // ${skillRankLabel(rank)}: ${skillRankDescription(name, rank)}`;
-      summaryNode.append(pick, staticRank);
+      summaryNode.append(pick);
       if (editing) {
         const input = document.createElement("input");
         input.type = "number";
@@ -1701,37 +1698,11 @@
         });
         summaryNode.append(input, remove);
       }
+      const descriptor = document.createElement("p");
+      descriptor.className = "skill-scale";
+      descriptor.textContent = `${name} ${rank} // ${skillRankLabel(rank)}: ${skillRankDescription(name, rank)}`;
       row.append(summaryNode, descriptor);
-      list.append(row);
-    });
-    renderRollSelectors();
-  }
-
-  function renderSkillSummary(summary, entries) {
-    if (!summary) return;
-    summary.textContent = "";
-    if (!entries.length) {
-      const empty = document.createElement("p");
-      empty.className = "empty-line";
-      empty.textContent = "No trained skills assigned.";
-      summary.append(empty);
-      return;
-    }
-    entries.forEach(([name, rank]) => {
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "skill-summary-chip";
-      const title = document.createElement("strong");
-      title.textContent = name;
-      const value = document.createElement("span");
-      value.textContent = `+${rank}`;
-      chip.append(title, value);
-      chip.addEventListener("click", () => {
-        consoleState.operatorStatus.rollSkillKey = name;
-        writeConsoleState();
-        renderRollSelectors();
-      });
-      summary.append(chip);
+      summary.append(row);
     });
   }
 

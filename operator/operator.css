@@ -919,20 +919,17 @@ fieldset.recovery-field.compact label {
   }
 }
 .attribute-grid,
-.skill-list,
 .skill-summary-list {
   display: grid;
   gap: .38rem;
 }
-.attribute-row,
-.skill-row {
+.attribute-row {
   display: grid;
   grid-template-columns: minmax(5.6rem, .34fr) minmax(0, 1fr);
   gap: .42rem;
   align-items: center;
 }
-.attribute-name,
-.skill-name {
+.attribute-name {
   min-height: 2rem;
   border: 1px solid rgba(137,255,218,.2);
   background: rgba(0,0,0,.28);
@@ -965,16 +962,12 @@ fieldset.recovery-field.compact label {
   margin-bottom: .75rem;
 }
 .skill-summary-list {
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  grid-template-columns: 1fr;
   align-items: start;
 }
 
-.skill-summary-chip {
-  display: flex;
-  justify-content: space-between;
-  gap: .7rem;
+.skill-summary-row {
   min-width: 0;
-  padding: .55rem .65rem;
   border: 1px solid rgba(137,255,218,.16);
   background: rgba(0,0,0,.22);
   color: var(--text);
@@ -982,23 +975,62 @@ fieldset.recovery-field.compact label {
   line-height: 1.35;
 }
 
-.skill-summary-chip strong {
+.skill-summary-row summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .45rem;
+  align-items: center;
+  min-height: 2.35rem;
+  padding: .35rem .55rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.skill-summary-row.is-editable summary {
+  grid-template-columns: minmax(0, 1fr) 4.5rem auto;
+}
+
+.skill-summary-row summary::-webkit-details-marker {
+  display: none;
+}
+
+.skill-summary-row summary::before {
+  content: ">";
+  color: var(--purple);
+  font-weight: 800;
+}
+
+.skill-summary-row[open] summary::before {
+  content: "v";
+}
+
+.skill-summary-pick {
+  display: flex;
+  justify-content: space-between;
+  gap: .7rem;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.skill-summary-pick strong {
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--cyan);
   white-space: nowrap;
 }
 
-.skill-summary-chip span {
+.skill-summary-pick span {
   font-weight: 800;
   white-space: nowrap;
 }
 
-.skill-list {
-  gap: .55rem;
-}
-
 .skill-editor-panel {
+  margin-top: .65rem;
   margin-bottom: .8rem;
   border: 1px solid rgba(137,255,218,.16);
   background: rgba(0,0,0,.18);
@@ -1040,42 +1072,9 @@ fieldset.recovery-field.compact label {
   margin: .75rem;
 }
 
-.skill-list details {
-  padding: .65rem;
-}
-
-.skill-row {
-  grid-template-columns: minmax(0, 1fr) 4.5rem auto;
-}
-
-.skill-row summary {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 4.5rem auto;
-  gap: .42rem;
-  align-items: center;
-  list-style: none;
-}
-
-.skill-row:not(.is-editable) summary {
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.skill-static-rank {
-  color: var(--text);
-  font-weight: 800;
-  text-align: right;
-}
-
-.skill-row.is-editable .skill-static-rank {
-  display: none;
-}
-
-.skill-row summary::-webkit-details-marker {
-  display: none;
-}
-
-.skill-row .skill-scale {
-  margin-top: .55rem;
+.skill-summary-row .skill-scale {
+  margin: 0;
+  padding: 0 .75rem .65rem 1.55rem;
 }
 
 .creation-row {
@@ -1119,7 +1118,7 @@ fieldset.recovery-field.compact label {
   grid-column: 1 / -1;
   padding: .1rem .2rem .35rem;
 }
-.skill-row input {
+.skill-summary-row input {
   text-align: center;
 }
 .lotus-detail {
@@ -1758,7 +1757,7 @@ body.has-reports-drawer-open .surface-tabs {
   }
   .skill-builder,
   .creation-row,
-  .skill-row {
+  .skill-summary-row.is-editable summary {
     grid-template-columns: 1fr;
   }
   .currency-readouts {
