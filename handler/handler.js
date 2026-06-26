@@ -157,6 +157,101 @@
     });
   }
 
+  function renderNpcs() {
+    const grid = document.getElementById("npc-grid");
+    renderNpcSummary();
+    if (!grid) return;
+    grid.textContent = "";
+    state.npcs.forEach((npc, index) => {
+      const card = document.createElement("article");
+      card.className = "player-card npc-card";
+      card.innerHTML = `
+        <div class="player-head">
+          <label>Name<input data-npc="${index}" data-field="name" maxlength="100" /></label>
+          <button class="entry-remove no-print" type="button" data-remove-npc="${index}">Remove</button>
+        </div>
+        <div class="field-grid three">
+          <label>Role<input data-npc="${index}" data-field="role" maxlength="100" /></label>
+          <label>Pressure<input data-npc="${index}" data-field="pressure" maxlength="160" /></label>
+          <label>Location<input data-npc="${index}" data-field="location" maxlength="120" /></label>
+        </div>
+        <fieldset class="flag-grid" data-npc-flags="${index}"></fieldset>
+        <label>Notes<textarea data-npc="${index}" data-field="notes" rows="3"></textarea></label>
+      `;
+      grid.append(card);
+      const flags = card.querySelector("[data-npc-flags]");
+      api.npcFlags.forEach((flag) => {
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = flag;
+        checkbox.checked = npc.flags.includes(flag);
+        label.append(checkbox, ` ${flag}`);
+        flags.append(label);
+      });
+    });
+
+    grid.querySelectorAll("[data-npc]").forEach((input) => {
+      const index = Number(input.dataset.npc);
+      const field = input.dataset.field;
+      input.value = state.npcs[index][field] || "";
+      input.addEventListener("input", () => {
+        state.npcs[index][field] = api.safeString(input.value, field === "notes" ? 1000 : 180);
+        writeState();
+        renderNpcSummary();
+      });
+    });
+
+    grid.querySelectorAll("[data-npc-flags]").forEach((fieldset) => {
+      const index = Number(fieldset.dataset.npcFlags);
+      fieldset.addEventListener("change", () => {
+        state.npcs[index].flags = Array.from(fieldset.querySelectorAll("input:checked")).map((input) => input.value);
+        writeState();
+        renderNpcSummary();
+      });
+    });
+
+    grid.querySelectorAll("[data-remove-npc]").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.npcs.splice(Number(button.dataset.removeNpc), 1);
+        if (!state.npcs.length) state.npcs.push(api.normalizeState({ npcs: [{}] }).npcs[0]);
+        writeState();
+        renderNpcs();
+      });
+    });
+  }
+
+  function renderNpcSummary() {
+    const summary = document.getElementById("npc-summary-grid");
+    if (!summary) return;
+    summary.textContent = "";
+    const active = state.npcs.filter((npc) => npc.name || npc.role || npc.pressure || npc.location || npc.notes).slice(0, 5);
+    if (!active.length) {
+      summary.append(summaryCard("Roster", "No active NPCs logged.", "Prep can add people, pressure, and flags."));
+      return;
+    }
+    active.forEach((npc) => {
+      summary.append(summaryCard(
+        npc.name || "Unnamed NPC",
+        [npc.role, npc.pressure, npc.location].filter(Boolean).join(" // ") || "No pressure logged.",
+        npc.flags.join(" // ") || "No flags"
+      ));
+    });
+  }
+
+  function summaryCard(title, body, meta) {
+    const card = document.createElement("article");
+    card.className = "summary-card";
+    const strong = document.createElement("strong");
+    strong.textContent = title;
+    const p = document.createElement("p");
+    p.textContent = body;
+    const em = document.createElement("em");
+    em.textContent = meta;
+    card.append(strong, p, em);
+    return card;
+  }
+
   function renderRiskStrip() {
     const strip = document.getElementById("operator-risk-strip");
     if (!strip) return;
@@ -353,6 +448,13 @@
       writeState();
       renderPlayers();
     });
+
+    const addNpc = document.getElementById("add-npc");
+    if (addNpc) addNpc.addEventListener("click", () => {
+      state.npcs.push({ id: `npc-${Date.now()}`, name: "", role: "", pressure: "", location: "", flags: [], notes: "" });
+      writeState();
+      renderNpcs();
+    });
   }
 
   function bindDataControls() {
@@ -365,6 +467,7 @@
       writeState(`${template.name.toUpperCase()} LOADED`);
       renderDynamic();
       renderPlayers();
+      renderNpcs();
     });
 
     const exportButton = document.getElementById("export-case");
@@ -496,6 +599,7 @@
     renderLoopFields();
     syncForm();
     renderPlayers();
+    renderNpcs();
     renderDynamic();
     applyDashboardMode(dashboardMode);
     setStatus("LOCAL READY");

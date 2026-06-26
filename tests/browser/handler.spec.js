@@ -34,8 +34,21 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.getByText("Need -> Lure -> Pressure -> Gift -> Violence -> Exit")).toBeVisible();
   await expect(page.getByText("THE ROOM ANSWERS", { exact: true })).toBeVisible();
   await expect(page.locator("#operator-risk-strip")).toBeVisible();
+  await expect(page.getByText("NPC / ROSTER")).toBeVisible();
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toBeHidden();
   await expect(page.getByLabel("Template")).toBeHidden();
+
+  const layoutMetrics = await page.evaluate(() => {
+    const widths = (selector) => Array.from(document.querySelectorAll(selector)).map((node) => node.getBoundingClientRect().width);
+    return {
+      loop: widths("#entity-loop-grid textarea"),
+      roomFields: widths(".room-answer-fields input"),
+      clockTicks: document.querySelector('[name="primaryClock.ticksWhen"]')?.getBoundingClientRect().width || 0
+    };
+  });
+  expect(Math.min(...layoutMetrics.loop)).toBeGreaterThan(250);
+  expect(Math.min(...layoutMetrics.roomFields)).toBeGreaterThan(250);
+  expect(layoutMetrics.clockTicks).toBeGreaterThan(250);
 
   await expect(page.locator("#room-answer-preview")).toContainText("Object");
   await expect(page.locator("#room-answer-preview")).toContainText("ordinary detail not selected");
@@ -67,6 +80,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
 
   await page.getByRole("button", { name: "PREP" }).click();
   await expect(page.getByRole("button", { name: "PREP" })).toHaveClass(/is-active/);
+  await expect(page.locator("#npc-grid")).toBeVisible();
   await expect(page.getByLabel("Template")).toHaveValue("veilcorp-intake");
   await page.getByRole("button", { name: "Apply Template" }).click();
   await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("VeilCorp Intake");
