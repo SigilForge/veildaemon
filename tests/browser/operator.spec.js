@@ -72,12 +72,14 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.getByText("Observation Status", { exact: true })).toHaveCount(0);
   await expect(page.locator("#sheet-attention-status")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Marked" })).toHaveCount(0);
-  await expect(page.getByText("Manage Skills", { exact: true })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Apply Core Start" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Add Skill" })).toBeHidden();
   await expect(page.getByText("JSON")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await expect(page.getByRole("button", { name: "Edit Sheet: On" })).toBeVisible();
-  await page.getByText("Manage Skills", { exact: true }).click();
+  await expect(page.getByRole("button", { name: "Apply Core Start" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Add Skill" })).toBeVisible();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
   await expect(page.locator('input[name="voidMarks"]')).toHaveValue("0");
@@ -126,7 +128,6 @@ test("secondary material is separated into tabs", async ({ page }) => {
 
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByText("Manage Skills", { exact: true }).click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await importAuthorizationPacket(page, ["VOID_REWARD:7", "BREACH_REWARD:27"]);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
@@ -409,7 +410,6 @@ test("creation bonus breach refunds when attributes are lowered", async ({ page 
 
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByText("Manage Skills", { exact: true }).click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
 

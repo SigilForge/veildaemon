@@ -827,9 +827,6 @@
       toggle.setAttribute("aria-pressed", editing ? "true" : "false");
       toggle.classList.toggle("primary", editing);
     }
-    document.querySelectorAll(".skill-editor-panel").forEach((node) => {
-      if (!editing) node.removeAttribute("open");
-    });
     renderFrequencyEditMode();
   }
 
@@ -1639,11 +1636,12 @@
     const skills = normalizeSkills(consoleState.operatorStatus.skills);
     consoleState.operatorStatus.skills = skills;
     const entries = Object.entries(skills);
-    renderSkillSummary(summary, entries, skills);
+    renderSkillSummary(summary, entries);
+    renderSkillManager(document.getElementById("skill-manager-list"), entries, skills);
     renderRollSelectors();
   }
 
-  function renderSkillSummary(summary, entries, skills = {}) {
+  function renderSkillSummary(summary, entries) {
     if (!summary) return;
     summary.textContent = "";
     if (!entries.length) {
@@ -1653,69 +1651,82 @@
       summary.append(empty);
       return;
     }
-    const editing = Boolean(consoleState.operatorStatus.sheetEditMode);
     entries.forEach(([name, rank]) => {
       const row = document.createElement("details");
-      row.className = editing ? "skill-summary-row is-editable" : "skill-summary-row";
+      row.className = "skill-summary-row";
       const summaryNode = document.createElement("summary");
       const title = document.createElement("strong");
       title.textContent = name;
       const value = document.createElement("span");
       value.textContent = `+${rank}`;
-      const pick = document.createElement("button");
-      pick.type = "button";
-      pick.className = "skill-summary-pick";
-      pick.append(title, value);
-      pick.addEventListener("click", () => {
+      summaryNode.append(title, value);
+      summaryNode.addEventListener("click", () => {
         consoleState.operatorStatus.rollSkillKey = name;
         writeConsoleState();
         renderRollSelectors();
       });
-      summaryNode.append(pick);
-      if (editing) {
-        const input = document.createElement("input");
-        input.type = "number";
-        input.min = "1";
-        input.max = "5";
-        input.step = "1";
-        input.value = rank;
-        input.setAttribute("aria-label", `${name} rank`);
-        input.addEventListener("change", () => {
-          const targetRank = Number(normalizeBoxValue(input.value, 5));
-          const allowed = skillChangeAllowed(skills, name, targetRank);
-          if (!allowed.ok) {
-            setStorageStatus(allowed.message, true);
-            renderSkills();
-            return;
-          }
-          if (!applyBreachDelta(allowed.cost || 0)) {
-            renderSkills();
-            return;
-          }
-          skills[name] = String(targetRank);
-          if (skills[name] === "0") delete skills[name];
-          consoleState.operatorStatus.skills = skills;
-          writeConsoleState();
-          renderSkills();
-        });
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "entry-remove";
-        remove.textContent = "Remove";
-        remove.addEventListener("click", () => {
-          delete skills[name];
-          if (consoleState.operatorStatus.rollSkillKey === name) consoleState.operatorStatus.rollSkillKey = "";
-          consoleState.operatorStatus.skills = skills;
-          writeConsoleState();
-          renderSkills();
-        });
-        summaryNode.append(input, remove);
-      }
       const descriptor = document.createElement("p");
       descriptor.className = "skill-scale";
-      descriptor.textContent = `${name} ${rank} // ${skillRankLabel(rank)}: ${skillRankDescription(name, rank)}`;
+      descriptor.textContent = `${skillRankLabel(rank)}: ${skillRankDescription(name, rank)}`;
       row.append(summaryNode, descriptor);
       summary.append(row);
+    });
+  }
+
+  function renderSkillManager(list, entries, skills = {}) {
+    if (!list) return;
+    list.textContent = "";
+    if (!entries.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-line";
+      empty.textContent = "No assigned skills to edit.";
+      list.append(empty);
+      return;
+    }
+    entries.forEach(([name, rank]) => {
+      const row = document.createElement("div");
+      row.className = "skill-manager-row";
+      const title = document.createElement("strong");
+      title.className = "skill-manager-name";
+      title.textContent = name;
+      const input = document.createElement("input");
+      input.type = "number";
+      input.min = "1";
+      input.max = "5";
+      input.step = "1";
+      input.value = rank;
+      input.setAttribute("aria-label", `${name} rank`);
+      input.addEventListener("change", () => {
+        const targetRank = Number(normalizeBoxValue(input.value, 5));
+        const allowed = skillChangeAllowed(skills, name, targetRank);
+        if (!allowed.ok) {
+          setStorageStatus(allowed.message, true);
+          renderSkills();
+          return;
+        }
+        if (!applyBreachDelta(allowed.cost || 0)) {
+          renderSkills();
+          return;
+        }
+        skills[name] = String(targetRank);
+        if (skills[name] === "0") delete skills[name];
+        consoleState.operatorStatus.skills = skills;
+        writeConsoleState();
+        renderSkills();
+      });
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "entry-remove";
+      remove.textContent = "Remove";
+      remove.addEventListener("click", () => {
+        delete skills[name];
+        if (consoleState.operatorStatus.rollSkillKey === name) consoleState.operatorStatus.rollSkillKey = "";
+        consoleState.operatorStatus.skills = skills;
+        writeConsoleState();
+        renderSkills();
+      });
+      row.append(title, input, remove);
+      list.append(row);
     });
   }
 
