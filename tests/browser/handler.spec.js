@@ -4,6 +4,7 @@ test("handler overview exposes modular control cards", async ({ page }) => {
   await page.goto("/handler/");
 
   await expect(page.getByRole("heading", { name: "HANDLER OVERVIEW" })).toBeVisible();
+  await expect(page.getByText("JSON")).toHaveCount(0);
   await expect(page.locator(".status-strip").getByText("Handler", { exact: true })).toBeVisible();
   await expect(page.getByText("Handler Exterior")).toHaveCount(0);
   const overview = page.getByLabel("Handler subsystem overview");
@@ -26,6 +27,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await page.goto("/handler/live/");
 
   await expect(page.getByRole("heading", { name: "LIVE DASHBOARD" })).toBeVisible();
+  await expect(page.getByText("JSON")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "LIVE MODE" })).toHaveClass(/is-active/);
   await expect(page.getByLabel("Scene State").getByRole("button", { name: /Stable/ })).toHaveClass(/is-active/);
   await expect(page.getByLabel("Primary clock segments")).toBeVisible();
@@ -137,7 +139,7 @@ test("handler module pages share case state", async ({ page }) => {
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toHaveCount(0);
 });
 
-test("handler imports Operator JSON summaries", async ({ page }) => {
+test("handler imports Operator Record summaries", async ({ page }) => {
   await page.goto("/handler/operators/");
 
   const exportPayload = {
@@ -206,7 +208,7 @@ test("handler exports Operator authorization packets", async ({ page }) => {
   await page.getByLabel("Presentation / Ontology").selectOption(["SANGUINE", "VOID_SHARD"]);
   await page.getByLabel("Background").selectOption(["FIELD_MEDIC", "LOCAL_WITNESS"]);
   await page.getByLabel("Case Unlock").selectOption("NEEDLEPOINT_SURVIVOR");
-  await page.getByLabel("Target Operator Name / Designation").fill("June Rook");
+  await page.getByLabel("Target Operator Name / Record ID").fill("June Rook");
   await page.getByLabel("Void Reward").fill("2");
   await page.getByLabel("Breach Reward").fill("5");
   await expect(page.locator("#authorization-preview")).toContainText("ONTOLOGY_UNLOCK:SANGUINE");

@@ -76,7 +76,7 @@
       misfire: compactJoin([status.activeMisfire, status.misfireSeverity && status.misfireSeverity !== "None" ? status.misfireSeverity : "", status.misfires]),
       voidBreach,
       anchors: compactJoin([status.anchorPerson, status.anchors, status.totemObject]),
-      emotionalState: compactJoin([status.emotionalState, status.attentionState]),
+      emotionalState: compactJoin([status.emotionalState]),
       relationshipPressure: compactJoin([status.relationshipPressure, relationshipSummary(payload.relationships || payload.consoleState?.relationships)]),
       primaryFrequency,
       frequencyPips: pips,
@@ -460,7 +460,7 @@
       if (preview) preview.textContent = text;
       try {
         await navigator.clipboard.writeText(text);
-        setStatus("AUTHORIZATION JSON COPIED");
+        setStatus("AUTHORIZATION PACKET COPIED");
       } catch (error) {
         setStatus("COPY REFUSED", true);
       }

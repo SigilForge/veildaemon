@@ -69,9 +69,11 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await page.getByRole("button", { name: "Clear Active Misfire" }).click();
   await expect(page.getByLabel("Current consequence")).toHaveValue("");
 
-  await expect(page.locator("#sheet-attention-status")).toContainText("Unnoticed");
+  await expect(page.getByText("Observation Status", { exact: true })).toHaveCount(0);
+  await expect(page.locator("#sheet-attention-status")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Marked" })).toHaveCount(0);
   await expect(page.getByText("Manage Skills", { exact: true })).toBeHidden();
+  await expect(page.getByText("JSON")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await expect(page.getByRole("button", { name: "Edit Sheet: On" })).toBeVisible();
@@ -120,6 +122,7 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
 
 test("secondary material is separated into tabs", async ({ page }) => {
   await page.goto("/operator/");
+  await expect(page.getByText("JSON")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
