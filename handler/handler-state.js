@@ -24,7 +24,13 @@
     { name: "Collapse", cue: "Control fails. The room becomes the threat." }
   ];
 
-  const attentionStates = ["Unseen", "Observed", "Focused", "Witnessed", "Mythic"];
+  const attentionStates = ["Unseen", "Noticed", "Focused", "Fixed", "Exposed"];
+  const attentionAliases = {
+    observed: "noticed",
+    witnessed: "fixed",
+    mythic: "exposed",
+    claimed: "exposed"
+  };
   const loopFields = ["Need", "Lure", "Pressure", "Gift", "Violence", "Exit"];
   const npcFlags = ["Ally", "Witness", "Threat", "Missing", "Compromised"];
   const templateCatalogUrl = new URL("templates.json", document.currentScript && document.currentScript.src || window.location.href).href;
@@ -42,8 +48,7 @@
         "safeSceneLabel": "Broken Mirror Chamber active; cell not yet assembled"
       },
       "sceneState": {
-        "current": "Echoed",
-        "primaryConsequence": "The arrival window shows one extra reflection. Wrong-name addressing and basement access now depend on truth, lie, Frequency use, or blood-glass contact."
+        "current": "Echoed"
       },
       "primaryClock": {
         "name": "Broken Mirror Chamber",
@@ -69,9 +74,7 @@
         "notes": "First-contact mirror entity. Not a hit-point monster. Loses power when Operators refuse false selves, protect each other from isolation, or use Anchors against the altar mirror."
       },
       "attention": {
-        "current": "Observed",
-        "residue": "VeilCorp knows too much too early; Shade may store intimate pattern data.",
-        "followsHome": "A reflection lags half a heartbeat behind on one personal object."
+        "current": "Noticed"
       },
       "roomAnswer": {
         "object": "Mirror, phone screen, rainwater, stained glass, altar shard",
@@ -113,7 +116,91 @@
         "consequenceQueue": "FAILURE — Puzzle-only approach: reflections offer corrections; investigation without emotional admission costs 1 Stability or ticks Clock.\n\nFAILURE — Cleaner self accepted: Operator gains Advantage once, then Disadvantage on identity rolls until refused aloud while witnessed.\n\nFAILURE — Split before basement: isolated Operator faces Witness first at TN 15 without Ally support.",
         "residueLog": "CLOCK 1 Wrong Reflection — extra person or delayed gesture; identity rolls TN 15.\nCLOCK 2 Church Notices — denial while reflected costs 1 Stability without corroboration.\nCLOCK 3 Contact Pressure — Shade/Alex cut-in; clue gained, privacy risk.\nCLOCK 4 Basement Opens — first solo descent has Disadvantage.\nCLOCK 5 First Misfire — reflection walks, wrong name, or Alex says too soon early.\nCLOCK 6 Witness Wakes — break, bind, speak, or flee.\n\nRESOLUTION OPTIONS: Break altar mirror (fast, scar risk). Bind with Anchors (safer, Shade learns details). Speak truths (weakens Witness). Flee (valid; site stays active)."
       },
-      "unresolvedConsequences": "Choose campaign track after debrief: containment, paranoia, or haunted."
+      "unresolvedConsequences": "Choose campaign track after debrief: containment, paranoia, or haunted.",
+      "activeNeedlepoint": {
+        "id": "veilcorp-intake",
+        "scaffold": "handler/needlepoints/veilcorp-intake.json",
+        "attention_states": {
+          "unseen": {
+            "residue": "Reflections lag half a beat on peripheral glass.",
+            "follows_home": "One mirror briefly shows a harmless wrong expression.",
+            "consequence": "No penalty; warning only."
+          },
+          "noticed": {
+            "residue": "The arrival window shows one extra reflection.",
+            "follows_home": "One avoided truth flickers in stained glass or phone glass.",
+            "consequence": "First lie while reflected has Disadvantage unless another Operator corroborates."
+          },
+          "focused": {
+            "residue": "The mirror knows one refused self and tests it on screens.",
+            "follows_home": "A reflection scar may persist on one personal object.",
+            "consequence": "Once per scene, the Witness may ask which version of yourself you wish had chosen differently."
+          },
+          "fixed": {
+            "residue": "The Unfinished Witness targets one Operator through mirrors and devices.",
+            "follows_home": "Comments or wrong names arrive near meaningful identity lies.",
+            "consequence": "Refusal costs 1 Stability or ticks the Clock."
+          },
+          "exposed": {
+            "residue": "The Witness escapes the church boundary.",
+            "follows_home": "A mundane mirror, feed, or record becomes a new access point.",
+            "consequence": "Aftermath hook becomes a future Needlepoint seed."
+          }
+        },
+        "clock_attention_consequences": [
+          {
+            "clock_min": 0,
+            "clock_max": 1,
+            "attention": "unseen",
+            "consequence": "Minor reflection lag only. No penalty; warning only."
+          },
+          {
+            "clock_min": 0,
+            "clock_max": 2,
+            "attention": "noticed",
+            "consequence": "First lie while reflected has Disadvantage unless another Operator corroborates."
+          },
+          {
+            "clock_min": 2,
+            "clock_max": 3,
+            "attention": "noticed",
+            "consequence": "Shade or Alex cut-in lands; denial while reflected costs 1 Stability without corroboration."
+          },
+          {
+            "clock_min": 3,
+            "clock_max": 4,
+            "attention": "focused",
+            "consequence": "Basement route opens; solo descent has Disadvantage until the cell reunites."
+          },
+          {
+            "clock_min": 4,
+            "clock_max": 5,
+            "attention": "focused",
+            "consequence": "First misfire is live: reflection walks, wrong name, or Alex says too soon early."
+          },
+          {
+            "clock_min": 5,
+            "clock_max": 6,
+            "attention": "fixed",
+            "consequence": "The Witness targets one Operator through mirrors. Refusal costs 1 Stability or ticks the Clock."
+          },
+          {
+            "clock_min": 6,
+            "clock_max": 6,
+            "attention": "focused",
+            "consequence": "Break, bind, speak, or flee before the chamber chooses a cleaner self."
+          },
+          {
+            "clock_min": 6,
+            "clock_max": 6,
+            "attention": "exposed",
+            "consequence": "The Witness escapes the church boundary. Aftermath becomes campaign continuity."
+          }
+        ],
+        "player_view": {
+          "safe_consequence": ""
+        }
+      }
     }
   },
   {
@@ -123,12 +210,11 @@
       "session": {
         "title": "Needlepoint 001a",
         "caseTitle": "Viridian House",
-        "location": "Viridian House apartment building, Chicago",
+        "location": "Viridian House apartment building, Kansas City",
         "safeSceneLabel": "Mara Venn missing; observation indexing withheld speech"
       },
       "sceneState": {
-        "current": "Echoed",
-        "primaryConsequence": "Lobby camera tracks the quietest Operator. A lie under observation can open Floor 13 early, lock one exit, and raise the first Floor 13 action to TN 15."
+        "current": "Echoed"
       },
       "primaryClock": {
         "name": "Audience Before Clock",
@@ -154,9 +240,7 @@
         "notes": "First-contact observation entity. Do not add Monster Manual stats for Needlepoint 001a. Exit requires honest speech under observation, protected by the group."
       },
       "attention": {
-        "current": "Focused",
-        "residue": "A comment arrives before anyone types it.",
-        "followsHome": "One device predicts a useful lie; BEFORE_YOU_SAY_IT may persist after the case."
+        "current": "Focused"
       },
       "roomAnswer": {
         "object": "Lobby camera, elevator panel, comment thread, ring light, apartment door",
@@ -209,7 +293,91 @@
         "consequenceQueue": "FAILURE — Mara treated as content: off-camera rescue has Disadvantage; Mara stops responding off-camera.\n\nFAILURE — Constant lies under observation: Floor 13 opens Tick 3; two clues only; TN 15 first action; one exit locked.\n\nFAILURE — Fed comment thread for spectacle: Tick 5 begins on Floor 13 arrival; one Operator starts with Disadvantage on non-performance rolls.",
         "residueLog": "CLOCK 1 Camera Notices — tracks quietest Operator; Disadvantage unless shielded.\nCLOCK 2 Comment Predicts — thread names next choice; mask learned if prediction hits.\nCLOCK 3 Elevator Listens — TN 15 elevator action unless honest speech while recorded.\nCLOCK 4 Floor 13 Opens — worse positioning if fewer than three clues.\nCLOCK 5 Audience Edits — performed self grants Advantage once, Disadvantage until refused.\nCLOCK 6 Performed Self Stabilizes — group must refuse role or lose Mara/Operator to easier version.\n\nFIRST 20 MIN: Lobby camera before exposition. Camera answers first lie or honest admission. Stabilizer before escalate: step outside, name one normal thing, correct the lie."
       },
-      "unresolvedConsequences": "Aftermath hooks: elevator hesitates after 12; BEFORE_YOU_SAY_IT comments; Mara remembers unsaid speech; Saffi's tomorrow-dated draft."
+      "unresolvedConsequences": "Aftermath hooks: elevator hesitates after 12; BEFORE_YOU_SAY_IT comments; Mara remembers unsaid speech; Saffi's tomorrow-dated draft.",
+      "activeNeedlepoint": {
+        "id": "viridian-house",
+        "scaffold": "handler/needlepoints/viridian-house.json",
+        "attention_states": {
+          "unseen": {
+            "residue": "A comment arrives before anyone types it.",
+            "follows_home": "One phone briefly predicts harmless phrasing.",
+            "consequence": "No penalty; warning only."
+          },
+          "noticed": {
+            "residue": "Screens hesitate before showing the Operator's reflection.",
+            "follows_home": "One useful lie is predicted.",
+            "consequence": "First lie under observation has Disadvantage unless shielded."
+          },
+          "focused": {
+            "residue": "The comment thread knows an Operator's preferred mask.",
+            "follows_home": "BEFORE_YOU_SAY_IT may persist after the case.",
+            "consequence": "Once per scene, screen pressure can ask what the Operator is performing."
+          },
+          "fixed": {
+            "residue": "The Audience targets one Operator through devices.",
+            "follows_home": "Their phone receives comments near meaningful lies.",
+            "consequence": "Refusal costs 1 Stability or ticks the Clock."
+          },
+          "exposed": {
+            "residue": "The Audience escapes the site boundary.",
+            "follows_home": "Public feed, witness, or device becomes a new access point.",
+            "consequence": "Aftermath hook becomes a future Needlepoint seed."
+          }
+        },
+        "clock_attention_consequences": [
+          {
+            "clock_min": 0,
+            "clock_max": 1,
+            "attention": "unseen",
+            "consequence": "Minor tell only. No penalty; warning only."
+          },
+          {
+            "clock_min": 0,
+            "clock_max": 2,
+            "attention": "noticed",
+            "consequence": "First lie under observation has Disadvantage unless shielded."
+          },
+          {
+            "clock_min": 1,
+            "clock_max": 3,
+            "attention": "noticed",
+            "consequence": "Lobby camera tracks the quietest Operator; first lie under observation has Disadvantage unless shielded."
+          },
+          {
+            "clock_min": 2,
+            "clock_max": 4,
+            "attention": "focused",
+            "consequence": "Once per scene, screen pressure may ask what the Operator is performing."
+          },
+          {
+            "clock_min": 4,
+            "clock_max": 5,
+            "attention": "focused",
+            "consequence": "Once per scene, the Audience may target an Operator through any active screen. Refusal costs 1 Stability or ticks the Clock."
+          },
+          {
+            "clock_min": 4,
+            "clock_max": 6,
+            "attention": "fixed",
+            "consequence": "The Audience targets one Operator through devices. Refusal costs 1 Stability or ticks the Clock."
+          },
+          {
+            "clock_min": 6,
+            "clock_max": 6,
+            "attention": "focused",
+            "consequence": "Audience Before offers a clean role; group refusal required or Mara or an Operator may be replaced."
+          },
+          {
+            "clock_min": 6,
+            "clock_max": 6,
+            "attention": "exposed",
+            "consequence": "The Audience escapes the site boundary. Aftermath becomes a future Needlepoint seed."
+          }
+        ],
+        "player_view": {
+          "safe_consequence": ""
+        }
+      }
     }
   }
 ];
@@ -319,6 +487,15 @@
       templates: "",
       notes: ""
     },
+    activeNeedlepoint: {
+      id: "",
+      scaffold: "",
+      attention_states: {},
+      clock_attention_consequences: [],
+      player_view: {
+        safe_consequence: ""
+      }
+    },
     handlerNotes: {
       privateNotes: "",
       clueList: "",
@@ -371,6 +548,108 @@
     return Math.max(min, Math.min(max, Math.round(parsed)));
   }
 
+  function normalizeAttentionKey(value) {
+    const raw = safeString(value, 40).toLowerCase();
+    const key = attentionAliases[raw] || raw;
+    return attentionStates.some((item) => item.toLowerCase() === key) ? key : "unseen";
+  }
+
+  function normalizeAttentionDisplay(value) {
+    const key = normalizeAttentionKey(value);
+    return attentionStates.find((item) => item.toLowerCase() === key) || "Unseen";
+  }
+
+  function normalizeAttentionStatesTable(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return Object.keys(source).reduce((table, key) => {
+      const row = source[key];
+      if (!row || typeof row !== "object") return table;
+      table[normalizeAttentionKey(key)] = {
+        residue: safeString(row.residue, 180),
+        follows_home: safeString(row.follows_home || row.followsHome, 180),
+        consequence: safeString(row.consequence, 220)
+      };
+      return table;
+    }, {});
+  }
+
+  function normalizeClockAttentionConsequences(value) {
+    if (!Array.isArray(value)) return [];
+    return value.slice(0, 24).map((entry) => {
+      const clockMin = safeNumber(entry.clock_min, 0, 12, 0);
+      return {
+        clock_min: clockMin,
+        clock_max: safeNumber(entry.clock_max, 0, 12, clockMin),
+        attention: normalizeAttentionKey(entry.attention),
+        consequence: safeString(entry.consequence, 220)
+      };
+    }).filter((entry) => entry.consequence);
+  }
+
+  function normalizeActiveNeedlepoint(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return {
+      id: safeString(source.id, 80),
+      scaffold: safeString(source.scaffold, 180),
+      attention_states: normalizeAttentionStatesTable(source.attention_states),
+      clock_attention_consequences: normalizeClockAttentionConsequences(source.clock_attention_consequences),
+      player_view: {
+        safe_consequence: safeString(source.player_view?.safe_consequence, 220)
+      }
+    };
+  }
+
+  function resolveClockAttentionConsequence(state) {
+    const needlepoint = state.activeNeedlepoint;
+    if (!needlepoint?.id || !needlepoint.clock_attention_consequences.length) return "";
+    const clock = safeNumber(state.primaryClock.current, 0, 12, 0);
+    const attention = normalizeAttentionKey(state.attention.current);
+    const matches = needlepoint.clock_attention_consequences.filter((entry) => (
+      clock >= entry.clock_min
+      && clock <= entry.clock_max
+      && entry.attention === attention
+    ));
+    if (!matches.length) return "";
+    matches.sort((left, right) => (
+      (right.clock_min - left.clock_min)
+      || ((left.clock_max - left.clock_min) - (right.clock_max - right.clock_min))
+    ));
+    return matches[0].consequence;
+  }
+
+  function applyNeedlepointAttention(state) {
+    const needlepoint = state.activeNeedlepoint;
+    if (!needlepoint?.id || !Object.keys(needlepoint.attention_states).length) return state;
+    const key = normalizeAttentionKey(state.attention.current);
+    const row = needlepoint.attention_states[key];
+    if (row) {
+      state.attention.residue = row.residue;
+      state.attention.followsHome = row.follows_home;
+    }
+    const matrixConsequence = resolveClockAttentionConsequence(state);
+    if (matrixConsequence) {
+      state.sceneState.primaryConsequence = matrixConsequence;
+    } else if (row?.consequence) {
+      state.sceneState.primaryConsequence = row.consequence;
+    }
+    return state;
+  }
+
+  function playerViewPayload(state) {
+    const needlepoint = state.activeNeedlepoint || {};
+    const safeConsequence = safeString(needlepoint.player_view?.safe_consequence, 220);
+    return {
+      title: safeString(state.session.safeSceneLabel || state.session.caseTitle, 160) || "Scene active.",
+      scene: safeString(state.session.safeSceneLabel, 160) || "Scene active.",
+      consequence: safeConsequence,
+      instruction: "Stay real. Stay alive."
+    };
+  }
+
+  function hasActiveNeedlepoint(state) {
+    return Boolean(state.activeNeedlepoint && state.activeNeedlepoint.id);
+  }
+
   function mergeDeep(base, patch) {
     const output = clone(base);
     if (!patch || typeof patch !== "object") return output;
@@ -387,7 +666,7 @@
   function normalizeState(value) {
     const now = nowStamp();
     const merged = mergeDeep(defaultState, value && typeof value === "object" ? value : {});
-    return {
+    const next = {
       ...merged,
       version: 1,
       createdAt: safeString(merged.createdAt) || now,
@@ -413,7 +692,7 @@
       },
       entityLibrary: normalizeEntityLibrary(merged.entityLibrary),
       attention: {
-        current: normalizeChoice(merged.attention.current, attentionStates, "Unseen"),
+        current: normalizeAttentionDisplay(merged.attention.current),
         residue: safeString(merged.attention.residue, 180),
         followsHome: safeString(merged.attention.followsHome, 180)
       },
@@ -424,9 +703,11 @@
       npcs: normalizeNpcs(merged.npcs),
       players: normalizePlayers(merged.players),
       caseFile: normalizeTextObject(merged.caseFile, defaultState.caseFile),
+      activeNeedlepoint: normalizeActiveNeedlepoint(merged.activeNeedlepoint),
       handlerNotes: normalizeTextObject(merged.handlerNotes, defaultState.handlerNotes),
       canonTerminology
     };
+    return hasActiveNeedlepoint(next) ? applyNeedlepointAttention(next) : next;
   }
 
   function normalizeTextObject(value, shape) {
@@ -517,7 +798,7 @@
     return list.slice(0, 20).map((item, index) => ({
       id: safeString(item.id, 80) || `residue-${index + 1}`,
       scene: safeString(item.scene, 140),
-      attention: normalizeChoice(item.attention, attentionStates, "Unseen"),
+      attention: normalizeAttentionDisplay(item.attention),
       residue: safeString(item.residue, 240),
       followsHome: safeString(item.followsHome, 240),
       consequence: safeString(item.consequence, 300)
@@ -594,6 +875,10 @@
     getPath,
     setPath,
     publicClockLabel,
-    clockWarning
+    clockWarning,
+    applyNeedlepointAttention,
+    playerViewPayload,
+    hasActiveNeedlepoint,
+    normalizeAttentionDisplay
   };
 }());

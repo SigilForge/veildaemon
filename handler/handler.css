@@ -311,6 +311,24 @@ h2 {
   grid-column: span 1;
 }
 
+.panel-note {
+  margin: 0 0 .55rem;
+  color: var(--muted);
+  font-size: .72rem;
+  line-height: 1.45;
+}
+
+.is-needlepoint-locked {
+  border-color: rgba(137,255,218,.14);
+  background: rgba(0,0,0,.28);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.player-safe-strip [hidden] {
+  display: none !important;
+}
+
 .roll-panel-heading {
   display: flex;
   flex-wrap: wrap;
