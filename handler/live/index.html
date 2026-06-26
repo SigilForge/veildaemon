@@ -10,7 +10,8 @@
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260626-aftermath2" />
+  <link rel="stylesheet" href="../handler.css?v=20260626-flow1" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260626-flow1" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -69,73 +70,100 @@
         <label>Public scene label<input name="session.safeSceneLabel" maxlength="160" autocomplete="off" /></label>
       </section>
 
-      <section class="panel trigger-panel no-print" aria-label="Table triggers" data-mode-panel="live" data-live-control-zone>
-        <div class="panel-heading">
-          <p class="kicker">WHAT JUST HAPPENED?</p>
-          <h2>Click the table event. Clock, Attention, and Scene State update visibly.</h2>
+      <div class="live-flow-grid" data-mode-panel="live">
+        <div class="live-flow-column live-trigger-column">
+          <section class="panel trigger-panel no-print" aria-label="Table triggers" data-mode-panel="live" data-live-control-zone>
+            <div class="panel-heading">
+              <p class="kicker">WHAT JUST HAPPENED?</p>
+              <h2>Click the table event. Clock, Attention, and Scene State update visibly.</h2>
+            </div>
+            <p class="panel-note">Triggers feed the meters below. Selectors remain available for manual override.</p>
+            <div class="trigger-rail" id="trigger-rail" role="group" aria-label="Table triggers"></div>
+            <div class="trigger-preview-panel" id="trigger-preview-panel" hidden>
+              <p class="trigger-preview-title">Apply Trigger?</p>
+              <p class="panel-note">This will:</p>
+              <ul class="trigger-preview-lines"></ul>
+              <div class="trigger-preview-actions">
+                <button class="button primary" id="trigger-apply" type="button">Apply</button>
+                <button class="button ghost" id="trigger-cancel" type="button">Cancel</button>
+              </div>
+            </div>
+          </section>
         </div>
-        <p class="panel-note">Triggers feed the meters below. Selectors remain available for manual override.</p>
-        <div class="trigger-rail" id="trigger-rail" role="group" aria-label="Table triggers"></div>
-        <div class="trigger-preview-panel" id="trigger-preview-panel" hidden>
-          <p class="trigger-preview-title">Apply Trigger?</p>
-          <p class="panel-note">This will:</p>
-          <ul class="trigger-preview-lines"></ul>
-          <div class="trigger-preview-actions">
-            <button class="button primary" id="trigger-apply" type="button">Apply</button>
-            <button class="button ghost" id="trigger-cancel" type="button">Cancel</button>
-          </div>
-        </div>
-      </section>
 
-      <section class="panel scene-panel" aria-label="Active scene state" data-mode-panel="live">
-        <div class="panel-heading">
-          <p class="kicker">ACTIVE SCENE STATE</p>
-          <h2>Track the room, not the ontology.</h2>
-        </div>
-        <div class="scene-state-row" id="scene-state-row" role="group" aria-label="Scene State" data-live-control-zone></div>
-        <input name="sceneState.current" type="hidden" />
-        <label>Primary consequence<input name="sceneState.primaryConsequence" maxlength="220" autocomplete="off" /></label>
-      </section>
+        <div class="live-flow-column live-main-column">
+          <section class="panel scene-panel" aria-label="Active scene state" data-mode-panel="live">
+            <div class="panel-heading">
+              <p class="kicker">ACTIVE SCENE STATE</p>
+              <h2>Track the room, not the ontology.</h2>
+            </div>
+            <div class="scene-state-row" id="scene-state-row" role="group" aria-label="Scene State" data-live-control-zone></div>
+            <input name="sceneState.current" type="hidden" />
+            <label>Primary consequence<input name="sceneState.primaryConsequence" maxlength="220" autocomplete="off" /></label>
+          </section>
 
-      <section class="panel clock-panel" aria-label="Primary clock" data-mode-panel="live">
-        <div class="panel-heading">
-          <p class="kicker">PRIMARY CLOCK</p>
-          <h2>What is ticking right now?</h2>
-        </div>
-        <div class="clock-field-grid">
-          <label>Name<input name="primaryClock.name" maxlength="100" autocomplete="off" /></label>
-          <label>Segments<select name="primaryClock.segments"><option>4</option><option selected>6</option><option>8</option></select></label>
-          <label>Current<input name="primaryClock.current" type="number" min="0" max="12" step="1" /></label>
-          <label>Ticks When<input name="primaryClock.ticksWhen" maxlength="180" autocomplete="off" /></label>
-          <label>Stabilizer<input name="primaryClock.stabilizer" maxlength="160" autocomplete="off" /></label>
-        </div>
-        <div class="clock-track" id="primary-clock-track" aria-label="Primary clock segments" data-live-control-zone></div>
-        <div class="field-grid two">
-          <label>Midpoint Event<textarea name="primaryClock.midpointEvent" rows="3"></textarea></label>
-          <label>Full Clock Event<textarea name="primaryClock.fullClockEvent" rows="3"></textarea></label>
-        </div>
-      </section>
+          <section class="panel clock-panel" aria-label="Primary clock" data-mode-panel="live">
+            <div class="panel-heading">
+              <p class="kicker">PRIMARY CLOCK</p>
+              <h2>What is ticking right now?</h2>
+            </div>
+            <div class="clock-field-grid">
+              <label>Name<input name="primaryClock.name" maxlength="100" autocomplete="off" /></label>
+              <label>Segments<select name="primaryClock.segments"><option>4</option><option selected>6</option><option>8</option></select></label>
+              <label>Current<input name="primaryClock.current" type="number" min="0" max="12" step="1" /></label>
+              <label>Ticks When<input name="primaryClock.ticksWhen" maxlength="180" autocomplete="off" /></label>
+              <label>Stabilizer<input name="primaryClock.stabilizer" maxlength="160" autocomplete="off" /></label>
+            </div>
+            <div class="clock-track" id="primary-clock-track" aria-label="Primary clock segments" data-live-control-zone></div>
+            <div class="field-grid two">
+              <label>Midpoint Event<textarea name="primaryClock.midpointEvent" rows="3"></textarea></label>
+              <label>Full Clock Event<textarea name="primaryClock.fullClockEvent" rows="3"></textarea></label>
+            </div>
+          </section>
 
-      <section class="panel loop-panel" aria-label="Entity or Zone Loop" data-mode-panel="live">
-        <div class="panel-heading">
-          <p class="kicker">ENTITY / ZONE LOOP</p>
-          <h2>Need -> Lure -> Pressure -> Gift -> Violence -> Exit</h2>
-        </div>
-        <div class="entity-active-readout" id="entity-active-readout" aria-live="polite"></div>
-        <div class="loop-grid" id="entity-loop-grid"></div>
-      </section>
+          <section class="panel helper-panel" aria-label="The Room Answers helper" data-mode-panel="live">
+            <div class="panel-heading">
+              <p class="kicker">THE ROOM ANSWERS</p>
+              <h2>Ordinary object. Emotional input. Consequence.</h2>
+            </div>
+            <div class="room-answer-fields">
+              <label>Ordinary Object<input name="roomAnswer.object" maxlength="130" autocomplete="off" /></label>
+              <label>Emotional Input<input name="roomAnswer.emotionalInput" maxlength="130" autocomplete="off" /></label>
+              <label>Consequence<input name="roomAnswer.consequence" maxlength="200" autocomplete="off" /></label>
+            </div>
+            <div class="room-answer-preview" id="room-answer-preview" aria-live="polite"></div>
+          </section>
 
-      <section class="panel aftermath-panel" aria-label="Attention, aftermath, and quick roll" data-mode-panel="live archive">
-        <div class="panel-heading">
-          <p class="kicker">ATTENTION / AFTERMATH</p>
-          <h2>What follows them home?</h2>
+          <section class="panel player-panel" aria-label="Operator Risk Strip" data-mode-panel="live prep">
+            <div class="panel-heading">
+              <p class="kicker">OPERATOR SUMMARY</p>
+              <h2>Read-only compact trackers. Operators own their sheets.</h2>
+            </div>
+            <div class="operator-risk-strip" id="operator-risk-strip" aria-label="Operator Risk Strip"></div>
+            <div class="player-toolbar no-print">
+              <button class="button" id="add-player" type="button">Add Operator</button>
+              <p>Summary fields only: Stability, Harm, Misfire, Void/Breach notes, Anchors, emotional state, relationship pressure.</p>
+            </div>
+            <div class="player-grid" id="player-grid"></div>
+          </section>
         </div>
-        <div class="aftermath-live-layout">
-          <label>Current Attention<select name="attention.current" data-live-control></select></label>
-          <label>Residue<input name="attention.residue" maxlength="180" autocomplete="off" /></label>
-          <label>Follows Them Home<input name="attention.followsHome" maxlength="180" autocomplete="off" /></label>
-          <aside class="aftermath-roll" data-mode-panel="live" data-live-control-zone aria-label="Quick roll helper">
-            <div class="roll-panel-heading">
+
+        <div class="live-flow-column live-side-column">
+          <section class="panel aftermath-panel" aria-label="Attention and aftermath" data-mode-panel="live archive">
+            <div class="panel-heading">
+              <p class="kicker">ATTENTION / AFTERMATH</p>
+              <h2>What follows them home?</h2>
+            </div>
+            <div class="aftermath-live-layout">
+              <label>Current Attention<select name="attention.current" data-live-control></select></label>
+              <label>Residue<input name="attention.residue" maxlength="180" autocomplete="off" /></label>
+              <label>Follows Them Home<input name="attention.followsHome" maxlength="180" autocomplete="off" /></label>
+            </div>
+            <p class="panel-note" id="attention-deterministic-hint" hidden>Residue, follows-home, and consequence sync from the active Needlepoint when Attention, Clock, or a table trigger changes. Manual edits here may be overwritten.</p>
+          </section>
+
+          <section class="panel roll-panel" aria-label="Quick roll helper" data-mode-panel="live" data-live-control-zone>
+            <div class="panel-heading roll-panel-heading">
               <div>
                 <p class="kicker">QUICK ROLL</p>
                 <h2>3d6 + Attribute + Skill</h2>
@@ -158,7 +186,7 @@
                 </div>
               </details>
             </div>
-            <div class="roll-row aftermath-roll-row">
+            <div class="roll-row">
               <label>Attribute<input name="roll.attribute" type="number" min="0" max="8" step="1" /></label>
               <label>Skill<input name="roll.skill" type="number" min="0" max="8" step="1" /></label>
               <label>Modifier<input name="roll.modifier" type="number" min="-10" max="10" step="1" /></label>
@@ -169,10 +197,31 @@
               <button class="button primary" id="roll-button" type="button">Roll 3d6</button>
             </div>
             <output class="roll-output" id="roll-output">Awaiting Operator test.</output>
-          </aside>
+          </section>
+
+          <section class="panel loop-panel" aria-label="Entity or Zone Loop" data-mode-panel="live">
+            <div class="panel-heading">
+              <p class="kicker">ENTITY / ZONE LOOP</p>
+              <h2>Need -> Lure -> Pressure -> Gift -> Violence -> Exit</h2>
+            </div>
+            <div class="entity-active-readout" id="entity-active-readout" aria-live="polite"></div>
+            <div class="loop-grid" id="entity-loop-grid"></div>
+          </section>
+
+          <section class="panel npc-panel" aria-label="NPC Roster" data-mode-panel="live prep">
+            <div class="panel-heading">
+              <p class="kicker">NPC / ROSTER</p>
+              <h2>Active people, pressure, location, flags.</h2>
+            </div>
+            <div class="npc-summary-grid" id="npc-summary-grid" aria-label="Active NPC summary"></div>
+            <div class="player-toolbar npc-toolbar no-print">
+              <button class="button" id="add-npc" type="button">Add NPC</button>
+              <p>Prep roster only. Keep the live surface to 3-5 active people.</p>
+            </div>
+            <div class="player-grid npc-grid" id="npc-grid"></div>
+          </section>
         </div>
-        <p class="panel-note" id="attention-deterministic-hint" hidden>Residue, follows-home, and consequence sync from the active Needlepoint when Attention, Clock, or a table trigger changes. Manual edits here may be overwritten.</p>
-      </section>
+      </div>
 
       <section class="panel secondary-panel no-print" aria-label="Optional secondary clock" data-mode-panel="prep">
         <details id="secondary-clock-details">
@@ -186,45 +235,6 @@
           </div>
           <div class="clock-track compact" id="secondary-clock-track" aria-label="Secondary clock segments" data-live-control-zone></div>
         </details>
-      </section>
-
-      <section class="panel helper-panel" aria-label="The Room Answers helper" data-mode-panel="live">
-        <div class="panel-heading">
-          <p class="kicker">THE ROOM ANSWERS</p>
-          <h2>Ordinary object. Emotional input. Consequence.</h2>
-        </div>
-        <div class="room-answer-fields">
-          <label>Ordinary Object<input name="roomAnswer.object" maxlength="130" autocomplete="off" /></label>
-          <label>Emotional Input<input name="roomAnswer.emotionalInput" maxlength="130" autocomplete="off" /></label>
-          <label>Consequence<input name="roomAnswer.consequence" maxlength="200" autocomplete="off" /></label>
-        </div>
-        <div class="room-answer-preview" id="room-answer-preview" aria-live="polite"></div>
-      </section>
-
-      <section class="panel player-panel" aria-label="Operator Risk Strip" data-mode-panel="live prep">
-        <div class="panel-heading">
-          <p class="kicker">OPERATOR SUMMARY</p>
-          <h2>Read-only compact trackers. Operators own their sheets.</h2>
-        </div>
-        <div class="operator-risk-strip" id="operator-risk-strip" aria-label="Operator Risk Strip"></div>
-        <div class="player-toolbar no-print">
-          <button class="button" id="add-player" type="button">Add Operator</button>
-          <p>Summary fields only: Stability, Harm, Misfire, Void/Breach notes, Anchors, emotional state, relationship pressure.</p>
-        </div>
-        <div class="player-grid" id="player-grid"></div>
-      </section>
-
-      <section class="panel npc-panel" aria-label="NPC Roster" data-mode-panel="live prep">
-        <div class="panel-heading">
-          <p class="kicker">NPC / ROSTER</p>
-          <h2>Active people, pressure, location, flags.</h2>
-        </div>
-        <div class="npc-summary-grid" id="npc-summary-grid" aria-label="Active NPC summary"></div>
-        <div class="player-toolbar npc-toolbar no-print">
-          <button class="button" id="add-npc" type="button">Add NPC</button>
-          <p>Prep roster only. Keep the live surface to 3-5 active people.</p>
-        </div>
-        <div class="player-grid npc-grid" id="npc-grid"></div>
       </section>
 
       <section class="panel notes-panel private-panel" aria-label="Handler notes" data-mode-panel="archive">
