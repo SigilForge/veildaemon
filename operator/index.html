@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260625-sheetflow1" />
+  <link rel="stylesheet" href="./operator.css?v=20260625-sheetrepair1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -145,20 +145,18 @@
       <form class="console-form status-form" id="status-form">
         <section class="sheet-grid">
           <article class="sheet-card operator-case-strip wide">
-            <p class="card-label">Identity / Active Case / Frequency</p>
+            <p class="card-label">Identity / Access Strip</p>
+            <div class="case-strip-grid editable-case-strip">
+              <label>Operator Name<input name="operatorName" type="text" maxlength="80" autocomplete="off" /></label>
+              <label>Record<input name="designation" type="text" maxlength="80" autocomplete="off" /></label>
+              <label>Role<input name="role" type="text" maxlength="80" placeholder="Operator" autocomplete="off" /></label>
+              <label>Needlepoint<input name="activeNeedlepoint" type="text" maxlength="90" placeholder="Viridian House" autocomplete="off" /></label>
+            </div>
+          </article>
+
+          <article class="sheet-card active-frequency-strip wide">
+            <p class="card-label">Active Case / Frequency Readout</p>
             <div class="case-strip-grid">
-              <div class="status-chip">
-                <span>Operator</span>
-                <strong id="live-operator-name">UNNAMED</strong>
-              </div>
-              <div class="status-chip">
-                <span>Designation</span>
-                <strong id="live-designation">UNASSIGNED</strong>
-              </div>
-              <div class="status-chip">
-                <span>Needlepoint</span>
-                <strong id="live-needlepoint">VIRIDIAN HOUSE</strong>
-              </div>
               <div class="status-chip">
                 <span>Primary</span>
                 <strong id="sheet-frequency">UNASSIGNED</strong>
@@ -167,9 +165,11 @@
                 <span>Bleed Cue</span>
                 <strong id="status-bleed-cue">PENDING FREQUENCY</strong>
               </div>
-              <div class="status-chip">
-                <span>Pressure</span>
-                <strong id="live-emotional-state">STABLE ENOUGH</strong>
+              <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" autocomplete="off" /></label>
+              <label>Common tell<input name="commonTell" type="text" maxlength="160" autocomplete="off" /></label>
+              <div class="tiny-counters" aria-label="Operator currencies">
+                <label>Void<input name="voidMarks" type="number" min="0" max="13" step="1" inputmode="numeric" readonly /></label>
+                <label>Breach<input name="breachPoints" type="number" min="0" max="99" step="1" inputmode="numeric" readonly /></label>
               </div>
             </div>
           </article>
@@ -240,36 +240,24 @@
             <textarea name="quickNotes" rows="4" placeholder="Scene facts, table reminders, current risk."></textarea>
           </article>
 
-          <article class="sheet-card identity-card operator-live-readout">
-            <p class="card-label">Identity Details</p>
-            <label>Operator Name<input name="operatorName" type="text" maxlength="80" autocomplete="off" /></label>
-            <label>Designation<input name="designation" type="text" maxlength="80" autocomplete="off" /></label>
-            <label>Role<input name="role" type="text" maxlength="80" placeholder="Operator" autocomplete="off" /></label>
-            <label>Needlepoint<input name="activeNeedlepoint" type="text" maxlength="90" placeholder="Viridian House" autocomplete="off" /></label>
-            <label>Background<input name="background" type="text" maxlength="120" autocomplete="off" /></label>
-            <label>Ontology / Presentation<input name="ontologyPresentation" type="text" maxlength="120" autocomplete="off" /></label>
-            <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" autocomplete="off" /></label>
-            <div class="tiny-counters" aria-label="Operator currencies">
-              <label>Void<input name="voidMarks" type="number" min="0" max="13" step="1" inputmode="numeric" readonly /></label>
-              <label>Breach<input name="breachPoints" type="number" min="0" max="99" step="1" inputmode="numeric" readonly /></label>
+          <details class="sheet-card collapsible-card operator-details-panel wide">
+            <summary>Edit Operator Details</summary>
+            <div class="identity-card operator-live-readout">
+              <label>Background<select name="background" id="status-background"></select></label>
+              <label>Ontology / Presentation<select name="ontologyPresentation" id="status-ontology-presentation"></select></label>
+              <div class="readout-block">
+                <span>Primary</span>
+                <strong id="sheet-frequency-detail">UNASSIGNED</strong>
+              </div>
+              <div class="readout-block">
+                <span>Bleed Cue</span>
+                <strong id="status-bleed-cue-detail">PENDING FREQUENCY</strong>
+              </div>
             </div>
-          </article>
+          </details>
 
-          <article class="sheet-card operator-live-readout">
-            <p class="card-label">Frequency Details</p>
-            <div class="readout-block">
-              <span>Primary</span>
-              <strong id="sheet-frequency-detail">UNASSIGNED</strong>
-            </div>
-            <div class="readout-block">
-              <span>Bleed Cue</span>
-              <strong id="status-bleed-cue-detail">PENDING FREQUENCY</strong>
-            </div>
-            <label>Common tell<input name="commonTell" type="text" maxlength="160" autocomplete="off" /></label>
-          </article>
-
-          <article class="sheet-card skill-manager wide">
-            <p class="card-label">Skill Manager</p>
+          <details class="sheet-card collapsible-card skill-manager wide">
+            <summary>Manage Skills</summary>
             <div class="creation-row">
               <button type="button" class="button" id="creation-mode-toggle">Creation Mode: Off</button>
               <button type="button" class="button" id="apply-core-start">Apply Core Start</button>
@@ -283,7 +271,7 @@
             </div>
             <p class="skill-rank-preview" id="skill-rank-preview">Rank meaning pending.</p>
             <div class="skill-list" id="skill-list"></div>
-          </article>
+          </details>
         </section>
       </form>
     </section>
@@ -529,6 +517,6 @@
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="./operator.js?v=20260625-sheetflow1"></script>
+  <script src="./operator.js?v=20260625-sheetrepair1"></script>
 </body>
 </html>
