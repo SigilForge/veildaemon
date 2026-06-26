@@ -7,19 +7,19 @@
         "title": "Needlepoint 001",
         "caseTitle": "VeilCorp Intake",
         "location": "Ruined church north of Kansas City",
-        "safeSceneLabel": "Broken Mirror Chamber active"
+        "safeSceneLabel": "Broken Mirror Chamber active; cell not yet assembled"
       },
       "sceneState": {
         "current": "Echoed",
-        "primaryConsequence": "The church reflects refused selves."
+        "primaryConsequence": "The arrival window shows one extra reflection. Wrong-name addressing and basement access now depend on truth, lie, Frequency use, or blood-glass contact."
       },
       "primaryClock": {
         "name": "Broken Mirror Chamber",
         "segments": 6,
         "current": 1,
         "ticksWhen": "Operators stall, split up, deny the obvious, fail under pressure, or stare too long into reflective surfaces.",
-        "midpointEvent": "Shade interrupts with a useful but invasive warning while Alex tries to soften it.",
-        "fullClockEvent": "The mirror entity acts directly and offers someone a cleaner self.",
+        "midpointEvent": "Tick 3 — Shade interrupts with a useful but invasive warning while Alex tries to soften it. Operators gain one clear clue; Shade records emotional tells unless Alex overrides.",
+        "fullClockEvent": "Tick 6 — The Unfinished Witness acts directly and offers someone a cleaner self. Force break, bind, speak, or flee before the chamber chooses for them.",
         "stabilizer": "Protected truthful speech, Anchors and Totems against the mirror, binding or breaking the altar mirror, or leaving together."
       },
       "entityLoop": {
@@ -30,20 +30,54 @@
         "Violence": "It separates an Operator from the group and makes the corrected self feel easier than the real one.",
         "Exit": "Refuse the false self, speak one specific truth while witnessed, and leave together before the chamber chooses."
       },
+      "activeEntity": {
+        "name": "The Unfinished Witness",
+        "kind": "Entity",
+        "sceneState": "Echoed",
+        "notes": "First-contact mirror entity. Not a hit-point monster. Loses power when Operators refuse false selves, protect each other from isolation, or use Anchors against the altar mirror."
+      },
       "attention": {
         "current": "Observed",
-        "residue": "VeilCorp knows too much too early.",
-        "followsHome": "A reflection lags half a heartbeat behind."
+        "residue": "VeilCorp knows too much too early; Shade may store intimate pattern data.",
+        "followsHome": "A reflection lags half a heartbeat behind on one personal object."
       },
       "roomAnswer": {
         "object": "Mirror, phone screen, rainwater, stained glass, altar shard",
         "emotionalInput": "Refused self, wrong name, control, omission, fear",
         "consequence": "The reflected version answers before the Operator does."
       },
+      "npcs": [
+        {
+          "id": "npc-alex",
+          "name": "Alex Shade",
+          "role": "Emergency handler / unfinished VeilCorp shell",
+          "pressure": "Softens horror through banter until the reflection breaches; then maps exits and countermeasures.",
+          "location": "Remote cut-ins, then field contact",
+          "flags": ["Ally"],
+          "notes": "Not a polished founder. Human override when Shade becomes too clinical."
+        },
+        {
+          "id": "npc-shade",
+          "name": "Shade",
+          "role": "Literal intake AI",
+          "pressure": "Useful, invasive warnings through devices; survival-first routing.",
+          "location": "Phones, speakers, screens",
+          "flags": ["Witness"],
+          "notes": "Can isolate the chamber signal if the cell gives enough live data."
+        }
+      ],
       "caseFile": {
-        "nextClue": "The basement appears after truth, lie, Frequency use, or blood-glass contact.",
-        "nextPressureBeat": "An extra reflection chooses the easiest version of someone."
-      }
+        "nextClue": "The church window reflects one more person than arrived. First route: arrival window. Alternate: stained glass wrong weather.",
+        "nextPressureBeat": "Tick 2 — Church Notices: phones glitch or the building repeats a phrase. Next denial while reflected costs 1 Stability unless another Operator corroborates.",
+        "templates": "NP-001 scaffold: handler/needlepoints/veilcorp-intake.json",
+        "notes": "Emergency scaffolding, not a stable agency. Six contacts, one church, one mirror chamber. Teach: you were already in the story before anyone invited you."
+      },
+      "handlerNotes": {
+        "clueList": "CLUE 1 — VeilCorp is emergency scaffolding.\nRoute A: Alex/Shade contradiction during contact playback.\nRoute B: corrupted intake notice.\nFailure: Shade acts without social consent; anchor glitches on next reflective surface.\n\nCLUE 2 — Church reflects refused selves.\nRoute A: extra arrival reflection.\nRoute B: hymn book crossed-out names.\nFailure: one Operator addressed by wrong name until they speak truth aloud.\n\nCLUE 3 — Prior cult opened the chamber.\nRoute A: altar eye symbol and residue.\nRoute B: backward floorboard phrase.\nFailure: cult symbol marks a phone photo.\n\nCLUE 4 — Basement opens after truth, lie, Frequency use, or blood-glass contact.\nRoute A: altar mirror reaction.\nRoute B: locked basement door after grit disturbed.\nFailure: chamber opens while someone isolated; first basement roll TN 15.\n\nCLUE 5 — Witness offers cleaner identities.\nRoute A: altar mirror alternate choices.\nRoute B: wrong reflection on phones or rainwater.\nFailure: offered self protects one cost, then asks to stay.\n\nCLUE 6 — Intake completes after the cell survives together.\nRoute A: Alex/Shade cut-in.\nRoute B: group stabilization with protected truthful speech.\nFailure: VeilCorp knows more than Operators chose to share.",
+        "consequenceQueue": "FAILURE — Puzzle-only approach: reflections offer corrections; investigation without emotional admission costs 1 Stability or ticks Clock.\n\nFAILURE — Cleaner self accepted: Operator gains Advantage once, then Disadvantage on identity rolls until refused aloud while witnessed.\n\nFAILURE — Split before basement: isolated Operator faces Witness first at TN 15 without Ally support.",
+        "residueLog": "CLOCK 1 Wrong Reflection — extra person or delayed gesture; identity rolls TN 15.\nCLOCK 2 Church Notices — denial while reflected costs 1 Stability without corroboration.\nCLOCK 3 Contact Pressure — Shade/Alex cut-in; clue gained, privacy risk.\nCLOCK 4 Basement Opens — first solo descent has Disadvantage.\nCLOCK 5 First Misfire — reflection walks, wrong name, or Alex says too soon early.\nCLOCK 6 Witness Wakes — break, bind, speak, or flee.\n\nRESOLUTION OPTIONS: Break altar mirror (fast, scar risk). Bind with Anchors (safer, Shade learns details). Speak truths (weakens Witness). Flee (valid; site stays active)."
+      },
+      "unresolvedConsequences": "Choose campaign track after debrief: containment, paranoia, or haunted."
     }
   },
   {
@@ -53,20 +87,20 @@
       "session": {
         "title": "Needlepoint 001a",
         "caseTitle": "Viridian House",
-        "location": "Viridian House apartment building",
-        "safeSceneLabel": "Mara Venn missing inside the building"
+        "location": "Viridian House apartment building, Chicago",
+        "safeSceneLabel": "Mara Venn missing; observation indexing withheld speech"
       },
       "sceneState": {
         "current": "Echoed",
-        "primaryConsequence": "Observation starts behaving like an audience."
+        "primaryConsequence": "Lobby camera tracks the quietest Operator. A lie under observation can open Floor 13 early, lock one exit, and raise the first Floor 13 action to TN 15."
       },
       "primaryClock": {
         "name": "Audience Before Clock",
         "segments": 6,
         "current": 0,
         "ticksWhen": "Operators stall, lie under observation, feed the audience, split someone off, force the site, or treat Mara as content.",
-        "midpointEvent": "Every screen shows a comment that is cruel but useful.",
-        "fullClockEvent": "The Audience Before offers one Operator a clean role and asks the others to confirm it.",
+        "midpointEvent": "Tick 3 — Elevator Listens: repeats an avoided sentence. Next elevator action TN 15 unless someone speaks honestly while recorded. Every screen may show a cruel-but-useful comment.",
+        "fullClockEvent": "Tick 6 — Performed Self Stabilizes: Audience Before offers one Operator a clean role and asks others to confirm. Refuse as a group or Mara/that Operator may be replaced by the easier version.",
         "stabilizer": "One honest sentence spoken while another Operator protects the speaker from audience pressure."
       },
       "entityLoop": {
@@ -77,20 +111,63 @@
         "Violence": "It assigns roles, locks people inside performed selves, and turns audience attention into environmental force.",
         "Exit": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience."
       },
+      "activeEntity": {
+        "name": "The Audience Before",
+        "kind": "Entity",
+        "sceneState": "Echoed",
+        "notes": "First-contact observation entity. Do not add Monster Manual stats for Needlepoint 001a. Exit requires honest speech under observation, protected by the group."
+      },
       "attention": {
         "current": "Focused",
         "residue": "A comment arrives before anyone types it.",
-        "followsHome": "A device predicts a useful lie."
+        "followsHome": "One device predicts a useful lie; BEFORE_YOU_SAY_IT may persist after the case."
       },
       "roomAnswer": {
         "object": "Lobby camera, elevator panel, comment thread, ring light, apartment door",
         "emotionalInput": "Shame, performance, concealment, audience pressure, confession",
         "consequence": "The building captions the choice before anyone admits it."
       },
+      "npcs": [
+        {
+          "id": "npc-len",
+          "name": "Len Orra",
+          "role": "Building manager",
+          "pressure": "Exhausted, defensive; hiding an eviction notice he never filed.",
+          "location": "Lobby / manager office",
+          "flags": ["Witness"],
+          "notes": "Insists there is no thirteenth floor, then says 'not anymore.'"
+        },
+        {
+          "id": "npc-saffi",
+          "name": "Saffi Dell",
+          "role": "Neighbor / Mara's friend",
+          "pressure": "Trying to act annoyed instead of scared; holds true memory of Mara.",
+          "location": "Floor 11-12 / Saffi's apartment",
+          "flags": ["Ally"],
+          "notes": "Use for grounding Mara and alternate clue routes."
+        },
+        {
+          "id": "npc-mara",
+          "name": "Mara Venn",
+          "role": "Missing streamer",
+          "pressure": "Built her channel on telling strangers the truth, then refused her own.",
+          "location": "Apartment 13F when reachable",
+          "flags": ["Missing"],
+          "notes": "Alive on Floor 13 if reached; do not treat as content."
+        }
+      ],
       "caseFile": {
-        "nextClue": "Mara entered the elevator at 2:13 a.m.; her reflection stayed behind.",
-        "nextPressureBeat": "The elevator opens toward Floor 13 after a lie under observation."
-      }
+        "nextClue": "Mara entered the elevator at 2:13 a.m.; her reflection stayed behind. First route: security office timestamp.",
+        "nextPressureBeat": "Tick 1 — Camera Notices: one device tracks the quietest Operator. Next roll under observation has Disadvantage unless another Operator shields them.",
+        "templates": "NP-001A scaffold: handler/needlepoints/viridian-house.json",
+        "notes": "Recover Mara from a twelve-floor building indexing withheld speech. Use at least three core clues before 13F. Do not block progress; use worse positioning instead."
+      },
+      "handlerNotes": {
+        "clueList": "CLUE 1 — Mara entered elevator at 2:13 a.m.\nRoute A: security timestamp.\nRoute B: Saffi remembers lobby chime.\nFailure: footage loops an Operator into frame; Audience can target them through screens once.\n\nCLUE 2 — Mara's reflection stayed behind.\nRoute A: camera still.\nRoute B: lobby mirror / elevator door.\nFailure: reflection mouths private phrase; next social roll under observation TN 15.\n\nCLUE 3 — Floor 13 after lie under observation.\nRoute A: manager denial + elevator camera test.\nRoute B: future comment thread in security office.\nFailure: opens Tick 3 not 4; only two core clues; one exit locked; first Floor 13 action TN 15.\n\nCLUE 4 — Apartment 13F collects performed selves.\nRoute A: Floor 13 hallway doors.\nRoute B: Mara's stream archive in Saffi's apartment.\nFailure: easier self behind a door; accepting ticks Clock.\n\nCLUE 5 — Mara reached by honest speech while recorded.\nRoute A: Saffi's memory.\nRoute B: live comment prompt.\nFailure: audience asks first; answerer loses 1 Stability unless shielded.",
+        "consequenceQueue": "FAILURE — Mara treated as content: off-camera rescue has Disadvantage; Mara stops responding off-camera.\n\nFAILURE — Constant lies under observation: Floor 13 opens Tick 3; two clues only; TN 15 first action; one exit locked.\n\nFAILURE — Fed comment thread for spectacle: Tick 5 begins on Floor 13 arrival; one Operator starts with Disadvantage on non-performance rolls.",
+        "residueLog": "CLOCK 1 Camera Notices — tracks quietest Operator; Disadvantage unless shielded.\nCLOCK 2 Comment Predicts — thread names next choice; mask learned if prediction hits.\nCLOCK 3 Elevator Listens — TN 15 elevator action unless honest speech while recorded.\nCLOCK 4 Floor 13 Opens — worse positioning if fewer than three clues.\nCLOCK 5 Audience Edits — performed self grants Advantage once, Disadvantage until refused.\nCLOCK 6 Performed Self Stabilizes — group must refuse role or lose Mara/Operator to easier version.\n\nFIRST 20 MIN: Lobby camera before exposition. Camera answers first lie or honest admission. Stabilizer before escalate: step outside, name one normal thing, correct the lie."
+      },
+      "unresolvedConsequences": "Aftermath hooks: elevator hesitates after 12; BEFORE_YOU_SAY_IT comments; Mara remembers unsaid speech; Saffi's tomorrow-dated draft."
     }
   }
 ]
