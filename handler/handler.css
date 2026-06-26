@@ -209,6 +209,45 @@ h2 {
   margin-left: auto;
 }
 
+.handler-field-lock-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: .55rem;
+  padding: .62rem .72rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.22);
+}
+
+.handler-field-lock-status {
+  margin: 0;
+  flex: 1 1 220px;
+  color: var(--muted);
+  font-size: .74rem;
+  line-height: 1.4;
+}
+
+.field-edit-toggle {
+  flex: 0 0 auto;
+}
+
+body.handler-surface:not(.is-field-edit) .handler-shell input:not([data-live-control]):not([type="button"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]),
+body.handler-surface:not(.is-field-edit) .handler-shell textarea,
+body.handler-surface:not(.is-field-edit) .handler-shell select:not([data-live-control]) {
+  pointer-events: none;
+  opacity: .72;
+}
+
+body.handler-surface:not(.is-field-edit) .handler-shell [data-live-control-zone] input,
+body.handler-surface:not(.is-field-edit) .handler-shell [data-live-control-zone] textarea,
+body.handler-surface:not(.is-field-edit) .handler-shell [data-live-control-zone] select,
+body.handler-surface:not(.is-field-edit) .handler-shell [data-live-control] {
+  pointer-events: auto;
+  opacity: 1;
+}
+
 .handler-session-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -67,8 +67,6 @@
     });
   }
 
-  const templateLockedLoopFields = ["Need", "Lure", "Pressure"];
-
   function renderLoopFields() {
     const grid = document.getElementById("entity-loop-grid");
     if (!grid) return;
@@ -82,20 +80,7 @@
       label.append(textarea);
       grid.append(label);
     });
-    renderLoopLockout();
     renderActiveEntityReadout();
-  }
-
-  function renderLoopLockout() {
-    const locked = api.isLoopLocked(state);
-    const hint = document.getElementById("entity-loop-lock-hint");
-    if (hint) hint.hidden = !locked;
-    document.querySelectorAll("#entity-loop-grid textarea").forEach((input) => {
-      const field = input.name.split(".")[1];
-      const fieldLocked = locked && templateLockedLoopFields.includes(field);
-      input.readOnly = fieldLocked;
-      input.classList.toggle("is-needlepoint-locked", fieldLocked);
-    });
   }
 
   function renderActiveEntityReadout() {
@@ -410,16 +395,9 @@
     node.textContent = api.safeString(value, 220);
   }
 
-  function renderAttentionLockout() {
-    const locked = api.hasActiveNeedlepoint(state);
-    ["attention.residue", "attention.followsHome", "sceneState.primaryConsequence"].forEach((name) => {
-      const input = document.querySelector(`[name="${name}"]`);
-      if (!input) return;
-      input.readOnly = locked;
-      input.classList.toggle("is-needlepoint-locked", locked);
-    });
+  function renderAttentionHint() {
     const hint = document.getElementById("attention-deterministic-hint");
-    if (hint) hint.hidden = !locked;
+    if (hint) hint.hidden = !api.hasActiveNeedlepoint(state);
   }
 
   function setText(id, value) {
@@ -433,11 +411,11 @@
     renderClock("secondary-clock-track", state.secondaryClock, state.secondaryClock.enabled);
     renderRoomAnswer();
     renderRiskStrip();
-    renderAttentionLockout();
-    renderLoopLockout();
+    renderAttentionHint();
     renderActiveEntityReadout();
     renderPlayerView();
     if (window.HandlerTriggers) window.HandlerTriggers.render(state);
+    if (window.HandlerNav) window.HandlerNav.renderFieldLock();
   }
 
   function applyTriggerState(nextState) {

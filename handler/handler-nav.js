@@ -94,6 +94,53 @@
     nav.append(home);
   }
 
+  function ensureFieldLockBar() {
+    const anchor = document.getElementById("handler-session-strip")
+      || document.getElementById("handler-module-nav")
+      || mountPoint();
+    if (!anchor) return null;
+
+    let bar = document.getElementById("handler-field-lock-bar");
+    if (!bar) {
+      bar = document.createElement("section");
+      bar.id = "handler-field-lock-bar";
+      bar.className = "handler-field-lock-bar no-print";
+      bar.setAttribute("aria-label", "Field edit lock");
+      bar.innerHTML = `
+        <p class="handler-field-lock-status" data-handler-field-lock-status>Live play: typing locked. Triggers, clocks, and rolls stay active.</p>
+        <button class="button field-edit-toggle" type="button" data-handler-field-edit-toggle aria-pressed="false">Edit Fields: Off</button>
+      `;
+      anchor.insertAdjacentElement("afterend", bar);
+      const toggle = bar.querySelector("[data-handler-field-edit-toggle]");
+      if (toggle) {
+        toggle.addEventListener("click", () => {
+          const next = api.toggleFieldEditMode(api.readState());
+          api.writeState(next);
+          renderFieldLock();
+        });
+      }
+    }
+    return bar;
+  }
+
+  function renderFieldLock() {
+    if (!api) return;
+    const state = api.readState();
+    const unlocked = api.fieldEditUnlocked(state);
+    document.body.classList.toggle("is-field-edit", unlocked);
+    ensureFieldLockBar();
+    document.querySelectorAll("[data-handler-field-edit-toggle]").forEach((toggle) => {
+      toggle.textContent = unlocked ? "Edit Fields: On" : "Edit Fields: Off";
+      toggle.setAttribute("aria-pressed", unlocked ? "true" : "false");
+      toggle.classList.toggle("primary", unlocked);
+    });
+    document.querySelectorAll("[data-handler-field-lock-status]").forEach((node) => {
+      node.textContent = unlocked
+        ? "Prep mode: form fields unlocked for typing."
+        : "Live play: typing locked. Triggers, clocks, and rolls stay active.";
+    });
+  }
+
   function renderSessionStrip() {
     const { strip } = ensureChrome();
     if (!strip || !api) return;
@@ -125,9 +172,13 @@
   function render() {
     renderNav();
     renderSessionStrip();
+    renderFieldLock();
   }
 
   render();
-  window.addEventListener("veildaemon:handler-state-updated", renderSessionStrip);
-  window.HandlerNav = { render, renderSessionStrip, renderNav };
+  window.addEventListener("veildaemon:handler-state-updated", () => {
+    renderSessionStrip();
+    renderFieldLock();
+  });
+  window.HandlerNav = { render, renderSessionStrip, renderNav, renderFieldLock };
 }());
