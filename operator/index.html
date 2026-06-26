@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260626-sheetgrid1" />
+  <link rel="stylesheet" href="./operator.css?v=20260626-coretop1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -141,6 +141,7 @@
       <div class="module-heading">
         <p class="kicker">ACTIVE CASE</p>
         <h2>At-table controls for the next thirty seconds.</h2>
+        <button type="button" class="button sheet-edit-toggle" id="sheet-edit-toggle" aria-pressed="false">Edit Sheet: Off</button>
       </div>
       <form class="console-form status-form" id="status-form">
         <section class="sheet-grid">
@@ -151,6 +152,8 @@
               <label>Record<input name="designation" type="text" maxlength="80" autocomplete="off" /></label>
               <label>Role<input name="role" type="text" maxlength="80" placeholder="Operator" autocomplete="off" /></label>
               <label>Needlepoint<input name="activeNeedlepoint" type="text" maxlength="90" placeholder="Viridian House" autocomplete="off" /></label>
+              <label>Background<select name="background" id="status-background"></select></label>
+              <label>Presentation / Ontology<select name="ontologyPresentation" id="status-ontology-presentation"></select></label>
             </div>
           </article>
 
@@ -250,25 +253,9 @@
             <textarea name="quickNotes" rows="4" placeholder="Scene facts, table reminders, current risk."></textarea>
           </article>
 
-          <article class="sheet-card operator-details-panel wide">
-            <p class="card-label">Operator Details</p>
-            <div class="identity-card operator-live-readout">
-              <label>Background<select name="background" id="status-background"></select></label>
-              <label>Ontology / Presentation<select name="ontologyPresentation" id="status-ontology-presentation"></select></label>
-              <div class="readout-block">
-                <span>Primary</span>
-                <strong id="sheet-frequency-detail">UNASSIGNED</strong>
-              </div>
-              <div class="readout-block">
-                <span>Bleed Cue</span>
-                <strong id="status-bleed-cue-detail">PENDING FREQUENCY</strong>
-              </div>
-            </div>
-          </article>
-
           <article class="sheet-card skill-manager wide">
             <p class="card-label">Skill Manager</p>
-            <details class="skill-editor-panel">
+            <details class="skill-editor-panel sheet-edit-only">
               <summary>Add / Edit Skills</summary>
               <div class="creation-row">
                 <button type="button" class="button" id="creation-mode-toggle">Creation Mode: Off</button>
@@ -530,6 +517,6 @@
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="./operator.js?v=20260626-sheetgrid1"></script>
+  <script src="./operator.js?v=20260626-coretop1"></script>
 </body>
 </html>

@@ -331,6 +331,12 @@ body.operator-record-sealed .data-panel {
 .operator-live-readout {
   align-self: start;
 }
+.sheet-edit-toggle {
+  justify-self: end;
+}
+#module-sheet:not(.is-editing) .sheet-edit-only {
+  display: none;
+}
 .operator-case-strip,
 .active-frequency-strip {
   padding: .75rem;
@@ -1048,6 +1054,20 @@ fieldset.recovery-field.compact label {
   gap: .42rem;
   align-items: center;
   list-style: none;
+}
+
+.skill-row:not(.is-editable) summary {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.skill-static-rank {
+  color: var(--text);
+  font-weight: 800;
+  text-align: right;
+}
+
+.skill-row.is-editable .skill-static-rank {
+  display: none;
 }
 
 .skill-row summary::-webkit-details-marker {

@@ -35,8 +35,8 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.getByText("Record the impossible. Patterns emerge.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Log + Volunteer Copy" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Sheet" }).click();
-  await expect(page.getByRole("button", { name: "Sheet" })).toHaveClass(/is-active/);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Sheet", exact: true })).toHaveClass(/is-active/);
   await expect(page.locator(".operator-roll-dock")).toBeVisible();
   const initialLayout = await page.evaluate(() => {
     const sheetTop = document.querySelector("#module-sheet")?.getBoundingClientRect().top || 0;
@@ -50,7 +50,7 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   const stickyNav = await page.locator(".console-nav").boundingBox();
   expect(stickyNav.y).toBeGreaterThanOrEqual(0);
   expect(stickyNav.y).toBeLessThan(90);
-  await page.getByRole("button", { name: "Sheet" }).click();
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("0/5")).toBeVisible();
@@ -71,7 +71,10 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
 
   await expect(page.locator("#sheet-attention-status")).toContainText("Unnoticed");
   await expect(page.getByRole("button", { name: "Marked" })).toHaveCount(0);
+  await expect(page.getByText("Add / Edit Skills")).toBeHidden();
 
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await expect(page.getByRole("button", { name: "Edit Sheet: On" })).toBeVisible();
   await page.getByText("Add / Edit Skills").click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
@@ -83,7 +86,7 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.getByLabel("Dream Void")).toHaveValue("1");
   await expect(page.getByLabel("Dream pip 1")).toBeEnabled();
   await expect(page.getByLabel("Dream pip 3")).toBeDisabled();
-  await page.getByRole("button", { name: "Sheet" }).click();
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await expect(page.getByLabel("Body 1")).toBeVisible();
   await page.getByLabel("Body 3").click();
   await page.locator("#skill-picker").selectOption("Investigation");
@@ -119,11 +122,12 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
 test("secondary material is separated into tabs", async ({ page }) => {
   await page.goto("/operator/");
 
-  await page.getByRole("button", { name: "Sheet" }).click();
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await page.getByText("Add / Edit Skills").click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await importAuthorizationPacket(page, ["VOID_REWARD:7", "BREACH_REWARD:27"]);
-  await page.getByRole("button", { name: "Sheet" }).click();
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await page.getByRole("button", { name: "Frequency" }).click();
   await expect(page.getByText("Abilities, tells, grounding, and misfire language.")).toBeVisible();
@@ -187,7 +191,7 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await expect(page.locator("#lotus-unlocks")).toContainText("HUNGER // BLIND");
   await expect(page.locator("#active-resonance-profile")).toContainText("HUNGER // BLIND");
   await expect(page.getByRole("button", { name: "Mark Blind" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Sheet" }).click();
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Creation Mode: Off" }).click();
   await page.getByRole("button", { name: "Frequency" }).click();
   await expect(page.getByRole("button", { name: "Mark Blind" })).toHaveCount(5);
@@ -349,7 +353,7 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator("#authorized-ontology-list")).toContainText("Red Ledger Adjacent");
   await expect(page.locator("#authorized-reward-list")).toContainText("2 Void");
   await expect(page.locator("#authorized-reward-list")).toContainText("5 Breach");
-  await page.getByRole("button", { name: "Sheet" }).click();
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await expect(page.locator("#skill-list")).toContainText("Medicine 1");
   await expect(page.locator('[name="background"]')).toHaveValue("Safehouse Brat");
   await expect(page.locator('[name="ontologyPresentation"]')).toHaveValue("Red Ledger Adjacent");
@@ -365,6 +369,7 @@ test("frequency advancement enforces released Lotus caps", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify({
       operatorStatus: {
+        sheetEditMode: true,
         breachPoints: "99",
         voidMarks: "0",
         selectedLotusPetal: "Empyrean",
@@ -399,7 +404,8 @@ test("frequency advancement enforces released Lotus caps", async ({ page }) => {
 test("creation bonus breach refunds when attributes are lowered", async ({ page }) => {
   await page.goto("/operator/");
 
-  await page.getByRole("button", { name: "Sheet" }).click();
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await page.getByText("Add / Edit Skills").click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");

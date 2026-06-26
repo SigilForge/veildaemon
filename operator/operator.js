@@ -36,6 +36,7 @@
       activeNeedlepoint: "",
       background: "",
       ontologyPresentation: "",
+      sheetEditMode: false,
       creationMode: false,
       frequencyEditMode: false,
       harm: "None recorded",
@@ -312,6 +313,7 @@
       ...status,
       anchorPerson: status.anchorPerson || status.anchors || "",
       attentionState: normalizeAttentionState(status.attentionState),
+      sheetEditMode: Boolean(status.sheetEditMode),
       frequencyEditMode: Boolean(status.frequencyEditMode),
       creationMode: Boolean(status.creationMode),
       stability: normalizeStabilityValue(status.stability),
@@ -800,6 +802,7 @@
     renderRollSelectors();
     renderCreationMode();
     renderFrequencyEditMode();
+    renderSheetEditMode();
     renderStatusSummary();
   }
 
@@ -811,6 +814,23 @@
   function setNamedChecked(name, value) {
     const input = document.querySelector(`[name="${name}"]`);
     if (input) input.checked = Boolean(value);
+  }
+
+  function renderSheetEditMode() {
+    const editing = Boolean(consoleState.operatorStatus.sheetEditMode);
+    const panel = document.getElementById("module-sheet");
+    const toggle = document.getElementById("sheet-edit-toggle");
+    if (!editing) consoleState.operatorStatus.frequencyEditMode = false;
+    if (panel) panel.classList.toggle("is-editing", editing);
+    if (toggle) {
+      toggle.textContent = editing ? "Edit Sheet: On" : "Edit Sheet: Off";
+      toggle.setAttribute("aria-pressed", editing ? "true" : "false");
+      toggle.classList.toggle("primary", editing);
+    }
+    document.querySelectorAll(".skill-editor-panel").forEach((node) => {
+      if (!editing) node.removeAttribute("open");
+    });
+    renderFrequencyEditMode();
   }
 
   function optionNode(value, label) {
@@ -1207,6 +1227,9 @@
   }
 
   function attributeChangeAllowed(attributes, attribute, targetRank) {
+    if (!consoleState.operatorStatus.sheetEditMode) {
+      return { ok: false, message: "Edit Sheet required to change Attributes." };
+    }
     const next = normalizeAttributes({ ...attributes, [attribute]: String(targetRank) });
     if (consoleState.operatorStatus.creationMode) {
       if (targetRank > 4) return { ok: false, message: "Creation attribute cap is 4." };
@@ -1277,6 +1300,11 @@
   }
 
   function setFrequencyVoid(frequency, value) {
+    if (!consoleState.operatorStatus.sheetEditMode) {
+      setStorageStatus("Edit Sheet required to change Frequency Void gates.", true);
+      renderLotus();
+      return false;
+    }
     consoleState.operatorStatus.voidByFrequency = normalizeVoidByFrequency(consoleState.operatorStatus.voidByFrequency);
     const current = Number(consoleState.operatorStatus.voidByFrequency[frequency] || 0);
     const target = Number(normalizeNonNegative(value));
@@ -1325,6 +1353,9 @@
   }
 
   function frequencyChangeAllowed(lotus, frequency, targetLevel) {
+    if (!consoleState.operatorStatus.sheetEditMode) {
+      return { ok: false, message: "Edit Sheet required to change Frequency pips." };
+    }
     const normalizedLotus = normalizeLotus(lotus);
     const oldLevel = Number(normalizedLotus[frequency] || 0);
     const target = Number(normalizeBoxValue(targetLevel, 6));
@@ -1466,9 +1497,7 @@
     status.stabilityBand = bandFromLegacyStability(status.stability);
     if (band) band.textContent = status.stabilityBand.toUpperCase();
     if (bleedCue) bleedCue.textContent = frequencyCard(operatorRecord?.primaryFrequency).bleedCue.toUpperCase();
-    setText("status-bleed-cue-detail", frequencyCard(operatorRecord?.primaryFrequency).bleedCue.toUpperCase());
     setText("sheet-frequency", operatorRecord && operatorRecord.primaryFrequency || "UNASSIGNED");
-    setText("sheet-frequency-detail", operatorRecord && operatorRecord.primaryFrequency || "UNASSIGNED");
   }
 
   function renderTrackers() {
@@ -1533,6 +1562,7 @@
     const grid = document.getElementById("attribute-grid");
     if (!grid) return;
     const attrs = normalizeAttributes(consoleState.operatorStatus.attributes);
+    const editing = Boolean(consoleState.operatorStatus.sheetEditMode);
     consoleState.operatorStatus.attributes = attrs;
     grid.textContent = "";
     attributeNames().forEach((name) => {
@@ -1554,6 +1584,7 @@
         const pip = document.createElement("button");
         pip.type = "button";
         pip.className = "pip";
+        pip.disabled = !editing;
         pip.classList.toggle("is-filled", index <= value);
         pip.setAttribute("aria-label", `${name} ${index}`);
         pip.addEventListener("click", () => {
@@ -1610,9 +1641,10 @@
       renderRollSelectors();
       return;
     }
+    const editing = Boolean(consoleState.operatorStatus.sheetEditMode);
     entries.forEach(([name, rank]) => {
       const row = document.createElement("details");
-      row.className = "skill-row";
+      row.className = editing ? "skill-row is-editable" : "skill-row";
       const summaryNode = document.createElement("summary");
       const pick = document.createElement("button");
       pick.type = "button";
@@ -1623,46 +1655,52 @@
         writeConsoleState();
         renderRollSelectors();
       });
-      const input = document.createElement("input");
-      input.type = "number";
-      input.min = "1";
-      input.max = "5";
-      input.step = "1";
-      input.value = rank;
-      input.setAttribute("aria-label", `${name} rank`);
-      input.addEventListener("change", () => {
-        const targetRank = Number(normalizeBoxValue(input.value, 5));
-        const allowed = skillChangeAllowed(skills, name, targetRank);
-        if (!allowed.ok) {
-          setStorageStatus(allowed.message, true);
-          renderSkills();
-          return;
-        }
-        if (!applyBreachDelta(allowed.cost || 0)) {
-          renderSkills();
-          return;
-        }
-        skills[name] = String(targetRank);
-        if (skills[name] === "0") delete skills[name];
-        consoleState.operatorStatus.skills = skills;
-        writeConsoleState();
-        renderSkills();
-      });
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.className = "entry-remove";
-      remove.textContent = "Remove";
-      remove.addEventListener("click", () => {
-        delete skills[name];
-        if (consoleState.operatorStatus.rollSkillKey === name) consoleState.operatorStatus.rollSkillKey = "";
-        consoleState.operatorStatus.skills = skills;
-        writeConsoleState();
-        renderSkills();
-      });
+      const staticRank = document.createElement("span");
+      staticRank.className = "skill-static-rank";
+      staticRank.textContent = `+${rank}`;
       const descriptor = document.createElement("p");
       descriptor.className = "skill-scale";
       descriptor.textContent = `${name} ${rank} // ${skillRankLabel(rank)}: ${skillRankDescription(name, rank)}`;
-      summaryNode.append(pick, input, remove);
+      summaryNode.append(pick, staticRank);
+      if (editing) {
+        const input = document.createElement("input");
+        input.type = "number";
+        input.min = "1";
+        input.max = "5";
+        input.step = "1";
+        input.value = rank;
+        input.setAttribute("aria-label", `${name} rank`);
+        input.addEventListener("change", () => {
+          const targetRank = Number(normalizeBoxValue(input.value, 5));
+          const allowed = skillChangeAllowed(skills, name, targetRank);
+          if (!allowed.ok) {
+            setStorageStatus(allowed.message, true);
+            renderSkills();
+            return;
+          }
+          if (!applyBreachDelta(allowed.cost || 0)) {
+            renderSkills();
+            return;
+          }
+          skills[name] = String(targetRank);
+          if (skills[name] === "0") delete skills[name];
+          consoleState.operatorStatus.skills = skills;
+          writeConsoleState();
+          renderSkills();
+        });
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "entry-remove";
+        remove.textContent = "Remove";
+        remove.addEventListener("click", () => {
+          delete skills[name];
+          if (consoleState.operatorStatus.rollSkillKey === name) consoleState.operatorStatus.rollSkillKey = "";
+          consoleState.operatorStatus.skills = skills;
+          writeConsoleState();
+          renderSkills();
+        });
+        summaryNode.append(input, remove);
+      }
       row.append(summaryNode, descriptor);
       list.append(row);
     });
@@ -1720,13 +1758,18 @@
   function renderFrequencyEditMode() {
     const toggle = document.getElementById("frequency-edit-toggle");
     const status = document.getElementById("frequency-edit-status");
+    const sheetEditing = Boolean(consoleState.operatorStatus.sheetEditMode);
+    if (!sheetEditing) consoleState.operatorStatus.frequencyEditMode = false;
     const enabled = Boolean(consoleState.operatorStatus.frequencyEditMode);
     if (toggle) {
+      toggle.hidden = !sheetEditing;
       toggle.textContent = enabled ? "Frequency Edit Mode: On" : "Frequency Edit Mode: Off";
       toggle.classList.toggle("primary", enabled);
     }
     if (status) {
-      status.textContent = enabled
+      status.textContent = !sheetEditing
+        ? "Edit Sheet required for Frequency maintenance."
+        : enabled
         ? "Pip removal unlocked. Refunds apply to removed Frequency pips."
         : "Pip removal locked during field play.";
     }
@@ -2175,6 +2218,7 @@
     const map = document.getElementById("lotus-map");
     if (!map) return;
     const status = consoleState.operatorStatus;
+    const editing = Boolean(status.sheetEditMode);
     const lotus = normalizeLotus(status.lotus);
     status.voidByFrequency = normalizeVoidByFrequency(status.voidByFrequency);
     const selected = normalizeFrequencyName(status.selectedLotusPetal) || operatorRecord?.primaryFrequency || "Dream";
@@ -2215,7 +2259,7 @@
         const pip = document.createElement("button");
         pip.type = "button";
         pip.className = "pip";
-        pip.disabled = frequency === status.blindPetal || lockedByVoid;
+        pip.disabled = !editing || frequency === status.blindPetal || lockedByVoid;
         pip.classList.toggle("is-filled", frequency !== status.blindPetal && index <= Number(lotus[frequency] || 0));
         pip.classList.toggle("is-locked", frequency !== status.blindPetal && lockedByVoid);
         pip.setAttribute("aria-label", `${frequency} pip ${index}`);
@@ -2262,6 +2306,7 @@
       voidInput.step = "1";
       voidInput.inputMode = "numeric";
       voidInput.value = status.voidByFrequency[frequency];
+      voidInput.disabled = !editing;
       voidInput.setAttribute("aria-label", `${frequency} Void`);
       voidInput.addEventListener("change", () => {
         setFrequencyVoid(frequency, voidInput.value);
@@ -2273,6 +2318,7 @@
       blind.type = "button";
       blind.className = "blind-toggle";
       blind.textContent = frequency === status.blindPetal ? "Blind Petal" : "Mark Blind";
+      blind.disabled = !editing;
       if (status.blindPetal && !status.creationMode && frequency !== status.blindPetal) {
         blind.hidden = true;
       }
@@ -2413,6 +2459,7 @@
       voidByFrequency: normalizeVoidByFrequency(status.voidByFrequency),
       voidMarks: clampVoidBank(status.voidMarks, status.voidByFrequency),
       breachPoints: normalizeNonNegative(status.breachPoints),
+      sheetEditMode: Boolean(status.sheetEditMode),
       creationMode: Boolean(status.creationMode),
       frequencyEditMode: Boolean(status.frequencyEditMode),
       activeMisfire: safeString(status.activeMisfire, 1000),
@@ -2588,6 +2635,16 @@
     });
     const rollButton = document.getElementById("roll-action");
     if (rollButton) rollButton.addEventListener("click", rollAction);
+    const sheetEditToggle = document.getElementById("sheet-edit-toggle");
+    if (sheetEditToggle) sheetEditToggle.addEventListener("click", () => {
+      consoleState.operatorStatus.sheetEditMode = !consoleState.operatorStatus.sheetEditMode;
+      if (!consoleState.operatorStatus.sheetEditMode) consoleState.operatorStatus.frequencyEditMode = false;
+      writeConsoleState();
+      renderSheetEditMode();
+      renderAttributes();
+      renderSkills();
+      renderLotus();
+    });
     const addSkill = document.getElementById("add-skill");
     if (addSkill) addSkill.addEventListener("click", () => {
       const picker = document.getElementById("skill-picker");
