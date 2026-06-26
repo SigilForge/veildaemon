@@ -400,10 +400,10 @@
   }
 
   function renderSnapshot() {
-    setText("snapshot-designation", operatorRecord && operatorRecord.designation || "UNINITIALIZED");
+    setText("snapshot-record-id", operatorRecord && operatorRecord.designation || "UNINITIALIZED");
     setText("snapshot-classification", operatorRecord && operatorRecord.observerClassification || "PENDING");
     setText("snapshot-frequency", operatorRecord && operatorRecord.primaryFrequency || "UNASSIGNED");
-    setText("snapshot-attention", operatorRecord && operatorRecord.attentionStatus || "UNMEASURED");
+    setText("snapshot-status", operatorRecord ? "LOCAL RECORD" : "NO LOCAL RECORD");
     setText("snapshot-access", operatorRecord && operatorRecord.accessLevel || "LOCAL");
 
     const notice = document.getElementById("record-notice");
@@ -763,10 +763,10 @@
     consoleState.operatorStatus.creationMode = Boolean(status.creationMode);
     consoleState.operatorStatus.stability = normalizeStabilityValue(status.stability);
     consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(consoleState.operatorStatus.stability);
-    setNamedValue("attentionState", normalizeAttentionState(status.attentionState));
-    setText("sheet-attention-status", normalizeAttentionState(status.attentionState));
-    setNamedValue("emotionalState", status.emotionalState || operatorRecord?.attentionStatus || "");
-    setText("live-emotional-state", status.emotionalState || operatorRecord?.attentionStatus || "Stable enough");
+    const emotionalState = operatorEmotionalState(status);
+    setNamedValue("emotionalState", emotionalState);
+    consoleState.operatorStatus.emotionalState = emotionalState;
+    setText("live-emotional-state", emotionalState || "Stable enough");
     consoleState.operatorStatus.voidByFrequency = normalizeVoidByFrequency(status.voidByFrequency);
     consoleState.operatorStatus.voidMarks = clampVoidBank(status.voidMarks, consoleState.operatorStatus.voidByFrequency);
     setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
@@ -1440,6 +1440,19 @@
   function normalizeAttentionState(value) {
     const allowed = ["Unnoticed", "Brushed", "Noted", "Marked", "Pursued", "Claimed"];
     return allowed.includes(value) ? value : "Unnoticed";
+  }
+
+  function isAttentionStateValue(value) {
+    return ["Unnoticed", "Brushed", "Noted", "Marked", "Pursued", "Claimed", "Local", "LOW", "DO NOT SUSTAIN EYE CONTACT"]
+      .includes(safeString(value, 80));
+  }
+
+  function operatorEmotionalState(status) {
+    const value = safeString(status && status.emotionalState, 120);
+    if (!value) return "";
+    if (value === safeString(status && status.attentionState, 120)) return "";
+    if (operatorRecord && value === safeString(operatorRecord.attentionStatus, 120)) return "";
+    return isAttentionStateValue(value) ? "" : value;
   }
 
   function bandFromLegacyStability(value) {
@@ -2484,7 +2497,7 @@
       result = text ? JSON.parse(text) : {};
     } catch (error) {
       const snippet = text.replace(/\s+/g, " ").replace(/[<>{}]/g, "").trim().slice(0, 160);
-      throw new Error(`HTTP ${response.status}: ${snippet || "Transfer returned non-JSON."}`);
+      throw new Error(`HTTP ${response.status}: ${snippet || "Transfer returned an unreadable response."}`);
     }
 
     if (!response.ok || !result.ok) {
@@ -2504,7 +2517,6 @@
         designation: status.designation || operatorRecord?.designation || "",
         primaryFrequency: operatorRecord?.primaryFrequency || status.selectedLotusPetal || "",
         classification: operatorRecord?.observerClassification || "",
-        attentionState: status.attentionState,
         activeNeedlepoint: status.activeNeedlepoint,
         scene: record.scene,
         detail: record.detail,
@@ -2789,7 +2801,7 @@
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
-      setStorageStatus("Operator JSON exported.");
+      setStorageStatus("Operator Record exported.");
     });
 
     if (exportButton) exportButton.addEventListener("click", () => {
@@ -2865,7 +2877,7 @@
     operatorRecord = readOperatorRecord();
     renderAll();
     if (operatorRecord) {
-      setStorageStatus(`Operator file imported: ${safeString(operatorRecord.designation, 80)}.`);
+      setStorageStatus(`Operator Record imported: ${safeString(operatorRecord.designation, 80)}.`);
     }
   });
 }());
