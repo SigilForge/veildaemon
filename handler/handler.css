@@ -635,6 +635,7 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 .case-panel,
 .clock-panel,
 .loop-panel,
+.aftermath-panel,
 .helper-panel,
 .secondary-panel,
 .player-panel,
@@ -645,6 +646,42 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 
 .roll-panel {
   grid-column: span 1;
+}
+
+.aftermath-live-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(16.5rem, 0.85fr);
+  gap: .85rem;
+  align-items: start;
+}
+
+.aftermath-live-layout:has(.aftermath-roll[hidden]) {
+  grid-template-columns: 1fr;
+}
+
+.aftermath-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .65rem;
+  align-items: end;
+}
+
+.aftermath-roll {
+  padding: .65rem .7rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.22);
+}
+
+.aftermath-roll .roll-panel-heading {
+  margin-bottom: .55rem;
+}
+
+.aftermath-roll .roll-panel-heading h2 {
+  font-size: .82rem;
+}
+
+.aftermath-roll .misfire-target-guide-drawer {
+  flex: 1 1 100%;
 }
 
 .panel-note {
@@ -945,6 +982,27 @@ select:focus {
 .live-surface .roll-output {
   min-height: 3rem;
   line-height: 1.45;
+}
+
+.aftermath-roll .roll-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
+}
+
+.aftermath-roll .roll-mode {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.aftermath-roll .roll-row #roll-button {
+  grid-column: 1 / -1;
+  min-height: 2.55rem;
+}
+
+.aftermath-roll .roll-output {
+  margin-top: .55rem;
+  min-height: 2.5rem;
+  font-size: .72rem;
 }
 
 .roll-mode {
@@ -1346,7 +1404,13 @@ body.is-player-view .private-panel {
     grid-column: 1 / -1;
   }
 
-  .live-surface .roll-row {
+  .aftermath-live-layout,
+  .aftermath-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .live-surface .roll-row,
+  .live-surface .aftermath-roll-row {
     grid-template-columns: 1fr;
   }
 
@@ -1593,7 +1657,8 @@ body.is-player-view .private-panel {
     box-shadow: none;
   }
 
-  .roll-panel {
+  .roll-panel,
+  .aftermath-roll {
     display: none;
   }
 
