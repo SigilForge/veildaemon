@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260626-coretop1" />
+  <link rel="stylesheet" href="./operator.css?v=20260626-skillmode1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -214,6 +214,21 @@
               <article class="sheet-card skill-summary-card">
                 <p class="card-label">Skill Summary</p>
                 <div class="skill-summary-list" id="skill-summary-list"></div>
+                <details class="skill-editor-panel sheet-edit-only">
+                  <summary>Manage Skills</summary>
+                  <div class="creation-row">
+                    <button type="button" class="button" id="creation-mode-toggle">Creation Mode: Off</button>
+                    <button type="button" class="button" id="apply-core-start">Apply Core Start</button>
+                    <span id="creation-budget">Advancement spends Breach.</span>
+                  </div>
+                  <div class="skill-builder">
+                    <label>Skill<select id="skill-picker"></select></label>
+                    <label>Rank<input id="skill-rank" type="number" min="1" max="5" step="1" value="1" /></label>
+                    <span class="cost-preview" id="skill-cost-preview">Cost: 1 Breach</span>
+                    <button type="button" class="button" id="add-skill">Add Skill</button>
+                  </div>
+                  <p class="skill-rank-preview" id="skill-rank-preview">Rank meaning pending.</p>
+                </details>
               </article>
             </div>
 
@@ -253,25 +268,6 @@
             <textarea name="quickNotes" rows="4" placeholder="Scene facts, table reminders, current risk."></textarea>
           </article>
 
-          <article class="sheet-card skill-manager wide">
-            <p class="card-label">Skill Manager</p>
-            <details class="skill-editor-panel sheet-edit-only">
-              <summary>Add / Edit Skills</summary>
-              <div class="creation-row">
-                <button type="button" class="button" id="creation-mode-toggle">Creation Mode: Off</button>
-                <button type="button" class="button" id="apply-core-start">Apply Core Start</button>
-                <span id="creation-budget">Advancement spends Breach.</span>
-              </div>
-              <div class="skill-builder">
-                <label>Skill<select id="skill-picker"></select></label>
-                <label>Rank<input id="skill-rank" type="number" min="1" max="5" step="1" value="1" /></label>
-                <span class="cost-preview" id="skill-cost-preview">Cost: 1 Breach</span>
-                <button type="button" class="button" id="add-skill">Add Skill</button>
-              </div>
-              <p class="skill-rank-preview" id="skill-rank-preview">Rank meaning pending.</p>
-            </details>
-            <div class="skill-list" id="skill-list"></div>
-          </article>
         </section>
       </form>
     </section>
@@ -517,6 +513,6 @@
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="./operator.js?v=20260626-coretop1"></script>
+  <script src="./operator.js?v=20260626-skillmode1"></script>
 </body>
 </html>

@@ -41,11 +41,11 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   const initialLayout = await page.evaluate(() => {
     const sheetTop = document.querySelector("#module-sheet")?.getBoundingClientRect().top || 0;
     const rollTop = document.querySelector(".operator-roll-dock")?.getBoundingClientRect().top || 0;
-    const managerTop = document.querySelector(".skill-manager")?.getBoundingClientRect().top || 0;
-    return { rollOffset: rollTop - sheetTop, managerAfterRoll: managerTop > rollTop };
+    const summaryTop = document.querySelector(".skill-summary-card")?.getBoundingClientRect().top || 0;
+    return { rollOffset: rollTop - sheetTop, summaryAfterRoll: summaryTop > rollTop };
   });
   expect(initialLayout.rollOffset).toBeLessThan(420);
-  expect(initialLayout.managerAfterRoll).toBe(true);
+  expect(initialLayout.summaryAfterRoll).toBe(true);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   const stickyNav = await page.locator(".console-nav").boundingBox();
   expect(stickyNav.y).toBeGreaterThanOrEqual(0);
@@ -71,11 +71,11 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
 
   await expect(page.locator("#sheet-attention-status")).toContainText("Unnoticed");
   await expect(page.getByRole("button", { name: "Marked" })).toHaveCount(0);
-  await expect(page.getByText("Add / Edit Skills")).toBeHidden();
+  await expect(page.getByText("Manage Skills", { exact: true })).toBeHidden();
 
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await expect(page.getByRole("button", { name: "Edit Sheet: On" })).toBeVisible();
-  await page.getByText("Add / Edit Skills").click();
+  await page.getByText("Manage Skills", { exact: true }).click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
   await expect(page.locator('input[name="voidMarks"]')).toHaveValue("0");
@@ -94,10 +94,9 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator("#skill-rank-preview")).toContainText("connect evidence");
   await page.getByRole("button", { name: "Add Skill" }).click();
   await expect(page.getByText("Creation: skills 2/8 // attribute spread 2/6 // Bonus Breach 3/3")).toBeVisible();
-  await expect(page.locator("#skill-list")).toContainText("Investigation");
-  await expect(page.locator("#skill-list")).toContainText("Investigation 2");
   await expect(page.locator("#skill-summary-list")).toContainText("Investigation");
   await expect(page.locator("#skill-summary-list")).toContainText("+2");
+  await expect(page.locator("#skill-summary-list")).toContainText("connect evidence");
   await page.locator("#roll-attribute").selectOption("Body");
   await page.locator("#roll-skill").selectOption("Investigation");
   await page.getByRole("button", { name: "Roll 3D6" }).click();
@@ -124,7 +123,7 @@ test("secondary material is separated into tabs", async ({ page }) => {
 
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByText("Add / Edit Skills").click();
+  await page.getByText("Manage Skills", { exact: true }).click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await importAuthorizationPacket(page, ["VOID_REWARD:7", "BREACH_REWARD:27"]);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
@@ -354,7 +353,8 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator("#authorized-reward-list")).toContainText("2 Void");
   await expect(page.locator("#authorized-reward-list")).toContainText("5 Breach");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
-  await expect(page.locator("#skill-list")).toContainText("Medicine 1");
+  await expect(page.locator("#skill-summary-list")).toContainText("Medicine");
+  await expect(page.locator("#skill-summary-list")).toContainText("+1");
   await expect(page.locator('[name="background"]')).toHaveValue("Safehouse Brat");
   await expect(page.locator('[name="ontologyPresentation"]')).toHaveValue("Red Ledger Adjacent");
   await expect(page.locator('[name="background"]')).toContainText("Field Medic");
@@ -406,7 +406,7 @@ test("creation bonus breach refunds when attributes are lowered", async ({ page 
 
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByText("Add / Edit Skills").click();
+  await page.getByText("Manage Skills", { exact: true }).click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
 
