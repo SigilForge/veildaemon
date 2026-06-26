@@ -211,6 +211,10 @@ pip-wheel-metadata/
 *.tar
 *.tar.gz
 
+# Playwright (local run artifacts; clean before commit)
+test-results/
+playwright-report/
+
 # Testing / coverage
 .pytest_cache/
 .tox/
