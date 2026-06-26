@@ -143,17 +143,13 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await expect(page.locator("#lotus-frequency")).toHaveText("Dream");
   await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("27");
-  await page.getByLabel("Dream pip 3").click();
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("27");
-  await expect(page.locator("#storage-status")).toContainText("Frequency Edit Mode required to remove pips.");
-  await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
-  await page.getByRole("button", { name: "Frequency Edit Mode: Off" }).click();
-  await expect(page.getByRole("button", { name: "Frequency Edit Mode: On" })).toBeVisible();
-  await expect(page.locator("#frequency-edit-status")).toContainText("Pip removal unlocked.");
+  await expect(page.locator("#frequency-edit-status")).toContainText("Edit stats mode");
   await page.getByLabel("Dream pip 3").click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("29");
+  await expect(page.locator("#lotus-tier")).toHaveText("Basic");
   await page.getByLabel("Dream pip 3").click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("27");
+  await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
   await expect(page.getByLabel("Silence pip 6")).toBeDisabled();
   await page.getByLabel("Silence Void").fill("4");
   await page.getByLabel("Silence Void").blur();
@@ -436,23 +432,49 @@ test("frequency advancement enforces released Lotus caps", async ({ page }) => {
   await expect(page.locator("#lotus-tier")).toHaveText("None");
 });
 
-test("creation bonus breach refunds when attributes are lowered", async ({ page }) => {
+test("creation mode guards attribute bonus breach spending", async ({ page }) => {
   await page.goto("/operator/");
 
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await page.getByRole("button", { name: "Apply Core Start" }).click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
-
-  await page.getByLabel("Body 4").click();
-  await page.getByLabel("Agility 4").click();
-  await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 3/3")).toBeVisible();
-
-  await page.getByLabel("Mind 2").click();
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("2");
-  await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 2/3")).toBeVisible();
+  await expect(page.locator("#breach-bank-readout")).toHaveText("3");
 
   await page.getByLabel("Body 3").click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await expect(page.locator("#roll-attribute")).toContainText("Body +3");
+
+  await page.getByLabel("Body 1").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await expect(page.locator("#roll-attribute")).toContainText("Body +1");
+
+  await page.getByLabel("Body 3").click();
+  await page.getByLabel("Agility 3").click();
+  await page.getByLabel("Mind 3").click();
   await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 3/3")).toBeVisible();
+
+  await page.getByLabel("Presence 3").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("1");
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 1/3")).toBeVisible();
+
+  await page.getByLabel("Presence 1").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 3/3")).toBeVisible();
+
+  await page.getByLabel("Body 4").click();
+  await expect(page.locator("#storage-status")).toContainText("Creation attribute cap is 3");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await expect(page.locator("#roll-attribute")).toContainText("Body +3");
+
+  await page.getByRole("button", { name: "Creation Mode: On" }).click();
+  await page.evaluate(() => {
+    const pip = document.querySelector('[aria-label="Body 3"]');
+    if (!pip) return;
+    pip.removeAttribute("disabled");
+    pip.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+  await expect(page.locator("#storage-status")).toContainText("Creation Mode required to change Attributes");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await expect(page.locator("#roll-attribute")).toContainText("Body +3");
 });

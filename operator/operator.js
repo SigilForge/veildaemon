@@ -1272,6 +1272,10 @@
     return 6;
   }
 
+  function creationAttributeRankCap() {
+    return 3;
+  }
+
   function creationBonusBreachBudget() {
     return 3;
   }
@@ -1352,19 +1356,31 @@
     return { ok: true, cost: advancementCost(oldRank, targetRank) };
   }
 
+  function creationAttributeCostDelta(attributes, attribute, targetRank) {
+    const next = normalizeAttributes({ ...attributes, [attribute]: String(targetRank) });
+    return creationBonusSpent(next) - creationBonusSpent(attributes);
+  }
+
   function attributeChangeAllowed(attributes, attribute, targetRank) {
     if (!consoleState.operatorStatus.sheetEditMode) {
       return { ok: false, message: "Edit Sheet required to change Attributes." };
     }
-    const next = normalizeAttributes({ ...attributes, [attribute]: String(targetRank) });
-    if (consoleState.operatorStatus.creationMode) {
-      if (targetRank > 4) return { ok: false, message: "Creation attribute cap is 4." };
-      const oldOverage = Math.max(0, totalAttributeBoosts(attributes) - creationAttributeSpreadBudget());
-      const newOverage = Math.max(0, totalAttributeBoosts(next) - creationAttributeSpreadBudget());
-      return { ok: true, cost: newOverage - oldOverage };
+    if (!consoleState.operatorStatus.creationMode) {
+      return { ok: false, message: "Creation Mode required to change Attributes." };
     }
     const oldRank = Number(normalizeAttributes(attributes)[attribute] || 1);
-    return { ok: true, cost: advancementCost(oldRank, targetRank) };
+    const nextRank = Number(normalizeBoxValue(targetRank, 5));
+    if (nextRank === oldRank) {
+      return { ok: false, message: "" };
+    }
+    if (nextRank > creationAttributeRankCap()) {
+      return { ok: false, message: `Creation attribute cap is ${creationAttributeRankCap()}.` };
+    }
+    const cost = creationAttributeCostDelta(attributes, attribute, nextRank);
+    if (cost > 0 && !canSpendBreach(cost)) {
+      return { ok: false, message: `Insufficient Breach. Required ${cost}.` };
+    }
+    return { ok: true, cost };
   }
 
   function frequencyPipBreachCost(pip) {
@@ -1496,8 +1512,8 @@
     if (frequency === normalizeFrequencyName(consoleState.operatorStatus.blindPetal)) {
       return { ok: false, message: "Blind petal cannot be cultivated." };
     }
-    if (lowering && !consoleState.operatorStatus.creationMode && !consoleState.operatorStatus.frequencyEditMode) {
-      return { ok: false, message: "Frequency Edit Mode required to remove pips." };
+    if (lowering && !consoleState.operatorStatus.sheetEditMode) {
+      return { ok: false, message: "Edit Sheet required to remove Frequency pips." };
     }
     if (requiredVoid > availableVoid) {
       return { ok: false, message: `Gate locked. ${target} pips require ${requiredVoid} Void on that Frequency.` };
@@ -1718,6 +1734,7 @@
     if (!grid) return;
     const attrs = normalizeAttributes(consoleState.operatorStatus.attributes);
     const editing = Boolean(consoleState.operatorStatus.sheetEditMode);
+    const creationEditing = editing && Boolean(consoleState.operatorStatus.creationMode);
     consoleState.operatorStatus.attributes = attrs;
     grid.textContent = "";
     attributeNames().forEach((name) => {
@@ -1739,16 +1756,23 @@
         const pip = document.createElement("button");
         pip.type = "button";
         pip.className = "pip";
-        pip.disabled = !editing;
+        pip.disabled = !creationEditing;
+        pip.classList.toggle("is-locked", editing && !creationEditing);
         pip.classList.toggle("is-filled", index <= value);
         pip.setAttribute("aria-label", `${name} ${index}`);
         pip.addEventListener("click", () => {
           const allowed = attributeChangeAllowed(attrs, name, index);
           if (!allowed.ok) {
-            setStorageStatus(allowed.message, true);
+            if (allowed.message) setStorageStatus(allowed.message, true);
+            renderAttributes();
+            renderCreationMode();
             return;
           }
-          if (!applyBreachDelta(allowed.cost || 0)) return;
+          if (!applyBreachDelta(allowed.cost || 0)) {
+            renderAttributes();
+            renderCreationMode();
+            return;
+          }
           attrs[name] = normalizeBoxValue(index, 5);
           consoleState.operatorStatus.attributes = attrs;
           consoleState.operatorStatus.rollAttributeKey = name;
@@ -1940,19 +1964,15 @@
     const toggle = document.getElementById("frequency-edit-toggle");
     const status = document.getElementById("frequency-edit-status");
     const sheetEditing = Boolean(consoleState.operatorStatus.sheetEditMode);
+    const creating = Boolean(consoleState.operatorStatus.creationMode);
     if (!sheetEditing) consoleState.operatorStatus.frequencyEditMode = false;
-    const enabled = Boolean(consoleState.operatorStatus.frequencyEditMode);
-    if (toggle) {
-      toggle.hidden = !sheetEditing;
-      toggle.textContent = enabled ? "Frequency Edit Mode: On" : "Frequency Edit Mode: Off";
-      toggle.classList.toggle("primary", enabled);
-    }
+    if (toggle) toggle.hidden = true;
     if (status) {
       status.textContent = !sheetEditing
         ? "Edit Sheet required for Frequency maintenance."
-        : enabled
-        ? "Pip removal unlocked. Refunds apply to removed Frequency pips."
-        : "Pip removal locked during field play.";
+        : creating
+        ? "Creation Mode: Frequency build rules active."
+        : "Edit stats mode: pip removal and Void gates unlocked.";
     }
   }
 
@@ -2877,7 +2897,9 @@
     if (applyCoreStart) applyCoreStart.addEventListener("click", () => {
       const status = consoleState.operatorStatus;
       const frequency = selectedCoreFrequency();
+      const fresh = cloneDefaultState().operatorStatus;
       status.creationMode = true;
+      status.attributes = normalizeAttributes(fresh.attributes);
       status.voidMarks = "0";
       status.voidByFrequency = normalizeVoidByFrequency(status.voidByFrequency);
       status.voidByFrequency[frequency] = String(Math.max(1, Number(status.voidByFrequency[frequency] || 0)));
@@ -2901,13 +2923,7 @@
       renderAuthorizationSelects();
       renderAttributes();
       renderSkills();
-    });
-    const frequencyEdit = document.getElementById("frequency-edit-toggle");
-    if (frequencyEdit) frequencyEdit.addEventListener("click", () => {
-      consoleState.operatorStatus.frequencyEditMode = !consoleState.operatorStatus.frequencyEditMode;
-      writeConsoleState();
       renderFrequencyEditMode();
-      renderLotus();
     });
     const skillPicker = document.getElementById("skill-picker");
     const skillRank = document.getElementById("skill-rank");
