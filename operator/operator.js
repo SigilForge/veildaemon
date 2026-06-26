@@ -769,6 +769,7 @@
     consoleState.operatorStatus.voidMarks = clampVoidBank(status.voidMarks, consoleState.operatorStatus.voidByFrequency);
     setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
     setNamedValue("breachPoints", normalizeNonNegative(status.breachPoints));
+    renderCurrencyBanks();
     setNamedValue("activeMisfire", status.activeMisfire || "");
     setNamedValue("commonTell", status.commonTell || "");
     setNamedValue("rollAttributeKey", normalizeAttributeName(status.rollAttributeKey) || "Body");
@@ -859,6 +860,11 @@
       buildUnlockedOptions("ontology", current).forEach((item) => presentationSelect.append(optionNode(item.value, item.label)));
       presentationSelect.value = current;
     }
+  }
+
+  function renderCurrencyBanks() {
+    setText("void-bank-readout", consoleState.operatorStatus.voidMarks || "0");
+    setText("breach-bank-readout", normalizeNonNegative(consoleState.operatorStatus.breachPoints));
   }
 
   function normalizeStabilityValue(value) {
@@ -1159,6 +1165,7 @@
     }
     consoleState.operatorStatus.breachPoints = String(Number(consoleState.operatorStatus.breachPoints || 0) - cost);
     setNamedValue("breachPoints", consoleState.operatorStatus.breachPoints);
+    renderCurrencyBanks();
     return true;
   }
 
@@ -1167,6 +1174,7 @@
     const current = Number(normalizeNonNegative(consoleState.operatorStatus.breachPoints));
     consoleState.operatorStatus.breachPoints = String(Math.min(creationBonusBreachBudget(), current + amount));
     setNamedValue("breachPoints", consoleState.operatorStatus.breachPoints);
+    renderCurrencyBanks();
   }
 
   function applyBreachDelta(delta) {
@@ -1181,6 +1189,7 @@
       const current = Number(normalizeNonNegative(consoleState.operatorStatus.breachPoints));
       consoleState.operatorStatus.breachPoints = String(Math.min(99, current + Math.abs(delta)));
       setNamedValue("breachPoints", consoleState.operatorStatus.breachPoints);
+      renderCurrencyBanks();
     }
     return true;
   }
@@ -1305,6 +1314,7 @@
     consoleState.operatorStatus.voidMarks = clampVoidBank(consoleState.operatorStatus.voidMarks, consoleState.operatorStatus.voidByFrequency);
     consoleState.operatorStatus.selectedLotusPetal = frequency;
     setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
+    renderCurrencyBanks();
     writeConsoleState();
     return true;
   }
@@ -2425,6 +2435,7 @@
     consoleState.operatorStatus = collectStatusPayload();
     writeConsoleState();
     setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
+    renderCurrencyBanks();
     renderBandMeter();
     renderLotus();
     renderFrequencyEditMode();
@@ -2612,6 +2623,7 @@
       status.selectedLotusPetal = frequency;
       setNamedValue("voidMarks", status.voidMarks);
       setNamedValue("breachPoints", status.breachPoints);
+      renderCurrencyBanks();
       writeConsoleState();
       renderAll();
       setStorageStatus(`Core start applied: ${frequency} pip 1, 1 Void invested, 3 Bonus Breach.`);
