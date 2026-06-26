@@ -987,30 +987,59 @@ fieldset.recovery-field.compact label {
 }
 
 .skill-summary-row.is-editable summary {
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
 }
 
 .skill-summary-row summary::-webkit-details-marker {
   display: none;
 }
 
-.skill-summary-row summary::before {
-  content: ">";
+.skill-caret {
   color: var(--purple);
   font-weight: 800;
 }
 
-.skill-summary-row[open] summary::before {
+.skill-caret::before {
+  content: ">";
+}
+
+.skill-summary-row[open] .skill-caret::before {
   content: "v";
 }
 
-.skill-summary-row summary strong {
-  justify-self: start;
+.skill-summary-select {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  padding: 0;
+}
+
+.skill-summary-select strong {
+  display: block;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--cyan);
   white-space: nowrap;
+}
+
+.skill-summary-rank {
+  justify-self: end;
+  min-width: 2rem;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  text-align: right;
+  padding: 0;
 }
 
 .skill-inline-remove {
@@ -1031,20 +1060,10 @@ fieldset.recovery-field.compact label {
 
 .skill-inline-rank {
   display: grid;
-  grid-template-columns: auto 1.8rem 1.8rem;
+  grid-template-columns: 1.8rem 1.8rem;
   align-items: center;
   gap: .25rem;
   justify-self: end;
-}
-
-.skill-summary-row:not(.is-editable) .skill-inline-rank {
-  grid-template-columns: auto;
-}
-
-.skill-inline-rank span {
-  min-width: 2rem;
-  text-align: right;
-  font-weight: 800;
 }
 
 .skill-inline-rank button {
