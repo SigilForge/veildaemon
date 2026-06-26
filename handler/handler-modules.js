@@ -59,9 +59,10 @@
     const equipment = equipmentSummary(payload.operatorEquipment || payload.equipment || payload.consoleState?.equipment);
     const operatorName = api.safeString(payload.operatorName || status.operatorName || record.operatorName || record.designation || status.designation || "Operator", 80);
     const sourceId = api.safeString(payload.operatorId || record.id || record.operatorId || record.designation || status.designation || "", 120);
-    const stabilityBand = api.safeString(status.stabilityBand || status.stabilityState || "", 40);
-    const stabilityValue = api.safeString(status.stability, 20);
-    const stability = stabilityBand && stabilityValue ? `${stabilityBand} (${stabilityValue}/10)` : stabilityBand || stabilityValue;
+    const stabilityPoints = api.parseStabilityPoints(status.stability);
+    const harmBoxes = api.parseHarmBoxes(status.harmBoxes, status.harm);
+    const stabilityBand = api.stabilityBandFromPoints(stabilityPoints);
+    const stability = api.formatPlayerStability(stabilityPoints, stabilityBand);
     const voidBreach = compactJoin([
       status.voidBreach,
       status.voidMarks ? `Void ${status.voidMarks}` : "",
@@ -72,8 +73,11 @@
       id: sourceId ? `operator-${slug(sourceId)}` : `operator-${slug(operatorName)}-${Date.now()}`,
       sourceId,
       name: operatorName,
+      stabilityPoints,
+      harmBoxes,
+      stabilityBand,
       stability,
-      harm: compactJoin([status.harm, status.harmBoxes ? `Harm ${status.harmBoxes}/5` : ""]),
+      harm: api.formatPlayerHarm(harmBoxes),
       misfire: compactJoin([status.activeMisfire, status.misfireSeverity && status.misfireSeverity !== "None" ? status.misfireSeverity : "", status.misfires]),
       voidBreach,
       anchors: compactJoin([status.anchorPerson, status.anchors, status.totemObject]),
@@ -322,9 +326,8 @@
           <label>Operator<input data-operator="${index}" data-field="name" maxlength="80" /></label>
           <button class="entry-remove no-print" type="button" data-remove-operator="${index}">Remove</button>
         </div>
+        <div class="handler-operator-tracker-mount" data-operator-trackers="${index}"></div>
         <div class="field-grid two">
-          <label>Stability Band<input data-operator="${index}" data-field="stability" maxlength="80" /></label>
-          <label>Harm<input data-operator="${index}" data-field="harm" maxlength="120" /></label>
           <label>Misfire Risk<input data-operator="${index}" data-field="misfire" maxlength="180" /></label>
           <label>Anchor Note<input data-operator="${index}" data-field="anchors" maxlength="180" /></label>
           <label>Void / Breach Notes<input data-operator="${index}" data-field="voidBreach" maxlength="180" /></label>
@@ -340,6 +343,14 @@
         </div>
       `;
       grid.append(card);
+      const trackerMount = card.querySelector(`[data-operator-trackers="${index}"]`);
+      if (window.HandlerOperatorTrackers) {
+        window.HandlerOperatorTrackers.renderBoard(trackerMount, state.players[index], index, state.players, () => {
+          state = api.normalizeState(state);
+          writeState();
+          renderOperators();
+        });
+      }
     });
     grid.querySelectorAll("[data-operator]").forEach((input) => {
       const index = Number(input.dataset.operator);
@@ -416,7 +427,7 @@
     const button = document.getElementById("add-operator");
     if (button) button.addEventListener("click", () => {
       const next = state.players.length + 1;
-      state.players.push({ id: `operator-${Date.now()}`, name: `Operator ${next}`, stability: "", harm: "", misfire: "", voidBreach: "", anchors: "", emotionalState: "", relationshipPressure: "", primaryFrequency: "", frequencyPips: "", equipment: "", sourceExportedAt: "", lastImported: "", sourceId: "" });
+      state.players.push({ id: `operator-${Date.now()}`, name: `Operator ${next}`, stabilityPoints: 10, harmBoxes: 0, stabilityBand: "Calm", stability: "Calm (10/10)", harm: "Fine", misfire: "", voidBreach: "", anchors: "", emotionalState: "", relationshipPressure: "", primaryFrequency: "", frequencyPips: "", equipment: "", sourceExportedAt: "", lastImported: "", sourceId: "" });
       writeState();
       renderOperators();
     });

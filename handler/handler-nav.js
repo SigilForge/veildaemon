@@ -129,7 +129,8 @@
     const name = el.getAttribute("name") || "";
     const dataField = el.getAttribute("data-field") || "";
 
-    if (dataField === "stability" || dataField === "harm" || dataField === "notes") return true;
+    if (dataField === "notes") return true;
+    if (el.closest(".handler-operator-trackers")) return true;
     if (el.hasAttribute("data-residue") || el.hasAttribute("data-entity-notes")) return true;
     if (name === "attention.current") return true;
     if (/^handlerNotes\./.test(name)) return true;

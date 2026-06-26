@@ -134,9 +134,8 @@
           <label>Operator<input data-player="${index}" data-field="name" maxlength="80" /></label>
           <button class="entry-remove no-print" type="button" data-remove-player="${index}">Remove</button>
         </div>
+        <div class="handler-operator-tracker-mount" data-player-trackers="${index}"></div>
         <div class="field-grid two">
-          <label>Stability<input data-player="${index}" data-field="stability" maxlength="80" /></label>
-          <label>Harm<input data-player="${index}" data-field="harm" maxlength="120" /></label>
           <label>Misfire<input data-player="${index}" data-field="misfire" maxlength="180" /></label>
           <label>Void / Breach Notes<input data-player="${index}" data-field="voidBreach" maxlength="180" /></label>
           <label>Anchors<input data-player="${index}" data-field="anchors" maxlength="180" /></label>
@@ -149,6 +148,15 @@
         <p class="helper-copy">Last Imported: ${api.safeString(player.lastImported ? player.lastImported.slice(0, 10) : "", 80) || "Manual summary"}</p>
       `;
       grid.append(card);
+      const trackerMount = card.querySelector(`[data-player-trackers="${index}"]`);
+      if (window.HandlerOperatorTrackers) {
+        window.HandlerOperatorTrackers.renderBoard(trackerMount, state.players[index], index, state.players, () => {
+          state = api.normalizeState(state);
+          writeState();
+          renderPlayers();
+          renderRiskStrip();
+        });
+      }
     });
 
     grid.querySelectorAll("[data-player]").forEach((input) => {
@@ -278,8 +286,8 @@
     }
     players.slice(0, 3).forEach((player, index) => {
       strip.append(riskChip(player.name || `Operator ${index + 1}`, [
-        player.stability ? `Stability ${player.stability}` : "",
-        player.harm ? `Harm ${player.harm}` : "",
+        player.stabilityBand ? `Band ${player.stabilityBand}` : player.stability ? `Stability ${player.stability}` : "",
+        player.harmBoxes !== undefined ? `Harm ${api.harmConditionFromBoxes(player.harmBoxes)}` : player.harm ? `Harm ${player.harm}` : "",
         player.misfire ? `Misfire ${player.misfire}` : "",
         player.voidBreach ? player.voidBreach : "",
         player.primaryFrequency ? `Freq ${player.primaryFrequency}` : ""
@@ -475,8 +483,11 @@
       state.players.push({
         id: `operator-${Date.now()}`,
         name: `Operator ${next}`,
-        stability: "",
-        harm: "",
+        stabilityPoints: 10,
+        harmBoxes: 0,
+        stabilityBand: "Calm",
+        stability: "Calm (10/10)",
+        harm: "Fine",
         misfire: "",
         voidBreach: "",
         anchors: "",
