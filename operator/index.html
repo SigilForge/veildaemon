@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260626-identitybuild1" />
+  <link rel="stylesheet" href="./operator.css?v=20260626-misfirehelp1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -231,10 +231,29 @@
             </article>
 
             <article class="sheet-card compact-control-card misfire-panel active-misfire-card">
-              <p class="card-label">Active Misfire</p>
-              <label>Current consequence<textarea name="activeMisfire" rows="3" placeholder="Describe the wrong-success consequence currently in play."></textarea></label>
+              <div class="active-misfire-heading">
+                <p class="card-label">Active Misfire</p>
+                <details class="misfire-help-drawer">
+                  <summary>What counts as a misfire?</summary>
+                  <div class="misfire-help-body">
+                    <p>A misfire is a visible cost attached to a success, partial success, failed recovery, or Handler consequence.</p>
+                    <p>Record what the Operator can observe:</p>
+                    <ul>
+                      <li>something noticed you</li>
+                      <li>something followed you</li>
+                      <li>evidence changed</li>
+                      <li>a witness shifted</li>
+                      <li>the room learned something</li>
+                      <li>a Frequency bleed got worse</li>
+                      <li>a success created a new problem</li>
+                    </ul>
+                    <p>Do not record hidden Handler truth here. Record the symptom.</p>
+                  </div>
+                </details>
+              </div>
+              <label>Observed Symptom<textarea name="activeMisfire" rows="3" placeholder="What changed, glitched, followed, noticed, or felt wrong."></textarea></label>
               <button type="button" class="button" id="clear-active-misfire">Clear Active Misfire</button>
-              <label>Misfires recorded<textarea name="misfires" rows="3" placeholder="Consequence, flavor, who noticed."></textarea></label>
+              <label>Operator Notes<textarea name="misfires" rows="3" placeholder="What you think caused it, who noticed, or what got worse."></textarea></label>
             </article>
 
             <article class="sheet-card skill-summary-card">

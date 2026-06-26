@@ -64,10 +64,10 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator('input[name="breachPoints"]')).toHaveAttribute("type", "hidden");
   await expect(page.locator('input[name="voidMarks"]')).toHaveAttribute("readonly", "");
   await expect(page.locator('input[name="breachPoints"]')).toHaveAttribute("readonly", "");
-  await page.getByLabel("Current consequence").fill("The wrong door remembers the Operator.");
-  await expect(page.getByLabel("Current consequence")).toHaveValue("The wrong door remembers the Operator.");
+  await page.getByLabel("Observed Symptom").fill("The wrong door remembers the Operator.");
+  await expect(page.getByLabel("Observed Symptom")).toHaveValue("The wrong door remembers the Operator.");
   await page.getByRole("button", { name: "Clear Active Misfire" }).click();
-  await expect(page.getByLabel("Current consequence")).toHaveValue("");
+  await expect(page.getByLabel("Observed Symptom")).toHaveValue("");
 
   await expect(page.getByText("Observation Status", { exact: true })).toHaveCount(0);
   await expect(page.locator("#sheet-attention-status")).toHaveCount(0);
