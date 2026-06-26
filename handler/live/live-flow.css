@@ -30,8 +30,16 @@
     gap: .55rem;
   }
 
+  body[data-handler-mode="live"] .live-side-column .roll-panel {
+    overflow: hidden;
+  }
+
   body[data-handler-mode="live"] .live-side-column .roll-panel .roll-panel-heading {
     margin-bottom: .6rem;
+  }
+
+  body[data-handler-mode="live"] .live-side-column .roll-panel .misfire-target-guide-drawer {
+    flex-basis: 100%;
   }
 
   body[data-handler-mode="live"] .live-side-column .roll-panel .roll-row {
@@ -40,19 +48,31 @@
     align-items: end;
   }
 
+  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-row > label {
+    min-width: 0;
+  }
+
   body[data-handler-mode="live"] .live-side-column .roll-panel .roll-mode {
-    grid-column: 1 / 3;
+    grid-column: 1 / -1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
+  }
+
+  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-mode label {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   body[data-handler-mode="live"] .live-side-column .roll-panel #roll-button {
-    grid-column: 3;
-    min-height: 100%;
+    grid-column: 1 / -1;
+    min-height: 2.55rem;
+    width: 100%;
   }
 
   body[data-handler-mode="live"] .live-side-column .roll-panel .roll-output {
     min-height: 2.5rem;
     font-size: .72rem;
+    overflow-wrap: anywhere;
   }
 
   body[data-handler-mode="live"] .live-main-column .scene-state-row {
