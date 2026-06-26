@@ -294,24 +294,20 @@ body.operator-record-sealed .data-panel {
 .frequency-form label:has(textarea) {
   grid-column: 1 / -1;
 }
-.frequency-edit-row {
+.page-lock-status {
   grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: .65rem;
-  padding: .65rem .75rem;
-  border: 1px solid rgba(137,255,218,.18);
-  background:
-    linear-gradient(90deg, rgba(137,255,218,.07), transparent 42%),
-    rgba(0,0,0,.24);
-}
-.frequency-edit-row .button {
-  grid-column: auto;
-}
-.frequency-edit-row span {
+  margin: 0 0 .7rem;
   color: var(--muted);
   font-size: .76rem;
+}
+#module-frequency .module-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: .55rem .75rem;
+}
+#module-frequency .module-heading .sheet-edit-toggle {
+  margin-left: auto;
 }
 .sheet-grid {
   display: grid;

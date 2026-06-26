@@ -143,7 +143,7 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await expect(page.locator("#lotus-frequency")).toHaveText("Dream");
   await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("27");
-  await expect(page.locator("#frequency-edit-status")).toContainText("Edit stats mode");
+  await expect(page.locator("[data-page-lock-status]")).toContainText("Edit stats mode");
   await page.getByLabel("Dream pip 3").click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("29");
   await expect(page.locator("#lotus-tier")).toHaveText("Basic");

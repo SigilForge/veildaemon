@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260626-builddefining1" />
+  <link rel="stylesheet" href="./operator.css?v=20260626-pagelock1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -141,7 +141,7 @@
       <div class="module-heading">
         <p class="kicker">ACTIVE CASE</p>
         <h2>At-table controls for the next thirty seconds.</h2>
-        <button type="button" class="button sheet-edit-toggle" id="sheet-edit-toggle" aria-pressed="false">Edit Sheet: Off</button>
+        <button type="button" class="button sheet-edit-toggle" id="sheet-edit-toggle" data-page-edit-toggle aria-pressed="false">Edit Sheet: Off</button>
       </div>
       <form class="console-form status-form" id="status-form">
         <section class="sheet-grid">
@@ -345,12 +345,10 @@
       <div class="module-heading">
         <p class="kicker">FREQUENCY</p>
         <h2>Abilities, tells, grounding, and misfire language.</h2>
+        <button type="button" class="button sheet-edit-toggle" data-page-edit-toggle aria-pressed="false">Edit Sheet: Off</button>
       </div>
       <form class="console-form frequency-form" id="frequency-form">
-        <div class="frequency-edit-row">
-          <button type="button" class="button" id="frequency-edit-toggle">Frequency Edit Mode: Off</button>
-          <span id="frequency-edit-status">Pip removal locked during field play.</span>
-        </div>
+        <p class="page-lock-status" data-page-lock-status>Field play: Sheet and Frequency maintenance locked.</p>
         <section class="lotus-workspace" aria-label="Frequency Lotus">
           <div class="lotus-map" id="lotus-map"></div>
           <article class="lotus-detail">
@@ -514,6 +512,6 @@
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260626-catalog-grants1"></script>
-  <script src="./operator.js?v=20260626-attredit1"></script>
+  <script src="./operator.js?v=20260626-pagelock1"></script>
 </body>
 </html>
