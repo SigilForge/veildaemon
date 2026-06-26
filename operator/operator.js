@@ -1460,6 +1460,19 @@
     return "Collapse Risk";
   }
 
+  function humanizeBleedCue(frequency, rawCue) {
+    const cue = String(rawCue || "").trim();
+    if (!cue || /^choose a primary frequency/i.test(cue)) return "No bleed cue loaded.";
+
+    const lower = cue.toLowerCase();
+
+    if ((frequency || "").toLowerCase() === "silence") {
+      return "When Silence bleeds through, people go numb, lose time, stop asking questions, and feel relief when no one presses them.";
+    }
+
+    return `When ${frequency || "this frequency"} bleeds through: ${lower}.`;
+  }
+
   function frequencyCard(frequency) {
     const cards = {
       Dream: {
@@ -1506,7 +1519,10 @@
     const status = consoleState.operatorStatus;
     status.stabilityBand = bandFromLegacyStability(status.stability);
     if (band) band.textContent = status.stabilityBand.toUpperCase();
-    if (bleedCue) bleedCue.textContent = frequencyCard(operatorRecord?.primaryFrequency).bleedCue.toUpperCase();
+    if (bleedCue) {
+      const frequency = operatorRecord?.primaryFrequency || "";
+      bleedCue.textContent = humanizeBleedCue(frequency, frequencyCard(frequency).bleedCue);
+    }
     setText("sheet-frequency", operatorRecord && operatorRecord.primaryFrequency || "UNASSIGNED");
   }
 
