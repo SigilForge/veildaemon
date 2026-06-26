@@ -1510,11 +1510,24 @@ a:focus-visible {
 }
 .data-panel {
   display: grid;
-  grid-template-columns: minmax(18rem, .8fr) minmax(26rem, 1.2fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
-  align-items: center;
   margin-top: 1rem;
   padding: 1rem;
+}
+.data-panel-groups {
+  display: grid;
+  gap: 1rem;
+}
+.data-transfer-group {
+  display: grid;
+  gap: .55rem;
+  padding: .85rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.18);
+}
+.data-transfer-group .local-note {
+  margin: 0;
 }
 .data-actions {
   display: flex;
