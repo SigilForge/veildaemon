@@ -11,7 +11,7 @@
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
   <link rel="stylesheet" href="../handler.css?v=20260626-winddown1" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260626-winddown1" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260626-livebalance1" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -72,7 +72,7 @@
 
       <div class="live-flow-grid">
         <div class="live-flow-column live-trigger-column">
-          <section class="panel trigger-panel no-print" aria-label="Table triggers" data-mode-panel="live" data-live-control-zone>
+          <section class="panel trigger-panel live-stack-order-triggers no-print" aria-label="Table triggers" data-mode-panel="live" data-live-control-zone>
             <div class="panel-heading">
               <p class="kicker">WHAT JUST HAPPENED?</p>
               <h2>Click the table event. Clock, Attention, and Scene State update visibly.</h2>
@@ -90,7 +90,7 @@
             </div>
           </section>
 
-          <section class="panel clock-panel" aria-label="Primary clock" data-mode-panel="live">
+          <section class="panel clock-panel live-stack-order-clock" aria-label="Primary clock" data-mode-panel="live">
             <div class="panel-heading">
               <p class="kicker">PRIMARY CLOCK</p>
               <h2>What is ticking right now?</h2>
@@ -108,10 +108,20 @@
               <label>Full Clock Event<textarea name="primaryClock.fullClockEvent" rows="3"></textarea></label>
             </div>
           </section>
+
+          <section class="panel wind-down-panel live-stack-order-wind-down no-print private-panel" aria-label="Wind down moves" data-mode-panel="live" data-live-control-zone>
+            <div class="panel-heading">
+              <p class="kicker">WIND DOWN MOVES</p>
+              <h2>Reduce pressure only when the fiction removes leverage.</h2>
+            </div>
+            <p class="panel-note">Minor: -1 // Major: -2 // Resolution: set to 0. Never wind down because a roll succeeded.</p>
+            <div class="wind-down-rail" id="wind-down-rail" role="group" aria-label="Wind down moves"></div>
+            <output class="wind-down-status" id="wind-down-status" aria-live="polite">Awaiting stabilization.</output>
+          </section>
         </div>
 
         <div class="live-flow-column live-main-column">
-          <section class="panel scene-panel" aria-label="Active scene state" data-mode-panel="live">
+          <section class="panel scene-panel live-stack-order-scene" aria-label="Active scene state" data-mode-panel="live">
             <div class="panel-heading">
               <p class="kicker">ACTIVE SCENE STATE</p>
               <h2>Track the room, not the ontology.</h2>
@@ -121,7 +131,7 @@
             <label>Primary consequence<textarea name="sceneState.primaryConsequence" rows="3" maxlength="500"></textarea></label>
           </section>
 
-          <section class="panel helper-panel" aria-label="The Room Answers helper" data-mode-panel="live">
+          <section class="panel helper-panel live-stack-order-room" aria-label="The Room Answers helper" data-mode-panel="live">
             <div class="panel-heading">
               <p class="kicker">THE ROOM ANSWERS</p>
               <h2>Ordinary object. Emotional input. Consequence.</h2>
@@ -134,7 +144,16 @@
             <div class="room-answer-preview" id="room-answer-preview" aria-live="polite"></div>
           </section>
 
-          <section class="panel player-panel" aria-label="Operator Risk Strip" data-mode-panel="live prep">
+          <section class="panel loop-panel live-stack-order-loop" aria-label="Entity or Zone Loop" data-mode-panel="live">
+            <div class="panel-heading">
+              <p class="kicker">ENTITY / ZONE LOOP</p>
+              <h2>Need -> Lure -> Pressure -> Gift -> Violence -> Exit</h2>
+            </div>
+            <div class="entity-active-readout" id="entity-active-readout" aria-live="polite"></div>
+            <div class="loop-grid" id="entity-loop-grid"></div>
+          </section>
+
+          <section class="panel player-panel live-stack-order-operators" aria-label="Operator Risk Strip" data-mode-panel="live prep">
             <div class="panel-heading">
               <p class="kicker">OPERATOR SUMMARY</p>
               <h2>Read-only compact trackers. Operators own their sheets.</h2>
@@ -146,20 +165,23 @@
             </div>
             <div class="player-grid" id="player-grid"></div>
           </section>
+
+          <section class="panel npc-panel live-stack-order-npcs" aria-label="NPC Roster" data-mode-panel="live prep">
+            <div class="panel-heading">
+              <p class="kicker">NPC / ROSTER</p>
+              <h2>Active people, pressure, location, flags.</h2>
+            </div>
+            <div class="npc-summary-grid" id="npc-summary-grid" aria-label="Active NPC summary"></div>
+            <div class="player-toolbar npc-toolbar no-print">
+              <button class="button" id="add-npc" type="button">Add NPC</button>
+              <p>Prep roster only. Keep the live surface to 3-5 active people.</p>
+            </div>
+            <div class="player-grid npc-grid" id="npc-grid"></div>
+          </section>
         </div>
 
         <div class="live-flow-column live-side-column">
-          <section class="panel wind-down-panel no-print private-panel" aria-label="Wind down moves" data-mode-panel="live" data-live-control-zone>
-            <div class="panel-heading">
-              <p class="kicker">WIND DOWN MOVES</p>
-              <h2>Reduce pressure only when the fiction removes leverage.</h2>
-            </div>
-            <p class="panel-note">Minor stabilization: -1 // Major stabilization: -2 // Resolution: set to 0. Never reduce below 0. Never wind down because a roll succeeded.</p>
-            <div class="wind-down-rail" id="wind-down-rail" role="group" aria-label="Wind down moves"></div>
-            <output class="wind-down-status" id="wind-down-status" aria-live="polite">Awaiting stabilization.</output>
-          </section>
-
-          <section class="panel aftermath-panel" aria-label="Attention and aftermath" data-mode-panel="live archive">
+          <section class="panel aftermath-panel live-stack-order-attention" aria-label="Attention and aftermath" data-mode-panel="live archive">
             <div class="panel-heading">
               <p class="kicker">ATTENTION / AFTERMATH</p>
               <h2>What follows them home?</h2>
@@ -172,7 +194,7 @@
             <p class="panel-note" id="attention-deterministic-hint" hidden>Residue, follows-home, and consequence sync from the active Needlepoint when Attention, Clock, or a table trigger changes. Manual edits here may be overwritten.</p>
           </section>
 
-          <section class="panel roll-panel" aria-label="Quick roll helper" data-mode-panel="live" data-live-control-zone>
+          <section class="panel roll-panel live-stack-order-roll" aria-label="Quick roll helper" data-mode-panel="live" data-live-control-zone>
             <div class="panel-heading roll-panel-heading">
               <div>
                 <p class="kicker">QUICK ROLL</p>
@@ -207,28 +229,6 @@
               <button class="button primary" id="roll-button" type="button">Roll 3d6</button>
             </div>
             <output class="roll-output" id="roll-output">Awaiting Operator test.</output>
-          </section>
-
-          <section class="panel loop-panel" aria-label="Entity or Zone Loop" data-mode-panel="live">
-            <div class="panel-heading">
-              <p class="kicker">ENTITY / ZONE LOOP</p>
-              <h2>Need -> Lure -> Pressure -> Gift -> Violence -> Exit</h2>
-            </div>
-            <div class="entity-active-readout" id="entity-active-readout" aria-live="polite"></div>
-            <div class="loop-grid" id="entity-loop-grid"></div>
-          </section>
-
-          <section class="panel npc-panel" aria-label="NPC Roster" data-mode-panel="live prep">
-            <div class="panel-heading">
-              <p class="kicker">NPC / ROSTER</p>
-              <h2>Active people, pressure, location, flags.</h2>
-            </div>
-            <div class="npc-summary-grid" id="npc-summary-grid" aria-label="Active NPC summary"></div>
-            <div class="player-toolbar npc-toolbar no-print">
-              <button class="button" id="add-npc" type="button">Add NPC</button>
-              <p>Prep roster only. Keep the live surface to 3-5 active people.</p>
-            </div>
-            <div class="player-grid npc-grid" id="npc-grid"></div>
           </section>
         </div>
       </div>
