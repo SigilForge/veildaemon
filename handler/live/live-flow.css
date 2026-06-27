@@ -29,13 +29,17 @@
 
   body[data-handler-mode="live"] .live-states-row {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.45fr) minmax(17rem, .82fr) minmax(17rem, .86fr);
     gap: .75rem;
     align-items: start;
   }
 
   body[data-handler-mode="live"] .live-states-row .scene-state-row {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(7.75rem, 1fr));
+  }
+
+  body[data-handler-mode="live"] .scene-panel textarea[name="sceneState.primaryConsequence"] {
+    min-height: 5.35rem;
   }
 
   body[data-handler-mode="live"] .live-states-row .scene-state-button {
@@ -81,11 +85,11 @@
   }
 
   body[data-handler-mode="live"] .live-work-row > .roll-panel {
-    grid-column: span 4;
+    grid-column: span 3;
   }
 
   body[data-handler-mode="live"] .live-work-row > .loop-panel {
-    grid-column: span 4;
+    grid-column: span 5;
   }
 
   body[data-handler-mode="live"] .live-work-row > .player-panel {
@@ -114,7 +118,7 @@
   }
 
   body[data-handler-mode="live"] .live-work-row .loop-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(9rem, 1fr));
   }
 
   body[data-handler-mode="live"] .live-work-row .loop-grid textarea {
@@ -143,6 +147,26 @@
 
   body[data-handler-mode="archive"] .aftermath-live-layout {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1320px) and (min-width: 1101px) {
+  body[data-handler-mode="live"] .live-states-row {
+    grid-template-columns: minmax(0, 1.3fr) minmax(16rem, .85fr);
+  }
+
+  body[data-handler-mode="live"] .live-states-row > .scene-panel {
+    grid-column: 1 / -1;
+  }
+
+  body[data-handler-mode="live"] .live-work-row > .helper-panel,
+  body[data-handler-mode="live"] .live-work-row > .roll-panel,
+  body[data-handler-mode="live"] .live-work-row > .loop-panel {
+    grid-column: span 4;
+  }
+
+  body[data-handler-mode="live"] .live-work-row .loop-grid {
+    grid-template-columns: 1fr;
   }
 }
 
