@@ -58,6 +58,11 @@
 
     lines.textContent = "";
     const rows = [];
+    rows.push({
+      label: "Use When",
+      before: "",
+      after: move.guidance
+    });
     if (move.effect === "attention_delta") {
       rows.push({ label: "Attention", before: current.attention.current, after: result.state.attention.current });
     } else if (move.effect === "primary_delta") {

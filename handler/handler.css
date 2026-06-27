@@ -313,12 +313,15 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   gap: .15rem;
   min-height: 4.5rem;
   padding: .72rem .8rem;
-  border: 1px solid rgba(137,255,218,.18);
-  background: rgba(0,0,0,.24);
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(8,12,14,.94), rgba(5,7,9,.88)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 1px, transparent 1px 8px);
   color: var(--text);
   text-align: left;
   cursor: pointer;
   font: inherit;
+  box-shadow: 0 18px 60px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.04);
 }
 
 .trigger-button em {
@@ -326,8 +329,8 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   width: max-content;
   max-width: 100%;
   padding: .12rem .42rem;
-  border: 1px solid rgba(137,255,218,.22);
-  color: var(--muted);
+  border: 1px solid rgba(137,255,218,.2);
+  color: var(--cyan);
   font-size: .64rem;
   font-style: normal;
   letter-spacing: .05em;
@@ -348,8 +351,8 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 
 .trigger-button:hover,
 .trigger-button.is-active {
-  border-color: rgba(102,255,220,.5);
-  box-shadow: inset 0 0 18px rgba(102,255,220,.08);
+  border-color: rgba(102,255,220,.7);
+  box-shadow: 0 18px 60px rgba(0,0,0,.28), inset 0 0 18px rgba(102,255,220,.08), inset 0 1px rgba(255,255,255,.05);
 }
 
 
