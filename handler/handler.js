@@ -248,17 +248,32 @@
     const summary = document.getElementById("npc-summary-grid");
     if (!summary) return;
     summary.textContent = "";
-    const active = state.npcs.filter((npc) => npc.name || npc.role || npc.pressure || npc.location || npc.notes).slice(0, 5);
+    const active = state.npcs
+      .map((npc, index) => ({ npc, index }))
+      .filter(({ npc }) => npc.name || npc.role || npc.pressure || npc.location || npc.notes || npc.anchor?.enabled)
+      .slice(0, 5);
     if (!active.length) {
       summary.append(summaryCard("Roster", "No active NPCs logged.", "Prep can add people, pressure, and flags."));
       return;
     }
-    active.forEach((npc) => {
-      summary.append(summaryCard(
+    active.forEach(({ npc, index }) => {
+      const card = summaryCard(
         npc.name || "Unnamed NPC",
         [npc.role, npc.pressure, npc.location].filter(Boolean).join(" // ") || "No pressure logged.",
         npc.flags.join(" // ") || "No flags"
-      ));
+      );
+      if (window.HandlerNpcAnchor) {
+        window.HandlerNpcAnchor.renderAnchorBlock(card, npc, index, (npcIndex, stateId) => {
+          state.npcs[npcIndex].anchor = api.normalizeNpcAnchor({
+            ...state.npcs[npcIndex].anchor,
+            state: stateId
+          });
+          state = api.normalizeState(state);
+          writeState();
+          renderNpcSummary();
+        });
+      }
+      summary.append(card);
     });
   }
 
