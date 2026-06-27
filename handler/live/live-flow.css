@@ -12,7 +12,7 @@
       "scene roll attention"
       "room loop loop"
       "operators operators npcs";
-    gap: 0;
+    gap: .75rem;
     align-items: start;
     margin-top: .75rem;
   }
@@ -36,7 +36,7 @@
 
   body[data-handler-mode="live"] .live-pressure-worse .panel-heading,
   body[data-handler-mode="live"] .live-pressure-better .panel-heading {
-    margin-bottom: .45rem;
+    margin-bottom: .55rem;
   }
 
   body[data-handler-mode="live"] .live-pressure-worse h2,
@@ -47,7 +47,7 @@
   body[data-handler-mode="live"] .live-pressure-row .pressure-tray {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0;
+    gap: .55rem;
     overflow: visible;
     padding: .1rem 0 0;
   }
@@ -61,7 +61,7 @@
 
   body[data-handler-mode="live"] .live-states-row .scene-state-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0;
+    gap: .55rem;
   }
 
   body[data-handler-mode="live"] .live-states-row .scene-state-button {
@@ -74,7 +74,7 @@
 
   body[data-handler-mode="live"] .live-work-roll-row {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0;
+    gap: .5rem;
     align-items: end;
   }
 
