@@ -1467,7 +1467,7 @@
     if (target === "primary") return "Primary";
     if (target === "attention") return "Attention";
     if (target === "case") return "Case";
-    if (target === "both") return "Primary + Attention";
+    if (target === "both") return "Both";
     return "Handler";
   }
 
