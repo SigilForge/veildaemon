@@ -25,6 +25,23 @@
     min-height: 0;
   }
 
+  body[data-handler-mode="live"] .live-trigger-column .clock-field-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(5.5rem, .38fr);
+  }
+
+  body[data-handler-mode="live"] .live-trigger-column .clock-field-grid label:nth-child(1) {
+    grid-column: 1 / -1;
+  }
+
+  body[data-handler-mode="live"] .live-trigger-column .clock-field-grid label:nth-child(4),
+  body[data-handler-mode="live"] .live-trigger-column .clock-field-grid label:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
+  body[data-handler-mode="live"] .live-trigger-column .clock-panel .field-grid.two {
+    grid-template-columns: 1fr;
+  }
+
   body[data-handler-mode="live"] .live-side-column .aftermath-live-layout {
     grid-template-columns: 1fr;
     gap: .55rem;
