@@ -92,7 +92,7 @@
       target: "case",
       effect: "case_delta",
       delta: -1,
-      guidance: "Use when Operators get the clue without feeding the site, exposing an NPC, or escalating attention."
+      guidance: "Use when Operators recover the clue without feeding the site, exposing an NPC, or escalating attention. If the case clock is off, still record the clue cleanly."
     },
     {
       id: "use-clock-stabilizer",
@@ -1317,6 +1317,74 @@
     return windDownMoves.find((move) => move.id === moveId) || null;
   }
 
+  function previewWindDownMove(state, moveId) {
+    const move = findWindDownMove(moveId);
+    if (!move) return null;
+
+    const next = applyWindDownMove(state, moveId);
+    const lines = [
+      {
+        label: "Responsibility",
+        before: "Pending",
+        after: windDownTargetLabel(move.target)
+      },
+      {
+        label: "Use When",
+        before: "",
+        after: move.guidance
+      },
+      {
+        label: "Clock",
+        before: `${state.primaryClock.current}/${state.primaryClock.segments}`,
+        after: `${next.state.primaryClock.current}/${next.state.primaryClock.segments}`
+      },
+      {
+        label: "Attention",
+        before: state.attention.current,
+        after: next.state.attention.current
+      },
+      {
+        label: "Scene State",
+        before: state.sceneState.current,
+        after: next.state.sceneState.current
+      },
+      {
+        label: "Residue",
+        before: state.attention.residue || "None logged.",
+        after: next.state.attention.residue || "None logged."
+      },
+      {
+        label: "Consequence",
+        before: state.sceneState.primaryConsequence || "Unset",
+        after: next.state.sceneState.primaryConsequence || "Unset"
+      },
+      {
+        label: "Next Pressure",
+        before: state.caseFile.nextPressureBeat || "No beat staged.",
+        after: next.state.caseFile.nextPressureBeat || "No beat staged."
+      }
+    ];
+
+    if (move.effect === "case_delta") {
+      lines.push({
+        label: "Case Clock",
+        before: state.secondaryClock.enabled
+          ? `${state.secondaryClock.current}/${state.secondaryClock.segments}`
+          : "Disabled",
+        after: next.state.secondaryClock.enabled
+          ? `${next.state.secondaryClock.current}/${next.state.secondaryClock.segments}`
+          : "Clean clue logged"
+      });
+      lines.push({
+        label: "Case Record",
+        before: "Unlogged",
+        after: next.state.residueLog[0]?.residue || "Clean clue recovered."
+      });
+    }
+
+    return { move, lines, nextState: next.state, message: next.message };
+  }
+
   function applyWindDownMove(state, moveId) {
     const move = findWindDownMove(moveId);
     if (!move) return { state, message: "UNKNOWN WIND DOWN MOVE" };
@@ -1342,6 +1410,17 @@
       draft.primaryClock.current = 0;
       message = `PRIMARY RESOLVED — ${before} -> 0`;
     } else if (move.effect === "case_delta") {
+      draft.caseFile.nextPressureBeat = "Clean clue recovered without feeding the site.";
+      draft.residueLog.unshift({
+        id: `residue-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+        scene: draft.sceneState.current,
+        attention: draft.attention.current,
+        residue: `Clean clue recovered: ${draft.caseFile.nextClue || move.label}`,
+        followsHome: draft.attention.followsHome || "",
+        consequence: draft.secondaryClock.enabled
+          ? "Case pressure reduced; clue secured."
+          : "No clock reduced; clue secured cleanly."
+      });
       if (draft.secondaryClock.enabled) {
         const before = draft.secondaryClock.current;
         draft.secondaryClock.current = safeNumber(
@@ -1764,6 +1843,7 @@
     getTableTriggers,
     findTableTrigger,
     previewTableTrigger,
+    previewWindDownMove,
     applyTableTrigger,
     windDownMoves,
     findWindDownMove,

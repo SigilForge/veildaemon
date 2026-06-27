@@ -45,59 +45,17 @@
 
   function renderPreview(moveId) {
     const panel = previewNode();
-    const move = api.findWindDownMove(moveId);
-    if (!panel || !move) return;
+    const preview = api.previewWindDownMove ? api.previewWindDownMove(api.readState(), moveId) : null;
+    if (!panel || !preview) return;
 
     panel.hidden = false;
-    const current = api.readState();
-    const result = api.applyWindDownMove(current, moveId);
     const title = panel.querySelector(".trigger-preview-title");
     const lines = panel.querySelector(".trigger-preview-lines");
-    if (title) title.textContent = `Apply Wind Down: ${move.label}?`;
+    if (title) title.textContent = `Apply Wind Down: ${preview.move.label}?`;
     if (!lines) return;
 
     lines.textContent = "";
-    const rows = [];
-    rows.push({
-      label: "Use When",
-      before: "",
-      after: move.guidance
-    });
-    if (move.effect === "attention_delta") {
-      rows.push({ label: "Attention", before: current.attention.current, after: result.state.attention.current });
-    } else if (move.effect === "primary_delta") {
-      rows.push({
-        label: "Primary Clock",
-        before: `${current.primaryClock.current}/${current.primaryClock.segments}`,
-        after: `${result.state.primaryClock.current}/${result.state.primaryClock.segments}`
-      });
-    } else if (move.effect === "primary_resolve") {
-      rows.push({
-        label: "Primary Clock",
-        before: `${current.primaryClock.current}/${current.primaryClock.segments}`,
-        after: `0/${result.state.primaryClock.segments}`
-      });
-    } else if (move.effect === "case_delta") {
-      if (current.secondaryClock.enabled) {
-        rows.push({
-          label: "Case Clock",
-          before: `${current.secondaryClock.current}/${current.secondaryClock.segments}`,
-          after: `${result.state.secondaryClock.current}/${result.state.secondaryClock.segments}`
-        });
-      } else {
-        rows.push({
-          label: "Effect",
-          before: "",
-          after: "CLEAN CLUE RECORDED — NO CLOCK REDUCED"
-        });
-      }
-    }
-
-    if (!rows.length) {
-      rows.push({ label: "Effect", before: "", after: result.message });
-    }
-
-    rows.forEach((row) => {
+    preview.lines.forEach((row) => {
       const item = document.createElement("li");
       if (row.before === "") {
         item.innerHTML = `<span>${api.safeString(row.label, 80)}</span><strong>${api.safeString(row.after, 220)}</strong>`;
@@ -106,12 +64,6 @@
       }
       lines.append(item);
     });
-
-    if (!lines.children.length) {
-      const item = document.createElement("li");
-      item.innerHTML = "<span>Effect</span><strong>No visible meter change. The scene still updates.</strong>";
-      lines.append(item);
-    }
   }
 
   function openPreview(moveId) {
