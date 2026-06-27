@@ -297,15 +297,15 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 .pressure-tray .wind-down-button {
   flex: 0 0 clamp(7.25rem, calc((100% - 4.05rem) / 10), 10.25rem);
   scroll-snap-align: start;
-  min-height: 4.1rem;
-  max-height: 5.5rem;
+  min-height: 5.4rem;
+  max-height: 6.4rem;
   overflow: hidden;
 }
 
 .pressure-tray .trigger-button span,
 .pressure-tray .wind-down-button span {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -322,7 +322,7 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 
 .trigger-button {
   display: grid;
-  gap: .35rem;
+  gap: .25rem;
   min-height: 4.5rem;
   padding: .72rem .8rem;
   border: 1px solid rgba(137,255,218,.18);
@@ -353,7 +353,7 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 
 .trigger-button span {
   color: var(--muted);
-  font-size: .72rem;
+  font-size: .67rem;
   line-height: 1.35;
 }
 
@@ -375,7 +375,7 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 
 .wind-down-button {
   display: grid;
-  gap: .35rem;
+  gap: .25rem;
   min-height: 4.5rem;
   padding: .72rem .8rem;
   border: 1px solid rgba(102,255,220,.16);
@@ -407,7 +407,7 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 
 .wind-down-button span {
   color: var(--muted);
-  font-size: .72rem;
+  font-size: .67rem;
   line-height: 1.35;
 }
 

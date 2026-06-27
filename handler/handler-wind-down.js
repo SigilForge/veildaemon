@@ -25,6 +25,7 @@
       button.className = "wind-down-button";
       button.dataset.windDownId = move.id;
       button.classList.toggle("is-active", move.id === pendingMoveId);
+      button.title = `${move.label} — ${move.guidance}`;
       const deltaLabel = move.effect === "primary_resolve"
         ? "Set 0"
         : move.delta < 0

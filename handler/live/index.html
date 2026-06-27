@@ -10,8 +10,8 @@
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260626-pressuregrid7" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260626-pressuregrid7" />
+  <link rel="stylesheet" href="../handler.css?v=20260626-pressuregrid8" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260626-pressuregrid8" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -99,19 +99,6 @@
             <label>Primary consequence<textarea name="sceneState.primaryConsequence" rows="2" maxlength="500"></textarea></label>
           </section>
 
-          <section class="panel helper-panel" aria-label="The Room Answers helper" data-mode-panel="live">
-            <div class="panel-heading">
-              <p class="kicker">THE ROOM ANSWERS</p>
-              <h2>Ordinary object. Emotional input. Consequence.</h2>
-            </div>
-            <div class="room-answer-fields">
-              <label>Ordinary Object<input name="roomAnswer.object" maxlength="130" autocomplete="off" /></label>
-              <label>Emotional Input<input name="roomAnswer.emotionalInput" maxlength="130" autocomplete="off" /></label>
-              <label>Consequence<input name="roomAnswer.consequence" maxlength="200" autocomplete="off" /></label>
-            </div>
-            <div class="room-answer-preview" id="room-answer-preview" aria-live="polite"></div>
-          </section>
-
           <section class="panel player-panel" aria-label="Operator Risk Strip" data-mode-panel="live prep">
             <div class="panel-heading">
               <p class="kicker">OPERATOR SUMMARY</p>
@@ -193,6 +180,19 @@
             </div>
             <div class="entity-active-readout" id="entity-active-readout" aria-live="polite"></div>
             <div class="loop-grid" id="entity-loop-grid"></div>
+          </section>
+
+          <section class="panel helper-panel" aria-label="The Room Answers helper" data-mode-panel="live">
+            <div class="panel-heading">
+              <p class="kicker">THE ROOM ANSWERS</p>
+              <h2>Ordinary object. Emotional input. Consequence.</h2>
+            </div>
+            <div class="room-answer-fields">
+              <label>Ordinary Object<input name="roomAnswer.object" maxlength="130" autocomplete="off" /></label>
+              <label>Emotional Input<input name="roomAnswer.emotionalInput" maxlength="130" autocomplete="off" /></label>
+              <label>Consequence<input name="roomAnswer.consequence" maxlength="200" autocomplete="off" /></label>
+            </div>
+            <div class="room-answer-preview" id="room-answer-preview" aria-live="polite"></div>
           </section>
         </div>
 
@@ -286,12 +286,12 @@
     </section>
   </main>
   <script src="../../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="../handler-state.js?v=20260626-pressuregrid7"></script>
+  <script src="../handler-state.js?v=20260626-pressuregrid8"></script>
   <script src="../handler-nav.js?v=20260626-fieldlock4"></script>
   <script src="../handler-operator-trackers.js?v=20260626-optrack1"></script>
   <script src="../handler-npc-anchor.js?v=20260626-npcanchor1"></script>
-  <script src="../handler-triggers.js?v=20260626-pressuregrid7"></script>
-  <script src="../handler-wind-down.js?v=20260626-pressuregrid7"></script>
-  <script src="../handler.js?v=20260626-pressuregrid7"></script>
+  <script src="../handler-triggers.js?v=20260626-pressuregrid8"></script>
+  <script src="../handler-wind-down.js?v=20260626-pressuregrid8"></script>
+  <script src="../handler.js?v=20260626-pressuregrid8"></script>
 </body>
 </html>
