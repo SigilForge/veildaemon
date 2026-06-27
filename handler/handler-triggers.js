@@ -27,7 +27,7 @@
       button.dataset.clockTarget = trigger.effects?.clock_target || "";
       button.classList.toggle("is-active", trigger.id === pendingTriggerId);
       button.title = trigger.hint ? `${trigger.label} — ${trigger.hint}` : trigger.label;
-      button.innerHTML = `<em>${clockTargetLabel(trigger.effects?.clock_target)}</em><strong>${api.safeString(trigger.label, 140)}</strong>${trigger.hint ? `<span>${api.safeString(trigger.hint, 220)}</span>` : ""}`;
+      button.innerHTML = `<em>${clockTargetLabel(trigger.effects?.clock_target)}</em><strong>${api.safeString(trigger.label, 140)}</strong>`;
       button.addEventListener("click", () => openPreview(trigger.id));
       rail.append(button);
     });

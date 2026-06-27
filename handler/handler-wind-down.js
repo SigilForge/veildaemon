@@ -31,7 +31,7 @@
         : move.delta < 0
           ? `${move.delta}`
           : "Resolve";
-      button.innerHTML = `<em>${api.windDownTargetLabel(move.target)} ${deltaLabel}</em><strong>${api.safeString(move.label, 140)}</strong><span>${api.safeString(move.guidance, 260)}</span>`;
+      button.innerHTML = `<em>${api.windDownTargetLabel(move.target)} ${deltaLabel}</em><strong>${api.safeString(move.label, 140)}</strong>`;
       button.addEventListener("click", () => openPreview(move.id));
       rail.append(button);
     });
