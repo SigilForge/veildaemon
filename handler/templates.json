@@ -340,7 +340,12 @@
           "flags": [
             "Ally"
           ],
-          "notes": "Use for grounding Mara and alternate clue routes."
+          "notes": "Use for grounding Mara and alternate clue routes.",
+          "anchor": {
+            "enabled": true,
+            "label": "Anchor NPC",
+            "state": "with-operators"
+          }
         },
         {
           "id": "npc-mara",

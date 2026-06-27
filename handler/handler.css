@@ -1165,6 +1165,54 @@ body[data-handler-mode="live"] .player-grid {
   line-height: 1.35;
 }
 
+.npc-anchor-block {
+  margin-top: .55rem;
+  padding-top: .55rem;
+  border-top: 1px solid rgba(137,255,218,.12);
+}
+
+.npc-anchor-label {
+  margin: 0 0 .4rem;
+  color: var(--cyan);
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.npc-anchor-states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+
+.npc-anchor-button {
+  min-height: 2rem;
+  padding: .35rem .5rem;
+  border: 1px solid rgba(137,255,218,.2);
+  background: rgba(0,0,0,.28);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.npc-anchor-button.is-active {
+  border-color: rgba(185,84,255,.74);
+  color: var(--text);
+  box-shadow: inset 0 0 16px rgba(185,84,255,.1);
+}
+
+.npc-anchor-guidance {
+  margin: .45rem 0 0;
+  color: var(--muted);
+  font-size: .68rem;
+  line-height: 1.4;
+}
+
 body[data-handler-mode="live"] .npc-toolbar,
 body[data-handler-mode="live"] .npc-grid {
   display: none;

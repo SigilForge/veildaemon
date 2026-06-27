@@ -37,6 +37,14 @@
   };
   const loopFields = ["Need", "Lure", "Pressure", "Gift", "Violence", "Exit"];
   const npcFlags = ["Ally", "Witness", "Threat", "Missing", "Compromised"];
+  const anchorNpcStates = [
+    { id: "with-operators", label: "With Operators", guidance: "Attention +1 on loud/risky/exposed action." },
+    { id: "hidden", label: "Hidden", guidance: "Zone +1 when time passes or hiding is stressed." },
+    { id: "separated", label: "Separated", guidance: "Attention +1 or Zone +1." },
+    { id: "left-behind", label: "Left Behind", guidance: "Aftermath +1 immediately." },
+    { id: "taken", label: "Taken", guidance: "Attention +1 and Aftermath +1, or start rescue clock." }
+  ];
+  const anchorNpcStateIds = anchorNpcStates.map((entry) => entry.id);
   const sceneStateRank = sceneStates.reduce((table, item, index) => {
     table[item.name] = index;
     return table;
@@ -570,7 +578,12 @@
           "flags": [
             "Ally"
           ],
-          "notes": "Use for grounding Mara and alternate clue routes."
+          "notes": "Use for grounding Mara and alternate clue routes.",
+          "anchor": {
+            "enabled": true,
+            "label": "Anchor NPC",
+            "state": "with-operators"
+          }
         },
         {
           "id": "npc-mara",
@@ -1405,6 +1418,20 @@
     };
   }
 
+  function normalizeNpcAnchor(anchor) {
+    const source = anchor && typeof anchor === "object" ? anchor : {};
+    return {
+      enabled: Boolean(source.enabled),
+      label: safeString(source.label, 40) || "Anchor NPC",
+      state: anchorNpcStateIds.includes(source.state) ? source.state : "with-operators"
+    };
+  }
+
+  function anchorGuidanceForState(stateId) {
+    const entry = anchorNpcStates.find((item) => item.id === stateId);
+    return entry ? entry.guidance : "";
+  }
+
   function normalizeNpcs(npcs) {
     const list = Array.isArray(npcs) ? npcs : [];
     return list.slice(0, 12).map((npc, index) => ({
@@ -1414,7 +1441,8 @@
       pressure: safeString(npc.pressure, 160),
       location: safeString(npc.location, 120),
       flags: Array.isArray(npc.flags) ? npc.flags.filter((flag) => npcFlags.includes(flag)).slice(0, 5) : [],
-      notes: safeString(npc.notes, 1000)
+      notes: safeString(npc.notes, 1000),
+      anchor: normalizeNpcAnchor(npc.anchor)
     }));
   }
 
@@ -1578,6 +1606,9 @@
     attentionStates,
     loopFields,
     npcFlags,
+    anchorNpcStates,
+    normalizeNpcAnchor,
+    anchorGuidanceForState,
     presentationCatalog: catalogs.presentationCatalog || {},
     backgroundCatalog: catalogs.backgroundCatalog || {},
     presentationOptions: catalogs.presentationOptions || (() => []),
