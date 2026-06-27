@@ -62,6 +62,10 @@
     gap: .55rem;
   }
 
+  body[data-handler-mode="live"] .live-side-column .wind-down-rail {
+    grid-template-columns: 1fr;
+  }
+
   body[data-handler-mode="live"] .live-side-column .roll-panel {
     overflow: hidden;
   }

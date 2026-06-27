@@ -45,6 +45,72 @@
     { id: "taken", label: "Taken", guidance: "Attention +1 and Aftermath +1, or start rescue clock." }
   ];
   const anchorNpcStateIds = anchorNpcStates.map((entry) => entry.id);
+  const windDownMoves = [
+    {
+      id: "protect-anchor-npc",
+      label: "Protect Anchor NPC",
+      target: "attention",
+      effect: "attention_delta",
+      delta: -1,
+      guidance: "Use when Operators move, shield, hide, or emotionally stabilize a scenario-critical NPC."
+    },
+    {
+      id: "speak-truth-protected",
+      label: "Speak Truth While Protected",
+      target: "attention",
+      effect: "attention_delta",
+      delta: -1,
+      guidance: "Use when honest speech directly weakens the site/entity and another Operator protects the speaker."
+    },
+    {
+      id: "cut-observation",
+      label: "Cut Observation",
+      target: "attention",
+      effect: "attention_delta",
+      delta: -1,
+      guidance: "Use when cameras, mirrors, feeds, witnesses, or tracking vectors are blocked."
+    },
+    {
+      id: "restore-connection",
+      label: "Restore Connection",
+      target: "attention",
+      effect: "attention_delta",
+      delta: -1,
+      guidance: "Use when separated Operators reunite, someone is witnessed safely, or isolation pressure is broken."
+    },
+    {
+      id: "secure-route",
+      label: "Secure Route / Safe Room",
+      target: "primary",
+      effect: "primary_delta",
+      delta: -1,
+      guidance: "Use when the physical zone loses access: door barred, hiding place secured, exit mapped, lure interrupted."
+    },
+    {
+      id: "recover-clean-clue",
+      label: "Recover Clean Clue",
+      target: "case",
+      effect: "case_delta",
+      delta: -1,
+      guidance: "Use when Operators get the clue without feeding the site, exposing an NPC, or escalating attention."
+    },
+    {
+      id: "use-clock-stabilizer",
+      label: "Use Clock Stabilizer",
+      target: "primary",
+      effect: "primary_delta",
+      delta: -2,
+      guidance: "Use when they do the specific stabilizer written on the clock."
+    },
+    {
+      id: "contain-resolve",
+      label: "Contain / Resolve Source",
+      target: "primary",
+      effect: "primary_resolve",
+      delta: 0,
+      guidance: "Use only when the threat's active access is actually ended."
+    }
+  ];
   const sceneStateRank = sceneStates.reduce((table, item, index) => {
     table[item.name] = index;
     return table;
@@ -1240,6 +1306,65 @@
     return normalizeState(draft);
   }
 
+  function windDownTargetLabel(target) {
+    if (target === "primary") return "Primary";
+    if (target === "attention") return "Attention";
+    if (target === "case") return "Case";
+    return "Handler";
+  }
+
+  function findWindDownMove(moveId) {
+    return windDownMoves.find((move) => move.id === moveId) || null;
+  }
+
+  function applyWindDownMove(state, moveId) {
+    const move = findWindDownMove(moveId);
+    if (!move) return { state, message: "UNKNOWN WIND DOWN MOVE" };
+
+    const draft = clone(normalizeState(state));
+    let message = "";
+
+    if (move.effect === "attention_delta") {
+      const before = draft.attention.current;
+      draft.attention.current = resolveAttentionValue(before, { attention_delta: move.delta });
+      message = `ATTENTION ${before} -> ${draft.attention.current}`;
+    } else if (move.effect === "primary_delta") {
+      const before = draft.primaryClock.current;
+      draft.primaryClock.current = safeNumber(
+        before + move.delta,
+        0,
+        draft.primaryClock.segments,
+        before
+      );
+      message = `PRIMARY ${before}/${draft.primaryClock.segments} -> ${draft.primaryClock.current}/${draft.primaryClock.segments}`;
+    } else if (move.effect === "primary_resolve") {
+      const before = draft.primaryClock.current;
+      draft.primaryClock.current = 0;
+      message = `PRIMARY RESOLVED — ${before} -> 0`;
+    } else if (move.effect === "case_delta") {
+      if (draft.secondaryClock.enabled) {
+        const before = draft.secondaryClock.current;
+        draft.secondaryClock.current = safeNumber(
+          before + move.delta,
+          0,
+          draft.secondaryClock.segments,
+          before
+        );
+        message = `CASE ${before}/${draft.secondaryClock.segments} -> ${draft.secondaryClock.current}/${draft.secondaryClock.segments}`;
+      } else {
+        message = "CLEAN CLUE RECORDED — NO CLOCK REDUCED";
+      }
+    } else {
+      return { state, message: "UNKNOWN WIND DOWN MOVE" };
+    }
+
+    const withNeedlepoint = hasActiveNeedlepoint(draft) ? applyNeedlepointAttention(draft) : draft;
+    return {
+      state: normalizeState(withNeedlepoint),
+      message: `${move.label.toUpperCase()} — ${message}`
+    };
+  }
+
   function readFieldEditMode() {
     try {
       const stored = window.localStorage.getItem(fieldEditStorageKey);
@@ -1640,6 +1765,10 @@
     findTableTrigger,
     previewTableTrigger,
     applyTableTrigger,
+    windDownMoves,
+    findWindDownMove,
+    applyWindDownMove,
+    windDownTargetLabel,
     normalizeTrackerValue,
     parseStabilityPoints,
     parseHarmBoxes,

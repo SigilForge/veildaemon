@@ -10,8 +10,8 @@
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260626-npcanchor1" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260626-flow3" />
+  <link rel="stylesheet" href="../handler.css?v=20260626-winddown1" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260626-winddown1" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -149,6 +149,16 @@
         </div>
 
         <div class="live-flow-column live-side-column">
+          <section class="panel wind-down-panel no-print private-panel" aria-label="Wind down moves" data-mode-panel="live" data-live-control-zone>
+            <div class="panel-heading">
+              <p class="kicker">WIND DOWN MOVES</p>
+              <h2>Reduce pressure only when the fiction removes leverage.</h2>
+            </div>
+            <p class="panel-note">Minor stabilization: -1 // Major stabilization: -2 // Resolution: set to 0. Never reduce below 0. Never wind down because a roll succeeded.</p>
+            <div class="wind-down-rail" id="wind-down-rail" role="group" aria-label="Wind down moves"></div>
+            <output class="wind-down-status" id="wind-down-status" aria-live="polite">Awaiting stabilization.</output>
+          </section>
+
           <section class="panel aftermath-panel" aria-label="Attention and aftermath" data-mode-panel="live archive">
             <div class="panel-heading">
               <p class="kicker">ATTENTION / AFTERMATH</p>
@@ -266,11 +276,12 @@
     </section>
   </main>
   <script src="../../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="../handler-state.js?v=20260626-npcanchor1"></script>
+  <script src="../handler-state.js?v=20260626-winddown1"></script>
   <script src="../handler-nav.js?v=20260626-fieldlock4"></script>
   <script src="../handler-operator-trackers.js?v=20260626-optrack1"></script>
   <script src="../handler-npc-anchor.js?v=20260626-npcanchor1"></script>
   <script src="../handler-triggers.js?v=20260626-trigger-routing1"></script>
-  <script src="../handler.js?v=20260626-npcanchor1"></script>
+  <script src="../handler-wind-down.js?v=20260626-winddown1"></script>
+  <script src="../handler.js?v=20260626-winddown1"></script>
 </body>
 </html>
