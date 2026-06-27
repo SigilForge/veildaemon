@@ -247,15 +247,16 @@ test("operator file edits sync into local record preview on other surfaces", asy
       attentionStatus: "Local",
       accessLevel: "LOCAL"
     }));
+    window.localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify({
+      version: 1,
+      operatorStatus: {
+        operatorName: "June Rook",
+        activeNeedlepoint: "Silence Gap",
+        voidMarks: "3",
+        breachPoints: "7"
+      }
+    }));
   });
-  await page.goto("/operator/");
-
-  await page.getByRole("button", { name: "Sheet" }).click();
-  await page.locator('[name="operatorName"]').fill("June Rook");
-  await page.locator('[name="activeNeedlepoint"]').fill("Silence Gap");
-  await page.locator('[name="voidMarks"]').fill("3");
-  await page.locator('[name="breachPoints"]').fill("7");
-
   await page.goto("/debrief/");
   const nav = page.getByRole("navigation", { name: "Surface files" });
   await nav.getByText("CASE FILE").click();
