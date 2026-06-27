@@ -22,7 +22,7 @@
     triggers.forEach((trigger) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "trigger-button";
+      button.className = "pressure-button pressure-button--worse";
       button.dataset.triggerId = trigger.id;
       button.dataset.clockTarget = trigger.effects?.clock_target || "";
       button.classList.toggle("is-active", trigger.id === pendingTriggerId);

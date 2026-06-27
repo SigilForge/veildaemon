@@ -22,7 +22,7 @@
     api.windDownMoves.forEach((move) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "wind-down-button";
+      button.className = "pressure-button pressure-button--better";
       button.dataset.windDownId = move.id;
       button.classList.toggle("is-active", move.id === pendingMoveId);
       button.title = `${move.label} — ${move.guidance}`;
