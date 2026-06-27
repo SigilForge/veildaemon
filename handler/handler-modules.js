@@ -106,8 +106,14 @@
 
   function operatorIsBlank(operator) {
     const defaultName = /^Operator \d+$/.test(api.safeString(operator.name, 80));
+    const defaultId = /^operator-\d+$/.test(api.safeString(operator.id, 80));
+    const defaultStability = !api.safeString(operator.stability, 80) || api.safeString(operator.stability, 80) === api.formatPlayerStability(10, "Calm");
+    const defaultHarm = !api.safeString(operator.harm, 80) || api.safeString(operator.harm, 80) === api.formatPlayerHarm(0);
     return (defaultName || !api.safeString(operator.name, 80))
-      && !["stability", "harm", "misfire", "voidBreach", "anchors", "emotionalState", "relationshipPressure", "primaryFrequency", "frequencyPips", "equipment"].some((field) => api.safeString(operator[field], 180));
+      && defaultId
+      && defaultStability
+      && defaultHarm
+      && !["misfire", "voidBreach", "anchors", "emotionalState", "relationshipPressure", "primaryFrequency", "frequencyPips", "equipment", "sourceId", "lastImported"].some((field) => api.safeString(operator[field], 180));
   }
 
   function upsertImportedOperator(summary) {

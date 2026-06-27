@@ -1,5 +1,10 @@
 const { test, expect } = require("@playwright/test");
 
+async function enableHandlerFieldEdit(page) {
+  await page.getByRole("button", { name: "Edit Fields: Off" }).click();
+  await expect(page.getByRole("button", { name: "Edit Fields: On" })).toBeVisible();
+}
+
 test("handler overview exposes modular control cards", async ({ page }) => {
   await page.goto("/handler/");
 
@@ -17,6 +22,7 @@ test("handler overview exposes modular control cards", async ({ page }) => {
   await expect(overview.getByRole("link", { name: "View Operator Summaries" })).toBeVisible();
   await expect(overview.getByRole("link", { name: "Open Player View" })).toBeVisible();
 
+  await enableHandlerFieldEdit(page);
   await page.getByLabel("Template").selectOption("veilcorp-intake");
   await page.getByRole("button", { name: "Apply Template" }).click();
   await expect(page.locator("#overview-case")).toContainText("VeilCorp Intake");
@@ -25,6 +31,7 @@ test("handler overview exposes modular control cards", async ({ page }) => {
 
 test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
 
   await expect(page.getByRole("heading", { name: "LIVE DASHBOARD" })).toBeVisible();
   await expect(page.getByText("JSON")).toHaveCount(0);
@@ -109,7 +116,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.locator('[name="entityLoop.Need"]')).toHaveValue("The moment before confession, when someone edits themselves to survive being seen.");
   await expect(page.locator('[name="primaryClock.name"]')).toHaveValue("Audience Before Clock");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
-  await expect(page.locator('[name="attention.residue"]')).toHaveValue("The comment thread knows an Operator's preferred mask.");
+  await expect(page.locator('[name="attention.residue"]')).toHaveValue("Screens hesitate before showing the Operator's reflection.");
   await page.getByLabel("Current Attention").selectOption("Unseen");
   await expect(page.locator('[name="attention.residue"]')).toHaveValue("A comment arrives before anyone types it.");
   await expect(page.locator('[name="sceneState.primaryConsequence"]')).toHaveValue("Minor tell only. No penalty; warning only.");
@@ -134,6 +141,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
 
 test("handler module pages share case state", async ({ page }) => {
   await page.goto("/handler/cases/");
+  await enableHandlerFieldEdit(page);
   await page.locator('[name="session.caseTitle"]').fill("Silence Gap");
   await page.locator('[name="caseFile.nextClue"]').fill("The exit sign points inward.");
 
@@ -148,6 +156,7 @@ test("handler module pages share case state", async ({ page }) => {
 
 test("handler imports Operator Record summaries", async ({ page }) => {
   await page.goto("/handler/operators/");
+  await enableHandlerFieldEdit(page);
 
   const exportPayload = {
     exportType: "cradlepoint.operator",
@@ -195,7 +204,11 @@ test("handler imports Operator Record summaries", async ({ page }) => {
 
   await expect(page.locator("#operator-import-results")).toContainText("ACCEPTED - June Rook");
   await expect(page.locator('[data-operator="0"][data-field="name"]')).toHaveValue("June Rook");
-  await expect(page.locator('[data-operator="0"][data-field="stability"]')).toHaveValue("Echoed (8/10)");
+  await expect(page.locator("#operator-grid")).toContainText("8/10");
+  await expect(page.locator("#operator-grid")).toContainText("Band: Calm");
+  await expect(page.locator("#operator-grid")).toContainText("1/5");
+  await expect(page.locator("#operator-grid")).toContainText("Condition: Injured");
+  await expect(page.locator('[data-operator="0"][data-field="voidBreach"]')).toHaveValue("Void 2 // Breach 5");
   await expect(page.locator('[data-operator="0"][data-field="frequencyPips"]')).toHaveValue("Dream 2 // Silence 1");
   await expect(page.locator('[data-operator="0"][data-field="equipment"]')).toHaveValue("Chalk or marker // Technician: toolkit, cables, diagnostic meter");
   await expect(page.locator("#operator-grid")).toContainText("Last Imported");
@@ -207,6 +220,7 @@ test("handler imports Operator Record summaries", async ({ page }) => {
 
 test("handler exports Operator authorization packets", async ({ page }) => {
   await page.goto("/handler/operators/");
+  await enableHandlerFieldEdit(page);
 
   await expect(page.getByLabel("Presentation / Ontology")).toContainText("Sanguine Presentation");
   await expect(page.getByLabel("Presentation / Ontology")).toContainText("Void-Shard");
