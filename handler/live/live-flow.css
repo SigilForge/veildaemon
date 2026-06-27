@@ -41,8 +41,7 @@
     padding: .1rem 0 0;
   }
 
-  body[data-handler-mode="live"] .pressure-tray .trigger-button,
-  body[data-handler-mode="live"] .pressure-tray .wind-down-button {
+  body[data-handler-mode="live"] .pressure-tray .pressure-button {
     flex: initial;
     width: 100%;
     max-width: 100%;
@@ -227,8 +226,7 @@
     padding: 0;
   }
 
-  body[data-handler-mode="live"] .pressure-tray .trigger-button,
-  body[data-handler-mode="live"] .pressure-tray .wind-down-button {
+  body[data-handler-mode="live"] .pressure-tray .pressure-button {
     justify-self: stretch;
     width: 100%;
     max-width: 100%;
@@ -238,22 +236,19 @@
     padding: .52rem .58rem;
   }
 
-  body[data-handler-mode="live"] .pressure-tray .trigger-button em,
-  body[data-handler-mode="live"] .pressure-tray .wind-down-button em {
+  body[data-handler-mode="live"] .pressure-tray .pressure-button em {
     font-size: .56rem;
     padding: .08rem .28rem;
   }
 
-  body[data-handler-mode="live"] .pressure-tray .trigger-button strong,
-  body[data-handler-mode="live"] .pressure-tray .wind-down-button strong {
+  body[data-handler-mode="live"] .pressure-tray .pressure-button strong {
     font-size: .7rem;
     line-height: 1.12;
     letter-spacing: .03em;
     overflow-wrap: anywhere;
   }
 
-  body[data-handler-mode="live"] .pressure-tray .trigger-button span,
-  body[data-handler-mode="live"] .pressure-tray .wind-down-button span {
+  body[data-handler-mode="live"] .pressure-tray .pressure-button span {
     display: block;
     font-size: .62rem;
     line-height: 1.2;
