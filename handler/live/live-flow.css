@@ -25,6 +25,21 @@
     min-height: 0;
   }
 
+  body[data-handler-mode="prep"] .live-flow-grid,
+  body[data-handler-mode="archive"] .live-flow-grid,
+  body[data-handler-mode="prep"] .live-flow-column,
+  body[data-handler-mode="archive"] .live-flow-column {
+    display: contents;
+  }
+
+  body[data-handler-mode="archive"] .aftermath-panel {
+    grid-column: 1 / -1;
+  }
+
+  body[data-handler-mode="archive"] .aftermath-live-layout {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   body[data-handler-mode="live"] .live-trigger-column .clock-field-grid {
     grid-template-columns: minmax(0, 1fr) minmax(5.5rem, .38fr);
   }
