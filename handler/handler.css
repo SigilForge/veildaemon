@@ -282,10 +282,42 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   font-size: .8rem;
 }
 
+.pressure-tray {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: .45rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  padding: .1rem .05rem .4rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pressure-tray .trigger-button,
+.pressure-tray .wind-down-button {
+  flex: 0 0 clamp(7.25rem, calc((100% - 4.05rem) / 10), 10.25rem);
+  scroll-snap-align: start;
+  min-height: 4.1rem;
+  max-height: 5.5rem;
+  overflow: hidden;
+}
+
+.pressure-tray .trigger-button span,
+.pressure-tray .wind-down-button span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .trigger-rail {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: .55rem;
+}
+
+.trigger-rail.pressure-tray {
+  display: flex;
 }
 
 .trigger-button {
@@ -337,6 +369,10 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   gap: .55rem;
 }
 
+.wind-down-rail.pressure-tray {
+  display: flex;
+}
+
 .wind-down-button {
   display: grid;
   gap: .35rem;
@@ -378,6 +414,13 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
 .wind-down-button:hover {
   border-color: rgba(102,255,220,.5);
   box-shadow: inset 0 0 18px rgba(102,255,220,.08);
+}
+
+.live-pressure-better .wind-down-status {
+  margin-top: .5rem;
+  min-height: 2rem;
+  padding: .5rem .6rem;
+  font-size: .68rem;
 }
 
 .wind-down-status {
@@ -780,6 +823,30 @@ body.is-player-view .wind-down-panel {
 
 .roll-panel-heading > div {
   min-width: 0;
+}
+
+.clock-notes-drawer {
+  margin-top: .55rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.2);
+}
+
+.clock-notes-drawer summary {
+  padding: .38rem .55rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  list-style: none;
+}
+
+.clock-notes-drawer summary::-webkit-details-marker {
+  display: none;
+}
+
+.clock-notes-drawer .field-grid.two {
+  padding: .5rem .55rem .6rem;
 }
 
 .misfire-target-guide-drawer {

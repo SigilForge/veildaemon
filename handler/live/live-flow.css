@@ -1,4 +1,4 @@
-/* Live dashboard flow: left rail = pressure clocks, center = scene/people, right = attention/roll. */
+/* Live dashboard: pressure trays top, states band middle, work grid below. */
 @media (min-width: 1101px) {
   body[data-handler-mode="live"] .dashboard-form {
     display: block;
@@ -6,29 +6,134 @@
 
   body[data-handler-mode="live"] .live-flow-grid {
     display: grid;
-    grid-template-columns: minmax(17.5rem, .92fr) minmax(21rem, 1.18fr) minmax(15.5rem, .78fr);
     gap: .75rem;
-    align-items: start;
     margin-top: .75rem;
   }
 
-  body[data-handler-mode="live"] .live-flow-column {
+  body[data-handler-mode="live"] .live-pressure-row {
     display: grid;
+    grid-template-columns: minmax(0, 1.72fr) minmax(0, 1fr);
     gap: .75rem;
-    align-content: start;
-    min-width: 0;
+    align-items: start;
   }
 
-  body[data-handler-mode="live"] .live-flow-column > .panel {
-    grid-column: auto;
-    align-self: start;
-    min-height: 0;
+  body[data-handler-mode="live"] .live-pressure-worse .panel-heading,
+  body[data-handler-mode="live"] .live-pressure-better .panel-heading {
+    margin-bottom: .55rem;
+  }
+
+  body[data-handler-mode="live"] .live-pressure-worse h2,
+  body[data-handler-mode="live"] .live-pressure-better h2 {
+    font-size: .86rem;
+  }
+
+  body[data-handler-mode="live"] .live-states-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .75rem;
+    align-items: start;
+  }
+
+  body[data-handler-mode="live"] .live-states-row .scene-state-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .live-states-row .scene-state-button {
+    min-height: 5.2rem;
+    padding: .5rem;
+  }
+
+  body[data-handler-mode="live"] .live-states-row .scene-state-button span {
+    font-size: .64rem;
+    -webkit-line-clamp: 3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  body[data-handler-mode="live"] .live-states-clock-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(4.5rem, .34fr) minmax(4.5rem, .34fr);
+  }
+
+  body[data-handler-mode="live"] .live-states-clock-grid label:nth-child(1) {
+    grid-column: 1 / -1;
+  }
+
+  body[data-handler-mode="live"] .live-states-clock-grid label:nth-child(4),
+  body[data-handler-mode="live"] .live-states-clock-grid label:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
+  body[data-handler-mode="live"] .live-states-row .aftermath-live-layout {
+    grid-template-columns: 1fr;
+    gap: .5rem;
+  }
+
+  body[data-handler-mode="live"] .live-work-row {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: .75rem;
+    align-items: start;
+  }
+
+  body[data-handler-mode="live"] .live-work-row > .helper-panel {
+    grid-column: span 4;
+  }
+
+  body[data-handler-mode="live"] .live-work-row > .roll-panel {
+    grid-column: span 4;
+  }
+
+  body[data-handler-mode="live"] .live-work-row > .loop-panel {
+    grid-column: span 4;
+  }
+
+  body[data-handler-mode="live"] .live-work-row > .player-panel {
+    grid-column: span 6;
+  }
+
+  body[data-handler-mode="live"] .live-work-row > .npc-panel {
+    grid-column: span 6;
+  }
+
+  body[data-handler-mode="live"] .live-work-roll-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .5rem;
+    align-items: end;
+  }
+
+  body[data-handler-mode="live"] .live-work-roll-row .roll-mode {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .live-work-roll-row #roll-button {
+    grid-column: 1 / -1;
+    min-height: 2.55rem;
+    width: 100%;
+  }
+
+  body[data-handler-mode="live"] .live-work-row .loop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .live-work-row .loop-grid textarea {
+    min-height: 4.25rem;
+  }
+
+  body[data-handler-mode="live"] .live-work-row .npc-summary-grid,
+  body[data-handler-mode="live"] .live-work-row .operator-risk-strip {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 
   body[data-handler-mode="prep"] .live-flow-grid,
   body[data-handler-mode="archive"] .live-flow-grid,
-  body[data-handler-mode="prep"] .live-flow-column,
-  body[data-handler-mode="archive"] .live-flow-column {
+  body[data-handler-mode="prep"] .live-pressure-row,
+  body[data-handler-mode="archive"] .live-pressure-row,
+  body[data-handler-mode="prep"] .live-states-row,
+  body[data-handler-mode="archive"] .live-states-row,
+  body[data-handler-mode="prep"] .live-work-row,
+  body[data-handler-mode="archive"] .live-work-row {
     display: contents;
   }
 
@@ -38,113 +143,6 @@
 
   body[data-handler-mode="archive"] .aftermath-live-layout {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  body[data-handler-mode="live"] .live-trigger-column .clock-field-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(5.5rem, .38fr);
-  }
-
-  body[data-handler-mode="live"] .live-trigger-column .clock-field-grid label:nth-child(1) {
-    grid-column: 1 / -1;
-  }
-
-  body[data-handler-mode="live"] .live-trigger-column .clock-field-grid label:nth-child(4),
-  body[data-handler-mode="live"] .live-trigger-column .clock-field-grid label:nth-child(5) {
-    grid-column: 1 / -1;
-  }
-
-  body[data-handler-mode="live"] .live-trigger-column .clock-panel .field-grid.two {
-    grid-template-columns: 1fr;
-  }
-
-  body[data-handler-mode="live"] .live-trigger-column .wind-down-rail {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  body[data-handler-mode="live"] .live-trigger-column .wind-down-button {
-    min-height: 3.5rem;
-    padding: .58rem .62rem;
-  }
-
-  body[data-handler-mode="live"] .live-trigger-column .wind-down-button strong {
-    font-size: .68rem;
-    line-height: 1.25;
-  }
-
-  body[data-handler-mode="live"] .live-trigger-column .wind-down-button span {
-    font-size: .66rem;
-    line-height: 1.3;
-  }
-
-  body[data-handler-mode="live"] .live-side-column .aftermath-live-layout {
-    grid-template-columns: 1fr;
-    gap: .55rem;
-  }
-
-  body[data-handler-mode="live"] .live-side-column .roll-panel {
-    overflow: hidden;
-  }
-
-  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-panel-heading {
-    margin-bottom: .6rem;
-  }
-
-  body[data-handler-mode="live"] .live-side-column .roll-panel .misfire-target-guide-drawer {
-    flex-basis: 100%;
-  }
-
-  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: .5rem;
-    align-items: end;
-  }
-
-  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-row > label {
-    min-width: 0;
-  }
-
-  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-mode {
-    grid-column: 1 / -1;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    min-width: 0;
-  }
-
-  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-mode label {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
-  body[data-handler-mode="live"] .live-side-column .roll-panel #roll-button {
-    grid-column: 1 / -1;
-    min-height: 2.55rem;
-    width: 100%;
-  }
-
-  body[data-handler-mode="live"] .live-side-column .roll-panel .roll-output {
-    min-height: 2.5rem;
-    font-size: .72rem;
-    overflow-wrap: anywhere;
-  }
-
-  body[data-handler-mode="live"] .live-main-column .scene-state-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  body[data-handler-mode="live"] .live-main-column .scene-state-button {
-    min-height: 5.8rem;
-  }
-
-  body[data-handler-mode="live"] .live-main-column .loop-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  body[data-handler-mode="live"] .live-main-column .loop-grid textarea {
-    min-height: 4.5rem;
-  }
-
-  body[data-handler-mode="live"] .live-main-column .npc-summary-grid,
-  body[data-handler-mode="live"] .live-main-column .operator-risk-strip {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 }
 
@@ -156,27 +154,29 @@
     margin-top: .75rem;
   }
 
-  body[data-handler-mode="live"] .live-flow-column {
+  body[data-handler-mode="live"] .live-pressure-row,
+  body[data-handler-mode="live"] .live-states-row,
+  body[data-handler-mode="live"] .live-work-row {
     display: contents;
   }
 
-  body[data-handler-mode="live"] .live-stack-order-triggers {
+  body[data-handler-mode="live"] .live-stack-order-worse {
     order: 10;
   }
 
-  body[data-handler-mode="live"] .live-stack-order-scene {
+  body[data-handler-mode="live"] .live-stack-order-better {
     order: 20;
   }
 
-  body[data-handler-mode="live"] .live-stack-order-clock {
+  body[data-handler-mode="live"] .live-stack-order-scene {
     order: 30;
   }
 
-  body[data-handler-mode="live"] .live-stack-order-attention {
+  body[data-handler-mode="live"] .live-stack-order-clock {
     order: 40;
   }
 
-  body[data-handler-mode="live"] .live-stack-order-wind-down {
+  body[data-handler-mode="live"] .live-stack-order-attention {
     order: 50;
   }
 
@@ -192,16 +192,25 @@
     order: 80;
   }
 
-  body[data-handler-mode="live"] .live-stack-order-loop {
+  body[data-handler-mode="live"] .live-stack-order-npcs {
     order: 90;
   }
 
-  body[data-handler-mode="live"] .live-stack-order-npcs {
+  body[data-handler-mode="live"] .live-stack-order-loop {
     order: 100;
   }
 
-  body[data-handler-mode="live"] .live-trigger-column .wind-down-rail {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  body[data-handler-mode="live"] .live-states-row .scene-state-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .live-work-roll-row {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-handler-mode="live"] .live-work-roll-row .roll-mode,
+  body[data-handler-mode="live"] .live-work-roll-row #roll-button {
+    grid-column: 1;
   }
 
   .live-flow-grid {
@@ -211,8 +220,22 @@
     margin-top: .75rem;
   }
 
-  .live-flow-column {
+  .live-pressure-row,
+  .live-states-row,
+  .live-work-row {
     display: grid;
     gap: .75rem;
+  }
+
+  .live-pressure-row {
+    grid-template-columns: 1fr;
+  }
+
+  .live-states-row {
+    grid-template-columns: 1fr;
+  }
+
+  .live-work-row {
+    grid-template-columns: 1fr;
   }
 }

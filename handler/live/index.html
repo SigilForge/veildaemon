@@ -10,8 +10,8 @@
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260626-winddown1" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260626-livebalance1" />
+  <link rel="stylesheet" href="../handler.css?v=20260626-pressuredeck1" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260626-pressuredeck1" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -71,14 +71,13 @@
       </section>
 
       <div class="live-flow-grid">
-        <div class="live-flow-column live-trigger-column">
-          <section class="panel trigger-panel live-stack-order-triggers no-print" aria-label="Table triggers" data-mode-panel="live" data-live-control-zone>
+        <div class="live-pressure-row live-stack-order-pressure" data-mode-panel="live">
+          <section class="panel trigger-panel live-pressure-worse live-stack-order-worse no-print" aria-label="What makes it worse" data-live-control-zone>
             <div class="panel-heading">
-              <p class="kicker">WHAT JUST HAPPENED?</p>
-              <h2>Click the table event. Clock, Attention, and Scene State update visibly.</h2>
+              <p class="kicker">WHAT MAKES IT WORSE</p>
+              <h2>Table event. Clock, Attention, and Scene State update visibly.</h2>
             </div>
-            <p class="panel-note">Triggers feed the meters below. A Zone Clock is the Primary Clock when the site or room owns the pressure.</p>
-            <div class="trigger-rail" id="trigger-rail" role="group" aria-label="Table triggers"></div>
+            <div class="pressure-tray trigger-rail" id="trigger-rail" role="group" aria-label="Table triggers"></div>
             <div class="trigger-preview-panel" id="trigger-preview-panel" hidden>
               <p class="trigger-preview-title">Apply Trigger?</p>
               <p class="panel-note">This will:</p>
@@ -90,12 +89,33 @@
             </div>
           </section>
 
+          <section class="panel wind-down-panel live-pressure-better live-stack-order-better no-print private-panel" aria-label="What makes it better" data-live-control-zone>
+            <div class="panel-heading">
+              <p class="kicker">WHAT MAKES IT BETTER</p>
+              <h2>Wind down only when leverage is actually removed.</h2>
+            </div>
+            <div class="pressure-tray wind-down-rail" id="wind-down-rail" role="group" aria-label="Wind down moves"></div>
+            <output class="wind-down-status" id="wind-down-status" aria-live="polite">Awaiting stabilization.</output>
+          </section>
+        </div>
+
+        <div class="live-states-row live-stack-order-states">
+          <section class="panel scene-panel live-stack-order-scene" aria-label="Active scene state" data-mode-panel="live">
+            <div class="panel-heading">
+              <p class="kicker">SCENE STATE</p>
+              <h2>Track the room, not the ontology.</h2>
+            </div>
+            <div class="scene-state-row" id="scene-state-row" role="group" aria-label="Scene State" data-live-control-zone></div>
+            <input name="sceneState.current" type="hidden" />
+            <label>Primary consequence<textarea name="sceneState.primaryConsequence" rows="2" maxlength="500"></textarea></label>
+          </section>
+
           <section class="panel clock-panel live-stack-order-clock" aria-label="Primary clock" data-mode-panel="live">
             <div class="panel-heading">
               <p class="kicker">PRIMARY CLOCK</p>
               <h2>What is ticking right now?</h2>
             </div>
-            <div class="clock-field-grid">
+            <div class="clock-field-grid live-states-clock-grid">
               <label>Name<input name="primaryClock.name" maxlength="100" autocomplete="off" /></label>
               <label>Segments<select name="primaryClock.segments"><option>4</option><option selected>6</option><option>8</option></select></label>
               <label>Current<input name="primaryClock.current" type="number" min="0" max="12" step="1" /></label>
@@ -103,34 +123,30 @@
               <label>Stabilizer<input name="primaryClock.stabilizer" maxlength="160" autocomplete="off" /></label>
             </div>
             <div class="clock-track" id="primary-clock-track" aria-label="Primary clock segments" data-live-control-zone></div>
-            <div class="field-grid two">
-              <label>Midpoint Event<textarea name="primaryClock.midpointEvent" rows="3"></textarea></label>
-              <label>Full Clock Event<textarea name="primaryClock.fullClockEvent" rows="3"></textarea></label>
-            </div>
+            <details class="clock-notes-drawer">
+              <summary>Midpoint / full events</summary>
+              <div class="field-grid two">
+                <label>Midpoint Event<textarea name="primaryClock.midpointEvent" rows="2"></textarea></label>
+                <label>Full Clock Event<textarea name="primaryClock.fullClockEvent" rows="2"></textarea></label>
+              </div>
+            </details>
           </section>
 
-          <section class="panel wind-down-panel live-stack-order-wind-down no-print private-panel" aria-label="Wind down moves" data-mode-panel="live" data-live-control-zone>
+          <section class="panel aftermath-panel live-stack-order-attention" aria-label="Attention and aftermath" data-mode-panel="live archive">
             <div class="panel-heading">
-              <p class="kicker">WIND DOWN MOVES</p>
-              <h2>Reduce pressure only when the fiction removes leverage.</h2>
+              <p class="kicker">ATTENTION / AFTERMATH</p>
+              <h2>What follows them home?</h2>
             </div>
-            <p class="panel-note">Minor: -1 // Major: -2 // Resolution: set to 0. Never wind down because a roll succeeded.</p>
-            <div class="wind-down-rail" id="wind-down-rail" role="group" aria-label="Wind down moves"></div>
-            <output class="wind-down-status" id="wind-down-status" aria-live="polite">Awaiting stabilization.</output>
+            <div class="aftermath-live-layout">
+              <label>Current Attention<select name="attention.current" data-live-control></select></label>
+              <label>Residue<input name="attention.residue" maxlength="180" autocomplete="off" /></label>
+              <label>Follows Them Home<input name="attention.followsHome" maxlength="180" autocomplete="off" /></label>
+            </div>
+            <p class="panel-note" id="attention-deterministic-hint" hidden>Residue, follows-home, and consequence sync from the active Needlepoint when Attention, Clock, or a table trigger changes. Manual edits here may be overwritten.</p>
           </section>
         </div>
 
-        <div class="live-flow-column live-main-column">
-          <section class="panel scene-panel live-stack-order-scene" aria-label="Active scene state" data-mode-panel="live">
-            <div class="panel-heading">
-              <p class="kicker">ACTIVE SCENE STATE</p>
-              <h2>Track the room, not the ontology.</h2>
-            </div>
-            <div class="scene-state-row" id="scene-state-row" role="group" aria-label="Scene State" data-live-control-zone></div>
-            <input name="sceneState.current" type="hidden" />
-            <label>Primary consequence<textarea name="sceneState.primaryConsequence" rows="3" maxlength="500"></textarea></label>
-          </section>
-
+        <div class="live-work-row live-stack-order-work">
           <section class="panel helper-panel live-stack-order-room" aria-label="The Room Answers helper" data-mode-panel="live">
             <div class="panel-heading">
               <p class="kicker">THE ROOM ANSWERS</p>
@@ -142,6 +158,43 @@
               <label>Consequence<input name="roomAnswer.consequence" maxlength="200" autocomplete="off" /></label>
             </div>
             <div class="room-answer-preview" id="room-answer-preview" aria-live="polite"></div>
+          </section>
+
+          <section class="panel roll-panel live-stack-order-roll" aria-label="Quick roll helper" data-mode-panel="live" data-live-control-zone>
+            <div class="panel-heading roll-panel-heading">
+              <div>
+                <p class="kicker">QUICK ROLL</p>
+                <h2>3d6 + Attribute + Skill</h2>
+              </div>
+              <details class="misfire-target-guide-drawer">
+                <summary>Misfire / target guide</summary>
+                <div class="misfire-target-guide-body">
+                  <p>Set the target number and tell the table what success, failure, or misfire means.</p>
+                  <p><strong>Quick read:</strong> 10 = easy under pressure // 13 = risky / standard // 16 = hard // 19 = severe // 22 = nearly impossible</p>
+                  <p><strong>Core rule:</strong> Misfire is margin-based.</p>
+                  <ul>
+                    <li>Total &ge; TN + 3: Clean success</li>
+                    <li>Total &ge; TN: Success</li>
+                    <li>Total is TN &minus; 1 or TN &minus; 2: Misfire / wrong-success</li>
+                    <li>Total &le; TN &minus; 3: Failure</li>
+                    <li>Natural 3: Hard failure or severe misfire, Handler choice</li>
+                  </ul>
+                  <p><strong>Misfire means:</strong> The Operator gets part or all of what they wanted, but the scene changes against them.</p>
+                  <p><strong>Example (TN 13):</strong> 16+ = Clean success // 13&ndash;15 = Success // 11&ndash;12 = Misfire // 10 or less = Failure // Natural 3 = Hard failure / severe misfire</p>
+                </div>
+              </details>
+            </div>
+            <div class="roll-row live-work-roll-row">
+              <label>Attribute<input name="roll.attribute" type="number" min="0" max="8" step="1" /></label>
+              <label>Skill<input name="roll.skill" type="number" min="0" max="8" step="1" /></label>
+              <label>Modifier<input name="roll.modifier" type="number" min="-10" max="10" step="1" /></label>
+              <fieldset class="roll-mode">
+                <label><input name="roll.advantage" type="checkbox" /> Advantage</label>
+                <label><input name="roll.disadvantage" type="checkbox" /> Disadvantage</label>
+              </fieldset>
+              <button class="button primary" id="roll-button" type="button">Roll 3d6</button>
+            </div>
+            <output class="roll-output" id="roll-output">Awaiting Operator test.</output>
           </section>
 
           <section class="panel loop-panel live-stack-order-loop" aria-label="Entity or Zone Loop" data-mode-panel="live">
@@ -177,58 +230,6 @@
               <p>Prep roster only. Keep the live surface to 3-5 active people.</p>
             </div>
             <div class="player-grid npc-grid" id="npc-grid"></div>
-          </section>
-        </div>
-
-        <div class="live-flow-column live-side-column">
-          <section class="panel aftermath-panel live-stack-order-attention" aria-label="Attention and aftermath" data-mode-panel="live archive">
-            <div class="panel-heading">
-              <p class="kicker">ATTENTION / AFTERMATH</p>
-              <h2>What follows them home?</h2>
-            </div>
-            <div class="aftermath-live-layout">
-              <label>Current Attention<select name="attention.current" data-live-control></select></label>
-              <label>Residue<input name="attention.residue" maxlength="180" autocomplete="off" /></label>
-              <label>Follows Them Home<input name="attention.followsHome" maxlength="180" autocomplete="off" /></label>
-            </div>
-            <p class="panel-note" id="attention-deterministic-hint" hidden>Residue, follows-home, and consequence sync from the active Needlepoint when Attention, Clock, or a table trigger changes. Manual edits here may be overwritten.</p>
-          </section>
-
-          <section class="panel roll-panel live-stack-order-roll" aria-label="Quick roll helper" data-mode-panel="live" data-live-control-zone>
-            <div class="panel-heading roll-panel-heading">
-              <div>
-                <p class="kicker">QUICK ROLL</p>
-                <h2>3d6 + Attribute + Skill</h2>
-              </div>
-              <details class="misfire-target-guide-drawer">
-                <summary>Misfire / target guide</summary>
-                <div class="misfire-target-guide-body">
-                  <p>Set the target number and tell the table what success, failure, or misfire means.</p>
-                  <p><strong>Quick read:</strong> 10 = easy under pressure // 13 = risky / standard // 16 = hard // 19 = severe // 22 = nearly impossible</p>
-                  <p><strong>Core rule:</strong> Misfire is margin-based.</p>
-                  <ul>
-                    <li>Total &ge; TN + 3: Clean success</li>
-                    <li>Total &ge; TN: Success</li>
-                    <li>Total is TN &minus; 1 or TN &minus; 2: Misfire / wrong-success</li>
-                    <li>Total &le; TN &minus; 3: Failure</li>
-                    <li>Natural 3: Hard failure or severe misfire, Handler choice</li>
-                  </ul>
-                  <p><strong>Misfire means:</strong> The Operator gets part or all of what they wanted, but the scene changes against them.</p>
-                  <p><strong>Example (TN 13):</strong> 16+ = Clean success // 13&ndash;15 = Success // 11&ndash;12 = Misfire // 10 or less = Failure // Natural 3 = Hard failure / severe misfire</p>
-                </div>
-              </details>
-            </div>
-            <div class="roll-row">
-              <label>Attribute<input name="roll.attribute" type="number" min="0" max="8" step="1" /></label>
-              <label>Skill<input name="roll.skill" type="number" min="0" max="8" step="1" /></label>
-              <label>Modifier<input name="roll.modifier" type="number" min="-10" max="10" step="1" /></label>
-              <fieldset class="roll-mode">
-                <label><input name="roll.advantage" type="checkbox" /> Advantage</label>
-                <label><input name="roll.disadvantage" type="checkbox" /> Disadvantage</label>
-              </fieldset>
-              <button class="button primary" id="roll-button" type="button">Roll 3d6</button>
-            </div>
-            <output class="roll-output" id="roll-output">Awaiting Operator test.</output>
           </section>
         </div>
       </div>
