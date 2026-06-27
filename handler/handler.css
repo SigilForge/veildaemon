@@ -711,8 +711,17 @@ body.is-player-view .wind-down-panel {
 .aftermath-live-layout {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .65rem;
+  gap: .85rem;
   align-items: start;
+}
+
+.aftermath-live-layout label {
+  align-content: start;
+}
+
+.aftermath-live-layout textarea {
+  min-height: 4.7rem;
+  resize: vertical;
 }
 
 .aftermath-roll {
