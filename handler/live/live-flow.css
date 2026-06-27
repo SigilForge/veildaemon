@@ -44,8 +44,12 @@
   body[data-handler-mode="live"] .pressure-tray .trigger-button,
   body[data-handler-mode="live"] .pressure-tray .wind-down-button {
     flex: initial;
-    width: auto;
-    min-height: 4.85rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 3.35rem;
+    box-sizing: border-box;
+    white-space: normal;
   }
 
   body[data-handler-mode="live"] .scene-state-row {
@@ -157,6 +161,131 @@
   .live-pressure-row,
   .live-states-row,
   .live-work-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 780px) {
+  body[data-handler-mode="live"] .live-flow-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .7rem;
+  }
+
+  body[data-handler-mode="live"] .live-flow-column {
+    display: contents;
+  }
+
+  body[data-handler-mode="live"] .roll-panel {
+    order: 1;
+  }
+
+  body[data-handler-mode="live"] .trigger-panel {
+    order: 2;
+  }
+
+  body[data-handler-mode="live"] .clock-panel {
+    order: 3;
+  }
+
+  body[data-handler-mode="live"] .wind-down-panel {
+    order: 4;
+  }
+
+  body[data-handler-mode="live"] .scene-panel {
+    order: 5;
+  }
+
+  body[data-handler-mode="live"] .aftermath-panel {
+    order: 6;
+  }
+
+  body[data-handler-mode="live"] .loop-panel {
+    order: 7;
+  }
+
+  body[data-handler-mode="live"] .helper-panel {
+    order: 8;
+  }
+
+  body[data-handler-mode="live"] .player-panel {
+    order: 9;
+  }
+
+  body[data-handler-mode="live"] .npc-panel {
+    order: 10;
+  }
+
+  body[data-handler-mode="live"] .pressure-tray {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: .42rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    padding: 0;
+  }
+
+  body[data-handler-mode="live"] .pressure-tray .trigger-button,
+  body[data-handler-mode="live"] .pressure-tray .wind-down-button {
+    justify-self: stretch;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 3.75rem;
+    max-height: none;
+    padding: .52rem .58rem;
+  }
+
+  body[data-handler-mode="live"] .pressure-tray .trigger-button em,
+  body[data-handler-mode="live"] .pressure-tray .wind-down-button em {
+    font-size: .56rem;
+    padding: .08rem .28rem;
+  }
+
+  body[data-handler-mode="live"] .pressure-tray .trigger-button strong,
+  body[data-handler-mode="live"] .pressure-tray .wind-down-button strong {
+    font-size: .7rem;
+    line-height: 1.12;
+    letter-spacing: .03em;
+    overflow-wrap: anywhere;
+  }
+
+  body[data-handler-mode="live"] .pressure-tray .trigger-button span,
+  body[data-handler-mode="live"] .pressure-tray .wind-down-button span {
+    display: block;
+    font-size: .62rem;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  body[data-handler-mode="live"] .scene-state-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .roll-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .roll-row .roll-mode {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .roll-row #roll-button {
+    grid-column: 1 / -1;
+  }
+
+  body[data-handler-mode="live"] .loop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .room-answer-fields,
+  body[data-handler-mode="live"] .aftermath-live-layout,
+  body[data-handler-mode="live"] .npc-summary-grid,
+  body[data-handler-mode="live"] .operator-risk-strip {
     grid-template-columns: 1fr;
   }
 }
