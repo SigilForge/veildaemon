@@ -1,4 +1,4 @@
-/* Live dashboard flow overrides: keep the pressure rails compact and the work bands aligned. */
+/* Live dashboard flow overrides: keep the surface columnar and packed. */
 @media (min-width: 1101px) {
   body[data-handler-mode="live"] .dashboard-form {
     display: block;
@@ -6,33 +6,22 @@
 
   body[data-handler-mode="live"] .live-flow-grid {
     display: grid;
-    grid-template-columns: minmax(18rem, 1fr) minmax(22rem, 1.12fr) minmax(18rem, 1fr);
-    grid-template-areas:
-      "bad clock good"
-      "scene roll attention"
-      "room loop loop"
-      "operators operators npcs";
+    grid-template-columns: minmax(16rem, .78fr) minmax(28rem, 1.5fr) minmax(16rem, .78fr);
     gap: .75rem;
     align-items: start;
     margin-top: .75rem;
   }
 
-  body[data-handler-mode="live"] .live-pressure-row,
-  body[data-handler-mode="live"] .live-states-row,
-  body[data-handler-mode="live"] .live-work-row {
-    display: contents;
+  body[data-handler-mode="live"] .live-flow-column {
+    display: grid;
+    gap: .75rem;
+    align-content: start;
+    min-width: 0;
   }
 
-  body[data-handler-mode="live"] .live-pressure-worse { grid-area: bad; }
-  body[data-handler-mode="live"] .clock-panel { grid-area: clock; }
-  body[data-handler-mode="live"] .live-pressure-better { grid-area: good; }
-  body[data-handler-mode="live"] .scene-panel { grid-area: scene; }
-  body[data-handler-mode="live"] .roll-panel { grid-area: roll; }
-  body[data-handler-mode="live"] .aftermath-panel { grid-area: attention; }
-  body[data-handler-mode="live"] .helper-panel { grid-area: room; }
-  body[data-handler-mode="live"] .loop-panel { grid-area: loop; }
-  body[data-handler-mode="live"] .player-panel { grid-area: operators; }
-  body[data-handler-mode="live"] .npc-panel { grid-area: npcs; }
+  body[data-handler-mode="live"] .live-left-column { grid-column: 1; }
+  body[data-handler-mode="live"] .live-center-column { grid-column: 2; }
+  body[data-handler-mode="live"] .live-right-column { grid-column: 3; }
 
   body[data-handler-mode="live"] .live-pressure-worse .panel-heading,
   body[data-handler-mode="live"] .live-pressure-better .panel-heading {
@@ -44,7 +33,7 @@
     font-size: .86rem;
   }
 
-  body[data-handler-mode="live"] .live-pressure-row .pressure-tray {
+  body[data-handler-mode="live"] .pressure-tray {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: .55rem;
@@ -52,19 +41,19 @@
     padding: .1rem 0 0;
   }
 
-  body[data-handler-mode="live"] .live-pressure-row .pressure-tray .trigger-button,
-  body[data-handler-mode="live"] .live-pressure-row .pressure-tray .wind-down-button {
+  body[data-handler-mode="live"] .pressure-tray .trigger-button,
+  body[data-handler-mode="live"] .pressure-tray .wind-down-button {
     flex: initial;
     width: auto;
     min-height: 4.85rem;
   }
 
-  body[data-handler-mode="live"] .live-states-row .scene-state-row {
+  body[data-handler-mode="live"] .scene-state-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: .55rem;
   }
 
-  body[data-handler-mode="live"] .live-states-row .scene-state-button {
+  body[data-handler-mode="live"] .scene-state-button {
     min-height: 5.8rem;
   }
 
@@ -72,25 +61,25 @@
     min-height: 5.35rem;
   }
 
-  body[data-handler-mode="live"] .live-work-roll-row {
+  body[data-handler-mode="live"] .roll-row {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: .5rem;
     align-items: end;
   }
 
-  body[data-handler-mode="live"] .live-work-roll-row .roll-mode {
+  body[data-handler-mode="live"] .roll-row .roll-mode {
     grid-column: 1 / -1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  body[data-handler-mode="live"] .live-work-roll-row #roll-button {
+  body[data-handler-mode="live"] .roll-row #roll-button {
     grid-column: 1 / -1;
     min-height: 2.55rem;
     width: 100%;
   }
 
   body[data-handler-mode="live"] .loop-grid {
-    grid-template-columns: repeat(3, minmax(9rem, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   body[data-handler-mode="live"] .room-answer-fields,
@@ -103,14 +92,17 @@
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 
+  body[data-handler-mode="live"] .clock-panel + .roll-panel,
+  body[data-handler-mode="live"] .roll-panel + .loop-panel,
+  body[data-handler-mode="live"] .wind-down-panel + .aftermath-panel,
+  body[data-handler-mode="live"] .aftermath-panel + .npc-panel {
+    margin-top: 0;
+  }
+
   body[data-handler-mode="prep"] .live-flow-grid,
   body[data-handler-mode="archive"] .live-flow-grid,
-  body[data-handler-mode="prep"] .live-pressure-row,
-  body[data-handler-mode="archive"] .live-pressure-row,
-  body[data-handler-mode="prep"] .live-states-row,
-  body[data-handler-mode="archive"] .live-states-row,
-  body[data-handler-mode="prep"] .live-work-row,
-  body[data-handler-mode="archive"] .live-work-row {
+  body[data-handler-mode="prep"] .live-flow-column,
+  body[data-handler-mode="archive"] .live-flow-column {
     display: contents;
   }
 
@@ -131,62 +123,21 @@
     margin-top: .75rem;
   }
 
-  body[data-handler-mode="live"] .live-pressure-row,
-  body[data-handler-mode="live"] .live-states-row,
-  body[data-handler-mode="live"] .live-work-row {
-    display: contents;
-  }
-
-  body[data-handler-mode="live"] .live-stack-order-worse {
-    order: 10;
-  }
-
-  body[data-handler-mode="live"] .live-stack-order-better {
-    order: 20;
-  }
-
-  body[data-handler-mode="live"] .live-stack-order-scene {
-    order: 30;
-  }
-
-  body[data-handler-mode="live"] .live-stack-order-clock {
-    order: 40;
-  }
-
-  body[data-handler-mode="live"] .live-stack-order-attention {
-    order: 50;
-  }
-
-  body[data-handler-mode="live"] .live-stack-order-room {
-    order: 60;
-  }
-
-  body[data-handler-mode="live"] .live-stack-order-roll {
-    order: 70;
-  }
-
-  body[data-handler-mode="live"] .live-stack-order-operators {
-    order: 80;
-  }
-
-  body[data-handler-mode="live"] .live-stack-order-npcs {
-    order: 90;
-  }
-
-  body[data-handler-mode="live"] .live-stack-order-loop {
-    order: 100;
+  body[data-handler-mode="live"] .live-flow-column {
+    display: grid;
+    gap: .75rem;
   }
 
   body[data-handler-mode="live"] .live-states-row .scene-state-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  body[data-handler-mode="live"] .live-work-roll-row {
+  body[data-handler-mode="live"] .roll-row {
     grid-template-columns: 1fr;
   }
 
-  body[data-handler-mode="live"] .live-work-roll-row .roll-mode,
-  body[data-handler-mode="live"] .live-work-roll-row #roll-button {
+  body[data-handler-mode="live"] .roll-row .roll-mode,
+  body[data-handler-mode="live"] .roll-row #roll-button {
     grid-column: 1;
   }
 
@@ -197,21 +148,14 @@
     margin-top: .75rem;
   }
 
-  .live-pressure-row,
-  .live-states-row,
-  .live-work-row {
+  .live-flow-column {
     display: grid;
     gap: .75rem;
   }
 
-  .live-pressure-row {
-    grid-template-columns: 1fr;
-  }
-
-  .live-states-row {
-    grid-template-columns: 1fr;
-  }
-
+  .live-flow-column,
+  .live-pressure-row,
+  .live-states-row,
   .live-work-row {
     grid-template-columns: 1fr;
   }

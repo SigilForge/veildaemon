@@ -10,8 +10,8 @@
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260626-pressuregrid6" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260626-pressuregrid6" />
+  <link rel="stylesheet" href="../handler.css?v=20260626-pressuregrid7" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260626-pressuregrid7" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -71,8 +71,8 @@
       </section>
 
       <div class="live-flow-grid">
-        <div class="live-pressure-row live-stack-order-pressure" data-mode-panel="live">
-          <section class="panel trigger-panel live-pressure-worse live-stack-order-worse no-print" aria-label="What makes it worse" data-live-control-zone>
+        <div class="live-flow-column live-left-column">
+          <section class="panel trigger-panel no-print" aria-label="What makes it worse" data-live-control-zone>
             <div class="panel-heading">
               <p class="kicker">WHAT MAKES IT WORSE</p>
               <h2>Table event. Clock, Attention, and Scene State update visibly.</h2>
@@ -89,27 +89,7 @@
             </div>
           </section>
 
-          <section class="panel wind-down-panel live-pressure-better live-stack-order-better no-print private-panel" aria-label="What makes it better" data-live-control-zone>
-            <div class="panel-heading">
-              <p class="kicker">WHAT MAKES IT BETTER</p>
-              <h2>Wind down only when leverage is actually removed.</h2>
-            </div>
-            <div class="pressure-tray wind-down-rail" id="wind-down-rail" role="group" aria-label="Wind down moves"></div>
-            <div class="trigger-preview-panel wind-down-preview-panel" id="wind-down-preview-panel" hidden>
-              <p class="trigger-preview-title">Apply Wind Down?</p>
-              <p class="panel-note">This will:</p>
-              <ul class="trigger-preview-lines"></ul>
-              <div class="trigger-preview-actions">
-                <button class="button primary" id="wind-down-apply" type="button">Apply</button>
-                <button class="button ghost" id="wind-down-cancel" type="button">Cancel</button>
-              </div>
-            </div>
-            <output class="wind-down-status" id="wind-down-status" aria-live="polite">Awaiting stabilization.</output>
-          </section>
-        </div>
-
-        <div class="live-states-row live-stack-order-states">
-          <section class="panel scene-panel live-stack-order-scene" aria-label="Active scene state" data-mode-panel="live">
+          <section class="panel scene-panel" aria-label="Active scene state" data-mode-panel="live">
             <div class="panel-heading">
               <p class="kicker">SCENE STATE</p>
               <h2>Track the room, not the ontology.</h2>
@@ -119,7 +99,35 @@
             <label>Primary consequence<textarea name="sceneState.primaryConsequence" rows="2" maxlength="500"></textarea></label>
           </section>
 
-          <section class="panel clock-panel live-stack-order-clock" aria-label="Primary clock" data-mode-panel="live">
+          <section class="panel helper-panel" aria-label="The Room Answers helper" data-mode-panel="live">
+            <div class="panel-heading">
+              <p class="kicker">THE ROOM ANSWERS</p>
+              <h2>Ordinary object. Emotional input. Consequence.</h2>
+            </div>
+            <div class="room-answer-fields">
+              <label>Ordinary Object<input name="roomAnswer.object" maxlength="130" autocomplete="off" /></label>
+              <label>Emotional Input<input name="roomAnswer.emotionalInput" maxlength="130" autocomplete="off" /></label>
+              <label>Consequence<input name="roomAnswer.consequence" maxlength="200" autocomplete="off" /></label>
+            </div>
+            <div class="room-answer-preview" id="room-answer-preview" aria-live="polite"></div>
+          </section>
+
+          <section class="panel player-panel" aria-label="Operator Risk Strip" data-mode-panel="live prep">
+            <div class="panel-heading">
+              <p class="kicker">OPERATOR SUMMARY</p>
+              <h2>Read-only compact trackers. Operators own their sheets.</h2>
+            </div>
+            <div class="operator-risk-strip" id="operator-risk-strip" aria-label="Operator Risk Strip"></div>
+            <div class="player-toolbar no-print">
+              <button class="button" id="add-player" type="button">Add Operator</button>
+              <p>Summary fields only: Stability, Harm, Misfire, Void/Breach notes, Anchors, emotional state, relationship pressure.</p>
+            </div>
+            <div class="player-grid" id="player-grid"></div>
+          </section>
+        </div>
+
+        <div class="live-flow-column live-center-column">
+          <section class="panel clock-panel" aria-label="Primary clock" data-mode-panel="live">
             <div class="panel-heading">
               <p class="kicker">PRIMARY CLOCK</p>
               <h2>What is ticking right now?</h2>
@@ -141,35 +149,7 @@
             </details>
           </section>
 
-          <section class="panel aftermath-panel live-stack-order-attention" aria-label="Attention and aftermath" data-mode-panel="live archive">
-            <div class="panel-heading">
-              <p class="kicker">ATTENTION / AFTERMATH</p>
-              <h2>What follows them home?</h2>
-            </div>
-            <div class="aftermath-live-layout">
-              <label>Current Attention<select name="attention.current" data-live-control></select></label>
-              <label>Residue<input name="attention.residue" maxlength="180" autocomplete="off" /></label>
-              <label>Follows Them Home<input name="attention.followsHome" maxlength="180" autocomplete="off" /></label>
-            </div>
-            <p class="panel-note" id="attention-deterministic-hint" hidden>Residue, follows-home, and consequence sync from the active Needlepoint when Attention, Clock, or a table trigger changes. Manual edits here may be overwritten.</p>
-          </section>
-        </div>
-
-        <div class="live-work-row live-stack-order-work">
-          <section class="panel helper-panel live-stack-order-room" aria-label="The Room Answers helper" data-mode-panel="live">
-            <div class="panel-heading">
-              <p class="kicker">THE ROOM ANSWERS</p>
-              <h2>Ordinary object. Emotional input. Consequence.</h2>
-            </div>
-            <div class="room-answer-fields">
-              <label>Ordinary Object<input name="roomAnswer.object" maxlength="130" autocomplete="off" /></label>
-              <label>Emotional Input<input name="roomAnswer.emotionalInput" maxlength="130" autocomplete="off" /></label>
-              <label>Consequence<input name="roomAnswer.consequence" maxlength="200" autocomplete="off" /></label>
-            </div>
-            <div class="room-answer-preview" id="room-answer-preview" aria-live="polite"></div>
-          </section>
-
-          <section class="panel roll-panel live-stack-order-roll" aria-label="Quick roll helper" data-mode-panel="live" data-live-control-zone>
+          <section class="panel roll-panel" aria-label="Quick roll helper" data-mode-panel="live" data-live-control-zone>
             <div class="panel-heading roll-panel-heading">
               <div>
                 <p class="kicker">QUICK ROLL</p>
@@ -206,7 +186,7 @@
             <output class="roll-output" id="roll-output">Awaiting Operator test.</output>
           </section>
 
-          <section class="panel loop-panel live-stack-order-loop" aria-label="Entity or Zone Loop" data-mode-panel="live">
+          <section class="panel loop-panel" aria-label="Entity or Zone Loop" data-mode-panel="live">
             <div class="panel-heading">
               <p class="kicker">ENTITY / ZONE LOOP</p>
               <h2>Need -> Lure -> Pressure -> Gift -> Violence -> Exit</h2>
@@ -214,21 +194,41 @@
             <div class="entity-active-readout" id="entity-active-readout" aria-live="polite"></div>
             <div class="loop-grid" id="entity-loop-grid"></div>
           </section>
+        </div>
 
-          <section class="panel player-panel live-stack-order-operators" aria-label="Operator Risk Strip" data-mode-panel="live prep">
+        <div class="live-flow-column live-right-column">
+          <section class="panel wind-down-panel no-print private-panel" aria-label="What makes it better" data-live-control-zone>
             <div class="panel-heading">
-              <p class="kicker">OPERATOR SUMMARY</p>
-              <h2>Read-only compact trackers. Operators own their sheets.</h2>
+              <p class="kicker">WHAT MAKES IT BETTER</p>
+              <h2>Wind down only when leverage is actually removed.</h2>
             </div>
-            <div class="operator-risk-strip" id="operator-risk-strip" aria-label="Operator Risk Strip"></div>
-            <div class="player-toolbar no-print">
-              <button class="button" id="add-player" type="button">Add Operator</button>
-              <p>Summary fields only: Stability, Harm, Misfire, Void/Breach notes, Anchors, emotional state, relationship pressure.</p>
+            <div class="pressure-tray wind-down-rail" id="wind-down-rail" role="group" aria-label="Wind down moves"></div>
+            <div class="trigger-preview-panel wind-down-preview-panel" id="wind-down-preview-panel" hidden>
+              <p class="trigger-preview-title">Apply Wind Down?</p>
+              <p class="panel-note">This will:</p>
+              <ul class="trigger-preview-lines"></ul>
+              <div class="trigger-preview-actions">
+                <button class="button primary" id="wind-down-apply" type="button">Apply</button>
+                <button class="button ghost" id="wind-down-cancel" type="button">Cancel</button>
+              </div>
             </div>
-            <div class="player-grid" id="player-grid"></div>
+            <output class="wind-down-status" id="wind-down-status" aria-live="polite">Awaiting stabilization.</output>
           </section>
 
-          <section class="panel npc-panel live-stack-order-npcs" aria-label="NPC Roster" data-mode-panel="live prep">
+          <section class="panel aftermath-panel" aria-label="Attention and aftermath" data-mode-panel="live archive">
+            <div class="panel-heading">
+              <p class="kicker">ATTENTION / AFTERMATH</p>
+              <h2>What follows them home?</h2>
+            </div>
+            <div class="aftermath-live-layout">
+              <label>Current Attention<select name="attention.current" data-live-control></select></label>
+              <label>Residue<input name="attention.residue" maxlength="180" autocomplete="off" /></label>
+              <label>Follows Them Home<input name="attention.followsHome" maxlength="180" autocomplete="off" /></label>
+            </div>
+            <p class="panel-note" id="attention-deterministic-hint" hidden>Residue, follows-home, and consequence sync from the active Needlepoint when Attention, Clock, or a table trigger changes. Manual edits here may be overwritten.</p>
+          </section>
+
+          <section class="panel npc-panel" aria-label="NPC Roster" data-mode-panel="live prep">
             <div class="panel-heading">
               <p class="kicker">NPC / ROSTER</p>
               <h2>Active people, pressure, location, flags.</h2>
@@ -286,12 +286,12 @@
     </section>
   </main>
   <script src="../../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="../handler-state.js?v=20260626-pressuregrid6"></script>
+  <script src="../handler-state.js?v=20260626-pressuregrid7"></script>
   <script src="../handler-nav.js?v=20260626-fieldlock4"></script>
   <script src="../handler-operator-trackers.js?v=20260626-optrack1"></script>
   <script src="../handler-npc-anchor.js?v=20260626-npcanchor1"></script>
-  <script src="../handler-triggers.js?v=20260626-pressuregrid6"></script>
-  <script src="../handler-wind-down.js?v=20260626-pressuregrid6"></script>
-  <script src="../handler.js?v=20260626-pressuregrid6"></script>
+  <script src="../handler-triggers.js?v=20260626-pressuregrid7"></script>
+  <script src="../handler-wind-down.js?v=20260626-pressuregrid7"></script>
+  <script src="../handler.js?v=20260626-pressuregrid7"></script>
 </body>
 </html>
