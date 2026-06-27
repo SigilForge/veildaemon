@@ -65,6 +65,22 @@ body::before {
   padding: 1rem 0 2rem;
 }
 
+body[data-handler-mode="live"] .handler-shell {
+  width: calc(100vw - 1rem);
+  max-width: none;
+}
+
+body[data-handler-mode="live"] .handler-header,
+body[data-handler-mode="live"] .status-strip div,
+body[data-handler-mode="live"] .control-bar,
+body[data-handler-mode="live"] .panel,
+body[data-handler-mode="live"] .player-view {
+  box-shadow: none;
+  background:
+    linear-gradient(180deg, rgba(6,9,11,.95), rgba(3,5,7,.9)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 1px, transparent 1px 10px);
+}
+
 .handler-header,
 .status-strip div,
 .control-bar,
