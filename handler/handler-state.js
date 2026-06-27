@@ -50,64 +50,76 @@
       id: "protect-anchor-npc",
       label: "Protect Anchor NPC",
       target: "attention",
-      effect: "attention_delta",
-      delta: -1,
+      effects: { attention_delta: -1 },
       guidance: "Use when Operators move, shield, hide, or emotionally stabilize a scenario-critical NPC."
     },
     {
       id: "speak-truth-protected",
       label: "Speak Truth While Protected",
-      target: "attention",
-      effect: "attention_delta",
-      delta: -1,
+      target: "both",
+      effects: {
+        primary_delta: -1,
+        attention_delta: -1,
+        scene_state_soften: 1,
+        next_pressure_beat: "Protected truth lowers the room's leverage and dulls the site's read."
+      },
       guidance: "Use when honest speech directly weakens the site/entity and another Operator protects the speaker."
     },
     {
       id: "cut-observation",
       label: "Cut Observation",
       target: "attention",
-      effect: "attention_delta",
-      delta: -1,
+      effects: { attention_delta: -1 },
       guidance: "Use when cameras, mirrors, feeds, witnesses, or tracking vectors are blocked."
     },
     {
       id: "restore-connection",
       label: "Restore Connection",
-      target: "attention",
-      effect: "attention_delta",
-      delta: -1,
+      target: "both",
+      effects: {
+        attention_delta: -1,
+        scene_state_soften: 1,
+        consequence: "Isolation pressure breaks; the room loses its clean angle."
+      },
       guidance: "Use when separated Operators reunite, someone is witnessed safely, or isolation pressure is broken."
     },
     {
       id: "secure-route",
       label: "Secure Route / Safe Room",
       target: "primary",
-      effect: "primary_delta",
-      delta: -1,
+      effects: { primary_delta: -1 },
       guidance: "Use when the physical zone loses access: door barred, hiding place secured, exit mapped, lure interrupted."
     },
     {
       id: "recover-clean-clue",
       label: "Recover Clean Clue",
       target: "case",
-      effect: "case_delta",
-      delta: -1,
+      effects: {
+        case_delta: -1,
+        case_record: "Clean clue recovered without feeding the site."
+      },
       guidance: "Use when Operators recover the clue without feeding the site, exposing an NPC, or escalating attention. If the case clock is off, still record the clue cleanly."
     },
     {
       id: "use-clock-stabilizer",
       label: "Use Clock Stabilizer",
       target: "primary",
-      effect: "primary_delta",
-      delta: -2,
+      effects: {
+        primary_delta: -2,
+        next_pressure_beat: "Clock stabilizer holds; the room stops climbing for a beat."
+      },
       guidance: "Use when they do the specific stabilizer written on the clock."
     },
     {
       id: "contain-resolve",
       label: "Contain / Resolve Source",
-      target: "primary",
-      effect: "primary_resolve",
-      delta: 0,
+      target: "both",
+      effects: {
+        primary_resolve: true,
+        attention_delta: -1,
+        scene_state_soften: 2,
+        consequence: "Source contained; the room loses the entity's personal read."
+      },
       guidance: "Use only when the threat's active access is actually ended."
     }
   ];
@@ -321,8 +333,8 @@
         "segments": 6,
         "current": 1,
         "ticksWhen": "Operators stall, split up, deny the obvious, fail under pressure, or stare too long into reflective surfaces.",
-        "midpointEvent": "Tick 3 — Shade interrupts with a useful but invasive warning while Alex tries to soften it. Operators gain one clear clue; Shade records emotional tells unless Alex overrides.",
-        "fullClockEvent": "Tick 6 — The Unfinished Witness acts directly and offers someone a cleaner self. Force break, bind, speak, or flee before the chamber chooses for them.",
+        "midpointEvent": "Tick 3 â€” Shade interrupts with a useful but invasive warning while Alex tries to soften it. Operators gain one clear clue; Shade records emotional tells unless Alex overrides.",
+        "fullClockEvent": "Tick 6 â€” The Unfinished Witness acts directly and offers someone a cleaner self. Force break, bind, speak, or flee before the chamber chooses for them.",
         "stabilizer": "Protected truthful speech, Anchors and Totems against the mirror, binding or breaking the altar mirror, or leaving together."
       },
       "entityLoop": {
@@ -373,14 +385,14 @@
       ],
       "caseFile": {
         "nextClue": "The church window reflects one more person than arrived. First route: arrival window. Alternate: stained glass wrong weather.",
-        "nextPressureBeat": "Tick 2 — Church Notices: phones glitch or the building repeats a phrase. Next denial while reflected costs 1 Stability unless another Operator corroborates.",
+        "nextPressureBeat": "Tick 2 â€” Church Notices: phones glitch or the building repeats a phrase. Next denial while reflected costs 1 Stability unless another Operator corroborates.",
         "templates": "NP-001 scaffold: handler/needlepoints/veilcorp-intake.json",
         "notes": "Emergency scaffolding, not a stable agency. Six contacts, one church, one mirror chamber. Teach: you were already in the story before anyone invited you."
       },
       "handlerNotes": {
-        "clueList": "CLUE 1 — VeilCorp is emergency scaffolding.\nRoute A: Alex/Shade contradiction during contact playback.\nRoute B: corrupted intake notice.\nFailure: Shade acts without social consent; anchor glitches on next reflective surface.\n\nCLUE 2 — Church reflects refused selves.\nRoute A: extra arrival reflection.\nRoute B: hymn book crossed-out names.\nFailure: one Operator addressed by wrong name until they speak truth aloud.\n\nCLUE 3 — Prior cult opened the chamber.\nRoute A: altar eye symbol and residue.\nRoute B: backward floorboard phrase.\nFailure: cult symbol marks a phone photo.\n\nCLUE 4 — Basement opens after truth, lie, Frequency use, or blood-glass contact.\nRoute A: altar mirror reaction.\nRoute B: locked basement door after grit disturbed.\nFailure: chamber opens while someone isolated; first basement roll TN 15.\n\nCLUE 5 — Witness offers cleaner identities.\nRoute A: altar mirror alternate choices.\nRoute B: wrong reflection on phones or rainwater.\nFailure: offered self protects one cost, then asks to stay.\n\nCLUE 6 — Intake completes after the cell survives together.\nRoute A: Alex/Shade cut-in.\nRoute B: group stabilization with protected truthful speech.\nFailure: VeilCorp knows more than Operators chose to share.",
-        "consequenceQueue": "FAILURE — Puzzle-only approach: reflections offer corrections; investigation without emotional admission costs 1 Stability or ticks Clock.\n\nFAILURE — Cleaner self accepted: Operator gains Advantage once, then Disadvantage on identity rolls until refused aloud while witnessed.\n\nFAILURE — Split before basement: isolated Operator faces Witness first at TN 15 without Ally support.",
-        "residueLog": "CLOCK 1 Wrong Reflection — extra person or delayed gesture; identity rolls TN 15.\nCLOCK 2 Church Notices — denial while reflected costs 1 Stability without corroboration.\nCLOCK 3 Contact Pressure — Shade/Alex cut-in; clue gained, privacy risk.\nCLOCK 4 Basement Opens — first solo descent has Disadvantage.\nCLOCK 5 First Misfire — reflection walks, wrong name, or Alex says too soon early.\nCLOCK 6 Witness Wakes — break, bind, speak, or flee.\n\nRESOLUTION OPTIONS: Break altar mirror (fast, scar risk). Bind with Anchors (safer, Shade learns details). Speak truths (weakens Witness). Flee (valid; site stays active)."
+        "clueList": "CLUE 1 â€” VeilCorp is emergency scaffolding.\nRoute A: Alex/Shade contradiction during contact playback.\nRoute B: corrupted intake notice.\nFailure: Shade acts without social consent; anchor glitches on next reflective surface.\n\nCLUE 2 â€” Church reflects refused selves.\nRoute A: extra arrival reflection.\nRoute B: hymn book crossed-out names.\nFailure: one Operator addressed by wrong name until they speak truth aloud.\n\nCLUE 3 â€” Prior cult opened the chamber.\nRoute A: altar eye symbol and residue.\nRoute B: backward floorboard phrase.\nFailure: cult symbol marks a phone photo.\n\nCLUE 4 â€” Basement opens after truth, lie, Frequency use, or blood-glass contact.\nRoute A: altar mirror reaction.\nRoute B: locked basement door after grit disturbed.\nFailure: chamber opens while someone isolated; first basement roll TN 15.\n\nCLUE 5 â€” Witness offers cleaner identities.\nRoute A: altar mirror alternate choices.\nRoute B: wrong reflection on phones or rainwater.\nFailure: offered self protects one cost, then asks to stay.\n\nCLUE 6 â€” Intake completes after the cell survives together.\nRoute A: Alex/Shade cut-in.\nRoute B: group stabilization with protected truthful speech.\nFailure: VeilCorp knows more than Operators chose to share.",
+        "consequenceQueue": "FAILURE â€” Puzzle-only approach: reflections offer corrections; investigation without emotional admission costs 1 Stability or ticks Clock.\n\nFAILURE â€” Cleaner self accepted: Operator gains Advantage once, then Disadvantage on identity rolls until refused aloud while witnessed.\n\nFAILURE â€” Split before basement: isolated Operator faces Witness first at TN 15 without Ally support.",
+        "residueLog": "CLOCK 1 Wrong Reflection â€” extra person or delayed gesture; identity rolls TN 15.\nCLOCK 2 Church Notices â€” denial while reflected costs 1 Stability without corroboration.\nCLOCK 3 Contact Pressure â€” Shade/Alex cut-in; clue gained, privacy risk.\nCLOCK 4 Basement Opens â€” first solo descent has Disadvantage.\nCLOCK 5 First Misfire â€” reflection walks, wrong name, or Alex says too soon early.\nCLOCK 6 Witness Wakes â€” break, bind, speak, or flee.\n\nRESOLUTION OPTIONS: Break altar mirror (fast, scar risk). Bind with Anchors (safer, Shade learns details). Speak truths (weakens Witness). Flee (valid; site stays active)."
       },
       "unresolvedConsequences": "Choose campaign track after debrief: containment, paranoia, or haunted.",
       "activeNeedlepoint": {
@@ -597,8 +609,8 @@
         "segments": 6,
         "current": 0,
         "ticksWhen": "Operators stall, lie under observation, feed the audience, split someone off, force the site, or treat Mara as content.",
-        "midpointEvent": "Tick 3 — Elevator Listens: repeats an avoided sentence. Next elevator action TN 15 unless someone speaks honestly while recorded. Every screen may show a cruel-but-useful comment.",
-        "fullClockEvent": "Tick 6 — Performed Self Stabilizes: Audience Before offers one Operator a clean role and asks others to confirm. Refuse as a group or Mara/that Operator may be replaced by the easier version.",
+        "midpointEvent": "Tick 3 â€” Elevator Listens: repeats an avoided sentence. Next elevator action TN 15 unless someone speaks honestly while recorded. Every screen may show a cruel-but-useful comment.",
+        "fullClockEvent": "Tick 6 â€” Performed Self Stabilizes: Audience Before offers one Operator a clean role and asks others to confirm. Refuse as a group or Mara/that Operator may be replaced by the easier version.",
         "stabilizer": "One honest sentence spoken while another Operator protects the speaker from audience pressure."
       },
       "entityLoop": {
@@ -665,14 +677,14 @@
       ],
       "caseFile": {
         "nextClue": "Mara entered the elevator at 2:13 a.m.; her reflection stayed behind. First route: security office timestamp.",
-        "nextPressureBeat": "Tick 1 — Camera Notices: one device tracks the quietest Operator. Next roll under observation has Disadvantage unless another Operator shields them.",
+        "nextPressureBeat": "Tick 1 â€” Camera Notices: one device tracks the quietest Operator. Next roll under observation has Disadvantage unless another Operator shields them.",
         "templates": "NP-001A scaffold: handler/needlepoints/viridian-house.json",
         "notes": "Recover Mara from a twelve-floor building indexing withheld speech. Use at least three core clues before 13F. Do not block progress; use worse positioning instead."
       },
       "handlerNotes": {
-        "clueList": "CLUE 1 — Mara entered elevator at 2:13 a.m.\nRoute A: security timestamp.\nRoute B: Saffi remembers lobby chime.\nFailure: footage loops an Operator into frame; Audience can target them through screens once.\n\nCLUE 2 — Mara's reflection stayed behind.\nRoute A: camera still.\nRoute B: lobby mirror / elevator door.\nFailure: reflection mouths private phrase; next social roll under observation TN 15.\n\nCLUE 3 — Floor 13 after lie under observation.\nRoute A: manager denial + elevator camera test.\nRoute B: future comment thread in security office.\nFailure: opens Tick 3 not 4; only two core clues; one exit locked; first Floor 13 action TN 15.\n\nCLUE 4 — Apartment 13F collects performed selves.\nRoute A: Floor 13 hallway doors.\nRoute B: Mara's stream archive in Saffi's apartment.\nFailure: easier self behind a door; accepting ticks Clock.\n\nCLUE 5 — Mara reached by honest speech while recorded.\nRoute A: Saffi's memory.\nRoute B: live comment prompt.\nFailure: audience asks first; answerer loses 1 Stability unless shielded.",
-        "consequenceQueue": "FAILURE — Mara treated as content: off-camera rescue has Disadvantage; Mara stops responding off-camera.\n\nFAILURE — Constant lies under observation: Floor 13 opens Tick 3; two clues only; TN 15 first action; one exit locked.\n\nFAILURE — Fed comment thread for spectacle: Tick 5 begins on Floor 13 arrival; one Operator starts with Disadvantage on non-performance rolls.",
-        "residueLog": "CLOCK 1 Camera Notices — tracks quietest Operator; Disadvantage unless shielded.\nCLOCK 2 Comment Predicts — thread names next choice; mask learned if prediction hits.\nCLOCK 3 Elevator Listens — TN 15 elevator action unless honest speech while recorded.\nCLOCK 4 Floor 13 Opens — worse positioning if fewer than three clues.\nCLOCK 5 Audience Edits — performed self grants Advantage once, Disadvantage until refused.\nCLOCK 6 Performed Self Stabilizes — group must refuse role or lose Mara/Operator to easier version.\n\nFIRST 20 MIN: Lobby camera before exposition. Camera answers first lie or honest admission. Stabilizer before escalate: step outside, name one normal thing, correct the lie."
+        "clueList": "CLUE 1 â€” Mara entered elevator at 2:13 a.m.\nRoute A: security timestamp.\nRoute B: Saffi remembers lobby chime.\nFailure: footage loops an Operator into frame; Audience can target them through screens once.\n\nCLUE 2 â€” Mara's reflection stayed behind.\nRoute A: camera still.\nRoute B: lobby mirror / elevator door.\nFailure: reflection mouths private phrase; next social roll under observation TN 15.\n\nCLUE 3 â€” Floor 13 after lie under observation.\nRoute A: manager denial + elevator camera test.\nRoute B: future comment thread in security office.\nFailure: opens Tick 3 not 4; only two core clues; one exit locked; first Floor 13 action TN 15.\n\nCLUE 4 â€” Apartment 13F collects performed selves.\nRoute A: Floor 13 hallway doors.\nRoute B: Mara's stream archive in Saffi's apartment.\nFailure: easier self behind a door; accepting ticks Clock.\n\nCLUE 5 â€” Mara reached by honest speech while recorded.\nRoute A: Saffi's memory.\nRoute B: live comment prompt.\nFailure: audience asks first; answerer loses 1 Stability unless shielded.",
+        "consequenceQueue": "FAILURE â€” Mara treated as content: off-camera rescue has Disadvantage; Mara stops responding off-camera.\n\nFAILURE â€” Constant lies under observation: Floor 13 opens Tick 3; two clues only; TN 15 first action; one exit locked.\n\nFAILURE â€” Fed comment thread for spectacle: Tick 5 begins on Floor 13 arrival; one Operator starts with Disadvantage on non-performance rolls.",
+        "residueLog": "CLOCK 1 Camera Notices â€” tracks quietest Operator; Disadvantage unless shielded.\nCLOCK 2 Comment Predicts â€” thread names next choice; mask learned if prediction hits.\nCLOCK 3 Elevator Listens â€” TN 15 elevator action unless honest speech while recorded.\nCLOCK 4 Floor 13 Opens â€” worse positioning if fewer than three clues.\nCLOCK 5 Audience Edits â€” performed self grants Advantage once, Disadvantage until refused.\nCLOCK 6 Performed Self Stabilizes â€” group must refuse role or lose Mara/Operator to easier version.\n\nFIRST 20 MIN: Lobby camera before exposition. Camera answers first lie or honest admission. Stabilizer before escalate: step outside, name one normal thing, correct the lie."
       },
       "unresolvedConsequences": "Aftermath hooks: elevator hesitates after 12; BEFORE_YOU_SAY_IT comments; Mara remembers unsaid speech; Saffi's tomorrow-dated draft.",
       "activeNeedlepoint": {
@@ -1161,6 +1173,151 @@
     return sceneStates[nextRank]?.name || current;
   }
 
+  function softenSceneStateValue(current, steps = 1) {
+    const currentRank = sceneStateRank[current] ?? 0;
+    const nextRank = Math.max(0, currentRank - safeNumber(steps, 1, 4, 1));
+    return sceneStates[nextRank]?.name || current;
+  }
+
+  function normalizeWindDownEffects(move) {
+    const effects = move?.effects && typeof move.effects === "object" ? move.effects : {};
+    return {
+      primary_delta: safeNumber(effects.primary_delta, -6, 6, 0),
+      attention_delta: safeNumber(effects.attention_delta, -4, 4, 0),
+      case_delta: safeNumber(effects.case_delta, -6, 6, 0),
+      primary_resolve: Boolean(effects.primary_resolve),
+      scene_state_set: effects.scene_state_set
+        ? normalizeChoice(effects.scene_state_set, sceneStates.map((item) => item.name), "")
+        : "",
+      scene_state_soften: safeNumber(effects.scene_state_soften, 0, 4, 0),
+      next_pressure_beat: safeString(effects.next_pressure_beat, 500),
+      consequence: safeString(effects.consequence, 220),
+      case_record: safeString(effects.case_record, 240),
+      use_when: safeString(move?.guidance, 260)
+    };
+  }
+
+  function applyWindDownEffects(draft, move) {
+    const effects = normalizeWindDownEffects(move);
+    const changes = [];
+    const before = {
+      primary: draft.primaryClock.current,
+      attention: draft.attention.current,
+      scene: draft.sceneState.current,
+      caseClock: draft.secondaryClock.current,
+      residue: draft.attention.residue || "None logged.",
+      consequence: draft.sceneState.primaryConsequence || "Unset",
+      nextPressure: draft.caseFile.nextPressureBeat || "No beat staged."
+    };
+
+    if (effects.primary_resolve) {
+      draft.primaryClock.current = 0;
+      changes.push({
+        label: "Clock",
+        before: `${before.primary}/${draft.primaryClock.segments}`,
+        after: `${draft.primaryClock.current}/${draft.primaryClock.segments}`
+      });
+    } else if (effects.primary_delta) {
+      draft.primaryClock.current = safeNumber(
+        draft.primaryClock.current + effects.primary_delta,
+        0,
+        draft.primaryClock.segments,
+        draft.primaryClock.current
+      );
+      changes.push({
+        label: "Clock",
+        before: `${before.primary}/${draft.primaryClock.segments}`,
+        after: `${draft.primaryClock.current}/${draft.primaryClock.segments}`
+      });
+    }
+
+    if (effects.attention_delta) {
+      draft.attention.current = resolveAttentionValue(draft.attention.current, { attention_delta: effects.attention_delta });
+      changes.push({
+        label: "Attention",
+        before: before.attention,
+        after: draft.attention.current
+      });
+    }
+
+    if (effects.scene_state_set) {
+      draft.sceneState.current = effects.scene_state_set;
+    }
+    if (effects.scene_state_soften) {
+      draft.sceneState.current = softenSceneStateValue(draft.sceneState.current, effects.scene_state_soften);
+    }
+    if (effects.scene_state_set || effects.scene_state_soften) {
+      changes.push({
+        label: "Scene State",
+        before: before.scene,
+        after: draft.sceneState.current
+      });
+    }
+
+    if (effects.case_delta) {
+      draft.caseFile.nextPressureBeat = "Clean clue recovered without feeding the site.";
+      draft.residueLog.unshift({
+        id: `residue-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+        scene: draft.sceneState.current,
+        attention: draft.attention.current,
+        residue: effects.case_record || `Clean clue recovered: ${draft.caseFile.nextClue || move.label}`,
+        followsHome: draft.attention.followsHome || "",
+        consequence: draft.secondaryClock.enabled
+          ? "Case pressure reduced; clue secured."
+          : "No clock reduced; clue secured cleanly."
+      });
+      if (draft.secondaryClock.enabled) {
+        draft.secondaryClock.current = safeNumber(
+          draft.secondaryClock.current + effects.case_delta,
+          0,
+          draft.secondaryClock.segments,
+          draft.secondaryClock.current
+        );
+        changes.push({
+          label: "Case Clock",
+          before: `${before.caseClock}/${draft.secondaryClock.segments}`,
+          after: `${draft.secondaryClock.current}/${draft.secondaryClock.segments}`
+        });
+      } else {
+        changes.push({
+          label: "Case Clock",
+          before: "Disabled",
+          after: "Clean clue recorded"
+        });
+      }
+      changes.push({
+        label: "Case Record",
+        before: "Unlogged",
+        after: draft.residueLog[0]?.residue || "Clean clue recovered."
+      });
+      changes.push({
+        label: "Next Pressure",
+        before: before.nextPressure,
+        after: draft.caseFile.nextPressureBeat || "No beat staged."
+      });
+    }
+
+    if (effects.consequence) {
+      draft.sceneState.primaryConsequence = effects.consequence;
+      changes.push({
+        label: "Consequence",
+        before: before.consequence,
+        after: draft.sceneState.primaryConsequence || "Unset"
+      });
+    }
+
+    if (effects.next_pressure_beat && !effects.case_delta) {
+      draft.caseFile.nextPressureBeat = effects.next_pressure_beat;
+      changes.push({
+        label: "Next Pressure",
+        before: before.nextPressure,
+        after: draft.caseFile.nextPressureBeat || "No beat staged."
+      });
+    }
+
+    return { draft, effects, changes };
+  }
+
   function getTableTriggers(state) {
     const needlepoint = state?.activeNeedlepoint;
     if (needlepoint?.table_triggers?.length) return needlepoint.table_triggers;
@@ -1310,6 +1467,7 @@
     if (target === "primary") return "Primary";
     if (target === "attention") return "Attention";
     if (target === "case") return "Case";
+    if (target === "both") return "Primary + Attention";
     return "Handler";
   }
 
@@ -1321,7 +1479,20 @@
     const move = findWindDownMove(moveId);
     if (!move) return null;
 
-    const next = applyWindDownMove(state, moveId);
+    const draft = clone(normalizeState(state));
+    const before = {
+      primary: draft.primaryClock.current,
+      attention: draft.attention.current,
+      scene: draft.sceneState.current,
+      residue: draft.attention.residue || "None logged.",
+      consequence: draft.sceneState.primaryConsequence || "Unset",
+      nextPressure: draft.caseFile.nextPressureBeat || "No beat staged.",
+      caseClock: draft.secondaryClock.enabled
+        ? `${draft.secondaryClock.current}/${draft.secondaryClock.segments}`
+        : "Disabled"
+    };
+    const { draft: windDownDraft, effects } = applyWindDownEffects(draft, move);
+    const next = hasActiveNeedlepoint(windDownDraft) ? applyNeedlepointAttention(windDownDraft) : windDownDraft;
     const lines = [
       {
         label: "Responsibility",
@@ -1335,54 +1506,52 @@
       },
       {
         label: "Clock",
-        before: `${state.primaryClock.current}/${state.primaryClock.segments}`,
-        after: `${next.state.primaryClock.current}/${next.state.primaryClock.segments}`
+        before: `${before.primary}/${draft.primaryClock.segments}`,
+        after: `${next.primaryClock.current}/${next.primaryClock.segments}`
       },
       {
         label: "Attention",
-        before: state.attention.current,
-        after: next.state.attention.current
+        before: before.attention,
+        after: next.attention.current
       },
       {
         label: "Scene State",
-        before: state.sceneState.current,
-        after: next.state.sceneState.current
+        before: before.scene,
+        after: next.sceneState.current
       },
       {
         label: "Residue",
-        before: state.attention.residue || "None logged.",
-        after: next.state.attention.residue || "None logged."
+        before: before.residue,
+        after: next.attention.residue || "None logged."
       },
       {
         label: "Consequence",
-        before: state.sceneState.primaryConsequence || "Unset",
-        after: next.state.sceneState.primaryConsequence || "Unset"
+        before: before.consequence,
+        after: next.sceneState.primaryConsequence || "Unset"
       },
       {
         label: "Next Pressure",
-        before: state.caseFile.nextPressureBeat || "No beat staged.",
-        after: next.state.caseFile.nextPressureBeat || "No beat staged."
+        before: before.nextPressure,
+        after: next.caseFile.nextPressureBeat || "No beat staged."
       }
     ];
 
-    if (move.effect === "case_delta") {
+    if (effects.case_delta || effects.case_record) {
       lines.push({
         label: "Case Clock",
-        before: state.secondaryClock.enabled
-          ? `${state.secondaryClock.current}/${state.secondaryClock.segments}`
-          : "Disabled",
-        after: next.state.secondaryClock.enabled
-          ? `${next.state.secondaryClock.current}/${next.state.secondaryClock.segments}`
-          : "Clean clue logged"
+        before: before.caseClock,
+        after: next.secondaryClock.enabled
+          ? `${next.secondaryClock.current}/${next.secondaryClock.segments}`
+          : "Clean clue recorded"
       });
       lines.push({
         label: "Case Record",
         before: "Unlogged",
-        after: next.state.residueLog[0]?.residue || "Clean clue recovered."
+        after: next.residueLog[0]?.residue || effects.case_record || "Clean clue recovered."
       });
     }
 
-    return { move, lines, nextState: next.state, message: next.message };
+    return { move, lines, nextState: next, message: null };
   }
 
   function applyWindDownMove(state, moveId) {
@@ -1390,57 +1559,14 @@
     if (!move) return { state, message: "UNKNOWN WIND DOWN MOVE" };
 
     const draft = clone(normalizeState(state));
-    let message = "";
-
-    if (move.effect === "attention_delta") {
-      const before = draft.attention.current;
-      draft.attention.current = resolveAttentionValue(before, { attention_delta: move.delta });
-      message = `ATTENTION ${before} -> ${draft.attention.current}`;
-    } else if (move.effect === "primary_delta") {
-      const before = draft.primaryClock.current;
-      draft.primaryClock.current = safeNumber(
-        before + move.delta,
-        0,
-        draft.primaryClock.segments,
-        before
-      );
-      message = `PRIMARY ${before}/${draft.primaryClock.segments} -> ${draft.primaryClock.current}/${draft.primaryClock.segments}`;
-    } else if (move.effect === "primary_resolve") {
-      const before = draft.primaryClock.current;
-      draft.primaryClock.current = 0;
-      message = `PRIMARY RESOLVED — ${before} -> 0`;
-    } else if (move.effect === "case_delta") {
-      draft.caseFile.nextPressureBeat = "Clean clue recovered without feeding the site.";
-      draft.residueLog.unshift({
-        id: `residue-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
-        scene: draft.sceneState.current,
-        attention: draft.attention.current,
-        residue: `Clean clue recovered: ${draft.caseFile.nextClue || move.label}`,
-        followsHome: draft.attention.followsHome || "",
-        consequence: draft.secondaryClock.enabled
-          ? "Case pressure reduced; clue secured."
-          : "No clock reduced; clue secured cleanly."
-      });
-      if (draft.secondaryClock.enabled) {
-        const before = draft.secondaryClock.current;
-        draft.secondaryClock.current = safeNumber(
-          before + move.delta,
-          0,
-          draft.secondaryClock.segments,
-          before
-        );
-        message = `CASE ${before}/${draft.secondaryClock.segments} -> ${draft.secondaryClock.current}/${draft.secondaryClock.segments}`;
-      } else {
-        message = "CLEAN CLUE RECORDED — NO CLOCK REDUCED";
-      }
-    } else {
-      return { state, message: "UNKNOWN WIND DOWN MOVE" };
-    }
-
-    const withNeedlepoint = hasActiveNeedlepoint(draft) ? applyNeedlepointAttention(draft) : draft;
+    const { draft: next, changes } = applyWindDownEffects(draft, move);
+    const withNeedlepoint = hasActiveNeedlepoint(next) ? applyNeedlepointAttention(next) : next;
+    const summary = changes
+      .map((row) => (row.before === "" ? `${row.label}: ${row.after}` : `${row.label} ${row.before} -> ${row.after}`))
+      .join(" | ");
     return {
       state: normalizeState(withNeedlepoint),
-      message: `${move.label.toUpperCase()} — ${message}`
+      message: summary ? `${move.label.toUpperCase()} — ${summary}` : `${move.label.toUpperCase()} — STABILIZED`
     };
   }
 
