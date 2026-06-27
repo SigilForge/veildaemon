@@ -172,6 +172,28 @@ test("handler live triggers route common table events to clock responsibility", 
   await expect(preview).toContainText("Unseen -> Noticed");
 });
 
+test("handler live wind down mirrors the trigger preview flow", async ({ page }) => {
+  await page.goto("/handler/live/");
+
+  const rail = page.getByRole("group", { name: "Wind down moves" });
+  await expect(rail.getByRole("button", { name: /Speak Truth While Protected/ })).toBeVisible();
+  await rail.getByRole("button", { name: /Speak Truth While Protected/ }).click();
+
+  const preview = page.locator("#wind-down-preview-panel");
+  await expect(preview).toBeVisible();
+  await expect(preview).toContainText("Responsibility");
+  await expect(preview).toContainText("Primary + Attention");
+  await expect(preview).toContainText("Use When");
+  await expect(preview).toContainText("Clock");
+  await expect(preview).toContainText("Attention");
+  await expect(preview).toContainText("Scene State");
+  await expect(preview).toContainText("Next Pressure");
+
+  await rail.getByRole("button", { name: /Recover Clean Clue/ }).click();
+  await expect(preview).toContainText("Case Clock");
+  await expect(preview).toContainText("Case Record");
+});
+
 test("handler imports Operator Record summaries", async ({ page }) => {
   await page.goto("/handler/operators/");
   await enableHandlerFieldEdit(page);
