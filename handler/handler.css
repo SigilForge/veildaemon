@@ -293,7 +293,7 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   -webkit-overflow-scrolling: touch;
 }
 
-.pressure-tray .pressure-button {
+.pressure-tray .trigger-button {
   flex: 0 0 clamp(7.25rem, calc((100% - 4.05rem) / 10), 10.25rem);
   scroll-snap-align: start;
   min-height: 4rem;
@@ -301,14 +301,14 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   overflow: hidden;
 }
 
-.pressure-tray .pressure-button span {
+.pressure-tray .trigger-button span {
   display: -webkit-box;
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.pressure-button {
+.trigger-button {
   display: grid;
   gap: .15rem;
   min-height: 4.5rem;
@@ -321,7 +321,7 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   font: inherit;
 }
 
-.pressure-button em {
+.trigger-button em {
   display: inline-flex;
   width: max-content;
   max-width: 100%;
@@ -334,51 +334,24 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   text-transform: uppercase;
 }
 
-.pressure-button strong {
+.trigger-button strong {
   font-size: .76rem;
   letter-spacing: .05em;
   text-transform: uppercase;
 }
 
-.pressure-button span {
+.trigger-button span {
   color: var(--muted);
   font-size: .67rem;
   line-height: 1.35;
 }
 
-.pressure-button:hover,
-.pressure-button.is-active {
+.trigger-button:hover,
+.trigger-button.is-active {
   border-color: rgba(102,255,220,.5);
   box-shadow: inset 0 0 18px rgba(102,255,220,.08);
 }
 
-.pressure-button--worse {
-  border: 1px solid rgba(102,255,220,.16);
-  background: rgba(0,0,0,.22);
-}
-
-.pressure-button--worse em {
-  border: 1px solid rgba(102,255,220,.22);
-  color: var(--muted);
-}
-
-.pressure-button--better {
-  border-color: rgba(102,255,220,.16);
-  background: rgba(0,0,0,.22);
-}
-
-.pressure-button--better em {
-  border-color: rgba(102,255,220,.22);
-  color: var(--cyan);
-}
-
-.pressure-button--better:hover,
-.pressure-button--better.is-active,
-.pressure-button--worse:hover,
-.pressure-button--worse.is-active {
-  border-color: rgba(102,255,220,.5);
-  box-shadow: inset 0 0 18px rgba(102,255,220,.08);
-}
 
 .live-pressure-better .wind-down-status {
   margin-top: .5rem;

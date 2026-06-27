@@ -22,7 +22,7 @@
     api.windDownMoves.forEach((move) => {
       const button = document.createElement("button");
       button.type = "button";
-      button.className = "pressure-button pressure-button--better";
+      button.className = "trigger-button";
       button.dataset.windDownId = move.id;
       button.classList.toggle("is-active", move.id === pendingMoveId);
       button.title = `${move.label} — ${move.guidance}`;
@@ -51,7 +51,7 @@
     const current = api.readState();
     const result = api.applyWindDownMove(current, moveId);
     const title = panel.querySelector(".wind-down-preview-title");
-    const lines = panel.querySelector(".wind-down-preview-lines");
+    const lines = panel.querySelector(".trigger-preview-lines");
     if (title) title.textContent = `Apply Wind Down: ${move.label}?`;
     if (!lines) return;
 
