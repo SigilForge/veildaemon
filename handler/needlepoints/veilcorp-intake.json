@@ -380,7 +380,7 @@
       "follows_home": "A reflection scar may persist on one personal object.",
       "consequence": "Once per scene, the Witness may ask which version of yourself you wish had chosen differently."
     },
-    "fixed": {
+    "targeted": {
       "residue": "The Unfinished Witness targets one Operator through mirrors and devices.",
       "follows_home": "Comments or wrong names arrive near meaningful identity lies.",
       "consequence": "Refusal costs 1 Stability or ticks the Clock."
@@ -425,7 +425,7 @@
     {
       "clock_min": 5,
       "clock_max": 6,
-      "attention": "fixed",
+      "attention": "Targeted",
       "consequence": "The Witness targets one Operator through mirrors. Refusal costs 1 Stability or ticks the Clock."
     },
     {
@@ -445,7 +445,7 @@
     "safe_consequence": ""
   },
   "handler_prompts": [
-    "GM FAST START: Give each Operator one contact vector. Start at arrival. Ask what detail made them believe.",
+    "HANDLER FAST START: Give each Operator one contact vector. Start at arrival. Ask what detail made them believe.",
     "Use Alex/Shade cut-ins when the table stalls, splits, or denies the obvious.",
     "Shade interruption: Emotional denial detected. Alex: Shade, do not diagnose strangers through their phones.",
     "Emergency competence: Alex maps exits, spoofs cameras, and stops joking when the reflection breaches.",
@@ -460,5 +460,115 @@
     "uses_handler_language": true,
     "avoids_public_json_language": true,
     "avoids_vague_vibe_only_terms": true
-  }
+  },
+  "table_triggers": [
+    {
+      "id": "lie-reflected",
+      "label": "Operator lies while reflected",
+      "hint": "Denial under mirror, glass, or screen.",
+      "effects": {
+        "clock_target": "both",
+        "clock_delta": 1,
+        "attention_min": "Noticed",
+        "scene_state_min": "Echoed"
+      }
+    },
+    {
+      "id": "split-up",
+      "label": "Operators split up",
+      "effects": {
+        "clock_target": "attention",
+        "attention_delta": 1,
+        "scene_state_min": "Echoed",
+        "next_pressure_beat": "Isolation lure activates; separated Operator faces the Witness first."
+      }
+    },
+    {
+      "id": "protected-truth",
+      "label": "Operators protect honest speech",
+      "effects": {
+        "clock_target": "attention",
+        "attention_delta": -1,
+        "clock_tick": false,
+        "scene_state_set": "Stable"
+      }
+    },
+    {
+      "id": "force-chamber",
+      "label": "Operators force the chamber without vulnerability",
+      "effects": {
+        "clock_target": "zone",
+        "clock_delta": 1,
+        "scene_state_min": "Breached",
+        "next_pressure_beat": "Misfire risk live; next forced move has Disadvantage."
+      }
+    },
+    {
+      "id": "clue-fail",
+      "label": "Operators fail clue roll",
+      "effects": {
+        "clock_target": "both",
+        "clock_delta": 1,
+        "attention_delta": 1,
+        "reveal_next_clue": true,
+        "next_pressure_beat": "Clue gained at a cost; reflection or wrong name may answer first."
+      }
+    },
+    {
+      "id": "misfire-disturbs-site",
+      "label": "Misfire disturbs site",
+      "hint": "The church gets worse before anyone notices why.",
+      "effects": {
+        "clock_target": "zone",
+        "clock_delta": 1,
+        "scene_state_min": "Echoed",
+        "next_pressure_beat": "Primary Clock (site-owned): the church answers through reflection, weather, or architecture."
+      }
+    },
+    {
+      "id": "misfire-exposes-operator",
+      "label": "Misfire exposes Operator",
+      "hint": "The reflection learns a person instead of a room.",
+      "effects": {
+        "clock_target": "attention",
+        "attention_delta": 1,
+        "scene_state_min": "Echoed",
+        "next_pressure_beat": "Attention Clock: the Witness has a cleaner read on one Operator."
+      }
+    },
+    {
+      "id": "mirrored-contact",
+      "label": "Mirrored contact",
+      "hint": "Mirror, phone glass, rainwater, or stained glass answers back.",
+      "effects": {
+        "clock_target": "both",
+        "clock_delta": 1,
+        "attention_min": "Noticed",
+        "scene_state_min": "Echoed"
+      }
+    },
+    {
+      "id": "evidence-decay",
+      "label": "Evidence decay",
+      "hint": "Photo, reflection, clue, or route changes before it is stabilized.",
+      "effects": {
+        "clock_target": "case",
+        "clock_delta": 1,
+        "reveal_next_clue": true,
+        "next_pressure_beat": "Case Clock: evidence changes before the cell can secure it."
+      }
+    },
+    {
+      "id": "severe-misfire-natural-3",
+      "label": "Severe misfire / natural 3",
+      "hint": "Tick both, or tick the immediate clock twice.",
+      "effects": {
+        "clock_target": "both",
+        "clock_delta": 2,
+        "attention_delta": 1,
+        "scene_state_min": "Breached",
+        "consequence": "Severe misfire: tick both, or let the immediate threat advance twice."
+      }
+    }
+  ]
 }

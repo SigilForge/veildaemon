@@ -24,11 +24,20 @@
       button.type = "button";
       button.className = "trigger-button";
       button.dataset.triggerId = trigger.id;
+      button.dataset.clockTarget = trigger.effects?.clock_target || "";
       button.classList.toggle("is-active", trigger.id === pendingTriggerId);
-      button.innerHTML = `<strong>${api.safeString(trigger.label, 140)}</strong>${trigger.hint ? `<span>${api.safeString(trigger.hint, 220)}</span>` : ""}`;
+      button.innerHTML = `<em>${clockTargetLabel(trigger.effects?.clock_target)}</em><strong>${api.safeString(trigger.label, 140)}</strong>${trigger.hint ? `<span>${api.safeString(trigger.hint, 220)}</span>` : ""}`;
       button.addEventListener("click", () => openPreview(trigger.id));
       rail.append(button);
     });
+  }
+
+  function clockTargetLabel(target) {
+    if (target === "zone") return "Primary";
+    if (target === "attention") return "Attention";
+    if (target === "case") return "Case";
+    if (target === "both") return "Both";
+    return "Choice";
   }
 
   function emptyCopy(message) {

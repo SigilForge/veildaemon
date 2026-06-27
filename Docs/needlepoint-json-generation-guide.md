@@ -111,8 +111,18 @@ Use these Attention states:
 - Unseen
 - Noticed
 - Focused
-- Fixed
+- Targeted
 - Exposed
+
+Accept legacy Attention aliases during import or cleanup:
+
+- Observed = Noticed
+- Fixed / Witnessed / Marked / Pursued = Targeted
+- Mythic / Claimed = Exposed
+
+Use the five-step Attention ladder during play. Use any older Threat Visibility ladder only when designing large-scale entity pursuit, not as the Handler runtime ladder.
+
+A runnable Needlepoint must include 6-10 `table_triggers`. If it has no triggers, it is prep text, not table-ready. Each trigger should name the clock responsibility it affects: Primary Clock, Attention Clock, Case Clock, or Primary + Attention.
 
 Player View must not show Handler clocks, attention state, consequence tiers, or follows-home text unless explicitly marked `player_safe` in `player_view.safe_consequence`.
 
