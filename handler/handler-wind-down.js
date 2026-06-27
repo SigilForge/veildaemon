@@ -48,9 +48,10 @@
     const move = api.findWindDownMove(moveId);
     if (!panel || !move) return;
 
+    panel.hidden = false;
     const current = api.readState();
     const result = api.applyWindDownMove(current, moveId);
-    const title = panel.querySelector(".wind-down-preview-title");
+    const title = panel.querySelector(".trigger-preview-title");
     const lines = panel.querySelector(".trigger-preview-lines");
     if (title) title.textContent = `Apply Wind Down: ${move.label}?`;
     if (!lines) return;
@@ -106,7 +107,6 @@
       item.innerHTML = "<span>Effect</span><strong>No visible meter change. The scene still updates.</strong>";
       lines.append(item);
     }
-    panel.hidden = false;
   }
 
   function openPreview(moveId) {
