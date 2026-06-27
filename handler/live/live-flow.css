@@ -263,3 +263,55 @@
     grid-template-columns: 1fr;
   }
 }
+
+@media (min-width: 1101px) {
+  body[data-handler-mode="live"] .dashboard-form { display: block; }
+
+  body[data-handler-mode="live"] .live-flow-grid {
+    display: grid;
+    grid-template-columns: minmax(18rem, 1fr) minmax(22rem, 1.12fr) minmax(18rem, 1fr);
+    grid-template-areas:
+      "bad clock good"
+      "scene roll attention"
+      "room loop loop"
+      "operators operators npcs";
+    gap: .75rem;
+    align-items: start;
+    margin-top: .75rem;
+  }
+
+  body[data-handler-mode="live"] .live-pressure-row,
+  body[data-handler-mode="live"] .live-states-row,
+  body[data-handler-mode="live"] .live-work-row {
+    display: contents;
+  }
+
+  body[data-handler-mode="live"] .live-pressure-worse { grid-area: bad; }
+  body[data-handler-mode="live"] .clock-panel { grid-area: clock; }
+  body[data-handler-mode="live"] .live-pressure-better { grid-area: good; }
+  body[data-handler-mode="live"] .roll-panel { grid-area: roll; }
+  body[data-handler-mode="live"] .scene-panel { grid-area: scene; }
+  body[data-handler-mode="live"] .aftermath-panel { grid-area: attention; }
+  body[data-handler-mode="live"] .helper-panel { grid-area: room; }
+  body[data-handler-mode="live"] .loop-panel { grid-area: loop; }
+  body[data-handler-mode="live"] .player-panel { grid-area: operators; }
+  body[data-handler-mode="live"] .npc-panel { grid-area: npcs; }
+
+  body[data-handler-mode="live"] .loop-grid {
+    grid-template-columns: repeat(3, minmax(9rem, 1fr));
+  }
+
+  body[data-handler-mode="live"] .room-answer-fields,
+  body[data-handler-mode="live"] .aftermath-live-layout {
+    grid-template-columns: 1fr;
+  }
+
+  body[data-handler-mode="live"] .live-work-roll-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .live-work-roll-row .roll-mode,
+  body[data-handler-mode="live"] .live-work-roll-row #roll-button {
+    grid-column: 1 / -1;
+  }
+}
