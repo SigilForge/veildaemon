@@ -438,6 +438,7 @@
     renderActiveEntityReadout();
     renderPlayerView();
     if (window.HandlerTriggers) window.HandlerTriggers.render(state);
+    if (window.HandlerWindDown) window.HandlerWindDown.render();
     if (window.HandlerNav) window.HandlerNav.renderFieldLock();
   }
 
@@ -445,6 +446,15 @@
     state = nextState;
     syncForm();
     writeState("TRIGGER APPLIED");
+    renderDynamic();
+    renderPlayers();
+    renderNpcs();
+  }
+
+  function applyWindDownState(nextState, message) {
+    state = nextState;
+    syncForm();
+    writeState(message || "WIND DOWN APPLIED");
     renderDynamic();
     renderPlayers();
     renderNpcs();
@@ -698,12 +708,20 @@
     });
   }
 
+  function bindWindDownBridge() {
+    window.addEventListener("veildaemon:handler-wind-down-applied", (event) => {
+      if (!event.detail?.state) return;
+      applyWindDownState(event.detail.state, event.detail.message);
+    });
+  }
+
   async function init() {
     await api.loadTemplates();
     bindForm();
     bindDataControls();
     bindDashboardMode();
     bindTriggerBridge();
+    bindWindDownBridge();
     renderAll();
   }
 
