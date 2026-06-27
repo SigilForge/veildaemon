@@ -411,7 +411,8 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   line-height: 1.35;
 }
 
-.wind-down-button:hover {
+.wind-down-button:hover,
+.wind-down-button.is-active {
   border-color: rgba(102,255,220,.5);
   box-shadow: inset 0 0 18px rgba(102,255,220,.08);
 }

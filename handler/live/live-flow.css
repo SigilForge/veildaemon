@@ -1,4 +1,4 @@
-/* Live dashboard: pressure trays top, states band middle, work grid below. */
+/* Live dashboard flow overrides: keep the pressure rails compact and the work bands aligned. */
 @media (min-width: 1101px) {
   body[data-handler-mode="live"] .dashboard-form {
     display: block;
@@ -6,16 +6,33 @@
 
   body[data-handler-mode="live"] .live-flow-grid {
     display: grid;
+    grid-template-columns: minmax(18rem, 1fr) minmax(22rem, 1.12fr) minmax(18rem, 1fr);
+    grid-template-areas:
+      "bad clock good"
+      "scene roll attention"
+      "room loop loop"
+      "operators operators npcs";
     gap: .75rem;
+    align-items: start;
     margin-top: .75rem;
   }
 
-  body[data-handler-mode="live"] .live-pressure-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1.72fr) minmax(0, 1fr);
-    gap: .75rem;
-    align-items: start;
+  body[data-handler-mode="live"] .live-pressure-row,
+  body[data-handler-mode="live"] .live-states-row,
+  body[data-handler-mode="live"] .live-work-row {
+    display: contents;
   }
+
+  body[data-handler-mode="live"] .live-pressure-worse { grid-area: bad; }
+  body[data-handler-mode="live"] .clock-panel { grid-area: clock; }
+  body[data-handler-mode="live"] .live-pressure-better { grid-area: good; }
+  body[data-handler-mode="live"] .scene-panel { grid-area: scene; }
+  body[data-handler-mode="live"] .roll-panel { grid-area: roll; }
+  body[data-handler-mode="live"] .aftermath-panel { grid-area: attention; }
+  body[data-handler-mode="live"] .helper-panel { grid-area: room; }
+  body[data-handler-mode="live"] .loop-panel { grid-area: loop; }
+  body[data-handler-mode="live"] .player-panel { grid-area: operators; }
+  body[data-handler-mode="live"] .npc-panel { grid-area: npcs; }
 
   body[data-handler-mode="live"] .live-pressure-worse .panel-heading,
   body[data-handler-mode="live"] .live-pressure-better .panel-heading {
@@ -27,77 +44,31 @@
     font-size: .86rem;
   }
 
-  body[data-handler-mode="live"] .live-states-row {
+  body[data-handler-mode="live"] .live-pressure-row .pressure-tray {
     display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(17rem, .82fr) minmax(17rem, .86fr);
-    gap: .75rem;
-    align-items: start;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: .55rem;
+    overflow: visible;
+    padding: .1rem 0 0;
+  }
+
+  body[data-handler-mode="live"] .live-pressure-row .pressure-tray .trigger-button,
+  body[data-handler-mode="live"] .live-pressure-row .pressure-tray .wind-down-button {
+    flex: initial;
+    width: auto;
+    min-height: 4.85rem;
   }
 
   body[data-handler-mode="live"] .live-states-row .scene-state-row {
-    grid-template-columns: repeat(auto-fit, minmax(7.75rem, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-handler-mode="live"] .live-states-row .scene-state-button {
+    min-height: 5.8rem;
   }
 
   body[data-handler-mode="live"] .scene-panel textarea[name="sceneState.primaryConsequence"] {
     min-height: 5.35rem;
-  }
-
-  body[data-handler-mode="live"] .live-states-row .scene-state-button {
-    min-height: 5.2rem;
-    padding: .5rem;
-  }
-
-  body[data-handler-mode="live"] .live-states-row .scene-state-button span {
-    font-size: .64rem;
-    -webkit-line-clamp: 3;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  body[data-handler-mode="live"] .live-states-clock-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(4.5rem, .34fr) minmax(4.5rem, .34fr);
-  }
-
-  body[data-handler-mode="live"] .live-states-clock-grid label:nth-child(1) {
-    grid-column: 1 / -1;
-  }
-
-  body[data-handler-mode="live"] .live-states-clock-grid label:nth-child(4),
-  body[data-handler-mode="live"] .live-states-clock-grid label:nth-child(5) {
-    grid-column: 1 / -1;
-  }
-
-  body[data-handler-mode="live"] .live-states-row .aftermath-live-layout {
-    grid-template-columns: 1fr;
-    gap: .5rem;
-  }
-
-  body[data-handler-mode="live"] .live-work-row {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: .75rem;
-    align-items: start;
-  }
-
-  body[data-handler-mode="live"] .live-work-row > .helper-panel {
-    grid-column: span 4;
-  }
-
-  body[data-handler-mode="live"] .live-work-row > .roll-panel {
-    grid-column: span 3;
-  }
-
-  body[data-handler-mode="live"] .live-work-row > .loop-panel {
-    grid-column: span 5;
-  }
-
-  body[data-handler-mode="live"] .live-work-row > .player-panel {
-    grid-column: span 6;
-  }
-
-  body[data-handler-mode="live"] .live-work-row > .npc-panel {
-    grid-column: span 6;
   }
 
   body[data-handler-mode="live"] .live-work-roll-row {
@@ -117,16 +88,17 @@
     width: 100%;
   }
 
-  body[data-handler-mode="live"] .live-work-row .loop-grid {
-    grid-template-columns: repeat(2, minmax(9rem, 1fr));
+  body[data-handler-mode="live"] .loop-grid {
+    grid-template-columns: repeat(3, minmax(9rem, 1fr));
   }
 
-  body[data-handler-mode="live"] .live-work-row .loop-grid textarea {
-    min-height: 4.25rem;
+  body[data-handler-mode="live"] .room-answer-fields,
+  body[data-handler-mode="live"] .aftermath-live-layout {
+    grid-template-columns: 1fr;
   }
 
-  body[data-handler-mode="live"] .live-work-row .npc-summary-grid,
-  body[data-handler-mode="live"] .live-work-row .operator-risk-strip {
+  body[data-handler-mode="live"] .npc-summary-grid,
+  body[data-handler-mode="live"] .operator-risk-strip {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 
@@ -147,26 +119,6 @@
 
   body[data-handler-mode="archive"] .aftermath-live-layout {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 1320px) and (min-width: 1101px) {
-  body[data-handler-mode="live"] .live-states-row {
-    grid-template-columns: minmax(0, 1.3fr) minmax(16rem, .85fr);
-  }
-
-  body[data-handler-mode="live"] .live-states-row > .scene-panel {
-    grid-column: 1 / -1;
-  }
-
-  body[data-handler-mode="live"] .live-work-row > .helper-panel,
-  body[data-handler-mode="live"] .live-work-row > .roll-panel,
-  body[data-handler-mode="live"] .live-work-row > .loop-panel {
-    grid-column: span 4;
-  }
-
-  body[data-handler-mode="live"] .live-work-row .loop-grid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -261,57 +213,5 @@
 
   .live-work-row {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (min-width: 1101px) {
-  body[data-handler-mode="live"] .dashboard-form { display: block; }
-
-  body[data-handler-mode="live"] .live-flow-grid {
-    display: grid;
-    grid-template-columns: minmax(18rem, 1fr) minmax(22rem, 1.12fr) minmax(18rem, 1fr);
-    grid-template-areas:
-      "bad clock good"
-      "scene roll attention"
-      "room loop loop"
-      "operators operators npcs";
-    gap: .75rem;
-    align-items: start;
-    margin-top: .75rem;
-  }
-
-  body[data-handler-mode="live"] .live-pressure-row,
-  body[data-handler-mode="live"] .live-states-row,
-  body[data-handler-mode="live"] .live-work-row {
-    display: contents;
-  }
-
-  body[data-handler-mode="live"] .live-pressure-worse { grid-area: bad; }
-  body[data-handler-mode="live"] .clock-panel { grid-area: clock; }
-  body[data-handler-mode="live"] .live-pressure-better { grid-area: good; }
-  body[data-handler-mode="live"] .roll-panel { grid-area: roll; }
-  body[data-handler-mode="live"] .scene-panel { grid-area: scene; }
-  body[data-handler-mode="live"] .aftermath-panel { grid-area: attention; }
-  body[data-handler-mode="live"] .helper-panel { grid-area: room; }
-  body[data-handler-mode="live"] .loop-panel { grid-area: loop; }
-  body[data-handler-mode="live"] .player-panel { grid-area: operators; }
-  body[data-handler-mode="live"] .npc-panel { grid-area: npcs; }
-
-  body[data-handler-mode="live"] .loop-grid {
-    grid-template-columns: repeat(3, minmax(9rem, 1fr));
-  }
-
-  body[data-handler-mode="live"] .room-answer-fields,
-  body[data-handler-mode="live"] .aftermath-live-layout {
-    grid-template-columns: 1fr;
-  }
-
-  body[data-handler-mode="live"] .live-work-roll-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  body[data-handler-mode="live"] .live-work-roll-row .roll-mode,
-  body[data-handler-mode="live"] .live-work-roll-row #roll-button {
-    grid-column: 1 / -1;
   }
 }

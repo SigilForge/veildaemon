@@ -1292,11 +1292,11 @@
   }
 
   function clockTargetLabel(target) {
-    if (target === "zone") return "Primary Clock (site-owned Zone Clock)";
-    if (target === "attention") return "Attention Clock";
-    if (target === "case") return "Case Clock";
+    if (target === "zone") return "Primary";
+    if (target === "attention") return "Attention";
+    if (target === "case") return "Case";
     if (target === "both") return "Primary + Attention";
-    return "Handler choice";
+    return "Choice";
   }
 
   function applyTableTrigger(state, triggerId) {
