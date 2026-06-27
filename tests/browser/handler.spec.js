@@ -182,7 +182,7 @@ test("handler live wind down mirrors the trigger preview flow", async ({ page })
   const preview = page.locator("#wind-down-preview-panel");
   await expect(preview).toBeVisible();
   await expect(preview).toContainText("Responsibility");
-  await expect(preview).toContainText("Both");
+  await expect(preview).toContainText("Primary + Attention");
   await expect(preview).toContainText("Use When");
   await expect(preview).toContainText("Clock");
   await expect(preview).toContainText("Attention");
