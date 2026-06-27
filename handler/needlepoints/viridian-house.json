@@ -433,7 +433,7 @@
       "follows_home": "BEFORE_YOU_SAY_IT may persist after the case.",
       "consequence": "Once per scene, screen pressure can ask what the Operator is performing."
     },
-    "fixed": {
+    "targeted": {
       "residue": "The Audience targets one Operator through devices.",
       "follows_home": "Their phone receives comments near meaningful lies.",
       "consequence": "Refusal costs 1 Stability or ticks the Clock."
@@ -478,7 +478,7 @@
     {
       "clock_min": 4,
       "clock_max": 6,
-      "attention": "fixed",
+      "attention": "Targeted",
       "consequence": "The Audience targets one Operator through devices. Refusal costs 1 Stability or ticks the Clock."
     },
     {
@@ -514,5 +514,119 @@
     "uses_handler_language": true,
     "avoids_public_json_language": true,
     "avoids_vague_vibe_only_terms": true
-  }
+  },
+  "table_triggers": [
+    {
+      "id": "lie-lobby-camera",
+      "label": "Lie under lobby camera",
+      "effects": {
+        "clock_target": "both",
+        "clock_delta": 1,
+        "attention_min": "Noticed",
+        "scene_state_min": "Echoed",
+        "consequence": "Camera tracks the quietest Operator; next observed lie has Disadvantage."
+      }
+    },
+    {
+      "id": "lie-elevator",
+      "label": "Lie inside elevator",
+      "effects": {
+        "clock_target": "both",
+        "clock_delta": 1,
+        "attention_min": "Focused",
+        "scene_state_min": "Recursive",
+        "consequence": "Floor 13 can open early; next elevator action TN 15 unless honest speech while recorded."
+      }
+    },
+    {
+      "id": "leave-saffi-alone",
+      "label": "Leave Saffi alone",
+      "effects": {
+        "clock_target": "both",
+        "clock_delta": 1,
+        "attention_set": "Targeted",
+        "scene_state_min": "Breached",
+        "next_pressure_beat": "Saffi becomes the next lure.",
+        "npc_name_match": "Saffi",
+        "npc_pressure_note": "Targeted by observation; next lure vector."
+      }
+    },
+    {
+      "id": "truth-protected",
+      "label": "Speak truth while protected",
+      "effects": {
+        "clock_target": "attention",
+        "attention_delta": -1,
+        "clock_tick": false,
+        "scene_state_set": "Echoed",
+        "consequence": "One door unlocks or next consequence softens."
+      }
+    },
+    {
+      "id": "mara-as-content",
+      "label": "Operators treat Mara as content",
+      "effects": {
+        "clock_target": "attention",
+        "attention_delta": 1,
+        "scene_state_min": "Recursive",
+        "next_pressure_beat": "Mara stops responding off-camera; rescue attempts have Disadvantage."
+      }
+    },
+    {
+      "id": "misfire-disturbs-site",
+      "label": "Misfire disturbs site",
+      "hint": "Viridian House gets worse before the feed reacts.",
+      "effects": {
+        "clock_target": "zone",
+        "clock_delta": 1,
+        "scene_state_min": "Echoed",
+        "next_pressure_beat": "Primary Clock (site-owned): the building answers through cameras, doors, or elevator timing."
+      }
+    },
+    {
+      "id": "misfire-exposes-operator",
+      "label": "Misfire exposes Operator",
+      "hint": "The audience learns a person instead of a location.",
+      "effects": {
+        "clock_target": "attention",
+        "attention_delta": 1,
+        "scene_state_min": "Echoed",
+        "next_pressure_beat": "Attention Clock: the feed now has a cleaner read on one Operator."
+      }
+    },
+    {
+      "id": "mirrored-contact",
+      "label": "Mirrored contact",
+      "hint": "Camera lens, phone screen, elevator panel, or performed self answers back.",
+      "effects": {
+        "clock_target": "both",
+        "clock_delta": 1,
+        "attention_min": "Noticed",
+        "scene_state_min": "Echoed"
+      }
+    },
+    {
+      "id": "evidence-decay",
+      "label": "Evidence decay",
+      "hint": "Clip, comment, memory, witness, or route changes before it is secured.",
+      "effects": {
+        "clock_target": "case",
+        "clock_delta": 1,
+        "reveal_next_clue": true,
+        "next_pressure_beat": "Case Clock: evidence changes before the cell can secure it."
+      }
+    },
+    {
+      "id": "severe-misfire-natural-3",
+      "label": "Severe misfire / natural 3",
+      "hint": "Tick both, or tick the immediate clock twice.",
+      "effects": {
+        "clock_target": "both",
+        "clock_delta": 2,
+        "attention_delta": 1,
+        "scene_state_min": "Breached",
+        "consequence": "Severe misfire: tick both, or let the immediate threat advance twice."
+      }
+    }
+  ]
 }

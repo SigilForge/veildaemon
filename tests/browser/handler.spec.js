@@ -154,6 +154,24 @@ test("handler module pages share case state", async ({ page }) => {
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toHaveCount(0);
 });
 
+test("handler live triggers route common table events to clock responsibility", async ({ page }) => {
+  await page.goto("/handler/live/");
+
+  const rail = page.getByRole("group", { name: "Table triggers" });
+  await expect(rail.getByRole("button", { name: /Primary Misfire disturbs site/ })).toBeVisible();
+  await expect(rail.getByRole("button", { name: /Attention Misfire exposes Operator/ })).toBeVisible();
+  await expect(rail.getByRole("button", { name: /Case Evidence decay/ })).toBeVisible();
+  await expect(rail.getByRole("button", { name: /Both Severe misfire \/ natural 3/ })).toBeVisible();
+
+  await rail.getByRole("button", { name: /Both Severe misfire \/ natural 3/ }).click();
+  const preview = page.locator("#trigger-preview-panel");
+  await expect(preview).toBeVisible();
+  await expect(preview).toContainText("Responsibility");
+  await expect(preview).toContainText("Primary + Attention");
+  await expect(preview).toContainText("0/6 -> 2/6");
+  await expect(preview).toContainText("Unseen -> Noticed");
+});
+
 test("handler imports Operator Record summaries", async ({ page }) => {
   await page.goto("/handler/operators/");
   await enableHandlerFieldEdit(page);

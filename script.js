@@ -479,7 +479,7 @@ const intakeQuestions = [
       {
         label: "Yes.",
         value: "MARKED",
-        reaction: "Marked status likely. Breathe normally; abnormal breathing counts as additional data."
+        reaction: "Targeted status likely. Breathe normally; abnormal breathing counts as additional data."
       },
       {
         label: "It answered before I asked.",

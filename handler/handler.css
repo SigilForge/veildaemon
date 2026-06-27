@@ -300,6 +300,19 @@ body.handler-surface:not(.is-field-edit) .handler-shell [data-field-edit-safe] {
   cursor: pointer;
 }
 
+.trigger-button em {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  padding: .12rem .42rem;
+  border: 1px solid rgba(137,255,218,.22);
+  color: var(--muted);
+  font-size: .64rem;
+  font-style: normal;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
 .trigger-button strong {
   font-size: .76rem;
   letter-spacing: .05em;

@@ -29,7 +29,7 @@
     operatorStatus: {
       stability: "10",
       stabilityBand: "Calm",
-      attentionState: "Unnoticed",
+      attentionState: "Unseen",
       operatorName: "",
       designation: "",
       role: "Operator",
@@ -1616,12 +1616,25 @@
   }
 
   function normalizeAttentionState(value) {
-    const allowed = ["Unnoticed", "Brushed", "Noted", "Marked", "Pursued", "Claimed"];
-    return allowed.includes(value) ? value : "Unnoticed";
+    const aliases = {
+      Unnoticed: "Unseen",
+      Brushed: "Noticed",
+      Noted: "Focused",
+      Marked: "Targeted",
+      Pursued: "Targeted",
+      Claimed: "Exposed",
+      Observed: "Noticed",
+      Witnessed: "Targeted",
+      Fixed: "Targeted",
+      Mythic: "Exposed"
+    };
+    const normalized = aliases[value] || value;
+    const allowed = ["Unseen", "Noticed", "Focused", "Targeted", "Exposed"];
+    return allowed.includes(normalized) ? normalized : "Unseen";
   }
 
   function isAttentionStateValue(value) {
-    return ["Unnoticed", "Brushed", "Noted", "Marked", "Pursued", "Claimed", "Local", "LOW", "DO NOT SUSTAIN EYE CONTACT"]
+    return ["Unseen", "Noticed", "Focused", "Targeted", "Exposed", "Unnoticed", "Brushed", "Noted", "Marked", "Pursued", "Claimed", "Observed", "Witnessed", "Fixed", "Mythic", "Local", "LOW", "DO NOT SUSTAIN EYE CONTACT"]
       .includes(safeString(value, 80));
   }
 

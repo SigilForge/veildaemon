@@ -25,10 +25,13 @@
     { name: "Collapse", cue: "Control fails. The room becomes the threat." }
   ];
 
-  const attentionStates = ["Unseen", "Noticed", "Focused", "Fixed", "Exposed"];
+  const attentionStates = ["Unseen", "Noticed", "Focused", "Targeted", "Exposed"];
   const attentionAliases = {
     observed: "noticed",
-    witnessed: "fixed",
+    fixed: "targeted",
+    witnessed: "targeted",
+    marked: "targeted",
+    pursued: "targeted",
     mythic: "exposed",
     claimed: "exposed"
   };
@@ -44,13 +47,14 @@
       id: "lie-under-observation",
       label: "Operator lies under observation",
       hint: "Lie, deflection, or performance while watched.",
-      effects: { clock_delta: 1, attention_delta: 1, scene_state_min: "Echoed" }
+      effects: { clock_target: "both", clock_delta: 1, attention_delta: 1, scene_state_min: "Echoed" }
     },
     {
       id: "operators-split-up",
       label: "Operators split up",
       hint: "Isolation before the group can shield.",
       effects: {
+        clock_target: "attention",
         attention_delta: 1,
         scene_state_min: "Echoed",
         next_pressure_beat: "Attention targets the isolated Operator; site offers a private lure."
@@ -60,19 +64,20 @@
       id: "npc-as-content",
       label: "Operators treat NPC as evidence/content",
       hint: "Person becomes proof, spectacle, or leverage.",
-      effects: { attention_delta: 1, scene_state_min: "Recursive" }
+      effects: { clock_target: "attention", attention_delta: 1, scene_state_min: "Recursive" }
     },
     {
       id: "protect-honest-speech",
       label: "Operators protect honest speech",
       hint: "Shielded truth under observation.",
-      effects: { attention_delta: -1, clock_tick: false, scene_state_set: "Stable" }
+      effects: { clock_target: "attention", attention_delta: -1, clock_tick: false, scene_state_set: "Stable" }
     },
     {
       id: "force-without-vulnerability",
       label: "Operators force the site without vulnerability",
       hint: "Push through without admitting cost.",
       effects: {
+        clock_target: "zone",
         clock_delta: 1,
         scene_state_min: "Breached",
         next_pressure_beat: "Misfire risk rises; next forced action has Disadvantage."
@@ -82,13 +87,14 @@
       id: "recover-clue-clean",
       label: "Operators recover core clue cleanly",
       hint: "Clue lands without extra exposure.",
-      effects: { clock_tick: false, reveal_next_clue: true }
+      effects: { clock_target: "case", clock_tick: false, reveal_next_clue: true }
     },
     {
       id: "fail-clue-roll",
       label: "Operators fail clue roll",
       hint: "Clue still arrives, but the site collects a cost.",
       effects: {
+        clock_target: "both",
         clock_delta: 1,
         attention_delta: 1,
         reveal_next_clue: true,
@@ -100,9 +106,122 @@
       label: "Operators cut broadcast / cover lens",
       hint: "Break the feed or step out of frame together.",
       effects: {
+        clock_target: "attention",
         attention_delta: -1,
         clock_tick: false,
         consequence: "Attention suppressed; one containment option unlocks."
+      }
+    },
+    {
+      id: "misfire-disturbs-site",
+      label: "Misfire disturbs site",
+      hint: "The place gets worse before anyone notices why.",
+      effects: {
+        clock_target: "zone",
+        clock_delta: 1,
+        scene_state_min: "Echoed",
+        next_pressure_beat: "Primary Clock (site-owned): the place worsens; show the room answering first."
+      }
+    },
+    {
+      id: "misfire-exposes-operator",
+      label: "Misfire exposes Operator",
+      hint: "The cost lands on a person, not the room.",
+      effects: {
+        clock_target: "attention",
+        attention_delta: 1,
+        scene_state_min: "Echoed",
+        next_pressure_beat: "Attention Clock: something has a cleaner read on one Operator."
+      }
+    },
+    {
+      id: "loud-supernatural-action",
+      label: "Loud supernatural action",
+      hint: "Loud, intimate, mirrored, bloody, or directly impossible.",
+      effects: {
+        clock_target: "both",
+        clock_delta: 1,
+        attention_delta: 1,
+        scene_state_min: "Recursive",
+        next_pressure_beat: "Both clocks are eligible; prefer the immediate threat if applying manually."
+      }
+    },
+    {
+      id: "mirrored-contact",
+      label: "Mirrored contact",
+      hint: "Reflection, camera, glass, screen, or duplicated self.",
+      effects: {
+        clock_target: "both",
+        clock_delta: 1,
+        attention_min: "Noticed",
+        scene_state_min: "Echoed"
+      }
+    },
+    {
+      id: "blood-exposure",
+      label: "Blood exposure",
+      hint: "Blood, injury, or body proof gives the site a handle.",
+      effects: {
+        clock_target: "both",
+        clock_delta: 1,
+        attention_delta: 1,
+        scene_state_min: "Breached",
+        consequence: "The site can now answer through the body, not just the room."
+      }
+    },
+    {
+      id: "repeated-behavior",
+      label: "Repeated behavior",
+      hint: "The table repeats a tactic the site can learn.",
+      effects: {
+        clock_target: "case",
+        clock_delta: 1,
+        scene_state_min: "Recursive",
+        next_pressure_beat: "Case Clock: the mission pattern is now predictable."
+      }
+    },
+    {
+      id: "evidence-decay",
+      label: "Evidence decay",
+      hint: "Clue, witness, recording, or route becomes less reliable.",
+      effects: {
+        clock_target: "case",
+        clock_delta: 1,
+        reveal_next_clue: true,
+        next_pressure_beat: "Case Clock: evidence changes before it can be stabilized."
+      }
+    },
+    {
+      id: "witness-risk",
+      label: "Witness risk",
+      hint: "Bystander, NPC, or protected person becomes exposed.",
+      effects: {
+        clock_target: "attention",
+        attention_delta: 1,
+        scene_state_min: "Recursive",
+        npc_pressure_note: "Witness exposure escalates; protect or lose leverage."
+      }
+    },
+    {
+      id: "external-forces-arrive",
+      label: "External forces arrive",
+      hint: "Police, media, family, cult, landlord, or rival pressure enters.",
+      effects: {
+        clock_target: "case",
+        clock_delta: 1,
+        next_pressure_beat: "Case Clock: outside pressure changes the mission conditions."
+      }
+    },
+    {
+      id: "severe-misfire-natural-3",
+      label: "Severe misfire / natural 3",
+      hint: "Tick both, or tick the immediate clock twice.",
+      effects: {
+        clock_target: "both",
+        clock_delta: 2,
+        attention_delta: 1,
+        scene_state_min: "Breached",
+        consequence: "Severe misfire: tick both, or let the immediate threat advance twice."
       }
     }
   ];
@@ -209,7 +328,7 @@
             "follows_home": "A reflection scar may persist on one personal object.",
             "consequence": "Once per scene, the Witness may ask which version of yourself you wish had chosen differently."
           },
-          "fixed": {
+          "targeted": {
             "residue": "The Unfinished Witness targets one Operator through mirrors and devices.",
             "follows_home": "Comments or wrong names arrive near meaningful identity lies.",
             "consequence": "Refusal costs 1 Stability or ticks the Clock."
@@ -254,7 +373,7 @@
           {
             "clock_min": 5,
             "clock_max": 6,
-            "attention": "fixed",
+            "attention": "Targeted",
             "consequence": "The Witness targets one Operator through mirrors. Refusal costs 1 Stability or ticks the Clock."
           },
           {
@@ -268,6 +387,116 @@
             "clock_max": 6,
             "attention": "exposed",
             "consequence": "The Witness escapes the church boundary. Aftermath becomes campaign continuity."
+          }
+        ],
+        "table_triggers": [
+          {
+            "id": "lie-reflected",
+            "label": "Operator lies while reflected",
+            "hint": "Denial under mirror, glass, or screen.",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 1,
+              "attention_min": "Noticed",
+              "scene_state_min": "Echoed"
+            }
+          },
+          {
+            "id": "split-up",
+            "label": "Operators split up",
+            "effects": {
+              "clock_target": "attention",
+              "attention_delta": 1,
+              "scene_state_min": "Echoed",
+              "next_pressure_beat": "Isolation lure activates; separated Operator faces the Witness first."
+            }
+          },
+          {
+            "id": "protected-truth",
+            "label": "Operators protect honest speech",
+            "effects": {
+              "clock_target": "attention",
+              "attention_delta": -1,
+              "clock_tick": false,
+              "scene_state_set": "Stable"
+            }
+          },
+          {
+            "id": "force-chamber",
+            "label": "Operators force the chamber without vulnerability",
+            "effects": {
+              "clock_target": "zone",
+              "clock_delta": 1,
+              "scene_state_min": "Breached",
+              "next_pressure_beat": "Misfire risk live; next forced move has Disadvantage."
+            }
+          },
+          {
+            "id": "clue-fail",
+            "label": "Operators fail clue roll",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 1,
+              "attention_delta": 1,
+              "reveal_next_clue": true,
+              "next_pressure_beat": "Clue gained at a cost; reflection or wrong name may answer first."
+            }
+          },
+          {
+            "id": "misfire-disturbs-site",
+            "label": "Misfire disturbs site",
+            "hint": "The church gets worse before anyone notices why.",
+            "effects": {
+              "clock_target": "zone",
+              "clock_delta": 1,
+              "scene_state_min": "Echoed",
+              "next_pressure_beat": "Primary Clock (site-owned): the church answers through reflection, weather, or architecture."
+            }
+          },
+          {
+            "id": "misfire-exposes-operator",
+            "label": "Misfire exposes Operator",
+            "hint": "The reflection learns a person instead of a room.",
+            "effects": {
+              "clock_target": "attention",
+              "attention_delta": 1,
+              "scene_state_min": "Echoed",
+              "next_pressure_beat": "Attention Clock: the Witness has a cleaner read on one Operator."
+            }
+          },
+          {
+            "id": "mirrored-contact",
+            "label": "Mirrored contact",
+            "hint": "Mirror, phone glass, rainwater, or stained glass answers back.",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 1,
+              "attention_min": "Noticed",
+              "scene_state_min": "Echoed"
+            }
+          },
+          {
+            "id": "evidence-decay",
+            "label": "Evidence decay",
+            "hint": "Photo, reflection, clue, or route changes before it is stabilized.",
+            "effects": {
+              "clock_target": "case",
+              "clock_delta": 1,
+              "reveal_next_clue": true,
+              "next_pressure_beat": "Case Clock: evidence changes before the cell can secure it."
+            }
+          },
+          {
+            "id": "severe-misfire-natural-3",
+            "label": "Severe misfire / natural 3",
+            "hint": "Tick both, or tick the immediate clock twice.",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 2,
+              "attention_delta": 1,
+              "scene_state_min": "Breached",
+              "consequence": "Severe misfire: tick both, or let the immediate threat advance twice."
+            }
           }
         ],
         "player_view": {
@@ -386,7 +615,7 @@
             "follows_home": "BEFORE_YOU_SAY_IT may persist after the case.",
             "consequence": "Once per scene, screen pressure can ask what the Operator is performing."
           },
-          "fixed": {
+          "targeted": {
             "residue": "The Audience targets one Operator through devices.",
             "follows_home": "Their phone receives comments near meaningful lies.",
             "consequence": "Refusal costs 1 Stability or ticks the Clock."
@@ -431,7 +660,7 @@
           {
             "clock_min": 4,
             "clock_max": 6,
-            "attention": "fixed",
+            "attention": "Targeted",
             "consequence": "The Audience targets one Operator through devices. Refusal costs 1 Stability or ticks the Clock."
           },
           {
@@ -445,6 +674,120 @@
             "clock_max": 6,
             "attention": "exposed",
             "consequence": "The Audience escapes the site boundary. Aftermath becomes a future Needlepoint seed."
+          }
+        ],
+        "table_triggers": [
+          {
+            "id": "lie-lobby-camera",
+            "label": "Lie under lobby camera",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 1,
+              "attention_min": "Noticed",
+              "scene_state_min": "Echoed",
+              "consequence": "Camera tracks the quietest Operator; next observed lie has Disadvantage."
+            }
+          },
+          {
+            "id": "lie-elevator",
+            "label": "Lie inside elevator",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 1,
+              "attention_min": "Focused",
+              "scene_state_min": "Recursive",
+              "consequence": "Floor 13 can open early; next elevator action TN 15 unless honest speech while recorded."
+            }
+          },
+          {
+            "id": "leave-saffi-alone",
+            "label": "Leave Saffi alone",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 1,
+              "attention_set": "Targeted",
+              "scene_state_min": "Breached",
+              "next_pressure_beat": "Saffi becomes the next lure.",
+              "npc_name_match": "Saffi",
+              "npc_pressure_note": "Targeted by observation; next lure vector."
+            }
+          },
+          {
+            "id": "truth-protected",
+            "label": "Speak truth while protected",
+            "effects": {
+              "clock_target": "attention",
+              "attention_delta": -1,
+              "clock_tick": false,
+              "scene_state_set": "Echoed",
+              "consequence": "One door unlocks or next consequence softens."
+            }
+          },
+          {
+            "id": "mara-as-content",
+            "label": "Operators treat Mara as content",
+            "effects": {
+              "clock_target": "attention",
+              "attention_delta": 1,
+              "scene_state_min": "Recursive",
+              "next_pressure_beat": "Mara stops responding off-camera; rescue attempts have Disadvantage."
+            }
+          },
+          {
+            "id": "misfire-disturbs-site",
+            "label": "Misfire disturbs site",
+            "hint": "Viridian House gets worse before the feed reacts.",
+            "effects": {
+              "clock_target": "zone",
+              "clock_delta": 1,
+              "scene_state_min": "Echoed",
+              "next_pressure_beat": "Primary Clock (site-owned): the building answers through cameras, doors, or elevator timing."
+            }
+          },
+          {
+            "id": "misfire-exposes-operator",
+            "label": "Misfire exposes Operator",
+            "hint": "The audience learns a person instead of a location.",
+            "effects": {
+              "clock_target": "attention",
+              "attention_delta": 1,
+              "scene_state_min": "Echoed",
+              "next_pressure_beat": "Attention Clock: the feed now has a cleaner read on one Operator."
+            }
+          },
+          {
+            "id": "mirrored-contact",
+            "label": "Mirrored contact",
+            "hint": "Camera lens, phone screen, elevator panel, or performed self answers back.",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 1,
+              "attention_min": "Noticed",
+              "scene_state_min": "Echoed"
+            }
+          },
+          {
+            "id": "evidence-decay",
+            "label": "Evidence decay",
+            "hint": "Clip, comment, memory, witness, or route changes before it is secured.",
+            "effects": {
+              "clock_target": "case",
+              "clock_delta": 1,
+              "reveal_next_clue": true,
+              "next_pressure_beat": "Case Clock: evidence changes before the cell can secure it."
+            }
+          },
+          {
+            "id": "severe-misfire-natural-3",
+            "label": "Severe misfire / natural 3",
+            "hint": "Tick both, or tick the immediate clock twice.",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 2,
+              "attention_delta": 1,
+              "scene_state_min": "Breached",
+              "consequence": "Severe misfire: tick both, or let the immediate threat advance twice."
+            }
           }
         ],
         "player_view": {
@@ -568,6 +911,7 @@
       scaffold: "",
       attention_states: {},
       clock_attention_consequences: [],
+      table_triggers: [],
       player_view: {
         safe_consequence: ""
       }
@@ -665,6 +1009,7 @@
   function normalizeTriggerEffects(value) {
     const effects = value && typeof value === "object" ? value : {};
     return {
+      clock_target: normalizeClockTarget(effects.clock_target),
       clock_delta: safeNumber(effects.clock_delta, -6, 6, 0),
       clock_tick: effects.clock_tick !== false,
       attention_delta: safeNumber(effects.attention_delta, -4, 4, 0),
@@ -685,9 +1030,14 @@
     };
   }
 
+  function normalizeClockTarget(value) {
+    const target = safeString(value, 40).toLowerCase();
+    return ["zone", "attention", "case", "both"].includes(target) ? target : "";
+  }
+
   function normalizeTableTriggers(value) {
     if (!Array.isArray(value)) return [];
-    return value.slice(0, 24).map((trigger, index) => ({
+    return value.slice(0, 10).map((trigger, index) => ({
       id: safeString(trigger.id, 80) || `trigger-${index + 1}`,
       label: safeString(trigger.label, 140),
       hint: safeString(trigger.hint, 220),
@@ -817,6 +1167,11 @@
     const { draft: withNeedlepoint, delta } = buildTriggerDraft(state, trigger, { persist: false });
     const lines = [
       {
+        label: "Responsibility",
+        before: "Pending",
+        after: clockTargetLabel(trigger.effects.clock_target)
+      },
+      {
         label: "Clock",
         before: `${state.primaryClock.current}/${state.primaryClock.segments}`,
         after: `${withNeedlepoint.primaryClock.current}/${withNeedlepoint.primaryClock.segments}`
@@ -855,6 +1210,14 @@
       });
     }
     return { trigger, lines, nextState: withNeedlepoint, delta };
+  }
+
+  function clockTargetLabel(target) {
+    if (target === "zone") return "Primary Clock (site-owned Zone Clock)";
+    if (target === "attention") return "Attention Clock";
+    if (target === "case") return "Case Clock";
+    if (target === "both") return "Primary + Attention";
+    return "Handler choice";
   }
 
   function applyTableTrigger(state, triggerId) {
