@@ -677,7 +677,7 @@
         {
           "id": "npc-len",
           "name": "Len Orra",
-          "role": "Building manager",
+          "role": "Witness / Pressure NPC",
           "pressure": "Exhausted, defensive; hiding an eviction notice he never filed.",
           "location": "Lobby / manager office",
           "flags": [
@@ -688,29 +688,30 @@
         {
           "id": "npc-saffi",
           "name": "Saffi Dell",
-          "role": "Neighbor / Mara's friend",
+          "role": "Memory Anchor",
           "pressure": "Trying to act annoyed instead of scared; holds true memory of Mara.",
           "location": "Floor 11-12 / Saffi's apartment",
           "flags": [
-            "Ally"
+            "Ally",
+            "Anchor"
           ],
-          "notes": "Use for grounding Mara and alternate clue routes.",
+          "notes": "Active Anchor NPC for the table. Protect her memory of Mara; do not leave her as bait.",
           "anchor": {
             "enabled": true,
-            "label": "Anchor NPC",
+            "label": "Memory Anchor",
             "state": "with-operators"
           }
         },
         {
           "id": "npc-mara",
           "name": "Mara Venn",
-          "role": "Missing streamer",
+          "role": "Missing / Locus-bound streamer",
           "pressure": "Built her channel on telling strangers the truth, then refused her own.",
           "location": "Apartment 13F when reachable",
           "flags": [
             "Missing"
           ],
-          "notes": "Alive on Floor 13 if reached; do not treat as content."
+          "notes": "Recovery Anchor until Act 4. Alive on Floor 13 if reached; ground her as a person, not content."
         }
       ],
       "caseFile": {
@@ -789,7 +790,7 @@
           {
             "clock_min": 4,
             "clock_max": 6,
-            "attention": "Targeted",
+            "attention": "targeted",
             "consequence": "The Audience targets one Operator through devices. Refusal costs 1 Stability or ticks the Clock."
           },
           {
@@ -814,7 +815,7 @@
               "clock_delta": 1,
               "attention_min": "Noticed",
               "scene_state_min": "Echoed",
-              "consequence": "Camera tracks the quietest Operator; next observed lie has Disadvantage."
+              "consequence": "Camera tracks the quietest Operator; next lie under observation has Disadvantage."
             }
           },
           {
@@ -903,7 +904,7 @@
               "clock_target": "case",
               "clock_delta": 1,
               "reveal_next_clue": true,
-              "next_pressure_beat": "Case Clock: evidence changes before the cell can secure it."
+              "next_pressure_beat": "Case Clock: evidence changes before the Operators can secure it."
             }
           },
           {
@@ -920,7 +921,7 @@
           }
         ],
         "player_view": {
-          "safe_consequence": ""
+          "safe_consequence": "The room responds visibly when watched choices become honest, hidden, or performed."
         }
       }
     }
@@ -1517,12 +1518,42 @@
     return "Handler";
   }
 
-  function findWindDownMove(moveId) {
-    return windDownMoves.find((move) => move.id === moveId) || null;
+  function getViridianWindDownMoves() {
+    const moves = windDownMoves.map((move) => {
+      if (move.id !== "protect-anchor-npc") return move;
+      return {
+        ...move,
+        id: "protect-saffi-memory",
+        label: "Protect Saffi / True Memory",
+        guidance: "Use when Operators shield Saffi, preserve her memory of Mara, or keep her from becoming bait."
+      };
+    });
+    moves.splice(1, 0, {
+      id: "ground-mara-person",
+      label: "Ground Mara As A Person",
+      target: "both",
+      effects: {
+        primary_delta: -1,
+        attention_delta: -1,
+        scene_state_soften: 1,
+        next_pressure_beat: "Mara responds as a person, not content; the Audience loses its curated angle."
+      },
+      guidance: "Use in Act 4 / Apartment 13F when Operators treat Mara as a person and ground her with Saffi's true memory."
+    });
+    return moves;
+  }
+
+  function getWindDownMoves(state) {
+    if (state?.activeNeedlepoint?.id === "viridian-house") return getViridianWindDownMoves();
+    return windDownMoves;
+  }
+
+  function findWindDownMove(moveId, state) {
+    return getWindDownMoves(state).find((move) => move.id === moveId) || null;
   }
 
   function previewWindDownMove(state, moveId) {
-    const move = findWindDownMove(moveId);
+    const move = findWindDownMove(moveId, state);
     if (!move) return null;
 
     const draft = clone(normalizeState(state));
@@ -1601,7 +1632,7 @@
   }
 
   function applyWindDownMove(state, moveId) {
-    const move = findWindDownMove(moveId);
+    const move = findWindDownMove(moveId, state);
     if (!move) return { state, message: "UNKNOWN WIND DOWN MOVE" };
 
     const draft = clone(normalizeState(state));
@@ -2023,6 +2054,7 @@
     previewWindDownMove,
     applyTableTrigger,
     windDownMoves,
+    getWindDownMoves,
     findWindDownMove,
     applyWindDownMove,
     windDownTargetLabel,
