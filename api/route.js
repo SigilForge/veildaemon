@@ -16,36 +16,45 @@ const routeEnv = {
   threadbreaker: "DISCORD_THREADBREAKER_URL",
 };
 
-const fallbackCodes = {
-  "operator-dream": ["3C6n", "XeWkjs"],
-  "operator-silence": ["guB7", "VRgA8R"],
-  "operator-hunger": ["Q8rR", "wetUhF"],
-  "operator-stillness": ["ryrA", "X48e67"],
-  "operator-empyrean": ["eHHy", "EupuHy"],
-  "operator-becoming": ["3RCK", "9BGkZ5"],
-  "triage-dream": ["db2Q", "BYMMBa"],
-  "triage-silence": ["xwsc", "8EbPeH"],
-  "triage-hunger": ["NjZV", "EwMBMS"],
-  "triage-stillness": ["jMBd", "vcSXAe"],
-  "triage-empyrean": ["yWMw", "M7h6yF"],
-  "triage-becoming": ["tGqa", "cRrTqx"],
-  threadbreaker: ["Bn6a", "ttnYN6"],
-};
-
 function cleanRouteKey(value) {
   return String(value || "").toLowerCase().replace(/[^a-z-]/g, "").slice(0, 40);
+}
+
+function decodePart(value) {
+  return Buffer.from(value.replace(/-/g, "+").replace(/_/g, "/"), "base64");
+}
+
+function decryptRouteValue(value) {
+  if (!value.startsWith("vd1:")) return value;
+
+  const secret = process.env.DISCORD_ROUTE_SECRET || "";
+  if (!secret) return "";
+
+  const [, ivPart, tagPart, dataPart] = value.split(":");
+  if (!ivPart || !tagPart || !dataPart) return "";
+
+  try {
+    const crypto = require("crypto");
+    const key = decodePart(secret);
+    if (key.length !== 32) return "";
+
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, decodePart(ivPart));
+    decipher.setAuthTag(decodePart(tagPart));
+    return Buffer.concat([decipher.update(decodePart(dataPart)), decipher.final()]).toString("utf8");
+  } catch {
+    return "";
+  }
 }
 
 function routeTarget(key) {
   const envName = routeEnv[key];
   if (!envName) return "";
-  const target = process.env[envName] || "";
+  const target = decryptRouteValue(process.env[envName] || "");
   if (/^https:\/\/discord\.gg\/[a-z0-9-]+$/i.test(target)) {
     return target;
   }
 
-  const fallbackCode = fallbackCodes[key];
-  return fallbackCode ? `https://discord.gg/${fallbackCode.join("")}` : "";
+  return "";
 }
 
 module.exports = function handler(req, res) {
