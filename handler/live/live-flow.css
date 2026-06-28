@@ -113,14 +113,18 @@
 
   body[data-handler-mode="live"] .staging-choice-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: .4rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .35rem;
   }
 
   body[data-handler-mode="live"] .staging-choice-button {
-    min-height: 2rem;
-    padding: .35rem .4rem;
-    font-size: .72rem;
+    min-height: 1.9rem;
+    padding: .3rem .35rem;
+    font-size: .66rem;
+    line-height: 1.15;
+    letter-spacing: -.01em;
+    white-space: nowrap;
+    text-align: center;
     border: 1px solid rgba(255, 255, 255, .12);
     background: rgba(0, 0, 0, .22);
     color: inherit;
