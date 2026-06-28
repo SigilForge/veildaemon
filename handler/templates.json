@@ -1,5 +1,43 @@
 [
   {
+    "id": "custom-campaign",
+    "name": "Custom Campaign",
+    "data": {
+      "session": {
+        "title": "Custom Campaign",
+        "caseTitle": "Custom Campaign",
+        "location": "",
+        "safeSceneLabel": ""
+      },
+      "primaryClock": {
+        "name": "Case Clock",
+        "segments": 6,
+        "current": 0,
+        "ticksWhen": "",
+        "midpointEvent": "",
+        "fullClockEvent": "",
+        "stabilizer": ""
+      },
+      "npcs": [],
+      "caseFile": {
+        "nextClue": "",
+        "nextPressureBeat": "",
+        "templates": "Custom campaign",
+        "notes": ""
+      },
+      "activeNeedlepoint": {
+        "id": "custom-campaign",
+        "scaffold": "",
+        "attention_states": {},
+        "clock_attention_consequences": [],
+        "table_triggers": [],
+        "player_view": {
+          "safe_consequence": ""
+        }
+      }
+    }
+  },
+  {
     "id": "veilcorp-intake",
     "name": "VeilCorp Intake",
     "data": {
