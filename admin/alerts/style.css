@@ -13,6 +13,16 @@
   box-sizing: border-box;
 }
 
+:where(.console-shell, .token-panel, .custom-panel, .diagnostic-panel, button, label, p, li, span, strong, em, h1, h2, h3, h4, input, textarea, select, dt, dd) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:where(button) {
+  max-width: 100%;
+  white-space: normal;
+}
+
 body {
   min-height: 100vh;
   margin: 0;
@@ -78,6 +88,8 @@ button {
 
 input {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   padding: 0 14px;
   background: #07100e;
   color: var(--ink);

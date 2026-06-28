@@ -18,6 +18,25 @@
   display: none !important;
 }
 * { box-sizing: border-box; }
+
+:where(.terminal, .panel, .feed, .readout, .system-notice, .notice-copy, .notice-meta, .button, label, p, li, span, strong, em, h1, h2, h3, h4, summary, output, input, textarea, select) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:where(.button, button, a) {
+  max-width: 100%;
+  white-space: normal;
+}
+
+:where(input, textarea, select) {
+  max-width: 100%;
+}
+
+textarea {
+  field-sizing: content;
+}
+
 html { min-height: 100%; background: var(--bg); }
 body {
   --surface-rail-width: 980px;

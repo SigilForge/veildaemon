@@ -6,7 +6,7 @@
 
   body[data-handler-mode="live"] .live-flow-grid {
     display: grid;
-    grid-template-columns: minmax(16rem, .78fr) minmax(28rem, 1.5fr) minmax(16rem, .78fr);
+    grid-template-columns: minmax(min(100%, 16rem), .78fr) minmax(min(100%, 28rem), 1.5fr) minmax(min(100%, 16rem), .78fr);
     gap: .75rem;
     align-items: start;
     margin-top: .75rem;
@@ -92,7 +92,7 @@
 
   body[data-handler-mode="live"] .npc-summary-grid,
   body[data-handler-mode="live"] .operator-risk-strip {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   }
 
   body[data-handler-mode="live"] .clock-panel + .roll-panel,
