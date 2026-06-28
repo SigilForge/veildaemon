@@ -19,7 +19,7 @@
     const rail = railNode();
     if (!rail) return;
     rail.textContent = "";
-    api.windDownMoves.forEach((move) => {
+    api.getWindDownMoves(api.readState()).forEach((move) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "trigger-button";

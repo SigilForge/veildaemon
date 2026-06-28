@@ -13,6 +13,7 @@
     "starting_pressure": "controlled"
   },
   "site": {
+    "location": "Viridian House apartment building, Kansas City",
     "ordinary_read": "Tired brick, twelve floors, old lobby tile, unreliable elevator, basement laundry that smells faintly of ozone.",
     "wrong_read": "The building indexes withheld speech. Comments arrive before anyone types. The elevator display skips from 11 to 12, pauses, then briefly shows 13.",
     "locus": "Apartment 13F",
@@ -478,7 +479,7 @@
     {
       "clock_min": 4,
       "clock_max": 6,
-      "attention": "Targeted",
+      "attention": "targeted",
       "consequence": "The Audience targets one Operator through devices. Refusal costs 1 Stability or ticks the Clock."
     },
     {
@@ -494,8 +495,14 @@
       "consequence": "The Audience escapes the site boundary. Aftermath becomes a future Needlepoint seed."
     }
   ],
+  "cast": {
+    "anchor_npc": "Saffi Dell",
+    "anchor_role": "Memory Anchor",
+    "missing_locus_bound_npc": "Mara Venn",
+    "witness_pressure_npc": "Len Orra"
+  },
   "player_view": {
-    "safe_consequence": ""
+    "safe_consequence": "The room responds visibly when watched choices become honest, hidden, or performed."
   },
   "handler_prompts": [
     "FIRST 20 MIN: Start in the lobby. Show the camera before explaining anything. Ask what detail made each Operator come anyway.",
@@ -524,7 +531,7 @@
         "clock_delta": 1,
         "attention_min": "Noticed",
         "scene_state_min": "Echoed",
-        "consequence": "Camera tracks the quietest Operator; next observed lie has Disadvantage."
+        "consequence": "Camera tracks the quietest Operator; next lie under observation has Disadvantage."
       }
     },
     {
@@ -613,7 +620,7 @@
         "clock_target": "case",
         "clock_delta": 1,
         "reveal_next_clue": true,
-        "next_pressure_beat": "Case Clock: evidence changes before the cell can secure it."
+        "next_pressure_beat": "Case Clock: evidence changes before the Operators can secure it."
       }
     },
     {
