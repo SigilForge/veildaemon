@@ -41,17 +41,56 @@
     return grid;
   }
 
+  function stagingFieldsEditable() {
+    return api.fieldEditUnlocked();
+  }
+
   function stagingField(label, name, value, rows = 2) {
     const wrap = document.createElement("label");
     wrap.className = "staging-field";
     wrap.textContent = label;
     const input = document.createElement("textarea");
+    const editable = stagingFieldsEditable();
     input.name = name;
     input.rows = rows;
     input.maxLength = 500;
     input.value = value || "";
+    input.readOnly = !editable;
+    input.classList.toggle("is-field-locked", !editable);
+    input.setAttribute("aria-readonly", editable ? "false" : "true");
     wrap.append(input);
     return wrap;
+  }
+
+  function bindStagingFieldEdits(mount) {
+    if (!stagingFieldsEditable()) return;
+    mount.querySelectorAll("textarea[name^='collapse.'], textarea[name^='rewrite.']").forEach((input) => {
+      input.addEventListener("change", () => {
+        const current = api.readState();
+        api.setPath(current, input.name, api.safeString(input.value, 500));
+        const next = input.name.startsWith("collapse.")
+          ? api.markCollapseFieldsEdited(current)
+          : api.normalizeState(current);
+        emitState(next, "STAGING SAVED");
+      });
+    });
+  }
+
+  function applyStagingFieldLock() {
+    if (window.HandlerNav) window.HandlerNav.applyFieldEditLock();
+  }
+
+  function selectCollapseBreakType(breakType) {
+    const current = api.readState();
+    if (api.collapseBreakTypeChangeNeedsConfirm(current, breakType)) {
+      const confirmed = window.confirm(
+        `Replace manually edited collapse staging with ${breakType} text?`
+      );
+      if (!confirmed) return;
+      emitState(api.populateCollapseOverlay(current, breakType, { forceReplace: true }), "COLLAPSE STAGED");
+      return;
+    }
+    emitState(api.populateCollapseOverlay(current, breakType), "COLLAPSE STAGED");
   }
 
   function actionButton(label, className, handler) {
@@ -93,15 +132,17 @@
         banner.append(trigger);
       }
       mount.append(banner);
+    }
 
+    if (collapse.ready || collapse.active || collapse.breakType) {
       const breakGrid = choiceGrid(api.collapseBreakTypes, collapse.breakType, "breakType", (event) => {
-        const breakType = event.currentTarget.dataset.breakType;
-        const next = api.populateCollapseOverlay(api.readState(), breakType);
-        emitState(next, "COLLAPSE STAGED");
+        selectCollapseBreakType(event.currentTarget.dataset.breakType);
       });
       breakGrid.setAttribute("aria-label", "Collapse break type");
       mount.append(breakGrid);
+    }
 
+    if (collapse.ready && !collapse.active) {
       const readyActions = document.createElement("div");
       readyActions.className = "staging-actions";
       readyActions.append(actionButton("Activate Collapse", "button primary", () => {
@@ -213,15 +254,13 @@
       }
     }
 
-    mount.querySelectorAll("textarea[name^='collapse.'], textarea[name^='rewrite.']").forEach((input) => {
-      input.addEventListener("change", () => {
-        const current = api.readState();
-        api.setPath(current, input.name, api.safeString(input.value, 500));
-        emitState(api.normalizeState(current), "STAGING SAVED");
-      });
-    });
+    bindStagingFieldEdits(mount);
+    applyStagingFieldLock();
   }
 
   window.HandlerCollapse = { render, shouldShow };
   window.addEventListener("veildaemon:handler-state-updated", () => render(api.readState()));
+  window.addEventListener("veildaemon:handler-field-edit-toggled", () => {
+    render(api.readState());
+  });
 }());

@@ -173,6 +173,32 @@ test("handler live triggers route common table events to clock responsibility", 
   await expect(preview).toContainText("Unseen -> Noticed");
 });
 
+test("handler live collapse staging respects global field lock", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await page.getByRole("button", { name: "PREP" }).click();
+  await page.getByLabel("Template").selectOption("viridian-house");
+  await page.getByRole("button", { name: "Apply Template" }).click();
+  await page.getByRole("button", { name: "LIVE MODE" }).click();
+  await page.locator('[name="primaryClock.current"]').fill("6");
+  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+
+  await page.getByRole("button", { name: "Edit Fields: On" }).click();
+  await expect(page.getByRole("button", { name: "Edit Fields: Off" })).toBeVisible();
+
+  const staging = page.getByLabel("Collapse and Rewrite staging");
+  await staging.locator('button[data-break-type="Signal"]').evaluate((button) => button.click());
+  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveJSProperty("readOnly", true);
+
+  await staging.locator("button.button.primary", { hasText: "Activate Collapse" }).evaluate((button) => button.click());
+  await expect(staging).toContainText("COLLAPSE MODE");
+  await expect(staging.locator('button[data-break-type="Identity"]')).toBeEnabled();
+
+  await page.getByRole("button", { name: "Edit Fields: Off" }).click();
+  await expect(page.getByRole("button", { name: "Edit Fields: On" })).toBeVisible();
+  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveJSProperty("readOnly", false);
+});
+
 test("handler live collapse staging surfaces from full clock without exposing player view", async ({ page }) => {
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
@@ -193,8 +219,13 @@ test("handler live collapse staging surfaces from full clock without exposing pl
 
   await staging.locator('button[data-break-type="Signal"]').evaluate((button) => button.click());
   await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The Audience can caption choices before Operators make them.");
-  await expect(staging.locator('[name="collapse.operatorChoice"]')).toHaveValue("Refuse the curated self, ground Mara as a person, protect Saffi's true memory, or flee Floor 13 together.");
-  await expect(staging.locator('[name="collapse.exitCondition"]')).toHaveValue("Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience.");
+  await expect(staging.locator('[name="collapse.operatorChoice"]')).toHaveValue("Cut the feed, poison the comment thread with truth, ground Mara, or flee together.");
+  await expect(staging.locator('[name="collapse.exitCondition"]')).toHaveValue("Break observation or speak honestly while protected.");
+
+  await staging.locator('button[data-break-type="Identity"]').evaluate((button) => button.click());
+  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The performed self becomes easier to sustain than the real one.");
+  await expect(staging.locator('[name="collapse.operatorChoice"]')).toHaveValue("Refuse the curated role, name what it costs, remind Mara who knew her off-camera.");
+  await expect(staging.locator('[name="collapse.exitCondition"]')).toHaveValue("The group refuses the assigned role together.");
 
   await page.getByLabel("Player View").check();
   await expect(page.getByLabel("Player-facing display")).toBeVisible();

@@ -622,7 +622,29 @@
           "default_break_type": "Signal",
           "broken_law": "The Audience can caption choices before Operators make them.",
           "operator_choice": "Refuse the curated self, ground Mara as a person, protect Saffi's true memory, or flee Floor 13 together.",
-          "exit_condition": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience."
+          "exit_condition": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience.",
+          "by_break_type": {
+            "Signal": {
+              "broken_law": "The Audience can caption choices before Operators make them.",
+              "operator_choice": "Cut the feed, poison the comment thread with truth, ground Mara, or flee together.",
+              "exit_condition": "Break observation or speak honestly while protected."
+            },
+            "Identity": {
+              "broken_law": "The performed self becomes easier to sustain than the real one.",
+              "operator_choice": "Refuse the curated role, name what it costs, remind Mara who knew her off-camera.",
+              "exit_condition": "The group refuses the assigned role together."
+            },
+            "Memory": {
+              "broken_law": "The feed remembers the version that was easiest to watch.",
+              "operator_choice": "Use Saffi's true memory, correct the record, or accept the edited aftermath.",
+              "exit_condition": "A witness names the real memory before the Audience captions it."
+            },
+            "Relationship": {
+              "broken_law": "The Audience turns care into leverage.",
+              "operator_choice": "Protect Saffi, reach Mara as a person, or let the site use one as bait for the other.",
+              "exit_condition": "Someone protects the bond without performing it for the room."
+            }
+          }
         },
         "rewrite_staging": {
           "default_overwrite_type": "Role",
