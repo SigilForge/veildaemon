@@ -938,6 +938,10 @@ textarea {
   resize: vertical;
 }
 
+.npc-pressure-field {
+  min-height: 3.25rem;
+}
+
 input[type="checkbox"] {
   width: auto;
 }

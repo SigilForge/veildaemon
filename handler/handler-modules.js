@@ -279,7 +279,7 @@
         </div>
         <div class="field-grid three">
           <label>Role<input data-npc="${index}" data-field="role" maxlength="100" /></label>
-          <label>Pressure<input data-npc="${index}" data-field="pressure" maxlength="160" /></label>
+          <label>Pressure<textarea class="npc-pressure-field" data-npc="${index}" data-field="pressure" maxlength="160" rows="2"></textarea></label>
           <label>Location<input data-npc="${index}" data-field="location" maxlength="120" /></label>
         </div>
         <fieldset class="flag-grid" data-npc-flags="${index}"></fieldset>
