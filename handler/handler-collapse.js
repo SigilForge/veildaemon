@@ -74,6 +74,11 @@
     }
     mount.hidden = false;
 
+    const stagingOnly = document.createElement("p");
+    stagingOnly.className = "staging-only-label";
+    stagingOnly.textContent = "STAGING ONLY — HANDLER RESOLVES";
+    mount.append(stagingOnly);
+
     const collapse = current.collapse || {};
     const rewrite = current.rewrite || {};
 

@@ -72,6 +72,14 @@
     gap: .55rem;
   }
 
+  body[data-handler-mode="live"] .staging-only-label {
+    margin: 0;
+    font-size: .68rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    opacity: .72;
+  }
+
   body[data-handler-mode="live"] .staging-banner {
     display: grid;
     gap: .2rem;
