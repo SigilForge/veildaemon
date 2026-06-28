@@ -101,7 +101,8 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   });
   expect(secondaryClockMetrics.overflow).toBeLessThanOrEqual(2);
   expect(secondaryClockMetrics.narrowestField).toBeGreaterThan(110);
-  await expect(page.getByLabel("Template")).toHaveValue("veilcorp-intake");
+  await expect(page.getByLabel("Template")).toHaveValue("custom-campaign");
+  await page.getByLabel("Template").selectOption("veilcorp-intake");
   await page.getByRole("button", { name: "Apply Template" }).click();
   await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("VeilCorp Intake");
   await expect(page.locator('[name="entityLoop.Need"]')).toHaveValue("A complete self to copy, correct, or preserve.");
@@ -185,6 +186,7 @@ test("handler live collapse staging surfaces from full clock without exposing pl
 
   const staging = page.getByLabel("Collapse and Rewrite staging");
   await expect(staging).toBeVisible();
+  await expect(staging).toContainText("STAGING ONLY — HANDLER RESOLVES");
   await expect(staging).toContainText("COLLAPSE READY");
   await expect(staging).toContainText("WHAT BREAKS FIRST?");
   await expect(staging).not.toContainText("REWRITE READY");
