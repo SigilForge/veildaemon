@@ -17,6 +17,20 @@
 
 * { box-sizing: border-box; }
 
+:where(.handler-shell, .handler-header, .status-strip, .control-bar, .panel, .player-view, .button, label, p, li, span, strong, em, h1, h2, h3, h4, summary, output, input, textarea, select) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:where(.button, button, a) {
+  max-width: 100%;
+  white-space: normal;
+}
+
+:where(input, textarea, select) {
+  max-width: 100%;
+}
+
 [hidden] { display: none !important; }
 
 html {
@@ -669,14 +683,14 @@ body.is-player-view .wind-down-panel {
 
 .dashboard-form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
   grid-auto-flow: dense;
   gap: .75rem;
   margin-top: .75rem;
 }
 
 .live-surface .dashboard-form {
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
   gap: .9rem;
 }
 
@@ -859,10 +873,10 @@ body.is-player-view .wind-down-panel {
   gap: .65rem;
 }
 
-.field-grid.two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
-.field-grid.three { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-.field-grid.four { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.field-grid.five { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.field-grid.two { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
+.field-grid.three { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.field-grid.four { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+.field-grid.five { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
 .field-grid .wide { grid-column: 1 / -1; }
 
 .clock-field-grid {
@@ -900,7 +914,7 @@ body.is-player-view .wind-down-panel {
 
 .room-answer-fields {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: .75rem;
 }
 
@@ -919,6 +933,8 @@ select {
 }
 
 textarea {
+  field-sizing: content;
+  min-height: 4.25rem;
   resize: vertical;
 }
 
@@ -1004,7 +1020,7 @@ select:focus {
 
 .loop-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: .75rem;
 }
 
@@ -1202,13 +1218,13 @@ body[data-handler-mode="live"] .player-grid {
 
 .player-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: .65rem;
 }
 
 .npc-summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   gap: .55rem;
 }
 
@@ -1317,7 +1333,7 @@ body[data-handler-mode="prep"] .npc-summary-grid {
 }
 
 .notes-panel .field-grid.three {
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 }
 
 .notes-panel > label {
@@ -1454,7 +1470,7 @@ body[data-handler-mode="prep"] .npc-summary-grid {
 
 .flag-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
   gap: .35rem;
   margin: 0;
   padding: .55rem;
@@ -1473,7 +1489,7 @@ body[data-handler-mode="prep"] .npc-summary-grid {
 
 .authorization-builder {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: .85rem;
 }
 

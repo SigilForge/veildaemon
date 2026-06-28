@@ -13,6 +13,21 @@
 }
 
 * { box-sizing: border-box; }
+
+:where(.operator-shell, .operator-header, .notice-panel, .snapshot-grid, .module-panel, .data-panel, .button, label, p, li, span, strong, em, h1, h2, h3, h4, summary, output, input, textarea, select) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:where(.button, button, a) {
+  max-width: 100%;
+  white-space: normal;
+}
+
+:where(input, textarea, select) {
+  max-width: 100%;
+}
+
 html {
   min-height: 100%;
   background: var(--bg);
@@ -207,7 +222,7 @@ h3 {
   font-size: .72rem;
   font-weight: 800;
   letter-spacing: .08em;
-  white-space: nowrap;
+  white-space: normal;
   text-transform: uppercase;
   text-decoration: none;
 }
@@ -311,7 +326,7 @@ body.operator-record-sealed .data-panel {
 }
 .sheet-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: .9rem;
   align-items: start;
 }
@@ -350,7 +365,7 @@ body.operator-record-sealed .data-panel {
   align-items: end;
 }
 .editable-case-strip {
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
 }
 .grant-preview {
   display: block;
@@ -412,7 +427,7 @@ select.is-locked {
 }
 .identity-card {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
   gap: .55rem;
 }
 .identity-card .card-label {
@@ -548,7 +563,7 @@ select.is-locked {
 }
 .tracker-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: .6rem;
   align-items: start;
 }
@@ -695,7 +710,7 @@ select.is-locked {
 }
 .roll-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: .65rem;
   align-items: end;
 }
@@ -765,7 +780,7 @@ select.is-locked {
 .live-lower-grid {
   display: grid;
   width: 100%;
-  grid-template-columns: minmax(18rem, 1fr) minmax(22rem, 1fr);
+  grid-template-columns: minmax(min(100%, 18rem), 1fr) minmax(min(100%, 22rem), 1fr);
   grid-template-areas:
     "attributes misfire"
     "skills notes";
@@ -1584,6 +1599,7 @@ input,
 textarea,
 select {
   width: 100%;
+  min-width: 0;
   border: 1px solid rgba(137,255,218,.22);
   background: rgba(0,0,0,.42);
   color: var(--text);
@@ -1593,6 +1609,8 @@ select {
   padding: .72rem;
 }
 textarea {
+  field-sizing: content;
+  min-height: 4.25rem;
   resize: vertical;
 }
 fieldset.recovery-field {
@@ -1663,7 +1681,7 @@ a:focus-visible {
 
 .authorization-import-surface {
   display: grid;
-  grid-template-columns: minmax(16rem, max-content) minmax(22rem, 1fr);
+  grid-template-columns: minmax(min(100%, 16rem), max-content) minmax(min(100%, 22rem), 1fr);
   gap: .85rem;
   align-items: stretch;
   margin-bottom: 1rem;
@@ -1672,7 +1690,7 @@ a:focus-visible {
 .authorization-current-grid,
 .authorization-unlock-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
   gap: .85rem;
 }
 

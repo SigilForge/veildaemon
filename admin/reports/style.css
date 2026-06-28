@@ -11,6 +11,16 @@
 
 * { box-sizing: border-box; }
 
+:where(.console-shell, .token-panel, .queue-panel, .report-card, .field, .draft-field, button, label, p, li, span, strong, em, h1, h2, h3, h4, summary, input, textarea, select) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:where(button) {
+  max-width: 100%;
+  white-space: normal;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -82,10 +92,18 @@ p {
 input,
 textarea {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   color: var(--text);
   border: 1px solid rgba(138, 255, 219, .22);
   background: rgba(0, 0, 0, .35);
   padding: .7rem;
+}
+
+textarea {
+  field-sizing: content;
+  min-height: 4.25rem;
+  resize: vertical;
 }
 
 button {

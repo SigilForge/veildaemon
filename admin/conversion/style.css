@@ -15,6 +15,16 @@
 
 * { box-sizing: border-box; }
 
+:where(.console-shell, .board-header, .panel, .metric-card, .ledger-row, .quality-row, button, .file-button, label, p, li, span, strong, em, h1, h2, h3, h4, input, textarea, select) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:where(button, .file-button) {
+  max-width: 100%;
+  white-space: normal;
+}
+
 body {
   min-height: 100vh;
   margin: 0;
@@ -148,7 +158,7 @@ button.danger {
 }
 
 .board-grid {
-  grid-template-columns: minmax(26rem, .88fr) minmax(0, 1.12fr);
+  grid-template-columns: minmax(min(100%, 26rem), .88fr) minmax(0, 1.12fr);
   align-items: start;
 }
 
@@ -224,6 +234,8 @@ label.wide,
 input,
 textarea {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   border: 1px solid rgba(138, 255, 219, .2);
   background: rgba(0, 0, 0, .42);
   color: var(--text);
@@ -232,6 +244,7 @@ textarea {
 }
 
 textarea {
+  field-sizing: content;
   resize: vertical;
   min-height: 5.5rem;
   text-transform: none;

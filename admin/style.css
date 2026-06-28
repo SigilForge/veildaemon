@@ -11,6 +11,16 @@
 
 * { box-sizing: border-box; }
 
+:where(.admin-shell, .admin-header, .token-panel, .surface-frame-wrap, a, button, label, p, li, span, strong, em, h1, h2, h3, h4, input, textarea, select) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+:where(a, button) {
+  max-width: 100%;
+  white-space: normal;
+}
+
 body {
   min-height: 100vh;
   margin: 0;
@@ -107,6 +117,8 @@ button:focus-visible,
 
 input {
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   min-height: 2.7rem;
   border: 1px solid rgba(138, 255, 219, .22);
   background: rgba(0, 0, 0, .42);
