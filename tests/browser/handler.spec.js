@@ -172,6 +172,59 @@ test("handler live triggers route common table events to clock responsibility", 
   await expect(preview).toContainText("Unseen -> Noticed");
 });
 
+test("handler live collapse staging surfaces from full clock without exposing player view", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await page.getByRole("button", { name: "PREP" }).click();
+  await page.getByLabel("Template").selectOption("viridian-house");
+  await page.getByRole("button", { name: "Apply Template" }).click();
+  await page.getByRole("button", { name: "LIVE MODE" }).click();
+
+  await page.locator('[name="primaryClock.current"]').fill("6");
+  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+
+  const staging = page.getByLabel("Collapse and Rewrite staging");
+  await expect(staging).toBeVisible();
+  await expect(staging).toContainText("COLLAPSE READY");
+  await expect(staging).toContainText("WHAT BREAKS FIRST?");
+  await expect(staging).not.toContainText("REWRITE READY");
+
+  await staging.locator('button[data-break-type="Signal"]').evaluate((button) => button.click());
+  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The Audience can caption choices before Operators make them.");
+  await expect(staging.locator('[name="collapse.operatorChoice"]')).toHaveValue("Refuse the curated self, ground Mara as a person, protect Saffi's true memory, or flee Floor 13 together.");
+  await expect(staging.locator('[name="collapse.exitCondition"]')).toHaveValue("Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience.");
+
+  await page.getByLabel("Player View").check();
+  await expect(page.getByLabel("Player-facing display")).toBeVisible();
+  await expect(page.getByLabel("Player-facing display")).not.toContainText("COLLAPSE READY");
+  await expect(page.getByLabel("Player-facing display")).not.toContainText("Broken Law");
+});
+
+test("handler live rewrite staging waits for active collapse", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await page.getByRole("button", { name: "PREP" }).click();
+  await page.getByLabel("Template").selectOption("viridian-house");
+  await page.getByRole("button", { name: "Apply Template" }).click();
+  await page.getByRole("button", { name: "LIVE MODE" }).click();
+
+  await page.locator('[name="primaryClock.current"]').fill("6");
+  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+
+  const staging = page.getByLabel("Collapse and Rewrite staging");
+  await staging.locator("button.button.primary", { hasText: "Activate Collapse" }).evaluate((button) => button.click());
+  await expect(staging).toContainText("COLLAPSE MODE");
+
+  const rail = page.getByRole("group", { name: "Table triggers" });
+  await rail.locator('[data-trigger-id="accept-curated-self"]').evaluate((button) => button.click());
+  await page.locator("#trigger-apply").evaluate((button) => button.click());
+
+  await expect(staging).toContainText("REWRITE READY");
+  await expect(staging).toContainText("WHAT GETS OVERWRITTEN?");
+  await staging.locator('button[data-overwrite-type="Role"]').evaluate((button) => button.click());
+  await expect(staging.locator('[name="rewrite.rewriteLaw"]')).toHaveValue("The accepted version becomes easier to remember than the original.");
+});
+
 test("handler live wind down mirrors the trigger preview flow", async ({ page }) => {
   await page.goto("/handler/live/");
 
