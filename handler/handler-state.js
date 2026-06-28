@@ -36,7 +36,7 @@
     claimed: "exposed"
   };
   const loopFields = ["Need", "Lure", "Pressure", "Gift", "Violence", "Exit"];
-  const npcFlags = ["Ally", "Witness", "Threat", "Missing", "Compromised"];
+  const npcFlags = ["Ally", "Witness", "Threat", "Missing", "Compromised", "Anchor"];
   const anchorNpcStates = [
     { id: "with-operators", label: "With Operators", guidance: "Attention +1 on loud/risky/exposed action." },
     { id: "hidden", label: "Hidden", guidance: "Zone +1 when time passes or hiding is stressed." },
@@ -315,6 +315,44 @@
   const catalogs = window.CradlepointCatalogs || {};
 
   const templates = [
+  {
+    "id": "custom-campaign",
+    "name": "Custom Campaign",
+    "data": {
+      "session": {
+        "title": "Custom Campaign",
+        "caseTitle": "Custom Campaign",
+        "location": "",
+        "safeSceneLabel": ""
+      },
+      "primaryClock": {
+        "name": "Case Clock",
+        "segments": 6,
+        "current": 0,
+        "ticksWhen": "",
+        "midpointEvent": "",
+        "fullClockEvent": "",
+        "stabilizer": ""
+      },
+      "npcs": [],
+      "caseFile": {
+        "nextClue": "",
+        "nextPressureBeat": "",
+        "templates": "Custom campaign",
+        "notes": ""
+      },
+      "activeNeedlepoint": {
+        "id": "custom-campaign",
+        "scaffold": "",
+        "attention_states": {},
+        "clock_attention_consequences": [],
+        "table_triggers": [],
+        "player_view": {
+          "safe_consequence": ""
+        }
+      }
+    }
+  },
   {
     "id": "veilcorp-intake",
     "name": "VeilCorp Intake",
@@ -1772,16 +1810,21 @@
 
   function normalizeNpcs(npcs) {
     const list = Array.isArray(npcs) ? npcs : [];
-    return list.slice(0, 12).map((npc, index) => ({
-      id: safeString(npc.id, 80) || `npc-${index + 1}`,
-      name: safeString(npc.name, 100),
-      role: safeString(npc.role, 100),
-      pressure: safeString(npc.pressure, 160),
-      location: safeString(npc.location, 120),
-      flags: Array.isArray(npc.flags) ? npc.flags.filter((flag) => npcFlags.includes(flag)).slice(0, 5) : [],
-      notes: safeString(npc.notes, 1000),
-      anchor: normalizeNpcAnchor(npc.anchor)
-    }));
+    return list.slice(0, 12).map((npc, index) => {
+      const anchor = normalizeNpcAnchor(npc.anchor);
+      const rawFlags = Array.isArray(npc.flags) ? npc.flags.filter((flag) => npcFlags.includes(flag)) : [];
+      const flags = Array.from(new Set(anchor.enabled && !rawFlags.includes("Anchor") ? [...rawFlags, "Anchor"] : rawFlags));
+      return {
+        id: safeString(npc.id, 80) || `npc-${index + 1}`,
+        name: safeString(npc.name, 100),
+        role: safeString(npc.role, 100),
+        pressure: safeString(npc.pressure, 160),
+        location: safeString(npc.location, 120),
+        flags: flags.slice(0, 6),
+        notes: safeString(npc.notes, 1000),
+        anchor
+      };
+    });
   }
 
   function normalizeTrackerValue(value, max, fallback = 0) {

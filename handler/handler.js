@@ -202,13 +202,25 @@
         <label>Notes<textarea data-npc="${index}" data-field="notes" rows="3"></textarea></label>
       `;
       grid.append(card);
+      if (window.HandlerNpcAnchor) {
+        window.HandlerNpcAnchor.renderAnchorBlock(card, npc, index, (npcIndex, stateId) => {
+          state.npcs[npcIndex].anchor = api.normalizeNpcAnchor({
+            ...state.npcs[npcIndex].anchor,
+            state: stateId
+          });
+          state = api.normalizeState(state);
+          writeState();
+          renderNpcs();
+        });
+      }
       const flags = card.querySelector("[data-npc-flags]");
       api.npcFlags.forEach((flag) => {
         const label = document.createElement("label");
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
         checkbox.value = flag;
-        checkbox.checked = npc.flags.includes(flag);
+        checkbox.dataset.npcFlag = flag;
+        checkbox.checked = flag === "Anchor" ? Boolean(npc.anchor?.enabled) : npc.flags.includes(flag);
         label.append(checkbox, ` ${flag}`);
         flags.append(label);
       });
@@ -228,9 +240,16 @@
     grid.querySelectorAll("[data-npc-flags]").forEach((fieldset) => {
       const index = Number(fieldset.dataset.npcFlags);
       fieldset.addEventListener("change", () => {
-        state.npcs[index].flags = Array.from(fieldset.querySelectorAll("input:checked")).map((input) => input.value);
+        const checked = Array.from(fieldset.querySelectorAll("input:checked")).map((input) => input.value);
+        const anchorEnabled = checked.includes("Anchor");
+        state.npcs[index].flags = checked;
+        state.npcs[index].anchor = api.normalizeNpcAnchor({
+          ...state.npcs[index].anchor,
+          enabled: anchorEnabled
+        });
+        state = api.normalizeState(state);
         writeState();
-        renderNpcSummary();
+        renderNpcs();
       });
     });
 
@@ -531,7 +550,7 @@
 
     const addNpc = document.getElementById("add-npc");
     if (addNpc) addNpc.addEventListener("click", () => {
-      state.npcs.push({ id: `npc-${Date.now()}`, name: "", role: "", pressure: "", location: "", flags: [], notes: "" });
+      state.npcs.push({ id: `npc-${Date.now()}`, name: "", role: "", pressure: "", location: "", flags: [], notes: "", anchor: { enabled: false, label: "Anchor NPC", state: "with-operators" } });
       writeState();
       renderNpcs();
     });
@@ -542,7 +561,8 @@
     const picker = document.getElementById("template-picker");
     if (applyTemplate && picker) applyTemplate.addEventListener("click", () => {
       const template = api.templates.find((item) => item.id === picker.value) || api.templates[0];
-      state = api.normalizeState(api.mergeDeep(state, template.data));
+      const base = template.id === "custom-campaign" ? api.defaultState : state;
+      state = api.normalizeState(api.mergeDeep(base, template.data));
       syncForm();
       writeState(`${template.name.toUpperCase()} LOADED`);
       renderDynamic();
