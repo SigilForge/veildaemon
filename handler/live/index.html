@@ -123,8 +123,8 @@
               <label>Name<input name="primaryClock.name" maxlength="100" autocomplete="off" /></label>
               <label>Segments<select name="primaryClock.segments"><option>4</option><option selected>6</option><option>8</option></select></label>
               <label>Current<input name="primaryClock.current" type="number" min="0" max="12" step="1" /></label>
-              <label>Ticks When<input name="primaryClock.ticksWhen" maxlength="180" autocomplete="off" /></label>
-              <label>Stabilizer<input name="primaryClock.stabilizer" maxlength="160" autocomplete="off" /></label>
+              <label>Ticks When<textarea name="primaryClock.ticksWhen" maxlength="180" rows="2" autocomplete="off"></textarea></label>
+              <label>Stabilizer<textarea name="primaryClock.stabilizer" maxlength="160" rows="2" autocomplete="off"></textarea></label>
             </div>
             <div class="clock-track" id="primary-clock-track" aria-label="Primary clock segments" data-live-control-zone></div>
             <details class="clock-notes-drawer">
@@ -251,7 +251,7 @@
             <label>Name<input name="secondaryClock.name" maxlength="100" autocomplete="off" /></label>
             <label>Segments<select name="secondaryClock.segments"><option>4</option><option selected>6</option><option>8</option></select></label>
             <label>Current<input name="secondaryClock.current" type="number" min="0" max="12" step="1" /></label>
-            <label>Decision It Changes<input name="secondaryClock.liveDecision" maxlength="180" autocomplete="off" /></label>
+            <label>Decision It Changes<textarea name="secondaryClock.liveDecision" maxlength="180" rows="2" autocomplete="off"></textarea></label>
           </div>
           <div class="clock-track compact" id="secondary-clock-track" aria-label="Secondary clock segments" data-live-control-zone></div>
         </details>
