@@ -600,10 +600,36 @@
               "clock_delta": 2,
               "attention_delta": 1,
               "scene_state_min": "Breached",
+              "collapse_ready": true,
               "consequence": "Severe misfire: tick both, or let the immediate threat advance twice."
+            }
+          },
+          {
+            "id": "accept-curated-self",
+            "label": "Accept curated / easier self",
+            "hint": "Operator accepts the performed role or curated version on Floor 13.",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 1,
+              "scene_state_min": "Breached",
+              "accept_false_self": true,
+              "rewrite_ready": true,
+              "consequence": "The accepted self stabilizes; overwrite may lock in unless contradicted."
             }
           }
         ],
+        "collapse_staging": {
+          "default_break_type": "Signal",
+          "broken_law": "The Audience can caption choices before Operators make them.",
+          "operator_choice": "Refuse the curated self, ground Mara as a person, protect Saffi's true memory, or flee Floor 13 together.",
+          "exit_condition": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience."
+        },
+        "rewrite_staging": {
+          "default_overwrite_type": "Role",
+          "rewrite_law": "The accepted version becomes easier to remember than the original.",
+          "lock_in_risk": "If no one contradicts it before the next pressure beat, update the affected record.",
+          "counteraction_window": "A witness names the original truth and pays the cost."
+        },
         "player_view": {
           "safe_consequence": "The room responds visibly when watched choices become honest, hidden, or performed."
         }

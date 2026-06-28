@@ -45,6 +45,8 @@
     { id: "taken", label: "Taken", guidance: "Attention +1 and Aftermath +1, or start rescue clock." }
   ];
   const anchorNpcStateIds = anchorNpcStates.map((entry) => entry.id);
+  const collapseBreakTypes = ["Room", "Identity", "Memory", "Body", "Relationship", "Evidence", "Time", "Signal"];
+  const rewriteOverwriteTypes = ["Name", "Role", "Memory", "Relationship", "Record", "Body", "Location", "History"];
   const windDownMoves = [
     {
       id: "protect-anchor-npc",
@@ -916,10 +918,36 @@
               "clock_delta": 2,
               "attention_delta": 1,
               "scene_state_min": "Breached",
+              "collapse_ready": true,
               "consequence": "Severe misfire: tick both, or let the immediate threat advance twice."
+            }
+          },
+          {
+            "id": "accept-curated-self",
+            "label": "Accept curated / easier self",
+            "hint": "Operator accepts the performed role or curated version on Floor 13.",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 1,
+              "scene_state_min": "Breached",
+              "accept_false_self": true,
+              "rewrite_ready": true,
+              "consequence": "The accepted self stabilizes; overwrite may lock in unless contradicted."
             }
           }
         ],
+        "collapse_staging": {
+          "default_break_type": "Signal",
+          "broken_law": "The Audience can caption choices before Operators make them.",
+          "operator_choice": "Refuse the curated self, ground Mara as a person, protect Saffi's true memory, or flee Floor 13 together.",
+          "exit_condition": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience."
+        },
+        "rewrite_staging": {
+          "default_overwrite_type": "Role",
+          "rewrite_law": "The accepted version becomes easier to remember than the original.",
+          "lock_in_risk": "If no one contradicts it before the next pressure beat, update the affected record.",
+          "counteraction_window": "A witness names the original truth and pays the cost."
+        },
         "player_view": {
           "safe_consequence": "The room responds visibly when watched choices become honest, hidden, or performed."
         }
@@ -1052,6 +1080,28 @@
       consequenceQueue: "",
       residueLog: ""
     },
+    collapse: {
+      ready: false,
+      active: false,
+      trigger: "",
+      breakType: "",
+      brokenLaw: "",
+      operatorChoice: "",
+      exitCondition: "",
+      readyLatch: false,
+      exitFailedLatch: false
+    },
+    rewrite: {
+      ready: false,
+      active: false,
+      trigger: "",
+      overwriteType: "",
+      rewriteLaw: "",
+      lockInRisk: "",
+      counteractionWindow: "",
+      readyLatch: false,
+      acceptFalseSelfLatch: false
+    },
     canonTerminology
   };
 
@@ -1156,7 +1206,10 @@
       next_clue: safeString(effects.next_clue, 500),
       reveal_next_clue: Boolean(effects.reveal_next_clue),
       npc_pressure_note: safeString(effects.npc_pressure_note, 220),
-      npc_name_match: safeString(effects.npc_name_match, 80)
+      npc_name_match: safeString(effects.npc_name_match, 80),
+      collapse_ready: Boolean(effects.collapse_ready),
+      rewrite_ready: Boolean(effects.rewrite_ready),
+      accept_false_self: Boolean(effects.accept_false_self)
     };
   }
 
@@ -1167,12 +1220,32 @@
 
   function normalizeTableTriggers(value) {
     if (!Array.isArray(value)) return [];
-    return value.slice(0, 10).map((trigger, index) => ({
+    return value.slice(0, 12).map((trigger, index) => ({
       id: safeString(trigger.id, 80) || `trigger-${index + 1}`,
       label: safeString(trigger.label, 140),
       hint: safeString(trigger.hint, 220),
       effects: normalizeTriggerEffects(trigger.effects)
     })).filter((trigger) => trigger.label);
+  }
+
+  function normalizeCollapseStaging(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return {
+      default_break_type: normalizeChoice(source.default_break_type, collapseBreakTypes, ""),
+      broken_law: safeString(source.broken_law, 500),
+      operator_choice: safeString(source.operator_choice, 500),
+      exit_condition: safeString(source.exit_condition, 500)
+    };
+  }
+
+  function normalizeRewriteStaging(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return {
+      default_overwrite_type: normalizeChoice(source.default_overwrite_type, rewriteOverwriteTypes, ""),
+      rewrite_law: safeString(source.rewrite_law, 500),
+      lock_in_risk: safeString(source.lock_in_risk, 500),
+      counteraction_window: safeString(source.counteraction_window, 500)
+    };
   }
 
   function normalizeActiveNeedlepoint(value) {
@@ -1183,10 +1256,234 @@
       attention_states: normalizeAttentionStatesTable(source.attention_states),
       clock_attention_consequences: normalizeClockAttentionConsequences(source.clock_attention_consequences),
       table_triggers: normalizeTableTriggers(source.table_triggers),
+      collapse_staging: normalizeCollapseStaging(source.collapse_staging),
+      rewrite_staging: normalizeRewriteStaging(source.rewrite_staging),
       player_view: {
         safe_consequence: safeString(source.player_view?.safe_consequence, 220)
       }
     };
+  }
+
+  function normalizeCollapse(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return {
+      ready: Boolean(source.ready),
+      active: Boolean(source.active),
+      trigger: safeString(source.trigger, 220),
+      breakType: normalizeChoice(source.breakType, collapseBreakTypes, ""),
+      brokenLaw: safeString(source.brokenLaw, 500),
+      operatorChoice: safeString(source.operatorChoice, 500),
+      exitCondition: safeString(source.exitCondition, 500),
+      readyLatch: Boolean(source.readyLatch),
+      exitFailedLatch: Boolean(source.exitFailedLatch)
+    };
+  }
+
+  function normalizeRewrite(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return {
+      ready: Boolean(source.ready),
+      active: Boolean(source.active),
+      trigger: safeString(source.trigger, 220),
+      overwriteType: normalizeChoice(source.overwriteType, rewriteOverwriteTypes, ""),
+      rewriteLaw: safeString(source.rewriteLaw, 500),
+      lockInRisk: safeString(source.lockInRisk, 500),
+      counteractionWindow: safeString(source.counteractionWindow, 500),
+      readyLatch: Boolean(source.readyLatch),
+      acceptFalseSelfLatch: Boolean(source.acceptFalseSelfLatch)
+    };
+  }
+
+  function genericCollapseFallbacks(state) {
+    const loop = state.entityLoop || {};
+    return {
+      brokenLaw: safeString(loop.Violence, 500) || "The room's law breaks under peak pressure.",
+      operatorChoice: safeString(loop.Exit, 500)
+        ? `Refuse the site's read, ground the person at stake, or meet the exit: ${loop.Exit}`
+        : "Refuse the site's read, protect the anchor, or flee together.",
+      exitCondition: safeString(loop.Exit, 500) || "Remove leverage the site still holds."
+    };
+  }
+
+  function genericRewriteFallbacks(state) {
+    const loop = state.entityLoop || {};
+    return {
+      rewriteLaw: safeString(loop.Pressure, 500) || "The accepted version becomes easier to remember than the original.",
+      lockInRisk: safeString(loop.Violence, 500) || "If no one contradicts it before the next pressure beat, the record updates.",
+      counteractionWindow: safeString(loop.Gift, 500) || "A witness names the original truth and pays the cost."
+    };
+  }
+
+  function getCollapseDefaults(state, breakType) {
+    const staging = state.activeNeedlepoint?.collapse_staging || {};
+    const generic = genericCollapseFallbacks(state);
+    const resolvedBreak = normalizeChoice(breakType || staging.default_break_type, collapseBreakTypes, "");
+    return {
+      breakType: resolvedBreak,
+      brokenLaw: staging.broken_law || generic.brokenLaw,
+      operatorChoice: staging.operator_choice || generic.operatorChoice,
+      exitCondition: staging.exit_condition || generic.exitCondition
+    };
+  }
+
+  function getRewriteDefaults(state, overwriteType) {
+    const staging = state.activeNeedlepoint?.rewrite_staging || {};
+    const generic = genericRewriteFallbacks(state);
+    const resolvedType = normalizeChoice(overwriteType || staging.default_overwrite_type, rewriteOverwriteTypes, "");
+    return {
+      overwriteType: resolvedType,
+      rewriteLaw: staging.rewrite_law || generic.rewriteLaw,
+      lockInRisk: staging.lock_in_risk || generic.lockInRisk,
+      counteractionWindow: staging.counteraction_window || generic.counteractionWindow
+    };
+  }
+
+  function consequenceImpliesRewrite(consequence) {
+    const text = safeString(consequence, 220).toLowerCase();
+    if (!text) return false;
+    return /replac|overwrite|myth|record corrupt|false self|curated|confirm|easier version|identity overwrite/.test(text);
+  }
+
+  function evaluateCollapseSignals(state) {
+    const triggers = [];
+    if (state.sceneState.current === "Collapse") triggers.push("Scene State: Collapse");
+    if (state.primaryClock.current >= state.primaryClock.segments) triggers.push("Primary Clock full");
+    if (state.attention.current === "Exposed") triggers.push("Attention: Exposed");
+    if (state.collapse.readyLatch) triggers.push(state.collapse.trigger || "Severe misfire / natural 3");
+    const collapseRisk = (state.players || []).some((player) => player.stabilityBand === "Collapse Risk");
+    if (collapseRisk && state.activeEntity?.kind === "Entity") triggers.push("Operator Stability: Collapse Risk");
+    return {
+      ready: triggers.length > 0,
+      trigger: triggers.join(" // ")
+    };
+  }
+
+  function evaluateRewriteSignals(state) {
+    if (!state.collapse.active) return { ready: false, trigger: "" };
+    const triggers = [];
+    if (state.rewrite.acceptFalseSelfLatch) triggers.push("Accepted false / curated self");
+    if (state.collapse.exitFailedLatch) triggers.push("Collapse exit condition failed");
+    if (state.rewrite.readyLatch) triggers.push(state.rewrite.trigger || "Needlepoint trigger");
+    if (state.attention.current === "Exposed" && consequenceImpliesRewrite(state.sceneState.primaryConsequence)) {
+      triggers.push("Exposed + replacement consequence");
+    }
+    return {
+      ready: triggers.length > 0,
+      trigger: triggers.join(" // ")
+    };
+  }
+
+  function syncCollapseRewriteStaging(state) {
+    const next = clone(state);
+    next.collapse = normalizeCollapse(next.collapse);
+    next.rewrite = normalizeRewrite(next.rewrite);
+
+    const collapseSignals = evaluateCollapseSignals(next);
+    next.collapse.ready = collapseSignals.ready || next.collapse.active;
+    if (collapseSignals.ready && !next.collapse.trigger) next.collapse.trigger = collapseSignals.trigger;
+    if (collapseSignals.ready && collapseSignals.trigger) next.collapse.trigger = collapseSignals.trigger;
+
+    if (next.collapse.active && !next.collapse.breakType) {
+      const defaults = getCollapseDefaults(next, next.activeNeedlepoint?.collapse_staging?.default_break_type);
+      next.collapse.breakType = defaults.breakType;
+      if (!next.collapse.brokenLaw) next.collapse.brokenLaw = defaults.brokenLaw;
+      if (!next.collapse.operatorChoice) next.collapse.operatorChoice = defaults.operatorChoice;
+      if (!next.collapse.exitCondition) next.collapse.exitCondition = defaults.exitCondition;
+    }
+
+    const rewriteSignals = evaluateRewriteSignals(next);
+    next.rewrite.ready = rewriteSignals.ready || next.rewrite.active;
+    if (rewriteSignals.ready && rewriteSignals.trigger) next.rewrite.trigger = rewriteSignals.trigger;
+
+    if (next.rewrite.active && !next.rewrite.overwriteType) {
+      const defaults = getRewriteDefaults(next, next.activeNeedlepoint?.rewrite_staging?.default_overwrite_type);
+      next.rewrite.overwriteType = defaults.overwriteType;
+      if (!next.rewrite.rewriteLaw) next.rewrite.rewriteLaw = defaults.rewriteLaw;
+      if (!next.rewrite.lockInRisk) next.rewrite.lockInRisk = defaults.lockInRisk;
+      if (!next.rewrite.counteractionWindow) next.rewrite.counteractionWindow = defaults.counteractionWindow;
+    }
+
+    if (!next.collapse.active) {
+      next.rewrite.ready = false;
+      if (!next.rewrite.active) {
+        next.rewrite.trigger = "";
+      }
+    }
+
+    return next;
+  }
+
+  function populateCollapseOverlay(state, breakType) {
+    const next = clone(normalizeState(state));
+    const defaults = getCollapseDefaults(next, breakType);
+    next.collapse.breakType = defaults.breakType;
+    next.collapse.brokenLaw = defaults.brokenLaw;
+    next.collapse.operatorChoice = defaults.operatorChoice;
+    next.collapse.exitCondition = defaults.exitCondition;
+    return syncCollapseRewriteStaging(next);
+  }
+
+  function populateRewriteOverlay(state, overwriteType) {
+    const next = clone(normalizeState(state));
+    const defaults = getRewriteDefaults(next, overwriteType);
+    next.rewrite.overwriteType = defaults.overwriteType;
+    next.rewrite.rewriteLaw = defaults.rewriteLaw;
+    next.rewrite.lockInRisk = defaults.lockInRisk;
+    next.rewrite.counteractionWindow = defaults.counteractionWindow;
+    return syncCollapseRewriteStaging(next);
+  }
+
+  function activateCollapseMode(state) {
+    const next = clone(normalizeState(state));
+    next.collapse.active = true;
+    const defaults = getCollapseDefaults(next, next.collapse.breakType);
+    if (!next.collapse.breakType) next.collapse.breakType = defaults.breakType;
+    if (!next.collapse.brokenLaw) next.collapse.brokenLaw = defaults.brokenLaw;
+    if (!next.collapse.operatorChoice) next.collapse.operatorChoice = defaults.operatorChoice;
+    if (!next.collapse.exitCondition) next.collapse.exitCondition = defaults.exitCondition;
+    return syncCollapseRewriteStaging(next);
+  }
+
+  function deactivateCollapseMode(state) {
+    const next = clone(normalizeState(state));
+    next.collapse.active = false;
+    next.collapse.exitFailedLatch = false;
+    next.rewrite.active = false;
+    next.rewrite.acceptFalseSelfLatch = false;
+    next.rewrite.readyLatch = false;
+    return syncCollapseRewriteStaging(next);
+  }
+
+  function clearCollapseStaging(state) {
+    const next = clone(normalizeState(state));
+    next.collapse = normalizeCollapse({});
+    next.rewrite = normalizeRewrite({});
+    return syncCollapseRewriteStaging(next);
+  }
+
+  function activateRewriteMode(state) {
+    const next = clone(normalizeState(state));
+    if (!next.collapse.active) return syncCollapseRewriteStaging(next);
+    next.rewrite.active = true;
+    const defaults = getRewriteDefaults(next, next.rewrite.overwriteType);
+    if (!next.rewrite.overwriteType) next.rewrite.overwriteType = defaults.overwriteType;
+    if (!next.rewrite.rewriteLaw) next.rewrite.rewriteLaw = defaults.rewriteLaw;
+    if (!next.rewrite.lockInRisk) next.rewrite.lockInRisk = defaults.lockInRisk;
+    if (!next.rewrite.counteractionWindow) next.rewrite.counteractionWindow = defaults.counteractionWindow;
+    return syncCollapseRewriteStaging(next);
+  }
+
+  function deactivateRewriteMode(state) {
+    const next = clone(normalizeState(state));
+    next.rewrite.active = false;
+    return syncCollapseRewriteStaging(next);
+  }
+
+  function markCollapseExitFailed(state) {
+    const next = clone(normalizeState(state));
+    if (!next.collapse.active) return syncCollapseRewriteStaging(next);
+    next.collapse.exitFailedLatch = true;
+    return syncCollapseRewriteStaging(next);
   }
 
   function attentionIndex(label) {
@@ -1398,6 +1695,18 @@
         const note = effects.npc_pressure_note || "Pressure escalates from table trigger.";
         npc.pressure = npc.pressure ? `${npc.pressure} // ${note}` : note;
       });
+    }
+
+    if (effects.collapse_ready) {
+      draft.collapse.readyLatch = true;
+      draft.collapse.trigger = trigger.label;
+    }
+    if (effects.rewrite_ready) {
+      draft.rewrite.readyLatch = true;
+      draft.rewrite.trigger = trigger.label;
+    }
+    if (effects.accept_false_self) {
+      draft.rewrite.acceptFalseSelfLatch = true;
     }
 
     if (options.persist) {
@@ -1783,9 +2092,12 @@
       caseFile: normalizeTextObject(merged.caseFile, defaultState.caseFile),
       activeNeedlepoint: normalizeActiveNeedlepoint(merged.activeNeedlepoint),
       handlerNotes: normalizeTextObject(merged.handlerNotes, defaultState.handlerNotes),
+      collapse: normalizeCollapse(merged.collapse),
+      rewrite: normalizeRewrite(merged.rewrite),
       canonTerminology
     };
-    return hasActiveNeedlepoint(next) ? applyNeedlepointAttention(next) : next;
+    const withNeedlepoint = hasActiveNeedlepoint(next) ? applyNeedlepointAttention(next) : next;
+    return syncCollapseRewriteStaging(withNeedlepoint);
   }
 
   function normalizeTextObject(value, shape) {
@@ -2064,6 +2376,17 @@
     stabilityBandFromPoints,
     harmConditionFromBoxes,
     formatPlayerStability,
-    formatPlayerHarm
+    formatPlayerHarm,
+    collapseBreakTypes,
+    rewriteOverwriteTypes,
+    syncCollapseRewriteStaging,
+    populateCollapseOverlay,
+    populateRewriteOverlay,
+    activateCollapseMode,
+    deactivateCollapseMode,
+    clearCollapseStaging,
+    activateRewriteMode,
+    deactivateRewriteMode,
+    markCollapseExitFailed
   };
 }());

@@ -458,6 +458,7 @@
     renderPlayerView();
     if (window.HandlerTriggers) window.HandlerTriggers.render(state);
     if (window.HandlerWindDown) window.HandlerWindDown.render();
+    if (window.HandlerCollapse) window.HandlerCollapse.render(api.readState());
     if (window.HandlerNav) window.HandlerNav.renderFieldLock();
   }
 
@@ -735,6 +736,20 @@
     });
   }
 
+  function applyCollapseState(nextState, message) {
+    state = nextState;
+    syncForm();
+    writeState(message || "STAGING SAVED");
+    renderDynamic();
+  }
+
+  function bindCollapseBridge() {
+    window.addEventListener("veildaemon:handler-collapse-updated", (event) => {
+      if (!event.detail?.state) return;
+      applyCollapseState(event.detail.state, event.detail.statusText);
+    });
+  }
+
   async function init() {
     await api.loadTemplates();
     bindForm();
@@ -742,6 +757,7 @@
     bindDashboardMode();
     bindTriggerBridge();
     bindWindDownBridge();
+    bindCollapseBridge();
     renderAll();
   }
 
