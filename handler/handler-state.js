@@ -940,7 +940,29 @@
           "default_break_type": "Signal",
           "broken_law": "The Audience can caption choices before Operators make them.",
           "operator_choice": "Refuse the curated self, ground Mara as a person, protect Saffi's true memory, or flee Floor 13 together.",
-          "exit_condition": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience."
+          "exit_condition": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience.",
+          "by_break_type": {
+            "Signal": {
+              "broken_law": "The Audience can caption choices before Operators make them.",
+              "operator_choice": "Cut the feed, poison the comment thread with truth, ground Mara, or flee together.",
+              "exit_condition": "Break observation or speak honestly while protected."
+            },
+            "Identity": {
+              "broken_law": "The performed self becomes easier to sustain than the real one.",
+              "operator_choice": "Refuse the curated role, name what it costs, remind Mara who knew her off-camera.",
+              "exit_condition": "The group refuses the assigned role together."
+            },
+            "Memory": {
+              "broken_law": "The feed remembers the version that was easiest to watch.",
+              "operator_choice": "Use Saffi's true memory, correct the record, or accept the edited aftermath.",
+              "exit_condition": "A witness names the real memory before the Audience captions it."
+            },
+            "Relationship": {
+              "broken_law": "The Audience turns care into leverage.",
+              "operator_choice": "Protect Saffi, reach Mara as a person, or let the site use one as bait for the other.",
+              "exit_condition": "Someone protects the bond without performing it for the room."
+            }
+          }
         },
         "rewrite_staging": {
           "default_overwrite_type": "Role",
@@ -1089,7 +1111,8 @@
       operatorChoice: "",
       exitCondition: "",
       readyLatch: false,
-      exitFailedLatch: false
+      exitFailedLatch: false,
+      fieldsEdited: false
     },
     rewrite: {
       ready: false,
@@ -1228,13 +1251,36 @@
     })).filter((trigger) => trigger.label);
   }
 
+  function normalizeCollapseBreakTypeEntry(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return {
+      broken_law: safeString(source.broken_law, 500),
+      operator_choice: safeString(source.operator_choice, 500),
+      exit_condition: safeString(source.exit_condition, 500)
+    };
+  }
+
+  function normalizeCollapseByBreakType(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return collapseBreakTypes.reduce((table, breakType) => {
+      const entry = source[breakType];
+      if (!entry || typeof entry !== "object") return table;
+      const normalized = normalizeCollapseBreakTypeEntry(entry);
+      if (normalized.broken_law || normalized.operator_choice || normalized.exit_condition) {
+        table[breakType] = normalized;
+      }
+      return table;
+    }, {});
+  }
+
   function normalizeCollapseStaging(value) {
     const source = value && typeof value === "object" ? value : {};
     return {
       default_break_type: normalizeChoice(source.default_break_type, collapseBreakTypes, ""),
       broken_law: safeString(source.broken_law, 500),
       operator_choice: safeString(source.operator_choice, 500),
-      exit_condition: safeString(source.exit_condition, 500)
+      exit_condition: safeString(source.exit_condition, 500),
+      by_break_type: normalizeCollapseByBreakType(source.by_break_type)
     };
   }
 
@@ -1275,7 +1321,8 @@
       operatorChoice: safeString(source.operatorChoice, 500),
       exitCondition: safeString(source.exitCondition, 500),
       readyLatch: Boolean(source.readyLatch),
-      exitFailedLatch: Boolean(source.exitFailedLatch)
+      exitFailedLatch: Boolean(source.exitFailedLatch),
+      fieldsEdited: Boolean(source.fieldsEdited)
     };
   }
 
@@ -1305,6 +1352,69 @@
     };
   }
 
+  function collapseBreakTypeGenericDefaults(breakType, state) {
+    const loop = state.entityLoop || {};
+    const exit = safeString(loop.Exit, 500);
+    const violence = safeString(loop.Violence, 500);
+    const table = {
+      Room: {
+        brokenLaw: "The room's physical law stops matching ordinary cause and effect.",
+        operatorChoice: "Leave together, secure one true exit, or force the space without vulnerability.",
+        exitCondition: "The group names what the room is doing and refuses to play along."
+      },
+      Identity: {
+        brokenLaw: "The performed self becomes easier to sustain than the real one.",
+        operatorChoice: "Refuse the assigned role, name what it costs, and ground the person at stake.",
+        exitCondition: "The group refuses the assigned role together."
+      },
+      Memory: {
+        brokenLaw: "The site remembers the version that was easiest to watch.",
+        operatorChoice: "Use a true memory, correct the record, or accept the edited aftermath.",
+        exitCondition: "A witness names the real memory before the site captions it."
+      },
+      Body: {
+        brokenLaw: "The body answers observation before the person does.",
+        operatorChoice: "Shield the harmed Operator, cut observation, or remove them from the read.",
+        exitCondition: "Care is given without performance for the room."
+      },
+      Relationship: {
+        brokenLaw: "The site turns care into leverage.",
+        operatorChoice: "Protect the bond, reach the person at stake, or refuse to use one as bait for the other.",
+        exitCondition: "Someone protects the bond without performing it for the room."
+      },
+      Evidence: {
+        brokenLaw: "The record edits itself toward the version that spreads fastest.",
+        operatorChoice: "Secure the original, name the corruption, or let the false record stand and pay the cost.",
+        exitCondition: "A witness preserves or speaks the uncorrupted record under pressure."
+      },
+      Time: {
+        brokenLaw: "The next beat arrives before the group can choose.",
+        operatorChoice: "Slow the room, buy one honest beat, or act inside the compressed window.",
+        exitCondition: "The group acts together before the site locks the next moment."
+      },
+      Signal: {
+        brokenLaw: violence || "The feed captions choices before Operators make them.",
+        operatorChoice: "Cut observation, poison the false thread with truth, or flee together.",
+        exitCondition: exit || "Break observation or speak honestly while protected."
+      }
+    };
+    return table[breakType] || genericCollapseFallbacks(state);
+  }
+
+  function resolveCollapseStagingField(fieldName, breakType, state, existing = {}) {
+    const staging = state.activeNeedlepoint?.collapse_staging || {};
+    const resolvedBreak = normalizeChoice(breakType, collapseBreakTypes, "");
+    const byBreak = resolvedBreak ? staging.by_break_type?.[resolvedBreak] : null;
+    const genericBreak = resolvedBreak ? collapseBreakTypeGenericDefaults(resolvedBreak, state) : null;
+    const generic = genericCollapseFallbacks(state);
+    const stagingDefault = staging[fieldName] || "";
+    const byBreakValue = byBreak?.[fieldName] || "";
+    const genericBreakValue = genericBreak?.[fieldName === "broken_law" ? "brokenLaw" : fieldName === "operator_choice" ? "operatorChoice" : "exitCondition"] || "";
+    const existingValue = existing[fieldName === "broken_law" ? "brokenLaw" : fieldName === "operator_choice" ? "operatorChoice" : "exitCondition"] || "";
+    const genericValue = generic[fieldName === "broken_law" ? "brokenLaw" : fieldName === "operator_choice" ? "operatorChoice" : "exitCondition"] || "";
+    return byBreakValue || stagingDefault || genericBreakValue || existingValue || genericValue;
+  }
+
   function genericRewriteFallbacks(state) {
     const loop = state.entityLoop || {};
     return {
@@ -1314,16 +1424,28 @@
     };
   }
 
-  function getCollapseDefaults(state, breakType) {
+  function getCollapseDefaults(state, breakType, existing = {}) {
     const staging = state.activeNeedlepoint?.collapse_staging || {};
-    const generic = genericCollapseFallbacks(state);
     const resolvedBreak = normalizeChoice(breakType || staging.default_break_type, collapseBreakTypes, "");
     return {
       breakType: resolvedBreak,
-      brokenLaw: staging.broken_law || generic.brokenLaw,
-      operatorChoice: staging.operator_choice || generic.operatorChoice,
-      exitCondition: staging.exit_condition || generic.exitCondition
+      brokenLaw: resolveCollapseStagingField("broken_law", resolvedBreak, state, existing),
+      operatorChoice: resolveCollapseStagingField("operator_choice", resolvedBreak, state, existing),
+      exitCondition: resolveCollapseStagingField("exit_condition", resolvedBreak, state, existing)
     };
+  }
+
+  function collapseBreakTypeChangeNeedsConfirm(state, breakType) {
+    const collapse = normalizeCollapse(state?.collapse);
+    const resolvedBreak = normalizeChoice(breakType, collapseBreakTypes, "");
+    if (!resolvedBreak || !collapse.fieldsEdited || !collapse.breakType) return false;
+    return collapse.breakType !== resolvedBreak;
+  }
+
+  function markCollapseFieldsEdited(state) {
+    const next = clone(normalizeState(state));
+    next.collapse.fieldsEdited = true;
+    return syncCollapseRewriteStaging(next);
   }
 
   function getRewriteDefaults(state, overwriteType) {
@@ -1413,13 +1535,28 @@
     return next;
   }
 
-  function populateCollapseOverlay(state, breakType) {
+  function populateCollapseOverlay(state, breakType, options = {}) {
     const next = clone(normalizeState(state));
-    const defaults = getCollapseDefaults(next, breakType);
+    const resolvedBreak = normalizeChoice(breakType, collapseBreakTypes, "");
+    if (!resolvedBreak) return syncCollapseRewriteStaging(next);
+
+    const forceReplace = Boolean(options.forceReplace);
+    const collapse = next.collapse;
+
+    if (collapse.fieldsEdited && collapse.breakType === resolvedBreak && !forceReplace) {
+      return syncCollapseRewriteStaging(next);
+    }
+
+    if (collapse.fieldsEdited && collapse.breakType && collapse.breakType !== resolvedBreak && !forceReplace) {
+      return syncCollapseRewriteStaging(next);
+    }
+
+    const defaults = getCollapseDefaults(next, resolvedBreak);
     next.collapse.breakType = defaults.breakType;
     next.collapse.brokenLaw = defaults.brokenLaw;
     next.collapse.operatorChoice = defaults.operatorChoice;
     next.collapse.exitCondition = defaults.exitCondition;
+    next.collapse.fieldsEdited = false;
     return syncCollapseRewriteStaging(next);
   }
 
@@ -2381,6 +2518,8 @@
     rewriteOverwriteTypes,
     syncCollapseRewriteStaging,
     populateCollapseOverlay,
+    collapseBreakTypeChangeNeedsConfirm,
+    markCollapseFieldsEdited,
     populateRewriteOverlay,
     activateCollapseMode,
     deactivateCollapseMode,
