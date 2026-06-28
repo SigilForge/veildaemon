@@ -1281,10 +1281,16 @@ body[data-handler-mode="live"] .player-grid {
   text-transform: uppercase;
 }
 
-.npc-anchor-button.is-active {
+.npc-anchor-button.is-active,
+.npc-anchor-button.is-pending {
   border-color: rgba(185,84,255,.74);
   color: var(--text);
   box-shadow: inset 0 0 16px rgba(185,84,255,.1);
+}
+
+.npc-anchor-button.is-pending {
+  outline: 1px solid rgba(185,84,255,.45);
+  outline-offset: 2px;
 }
 
 .npc-anchor-guidance {
@@ -1292,6 +1298,13 @@ body[data-handler-mode="live"] .player-grid {
   color: var(--muted);
   font-size: .68rem;
   line-height: 1.4;
+}
+
+.npc-anchor-preview {
+  margin-top: .55rem;
+  padding: .65rem;
+  border: 1px solid rgba(137,255,218,.18);
+  background: rgba(0,0,0,.26);
 }
 
 body[data-handler-mode="live"] .npc-toolbar,
