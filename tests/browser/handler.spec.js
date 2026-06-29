@@ -256,6 +256,57 @@ test("handler live triggers route common table events to clock responsibility", 
   await expect(preview).toContainText("Unseen -> Noticed");
 });
 
+test("handler live collapse staging keeps themed target buttons on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await applyHandlerTemplate(page, "viridian-house");
+  await page.locator('[name="primaryClock.current"]').fill("6");
+  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+
+  const staging = page.getByLabel("Collapse and Rewrite staging");
+  await expect(staging).toContainText("COLLAPSE READY");
+
+  const collapseButton = staging.locator('button[data-break-type="Body"]');
+  await collapseButton.evaluate((button) => button.click());
+
+  const collapseStyles = await collapseButton.evaluate((button) => {
+    const styles = getComputedStyle(button);
+    return {
+      border: styles.borderColor,
+      background: styles.backgroundColor,
+      color: styles.color
+    };
+  });
+  expect(collapseStyles.border).not.toBe("rgb(128, 128, 128)");
+  expect(collapseStyles.background).not.toBe("rgb(239, 239, 239)");
+
+  await staging.locator("button.button.primary", { hasText: "Activate Collapse" }).evaluate((button) => button.click());
+  await page.evaluate(() => {
+    const api = window.HandlerState;
+    let next = api.readState();
+    next.rewrite.ready = true;
+    next.rewrite.readyLatch = true;
+    next.rewrite.trigger = "Accepted false / curated self";
+    next = api.syncCollapseRewriteStaging(next);
+    window.dispatchEvent(new CustomEvent("veildaemon:handler-collapse-updated", {
+      detail: { state: next, statusText: "REWRITE READY" }
+    }));
+  });
+
+  const rewriteButton = staging.locator('button[data-overwrite-type="Role"]');
+  await rewriteButton.evaluate((button) => button.click());
+
+  const rewriteStyles = await rewriteButton.evaluate((button) => {
+    const styles = getComputedStyle(button);
+    return {
+      border: styles.borderColor,
+      background: styles.backgroundColor
+    };
+  });
+  expect(rewriteStyles.border).not.toBe(collapseStyles.border);
+});
+
 test("handler live collapse staging respects global field lock", async ({ page }) => {
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
