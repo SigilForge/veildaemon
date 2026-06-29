@@ -1073,14 +1073,15 @@ select:focus {
   font-size: .95rem;
 }
 
-.live-surface .roll-mode {
-  grid-column: 1 / 3;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.live-surface .roll-row #roll-button {
+  grid-column: 1 / -1;
+  min-height: 2.55rem;
+  width: 100%;
 }
 
-.live-surface .roll-row #roll-button {
-  grid-column: 3;
-  min-height: 100%;
+.live-surface .roll-mode {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .live-surface .roll-output {
