@@ -1338,6 +1338,15 @@ body[data-handler-mode="prep"] .npc-summary-grid {
 
 .notes-panel .field-grid.three {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  align-items: start;
+}
+
+.notes-panel .field-grid.three textarea {
+  field-sizing: fixed;
+  height: calc(0.82rem * 1.35 * 6 + 1.32rem);
+  min-height: calc(0.82rem * 1.35 * 6 + 1.32rem);
+  resize: vertical;
+  overflow-y: auto;
 }
 
 .notes-panel > label {
