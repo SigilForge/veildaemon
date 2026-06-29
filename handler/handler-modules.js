@@ -758,7 +758,7 @@
     text("module-case", state.session.caseTitle, "No case loaded");
     text("module-attention", state.attention.current, "Unseen");
     text("module-clock", api.publicClockLabel(state), "0/6");
-    text("module-active-consequence", state.sceneState.primaryConsequence, "Set Attention and Clock.");
+    text("module-active-consequence", state.attention.consequence, "Set Attention and Clock.");
     text("module-needlepoint-scaffold", state.activeNeedlepoint?.scaffold || state.caseFile.templates || "No active Needlepoint loaded.");
     if (window.HandlerNav) window.HandlerNav.renderSessionStrip();
   }

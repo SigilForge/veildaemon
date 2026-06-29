@@ -57,8 +57,7 @@
       button.dataset.value = item.name;
       button.innerHTML = `<strong>${item.name}</strong><span>${item.cue}</span>`;
       button.addEventListener("click", () => {
-        state.sceneState.current = item.name;
-        state.activeEntity.sceneState = item.name;
+        state = api.selectSceneState(state, item.name);
         syncForm();
         writeState();
         renderDynamic();

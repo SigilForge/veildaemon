@@ -441,6 +441,23 @@
       "consequence": "The Witness escapes the church boundary. Aftermath becomes campaign continuity."
     }
   ],
+  "scene_states": {
+    "Stable": {
+      "case_consequence": "The ruined church is only a site. Reflections lag, but Operators can still leave together."
+    },
+    "Echoed": {
+      "case_consequence": "The church repeats an impossible message through glass, rainwater, or phone screens."
+    },
+    "Recursive": {
+      "case_consequence": "Reflection drift begins linking choices: the same warning returns from a different surface."
+    },
+    "Breached": {
+      "case_consequence": "The chamber treats intake as active. Identity labels, cult residue, and exits start answering the Operators."
+    },
+    "Collapse": {
+      "case_consequence": "The Witness or Intake shell can choose first unless the group stabilizes, binds, speaks, or leaves together."
+    }
+  },
   "player_view": {
     "safe_consequence": ""
   },
@@ -582,10 +599,20 @@
         "operator_choice": "Cover the reflection, step outside, name the ordinary detail, or keep looking and accept Attention.",
         "exit_condition": "The group breaks line of sight, names what changed, and leaves together with one Anchor intact."
       },
+      "Name": {
+        "broken_law": "The intake designation becomes easier to answer to than the Operator's ordinary name.",
+        "operator_choice": "Speak the real name, accept the designation, or dispute the label before the room repeats it.",
+        "exit_condition": "Another Operator speaks the real name while the named Operator holds an Anchor."
+      },
       "Identity": {
         "broken_law": "The system classification becomes easier to believe than the Operator's own self-description.",
         "operator_choice": "Accept the intake label, dispute it, or define yourself before the room does.",
         "exit_condition": "The Operator states who they are through an Anchor, and another Operator confirms it."
+      },
+      "Role": {
+        "broken_law": "Operator becomes a function before it becomes a choice.",
+        "operator_choice": "Accept the emergency role, refuse recruitment, or choose why you are here in your own words.",
+        "exit_condition": "The character names why they are present without letting the system assign consent."
       },
       "Memory": {
         "broken_law": "The remembered warning becomes less stable than the message that should not exist.",
@@ -616,6 +643,21 @@
         "broken_law": "Unknown signals become known once they know you back.",
         "operator_choice": "Answer, block, trace, corrupt, or refuse the signal.",
         "exit_condition": "The signal is routed through VeilCorp Intake, cut off, or made safe by group witness."
+      },
+      "Record": {
+        "broken_law": "The impossible message becomes more credible than the remembered warning.",
+        "operator_choice": "Preserve the contradiction, compare devices, or let the intake file become the official version.",
+        "exit_condition": "The record is duplicated, witnessed, and kept alongside one contradiction."
+      },
+      "Location": {
+        "broken_law": "The ruined church becomes easier to find than to leave.",
+        "operator_choice": "Follow the route, mark a mundane exit, or leave together before the reflection shifts.",
+        "exit_condition": "The group confirms a mundane route and exits together before the next chamber prompt."
+      },
+      "History": {
+        "broken_law": "The system backfills reasons the Operator was always going to answer.",
+        "operator_choice": "Accept the recruitment narrative, name an ordinary refusal, or preserve the messy sequence.",
+        "exit_condition": "Someone names one ordinary reason they could still refuse."
       }
     }
   },
@@ -629,6 +671,11 @@
         "rewrite_law": "The intake label begins replacing the Operator's ordinary name.",
         "lock_in_risk": "If no one contradicts it before the next pressure beat, records and devices start using the label.",
         "counteraction_window": "Another Operator speaks the real name while the named Operator holds an Anchor."
+      },
+      "Identity": {
+        "rewrite_law": "The system classification becomes the stable self.",
+        "lock_in_risk": "Future devices, reflections, and records answer the intake version before the person.",
+        "counteraction_window": "Define the self through an Anchor before checking the device again."
       },
       "Role": {
         "rewrite_law": "Operator becomes a function before it becomes a choice.",
