@@ -5,6 +5,31 @@ async function enableHandlerFieldEdit(page) {
   await expect(page.getByRole("button", { name: "Edit Fields: On" })).toBeVisible();
 }
 
+async function applyHandlerTemplate(page, templateId) {
+  page.once("dialog", (dialog) => {
+    expect(dialog.type()).toBe("confirm");
+    expect(dialog.message()).toContain("Stacking is never intended");
+    dialog.accept();
+  });
+  if (templateId) {
+    await page.getByLabel("Template").selectOption(templateId);
+  }
+  await page.getByRole("button", { name: "Apply Template" }).click();
+}
+
+test("handler apply template confirm cancels without replacing case", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await page.getByRole("button", { name: "PREP" }).click();
+  await applyHandlerTemplate(page, "veilcorp-intake");
+  await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("VeilCorp Intake");
+
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await page.getByLabel("Template").selectOption("viridian-house");
+  await page.getByRole("button", { name: "Apply Template" }).click();
+  await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("VeilCorp Intake");
+});
+
 test("handler overview exposes modular control cards", async ({ page }) => {
   await page.goto("/handler/");
 
@@ -23,8 +48,7 @@ test("handler overview exposes modular control cards", async ({ page }) => {
   await expect(overview.getByRole("link", { name: "Open Player View" })).toBeVisible();
 
   await enableHandlerFieldEdit(page);
-  await page.getByLabel("Template").selectOption("veilcorp-intake");
-  await page.getByRole("button", { name: "Apply Template" }).click();
+  await applyHandlerTemplate(page, "veilcorp-intake");
   await expect(page.locator("#overview-case")).toContainText("VeilCorp Intake");
   await expect(page.locator("#overview-scene-state")).toContainText("Echoed");
 });
@@ -104,8 +128,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   expect(secondaryClockMetrics.overflow).toBeLessThanOrEqual(2);
   expect(secondaryClockMetrics.narrowestField).toBeGreaterThan(110);
   await expect(page.getByLabel("Template")).toHaveValue("custom-campaign");
-  await page.getByLabel("Template").selectOption("veilcorp-intake");
-  await page.getByRole("button", { name: "Apply Template" }).click();
+  await applyHandlerTemplate(page, "veilcorp-intake");
   await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("VeilCorp Intake");
   await expect(page.locator('[name="entityLoop.Need"]')).toHaveValue("A complete self to copy, correct, or preserve.");
   await expect(page.locator('[name="entityLoop.Exit"]')).toHaveValue("Refuse the false self, speak one specific truth while witnessed, and leave together before the chamber chooses.");
@@ -113,8 +136,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await page.getByRole("button", { name: "LIVE MODE" }).click();
   await expect(page.getByLabel("Scene State").getByRole("button", { name: /Echoed/ })).toHaveClass(/is-active/);
   await page.getByRole("button", { name: "PREP" }).click();
-  await page.getByLabel("Template").selectOption("viridian-house");
-  await page.getByRole("button", { name: "Apply Template" }).click();
+  await applyHandlerTemplate(page, "viridian-house");
   await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("Viridian House");
   await expect(page.locator('[name="entityLoop.Need"]')).toHaveValue("The moment before confession, when someone edits themselves to survive being seen.");
   await expect(page.locator('[name="primaryClock.name"]')).toHaveValue("Audience Before Clock");
@@ -183,8 +205,7 @@ test("handler live collapse staging respects global field lock", async ({ page }
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
   await page.getByRole("button", { name: "PREP" }).click();
-  await page.getByLabel("Template").selectOption("viridian-house");
-  await page.getByRole("button", { name: "Apply Template" }).click();
+  await applyHandlerTemplate(page, "viridian-house");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
   await page.locator('[name="primaryClock.current"]').fill("6");
   await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
@@ -209,8 +230,7 @@ test("handler live collapse staging surfaces from full clock without exposing pl
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
   await page.getByRole("button", { name: "PREP" }).click();
-  await page.getByLabel("Template").selectOption("viridian-house");
-  await page.getByRole("button", { name: "Apply Template" }).click();
+  await applyHandlerTemplate(page, "viridian-house");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
 
   await page.locator('[name="primaryClock.current"]').fill("6");
@@ -243,8 +263,7 @@ test("handler live collapse staging uses VeilCorp Intake pressure grammar", asyn
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
   await page.getByRole("button", { name: "PREP" }).click();
-  await page.getByLabel("Template").selectOption("veilcorp-intake");
-  await page.getByRole("button", { name: "Apply Template" }).click();
+  await applyHandlerTemplate(page, "veilcorp-intake");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
 
   await page.locator('[name="primaryClock.current"]').fill("6");
@@ -282,8 +301,7 @@ test("handler live custom template carries ideal runtime scaffold", async ({ pag
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
   await page.getByRole("button", { name: "PREP" }).click();
-  await page.getByLabel("Template").selectOption("custom-campaign");
-  await page.getByRole("button", { name: "Apply Template" }).click();
+  await applyHandlerTemplate(page, "custom-campaign");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
 
   await expect(page.getByRole("group", { name: "Table triggers" }).getByRole("button", { name: /Operators deny visible pressure/ })).toBeVisible();
@@ -312,8 +330,7 @@ test("handler live rewrite staging waits for active collapse", async ({ page }) 
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
   await page.getByRole("button", { name: "PREP" }).click();
-  await page.getByLabel("Template").selectOption("viridian-house");
-  await page.getByRole("button", { name: "Apply Template" }).click();
+  await applyHandlerTemplate(page, "viridian-house");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
 
   await page.locator('[name="primaryClock.current"]').fill("6");
@@ -425,8 +442,7 @@ test("handler live scene and attention consequences stay independent", async ({ 
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
   await page.getByRole("button", { name: "PREP" }).click();
-  await page.getByLabel("Template").selectOption("viridian-house");
-  await page.getByRole("button", { name: "Apply Template" }).click();
+  await applyHandlerTemplate(page, "viridian-house");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
 
   const sceneConsequence = page.locator('[name="sceneState.sceneConsequence"]');
@@ -448,8 +464,7 @@ test("handler live scene and attention consequences stay independent", async ({ 
   await expect(sceneConsequence).toHaveValue(sceneBeforeAttentionChange);
 
   await page.getByRole("button", { name: "PREP" }).click();
-  await page.getByLabel("Template").selectOption("custom-campaign");
-  await page.getByRole("button", { name: "Apply Template" }).click();
+  await applyHandlerTemplate(page, "custom-campaign");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
 
   await expect(sceneConsequence).toHaveValue("The site is mostly ordinary. One impossible detail is visible, but the room has not committed.");

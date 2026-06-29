@@ -108,8 +108,10 @@
     const picker = document.getElementById("template-picker");
     if (applyTemplate && picker) applyTemplate.addEventListener("click", () => {
       const template = api.templates.find((item) => item.id === picker.value) || api.templates[0];
+      state = api.readState();
+      if (!api.confirmTemplateReplace(state, template)) return;
       try {
-        state = api.writeState(api.mergeDeep(state, template.data), `${template.name.toUpperCase()} LOADED`);
+        state = api.writeState(api.applyTemplateState(state, template), `${template.name.toUpperCase()} LOADED`);
         setStatus(`${template.name.toUpperCase()} LOADED`);
         renderOverview();
       } catch (error) {

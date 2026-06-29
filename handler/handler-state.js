@@ -3043,6 +3043,31 @@
     target[parts[0]] = value;
   }
 
+  function currentTemplateLabel(state) {
+    const needlepointId = safeString(state?.activeNeedlepoint?.id, 80);
+    const match = templates.find((item) => item.id === needlepointId);
+    if (match) return match.name;
+    const caseTitle = safeString(state?.session?.caseTitle, 80);
+    return caseTitle || "your current case";
+  }
+
+  function confirmTemplateReplace(state, template) {
+    const nextName = safeString(template?.name, 80) || "the selected template";
+    const currentName = currentTemplateLabel(state);
+    return window.confirm(
+      `Apply "${nextName}"?\n\nThis unloads "${currentName}" and loads the new template. Stacking is never intended.`
+    );
+  }
+
+  function applyTemplateState(state, template) {
+    const base = template.id === "custom-campaign" ? defaultState : state;
+    const merged = mergeDeep(base, template.data || {});
+    if (template.data?.activeNeedlepoint) {
+      merged.activeNeedlepoint = template.data.activeNeedlepoint;
+    }
+    return normalizeState(merged);
+  }
+
   function publicClockLabel(state) {
     const clock = state.primaryClock;
     const name = clock.name || "Active Clock";
@@ -3084,6 +3109,9 @@
     safeNumber,
     getPath,
     setPath,
+    currentTemplateLabel,
+    confirmTemplateReplace,
+    applyTemplateState,
     publicClockLabel,
     clockWarning,
     applyNeedlepointAttention,
