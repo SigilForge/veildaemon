@@ -126,6 +126,7 @@
     if (!el || el.matches("[type='button'], [type='file'], [type='checkbox'], [type='radio']")) return false;
     if (el.hasAttribute("data-live-control") || el.closest("[data-live-control-zone]")) return true;
 
+
     const name = el.getAttribute("name") || "";
     const dataField = el.getAttribute("data-field") || "";
 
@@ -144,6 +145,12 @@
     const unlocked = api.fieldEditUnlocked();
     document.querySelectorAll(".handler-shell input, .handler-shell textarea, .handler-shell select").forEach((el) => {
       if (el.matches("[type='button'], [type='file']")) return;
+      if (el.hasAttribute("data-live-consequence")) {
+        el.readOnly = true;
+        el.disabled = false;
+        el.classList.add("is-field-locked");
+        return;
+      }
       const safe = fieldEditSafe(el);
       const editable = unlocked || safe;
       el.toggleAttribute("data-field-edit-safe", safe);

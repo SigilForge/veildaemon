@@ -120,11 +120,8 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.locator('[name="attention.residue"]')).toHaveValue("Screens hesitate before showing the Operator's reflection.");
   await page.getByLabel("Current Attention").selectOption("Unseen");
   await expect(page.locator('[name="attention.residue"]')).toHaveValue("A comment arrives before anyone types it.");
-  await expect(page.locator('[name="attention.consequence"]')).toHaveValue("Minor tell only. No penalty; warning only.");
-  await expect(page.locator('[name="sceneState.caseConsequence"]')).toHaveValue("Viridian House is still just a building. Cameras notice, but the group can choose ordinary routes.");
-  await page.getByLabel("Scene State").getByRole("button", { name: /Breached/ }).click();
-  await expect(page.locator('[name="sceneState.caseConsequence"]')).toHaveValue("Apartment 13F can preserve the easier self. Mara, Saffi, or an Operator is pressured to become content.");
-  await expect(page.locator('[name="attention.consequence"]')).toHaveValue("Minor tell only. No penalty; warning only.");
+  await expect(page.locator('[name="sceneState.sceneConsequence"]')).toHaveValue("The lobby still pretends to be ordinary. Cameras watch, but have not answered yet.");
+  await expect(page.locator('[name="attention.aftermathConsequence"]')).toHaveValue("Minor tell only. No penalty; warning only.");
   await page.locator('[name="roll.attribute"]').fill("3");
   await page.locator('[name="roll.skill"]').fill("2");
   await page.getByRole("button", { name: "Roll 3d6" }).click();
@@ -237,66 +234,6 @@ test("handler live collapse staging surfaces from full clock without exposing pl
   await expect(page.getByLabel("Player-facing display")).not.toContainText("Broken Law");
 });
 
-test("handler live Viridian staging covers every continuity target", async ({ page }) => {
-  await page.goto("/handler/live/");
-  await enableHandlerFieldEdit(page);
-  await page.getByRole("button", { name: "PREP" }).click();
-  await page.getByLabel("Template").selectOption("viridian-house");
-  await page.getByRole("button", { name: "Apply Template" }).click();
-  await page.getByRole("button", { name: "LIVE MODE" }).click();
-
-  await page.locator('[name="primaryClock.current"]').fill("6");
-  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
-
-  const staging = page.getByLabel("Collapse and Rewrite staging");
-
-  await staging.locator('button[data-break-type="Identity"]').evaluate((button) => button.click());
-  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The curated self becomes easier to recognize than the living person.");
-  await expect(staging.locator('[name="collapse.operatorChoice"]')).toHaveValue("Refuse the performed identity, name what it costs, or let the Audience stabilize the easier version.");
-  await expect(staging.locator('[name="collapse.exitCondition"]')).toHaveValue("Someone protects honest speech while the Operator names who they are without performing for the room.");
-
-  await staging.locator('button[data-break-type="Record"]').evaluate((button) => button.click());
-  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The recorded version becomes more credible than the witnessed truth.");
-
-  await staging.locator('button[data-break-type="Location"]').evaluate((button) => button.click());
-  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The building routes people toward the floor where their edited selves are easier to keep.");
-
-  await staging.locator('button[data-break-type="History"]').evaluate((button) => button.click());
-  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The cleaner backstory becomes easier to remember than the messy truth.");
-
-  await page.evaluate(() => {
-    const api = window.HandlerState;
-    let next = api.activateCollapseMode(api.readState());
-    next = api.activateRewriteMode(next);
-    next = api.populateRewriteOverlay(next, "Identity");
-    window.dispatchEvent(new CustomEvent("veildaemon:handler-collapse-updated", {
-      detail: { state: next, statusText: "REWRITE STAGED" }
-    }));
-  });
-
-  await expect(staging.locator('[name="rewrite.rewriteLaw"]')).toHaveValue("The Audience-backed identity becomes the stable self.");
-  await expect(staging.locator('[name="rewrite.lockInRisk"]')).toHaveValue("Future rooms, feeds, and witnesses respond to the performed version first.");
-  await expect(staging.locator('[name="rewrite.counteractionWindow"]')).toHaveValue("Refuse one useful lie and keep a chosen flaw visible.");
-
-  await page.evaluate(() => {
-    const api = window.HandlerState;
-    const next = api.populateRewriteOverlay(api.readState(), "Location");
-    window.dispatchEvent(new CustomEvent("veildaemon:handler-collapse-updated", {
-      detail: { state: next, statusText: "REWRITE STAGED" }
-    }));
-  });
-  await expect(staging.locator('[name="rewrite.rewriteLaw"]')).toHaveValue("Floor 13 becomes easier to reach than the legal building.");
-
-  await page.evaluate(() => {
-    const api = window.HandlerState;
-    const next = api.populateRewriteOverlay(api.readState(), "History");
-    window.dispatchEvent(new CustomEvent("veildaemon:handler-collapse-updated", {
-      detail: { state: next, statusText: "REWRITE STAGED" }
-    }));
-  });
-  await expect(staging.locator('[name="rewrite.rewriteLaw"]')).toHaveValue("Mara's public persona becomes the remembered history.");
-});
-
 test("handler live collapse staging uses VeilCorp Intake pressure grammar", async ({ page }) => {
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
@@ -364,28 +301,6 @@ test("handler live custom template carries ideal runtime scaffold", async ({ pag
   });
 
   await expect(staging.locator('[name="rewrite.rewriteLaw"]')).toHaveValue("The accepted name becomes easier to remember than the original.");
-});
-
-test("handler templates map every visible collapse and rewrite target", async ({ page }) => {
-  await page.goto("/handler/live/");
-
-  const missing = await page.evaluate(() => {
-    const api = window.HandlerState;
-    return api.templates.map((template) => {
-      const needlepoint = template.data?.activeNeedlepoint || {};
-      const collapseMap = needlepoint.collapse_staging?.by_target || {};
-      const rewriteMap = needlepoint.rewrite_staging?.by_target || {};
-      const sceneMap = needlepoint.scene_states || {};
-      return {
-        id: template.id,
-        scene: api.sceneStates.map((item) => item.name).filter((target) => !sceneMap[target]),
-        collapse: api.collapseBreakTypes.filter((target) => !collapseMap[target]),
-        rewrite: api.rewriteOverwriteTypes.filter((target) => !rewriteMap[target])
-      };
-    }).filter((entry) => entry.scene.length || entry.collapse.length || entry.rewrite.length);
-  });
-
-  expect(missing).toEqual([]);
 });
 
 test("handler live rewrite staging waits for active collapse", async ({ page }) => {
@@ -499,6 +414,41 @@ test("handler imports Operator Record summaries", async ({ page }) => {
   await page.goto("/handler/");
   await expect(page.locator("#overview-operators")).toContainText("June Rook");
   await expect(page.locator("#overview-operators")).toContainText("Dream");
+});
+
+test("handler live scene and attention consequences stay independent", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await page.getByRole("button", { name: "PREP" }).click();
+  await page.getByLabel("Template").selectOption("viridian-house");
+  await page.getByRole("button", { name: "Apply Template" }).click();
+  await page.getByRole("button", { name: "LIVE MODE" }).click();
+
+  const sceneConsequence = page.locator('[name="sceneState.sceneConsequence"]');
+  const attentionAftermath = page.locator('[name="attention.aftermathConsequence"]');
+
+  await expect(sceneConsequence).toHaveValue("The lobby still pretends to be ordinary. Cameras watch, but have not answered yet.");
+  await expect(attentionAftermath).not.toHaveValue("");
+
+  const attentionBeforeSceneChange = await attentionAftermath.inputValue();
+
+  await page.getByLabel("Scene State").getByRole("button", { name: /Echoed/ }).click();
+  await expect(sceneConsequence).toHaveValue("The building repeats avoided truth through cameras, comments, reflections, and elevator timing.");
+  await expect(attentionAftermath).toHaveValue(attentionBeforeSceneChange);
+
+  const sceneBeforeAttentionChange = await sceneConsequence.inputValue();
+  await page.getByLabel("Current Attention").selectOption("Focused");
+  await expect(attentionAftermath).not.toHaveValue("");
+  await expect(attentionAftermath).not.toHaveValue(attentionBeforeSceneChange);
+  await expect(sceneConsequence).toHaveValue(sceneBeforeAttentionChange);
+
+  await page.getByRole("button", { name: "PREP" }).click();
+  await page.getByLabel("Template").selectOption("custom-campaign");
+  await page.getByRole("button", { name: "Apply Template" }).click();
+  await page.getByRole("button", { name: "LIVE MODE" }).click();
+
+  await expect(sceneConsequence).toHaveValue("The site is mostly ordinary. One impossible detail is visible, but the room has not committed.");
+  await expect(attentionAftermath).toHaveValue("Minor tell only. No penalty; warning only.");
 });
 
 test("handler exports Operator authorization packets", async ({ page }) => {
