@@ -123,8 +123,8 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   expect(rollMetrics.attribute.width).toBeGreaterThan(90);
   expect(rollMetrics.skill.width).toBeGreaterThan(90);
   expect(rollMetrics.modifier.width).toBeGreaterThan(90);
-  expect(rollMetrics.mode.top).toBeGreaterThan(rollMetrics.attribute.top);
   expect(rollMetrics.button.top).toBeGreaterThan(rollMetrics.attribute.top);
+  expect(rollMetrics.mode.top).toBeGreaterThan(rollMetrics.button.top);
 
   await page.getByRole("button", { name: "PREP" }).click();
   await expect(page.getByRole("button", { name: "PREP" })).toHaveClass(/is-active/);

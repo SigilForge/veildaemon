@@ -171,15 +171,15 @@
     align-items: end;
   }
 
-  body[data-handler-mode="live"] .roll-row .roll-mode {
-    grid-column: 1 / -1;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   body[data-handler-mode="live"] .roll-row #roll-button {
     grid-column: 1 / -1;
     min-height: 2.55rem;
     width: 100%;
+  }
+
+  body[data-handler-mode="live"] .roll-row .roll-mode {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   body[data-handler-mode="live"] .loop-grid {
@@ -196,8 +196,8 @@
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   }
 
-  body[data-handler-mode="live"] .clock-panel + .roll-panel,
-  body[data-handler-mode="live"] .roll-panel + .loop-panel,
+  body[data-handler-mode="live"] .roll-panel + .clock-panel,
+  body[data-handler-mode="live"] .clock-panel + .loop-panel,
   body[data-handler-mode="live"] .wind-down-panel + .aftermath-panel,
   body[data-handler-mode="live"] .aftermath-panel + .npc-panel {
     margin-top: 0;

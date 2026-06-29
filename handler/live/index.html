@@ -10,8 +10,8 @@
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260629-privatenotes1" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260629-liveonly2" />
+  <link rel="stylesheet" href="../handler.css?v=20260629-rollstack1" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260629-rollstack1" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -113,28 +113,6 @@
         </div>
 
         <div class="live-flow-column live-center-column">
-          <section class="panel clock-panel" aria-label="Primary clock" data-mode-panel="live">
-            <div class="panel-heading">
-              <p class="kicker">PRIMARY CLOCK</p>
-              <h2>What is ticking right now?</h2>
-            </div>
-            <div class="clock-field-grid live-states-clock-grid">
-              <label>Name<input name="primaryClock.name" maxlength="100" autocomplete="off" /></label>
-              <label>Segments<select name="primaryClock.segments"><option>4</option><option selected>6</option><option>8</option></select></label>
-              <label>Current<input name="primaryClock.current" type="number" min="0" max="12" step="1" /></label>
-              <label>Ticks When<textarea name="primaryClock.ticksWhen" maxlength="180" rows="2" autocomplete="off"></textarea></label>
-              <label>Stabilizer<textarea name="primaryClock.stabilizer" maxlength="160" rows="2" autocomplete="off"></textarea></label>
-            </div>
-            <div class="clock-track" id="primary-clock-track" aria-label="Primary clock segments" data-live-control-zone></div>
-            <details class="clock-notes-drawer">
-              <summary>Midpoint / full events</summary>
-              <div class="field-grid two">
-                <label>Midpoint Event<textarea name="primaryClock.midpointEvent" rows="2"></textarea></label>
-                <label>Full Clock Event<textarea name="primaryClock.fullClockEvent" rows="2"></textarea></label>
-              </div>
-            </details>
-          </section>
-
           <section class="panel roll-panel" aria-label="Quick roll helper" data-mode-panel="live" data-live-control-zone>
             <div class="panel-heading roll-panel-heading">
               <div>
@@ -163,13 +141,35 @@
               <label>Attribute<input name="roll.attribute" type="number" min="0" max="8" step="1" /></label>
               <label>Skill<input name="roll.skill" type="number" min="0" max="8" step="1" /></label>
               <label>Modifier<input name="roll.modifier" type="number" min="-10" max="10" step="1" /></label>
+              <button class="button primary" id="roll-button" type="button">Roll 3d6</button>
               <fieldset class="roll-mode">
                 <label><input name="roll.advantage" type="checkbox" /> Advantage</label>
                 <label><input name="roll.disadvantage" type="checkbox" /> Disadvantage</label>
               </fieldset>
-              <button class="button primary" id="roll-button" type="button">Roll 3d6</button>
             </div>
             <output class="roll-output" id="roll-output">Awaiting Operator test.</output>
+          </section>
+
+          <section class="panel clock-panel" aria-label="Primary clock" data-mode-panel="live">
+            <div class="panel-heading">
+              <p class="kicker">PRIMARY CLOCK</p>
+              <h2>What is ticking right now?</h2>
+            </div>
+            <div class="clock-field-grid live-states-clock-grid">
+              <label>Name<input name="primaryClock.name" maxlength="100" autocomplete="off" /></label>
+              <label>Segments<select name="primaryClock.segments"><option>4</option><option selected>6</option><option>8</option></select></label>
+              <label>Current<input name="primaryClock.current" type="number" min="0" max="12" step="1" /></label>
+              <label>Ticks When<textarea name="primaryClock.ticksWhen" maxlength="180" rows="2" autocomplete="off"></textarea></label>
+              <label>Stabilizer<textarea name="primaryClock.stabilizer" maxlength="160" rows="2" autocomplete="off"></textarea></label>
+            </div>
+            <div class="clock-track" id="primary-clock-track" aria-label="Primary clock segments" data-live-control-zone></div>
+            <details class="clock-notes-drawer">
+              <summary>Midpoint / full events</summary>
+              <div class="field-grid two">
+                <label>Midpoint Event<textarea name="primaryClock.midpointEvent" rows="2"></textarea></label>
+                <label>Full Clock Event<textarea name="primaryClock.fullClockEvent" rows="2"></textarea></label>
+              </div>
+            </details>
           </section>
 
           <section class="panel loop-panel" aria-label="Entity or Zone Loop" data-mode-panel="live">
