@@ -495,6 +495,23 @@
       "consequence": "The Audience escapes the site boundary. Aftermath becomes a future Needlepoint seed."
     }
   ],
+  "scene_states": {
+    "Stable": {
+      "case_consequence": "Viridian House is still just a building. Cameras notice, but the group can choose ordinary routes."
+    },
+    "Echoed": {
+      "case_consequence": "The feed answers before anyone admits the truth. A comment, camera, or reflection repeats the almost-said thing."
+    },
+    "Recursive": {
+      "case_consequence": "The building starts routing choices through performance. Floor 13 feels plausible before it is reachable."
+    },
+    "Breached": {
+      "case_consequence": "Apartment 13F can preserve the easier self. Mara, Saffi, or an Operator is pressured to become content."
+    },
+    "Collapse": {
+      "case_consequence": "The Audience Before can stabilize a performed identity unless honest speech is witnessed and protected."
+    }
+  },
   "cast": {
     "anchor_npc": "Saffi Dell",
     "anchor_role": "Memory Anchor",
@@ -516,6 +533,11 @@
         "broken_law": "The audience's name for someone becomes easier to answer to than their own.",
         "operator_choice": "Speak the real name, reject the captioned name, or let the label stabilize.",
         "exit_condition": "Someone who knows the person speaks the real name while another Operator shields them from attention."
+      },
+      "Identity": {
+        "broken_law": "The curated self becomes easier to recognize than the living person.",
+        "operator_choice": "Refuse the performed identity, name what it costs, or let the Audience stabilize the easier version.",
+        "exit_condition": "Someone protects honest speech while the Operator names who they are without performing for the room."
       },
       "Role": {
         "broken_law": "The assigned role becomes more stable than the person.",
@@ -551,6 +573,21 @@
         "broken_law": "The site accepts the performance as architecture.",
         "operator_choice": "Leave, anchor the room, bargain with it, or let 13F stabilize.",
         "exit_condition": "The group exits together after naming what the room is preserving."
+      },
+      "Record": {
+        "broken_law": "The recorded version becomes more credible than the witnessed truth.",
+        "operator_choice": "Preserve the ugly record, duplicate the contradiction, or let the feed clean the story.",
+        "exit_condition": "A clue is secured before the feed edits it, and another Operator witnesses the uncorrected version."
+      },
+      "Location": {
+        "broken_law": "The building routes people toward the floor where their edited selves are easier to keep.",
+        "operator_choice": "Follow Floor 13, mark verified architecture, or leave together before the route accepts the lie.",
+        "exit_condition": "The group uses a mundane route, confirms it together, and refuses the elevator's offered version."
+      },
+      "History": {
+        "broken_law": "The cleaner backstory becomes easier to remember than the messy truth.",
+        "operator_choice": "Let Mara remain content, reconstruct her as a person, or preserve the version that hurts.",
+        "exit_condition": "Saffi's true memory or another grounded witness restores the cost of the performance."
       }
     }
   },
@@ -564,6 +601,11 @@
         "rewrite_law": "The accepted name becomes easier to remember than the original.",
         "lock_in_risk": "If no one contradicts it before the next pressure beat, update the affected record.",
         "counteraction_window": "A witness says the original name and accepts being seen."
+      },
+      "Identity": {
+        "rewrite_law": "The Audience-backed identity becomes the stable self.",
+        "lock_in_risk": "Future rooms, feeds, and witnesses respond to the performed version first.",
+        "counteraction_window": "Refuse one useful lie and keep a chosen flaw visible."
       },
       "Role": {
         "rewrite_law": "The useful role becomes the stable identity.",
@@ -581,9 +623,9 @@
         "counteraction_window": "The bond-holder names a private truth the audience cannot use."
       },
       "Record": {
-        "rewrite_law": "The institutional version becomes enforceable reality.",
-        "lock_in_risk": "Police, landlord, platform, or file systems begin agreeing with the lie.",
-        "counteraction_window": "Duplicate, reconcile, or publicly contradict the record with cost."
+        "rewrite_law": "Platform, landlord, camera, or police records begin agreeing with the edited version.",
+        "lock_in_risk": "The contradiction disappears unless duplicated before the next pressure beat.",
+        "counteraction_window": "Copy the record, compare witnesses, and preserve one ugly inconsistency."
       },
       "Body": {
         "rewrite_law": "The body adapts to the version most safely witnessed.",
@@ -591,14 +633,14 @@
         "counteraction_window": "Grounding, touch, medical proof, or self-naming interrupts the shift."
       },
       "Location": {
-        "rewrite_law": "The accepted place becomes the reachable place.",
-        "lock_in_risk": "Floor 13 becomes easier to find than Floor 12.",
-        "counteraction_window": "Mark a mundane route and leave by verified architecture."
+        "rewrite_law": "Floor 13 becomes easier to reach than the legal building.",
+        "lock_in_risk": "The site treats 13F as the true location and begins routing exits through it.",
+        "counteraction_window": "Mark a verified route, leave together, and refuse symbolic shortcuts."
       },
       "History": {
-        "rewrite_law": "The backstory becomes cleaner than the truth.",
-        "lock_in_risk": "NPCs remember the simplified version.",
-        "counteraction_window": "Someone preserves the messy version without improving it."
+        "rewrite_law": "Mara's public persona becomes the remembered history.",
+        "lock_in_risk": "NPCs remember the performance as consent.",
+        "counteraction_window": "A witness names the private truth without improving it."
       }
     }
   },

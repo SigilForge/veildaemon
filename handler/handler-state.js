@@ -46,7 +46,7 @@
   ];
   const anchorNpcStateIds = anchorNpcStates.map((entry) => entry.id);
   const collapseBreakTypes = ["Body", "Name", "Identity", "Role", "Memory", "Relationship", "Evidence", "Time", "Signal", "Room", "Record", "Location", "History"];
-  const rewriteOverwriteTypes = ["Name", "Role", "Memory", "Relationship", "Record", "Body", "Location", "History"];
+  const rewriteOverwriteTypes = ["Name", "Identity", "Role", "Memory", "Relationship", "Record", "Body", "Location", "History"];
   const windDownMoves = [
     {
       id: "protect-anchor-npc",
@@ -430,6 +430,23 @@
             "consequence": "Collapse choice is live; resolve, stabilize, or carry aftermath."
           }
         ],
+        "scene_states": {
+          "Stable": {
+            "case_consequence": "The pressure is present but has not taken control. Keep the next clue and stabilizer visible."
+          },
+          "Echoed": {
+            "case_consequence": "The site repeats a detail back with altered context. Ask what changed and who noticed first."
+          },
+          "Recursive": {
+            "case_consequence": "The same pattern returns with a sharper cost. Tie the next choice to the active loop."
+          },
+          "Breached": {
+            "case_consequence": "The site can now alter position, evidence, or options. Put one concrete safety choice on the table."
+          },
+          "Collapse": {
+            "case_consequence": "The room becomes the threat. Force a stabilizer, exit, sacrifice, or containment choice."
+          }
+        },
         "table_triggers": [
           {
             "id": "deny-pressure",
@@ -525,10 +542,20 @@
               "operator_choice": "Leave, anchor the room, bargain with it, or let the place stabilize around the threat.",
               "exit_condition": "The group exits together after naming what the room is preserving."
             },
+            "Name": {
+              "broken_law": "The name the site accepts becomes easier to answer to than the true one.",
+              "operator_choice": "Speak the true name, reject the assigned one, or let the label stabilize.",
+              "exit_condition": "Someone who knows the person speaks the real name while another Operator shields them from attention."
+            },
             "Identity": {
               "broken_law": "The site's classification becomes easier to believe than the person's own self-description.",
               "operator_choice": "Accept the label, dispute it, or define the self before the room does.",
               "exit_condition": "The person states who they are through an Anchor, and another Operator confirms it."
+            },
+            "Role": {
+              "broken_law": "The useful role becomes more stable than the person.",
+              "operator_choice": "Refuse the useful role, redefine it, or embody it and accept cost.",
+              "exit_condition": "Someone interacts with the person instead of the function."
             },
             "Memory": {
               "broken_law": "The edited memory becomes easier to replay than the original.",
@@ -559,6 +586,21 @@
               "broken_law": "Unknown signals become known once they know you back.",
               "operator_choice": "Answer, block, trace, corrupt, or refuse the signal.",
               "exit_condition": "The signal is cut off, routed safely, or made safe by group witness."
+            },
+            "Record": {
+              "broken_law": "The recorded version becomes easier to enforce than the witnessed truth.",
+              "operator_choice": "Preserve the ugly record, duplicate the contradiction, or let the system clean the story.",
+              "exit_condition": "A record is secured before the site edits it, and another Operator witnesses the uncorrected version."
+            },
+            "Location": {
+              "broken_law": "The accepted place becomes easier to reach than the verified one.",
+              "operator_choice": "Follow the site route, mark verified architecture, or leave together before the route accepts the lie.",
+              "exit_condition": "The group uses a mundane route, confirms it together, and refuses the offered shortcut."
+            },
+            "History": {
+              "broken_law": "The cleaner backstory becomes easier to remember than the messy truth.",
+              "operator_choice": "Accept the clean version, reconstruct the cost, or preserve the version that hurts.",
+              "exit_condition": "A grounded witness restores the cost of the performance without improving it."
             }
           }
         },
@@ -572,6 +614,11 @@
               "rewrite_law": "The accepted name becomes easier to remember than the original.",
               "lock_in_risk": "If no one contradicts it before the next pressure beat, records and devices start using the accepted version.",
               "counteraction_window": "A witness says the original name and accepts being seen."
+            },
+            "Identity": {
+              "rewrite_law": "The accepted identity becomes the stable self.",
+              "lock_in_risk": "Future rooms, records, and witnesses respond to the accepted version first.",
+              "counteraction_window": "Refuse one useful lie and keep a chosen flaw visible."
             },
             "Role": {
               "rewrite_law": "The useful role becomes the stable identity.",
@@ -781,6 +828,23 @@
             "consequence": "The Witness escapes the church boundary. Aftermath becomes campaign continuity."
           }
         ],
+        "scene_states": {
+          "Stable": {
+            "case_consequence": "The ruined church is only a site. Reflections lag, but Operators can still leave together."
+          },
+          "Echoed": {
+            "case_consequence": "The church repeats an impossible message through glass, rainwater, or phone screens."
+          },
+          "Recursive": {
+            "case_consequence": "Reflection drift begins linking choices: the same warning returns from a different surface."
+          },
+          "Breached": {
+            "case_consequence": "The chamber treats intake as active. Identity labels, cult residue, and exits start answering the Operators."
+          },
+          "Collapse": {
+            "case_consequence": "The Witness or Intake shell can choose first unless the group stabilizes, binds, speaks, or leaves together."
+          }
+        },
         "table_triggers": [
           {
             "id": "lie-reflected",
@@ -902,10 +966,20 @@
               "operator_choice": "Cover the reflection, step outside, name the ordinary detail, or keep looking and accept Attention.",
               "exit_condition": "The group breaks line of sight, names what changed, and leaves together with one Anchor intact."
             },
+            "Name": {
+              "broken_law": "The intake designation becomes easier to answer to than the Operator's ordinary name.",
+              "operator_choice": "Speak the real name, accept the designation, or dispute the label before the room repeats it.",
+              "exit_condition": "Another Operator speaks the real name while the named Operator holds an Anchor."
+            },
             "Identity": {
               "broken_law": "The system classification becomes easier to believe than the Operator's own self-description.",
               "operator_choice": "Accept the intake label, dispute it, or define yourself before the room does.",
               "exit_condition": "The Operator states who they are through an Anchor, and another Operator confirms it."
+            },
+            "Role": {
+              "broken_law": "Operator becomes a function before it becomes a choice.",
+              "operator_choice": "Accept the emergency role, refuse recruitment, or choose why you are here in your own words.",
+              "exit_condition": "The character names why they are present without letting the system assign consent."
             },
             "Memory": {
               "broken_law": "The remembered warning becomes less stable than the message that should not exist.",
@@ -936,6 +1010,21 @@
               "broken_law": "Unknown signals become known once they know you back.",
               "operator_choice": "Answer, block, trace, corrupt, or refuse the signal.",
               "exit_condition": "The signal is routed through VeilCorp Intake, cut off, or made safe by group witness."
+            },
+            "Record": {
+              "broken_law": "The impossible message becomes more credible than the remembered warning.",
+              "operator_choice": "Preserve the contradiction, compare devices, or let the intake file become the official version.",
+              "exit_condition": "The record is duplicated, witnessed, and kept alongside one contradiction."
+            },
+            "Location": {
+              "broken_law": "The ruined church becomes easier to find than to leave.",
+              "operator_choice": "Follow the route, mark a mundane exit, or leave together before the reflection shifts.",
+              "exit_condition": "The group confirms a mundane route and exits together before the next chamber prompt."
+            },
+            "History": {
+              "broken_law": "The system backfills reasons the Operator was always going to answer.",
+              "operator_choice": "Accept the recruitment narrative, name an ordinary refusal, or preserve the messy sequence.",
+              "exit_condition": "Someone names one ordinary reason they could still refuse."
             }
           }
         },
@@ -949,6 +1038,11 @@
               "rewrite_law": "The intake label begins replacing the Operator's ordinary name.",
               "lock_in_risk": "If no one contradicts it before the next pressure beat, records and devices start using the label.",
               "counteraction_window": "Another Operator speaks the real name while the named Operator holds an Anchor."
+            },
+            "Identity": {
+              "rewrite_law": "The system classification becomes the stable self.",
+              "lock_in_risk": "Future devices, reflections, and records answer the intake version before the person.",
+              "counteraction_window": "Define the self through an Anchor before checking the device again."
             },
             "Role": {
               "rewrite_law": "Operator becomes a function before it becomes a choice.",
@@ -1175,6 +1269,23 @@
             "consequence": "The Audience escapes the site boundary. Aftermath becomes a future Needlepoint seed."
           }
         ],
+        "scene_states": {
+          "Stable": {
+            "case_consequence": "Viridian House is still just a building. Cameras notice, but the group can choose ordinary routes."
+          },
+          "Echoed": {
+            "case_consequence": "The feed answers before anyone admits the truth. A comment, camera, or reflection repeats the almost-said thing."
+          },
+          "Recursive": {
+            "case_consequence": "The building starts routing choices through performance. Floor 13 feels plausible before it is reachable."
+          },
+          "Breached": {
+            "case_consequence": "Apartment 13F can preserve the easier self. Mara, Saffi, or an Operator is pressured to become content."
+          },
+          "Collapse": {
+            "case_consequence": "The Audience Before can stabilize a performed identity unless honest speech is witnessed and protected."
+          }
+        },
         "table_triggers": [
           {
             "id": "lie-lobby-camera",
@@ -1319,6 +1430,11 @@
               "operator_choice": "Speak the real name, reject the captioned name, or let the label stabilize.",
               "exit_condition": "Someone who knows the person speaks the real name while another Operator shields them from attention."
             },
+            "Identity": {
+              "broken_law": "The curated self becomes easier to recognize than the living person.",
+              "operator_choice": "Refuse the performed identity, name what it costs, or let the Audience stabilize the easier version.",
+              "exit_condition": "Someone protects honest speech while the Operator names who they are without performing for the room."
+            },
             "Role": {
               "broken_law": "The assigned role becomes more stable than the person.",
               "operator_choice": "Refuse the useful role, redefine it, or embody it and accept cost.",
@@ -1353,6 +1469,21 @@
               "broken_law": "The site accepts the performance as architecture.",
               "operator_choice": "Leave, anchor the room, bargain with it, or let 13F stabilize.",
               "exit_condition": "The group exits together after naming what the room is preserving."
+            },
+            "Record": {
+              "broken_law": "The recorded version becomes more credible than the witnessed truth.",
+              "operator_choice": "Preserve the ugly record, duplicate the contradiction, or let the feed clean the story.",
+              "exit_condition": "A clue is secured before the feed edits it, and another Operator witnesses the uncorrected version."
+            },
+            "Location": {
+              "broken_law": "The building routes people toward the floor where their edited selves are easier to keep.",
+              "operator_choice": "Follow Floor 13, mark verified architecture, or leave together before the route accepts the lie.",
+              "exit_condition": "The group uses a mundane route, confirms it together, and refuses the elevator's offered version."
+            },
+            "History": {
+              "broken_law": "The cleaner backstory becomes easier to remember than the messy truth.",
+              "operator_choice": "Let Mara remain content, reconstruct her as a person, or preserve the version that hurts.",
+              "exit_condition": "Saffi's true memory or another grounded witness restores the cost of the performance."
             }
           }
         },
@@ -1366,6 +1497,11 @@
               "rewrite_law": "The accepted name becomes easier to remember than the original.",
               "lock_in_risk": "If no one contradicts it before the next pressure beat, update the affected record.",
               "counteraction_window": "A witness says the original name and accepts being seen."
+            },
+            "Identity": {
+              "rewrite_law": "The Audience-backed identity becomes the stable self.",
+              "lock_in_risk": "Future rooms, feeds, and witnesses respond to the performed version first.",
+              "counteraction_window": "Refuse one useful lie and keep a chosen flaw visible."
             },
             "Role": {
               "rewrite_law": "The useful role becomes the stable identity.",
@@ -1383,9 +1519,9 @@
               "counteraction_window": "The bond-holder names a private truth the audience cannot use."
             },
             "Record": {
-              "rewrite_law": "The institutional version becomes enforceable reality.",
-              "lock_in_risk": "Police, landlord, platform, or file systems begin agreeing with the lie.",
-              "counteraction_window": "Duplicate, reconcile, or publicly contradict the record with cost."
+              "rewrite_law": "Platform, landlord, camera, or police records begin agreeing with the edited version.",
+              "lock_in_risk": "The contradiction disappears unless duplicated before the next pressure beat.",
+              "counteraction_window": "Copy the record, compare witnesses, and preserve one ugly inconsistency."
             },
             "Body": {
               "rewrite_law": "The body adapts to the version most safely witnessed.",
@@ -1393,14 +1529,14 @@
               "counteraction_window": "Grounding, touch, medical proof, or self-naming interrupts the shift."
             },
             "Location": {
-              "rewrite_law": "The accepted place becomes the reachable place.",
-              "lock_in_risk": "Floor 13 becomes easier to find than Floor 12.",
-              "counteraction_window": "Mark a mundane route and leave by verified architecture."
+              "rewrite_law": "Floor 13 becomes easier to reach than the legal building.",
+              "lock_in_risk": "The site treats 13F as the true location and begins routing exits through it.",
+              "counteraction_window": "Mark a verified route, leave together, and refuse symbolic shortcuts."
             },
             "History": {
-              "rewrite_law": "The backstory becomes cleaner than the truth.",
-              "lock_in_risk": "NPCs remember the simplified version.",
-              "counteraction_window": "Someone preserves the messy version without improving it."
+              "rewrite_law": "Mara's public persona becomes the remembered history.",
+              "lock_in_risk": "NPCs remember the performance as consent.",
+              "counteraction_window": "A witness names the private truth without improving it."
             }
           }
         },
@@ -1425,6 +1561,7 @@
     },
     sceneState: {
       current: "Stable",
+      caseConsequence: "",
       primaryConsequence: ""
     },
     primaryClock: {
@@ -1465,7 +1602,8 @@
     attention: {
       current: "Unseen",
       residue: "",
-      followsHome: ""
+      followsHome: "",
+      consequence: ""
     },
     residueLog: [],
     unresolvedConsequences: "",
@@ -1752,6 +1890,19 @@
     };
   }
 
+  function normalizeSceneStateCards(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return sceneStates.reduce((table, item) => {
+      const entry = source[item.name];
+      if (!entry || typeof entry !== "object") return table;
+      const card = {
+        case_consequence: safeString(entry.case_consequence || entry.consequence, 500)
+      };
+      if (card.case_consequence) table[item.name] = card;
+      return table;
+    }, {});
+  }
+
   function normalizeActiveNeedlepoint(value) {
     const source = value && typeof value === "object" ? value : {};
     return {
@@ -1759,6 +1910,7 @@
       scaffold: safeString(source.scaffold, 180),
       attention_states: normalizeAttentionStatesTable(source.attention_states),
       clock_attention_consequences: normalizeClockAttentionConsequences(source.clock_attention_consequences),
+      scene_states: normalizeSceneStateCards(source.scene_states),
       table_triggers: normalizeTableTriggers(source.table_triggers),
       collapse_staging: normalizeCollapseStaging(source.collapse_staging),
       rewrite_staging: normalizeRewriteStaging(source.rewrite_staging),
@@ -1950,7 +2102,7 @@
     if (state.rewrite.acceptFalseSelfLatch) triggers.push("Accepted false / curated self");
     if (state.collapse.exitFailedLatch) triggers.push("Collapse exit condition failed");
     if (state.rewrite.readyLatch) triggers.push(state.rewrite.trigger || "Needlepoint trigger");
-    if (state.attention.current === "Exposed" && consequenceImpliesRewrite(state.sceneState.primaryConsequence)) {
+    if (state.attention.current === "Exposed" && consequenceImpliesRewrite(state.attention.consequence)) {
       triggers.push("Exposed + replacement consequence");
     }
     return {
@@ -2143,7 +2295,7 @@
       scene: draft.sceneState.current,
       caseClock: draft.secondaryClock.current,
       residue: draft.attention.residue || "None logged.",
-      consequence: draft.sceneState.primaryConsequence || "Unset",
+      consequence: draft.attention.consequence || "Unset",
       nextPressure: draft.caseFile.nextPressureBeat || "No beat staged."
     };
 
@@ -2235,11 +2387,11 @@
     }
 
     if (effects.consequence) {
-      draft.sceneState.primaryConsequence = effects.consequence;
+      draft.attention.consequence = effects.consequence;
       changes.push({
         label: "Consequence",
         before: before.consequence,
-        after: draft.sceneState.primaryConsequence || "Unset"
+        after: draft.attention.consequence || "Unset"
       });
     }
 
@@ -2285,7 +2437,7 @@
     draft.sceneState.current = resolveSceneStateValue(beforeScene, effects);
     draft.activeEntity.sceneState = draft.sceneState.current;
 
-    if (effects.consequence) draft.sceneState.primaryConsequence = effects.consequence;
+    if (effects.consequence) draft.attention.consequence = effects.consequence;
     if (effects.next_pressure_beat) draft.caseFile.nextPressureBeat = effects.next_pressure_beat;
     if (effects.next_clue) draft.caseFile.nextClue = effects.next_clue;
 
@@ -2319,7 +2471,7 @@
           attention: draft.attention.current,
           residue: `Clue surfaced: ${draft.caseFile.nextClue}`,
           followsHome: "",
-          consequence: draft.sceneState.primaryConsequence || ""
+          consequence: draft.attention.consequence || ""
         });
       }
       draft.residueLog.unshift({
@@ -2328,11 +2480,12 @@
         attention: draft.attention.current,
         residue: `Trigger applied: ${trigger.label}`,
         followsHome: draft.attention.followsHome || "",
-        consequence: draft.sceneState.primaryConsequence || ""
+        consequence: draft.attention.consequence || ""
       });
     }
 
-    const withNeedlepoint = hasActiveNeedlepoint(draft) ? applyNeedlepointAttention(draft) : draft;
+    const withScene = hasActiveNeedlepoint(draft) ? applyNeedlepointSceneState(draft) : draft;
+    const withNeedlepoint = hasActiveNeedlepoint(withScene) ? applyNeedlepointAttention(withScene) : withScene;
     return {
       draft: withNeedlepoint,
       delta: {
@@ -2377,9 +2530,9 @@
         after: withNeedlepoint.attention.residue || "None logged."
       },
       {
-        label: "Consequence",
-        before: state.sceneState.primaryConsequence || "Unset",
-        after: withNeedlepoint.sceneState.primaryConsequence || "Unset"
+        label: "Attention Consequence",
+        before: state.attention.consequence || "Unset",
+        after: withNeedlepoint.attention.consequence || "Unset"
       },
       {
         label: "Next Pressure",
@@ -2472,14 +2625,15 @@
       attention: draft.attention.current,
       scene: draft.sceneState.current,
       residue: draft.attention.residue || "None logged.",
-      consequence: draft.sceneState.primaryConsequence || "Unset",
+      consequence: draft.attention.consequence || "Unset",
       nextPressure: draft.caseFile.nextPressureBeat || "No beat staged.",
       caseClock: draft.secondaryClock.enabled
         ? `${draft.secondaryClock.current}/${draft.secondaryClock.segments}`
         : "Disabled"
     };
     const { draft: windDownDraft, effects } = applyWindDownEffects(draft, move);
-    const next = hasActiveNeedlepoint(windDownDraft) ? applyNeedlepointAttention(windDownDraft) : windDownDraft;
+    const withScene = hasActiveNeedlepoint(windDownDraft) ? applyNeedlepointSceneState(windDownDraft) : windDownDraft;
+    const next = hasActiveNeedlepoint(withScene) ? applyNeedlepointAttention(withScene) : withScene;
     const lines = [
       {
         label: "Responsibility",
@@ -2512,9 +2666,9 @@
         after: next.attention.residue || "None logged."
       },
       {
-        label: "Consequence",
+        label: "Attention Consequence",
         before: before.consequence,
-        after: next.sceneState.primaryConsequence || "Unset"
+        after: next.attention.consequence || "Unset"
       },
       {
         label: "Next Pressure",
@@ -2547,7 +2701,8 @@
 
     const draft = clone(normalizeState(state));
     const { draft: next, changes } = applyWindDownEffects(draft, move);
-    const withNeedlepoint = hasActiveNeedlepoint(next) ? applyNeedlepointAttention(next) : next;
+    const withScene = hasActiveNeedlepoint(next) ? applyNeedlepointSceneState(next) : next;
+    const withNeedlepoint = hasActiveNeedlepoint(withScene) ? applyNeedlepointAttention(withScene) : withScene;
     const summary = changes
       .map((row) => (row.before === "" ? `${row.label}: ${row.after}` : `${row.label} ${row.before} -> ${row.after}`))
       .join(" | ");
@@ -2616,11 +2771,26 @@
     }
     const matrixConsequence = resolveClockAttentionConsequence(state);
     if (matrixConsequence) {
-      state.sceneState.primaryConsequence = matrixConsequence;
+      state.attention.consequence = matrixConsequence;
     } else if (row?.consequence) {
-      state.sceneState.primaryConsequence = row.consequence;
+      state.attention.consequence = row.consequence;
     }
     return state;
+  }
+
+  function applyNeedlepointSceneState(state) {
+    const needlepoint = state.activeNeedlepoint;
+    const card = needlepoint?.scene_states?.[state.sceneState.current];
+    if (card?.case_consequence) state.sceneState.caseConsequence = card.case_consequence;
+    return state;
+  }
+
+  function selectSceneState(state, value) {
+    const next = clone(normalizeState(state));
+    const resolved = normalizeChoice(value, sceneStates.map((item) => item.name), next.sceneState.current || "Stable");
+    next.sceneState.current = resolved;
+    next.activeEntity.sceneState = resolved;
+    return hasActiveNeedlepoint(next) ? applyNeedlepointSceneState(next) : next;
   }
 
   function playerViewPayload(state) {
@@ -2663,6 +2833,7 @@
       session: normalizeTextObject(merged.session, defaultState.session),
       sceneState: {
         current: normalizeChoice(merged.sceneState.current, sceneStates.map((item) => item.name), "Stable"),
+        caseConsequence: safeString(merged.sceneState.caseConsequence, 500),
         primaryConsequence: safeString(merged.sceneState.primaryConsequence, 220)
       },
       primaryClock: normalizeClock(merged.primaryClock),
@@ -2682,7 +2853,8 @@
       attention: {
         current: normalizeAttentionDisplay(merged.attention.current),
         residue: safeString(merged.attention.residue, 180),
-        followsHome: safeString(merged.attention.followsHome, 180)
+        followsHome: safeString(merged.attention.followsHome, 180),
+        consequence: safeString(merged.attention.consequence || merged.sceneState.primaryConsequence, 220)
       },
       residueLog: normalizeResidueLog(merged.residueLog),
       unresolvedConsequences: safeString(merged.unresolvedConsequences, 1000),
@@ -2697,7 +2869,8 @@
       rewrite: normalizeRewrite(merged.rewrite),
       canonTerminology
     };
-    const withNeedlepoint = hasActiveNeedlepoint(next) ? applyNeedlepointAttention(next) : next;
+    const withScene = hasActiveNeedlepoint(next) ? applyNeedlepointSceneState(next) : next;
+    const withNeedlepoint = hasActiveNeedlepoint(withScene) ? applyNeedlepointAttention(withScene) : withScene;
     return syncCollapseRewriteStaging(withNeedlepoint);
   }
 
@@ -2957,6 +3130,8 @@
     applyNeedlepointAttention,
     playerViewPayload,
     hasActiveNeedlepoint,
+    applyNeedlepointSceneState,
+    selectSceneState,
     fieldEditUnlocked,
     toggleFieldEditMode,
     normalizeAttentionDisplay,

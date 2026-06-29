@@ -96,7 +96,7 @@
             </div>
             <div class="scene-state-row" id="scene-state-row" role="group" aria-label="Scene State" data-live-control-zone></div>
             <input name="sceneState.current" type="hidden" />
-            <label>Primary consequence<textarea name="sceneState.primaryConsequence" rows="2" maxlength="500"></textarea></label>
+            <label>Scene consequence<textarea name="sceneState.caseConsequence" rows="2" maxlength="500"></textarea></label>
             <div id="collapse-rewrite-mount" class="collapse-rewrite-mount private-panel no-print" hidden aria-label="Collapse and Rewrite staging"></div>
           </section>
 
@@ -225,6 +225,7 @@
               <label>Current Attention<select name="attention.current" data-live-control></select></label>
               <label>Residue<textarea name="attention.residue" rows="3" maxlength="180" autocomplete="off"></textarea></label>
               <label>Follows Them Home<textarea name="attention.followsHome" rows="3" maxlength="180" autocomplete="off"></textarea></label>
+              <label>Attention consequence<textarea name="attention.consequence" rows="3" maxlength="220" autocomplete="off"></textarea></label>
             </div>
             <p class="panel-note" id="attention-deterministic-hint" hidden>Residue, follows-home, and consequence sync from the active Needlepoint when Attention, Clock, or a table trigger changes. Manual edits here may be overwritten.</p>
           </section>

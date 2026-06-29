@@ -46,6 +46,14 @@
 - Shade may be dry or funny, but the joke should come from procedural overreach, not from breaking the fourth wall.
 - Keep the video/transmission viewer visually separate from intake so visitors do not think the intake is about the video.
 
+## Handler Runtime Templates
+- Treat Handler templates as runtime scaffolds, not isolated one-off pages.
+- If one template gains a runtime function, deterministic card set, visible target button, clock behavior, or scaffold field, assume the same function should exist across the other shipped scaffolds unless the user explicitly marks it case-specific.
+- Do not copy case text between templates. Share the runtime shape and interaction behavior, then author case-specific cards from that case file's pressure grammar.
+- Viridian House is the most complete reference scaffold for runtime completeness, but its content is not the default voice for other cases.
+- When adding a visible target/control, verify `Custom Campaign`, `VeilCorp Intake`, and `Viridian House` all have deterministic entries so no button falls back to generic text.
+- For Handler/live, keep Scene State, Attention/Aftermath, Primary Clock, Case Clock, and Collapse/Rewrite responsibilities separate. They may update together, but they should not share one mislabeled consequence field.
+
 ## Implementation Notes
 - Static site changes usually touch `index.html`, `styles.css`, and `script.js`.
 - When changing CSS or JS behavior, bump the cache query string in `index.html`.
