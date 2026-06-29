@@ -90,6 +90,8 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
 
   await page.getByRole("button", { name: "PREP" }).click();
   await expect(page.getByRole("button", { name: "PREP" })).toHaveClass(/is-active/);
+  await expect(page.getByLabel("What makes it worse")).toBeHidden();
+  await expect(page.getByLabel("What makes it better")).toBeHidden();
   await expect(page.locator("#npc-grid")).toBeVisible();
   const secondaryClockMetrics = await page.evaluate(() => {
     const panel = document.querySelector(".secondary-panel details");
