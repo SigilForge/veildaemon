@@ -570,5 +570,106 @@
         "consequence": "Severe misfire: tick both, or let the immediate threat advance twice."
       }
     }
-  ]
+  ],
+  "collapse_staging": {
+    "default_break_type": "Room",
+    "broken_law": "The church answers observation before anyone admits what they saw.",
+    "operator_choice": "Cover the reflection, step outside, name the ordinary detail, or keep looking and accept Attention.",
+    "exit_condition": "The group breaks line of sight, names what changed, and leaves together with one Anchor intact.",
+    "by_target": {
+      "Room": {
+        "broken_law": "The church answers observation before anyone admits what they saw.",
+        "operator_choice": "Cover the reflection, step outside, name the ordinary detail, or keep looking and accept Attention.",
+        "exit_condition": "The group breaks line of sight, names what changed, and leaves together with one Anchor intact."
+      },
+      "Identity": {
+        "broken_law": "The system classification becomes easier to believe than the Operator's own self-description.",
+        "operator_choice": "Accept the intake label, dispute it, or define yourself before the room does.",
+        "exit_condition": "The Operator states who they are through an Anchor, and another Operator confirms it."
+      },
+      "Memory": {
+        "broken_law": "The remembered warning becomes less stable than the message that should not exist.",
+        "operator_choice": "Trust the impossible notification, trust personal memory, or compare witness accounts.",
+        "exit_condition": "Two Operators reconstruct the same event without relying on the device."
+      },
+      "Body": {
+        "broken_law": "The body reacts to the signal as if danger has already arrived.",
+        "operator_choice": "Ground physically, flee, follow the signal, or let panic route the next action.",
+        "exit_condition": "A mundane body action proves the scene has not fully taken control: breathing, pain, cold, touch, water, food, or movement."
+      },
+      "Relationship": {
+        "broken_law": "Isolation increases predation; connection becomes survival infrastructure.",
+        "operator_choice": "Separate, protect a stranger, test trust, or let the system keep everyone isolated.",
+        "exit_condition": "One Operator chooses another person's safety over private suspicion."
+      },
+      "Evidence": {
+        "broken_law": "Proof becomes bait when it is studied alone.",
+        "operator_choice": "Document it, duplicate it, hide it, share it, or keep staring.",
+        "exit_condition": "Evidence is copied, witnessed, and removed from solitary attention."
+      },
+      "Time": {
+        "broken_law": "The 2:13 timestamp behaves like an appointment instead of a record.",
+        "operator_choice": "Arrive, delay, break sequence, or answer the next impossible prompt.",
+        "exit_condition": "The group acts before the next 2:13 recurrence or anchors the moment with mundane timekeeping."
+      },
+      "Signal": {
+        "broken_law": "Unknown signals become known once they know you back.",
+        "operator_choice": "Answer, block, trace, corrupt, or refuse the signal.",
+        "exit_condition": "The signal is routed through VeilCorp Intake, cut off, or made safe by group witness."
+      }
+    }
+  },
+  "rewrite_staging": {
+    "default_overwrite_type": "Name",
+    "rewrite_law": "The intake label begins replacing the Operator's ordinary name.",
+    "lock_in_risk": "If no one contradicts it before the next pressure beat, records and devices start using the label.",
+    "counteraction_window": "Another Operator speaks the real name while the named Operator holds an Anchor.",
+    "by_target": {
+      "Name": {
+        "rewrite_law": "The intake label begins replacing the Operator's ordinary name.",
+        "lock_in_risk": "If no one contradicts it before the next pressure beat, records and devices start using the label.",
+        "counteraction_window": "Another Operator speaks the real name while the named Operator holds an Anchor."
+      },
+      "Role": {
+        "rewrite_law": "Operator becomes a function before it becomes a choice.",
+        "lock_in_risk": "The room treats hesitation as consent to recruitment.",
+        "counteraction_window": "The character chooses why they are here in their own words."
+      },
+      "Record": {
+        "rewrite_law": "The impossible message becomes the official version.",
+        "lock_in_risk": "Screens, logs, timestamps, and contact records begin agreeing with the intake file.",
+        "counteraction_window": "Duplicate the record, compare devices, and preserve one contradiction."
+      },
+      "Location": {
+        "rewrite_law": "The ruined church becomes easier to find than to leave.",
+        "lock_in_risk": "Routes begin returning to the chamber until the Intake completes.",
+        "counteraction_window": "Mark a mundane exit and leave as a group before the next reflection shift."
+      },
+      "History": {
+        "rewrite_law": "The system backfills reasons the Operator was always going to answer.",
+        "lock_in_risk": "Past anomalies start arranging themselves into a recruitment narrative.",
+        "counteraction_window": "Name one ordinary reason you could still refuse."
+      },
+      "Memory": {
+        "rewrite_law": "The message remembers the Operator more clearly than the Operator remembers the event.",
+        "lock_in_risk": "Personal memory defers to the intake file.",
+        "counteraction_window": "Reconstruct the event aloud with another witness before checking the device again."
+      },
+      "Body": {
+        "rewrite_law": "The body learns the signal as a threat response.",
+        "lock_in_risk": "Future notifications trigger panic, dissociation, hunger, freeze, or resonance leakage.",
+        "counteraction_window": "Ground through the Anchor and complete one mundane recovery action."
+      },
+      "Relationship": {
+        "rewrite_law": "The first cell forms around shared exposure instead of trust.",
+        "lock_in_risk": "Operators become linked by fear, suspicion, or surveillance instead of choice.",
+        "counteraction_window": "One Operator offers help without demanding disclosure."
+      },
+      "Signal": {
+        "rewrite_law": "The signal becomes a standing channel.",
+        "lock_in_risk": "The site, entity, cult residue, or Intake shell can reach the Operator again.",
+        "counteraction_window": "Route through Shade, cut unknown channels, or require group confirmation before response."
+      }
+    }
+  }
 }

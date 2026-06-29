@@ -192,7 +192,7 @@ test("handler live collapse staging respects global field lock", async ({ page }
 
   await staging.locator("button.button.primary", { hasText: "Activate Collapse" }).evaluate((button) => button.click());
   await expect(staging).toContainText("COLLAPSE MODE");
-  await expect(staging.locator('button[data-break-type="Identity"]')).toBeEnabled();
+  await expect(staging.locator('button[data-break-type="Name"]')).toBeEnabled();
 
   await page.getByRole("button", { name: "Edit Fields: Off" }).click();
   await expect(page.getByRole("button", { name: "Edit Fields: On" })).toBeVisible();
@@ -214,23 +214,92 @@ test("handler live collapse staging surfaces from full clock without exposing pl
   await expect(staging).toBeVisible();
   await expect(staging).toContainText("STAGING ONLY — HANDLER RESOLVES");
   await expect(staging).toContainText("COLLAPSE READY");
-  await expect(staging).toContainText("WHAT BREAKS FIRST?");
+  await expect(staging).toContainText("SELECT TARGET");
   await expect(staging).not.toContainText("REWRITE READY");
 
-  await staging.locator('button[data-break-type="Signal"]').evaluate((button) => button.click());
-  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The Audience can caption choices before Operators make them.");
-  await expect(staging.locator('[name="collapse.operatorChoice"]')).toHaveValue("Cut the feed, poison the comment thread with truth, ground Mara, or flee together.");
-  await expect(staging.locator('[name="collapse.exitCondition"]')).toHaveValue("Break observation or speak honestly while protected.");
+  await staging.locator('button[data-break-type="Body"]').evaluate((button) => button.click());
+  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The performed body becomes easier to maintain than the living one.");
+  await expect(staging.locator('[name="collapse.operatorChoice"]')).toHaveValue("Refuse the curated self, ground Mara as a person, protect Saffi's true memory, or flee Floor 13 together.");
+  await expect(staging.locator('[name="collapse.exitCondition"]')).toHaveValue("Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience.");
 
-  await staging.locator('button[data-break-type="Identity"]').evaluate((button) => button.click());
-  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The performed self becomes easier to sustain than the real one.");
-  await expect(staging.locator('[name="collapse.operatorChoice"]')).toHaveValue("Refuse the curated role, name what it costs, remind Mara who knew her off-camera.");
-  await expect(staging.locator('[name="collapse.exitCondition"]')).toHaveValue("The group refuses the assigned role together.");
+  await staging.locator('button[data-break-type="Name"]').evaluate((button) => button.click());
+  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The audience's name for someone becomes easier to answer to than their own.");
+  await expect(staging.locator('[name="collapse.operatorChoice"]')).toHaveValue("Speak the real name, reject the captioned name, or let the label stabilize.");
+  await expect(staging.locator('[name="collapse.exitCondition"]')).toHaveValue("Someone who knows the person speaks the real name while another Operator shields them from attention.");
 
   await page.getByLabel("Player View").check();
   await expect(page.getByLabel("Player-facing display")).toBeVisible();
   await expect(page.getByLabel("Player-facing display")).not.toContainText("COLLAPSE READY");
   await expect(page.getByLabel("Player-facing display")).not.toContainText("Broken Law");
+});
+
+test("handler live collapse staging uses VeilCorp Intake pressure grammar", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await page.getByRole("button", { name: "PREP" }).click();
+  await page.getByLabel("Template").selectOption("veilcorp-intake");
+  await page.getByRole("button", { name: "Apply Template" }).click();
+  await page.getByRole("button", { name: "LIVE MODE" }).click();
+
+  await page.locator('[name="primaryClock.current"]').fill("6");
+  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+
+  const staging = page.getByLabel("Collapse and Rewrite staging");
+  await expect(staging).toContainText("COLLAPSE READY");
+
+  await staging.locator('button[data-break-type="Room"]').evaluate((button) => button.click());
+  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The church answers observation before anyone admits what they saw.");
+  await expect(staging.locator('[name="collapse.operatorChoice"]')).toHaveValue("Cover the reflection, step outside, name the ordinary detail, or keep looking and accept Attention.");
+  await expect(staging.locator('[name="collapse.exitCondition"]')).toHaveValue("The group breaks line of sight, names what changed, and leaves together with one Anchor intact.");
+
+  await staging.locator('button[data-break-type="Identity"]').evaluate((button) => button.click());
+  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The system classification becomes easier to believe than the Operator's own self-description.");
+  await expect(staging.locator('[name="collapse.operatorChoice"]')).toHaveValue("Accept the intake label, dispute it, or define yourself before the room does.");
+  await expect(staging.locator('[name="collapse.exitCondition"]')).toHaveValue("The Operator states who they are through an Anchor, and another Operator confirms it.");
+
+  await page.evaluate(() => {
+    const api = window.HandlerState;
+    let next = api.activateCollapseMode(api.readState());
+    next = api.activateRewriteMode(next);
+    next = api.populateRewriteOverlay(next, "Record");
+    window.dispatchEvent(new CustomEvent("veildaemon:handler-collapse-updated", {
+      detail: { state: next, statusText: "REWRITE STAGED" }
+    }));
+  });
+
+  await expect(staging.locator('[name="rewrite.rewriteLaw"]')).toHaveValue("The impossible message becomes the official version.");
+  await expect(staging.locator('[name="rewrite.lockInRisk"]')).toHaveValue("Screens, logs, timestamps, and contact records begin agreeing with the intake file.");
+  await expect(staging.locator('[name="rewrite.counteractionWindow"]')).toHaveValue("Duplicate the record, compare devices, and preserve one contradiction.");
+});
+
+test("handler live custom template carries ideal runtime scaffold", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await page.getByRole("button", { name: "PREP" }).click();
+  await page.getByLabel("Template").selectOption("custom-campaign");
+  await page.getByRole("button", { name: "Apply Template" }).click();
+  await page.getByRole("button", { name: "LIVE MODE" }).click();
+
+  await expect(page.getByRole("group", { name: "Table triggers" }).getByRole("button", { name: /Operators deny visible pressure/ })).toBeVisible();
+
+  await page.locator('[name="primaryClock.current"]').fill("6");
+  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+
+  const staging = page.getByLabel("Collapse and Rewrite staging");
+  await staging.locator('button[data-break-type="Room"]').evaluate((button) => button.click());
+  await expect(staging.locator('[name="collapse.brokenLaw"]')).toHaveValue("The site accepts pressure as architecture.");
+
+  await page.evaluate(() => {
+    const api = window.HandlerState;
+    let next = api.activateCollapseMode(api.readState());
+    next = api.activateRewriteMode(next);
+    next = api.populateRewriteOverlay(next, "Name");
+    window.dispatchEvent(new CustomEvent("veildaemon:handler-collapse-updated", {
+      detail: { state: next, statusText: "REWRITE STAGED" }
+    }));
+  });
+
+  await expect(staging.locator('[name="rewrite.rewriteLaw"]')).toHaveValue("The accepted name becomes easier to remember than the original.");
 });
 
 test("handler live rewrite staging waits for active collapse", async ({ page }) => {
@@ -253,9 +322,11 @@ test("handler live rewrite staging waits for active collapse", async ({ page }) 
   await page.locator("#trigger-apply").evaluate((button) => button.click());
 
   await expect(staging).toContainText("REWRITE READY");
-  await expect(staging).toContainText("WHAT GETS OVERWRITTEN?");
+  await expect(staging).toContainText("SELECT TARGET");
   await staging.locator('button[data-overwrite-type="Role"]').evaluate((button) => button.click());
-  await expect(staging.locator('[name="rewrite.rewriteLaw"]')).toHaveValue("The accepted version becomes easier to remember than the original.");
+  await expect(staging.locator('[name="rewrite.rewriteLaw"]')).toHaveValue("The useful role becomes the stable identity.");
+  await expect(staging.locator('[name="rewrite.lockInRisk"]')).toHaveValue("The character gains advantage while performing it, but loses access to unsupported selfhood.");
+  await expect(staging.locator('[name="rewrite.counteractionWindow"]')).toHaveValue("Someone asks for the person, not the performance.");
 });
 
 test("handler live wind down mirrors the trigger preview flow", async ({ page }) => {

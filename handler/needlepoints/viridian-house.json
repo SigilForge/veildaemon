@@ -502,38 +502,105 @@
     "witness_pressure_npc": "Len Orra"
   },
   "collapse_staging": {
-    "default_break_type": "Signal",
-    "broken_law": "The Audience can caption choices before Operators make them.",
+    "default_break_type": "Body",
+    "broken_law": "The performed body becomes easier to maintain than the living one.",
     "operator_choice": "Refuse the curated self, ground Mara as a person, protect Saffi's true memory, or flee Floor 13 together.",
     "exit_condition": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience.",
-    "by_break_type": {
-      "Signal": {
-        "broken_law": "The Audience can caption choices before Operators make them.",
-        "operator_choice": "Cut the feed, poison the comment thread with truth, ground Mara, or flee together.",
-        "exit_condition": "Break observation or speak honestly while protected."
+    "by_target": {
+      "Body": {
+        "broken_law": "The performed body becomes easier to maintain than the living one.",
+        "operator_choice": "Refuse the curated self, ground Mara as a person, protect Saffi's true memory, or flee Floor 13 together.",
+        "exit_condition": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience."
       },
-      "Identity": {
-        "broken_law": "The performed self becomes easier to sustain than the real one.",
-        "operator_choice": "Refuse the curated role, name what it costs, remind Mara who knew her off-camera.",
-        "exit_condition": "The group refuses the assigned role together."
+      "Name": {
+        "broken_law": "The audience's name for someone becomes easier to answer to than their own.",
+        "operator_choice": "Speak the real name, reject the captioned name, or let the label stabilize.",
+        "exit_condition": "Someone who knows the person speaks the real name while another Operator shields them from attention."
+      },
+      "Role": {
+        "broken_law": "The assigned role becomes more stable than the person.",
+        "operator_choice": "Refuse the useful role, redefine it, or embody it and accept cost.",
+        "exit_condition": "Someone interacts with the person instead of the function: friend, witness, victim, streamer, monster, handler, content."
       },
       "Memory": {
-        "broken_law": "The feed remembers the version that was easiest to watch.",
-        "operator_choice": "Use Saffi's true memory, correct the record, or accept the edited aftermath.",
-        "exit_condition": "A witness names the real memory before the Audience captions it."
+        "broken_law": "The edited memory becomes easier to replay than the original.",
+        "operator_choice": "Trust Saffi, trust evidence, trust the feed, or reconstruct the event together.",
+        "exit_condition": "A witness names the original truth and pays the cost."
       },
       "Relationship": {
-        "broken_law": "The Audience turns care into leverage.",
-        "operator_choice": "Protect Saffi, reach Mara as a person, or let the site use one as bait for the other.",
-        "exit_condition": "Someone protects the bond without performing it for the room."
+        "broken_law": "The audience relationship replaces the private bond.",
+        "operator_choice": "Protect Saffi/Mara as people, or perform care for the feed.",
+        "exit_condition": "A private truth is spoken while watched, without making it content."
+      },
+      "Evidence": {
+        "broken_law": "The useful proof becomes more real than the true proof.",
+        "operator_choice": "Preserve the ugly evidence, duplicate it, or let the feed curate it.",
+        "exit_condition": "Secure a clue before the feed edits it."
+      },
+      "Time": {
+        "broken_law": "Broadcast delay becomes causality.",
+        "operator_choice": "Act before the caption resolves, wait for the audience, or break sequence.",
+        "exit_condition": "Interrupt the predicted action with a protected honest choice."
+      },
+      "Signal": {
+        "broken_law": "The feed becomes the room's nervous system.",
+        "operator_choice": "Cut the broadcast, speak into it, corrupt it, or let it choose.",
+        "exit_condition": "Broadcast route is severed, redirected toward the room, or made private."
+      },
+      "Room": {
+        "broken_law": "The site accepts the performance as architecture.",
+        "operator_choice": "Leave, anchor the room, bargain with it, or let 13F stabilize.",
+        "exit_condition": "The group exits together after naming what the room is preserving."
       }
     }
   },
   "rewrite_staging": {
-    "default_overwrite_type": "Role",
-    "rewrite_law": "The accepted version becomes easier to remember than the original.",
+    "default_overwrite_type": "Name",
+    "rewrite_law": "The accepted name becomes easier to remember than the original.",
     "lock_in_risk": "If no one contradicts it before the next pressure beat, update the affected record.",
-    "counteraction_window": "A witness names the original truth and pays the cost."
+    "counteraction_window": "A witness says the original name and accepts being seen.",
+    "by_target": {
+      "Name": {
+        "rewrite_law": "The accepted name becomes easier to remember than the original.",
+        "lock_in_risk": "If no one contradicts it before the next pressure beat, update the affected record.",
+        "counteraction_window": "A witness says the original name and accepts being seen."
+      },
+      "Role": {
+        "rewrite_law": "The useful role becomes the stable identity.",
+        "lock_in_risk": "The character gains advantage while performing it, but loses access to unsupported selfhood.",
+        "counteraction_window": "Someone asks for the person, not the performance."
+      },
+      "Memory": {
+        "rewrite_law": "The repeated version overwrites the witnessed version.",
+        "lock_in_risk": "Future clues point to the edited event unless duplicated proof exists.",
+        "counteraction_window": "Three independent records or witnesses reconstruct the true event."
+      },
+      "Relationship": {
+        "rewrite_law": "Public attachment overwrites private bond.",
+        "lock_in_risk": "The audience can speak through the relationship.",
+        "counteraction_window": "The bond-holder names a private truth the audience cannot use."
+      },
+      "Record": {
+        "rewrite_law": "The institutional version becomes enforceable reality.",
+        "lock_in_risk": "Police, landlord, platform, or file systems begin agreeing with the lie.",
+        "counteraction_window": "Duplicate, reconcile, or publicly contradict the record with cost."
+      },
+      "Body": {
+        "rewrite_law": "The body adapts to the version most safely witnessed.",
+        "lock_in_risk": "The physical tell persists after exit.",
+        "counteraction_window": "Grounding, touch, medical proof, or self-naming interrupts the shift."
+      },
+      "Location": {
+        "rewrite_law": "The accepted place becomes the reachable place.",
+        "lock_in_risk": "Floor 13 becomes easier to find than Floor 12.",
+        "counteraction_window": "Mark a mundane route and leave by verified architecture."
+      },
+      "History": {
+        "rewrite_law": "The backstory becomes cleaner than the truth.",
+        "lock_in_risk": "NPCs remember the simplified version.",
+        "counteraction_window": "Someone preserves the messy version without improving it."
+      }
+    }
   },
   "player_view": {
     "safe_consequence": "The room responds visibly when watched choices become honest, hidden, or performed."
