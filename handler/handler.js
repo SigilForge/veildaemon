@@ -57,7 +57,11 @@
       button.dataset.value = item.name;
       button.innerHTML = `<strong>${item.name}</strong><span>${item.cue}</span>`;
       button.addEventListener("click", () => {
-        state = api.selectSceneState(state, item.name);
+        state.sceneState.current = item.name;
+        state.activeEntity.sceneState = item.name;
+        if (api.hasActiveNeedlepoint(state)) {
+          state = api.applyNeedlepointSceneState(state);
+        }
         syncForm();
         writeState();
         renderDynamic();
@@ -562,7 +566,11 @@
     if (applyTemplate && picker) applyTemplate.addEventListener("click", () => {
       const template = api.templates.find((item) => item.id === picker.value) || api.templates[0];
       const base = template.id === "custom-campaign" ? api.defaultState : state;
-      state = api.normalizeState(api.mergeDeep(base, template.data));
+      const merged = api.mergeDeep(base, template.data);
+      if (template.data?.activeNeedlepoint) {
+        merged.activeNeedlepoint = template.data.activeNeedlepoint;
+      }
+      state = api.normalizeState(merged);
       syncForm();
       writeState(`${template.name.toUpperCase()} LOADED`);
       renderDynamic();

@@ -60,7 +60,8 @@
     min-height: 5.8rem;
   }
 
-  body[data-handler-mode="live"] .scene-panel textarea[name="sceneState.caseConsequence"] {
+  body[data-handler-mode="live"] .scene-panel textarea[name="sceneState.sceneConsequence"],
+  body[data-handler-mode="live"] .aftermath-panel textarea[name="attention.aftermathConsequence"] {
     min-height: 5.35rem;
   }
 
