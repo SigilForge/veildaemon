@@ -561,20 +561,6 @@
   }
 
   function bindDataControls() {
-    const applyTemplate = document.getElementById("apply-template");
-    const picker = document.getElementById("template-picker");
-    if (applyTemplate && picker) applyTemplate.addEventListener("click", () => {
-      const template = api.templates.find((item) => item.id === picker.value) || api.templates[0];
-      collectForm();
-      if (!api.confirmTemplateReplace(state, template)) return;
-      state = api.applyTemplateState(state, template);
-      syncForm();
-      writeState(`${template.name.toUpperCase()} LOADED`);
-      renderDynamic();
-      renderPlayers();
-      renderNpcs();
-    });
-
     const exportButton = document.getElementById("export-case");
     if (exportButton) exportButton.addEventListener("click", () => {
       collectForm();

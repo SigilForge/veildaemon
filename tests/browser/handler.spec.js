@@ -1,33 +1,47 @@
 const { test, expect } = require("@playwright/test");
 
 async function enableHandlerFieldEdit(page) {
+  const onButton = page.getByRole("button", { name: "Edit Fields: On" });
+  if (await onButton.isVisible().catch(() => false)) return;
   await page.getByRole("button", { name: "Edit Fields: Off" }).click();
-  await expect(page.getByRole("button", { name: "Edit Fields: On" })).toBeVisible();
+  await expect(onButton).toBeVisible();
 }
 
 async function applyHandlerTemplate(page, templateId) {
+  const returnTo = page.url();
+  const onOverview = /\/handler\/?$/.test(new URL(returnTo).pathname);
+  if (!onOverview) {
+    await page.goto("/handler/");
+  }
+  await enableHandlerFieldEdit(page);
+
   page.once("dialog", (dialog) => {
     expect(dialog.type()).toBe("confirm");
-    expect(dialog.message()).toContain("Stacking is never intended");
+    expect(dialog.message()).toContain("unloads");
     dialog.accept();
   });
   if (templateId) {
     await page.getByLabel("Template").selectOption(templateId);
   }
   await page.getByRole("button", { name: "Apply Template" }).click();
+
+  if (!onOverview) {
+    await page.goto(returnTo);
+    if (returnTo.includes("/handler/live/")) {
+      await enableHandlerFieldEdit(page);
+    }
+  }
 }
 
 test("handler apply template confirm cancels without replacing case", async ({ page }) => {
-  await page.goto("/handler/live/");
-  await enableHandlerFieldEdit(page);
-  await page.getByRole("button", { name: "PREP" }).click();
+  await page.goto("/handler/");
   await applyHandlerTemplate(page, "veilcorp-intake");
-  await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("VeilCorp Intake");
+  await expect(page.locator("#overview-case")).toContainText("VeilCorp Intake");
 
   page.once("dialog", (dialog) => dialog.dismiss());
   await page.getByLabel("Template").selectOption("viridian-house");
   await page.getByRole("button", { name: "Apply Template" }).click();
-  await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("VeilCorp Intake");
+  await expect(page.locator("#overview-case")).toContainText("VeilCorp Intake");
 });
 
 test("handler overview exposes modular control cards", async ({ page }) => {
@@ -127,7 +141,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   });
   expect(secondaryClockMetrics.overflow).toBeLessThanOrEqual(2);
   expect(secondaryClockMetrics.narrowestField).toBeGreaterThan(110);
-  await expect(page.getByLabel("Template")).toHaveValue("custom-campaign");
+  await expect(page.getByLabel("Template")).toBeHidden();
   await applyHandlerTemplate(page, "veilcorp-intake");
   await expect(page.locator('[name="session.caseTitle"]')).toHaveValue("VeilCorp Intake");
   await expect(page.locator('[name="entityLoop.Need"]')).toHaveValue("A complete self to copy, correct, or preserve.");
