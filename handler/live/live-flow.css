@@ -8,6 +8,115 @@ body[data-handler-mode="live"] .live-flow-grid {
   min-width: 0;
 }
 
+body[data-handler-mode="live"] .collapse-rewrite-mount {
+  margin-top: .65rem;
+  padding-top: .55rem;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  display: grid;
+  gap: .55rem;
+}
+
+body[data-handler-mode="live"] .staging-only-label {
+  margin: 0;
+  font-size: .68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .72;
+}
+
+body[data-handler-mode="live"] .staging-banner {
+  display: grid;
+  gap: .2rem;
+  padding: .5rem .6rem;
+  border: 1px solid rgba(255, 120, 92, .35);
+  background: rgba(255, 72, 48, .08);
+}
+
+body[data-handler-mode="live"] .rewrite-ready-banner {
+  border-color: rgba(196, 132, 255, .35);
+  background: rgba(148, 72, 255, .08);
+}
+
+body[data-handler-mode="live"] .staging-banner strong {
+  letter-spacing: .08em;
+  font-size: .72rem;
+}
+
+body[data-handler-mode="live"] .staging-banner span,
+body[data-handler-mode="live"] .staging-mode-title strong {
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+body[data-handler-mode="live"] .staging-trigger-note {
+  margin: 0;
+  font-size: .74rem;
+  opacity: .82;
+}
+
+body[data-handler-mode="live"] .staging-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .35rem;
+}
+
+body[data-handler-mode="live"] .staging-choice-button {
+  min-height: 1.9rem;
+  padding: .3rem .35rem;
+  font-size: .66rem;
+  line-height: 1.15;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  text-align: center;
+  border: 1px solid rgba(137, 255, 218, .22);
+  background: rgba(0, 0, 0, .34);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+body[data-handler-mode="live"] .staging-choice-button[data-break-type].is-active {
+  border-color: rgba(255, 120, 92, .55);
+  background: rgba(255, 72, 48, .16);
+  color: #ffd8c8;
+}
+
+body[data-handler-mode="live"] .staging-choice-button[data-overwrite-type].is-active {
+  border-color: rgba(196, 132, 255, .55);
+  background: rgba(148, 72, 255, .16);
+  color: #ead8ff;
+}
+
+body[data-handler-mode="live"] .staging-mode {
+  display: grid;
+  gap: .45rem;
+}
+
+body[data-handler-mode="live"] .staging-field textarea {
+  min-height: 3.2rem;
+  margin-top: .2rem;
+}
+
+body[data-handler-mode="live"] .staging-type-tag {
+  margin: 0;
+  font-size: .72rem;
+  opacity: .78;
+}
+
+body[data-handler-mode="live"] .staging-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+body[data-handler-mode="live"] .staging-actions .button {
+  min-height: 2rem;
+  padding: .3rem .55rem;
+  font-size: .72rem;
+}
+
 @media (min-width: 1101px) {
 
   body[data-handler-mode="live"] .live-flow-grid {
@@ -69,106 +178,6 @@ body[data-handler-mode="live"] .live-flow-grid {
   body[data-handler-mode="live"] .scene-panel textarea[name="sceneState.sceneConsequence"],
   body[data-handler-mode="live"] .aftermath-panel textarea[name="attention.aftermathConsequence"] {
     min-height: 5.35rem;
-  }
-
-  body[data-handler-mode="live"] .collapse-rewrite-mount {
-    margin-top: .65rem;
-    padding-top: .55rem;
-    border-top: 1px solid rgba(255, 255, 255, .08);
-    display: grid;
-    gap: .55rem;
-  }
-
-  body[data-handler-mode="live"] .staging-only-label {
-    margin: 0;
-    font-size: .68rem;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    opacity: .72;
-  }
-
-  body[data-handler-mode="live"] .staging-banner {
-    display: grid;
-    gap: .2rem;
-    padding: .5rem .6rem;
-    border: 1px solid rgba(255, 120, 92, .35);
-    background: rgba(255, 72, 48, .08);
-  }
-
-  body[data-handler-mode="live"] .rewrite-ready-banner {
-    border-color: rgba(196, 132, 255, .35);
-    background: rgba(148, 72, 255, .08);
-  }
-
-  body[data-handler-mode="live"] .staging-banner strong {
-    letter-spacing: .08em;
-    font-size: .72rem;
-  }
-
-  body[data-handler-mode="live"] .staging-banner span,
-  body[data-handler-mode="live"] .staging-mode-title strong {
-    font-size: .78rem;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-  }
-
-  body[data-handler-mode="live"] .staging-trigger-note {
-    margin: 0;
-    font-size: .74rem;
-    opacity: .82;
-  }
-
-  body[data-handler-mode="live"] .staging-choice-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: .35rem;
-  }
-
-  body[data-handler-mode="live"] .staging-choice-button {
-    min-height: 1.9rem;
-    padding: .3rem .35rem;
-    font-size: .66rem;
-    line-height: 1.15;
-    letter-spacing: -.01em;
-    white-space: nowrap;
-    text-align: center;
-    border: 1px solid rgba(255, 255, 255, .12);
-    background: rgba(0, 0, 0, .22);
-    color: inherit;
-    cursor: pointer;
-  }
-
-  body[data-handler-mode="live"] .staging-choice-button.is-active {
-    border-color: rgba(255, 120, 92, .55);
-    background: rgba(255, 72, 48, .16);
-  }
-
-  body[data-handler-mode="live"] .staging-mode {
-    display: grid;
-    gap: .45rem;
-  }
-
-  body[data-handler-mode="live"] .staging-field textarea {
-    min-height: 3.2rem;
-    margin-top: .2rem;
-  }
-
-  body[data-handler-mode="live"] .staging-type-tag {
-    margin: 0;
-    font-size: .72rem;
-    opacity: .78;
-  }
-
-  body[data-handler-mode="live"] .staging-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .4rem;
-  }
-
-  body[data-handler-mode="live"] .staging-actions .button {
-    min-height: 2rem;
-    padding: .3rem .55rem;
-    font-size: .72rem;
   }
 
   body[data-handler-mode="live"] .roll-row {
@@ -423,5 +432,12 @@ body[data-handler-mode="live"] .live-flow-grid {
 
   body[data-handler-mode="live"] .clock-panel .clock-segment {
     min-height: 2.4rem;
+  }
+
+  body[data-handler-mode="live"] .staging-choice-button {
+    min-height: 2.35rem;
+    padding: .45rem .4rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
