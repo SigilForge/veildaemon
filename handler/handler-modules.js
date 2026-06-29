@@ -244,9 +244,12 @@
   function renderClock(trackId, clock, path, enabled = true) {
     const track = document.getElementById(trackId);
     if (!track) return;
+    const segments = Math.max(1, Number(clock.segments) || 6);
     track.textContent = "";
     track.classList.toggle("is-muted", !enabled);
-    for (let index = 1; index <= clock.segments; index += 1) {
+    track.style.setProperty("--clock-segments", String(segments));
+    track.style.gridTemplateColumns = `repeat(${segments}, minmax(0, 1fr))`;
+    for (let index = 1; index <= segments; index += 1) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "clock-segment";

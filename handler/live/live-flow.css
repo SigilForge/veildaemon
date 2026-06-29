@@ -1,8 +1,14 @@
 /* Live dashboard flow overrides: keep the surface columnar and packed. */
+body[data-handler-mode="live"] .dashboard-form {
+  display: block;
+}
+
+body[data-handler-mode="live"] .live-flow-grid {
+  width: 100%;
+  min-width: 0;
+}
+
 @media (min-width: 1101px) {
-  body[data-handler-mode="live"] .dashboard-form {
-    display: block;
-  }
 
   body[data-handler-mode="live"] .live-flow-grid {
     display: grid;
@@ -227,6 +233,15 @@
 }
 
 @media (max-width: 1100px) {
+  body[data-handler-mode="live"] .clock-panel .clock-field-grid {
+    grid-template-columns: 1fr;
+    gap: .55rem;
+  }
+
+  body[data-handler-mode="live"] .clock-panel .clock-field-grid label {
+    grid-column: 1 / -1;
+  }
+
   body[data-handler-mode="live"] .live-flow-grid {
     display: flex;
     flex-direction: column;
@@ -390,5 +405,23 @@
   body[data-handler-mode="live"] .npc-summary-grid,
   body[data-handler-mode="live"] .operator-risk-strip {
     grid-template-columns: 1fr;
+  }
+
+  body[data-handler-mode="live"] .clock-panel .clock-field-grid {
+    grid-template-columns: 1fr;
+    gap: .55rem;
+  }
+
+  body[data-handler-mode="live"] .clock-panel .clock-field-grid label {
+    grid-column: 1 / -1;
+  }
+
+  body[data-handler-mode="live"] .clock-panel .clock-track {
+    gap: .45rem;
+    margin: .55rem 0 .35rem;
+  }
+
+  body[data-handler-mode="live"] .clock-panel .clock-segment {
+    min-height: 2.4rem;
   }
 }
