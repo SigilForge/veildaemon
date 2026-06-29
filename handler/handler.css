@@ -1560,6 +1560,11 @@ body.is-player-view .private-panel {
 }
 
 @media (max-width: 1100px) {
+  .module-surface .dashboard-form,
+  .overview-surface .dashboard-form {
+    display: block;
+  }
+
   .dashboard-form,
   .live-surface .dashboard-form,
   .overview-grid,
@@ -1690,13 +1695,31 @@ body.is-player-view .private-panel {
   .scene-state-row,
   .status-strip,
   .handler-session-strip,
-   .handler-line-tracker,
+  .handler-line-tracker,
   .overview-grid,
   .operator-risk-strip,
   .npc-summary-grid,
   .flag-grid,
-  .field-grid.two {
+  .field-grid.two,
+  .field-grid.three,
+  .field-grid.four,
+  .field-grid.five,
+  .authorization-builder,
+  .loop-grid {
     grid-template-columns: 1fr;
+  }
+
+  .field-grid.two,
+  .field-grid.three,
+  .field-grid.four,
+  .field-grid.five,
+  .clock-field-grid {
+    align-items: stretch;
+  }
+
+  .clock-panel .field-grid.five label,
+  .clock-panel .field-grid.two label {
+    grid-column: 1 / -1;
   }
 
   .room-answer-line {
@@ -1709,7 +1732,9 @@ body.is-player-view .private-panel {
   }
 
   .clock-field-grid label:nth-child(2),
-  .clock-field-grid label:nth-child(3) {
+  .clock-field-grid label:nth-child(3),
+  .clock-field-grid label:nth-child(4),
+  .clock-field-grid label:nth-child(5) {
     grid-column: 1 / -1;
   }
 
@@ -1719,6 +1744,30 @@ body.is-player-view .private-panel {
 
   .clock-segment {
     min-height: 2.35rem;
+  }
+
+  .player-head {
+    grid-template-columns: 1fr;
+  }
+
+  .entry-remove {
+    width: 100%;
+  }
+
+  .authorization-actions {
+    justify-content: stretch;
+  }
+
+  .authorization-actions .button {
+    flex: 1 1 100%;
+  }
+
+  .entity-library-actions .button {
+    flex: 1 1 100%;
+  }
+
+  .control-bar .helper-copy {
+    flex: 1 1 100%;
   }
 }
 

@@ -223,6 +223,89 @@ test("handler live primary clock stays usable on mobile", async ({ page }) => {
   expect(clockMetrics.segments).toHaveLength(6);
 });
 
+test("handler clocks module fields stack on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/handler/clocks/");
+
+  const metrics = await page.evaluate(() => {
+    const panel = document.querySelector(".clock-panel");
+    const panelRect = panel?.getBoundingClientRect();
+    const labels = Array.from(document.querySelectorAll(".clock-panel .field-grid.five label")).map((label) => label.getBoundingClientRect().width);
+    const segments = Array.from(document.querySelectorAll("#primary-clock-track .clock-segment")).map((button) => button.getBoundingClientRect().height);
+    return {
+      panelWidth: panelRect?.width || 0,
+      labels,
+      segments
+    };
+  });
+
+  expect(metrics.panelWidth).toBeGreaterThan(300);
+  expect(metrics.labels.length).toBeGreaterThanOrEqual(5);
+  metrics.labels.forEach((width) => {
+    expect(width).toBeGreaterThan(metrics.panelWidth * 0.88);
+  });
+  expect(metrics.segments.length).toBeGreaterThan(0);
+  expect(Math.min(...metrics.segments)).toBeGreaterThan(30);
+});
+
+test("handler cases module fields stack on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/handler/cases/");
+
+  const metrics = await page.evaluate(() => {
+    const panel = document.querySelector(".case-panel");
+    const panelRect = panel?.getBoundingClientRect();
+    const labels = Array.from(document.querySelectorAll(".case-panel .field-grid.three label")).map((label) => label.getBoundingClientRect().width);
+    return {
+      panelWidth: panelRect?.width || 0,
+      labels
+    };
+  });
+
+  expect(metrics.panelWidth).toBeGreaterThan(300);
+  metrics.labels.forEach((width) => {
+    expect(width).toBeGreaterThan(metrics.panelWidth * 0.88);
+  });
+});
+
+test("handler operators authorization stacks on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/handler/operators/");
+
+  const metrics = await page.evaluate(() => {
+    const shell = document.querySelector(".handler-shell")?.getBoundingClientRect();
+    const sections = Array.from(document.querySelectorAll(".authorization-section")).map((section) => section.getBoundingClientRect().width);
+    return {
+      shellWidth: shell?.width || 0,
+      sections
+    };
+  });
+
+  expect(metrics.shellWidth).toBeGreaterThan(300);
+  metrics.sections.forEach((width) => {
+    expect(width).toBeGreaterThan(metrics.shellWidth * 0.72);
+  });
+});
+
+test("handler overview cards stack on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/handler/");
+
+  const metrics = await page.evaluate(() => {
+    const shell = document.querySelector(".handler-shell")?.getBoundingClientRect();
+    const cards = Array.from(document.querySelectorAll(".overview-card")).map((card) => card.getBoundingClientRect().width);
+    return {
+      shellWidth: shell?.width || 0,
+      cards
+    };
+  });
+
+  expect(metrics.shellWidth).toBeGreaterThan(300);
+  metrics.cards.forEach((width) => {
+    expect(width).toBeGreaterThan(metrics.shellWidth * 0.88);
+  });
+});
+
 test("handler module pages share case state", async ({ page }) => {
   await page.goto("/handler/cases/");
   await enableHandlerFieldEdit(page);
