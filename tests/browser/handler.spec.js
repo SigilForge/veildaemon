@@ -287,6 +287,32 @@ test("handler operators authorization stacks on mobile", async ({ page }) => {
   });
 });
 
+test("handler live prep and archive panels stay full width on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/handler/live/");
+
+  for (const mode of ["prep", "archive"]) {
+    await page.getByRole("button", { name: mode === "prep" ? "PREP" : "ARCHIVE" }).click();
+
+    const metrics = await page.evaluate(() => {
+      const shell = document.querySelector(".handler-shell")?.getBoundingClientRect();
+      const panels = Array.from(document.querySelectorAll(".dashboard-form .panel:not([hidden])")).map((panel) => {
+        const rect = panel.getBoundingClientRect();
+        return { width: rect.width };
+      });
+      return {
+        shellWidth: shell?.width || 0,
+        panels
+      };
+    });
+
+    expect(metrics.shellWidth).toBeGreaterThan(300);
+    metrics.panels.forEach((panel) => {
+      expect(panel.width).toBeGreaterThan(metrics.shellWidth * 0.88);
+    });
+  }
+});
+
 test("handler overview cards stack on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/handler/");
