@@ -565,12 +565,9 @@
     const picker = document.getElementById("template-picker");
     if (applyTemplate && picker) applyTemplate.addEventListener("click", () => {
       const template = api.templates.find((item) => item.id === picker.value) || api.templates[0];
-      const base = template.id === "custom-campaign" ? api.defaultState : state;
-      const merged = api.mergeDeep(base, template.data);
-      if (template.data?.activeNeedlepoint) {
-        merged.activeNeedlepoint = template.data.activeNeedlepoint;
-      }
-      state = api.normalizeState(merged);
+      collectForm();
+      if (!api.confirmTemplateReplace(state, template)) return;
+      state = api.applyTemplateState(state, template);
       syncForm();
       writeState(`${template.name.toUpperCase()} LOADED`);
       renderDynamic();
