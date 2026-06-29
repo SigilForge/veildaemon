@@ -141,6 +141,9 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await page.getByRole("button", { name: "ARCHIVE" }).click();
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toBeVisible();
   await expect(page.getByLabel("Dashboard controls")).toBeVisible();
+  await expect(page.getByLabel("What makes it worse")).toBeHidden();
+  await expect(page.getByLabel("What makes it better")).toBeHidden();
+  await expect(page.getByLabel("Attention and aftermath")).toBeVisible();
 });
 
 test("handler module pages share case state", async ({ page }) => {
