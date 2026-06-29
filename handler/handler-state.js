@@ -3055,7 +3055,7 @@
     const nextName = safeString(template?.name, 80) || "the selected template";
     const currentName = currentTemplateLabel(state);
     return window.confirm(
-      `Apply "${nextName}"?\n\nThis unloads "${currentName}" and loads the new template. Stacking is never intended.`
+      `Apply "${nextName}"?\n\nThis unloads "${currentName}" and loads the new template.`
     );
   }
 

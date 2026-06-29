@@ -124,6 +124,7 @@
 
   function fieldEditSafe(el) {
     if (!el || el.matches("[type='button'], [type='file'], [type='checkbox'], [type='radio']")) return false;
+    if (el.id === "template-picker") return true;
     if (el.hasAttribute("data-live-control") || el.closest("[data-live-control-zone]")) return true;
 
 

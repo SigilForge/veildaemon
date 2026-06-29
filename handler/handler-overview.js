@@ -24,6 +24,10 @@
       option.textContent = template.name;
       picker.append(option);
     });
+    const activeId = api.safeString(state.activeNeedlepoint?.id, 80);
+    if (activeId && api.templates.some((template) => template.id === activeId)) {
+      picker.value = activeId;
+    }
   }
 
   function renderOverview() {
@@ -165,6 +169,7 @@
 
   async function init() {
     await api.loadTemplates();
+    state = api.readState();
     renderTemplates();
     bindControls();
     renderOverview();
