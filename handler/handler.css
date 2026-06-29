@@ -996,7 +996,7 @@ select:focus {
 
 .clock-track {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--clock-segments, 6), minmax(0, 1fr));
   gap: .3rem;
   margin: .65rem 0;
 }
@@ -1566,7 +1566,37 @@ body.is-player-view .private-panel {
   .field-grid.three,
   .field-grid.four,
   .field-grid.five,
-  .clock-field-grid,
+  .clock-field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+
+  .clock-field-grid label:nth-child(1) {
+    grid-column: 1 / -1;
+  }
+
+  .clock-field-grid label:nth-child(2),
+  .clock-field-grid label:nth-child(3) {
+    grid-column: auto;
+  }
+
+  .clock-field-grid label:nth-child(4),
+  .clock-field-grid label:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
+  .secondary-clock-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .secondary-clock-grid label:nth-child(1),
+  .secondary-clock-grid label:nth-child(2),
+  .secondary-clock-grid label:nth-child(3),
+  .secondary-clock-grid label:nth-child(4),
+  .secondary-clock-grid label:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
   .room-answer-fields,
   .loop-grid,
   .roll-row,
@@ -1672,6 +1702,23 @@ body.is-player-view .private-panel {
   .room-answer-line {
     grid-template-columns: 1fr;
     gap: .25rem;
+  }
+
+  .clock-field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clock-field-grid label:nth-child(2),
+  .clock-field-grid label:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .clock-track {
+    gap: .45rem;
+  }
+
+  .clock-segment {
+    min-height: 2.35rem;
   }
 }
 

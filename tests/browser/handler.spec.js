@@ -185,6 +185,44 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.getByLabel("Attention and aftermath")).toBeVisible();
 });
 
+test("handler live primary clock stays usable on mobile", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await applyHandlerTemplate(page, "veilcorp-intake");
+
+  const clockMetrics = await page.evaluate(() => {
+    const shell = document.querySelector(".handler-shell")?.getBoundingClientRect();
+    const panel = document.querySelector(".clock-panel");
+    const panelRect = panel?.getBoundingClientRect();
+    const fields = Array.from(document.querySelectorAll(".clock-panel .clock-field-grid label")).map((label) => {
+      const rect = label.getBoundingClientRect();
+      return { top: rect.top, width: rect.width, left: rect.left };
+    });
+    const segments = Array.from(document.querySelectorAll("#primary-clock-track .clock-segment")).map((button) => button.getBoundingClientRect().height);
+    const ticksWhen = document.querySelector('[name="primaryClock.ticksWhen"]')?.getBoundingClientRect();
+    const stabilizer = document.querySelector('[name="primaryClock.stabilizer"]')?.getBoundingClientRect();
+    return {
+      shellWidth: shell?.width || 0,
+      panelWidth: panelRect?.width || 0,
+      fields,
+      segments,
+      ticksWhenWidth: ticksWhen?.width || 0,
+      stabilizerTop: stabilizer?.top || 0,
+      ticksWhenTop: ticksWhen?.top || 0
+    };
+  });
+
+  expect(clockMetrics.shellWidth).toBeGreaterThan(300);
+  expect(clockMetrics.panelWidth).toBeGreaterThan(clockMetrics.shellWidth - 48);
+  expect(clockMetrics.fields[0].width).toBeGreaterThan(clockMetrics.panelWidth * 0.88);
+  expect(clockMetrics.ticksWhenWidth).toBeGreaterThan(clockMetrics.panelWidth * 0.88);
+  expect(clockMetrics.fields[3].width).toBeGreaterThan(clockMetrics.panelWidth * 0.88);
+  expect(clockMetrics.stabilizerTop).toBeGreaterThan(clockMetrics.ticksWhenTop);
+  expect(Math.min(...clockMetrics.segments)).toBeGreaterThan(30);
+  expect(clockMetrics.segments).toHaveLength(6);
+});
+
 test("handler module pages share case state", async ({ page }) => {
   await page.goto("/handler/cases/");
   await enableHandlerFieldEdit(page);
