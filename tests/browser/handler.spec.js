@@ -176,6 +176,9 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
 
   await page.getByRole("button", { name: "ARCHIVE" }).click();
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toBeVisible();
+  const privateNoteHeights = await page.locator(".notes-panel .field-grid.three textarea").evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().height));
+  expect(privateNoteHeights).toHaveLength(3);
+  expect(Math.max(...privateNoteHeights) - Math.min(...privateNoteHeights)).toBeLessThan(1);
   await expect(page.getByLabel("Dashboard controls")).toBeVisible();
   await expect(page.getByLabel("What makes it worse")).toBeHidden();
   await expect(page.getByLabel("What makes it better")).toBeHidden();
