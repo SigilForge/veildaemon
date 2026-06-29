@@ -124,7 +124,7 @@
     if (collapse.ready && !collapse.active) {
       const banner = document.createElement("div");
       banner.className = "staging-banner collapse-ready-banner";
-      banner.innerHTML = "<strong>COLLAPSE READY</strong><span>WHAT BREAKS FIRST?</span>";
+      banner.innerHTML = "<strong>COLLAPSE READY</strong><span>SELECT TARGET</span>";
       if (collapse.trigger) {
         const trigger = document.createElement("p");
         trigger.className = "staging-trigger-note";
@@ -138,7 +138,7 @@
       const breakGrid = choiceGrid(api.collapseBreakTypes, collapse.breakType, "breakType", (event) => {
         selectCollapseBreakType(event.currentTarget.dataset.breakType);
       });
-      breakGrid.setAttribute("aria-label", "Collapse break type");
+      breakGrid.setAttribute("aria-label", "Collapse target");
       mount.append(breakGrid);
     }
 
@@ -164,7 +164,7 @@
       if (collapse.active && collapse.breakType) {
         const tag = document.createElement("p");
         tag.className = "staging-type-tag";
-        tag.textContent = `Break: ${collapse.breakType}`;
+        tag.textContent = `Target: ${collapse.breakType}`;
         mode.append(tag);
       }
 
@@ -197,7 +197,7 @@
       if (rewrite.ready && !rewrite.active) {
         const banner = document.createElement("div");
         banner.className = "staging-banner rewrite-ready-banner";
-        banner.innerHTML = "<strong>REWRITE READY</strong><span>WHAT GETS OVERWRITTEN?</span>";
+        banner.innerHTML = "<strong>REWRITE READY</strong><span>SELECT TARGET</span>";
         if (rewrite.trigger) {
           const trigger = document.createElement("p");
           trigger.className = "staging-trigger-note";
@@ -211,7 +211,7 @@
           const next = api.populateRewriteOverlay(api.readState(), overwriteType);
           emitState(next, "REWRITE STAGED");
         });
-        overwriteGrid.setAttribute("aria-label", "Rewrite overwrite type");
+        overwriteGrid.setAttribute("aria-label", "Rewrite target");
         mount.append(overwriteGrid);
       }
 
@@ -228,7 +228,7 @@
         if (rewrite.active && rewrite.overwriteType) {
           const tag = document.createElement("p");
           tag.className = "staging-type-tag";
-          tag.textContent = `Overwrite: ${rewrite.overwriteType}`;
+          tag.textContent = `Target: ${rewrite.overwriteType}`;
           mode.append(tag);
         }
 

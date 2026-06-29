@@ -13,10 +13,35 @@
         "name": "Case Clock",
         "segments": 6,
         "current": 0,
-        "ticksWhen": "",
-        "midpointEvent": "",
-        "fullClockEvent": "",
-        "stabilizer": ""
+        "ticksWhen": "Operators stall, split up, ignore the stabilizer, feed the site, fail under pressure, or let Attention isolate someone.",
+        "midpointEvent": "Tick 3 - The site reveals what it wants and changes the next safe choice.",
+        "fullClockEvent": "Tick 6 - Collapse is live. Force a choice, name the pressure, or leave with a cost.",
+        "stabilizer": "A concrete action that reduces the site's leverage and can be repeated at the table."
+      },
+      "sceneState": {
+        "current": "Stable"
+      },
+      "entityLoop": {
+        "Need": "",
+        "Lure": "",
+        "Pressure": "",
+        "Gift": "",
+        "Violence": "",
+        "Exit": ""
+      },
+      "activeEntity": {
+        "name": "",
+        "kind": "Zone",
+        "sceneState": "Stable",
+        "notes": ""
+      },
+      "attention": {
+        "current": "Unseen"
+      },
+      "roomAnswer": {
+        "object": "",
+        "emotionalInput": "",
+        "consequence": ""
       },
       "npcs": [],
       "caseFile": {
@@ -25,14 +50,255 @@
         "templates": "Custom campaign",
         "notes": ""
       },
+      "handlerNotes": {
+        "clueList": "",
+        "consequenceQueue": "",
+        "residueLog": ""
+      },
+      "unresolvedConsequences": "",
       "activeNeedlepoint": {
         "id": "custom-campaign",
         "scaffold": "",
-        "attention_states": {},
-        "clock_attention_consequences": [],
-        "table_triggers": [],
+        "attention_states": {
+          "unseen": {
+            "residue": "Minor tell only.",
+            "follows_home": "",
+            "consequence": "No penalty; warning only."
+          },
+          "noticed": {
+            "residue": "The site shows it has noticed one Operator.",
+            "follows_home": "",
+            "consequence": "First unsafe action under pressure has Disadvantage unless shielded."
+          },
+          "focused": {
+            "residue": "The site learns a usable pattern.",
+            "follows_home": "",
+            "consequence": "Once per scene, the site can pressure the learned pattern."
+          },
+          "targeted": {
+            "residue": "The site targets one Operator through its active vector.",
+            "follows_home": "",
+            "consequence": "Refusal costs 1 Stability or ticks the Clock."
+          },
+          "exposed": {
+            "residue": "The site escapes its first boundary.",
+            "follows_home": "",
+            "consequence": "Aftermath hook becomes a future Needlepoint seed."
+          }
+        },
+        "clock_attention_consequences": [
+          {
+            "clock_min": 0,
+            "clock_max": 1,
+            "attention": "unseen",
+            "consequence": "Minor tell only. No penalty; warning only."
+          },
+          {
+            "clock_min": 2,
+            "clock_max": 3,
+            "attention": "noticed",
+            "consequence": "Pressure becomes visible; next denial or unsafe solo action costs position."
+          },
+          {
+            "clock_min": 4,
+            "clock_max": 5,
+            "attention": "focused",
+            "consequence": "The site can target an Operator through the active pressure vector."
+          },
+          {
+            "clock_min": 6,
+            "clock_max": 6,
+            "attention": "targeted",
+            "consequence": "Collapse choice is live; resolve, stabilize, or carry aftermath."
+          }
+        ],
+        "table_triggers": [
+          {
+            "id": "deny-pressure",
+            "label": "Operators deny visible pressure",
+            "hint": "They ignore the thing the table can already see.",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 1,
+              "attention_min": "Noticed",
+              "scene_state_min": "Echoed"
+            }
+          },
+          {
+            "id": "split-up",
+            "label": "Operators split up",
+            "effects": {
+              "clock_target": "attention",
+              "attention_delta": 1,
+              "scene_state_min": "Echoed",
+              "next_pressure_beat": "Isolation lure activates; separated Operator faces the pressure first."
+            }
+          },
+          {
+            "id": "protected-truth",
+            "label": "Operators protect honest speech",
+            "effects": {
+              "clock_target": "attention",
+              "attention_delta": -1,
+              "clock_tick": false,
+              "scene_state_set": "Stable"
+            }
+          },
+          {
+            "id": "force-site",
+            "label": "Operators force the site without leverage",
+            "effects": {
+              "clock_target": "zone",
+              "clock_delta": 1,
+              "scene_state_min": "Breached",
+              "next_pressure_beat": "The site answers force with worse positioning."
+            }
+          },
+          {
+            "id": "clue-fail",
+            "label": "Operators fail clue roll",
+            "effects": {
+              "clock_target": "both",
+              "clock_delta": 1,
+              "attention_delta": 1,
+              "reveal_next_clue": true,
+              "next_pressure_beat": "Clue gained at a cost; next pressure beat advances."
+            }
+          },
+          {
+            "id": "misfire-disturbs-site",
+            "label": "Misfire disturbs site",
+            "effects": {
+              "clock_target": "zone",
+              "clock_delta": 1,
+              "scene_state_min": "Echoed",
+              "next_pressure_beat": "Primary Clock: the site answers before the Operators understand why."
+            }
+          },
+          {
+            "id": "misfire-exposes-operator",
+            "label": "Misfire exposes Operator",
+            "effects": {
+              "clock_target": "attention",
+              "attention_delta": 1,
+              "scene_state_min": "Echoed",
+              "next_pressure_beat": "Attention Clock: the pressure has a cleaner read on one Operator."
+            }
+          },
+          {
+            "id": "evidence-decay",
+            "label": "Evidence decay",
+            "effects": {
+              "clock_target": "case",
+              "clock_delta": 1,
+              "reveal_next_clue": true,
+              "next_pressure_beat": "Case Clock: evidence changes before the cell can secure it."
+            }
+          }
+        ],
+        "collapse_staging": {
+          "default_break_type": "Room",
+          "broken_law": "The site starts answering pressure before the Operators choose how to respond.",
+          "operator_choice": "Name the pressure, stabilize the room, protect the exposed person, or leave with cost.",
+          "exit_condition": "The group removes the site's immediate leverage and leaves one concrete Anchor intact.",
+          "by_target": {
+            "Room": {
+              "broken_law": "The site accepts pressure as architecture.",
+              "operator_choice": "Leave, anchor the room, bargain with it, or let the place stabilize around the threat.",
+              "exit_condition": "The group exits together after naming what the room is preserving."
+            },
+            "Identity": {
+              "broken_law": "The site's classification becomes easier to believe than the person's own self-description.",
+              "operator_choice": "Accept the label, dispute it, or define the self before the room does.",
+              "exit_condition": "The person states who they are through an Anchor, and another Operator confirms it."
+            },
+            "Memory": {
+              "broken_law": "The edited memory becomes easier to replay than the original.",
+              "operator_choice": "Trust a witness, trust evidence, trust the site, or reconstruct the event together.",
+              "exit_condition": "A witness names the original truth and pays the cost."
+            },
+            "Body": {
+              "broken_law": "The body reacts to the pressure as if the consequence has already arrived.",
+              "operator_choice": "Ground physically, flee, follow the pressure, or let panic route the next action.",
+              "exit_condition": "A mundane body action proves the scene has not fully taken control."
+            },
+            "Relationship": {
+              "broken_law": "Isolation increases predation; connection becomes survival infrastructure.",
+              "operator_choice": "Separate, protect someone, test trust, or let the site keep everyone isolated.",
+              "exit_condition": "One Operator chooses another person's safety over private suspicion."
+            },
+            "Evidence": {
+              "broken_law": "Proof becomes bait when it is studied alone.",
+              "operator_choice": "Document it, duplicate it, hide it, share it, or keep staring.",
+              "exit_condition": "Evidence is copied, witnessed, and removed from solitary attention."
+            },
+            "Time": {
+              "broken_law": "The next pressure beat behaves like an appointment instead of a consequence.",
+              "operator_choice": "Arrive, delay, break sequence, or answer the next prompt.",
+              "exit_condition": "The group acts before the recurrence or anchors the moment with mundane timekeeping."
+            },
+            "Signal": {
+              "broken_law": "Unknown signals become known once they know you back.",
+              "operator_choice": "Answer, block, trace, corrupt, or refuse the signal.",
+              "exit_condition": "The signal is cut off, routed safely, or made safe by group witness."
+            }
+          }
+        },
+        "rewrite_staging": {
+          "default_overwrite_type": "Name",
+          "rewrite_law": "The accepted name becomes easier to remember than the original.",
+          "lock_in_risk": "If no one contradicts it before the next pressure beat, records and devices start using the accepted version.",
+          "counteraction_window": "A witness says the original name and accepts being seen.",
+          "by_target": {
+            "Name": {
+              "rewrite_law": "The accepted name becomes easier to remember than the original.",
+              "lock_in_risk": "If no one contradicts it before the next pressure beat, records and devices start using the accepted version.",
+              "counteraction_window": "A witness says the original name and accepts being seen."
+            },
+            "Role": {
+              "rewrite_law": "The useful role becomes the stable identity.",
+              "lock_in_risk": "The character gains advantage while performing it, but loses access to unsupported selfhood.",
+              "counteraction_window": "Someone asks for the person, not the performance."
+            },
+            "Record": {
+              "rewrite_law": "The institutional version becomes enforceable reality.",
+              "lock_in_risk": "Systems begin agreeing with the lie.",
+              "counteraction_window": "Duplicate, reconcile, or publicly contradict the record with cost."
+            },
+            "Location": {
+              "rewrite_law": "The accepted place becomes the reachable place.",
+              "lock_in_risk": "Routes begin returning to the pressure site.",
+              "counteraction_window": "Mark a mundane route and leave by verified architecture."
+            },
+            "History": {
+              "rewrite_law": "The backstory becomes cleaner than the truth.",
+              "lock_in_risk": "NPCs remember the simplified version.",
+              "counteraction_window": "Someone preserves the messy version without improving it."
+            },
+            "Memory": {
+              "rewrite_law": "The repeated version overwrites the witnessed version.",
+              "lock_in_risk": "Future clues point to the edited event unless duplicated proof exists.",
+              "counteraction_window": "Three independent records or witnesses reconstruct the true event."
+            },
+            "Body": {
+              "rewrite_law": "The body adapts to the version most safely witnessed.",
+              "lock_in_risk": "The physical tell persists after exit.",
+              "counteraction_window": "Grounding, touch, medical proof, or self-naming interrupts the shift."
+            },
+            "Relationship": {
+              "rewrite_law": "Public attachment overwrites private bond.",
+              "lock_in_risk": "The site can speak through the relationship.",
+              "counteraction_window": "The bond-holder names a private truth the site cannot use."
+            },
+            "Signal": {
+              "rewrite_law": "The signal becomes a standing channel.",
+              "lock_in_risk": "The site, entity, or unstable system can reach the Operator again.",
+              "counteraction_window": "Cut unknown channels or require group confirmation before response."
+            }
+          }
+        },
         "player_view": {
-          "safe_consequence": ""
+          "safe_consequence": "The room responds when choices become honest, hidden, isolated, or performed."
         }
       }
     }
@@ -307,6 +573,107 @@
             }
           }
         ],
+        "collapse_staging": {
+          "default_break_type": "Room",
+          "broken_law": "The church answers observation before anyone admits what they saw.",
+          "operator_choice": "Cover the reflection, step outside, name the ordinary detail, or keep looking and accept Attention.",
+          "exit_condition": "The group breaks line of sight, names what changed, and leaves together with one Anchor intact.",
+          "by_target": {
+            "Room": {
+              "broken_law": "The church answers observation before anyone admits what they saw.",
+              "operator_choice": "Cover the reflection, step outside, name the ordinary detail, or keep looking and accept Attention.",
+              "exit_condition": "The group breaks line of sight, names what changed, and leaves together with one Anchor intact."
+            },
+            "Identity": {
+              "broken_law": "The system classification becomes easier to believe than the Operator's own self-description.",
+              "operator_choice": "Accept the intake label, dispute it, or define yourself before the room does.",
+              "exit_condition": "The Operator states who they are through an Anchor, and another Operator confirms it."
+            },
+            "Memory": {
+              "broken_law": "The remembered warning becomes less stable than the message that should not exist.",
+              "operator_choice": "Trust the impossible notification, trust personal memory, or compare witness accounts.",
+              "exit_condition": "Two Operators reconstruct the same event without relying on the device."
+            },
+            "Body": {
+              "broken_law": "The body reacts to the signal as if danger has already arrived.",
+              "operator_choice": "Ground physically, flee, follow the signal, or let panic route the next action.",
+              "exit_condition": "A mundane body action proves the scene has not fully taken control: breathing, pain, cold, touch, water, food, or movement."
+            },
+            "Relationship": {
+              "broken_law": "Isolation increases predation; connection becomes survival infrastructure.",
+              "operator_choice": "Separate, protect a stranger, test trust, or let the system keep everyone isolated.",
+              "exit_condition": "One Operator chooses another person's safety over private suspicion."
+            },
+            "Evidence": {
+              "broken_law": "Proof becomes bait when it is studied alone.",
+              "operator_choice": "Document it, duplicate it, hide it, share it, or keep staring.",
+              "exit_condition": "Evidence is copied, witnessed, and removed from solitary attention."
+            },
+            "Time": {
+              "broken_law": "The 2:13 timestamp behaves like an appointment instead of a record.",
+              "operator_choice": "Arrive, delay, break sequence, or answer the next impossible prompt.",
+              "exit_condition": "The group acts before the next 2:13 recurrence or anchors the moment with mundane timekeeping."
+            },
+            "Signal": {
+              "broken_law": "Unknown signals become known once they know you back.",
+              "operator_choice": "Answer, block, trace, corrupt, or refuse the signal.",
+              "exit_condition": "The signal is routed through VeilCorp Intake, cut off, or made safe by group witness."
+            }
+          }
+        },
+        "rewrite_staging": {
+          "default_overwrite_type": "Name",
+          "rewrite_law": "The intake label begins replacing the Operator's ordinary name.",
+          "lock_in_risk": "If no one contradicts it before the next pressure beat, records and devices start using the label.",
+          "counteraction_window": "Another Operator speaks the real name while the named Operator holds an Anchor.",
+          "by_target": {
+            "Name": {
+              "rewrite_law": "The intake label begins replacing the Operator's ordinary name.",
+              "lock_in_risk": "If no one contradicts it before the next pressure beat, records and devices start using the label.",
+              "counteraction_window": "Another Operator speaks the real name while the named Operator holds an Anchor."
+            },
+            "Role": {
+              "rewrite_law": "Operator becomes a function before it becomes a choice.",
+              "lock_in_risk": "The room treats hesitation as consent to recruitment.",
+              "counteraction_window": "The character chooses why they are here in their own words."
+            },
+            "Record": {
+              "rewrite_law": "The impossible message becomes the official version.",
+              "lock_in_risk": "Screens, logs, timestamps, and contact records begin agreeing with the intake file.",
+              "counteraction_window": "Duplicate the record, compare devices, and preserve one contradiction."
+            },
+            "Location": {
+              "rewrite_law": "The ruined church becomes easier to find than to leave.",
+              "lock_in_risk": "Routes begin returning to the chamber until the Intake completes.",
+              "counteraction_window": "Mark a mundane exit and leave as a group before the next reflection shift."
+            },
+            "History": {
+              "rewrite_law": "The system backfills reasons the Operator was always going to answer.",
+              "lock_in_risk": "Past anomalies start arranging themselves into a recruitment narrative.",
+              "counteraction_window": "Name one ordinary reason you could still refuse."
+            },
+            "Memory": {
+              "rewrite_law": "The message remembers the Operator more clearly than the Operator remembers the event.",
+              "lock_in_risk": "Personal memory defers to the intake file.",
+              "counteraction_window": "Reconstruct the event aloud with another witness before checking the device again."
+            },
+            "Body": {
+              "rewrite_law": "The body learns the signal as a threat response.",
+              "lock_in_risk": "Future notifications trigger panic, dissociation, hunger, freeze, or resonance leakage.",
+              "counteraction_window": "Ground through the Anchor and complete one mundane recovery action."
+            },
+            "Relationship": {
+              "rewrite_law": "The first cell forms around shared exposure instead of trust.",
+              "lock_in_risk": "Operators become linked by fear, suspicion, or surveillance instead of choice.",
+              "counteraction_window": "One Operator offers help without demanding disclosure."
+            },
+            "Signal": {
+              "rewrite_law": "The signal becomes a standing channel.",
+              "lock_in_risk": "The site, entity, cult residue, or Intake shell can reach the Operator again.",
+              "counteraction_window": "Route through Shade, cut unknown channels, or require group confirmation before response."
+            }
+          }
+        },
         "player_view": {
           "safe_consequence": ""
         }
@@ -619,38 +986,105 @@
           }
         ],
         "collapse_staging": {
-          "default_break_type": "Signal",
-          "broken_law": "The Audience can caption choices before Operators make them.",
+          "default_break_type": "Body",
+          "broken_law": "The performed body becomes easier to maintain than the living one.",
           "operator_choice": "Refuse the curated self, ground Mara as a person, protect Saffi's true memory, or flee Floor 13 together.",
           "exit_condition": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience.",
-          "by_break_type": {
-            "Signal": {
-              "broken_law": "The Audience can caption choices before Operators make them.",
-              "operator_choice": "Cut the feed, poison the comment thread with truth, ground Mara, or flee together.",
-              "exit_condition": "Break observation or speak honestly while protected."
+          "by_target": {
+            "Body": {
+              "broken_law": "The performed body becomes easier to maintain than the living one.",
+              "operator_choice": "Refuse the curated self, ground Mara as a person, protect Saffi's true memory, or flee Floor 13 together.",
+              "exit_condition": "Honest speech under observation, protected by the group, directed toward Mara or the room instead of the audience."
             },
-            "Identity": {
-              "broken_law": "The performed self becomes easier to sustain than the real one.",
-              "operator_choice": "Refuse the curated role, name what it costs, remind Mara who knew her off-camera.",
-              "exit_condition": "The group refuses the assigned role together."
+            "Name": {
+              "broken_law": "The audience's name for someone becomes easier to answer to than their own.",
+              "operator_choice": "Speak the real name, reject the captioned name, or let the label stabilize.",
+              "exit_condition": "Someone who knows the person speaks the real name while another Operator shields them from attention."
+            },
+            "Role": {
+              "broken_law": "The assigned role becomes more stable than the person.",
+              "operator_choice": "Refuse the useful role, redefine it, or embody it and accept cost.",
+              "exit_condition": "Someone interacts with the person instead of the function: friend, witness, victim, streamer, monster, handler, content."
             },
             "Memory": {
-              "broken_law": "The feed remembers the version that was easiest to watch.",
-              "operator_choice": "Use Saffi's true memory, correct the record, or accept the edited aftermath.",
-              "exit_condition": "A witness names the real memory before the Audience captions it."
+              "broken_law": "The edited memory becomes easier to replay than the original.",
+              "operator_choice": "Trust Saffi, trust evidence, trust the feed, or reconstruct the event together.",
+              "exit_condition": "A witness names the original truth and pays the cost."
             },
             "Relationship": {
-              "broken_law": "The Audience turns care into leverage.",
-              "operator_choice": "Protect Saffi, reach Mara as a person, or let the site use one as bait for the other.",
-              "exit_condition": "Someone protects the bond without performing it for the room."
+              "broken_law": "The audience relationship replaces the private bond.",
+              "operator_choice": "Protect Saffi/Mara as people, or perform care for the feed.",
+              "exit_condition": "A private truth is spoken while watched, without making it content."
+            },
+            "Evidence": {
+              "broken_law": "The useful proof becomes more real than the true proof.",
+              "operator_choice": "Preserve the ugly evidence, duplicate it, or let the feed curate it.",
+              "exit_condition": "Secure a clue before the feed edits it."
+            },
+            "Time": {
+              "broken_law": "Broadcast delay becomes causality.",
+              "operator_choice": "Act before the caption resolves, wait for the audience, or break sequence.",
+              "exit_condition": "Interrupt the predicted action with a protected honest choice."
+            },
+            "Signal": {
+              "broken_law": "The feed becomes the room's nervous system.",
+              "operator_choice": "Cut the broadcast, speak into it, corrupt it, or let it choose.",
+              "exit_condition": "Broadcast route is severed, redirected toward the room, or made private."
+            },
+            "Room": {
+              "broken_law": "The site accepts the performance as architecture.",
+              "operator_choice": "Leave, anchor the room, bargain with it, or let 13F stabilize.",
+              "exit_condition": "The group exits together after naming what the room is preserving."
             }
           }
         },
         "rewrite_staging": {
-          "default_overwrite_type": "Role",
-          "rewrite_law": "The accepted version becomes easier to remember than the original.",
+          "default_overwrite_type": "Name",
+          "rewrite_law": "The accepted name becomes easier to remember than the original.",
           "lock_in_risk": "If no one contradicts it before the next pressure beat, update the affected record.",
-          "counteraction_window": "A witness names the original truth and pays the cost."
+          "counteraction_window": "A witness says the original name and accepts being seen.",
+          "by_target": {
+            "Name": {
+              "rewrite_law": "The accepted name becomes easier to remember than the original.",
+              "lock_in_risk": "If no one contradicts it before the next pressure beat, update the affected record.",
+              "counteraction_window": "A witness says the original name and accepts being seen."
+            },
+            "Role": {
+              "rewrite_law": "The useful role becomes the stable identity.",
+              "lock_in_risk": "The character gains advantage while performing it, but loses access to unsupported selfhood.",
+              "counteraction_window": "Someone asks for the person, not the performance."
+            },
+            "Memory": {
+              "rewrite_law": "The repeated version overwrites the witnessed version.",
+              "lock_in_risk": "Future clues point to the edited event unless duplicated proof exists.",
+              "counteraction_window": "Three independent records or witnesses reconstruct the true event."
+            },
+            "Relationship": {
+              "rewrite_law": "Public attachment overwrites private bond.",
+              "lock_in_risk": "The audience can speak through the relationship.",
+              "counteraction_window": "The bond-holder names a private truth the audience cannot use."
+            },
+            "Record": {
+              "rewrite_law": "The institutional version becomes enforceable reality.",
+              "lock_in_risk": "Police, landlord, platform, or file systems begin agreeing with the lie.",
+              "counteraction_window": "Duplicate, reconcile, or publicly contradict the record with cost."
+            },
+            "Body": {
+              "rewrite_law": "The body adapts to the version most safely witnessed.",
+              "lock_in_risk": "The physical tell persists after exit.",
+              "counteraction_window": "Grounding, touch, medical proof, or self-naming interrupts the shift."
+            },
+            "Location": {
+              "rewrite_law": "The accepted place becomes the reachable place.",
+              "lock_in_risk": "Floor 13 becomes easier to find than Floor 12.",
+              "counteraction_window": "Mark a mundane route and leave by verified architecture."
+            },
+            "History": {
+              "rewrite_law": "The backstory becomes cleaner than the truth.",
+              "lock_in_risk": "NPCs remember the simplified version.",
+              "counteraction_window": "Someone preserves the messy version without improving it."
+            }
+          }
         },
         "player_view": {
           "safe_consequence": "The room responds visibly when watched choices become honest, hidden, or performed."
