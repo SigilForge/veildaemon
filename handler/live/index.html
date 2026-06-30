@@ -11,8 +11,8 @@
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
   <link rel="stylesheet" href="../handler.css?v=20260629-pressuretitles1" />
-  <link rel="stylesheet" href="../handler-clue-integrity.css?v=20260630-cluelayout1" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260630-cluelayout1" />
+  <link rel="stylesheet" href="../handler-clue-integrity.css?v=20260630-cluereveal2" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260630-cluereveal2" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -183,23 +183,23 @@
               </div>
             </div>
             <p class="panel-note clue-integrity-law">Failure changes cost, exposure, timing, route, and residue — never existence.</p>
-            <div class="clue-status-tracker" id="clue-status-tracker" role="list" aria-label="Clue status tracker" aria-live="polite"></div>
+            <div class="clue-status-tracker" id="clue-status-tracker" role="group" aria-label="Clue status tracker" aria-live="polite"></div>
             <div class="clue-integrity-summary" id="clue-integrity-summary" aria-live="polite"></div>
-            <div class="clue-integrity-list" id="clue-integrity-list" role="list" aria-label="Core clues"></div>
             <div class="clue-integrity-active" id="clue-integrity-active" hidden>
+              <p class="clue-workbench-title" id="clue-workbench-title"></p>
               <div class="clue-integrity-detail" id="clue-integrity-detail"></div>
               <div class="clue-integrity-actions" id="clue-integrity-actions" role="group" aria-label="Clue state actions"></div>
-            </div>
-            <div class="trigger-preview-panel clue-preview-panel" id="clue-preview-panel" hidden>
-              <p class="trigger-preview-title">Apply Clue Action?</p>
-              <p class="panel-note">This will:</p>
-              <ul class="trigger-preview-lines"></ul>
-              <div class="trigger-preview-actions">
-                <button class="button primary" id="clue-apply" type="button">Apply</button>
-                <button class="button ghost" id="clue-cancel" type="button">Cancel</button>
+              <div class="trigger-preview-panel clue-preview-panel" id="clue-preview-panel" hidden>
+                <p class="trigger-preview-title">Apply Clue Action?</p>
+                <p class="panel-note">This will:</p>
+                <ul class="trigger-preview-lines"></ul>
+                <div class="trigger-preview-actions">
+                  <button class="button primary" id="clue-apply" type="button">Apply</button>
+                  <button class="button ghost" id="clue-cancel" type="button">Cancel</button>
+                </div>
               </div>
             </div>
-            <output class="clue-integrity-status" id="clue-integrity-status" aria-live="polite">Select a core clue to track truth recovery.</output>
+            <output class="clue-integrity-status" id="clue-integrity-status" aria-live="polite">Select a core clue chip to open detail and actions.</output>
           </section>
 
           <section class="panel loop-panel" aria-label="Entity or Zone Loop" data-mode-panel="live">
@@ -318,14 +318,14 @@
     </section>
   </main>
   <script src="../../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="../handler-state.js?v=20260630-cluelayout1"></script>
+  <script src="../handler-state.js?v=20260630-cluereveal2"></script>
   <script src="../handler-nav.js?v=20260629-templatepicker1"></script>
   <script src="../handler-operator-trackers.js?v=20260626-optrack1"></script>
   <script src="../handler-npc-anchor.js?v=20260628-anchorpreview1"></script>
   <script src="../handler-triggers.js?v=20260627-pressuregrid19"></script>
   <script src="../handler-wind-down.js?v=20260627-pressuregrid19"></script>
   <script src="../handler-collapse.js?v=20260628-collapse4"></script>
-  <script src="../handler-clue-integrity.js?v=20260630-cluelayout1"></script>
+  <script src="../handler-clue-integrity.js?v=20260630-cluereveal2"></script>
   <script src="../handler.js?v=20260629-clueintegrity1"></script>
 </body>
 </html>

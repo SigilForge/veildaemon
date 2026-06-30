@@ -24,12 +24,27 @@ async function applyHandlerTemplate(page, templateId) {
     await page.getByLabel("Template").selectOption(templateId);
   }
   await page.getByRole("button", { name: "Apply Template" }).click();
+  await page.waitForFunction(() => {
+    const api = window.HandlerState;
+    if (!api) return false;
+    const state = api.readState();
+    if (!state?.activeNeedlepoint?.id) return false;
+    if (!state.activeNeedlepoint.scaffold) return true;
+    return Boolean(state.clueIntegrity?.clues?.length);
+  }, null, { timeout: 10000 });
 
   if (!onOverview) {
     await page.goto(returnTo);
     if (returnTo.includes("/handler/live/")) {
       await enableHandlerFieldEdit(page);
     }
+    await page.waitForFunction(() => {
+      const api = window.HandlerState;
+      if (!api) return false;
+      const state = api.readState();
+      if (!state?.activeNeedlepoint?.scaffold) return true;
+      return Boolean(state.clueIntegrity?.clues?.length);
+    }, null, { timeout: 10000 });
   }
 }
 
@@ -186,6 +201,18 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.getByLabel("Attention and aftermath")).toBeVisible();
 });
 
+async function waitForClueChips(page) {
+  await page.waitForFunction(() => document.querySelectorAll("#clue-status-tracker .clue-status-chip").length > 0, null, { timeout: 15000 });
+}
+
+async function selectClueChip(page, namePattern) {
+  await waitForClueChips(page);
+  const tracker = page.getByRole("group", { name: "Clue status tracker" });
+  const chip = tracker.getByRole("button", { name: namePattern });
+  await expect(chip).toBeVisible({ timeout: 10000 });
+  await chip.click();
+}
+
 async function applyClueAction(page, actionLabel) {
   await page.getByRole("button", { name: actionLabel }).click();
   const preview = page.locator("#clue-preview-panel");
@@ -199,8 +226,8 @@ test("handler clues module exposes clue tracker", async ({ page }) => {
   await applyHandlerTemplate(page, "viridian-house");
 
   await expect(page.getByRole("heading", { name: "CORE CLUE TRACKER" })).toBeVisible();
-  await expect(page.getByRole("list", { name: "Clue status tracker" })).toBeVisible();
-  await expect(page.getByRole("list", { name: "Core clues" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Clue status tracker" })).toBeVisible();
+  await expect(page.locator("#clue-integrity-active")).toBeHidden();
   await expect(page.locator("#module-clue-progress")).not.toContainText("No core clues loaded");
 });
 
@@ -210,11 +237,9 @@ test("handler live clue integrity tracks core clue state flow", async ({ page })
   await applyHandlerTemplate(page, "viridian-house");
 
   await expect(page.getByLabel("Clue Integrity")).toBeVisible();
-  await expect(page.getByRole("list", { name: "Clue status tracker" })).toBeVisible();
-  const clueList = page.getByRole("list", { name: "Core clues" });
-  await expect(clueList.getByRole("button", { name: /Floor 13 appears after a lie under observation/ })).toBeVisible();
-
-  await clueList.getByRole("button", { name: /Floor 13 appears after a lie under observation/ }).click();
+  await expect(page.getByRole("group", { name: "Clue status tracker" })).toBeVisible();
+  await selectClueChip(page, /Floor 13 appears after a lie under observation/);
+  await expect(page.locator("#clue-integrity-active")).toBeVisible();
   await applyClueAction(page, "Discover Clue");
   await expect(page.locator("#clue-integrity-status")).toContainText("Discover Clue");
   const discoveredState = await page.evaluate(() => {
@@ -236,7 +261,7 @@ test("handler live clue integrity tracks core clue state flow", async ({ page })
 
   await applyClueAction(page, "Archive Clue");
   await expect(page.locator("#clue-integrity-status")).toContainText("Archive Clue");
-  await expect(clueList.getByText("Archived")).toBeVisible();
+  await expect(page.getByRole("group", { name: "Clue status tracker" }).getByText("Archived")).toBeVisible();
   const archivedState = await page.evaluate(() => window.HandlerState.readState());
   expect(archivedState.clueIntegrity.clues.some((item) => /Floor 13 appears/.test(item.clue))).toBe(true);
   expect(archivedState.handlerNotes.clueList).toContain("ARCHIVED TRUTH");
@@ -245,8 +270,7 @@ test("handler live clue integrity tracks core clue state flow", async ({ page })
 test("handler live clue integrity preview can cancel before apply", async ({ page }) => {
   await page.goto("/handler/live/");
   await applyHandlerTemplate(page, "viridian-house");
-  const clueList = page.getByRole("list", { name: "Core clues" });
-  await clueList.getByRole("button", { name: /Mara entered the elevator at 2:13 a\.m\./ }).click();
+  await selectClueChip(page, /Mara entered the elevator at 2:13 a\.m\./);
   await page.getByRole("button", { name: "Discover Clue" }).click();
   await expect(page.locator("#clue-preview-panel")).toBeVisible();
   await page.locator("#clue-cancel").click();
@@ -268,8 +292,7 @@ test("handler live clue contaminate advances pressure", async ({ page }) => {
     window.HandlerState.writeState(state);
   });
 
-  const clueList = page.getByRole("list", { name: "Core clues" });
-  await clueList.getByRole("button", { name: /Floor 13 appears after a lie under observation/ }).click();
+  await selectClueChip(page, /Floor 13 appears after a lie under observation/);
   await applyClueAction(page, "Discover Clue");
   await applyClueAction(page, "Contaminate Clue");
 
@@ -298,8 +321,7 @@ test("handler live clue reroute changes next clue and route cost", async ({ page
     window.HandlerState.writeState(state);
   });
 
-  const clueList = page.getByRole("list", { name: "Core clues" });
-  await clueList.getByRole("button", { name: /Floor 13 appears after a lie under observation/ }).click();
+  await selectClueChip(page, /Floor 13 appears after a lie under observation/);
   await applyClueAction(page, "Discover Clue");
   await applyClueAction(page, "Reroute Clue");
 
