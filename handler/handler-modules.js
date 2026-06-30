@@ -290,13 +290,9 @@
       `;
       grid.append(card);
       if (window.HandlerNpcAnchor) {
-        window.HandlerNpcAnchor.renderAnchorBlock(card, npc, index, (npcIndex, stateId) => {
-          state.npcs[npcIndex].anchor = api.normalizeNpcAnchor({
-            ...state.npcs[npcIndex].anchor,
-            state: stateId
-          });
-          state = api.normalizeState(state);
-          writeState();
+        window.HandlerNpcAnchor.renderAnchorBlock(card, npc, index, (result) => {
+          state = result.state;
+          writeState(result.message || "ANCHOR UPDATED");
           renderNpcs();
         });
       }

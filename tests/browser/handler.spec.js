@@ -792,6 +792,46 @@ test("handler live wind down mirrors the trigger preview flow", async ({ page })
   expect(softened.residue).toContain("Truth preserved");
 });
 
+test("handler live anchor npc state applies pressure modifiers", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await applyHandlerTemplate(page, "viridian-house");
+
+  await page.evaluate(() => {
+    const state = window.HandlerState.readState();
+    state.attention.current = "Unseen";
+    state.primaryClock.current = 1;
+    window.HandlerState.writeState(state);
+  });
+
+  const saffiIndex = await page.evaluate(() => {
+    return window.HandlerState.readState().npcs.findIndex((npc) => /Saffi/.test(npc.name));
+  });
+  expect(saffiIndex).toBeGreaterThanOrEqual(0);
+
+  const anchorBlock = page.locator("#npc-summary-grid .npc-anchor-block").first();
+  await expect(anchorBlock).toBeVisible();
+  await anchorBlock.getByRole("button", { name: "Separated" }).click();
+  const preview = anchorBlock.locator(".npc-anchor-preview");
+  await expect(preview).toBeVisible();
+  await expect(preview).toContainText("Attention");
+  await preview.getByRole("button", { name: "Apply" }).click();
+  await expect(anchorBlock.locator(".npc-anchor-preview")).toBeHidden();
+
+  const after = await page.evaluate((index) => {
+    const state = window.HandlerState.readState();
+    const saffi = state.npcs[index];
+    return {
+      anchorState: saffi?.anchor?.state,
+      attention: state.attention.current,
+      nextPressure: state.caseFile.nextPressureBeat
+    };
+  }, saffiIndex);
+  expect(after.anchorState).toBe("separated");
+  expect(after.attention).not.toBe("Unseen");
+  expect(after.nextPressure).toContain("separated");
+});
+
 test("handler imports Operator Record summaries", async ({ page }) => {
   await page.goto("/handler/operators/");
   await enableHandlerFieldEdit(page);
