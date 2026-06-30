@@ -158,6 +158,8 @@
       target: "case",
       effects: {
         case_delta: -1,
+        attention_delta: -1,
+        next_pressure_beat: "Truth preserved; the site loses leverage over this clue.",
         case_record: "Truth preserved without feeding the site."
       },
       guidance: "Counterplay shorthand when Operators preserve truth without feeding the site. For full clue state, use Live or Clues → Clue Integrity → Secure Clue."
@@ -2748,19 +2750,21 @@
       });
     }
 
-    if (effects.case_delta) {
-      draft.caseFile.nextPressureBeat = "Clean clue recovered without feeding the site.";
+    if (effects.case_delta || effects.case_record) {
+      draft.caseFile.nextPressureBeat = effects.next_pressure_beat
+        || effects.case_record
+        || "Truth preserved; the site loses leverage over this clue.";
       draft.residueLog.unshift({
         id: `residue-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
         scene: draft.sceneState.current,
         attention: draft.attention.current,
-        residue: effects.case_record || `Clean clue recovered: ${draft.caseFile.nextClue || move.label}`,
+        residue: effects.case_record || `Truth preserved: ${draft.caseFile.nextClue || move.label}`,
         followsHome: draft.attention.followsHome || "",
         consequence: draft.secondaryClock.enabled
-          ? "Case pressure reduced; clue secured."
-          : "No clock reduced; clue secured cleanly."
+          ? "Case clock softened; truth preserved without feeding the site."
+          : "Case pressure beat softened; truth preserved without feeding the site."
       });
-      if (draft.secondaryClock.enabled) {
+      if (draft.secondaryClock.enabled && effects.case_delta) {
         draft.secondaryClock.current = safeNumber(
           draft.secondaryClock.current + effects.case_delta,
           0,
@@ -2772,23 +2776,25 @@
           before: `${before.caseClock}/${draft.secondaryClock.segments}`,
           after: `${draft.secondaryClock.current}/${draft.secondaryClock.segments}`
         });
-      } else {
+      } else if (effects.case_delta || effects.case_record) {
         changes.push({
           label: "Case Clock",
           before: "Disabled",
-          after: "Clean clue recorded"
+          after: "Case pressure beat updated"
         });
       }
       changes.push({
         label: "Case Record",
         before: "Unlogged",
-        after: draft.residueLog[0]?.residue || "Clean clue recovered."
+        after: draft.residueLog[0]?.residue || effects.case_record || "Truth preserved."
       });
-      changes.push({
-        label: "Next Pressure",
-        before: before.nextPressure,
-        after: draft.caseFile.nextPressureBeat || "No beat staged."
-      });
+      if (draft.caseFile.nextPressureBeat !== before.nextPressure) {
+        changes.push({
+          label: "Next Pressure",
+          before: before.nextPressure,
+          after: draft.caseFile.nextPressureBeat || "No beat staged."
+        });
+      }
     }
 
     if (effects.consequence) {
