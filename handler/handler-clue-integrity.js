@@ -1,6 +1,8 @@
 (function () {
   const api = window.HandlerState;
   let lastStatus = "Select a core clue to track truth recovery.";
+  let pendingClueId = "";
+  let pendingActionId = "";
 
   function listNode() {
     return document.getElementById("clue-integrity-list");
@@ -24,6 +26,10 @@
 
   function activePanelNode() {
     return document.getElementById("clue-integrity-active");
+  }
+
+  function previewNode() {
+    return document.getElementById("clue-preview-panel");
   }
 
   function emptyCopy(message) {
@@ -123,9 +129,10 @@
       button.className = "button";
       button.classList.toggle("primary", action.id === "discover" || action.id === "secure");
       button.classList.toggle("danger", action.id === "contaminate");
+      button.classList.toggle("is-active", pendingClueId === clue.id && pendingActionId === action.id);
       button.disabled = !action.states.includes(clue.state);
       button.textContent = action.label;
-      button.addEventListener("click", () => applyAction(clue.id, action.id));
+      button.addEventListener("click", () => openPreview(clue.id, action.id));
       actions.append(button);
     });
   }
@@ -137,24 +144,74 @@
   }
 
   function selectClue(clueId) {
+    closePreview();
     const state = api.readState();
     state.clueIntegrity.activeClueId = clueId;
     api.writeState(state);
     render(api.readState());
   }
 
-  function applyAction(clueId, actionId) {
-    const result = api.advanceClueState(api.readState(), clueId, actionId);
+  function openPreview(clueId, actionId) {
+    const state = api.readState();
+    const preview = api.previewClueAction(state, clueId, actionId);
+    const panel = previewNode();
+    if (!preview || !panel) {
+      renderStatus("Clue action unavailable.");
+      return;
+    }
+
+    pendingClueId = clueId;
+    pendingActionId = actionId;
+    panel.hidden = false;
+    const title = panel.querySelector(".trigger-preview-title");
+    const lines = panel.querySelector(".trigger-preview-lines");
+    if (title) title.textContent = `Apply ${preview.action.label}?`;
+    if (!lines) return;
+    lines.textContent = "";
+    preview.lines.forEach((row) => {
+      if (row.before === row.after) return;
+      const item = document.createElement("li");
+      item.innerHTML = `<span>${row.label}</span><strong>${row.before} -> ${row.after}</strong>`;
+      lines.append(item);
+    });
+    if (!lines.children.length) {
+      const item = document.createElement("li");
+      item.innerHTML = "<span>Effect</span><strong>Clue state updates; runtime meters may stay flat.</strong>";
+      lines.append(item);
+    }
+    render(state);
+  }
+
+  function closePreview() {
+    pendingClueId = "";
+    pendingActionId = "";
+    const panel = previewNode();
+    if (panel) panel.hidden = true;
+    render(api.readState());
+  }
+
+  function applyPending() {
+    if (!pendingClueId || !pendingActionId) return;
+    const result = api.applyClueAction(api.readState(), pendingClueId, pendingActionId);
     lastStatus = result.message;
     if (!result.ok) {
       renderStatus(result.message);
+      closePreview();
       return;
     }
     api.writeState(result.state, "CLUE UPDATED");
     window.dispatchEvent(new CustomEvent("veildaemon:handler-clue-updated", {
       detail: { state: result.state, message: result.message }
     }));
+    closePreview();
     render(result.state);
+  }
+
+  function bindControls() {
+    const applyButton = document.getElementById("clue-apply");
+    const cancelButton = document.getElementById("clue-cancel");
+    if (applyButton) applyButton.addEventListener("click", applyPending);
+    if (cancelButton) cancelButton.addEventListener("click", closePreview);
   }
 
   function render(state) {
@@ -165,6 +222,7 @@
     renderStatus(lastStatus);
   }
 
-  window.HandlerClueIntegrity = { render };
+  bindControls();
+  window.HandlerClueIntegrity = { render, closePreview, applyPending };
   window.addEventListener("veildaemon:handler-state-updated", () => render(api.readState()));
 }());

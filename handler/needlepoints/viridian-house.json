@@ -55,11 +55,36 @@
       "table_effect": "Clue is gained; that Operator's next social roll under observation is TN 15 instead of TN 12."
     },
     {
+      "id": "floor-13-after-lie",
       "clue": "Floor 13 appears after a lie under observation.",
       "first_route": "Manager denial while the elevator camera is active, then test the panel.",
       "alternate_route": "Read the future comment thread in the security office.",
       "failure_cost": "The elevator opens to Floor 13 at Tick 3 instead of Tick 4. Operators arrive with only two core clues. One hallway exit is already locked.",
-      "table_effect": "Floor 13 becomes reachable; Clock ticks; first action on Floor 13 is TN 15 under audience pressure."
+      "table_effect": "Floor 13 becomes reachable; Clock ticks; first action on Floor 13 is TN 15 under audience pressure.",
+      "effects": {
+        "discover": {
+          "attention_min": "Noticed",
+          "scene_state_min": "Echoed"
+        },
+        "secure": {
+          "attention_delta": -1,
+          "next_pressure_beat": "The elevator cannot edit this proof cleanly."
+        },
+        "contaminate": {
+          "clock_target": "both",
+          "clock_delta": 1,
+          "attention_delta": 1,
+          "scene_state_min": "Recursive"
+        },
+        "reroute": {
+          "clock_target": "case",
+          "clock_delta": 1,
+          "next_pressure_beat": "The clue moves to the alternate route."
+        },
+        "archive": {
+          "clock_tick": false
+        }
+      }
     },
     {
       "clue": "Apartment 13F is collecting performed selves.",

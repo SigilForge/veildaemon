@@ -1845,6 +1845,16 @@
     return `/handler/${clean}`;
   }
 
+  function normalizeClueEffectMap(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return clueIntegrityActions.reduce((map, action) => {
+      if (source[action.id] && typeof source[action.id] === "object") {
+        map[action.id] = normalizeTriggerEffects(source[action.id]);
+      }
+      return map;
+    }, {});
+  }
+
   function normalizeCoreClueDefinitions(value) {
     const list = Array.isArray(value) ? value : [];
     return list.slice(0, 7).map((item, index) => {
@@ -1855,9 +1865,166 @@
         firstRoute: safeString(source.first_route || source.firstRoute, 260),
         alternateRoute: safeString(source.alternate_route || source.alternateRoute, 260),
         failureCost: safeString(source.failure_cost || source.failureCost, 320),
-        tableEffect: safeString(source.table_effect || source.tableEffect, 320)
+        tableEffect: safeString(source.table_effect || source.tableEffect, 320),
+        effects: normalizeClueEffectMap(source.effects)
       };
     }).filter((item) => item.clue);
+  }
+
+  function getDefaultClueActionEffects(actionId, clue) {
+    if (actionId === "discover") {
+      return {
+        attention_min: "Noticed",
+        scene_state_min: "Echoed"
+      };
+    }
+    if (actionId === "secure") {
+      return {
+        attention_delta: -1,
+        next_pressure_beat: "Truth preserved; the site loses leverage over this clue."
+      };
+    }
+    if (actionId === "archive") {
+      return {
+        clock_tick: false
+      };
+    }
+    if (actionId === "contaminate") {
+      return {
+        clock_target: "both",
+        clock_delta: 1,
+        attention_delta: 1,
+        scene_state_min: "Echoed",
+        next_pressure_beat: clue.failureCost || clue.tableEffect || "Clue gained at a cost."
+      };
+    }
+    if (actionId === "reroute") {
+      return {
+        clock_target: "case",
+        clock_delta: 1,
+        next_pressure_beat: "Truth remains available, but the route changes."
+      };
+    }
+    return {};
+  }
+
+  function resolveClueEffects(clue, actionId) {
+    const defaults = getDefaultClueActionEffects(actionId, clue);
+    const custom = clue.effects?.[actionId] || {};
+    return normalizeTriggerEffects({ ...defaults, ...custom });
+  }
+
+  function captureRuntimeBefore(state) {
+    return {
+      primaryClock: state.primaryClock.current,
+      attention: state.attention.current,
+      scene: state.sceneState.current,
+      caseClock: state.secondaryClock.current,
+      nextPressure: state.caseFile.nextPressureBeat,
+      nextClue: state.caseFile.nextClue,
+      consequence: state.sceneState.sceneConsequence || state.sceneState.primaryConsequence
+    };
+  }
+
+  function applyTriggerEffectsToDraft(draft, effects, before = {}) {
+    const normalized = normalizeTriggerEffects(effects);
+    const changes = [];
+    const primaryBefore = before.primaryClock ?? draft.primaryClock.current;
+    const attentionBefore = before.attention ?? draft.attention.current;
+    const sceneBefore = before.scene ?? draft.sceneState.current;
+    const caseBefore = before.caseClock ?? draft.secondaryClock.current;
+    const pressureBefore = before.nextPressure ?? draft.caseFile.nextPressureBeat;
+    const consequenceBefore = before.consequence ?? draft.sceneState.sceneConsequence;
+
+    if (normalized.clock_tick !== false && normalized.clock_delta) {
+      const target = normalized.clock_target || "zone";
+      if (target === "case") {
+        if (draft.secondaryClock.enabled) {
+          draft.secondaryClock.current = safeNumber(
+            caseBefore + normalized.clock_delta,
+            0,
+            draft.secondaryClock.segments,
+            caseBefore
+          );
+          changes.push({
+            label: "Case Clock",
+            before: `${caseBefore}/${draft.secondaryClock.segments}`,
+            after: `${draft.secondaryClock.current}/${draft.secondaryClock.segments}`
+          });
+        } else {
+          draft.caseFile.nextPressureBeat = normalized.next_pressure_beat
+            || `Case pressure rises (+${normalized.clock_delta}) from route cost.`;
+          changes.push({
+            label: "Case Pressure",
+            before: pressureBefore || "No beat staged.",
+            after: draft.caseFile.nextPressureBeat
+          });
+        }
+      } else {
+        draft.primaryClock.current = safeNumber(
+          primaryBefore + normalized.clock_delta,
+          0,
+          draft.primaryClock.segments,
+          primaryBefore
+        );
+        changes.push({
+          label: "Clock",
+          before: `${primaryBefore}/${draft.primaryClock.segments}`,
+          after: `${draft.primaryClock.current}/${draft.primaryClock.segments}`
+        });
+      }
+    }
+
+    const nextAttention = resolveAttentionValue(attentionBefore, normalized);
+    if (nextAttention !== attentionBefore) {
+      draft.attention.current = nextAttention;
+      changes.push({
+        label: "Attention",
+        before: attentionBefore,
+        after: nextAttention
+      });
+    }
+
+    const nextScene = resolveSceneStateValue(sceneBefore, normalized);
+    if (nextScene !== sceneBefore) {
+      draft.sceneState.current = nextScene;
+      draft.activeEntity.sceneState = nextScene;
+      changes.push({
+        label: "Scene State",
+        before: sceneBefore,
+        after: nextScene
+      });
+    }
+
+    if (normalized.consequence) {
+      draft.sceneState.sceneConsequence = normalized.consequence;
+      draft.sceneState.primaryConsequence = normalized.consequence;
+      changes.push({
+        label: "Scene Consequence",
+        before: consequenceBefore || "Unset",
+        after: normalized.consequence
+      });
+    }
+
+    if (normalized.next_pressure_beat) {
+      draft.caseFile.nextPressureBeat = normalized.next_pressure_beat;
+      changes.push({
+        label: "Next Pressure",
+        before: pressureBefore || "No beat staged.",
+        after: normalized.next_pressure_beat
+      });
+    }
+
+    if (normalized.next_clue) {
+      draft.caseFile.nextClue = normalized.next_clue;
+      changes.push({
+        label: "Next Clue",
+        before: before.nextClue || "Staged only",
+        after: normalized.next_clue
+      });
+    }
+
+    return { normalized, changes };
   }
 
   function normalizeClueIntegrityState(value) {
@@ -1930,87 +2097,166 @@
     state.residueLog = state.residueLog.slice(0, 20);
   }
 
-  function advanceClueState(state, clueId, actionId) {
-    const next = clone(state);
-    const clue = next.clueIntegrity?.clues?.find((item) => item.id === clueId);
-    const action = clueIntegrityActions.find((item) => item.id === actionId);
-    if (!clue || !action) {
-      return { state: next, ok: false, message: "Clue action unavailable." };
-    }
-    if (!action.states.includes(clue.state)) {
-      return {
-        state: next,
-        ok: false,
-        message: `Cannot ${action.label.toLowerCase()} while clue is ${clueIntegrityStateLabel(clue.state).toLowerCase()}.`
-      };
-    }
+  const clueStateTransitions = {
+    discover: "discovered",
+    secure: "secured",
+    archive: "archived",
+    contaminate: "contaminated",
+    reroute: "rerouted"
+  };
 
-    const transitionMap = {
-      discover: "discovered",
-      secure: "secured",
-      archive: "archived",
-      contaminate: "contaminated",
-      reroute: "rerouted"
-    };
-    clue.state = transitionMap[actionId];
+  function findClueAction(clue, actionId) {
+    const action = clueIntegrityActions.find((item) => item.id === actionId);
+    if (!clue || !action || !action.states.includes(clue.state)) return null;
+    return action;
+  }
+
+  function applyClueIdentityMutation(draft, clue, actionId) {
+    clue.state = clueStateTransitions[actionId];
     clue.updatedAt = nowStamp();
-    next.clueIntegrity.activeClueId = clue.id;
+    draft.clueIntegrity.activeClueId = clue.id;
 
     if (actionId === "discover") {
-      next.caseFile.nextClue = clue.firstRoute
+      clue.routeUsed = "first";
+      draft.caseFile.nextClue = clue.firstRoute
         ? `${clue.clue} First route: ${clue.firstRoute}`
         : clue.clue;
-      clue.routeUsed = "first";
-      prependClueResidue(
-        next,
-        `Discovered: ${clue.clue}`,
-        "Truth surfaced. The case now knows the Operators know."
-      );
-    }
-
-    if (actionId === "secure") {
-      prependClueResidue(
-        next,
-        `Secured: ${clue.clue}`,
-        "Evidence copied, witnessed, anchored, or preserved. Pressure can rise; the clue cannot disappear."
-      );
-    }
-
-    if (actionId === "archive") {
-      prependClueResidue(
-        next,
-        `Archived: ${clue.clue}`,
-        "Truth survives the mission for After Action Report, VeilCorp file, or witness chain."
-      );
     }
 
     if (actionId === "contaminate") {
       clue.handlerNote = clue.failureCost;
-      prependClueResidue(
-        next,
-        `Contaminated: ${clue.clue}`,
-        clue.failureCost || "Truth exists, but it is misleading, incomplete, expensive, or dangerous to use."
-      );
     }
 
     if (actionId === "reroute") {
       clue.routeUsed = "alternate";
       clue.handlerNote = clue.alternateRoute;
-      next.caseFile.nextClue = clue.alternateRoute
+      draft.caseFile.nextClue = clue.alternateRoute
         ? `${clue.clue} Alternate route: ${clue.alternateRoute}`
-        : next.caseFile.nextClue;
+        : draft.caseFile.nextClue;
+    }
+
+    if (actionId === "archive") {
+      clue.exitReady = true;
+    }
+  }
+
+  function prependClueResidueForAction(draft, clue, actionId) {
+    if (actionId === "discover") {
+      prependClueResidue(draft, `Discovered: ${clue.clue}`, "Truth surfaced. The case now knows the Operators know.");
+      return;
+    }
+    if (actionId === "secure") {
       prependClueResidue(
-        next,
+        draft,
+        `Secured: ${clue.clue}`,
+        "Evidence copied, witnessed, anchored, or preserved. Pressure can rise; the clue cannot disappear."
+      );
+      return;
+    }
+    if (actionId === "archive") {
+      prependClueResidue(
+        draft,
+        `Archived: ${clue.clue}`,
+        "Truth survives the mission for After Action Report, VeilCorp file, or witness chain."
+      );
+      return;
+    }
+    if (actionId === "contaminate") {
+      prependClueResidue(
+        draft,
+        `Contaminated: ${clue.clue}`,
+        clue.failureCost || "Truth exists, but it is misleading, incomplete, expensive, or dangerous to use."
+      );
+      return;
+    }
+    if (actionId === "reroute") {
+      prependClueResidue(
+        draft,
         `Rerouted: ${clue.clue}`,
         clue.alternateRoute || "Operators missed the obvious path; the case opens another route."
       );
     }
+  }
+
+  function appendArchivedTruthNote(draft, clue) {
+    const archivedCount = draft.clueIntegrity.clues.filter((item) => item.state === "archived").length;
+    const total = draft.clueIntegrity.clues.length;
+    const line = `ARCHIVED TRUTH ${archivedCount}/${total}: ${clue.clue}`;
+    const existing = safeString(draft.handlerNotes.clueList, 3000);
+    draft.handlerNotes.clueList = existing ? `${existing}\n\n${line}` : line;
+  }
+
+  function buildClueActionDraft(state, clueId, actionId, options = {}) {
+    const sourceClue = state.clueIntegrity?.clues?.find((item) => item.id === clueId);
+    const action = findClueAction(sourceClue, actionId);
+    if (!action) return null;
+
+    const before = captureRuntimeBefore(state);
+    const beforeClueState = sourceClue.state;
+    let draft = clone(normalizeState(state));
+    const clue = draft.clueIntegrity.clues.find((item) => item.id === clueId);
+    applyClueIdentityMutation(draft, clue, actionId);
+
+    const effects = resolveClueEffects(clue, actionId);
+    const { changes: effectChanges } = applyTriggerEffectsToDraft(draft, effects, before);
+
+    const lines = [
+      {
+        label: "Clue State",
+        before: clueIntegrityStateLabel(beforeClueState),
+        after: clueIntegrityStateLabel(clue.state)
+      },
+      ...effectChanges
+    ];
+
+    if (draft.caseFile.nextClue !== before.nextClue && !effectChanges.some((row) => row.label === "Next Clue")) {
+      lines.push({
+        label: "Next Clue",
+        before: before.nextClue || "Staged only",
+        after: draft.caseFile.nextClue
+      });
+    }
+
+    if (options.persist) {
+      prependClueResidueForAction(draft, clue, actionId);
+      if (actionId === "archive") appendArchivedTruthNote(draft, clue);
+      draft = hasActiveNeedlepoint(draft) ? applyNeedlepointDeterministic(draft) : draft;
+    }
 
     return {
-      state: normalizeState(next),
-      ok: true,
-      message: `${action.label}: ${clue.clue}`
+      action,
+      clue,
+      effects,
+      lines,
+      nextState: normalizeState(draft),
+      before
     };
+  }
+
+  function previewClueAction(state, clueId, actionId) {
+    return buildClueActionDraft(state, clueId, actionId, { persist: false });
+  }
+
+  function applyClueAction(state, clueId, actionId) {
+    const built = buildClueActionDraft(state, clueId, actionId, { persist: true });
+    if (!built) {
+      const clue = state.clueIntegrity?.clues?.find((item) => item.id === clueId);
+      const action = clueIntegrityActions.find((item) => item.id === actionId);
+      const message = !clue || !action
+        ? "Clue action unavailable."
+        : `Cannot ${action.label.toLowerCase()} while clue is ${clueIntegrityStateLabel(clue.state).toLowerCase()}.`;
+      return { state, ok: false, message, lines: [] };
+    }
+    return {
+      state: built.nextState,
+      ok: true,
+      message: `${built.action.label}: ${built.clue.clue}`,
+      lines: built.lines
+    };
+  }
+
+  function advanceClueState(state, clueId, actionId) {
+    return applyClueAction(state, clueId, actionId);
   }
 
   async function hydrateClueIntegrity(state, options = {}) {
@@ -2574,29 +2820,8 @@
   function buildTriggerDraft(state, trigger, options = {}) {
     const draft = clone(normalizeState(state));
     const effects = trigger.effects || {};
-    const beforeClock = draft.primaryClock.current;
-    const beforeAttention = draft.attention.current;
-    const beforeScene = draft.sceneState.current;
-
-    if (effects.clock_tick !== false && effects.clock_delta) {
-      draft.primaryClock.current = safeNumber(
-        beforeClock + effects.clock_delta,
-        0,
-        draft.primaryClock.segments,
-        beforeClock
-      );
-    }
-
-    draft.attention.current = resolveAttentionValue(beforeAttention, effects);
-    draft.sceneState.current = resolveSceneStateValue(beforeScene, effects);
-    draft.activeEntity.sceneState = draft.sceneState.current;
-
-    if (effects.consequence) {
-      draft.sceneState.sceneConsequence = effects.consequence;
-      draft.sceneState.primaryConsequence = effects.consequence;
-    }
-    if (effects.next_pressure_beat) draft.caseFile.nextPressureBeat = effects.next_pressure_beat;
-    if (effects.next_clue) draft.caseFile.nextClue = effects.next_clue;
+    const before = captureRuntimeBefore(state);
+    applyTriggerEffectsToDraft(draft, effects, before);
 
     if (options.persist && effects.npc_name_match) {
       const match = effects.npc_name_match.toLowerCase();
@@ -2645,9 +2870,9 @@
     return {
       draft: withNeedlepoint,
       delta: {
-        beforeClock,
-        beforeAttention,
-        beforeScene,
+        beforeClock: before.primaryClock,
+        beforeAttention: before.attention,
+        beforeScene: before.scene,
         afterClock: withNeedlepoint.primaryClock.current,
         afterAttention: withNeedlepoint.attention.current,
         afterScene: withNeedlepoint.sceneState.current
@@ -3386,6 +3611,8 @@
     clueIntegrityActions,
     clueIntegrityStateLabel,
     getClueIntegritySummary,
+    previewClueAction,
+    applyClueAction,
     advanceClueState,
     hydrateClueIntegrity
   };
