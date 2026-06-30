@@ -119,6 +119,32 @@ body[data-handler-mode="live"] .staging-actions .button {
   font-size: .72rem;
 }
 
+body[data-handler-mode="live"] .live-pressure-worse .kicker,
+body[data-handler-mode="live"] .live-pressure-better .kicker {
+  letter-spacing: .07em;
+  line-height: 1.3;
+  overflow-wrap: normal;
+  word-break: normal;
+  text-wrap: balance;
+}
+
+body[data-handler-mode="live"] .live-pressure-worse h2,
+body[data-handler-mode="live"] .live-pressure-better h2 {
+  line-height: 1.35;
+  overflow-wrap: normal;
+  word-break: normal;
+  text-wrap: pretty;
+}
+
+body[data-handler-mode="live"] .live-pressure-worse .trigger-button strong,
+body[data-handler-mode="live"] .live-pressure-better .trigger-button strong {
+  overflow-wrap: normal;
+  word-break: normal;
+  text-wrap: pretty;
+  line-height: 1.2;
+  white-space: normal;
+}
+
 @media (min-width: 1101px) {
 
   body[data-handler-mode="live"] .live-flow-grid {
@@ -145,9 +171,14 @@ body[data-handler-mode="live"] .staging-actions .button {
     margin-bottom: .55rem;
   }
 
+  body[data-handler-mode="live"] .live-pressure-worse .panel-heading-copy,
+  body[data-handler-mode="live"] .live-pressure-better .panel-heading-copy {
+    width: 100%;
+  }
+
   body[data-handler-mode="live"] .live-pressure-worse h2,
   body[data-handler-mode="live"] .live-pressure-better h2 {
-    font-size: .86rem;
+    font-size: .82rem;
   }
 
   body[data-handler-mode="live"] .pressure-tray {
@@ -164,6 +195,8 @@ body[data-handler-mode="live"] .staging-actions .button {
     max-width: 100%;
     min-width: 0;
     min-height: 3.35rem;
+    max-height: none;
+    overflow: visible;
     box-sizing: border-box;
     white-space: normal;
   }
@@ -399,7 +432,9 @@ body[data-handler-mode="live"] .staging-actions .button {
     font-size: .7rem;
     line-height: 1.12;
     letter-spacing: .03em;
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-wrap: pretty;
   }
 
   body[data-handler-mode="live"] .pressure-tray .trigger-button span {

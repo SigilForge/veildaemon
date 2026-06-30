@@ -128,8 +128,8 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
 
   await page.getByRole("button", { name: "PREP" }).click();
   await expect(page.getByRole("button", { name: "PREP" })).toHaveClass(/is-active/);
-  await expect(page.getByLabel("What makes it worse")).toBeHidden();
-  await expect(page.getByLabel("What makes it better")).toBeHidden();
+  await expect(page.getByLabel("Enemy Opportunities")).toBeHidden();
+  await expect(page.getByLabel("Operator Counterplay")).toBeHidden();
   await expect(page.locator("#npc-grid")).toBeVisible();
   const secondaryClockMetrics = await page.evaluate(() => {
     const panel = document.querySelector(".secondary-panel details");
@@ -180,9 +180,42 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   expect(privateNoteHeights).toHaveLength(3);
   expect(Math.max(...privateNoteHeights) - Math.min(...privateNoteHeights)).toBeLessThan(1);
   await expect(page.getByLabel("Dashboard controls")).toBeVisible();
-  await expect(page.getByLabel("What makes it worse")).toBeHidden();
-  await expect(page.getByLabel("What makes it better")).toBeHidden();
+  await expect(page.getByLabel("Enemy Opportunities")).toBeHidden();
+  await expect(page.getByLabel("Operator Counterplay")).toBeHidden();
   await expect(page.getByLabel("Attention and aftermath")).toBeVisible();
+});
+
+test("handler live pressure panel titles wrap cleanly in side columns", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/handler/live/");
+  await applyHandlerTemplate(page, "veilcorp-intake");
+
+  const metrics = await page.evaluate(() => {
+    const inspect = (selector) => {
+      const node = document.querySelector(selector);
+      if (!node) return null;
+      const rect = node.getBoundingClientRect();
+      const text = node.textContent || "";
+      return {
+        width: rect.width,
+        height: rect.height,
+        text,
+        brokenWord: /\w-\s+\w/.test(text)
+      };
+    };
+    return {
+      counterplayTitle: inspect(".live-pressure-better .kicker"),
+      enemyTitle: inspect(".live-pressure-worse .kicker"),
+      counterplayHeading: inspect(".live-pressure-better h2")
+    };
+  });
+
+  expect(metrics.counterplayTitle?.text).toMatch(/operator counterplay/i);
+  expect(metrics.enemyTitle?.text).toMatch(/enemy opportunities/i);
+  expect(metrics.counterplayTitle?.width || 0).toBeGreaterThan(120);
+  expect(metrics.counterplayTitle?.height || 0).toBeGreaterThan(12);
+  expect(metrics.counterplayTitle?.brokenWord).toBe(false);
+  expect(metrics.counterplayHeading?.brokenWord).toBe(false);
 });
 
 test("handler live primary clock stays usable on mobile", async ({ page }) => {
