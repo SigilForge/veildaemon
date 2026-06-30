@@ -829,7 +829,54 @@ test("handler live anchor npc state applies pressure modifiers", async ({ page }
   }, saffiIndex);
   expect(after.anchorState).toBe("separated");
   expect(after.attention).not.toBe("Unseen");
-  expect(after.nextPressure).toContain("separated");
+  expect(after.nextPressure).toContain("gap between Saffi");
+});
+
+test("handler live viridian anchor with operators uses needlepoint override", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await applyHandlerTemplate(page, "viridian-house");
+
+  const overrides = await page.evaluate(() => {
+    const state = window.HandlerState.readState();
+    const effects = window.HandlerState.resolveAnchorNpcEffects(state, "with-operators");
+    return {
+      attentionDelta: effects.attention_delta,
+      beat: effects.next_pressure_beat
+    };
+  });
+  expect(overrides.attentionDelta).toBe(-1);
+  expect(overrides.beat).toContain("denies the Audience");
+
+  await page.evaluate(() => {
+    const state = window.HandlerState.readState();
+    state.attention.current = "Noticed";
+    window.HandlerState.writeState(state);
+  });
+
+  const saffiIndex = await page.evaluate(() => {
+    return window.HandlerState.readState().npcs.findIndex((npc) => /Saffi/.test(npc.name));
+  });
+  expect(saffiIndex).toBeGreaterThanOrEqual(0);
+
+  const anchorBlock = page.locator("#npc-summary-grid .npc-anchor-block").first();
+  await anchorBlock.getByRole("button", { name: "With Operators" }).click();
+  const preview = anchorBlock.locator(".npc-anchor-preview");
+  await expect(preview).toContainText("Noticed -> Unseen");
+  await expect(preview).toContainText("denies the Audience");
+  await preview.getByRole("button", { name: "Apply" }).click();
+
+  const after = await page.evaluate((index) => {
+    const state = window.HandlerState.readState();
+    return {
+      anchorState: state.npcs[index]?.anchor?.state,
+      attention: state.attention.current,
+      nextPressure: state.caseFile.nextPressureBeat
+    };
+  }, saffiIndex);
+  expect(after.anchorState).toBe("with-operators");
+  expect(after.attention).toBe("Unseen");
+  expect(after.nextPressure).toContain("denies the Audience");
 });
 
 test("handler imports Operator Record summaries", async ({ page }) => {
