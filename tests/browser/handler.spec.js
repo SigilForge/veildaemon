@@ -776,6 +776,20 @@ test("handler live wind down mirrors the trigger preview flow", async ({ page })
   await rail.getByRole("button", { name: /Soften Case Pressure/ }).click();
   await expect(preview).toContainText("Case Clock");
   await expect(preview).toContainText("Case Record");
+  await expect(preview).toContainText("Attention");
+  await expect(preview).toContainText("Truth preserved");
+
+  await preview.locator("#wind-down-apply").click();
+  const softened = await page.evaluate(() => {
+    const state = window.HandlerState.readState();
+    return {
+      attention: state.attention.current,
+      nextPressure: state.caseFile.nextPressureBeat,
+      residue: state.residueLog[0]?.residue || ""
+    };
+  });
+  expect(softened.nextPressure).toContain("Truth preserved");
+  expect(softened.residue).toContain("Truth preserved");
 });
 
 test("handler imports Operator Record summaries", async ({ page }) => {
