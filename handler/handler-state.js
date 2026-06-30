@@ -98,11 +98,60 @@
   const loopFields = ["Need", "Lure", "Pressure", "Gift", "Violence", "Exit"];
   const npcFlags = ["Ally", "Witness", "Threat", "Missing", "Compromised", "Anchor"];
   const anchorNpcStates = [
-    { id: "with-operators", label: "With Operators", guidance: "Attention +1 on loud/risky/exposed action." },
-    { id: "hidden", label: "Hidden", guidance: "Zone +1 when time passes or hiding is stressed." },
-    { id: "separated", label: "Separated", guidance: "Attention +1 or Zone +1." },
-    { id: "left-behind", label: "Left Behind", guidance: "Aftermath +1 immediately." },
-    { id: "taken", label: "Taken", guidance: "Attention +1 and Aftermath +1, or start rescue clock." }
+    {
+      id: "idle",
+      label: "Idle",
+      guidance: "Anchor present; no extra pressure modifier from position.",
+      applyEffects: {}
+    },
+    {
+      id: "with-operators",
+      label: "With Operators",
+      guidance: "Attention +1 on loud/risky/exposed action.",
+      applyEffects: {
+        attention_delta: 1,
+        next_pressure_beat: "Anchor with Operators: loud or exposed action draws Attention +1."
+      }
+    },
+    {
+      id: "hidden",
+      label: "Hidden",
+      guidance: "Zone +1 when time passes or hiding is stressed.",
+      applyEffects: {
+        clock_target: "zone",
+        clock_delta: 1,
+        next_pressure_beat: "Anchor hidden under stress; the zone clock advances."
+      }
+    },
+    {
+      id: "separated",
+      label: "Separated",
+      guidance: "Attention +1 or Zone +1.",
+      applyEffects: {
+        attention_delta: 1,
+        next_pressure_beat: "Anchor separated from the group; Attention rises."
+      }
+    },
+    {
+      id: "left-behind",
+      label: "Left Behind",
+      guidance: "Aftermath +1 immediately.",
+      applyEffects: {
+        attention_delta: 1,
+        next_pressure_beat: "Anchor left behind; aftermath pressure lands immediately."
+      }
+    },
+    {
+      id: "taken",
+      label: "Taken",
+      guidance: "Attention +1 and Aftermath +1, or start rescue clock.",
+      applyEffects: {
+        clock_target: "zone",
+        clock_delta: 1,
+        attention_delta: 1,
+        next_pressure_beat: "Anchor taken; rescue pressure starts and Attention rises."
+      }
+    }
   ];
   const anchorNpcStateIds = anchorNpcStates.map((entry) => entry.id);
   const collapseBreakTypes = ["Body", "Name", "Identity", "Role", "Memory", "Relationship", "Evidence", "Time", "Signal", "Room", "Record", "Location", "History"];
@@ -3339,13 +3388,103 @@
     return {
       enabled: Boolean(source.enabled),
       label: safeString(source.label, 40) || "Anchor NPC",
-      state: anchorNpcStateIds.includes(source.state) ? source.state : "with-operators"
+      state: anchorNpcStateIds.includes(source.state) ? source.state : "idle"
     };
+  }
+
+  function anchorStateLabel(stateId) {
+    const entry = anchorNpcStates.find((item) => item.id === stateId);
+    return entry ? entry.label : "Unset";
   }
 
   function anchorGuidanceForState(stateId) {
     const entry = anchorNpcStates.find((item) => item.id === stateId);
     return entry ? entry.guidance : "";
+  }
+
+  function findAnchorNpcState(stateId) {
+    return anchorNpcStates.find((item) => item.id === stateId) || null;
+  }
+
+  function buildAnchorNpcStateDraft(state, npcIndex, stateId, options = {}) {
+    const npc = state.npcs?.[npcIndex];
+    const entry = findAnchorNpcState(stateId);
+    if (!npc?.anchor?.enabled || !entry) return null;
+
+    const before = captureRuntimeBefore(state);
+    const beforeAnchorState = npc.anchor.state;
+    let draft = clone(normalizeState(state));
+    draft.npcs[npcIndex].anchor = normalizeNpcAnchor({
+      ...draft.npcs[npcIndex].anchor,
+      state: stateId
+    });
+
+    const effects = normalizeTriggerEffects(entry.applyEffects || {});
+    const lines = [
+      {
+        label: "Anchor State",
+        before: anchorStateLabel(beforeAnchorState),
+        after: entry.label
+      },
+      {
+        label: "Handler Guidance",
+        before: "",
+        after: entry.guidance
+      }
+    ];
+
+    const hasPressureEffects = Boolean(
+      effects.clock_delta
+      || effects.attention_delta
+      || effects.attention_set
+      || effects.attention_min
+      || effects.scene_state_min
+      || effects.scene_state_set
+      || effects.next_pressure_beat
+      || effects.consequence
+    );
+
+    if (hasPressureEffects) {
+      const { changes } = applyTriggerEffectsToDraft(draft, effects, before);
+      lines.push(...changes);
+    } else if (stateId === "idle") {
+      lines.push({
+        label: "Runtime",
+        before: "",
+        after: "Anchor state only; no clock or Attention modifier."
+      });
+    }
+
+    if (options.persist && hasPressureEffects) {
+      draft = hasActiveNeedlepoint(draft) ? applyNeedlepointDeterministic(draft) : draft;
+    }
+
+    return {
+      entry,
+      npc: draft.npcs[npcIndex],
+      effects,
+      lines,
+      nextState: normalizeState(draft),
+      before
+    };
+  }
+
+  function previewAnchorNpcState(state, npcIndex, stateId) {
+    return buildAnchorNpcStateDraft(state, npcIndex, stateId, { persist: false });
+  }
+
+  function applyAnchorNpcState(state, npcIndex, stateId) {
+    const built = buildAnchorNpcStateDraft(state, npcIndex, stateId, { persist: true });
+    if (!built) {
+      return { state, ok: false, message: "Anchor state unavailable.", lines: [] };
+    }
+    const npcName = safeString(built.npc.name, 80) || built.npc.anchor.label || "Anchor NPC";
+    return {
+      state: built.nextState,
+      ok: true,
+      message: `${npcName}: ${built.entry.label}`,
+      lines: built.lines
+    };
   }
 
   function normalizeNpcs(npcs) {
@@ -3554,7 +3693,10 @@
     npcFlags,
     anchorNpcStates,
     normalizeNpcAnchor,
+    anchorStateLabel,
     anchorGuidanceForState,
+    previewAnchorNpcState,
+    applyAnchorNpcState,
     presentationCatalog: catalogs.presentationCatalog || {},
     backgroundCatalog: catalogs.backgroundCatalog || {},
     presentationOptions: catalogs.presentationOptions || (() => []),

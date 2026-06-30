@@ -209,14 +209,11 @@
       `;
       grid.append(card);
       if (window.HandlerNpcAnchor) {
-        window.HandlerNpcAnchor.renderAnchorBlock(card, npc, index, (npcIndex, stateId) => {
-          state.npcs[npcIndex].anchor = api.normalizeNpcAnchor({
-            ...state.npcs[npcIndex].anchor,
-            state: stateId
-          });
-          state = api.normalizeState(state);
-          writeState();
+        window.HandlerNpcAnchor.renderAnchorBlock(card, npc, index, (result) => {
+          state = result.state;
+          writeState(result.message || "ANCHOR UPDATED");
           renderNpcs();
+          renderDynamic();
         });
       }
       const flags = card.querySelector("[data-npc-flags]");
@@ -288,14 +285,11 @@
         npc.flags.join(" // ") || "No flags"
       );
       if (window.HandlerNpcAnchor) {
-        window.HandlerNpcAnchor.renderAnchorBlock(card, npc, index, (npcIndex, stateId) => {
-          state.npcs[npcIndex].anchor = api.normalizeNpcAnchor({
-            ...state.npcs[npcIndex].anchor,
-            state: stateId
-          });
-          state = api.normalizeState(state);
-          writeState();
+        window.HandlerNpcAnchor.renderAnchorBlock(card, npc, index, (result) => {
+          state = result.state;
+          writeState(result.message || "ANCHOR UPDATED");
           renderNpcSummary();
+          renderDynamic();
         });
       }
       summary.append(card);
@@ -558,7 +552,7 @@
 
     const addNpc = document.getElementById("add-npc");
     if (addNpc) addNpc.addEventListener("click", () => {
-      state.npcs.push({ id: `npc-${Date.now()}`, name: "", role: "", pressure: "", location: "", flags: [], notes: "", anchor: { enabled: false, label: "Anchor NPC", state: "with-operators" } });
+      state.npcs.push({ id: `npc-${Date.now()}`, name: "", role: "", pressure: "", location: "", flags: [], notes: "", anchor: { enabled: false, label: "Anchor NPC", state: "idle" } });
       writeState();
       renderNpcs();
     });
