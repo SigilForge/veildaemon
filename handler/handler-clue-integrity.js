@@ -1,19 +1,24 @@
 (function () {
   const api = window.HandlerState;
-  let lastStatus = "Select a core clue to track truth recovery.";
+  let lastStatus = "Select a clue chip to reveal detail and actions.";
   let pendingClueId = "";
   let pendingActionId = "";
+  let revealedClueId = "";
 
-  function listNode() {
-    return document.getElementById("clue-integrity-list");
+  function trackerNode() {
+    return document.getElementById("clue-status-tracker");
   }
 
   function summaryNode() {
     return document.getElementById("clue-integrity-summary");
   }
 
-  function trackerNode() {
-    return document.getElementById("clue-status-tracker");
+  function activePanelNode() {
+    return document.getElementById("clue-integrity-active");
+  }
+
+  function workbenchTitleNode() {
+    return document.getElementById("clue-workbench-title");
   }
 
   function detailNode() {
@@ -28,10 +33,6 @@
     return document.getElementById("clue-integrity-status");
   }
 
-  function activePanelNode() {
-    return document.getElementById("clue-integrity-active");
-  }
-
   function previewNode() {
     return document.getElementById("clue-preview-panel");
   }
@@ -43,10 +44,8 @@
     return line;
   }
 
-  function clueShortLabel(clue, index) {
-    const text = api.safeString(clue.clue, 80);
-    const words = text.split(/\s+/).slice(0, 4).join(" ");
-    return words.length < text.length ? `${words}…` : words;
+  function clueChipLabel(clue, index) {
+    return `Core clue ${index + 1}: ${api.safeString(clue.clue, 220)} — ${api.clueIntegrityStateLabel(clue.state)}`;
   }
 
   function renderStatusTracker(state) {
@@ -63,13 +62,12 @@
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "clue-status-chip";
-      chip.classList.toggle("is-active", clue.id === state.clueIntegrity.activeClueId);
+      chip.classList.toggle("is-active", clue.id === revealedClueId);
       chip.dataset.clueId = clue.id;
-      chip.setAttribute("role", "listitem");
-      chip.setAttribute("aria-label", `Core clue ${index + 1}: ${api.clueIntegrityStateLabel(clue.state)}`);
+      chip.setAttribute("aria-label", clueChipLabel(clue, index));
+      chip.setAttribute("aria-pressed", clue.id === revealedClueId ? "true" : "false");
       chip.innerHTML = `
-        <em>Clue ${index + 1}</em>
-        <strong>${clueShortLabel(clue, index)}</strong>
+        <span class="clue-chip-index">${index + 1}</span>
         <span class="clue-state-badge clue-state-${clue.state}">${api.clueIntegrityStateLabel(clue.state)}</span>
       `;
       chip.addEventListener("click", () => selectClue(clue.id));
@@ -105,45 +103,24 @@
     node.append(line);
   }
 
-  function renderList(state) {
-    const list = listNode();
-    if (!list) return;
-    list.textContent = "";
-    const clues = state.clueIntegrity?.clues || [];
-    if (!clues.length) {
-      list.append(emptyCopy("No core clues loaded."));
-      return;
-    }
-
-    clues.forEach((clue, index) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "clue-integrity-card";
-      button.classList.toggle("is-active", clue.id === state.clueIntegrity.activeClueId);
-      button.dataset.clueId = clue.id;
-      button.innerHTML = `
-        <em>Core Clue ${index + 1}</em>
-        <strong>${api.safeString(clue.clue, 180)}</strong>
-        <span class="clue-state-badge clue-state-${clue.state}">${api.clueIntegrityStateLabel(clue.state)}</span>
-      `;
-      button.addEventListener("click", () => selectClue(clue.id));
-      list.append(button);
-    });
-  }
-
-  function renderDetail(state) {
+  function renderActivePanel(state) {
     const panel = activePanelNode();
+    const title = workbenchTitleNode();
     const detail = detailNode();
     const actions = actionsNode();
-    if (!panel || !detail || !actions) return;
+    if (!panel || !title || !detail || !actions) return;
 
-    const clue = state.clueIntegrity?.clues?.find((item) => item.id === state.clueIntegrity?.activeClueId);
+    const clues = state.clueIntegrity?.clues || [];
+    const clueIndex = clues.findIndex((item) => item.id === revealedClueId);
+    const clue = clueIndex >= 0 ? clues[clueIndex] : null;
     if (!clue) {
       panel.hidden = true;
       return;
     }
 
     panel.hidden = false;
+    title.textContent = `Core Clue ${clueIndex + 1} — ${api.safeString(clue.clue, 220)}`;
+
     detail.textContent = "";
     const fields = [
       ["First Route", clue.firstRoute],
@@ -156,9 +133,12 @@
       if (!value) return;
       const row = document.createElement("p");
       row.className = "clue-integrity-line";
-      row.innerHTML = `<strong>${label}</strong><span>${api.safeString(value, 320)}</span>`;
+      row.innerHTML = `<strong>${label}</strong><span>${api.safeString(value, 280)}</span>`;
       detail.append(row);
     });
+    if (!detail.children.length) {
+      detail.append(emptyCopy("No route or modifier text loaded for this clue."));
+    }
 
     actions.textContent = "";
     api.clueIntegrityActions.forEach((action) => {
@@ -181,12 +161,25 @@
     node.textContent = message || lastStatus;
   }
 
+  function clearPreview() {
+    pendingClueId = "";
+    pendingActionId = "";
+    const panel = previewNode();
+    if (panel) panel.hidden = true;
+  }
+
   function selectClue(clueId) {
-    closePreview();
+    clearPreview();
     const state = api.readState();
-    state.clueIntegrity.activeClueId = clueId;
+    if (revealedClueId === clueId) {
+      revealedClueId = "";
+      state.clueIntegrity.activeClueId = "";
+    } else {
+      revealedClueId = clueId;
+      state.clueIntegrity.activeClueId = clueId;
+    }
     api.writeState(state);
-    render(api.readState());
+    render();
   }
 
   function openPreview(clueId, actionId) {
@@ -217,15 +210,12 @@
       item.innerHTML = "<span>Effect</span><strong>Clue state updates; runtime meters may stay flat.</strong>";
       lines.append(item);
     }
-    render(state);
+    render();
   }
 
   function closePreview() {
-    pendingClueId = "";
-    pendingActionId = "";
-    const panel = previewNode();
-    if (panel) panel.hidden = true;
-    render(api.readState());
+    clearPreview();
+    render();
   }
 
   function applyPending() {
@@ -242,7 +232,7 @@
       detail: { state: result.state, message: result.message }
     }));
     closePreview();
-    render(result.state);
+    render();
   }
 
   function bindControls() {
@@ -284,18 +274,18 @@
     }
   }
 
-  function render(state) {
-    if (!document.getElementById("clue-integrity-list")) return;
+  function render() {
+    if (!trackerNode()) return;
+    const state = api.readState();
     renderStatusTracker(state);
     renderSummary(state);
-    renderList(state);
-    renderDetail(state);
+    renderActivePanel(state);
     renderStatus(lastStatus);
     renderModuleReadouts(state);
   }
 
   bindControls();
   window.HandlerClueIntegrity = { render, closePreview, applyPending };
-  window.addEventListener("veildaemon:handler-state-updated", () => render(api.readState()));
-  if (document.getElementById("clue-integrity-list")) render(api.readState());
+  window.addEventListener("veildaemon:handler-state-updated", () => render());
+  if (trackerNode()) render();
 }());

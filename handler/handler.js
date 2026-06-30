@@ -465,7 +465,7 @@
     if (window.HandlerTriggers) window.HandlerTriggers.render(state);
     if (window.HandlerWindDown) window.HandlerWindDown.render();
     if (window.HandlerCollapse) window.HandlerCollapse.render(api.readState());
-    if (window.HandlerClueIntegrity) window.HandlerClueIntegrity.render(state);
+    if (window.HandlerClueIntegrity) window.HandlerClueIntegrity.render();
     if (window.HandlerNav) window.HandlerNav.renderFieldLock();
   }
 
@@ -757,7 +757,7 @@
   async function hydrateClues(reseed = false) {
     state = await api.hydrateClueIntegrity(state, { reseed });
     writeState(reseed ? "CORE CLUES LOADED" : "CLUES SYNCED");
-    if (window.HandlerClueIntegrity) window.HandlerClueIntegrity.render(state);
+    if (window.HandlerClueIntegrity) window.HandlerClueIntegrity.render();
   }
 
   async function init() {

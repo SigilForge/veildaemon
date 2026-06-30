@@ -2035,6 +2035,12 @@
     const source = value && typeof value === "object" ? value : {};
     const existing = Array.isArray(source.clues) ? source.clues : [];
     const definitions = normalizeCoreClueDefinitions(coreClues);
+    if (!definitions.length && existing.length && !options.reseed) {
+      const activeClueId = existing.some((item) => item.id === source.activeClueId)
+        ? source.activeClueId
+        : (existing[0]?.id || "");
+      return { activeClueId, clues: existing };
+    }
     const clues = definitions.map((definition) => {
       const prior = existing.find((item) => item.id === definition.id);
       if (prior && !options.reseed) {
