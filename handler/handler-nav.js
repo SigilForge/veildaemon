@@ -5,6 +5,7 @@
     { key: "overview", label: "Overview", segment: "" },
     { key: "live", label: "Live", segment: "live" },
     { key: "cases", label: "Cases", segment: "cases" },
+    { key: "clues", label: "Clues", segment: "clues" },
     { key: "clocks", label: "Clocks", segment: "clocks" },
     { key: "entities", label: "Entities", segment: "entities" },
     { key: "npcs", label: "NPCs", segment: "npcs" },

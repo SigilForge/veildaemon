@@ -154,13 +154,13 @@
     },
     {
       id: "recover-clean-clue",
-      label: "Recover Clean Clue",
+      label: "Soften Case Pressure",
       target: "case",
       effects: {
         case_delta: -1,
-        case_record: "Clean clue recovered without feeding the site."
+        case_record: "Truth preserved without feeding the site."
       },
-      guidance: "Use when Operators recover the clue without feeding the site, exposing an NPC, or escalating attention. If the case clock is off, still record the clue cleanly."
+      guidance: "Counterplay shorthand when Operators preserve truth without feeding the site. For full clue state, use Live or Clues → Clue Integrity → Secure Clue."
     },
     {
       id: "use-clock-stabilizer",
@@ -233,8 +233,8 @@
     },
     {
       id: "recover-clue-clean",
-      label: "Operators recover core clue cleanly",
-      hint: "Clue lands without extra exposure.",
+      label: "Surface core clue (table shorthand)",
+      hint: "Stages next clue without clock tick. Track truth state in Clue Integrity.",
       effects: { clock_target: "case", clock_tick: false, reveal_next_clue: true }
     },
     {

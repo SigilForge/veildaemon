@@ -247,7 +247,8 @@ body[data-handler-mode="live"] .live-pressure-better .trigger-button strong {
   }
 
   body[data-handler-mode="live"] .roll-panel + .clock-panel,
-  body[data-handler-mode="live"] .clock-panel + .loop-panel,
+  body[data-handler-mode="live"] .clock-panel + .clue-integrity-panel,
+  body[data-handler-mode="live"] .clue-integrity-panel + .loop-panel,
   body[data-handler-mode="live"] .wind-down-panel + .aftermath-panel,
   body[data-handler-mode="live"] .aftermath-panel + .npc-panel {
     margin-top: 0;
@@ -386,20 +387,24 @@ body[data-handler-mode="live"] .live-pressure-better .trigger-button strong {
     order: 6;
   }
 
-  body[data-handler-mode="live"] .loop-panel {
+  body[data-handler-mode="live"] .clue-integrity-panel {
     order: 7;
   }
 
-  body[data-handler-mode="live"] .helper-panel {
+  body[data-handler-mode="live"] .loop-panel {
     order: 8;
   }
 
-  body[data-handler-mode="live"] .player-panel {
+  body[data-handler-mode="live"] .helper-panel {
     order: 9;
   }
 
-  body[data-handler-mode="live"] .npc-panel {
+  body[data-handler-mode="live"] .player-panel {
     order: 10;
+  }
+
+  body[data-handler-mode="live"] .npc-panel {
+    order: 11;
   }
 
   body[data-handler-mode="live"] .pressure-tray {
