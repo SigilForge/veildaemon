@@ -2,16 +2,8 @@ name: Guard StreamDaemon Secrecy
 on:
   push:
     branches: [ main ]
-    paths:
-      - '.github/workflows/guard_streamdaemon.yml'
-      - 'streamdaemon/**'
-      - 'StreamDaemon/**'
   pull_request:
     branches: [ main ]
-    paths:
-      - '.github/workflows/guard_streamdaemon.yml'
-      - 'streamdaemon/**'
-      - 'StreamDaemon/**'
 
 jobs:
   guard:
@@ -20,29 +12,52 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Fail if StreamDaemon content present beyond allowed stubs
+      - name: Detect StreamDaemon scope
+        id: scope
         shell: bash
         run: |
           set -euo pipefail
-          # Allowed paths under streamdaemon/
-          allowed=$(cat <<'EOF'
-^streamdaemon/pyproject\.toml$
-^streamdaemon/plugins/\Z
-^streamdaemon/plugins/__init__\.py$
-^streamdaemon/README\.md$
-^streamdaemon/\.gitkeep$
-^StreamDaemon/README\.md$
-^StreamDaemon/\.gitkeep$
-EOF
-)
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            mapfile -t changed < <(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          elif [[ "${{ github.event.before }}" =~ ^0+$ ]]; then
+            mapfile -t changed < <(git diff-tree --no-commit-id --name-only -r "${{ github.sha }}")
+          else
+            mapfile -t changed < <(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          fi
+
+          check_streamdaemon=0
+          for file in "${changed[@]}"; do
+            case "$file" in
+              .github/workflows/guard_streamdaemon.yml|streamdaemon/*|streamdaemon/**|StreamDaemon/*|StreamDaemon/**)
+                check_streamdaemon=1
+                ;;
+            esac
+          done
+
+          if [[ $check_streamdaemon -eq 1 ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "No StreamDaemon-facing files changed; guard satisfied."
+          fi
+      - name: Fail if StreamDaemon content present beyond allowed stubs
+        if: steps.scope.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
           # Find any files under StreamDaemon or streamdaemon
           mapfile -t files < <(git ls-files | grep -Ei '^(streamdaemon|StreamDaemon)/')
           bad=0
           for f in "${files[@]}"; do
-            if ! grep -Eq "$allowed" <<<"$f"; then
-              echo "Forbidden StreamDaemon file: $f"
-              bad=1
-            fi
+            case "$f" in
+              streamdaemon/pyproject.toml|streamdaemon/plugins/|streamdaemon/plugins/__init__.py|streamdaemon/README.md|streamdaemon/.gitkeep|StreamDaemon/README.md|StreamDaemon/.gitkeep)
+                ;;
+              *)
+                echo "Forbidden StreamDaemon file: $f"
+                bad=1
+                ;;
+            esac
           done
           if [[ $bad -ne 0 ]]; then
             echo "StreamDaemon private content detected. Remove before merging."

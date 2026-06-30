@@ -14,14 +14,63 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Detect changed surfaces
+        id: scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            mapfile -t changed < <(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          elif [[ "${{ github.event.before }}" =~ ^0+$ ]]; then
+            mapfile -t changed < <(git diff-tree --no-commit-id --name-only -r "${{ github.sha }}")
+          else
+            mapfile -t changed < <(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          fi
+
+          run_app=0
+          run_python=0
+          for file in "${changed[@]}"; do
+            case "$file" in
+              .github/workflows/ci_smoke.yml|admin/**|after-action-report/**|api/**|assets/**|catalogs.js|debrief/**|handler/**|index.html|lib/**|operator/**|package-lock.json|package.json|play/**|playwright.config.js|public/**|recovered-operator-reports/**|script.js|stream/**|styles.css|surface-nav.js|vercel.json)
+                run_app=1
+                ;;
+            esac
+            case "$file" in
+              .github/workflows/ci_smoke.yml|requirements.txt|pytest.ini|tests/*.py|tests/integration/**|veildaemon/**)
+                run_python=1
+                ;;
+            esac
+          done
+
+          echo "app=$run_app" >> "$GITHUB_OUTPUT"
+          echo "python=$run_python" >> "$GITHUB_OUTPUT"
+
+          if [[ $run_app -eq 0 && $run_python -eq 0 ]]; then
+            echo "No public app or Python package smoke surface changed."
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.scope.outputs.app == '1'
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install public app deps
+        if: steps.scope.outputs.app == '1'
+        run: npm ci
+      - name: Run public app syntax smoke
+        if: steps.scope.outputs.app == '1'
+        run: npm run check
       - uses: actions/setup-python@v5
+        if: steps.scope.outputs.python == '1'
         with:
           python-version: '3.11'
       - name: Install package (editable)
+        if: steps.scope.outputs.python == '1'
         run: |
           python -m pip install --upgrade pip
           pip install -e ./veildaemon[dev]
       - name: Run import smoke
+        if: steps.scope.outputs.python == '1'
         run: |
           python - <<'PY'
           import importlib
