@@ -10,8 +10,8 @@
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260629-mobilepass1" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260629-preparchive1" />
+  <link rel="stylesheet" href="../handler.css?v=20260629-pressuretitles1" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260629-pressuretitles1" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -70,10 +70,12 @@
 
       <div class="live-flow-grid">
         <div class="live-flow-column live-left-column">
-          <section class="panel trigger-panel no-print" aria-label="Enemy Opportunities" data-mode-panel="live" data-live-control-zone>
+          <section class="panel trigger-panel live-pressure-worse no-print" aria-label="Enemy Opportunities" data-mode-panel="live" data-live-control-zone>
             <div class="panel-heading">
-              <p class="kicker">ENEMY OPPORTUNITIES</p>
-              <h2>Table event. Clock, Attention, and Scene State update visibly.</h2>
+              <div class="panel-heading-copy">
+                <p class="kicker">Enemy Opportunities</p>
+                <h2>Table event. Clock, Attention, and Scene State update visibly.</h2>
+              </div>
             </div>
             <div class="pressure-tray" id="trigger-rail" role="group" aria-label="Table triggers"></div>
             <div class="trigger-preview-panel" id="trigger-preview-panel" hidden>
@@ -196,10 +198,12 @@
         </div>
 
         <div class="live-flow-column live-right-column">
-          <section class="panel wind-down-panel no-print private-panel" aria-label="Operator Counterplay" data-mode-panel="live" data-live-control-zone>
+          <section class="panel wind-down-panel live-pressure-better no-print private-panel" aria-label="Operator Counterplay" data-mode-panel="live" data-live-control-zone>
             <div class="panel-heading">
-              <p class="kicker">OPERATOR COUNTERPLAY</p>
-              <h2>Wind down only when leverage is actually removed.</h2>
+              <div class="panel-heading-copy">
+                <p class="kicker">Operator Counterplay</p>
+                <h2>Wind down only when leverage is actually removed.</h2>
+              </div>
             </div>
             <div class="pressure-tray" id="wind-down-rail" role="group" aria-label="Wind down moves"></div>
             <div class="trigger-preview-panel wind-down-preview-panel" id="wind-down-preview-panel" hidden>

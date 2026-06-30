@@ -707,6 +707,13 @@ body.is-player-view .wind-down-panel {
   margin-bottom: .75rem;
 }
 
+.panel-heading-copy {
+  display: grid;
+  gap: .28rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .case-panel,
 .clock-panel,
 .loop-panel,
