@@ -185,6 +185,13 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.getByLabel("Attention and aftermath")).toBeVisible();
 });
 
+async function applyClueAction(page, actionLabel) {
+  await page.getByRole("button", { name: actionLabel }).click();
+  const preview = page.locator("#clue-preview-panel");
+  await expect(preview).toBeVisible();
+  await preview.locator("#clue-apply").click();
+}
+
 test("handler live clue integrity tracks core clue state flow", async ({ page }) => {
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
@@ -195,24 +202,108 @@ test("handler live clue integrity tracks core clue state flow", async ({ page })
   await expect(clueList.getByRole("button", { name: /Floor 13 appears after a lie under observation/ })).toBeVisible();
 
   await clueList.getByRole("button", { name: /Floor 13 appears after a lie under observation/ }).click();
-  await page.getByRole("button", { name: "Discover Clue" }).click();
+  await applyClueAction(page, "Discover Clue");
   await expect(page.locator("#clue-integrity-status")).toContainText("Discover Clue");
   const discoveredState = await page.evaluate(() => {
-    const clue = window.HandlerState.readState().clueIntegrity.clues.find((item) => /Floor 13 appears/.test(item.clue));
+    const state = window.HandlerState.readState();
+    const clue = state.clueIntegrity.clues.find((item) => /Floor 13 appears/.test(item.clue));
     return {
       state: clue?.state,
-      nextClue: window.HandlerState.readState().caseFile.nextClue
+      nextClue: state.caseFile.nextClue,
+      sceneState: state.sceneState.current,
+      attention: state.attention.current
     };
   });
   expect(discoveredState.state).toBe("discovered");
   expect(discoveredState.nextClue).toContain("Floor 13 appears after a lie under observation");
+  expect(discoveredState.sceneState).toBe("Echoed");
 
-  await page.getByRole("button", { name: "Secure Clue" }).click();
+  await applyClueAction(page, "Secure Clue");
   await expect(page.locator("#clue-integrity-status")).toContainText("Secure Clue");
 
-  await page.getByRole("button", { name: "Archive Clue" }).click();
+  await applyClueAction(page, "Archive Clue");
   await expect(page.locator("#clue-integrity-status")).toContainText("Archive Clue");
   await expect(clueList.getByText("Archived")).toBeVisible();
+  const archivedState = await page.evaluate(() => window.HandlerState.readState());
+  expect(archivedState.clueIntegrity.clues.some((item) => /Floor 13 appears/.test(item.clue))).toBe(true);
+  expect(archivedState.handlerNotes.clueList).toContain("ARCHIVED TRUTH");
+});
+
+test("handler live clue integrity preview can cancel before apply", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await applyHandlerTemplate(page, "viridian-house");
+  const clueList = page.getByRole("list", { name: "Core clues" });
+  await clueList.getByRole("button", { name: /Mara entered the elevator at 2:13 a\.m\./ }).click();
+  await page.getByRole("button", { name: "Discover Clue" }).click();
+  await expect(page.locator("#clue-preview-panel")).toBeVisible();
+  await page.locator("#clue-cancel").click();
+  const clueState = await page.evaluate(() => {
+    const clue = window.HandlerState.readState().clueIntegrity.clues.find((item) => /Mara entered the elevator/.test(item.clue));
+    return clue?.state;
+  });
+  expect(clueState).toBe("unknown");
+});
+
+test("handler live clue contaminate advances pressure", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await applyHandlerTemplate(page, "viridian-house");
+  await page.evaluate(() => {
+    const state = window.HandlerState.readState();
+    state.attention.current = "Unseen";
+    state.sceneState.current = "Stable";
+    state.primaryClock.current = 2;
+    window.HandlerState.writeState(state);
+  });
+
+  const clueList = page.getByRole("list", { name: "Core clues" });
+  await clueList.getByRole("button", { name: /Floor 13 appears after a lie under observation/ }).click();
+  await applyClueAction(page, "Discover Clue");
+  await applyClueAction(page, "Contaminate Clue");
+
+  const pressure = await page.evaluate(() => {
+    const state = window.HandlerState.readState();
+    const clue = state.clueIntegrity.clues.find((item) => /Floor 13 appears/.test(item.clue));
+    return {
+      state: clue?.state,
+      clock: state.primaryClock.current,
+      attention: state.attention.current,
+      sceneState: state.sceneState.current
+    };
+  });
+  expect(pressure.state).toBe("contaminated");
+  expect(pressure.clock).toBeGreaterThan(2);
+  expect(pressure.attention).not.toBe("Unseen");
+  expect(pressure.sceneState).toBe("Recursive");
+});
+
+test("handler live clue reroute changes next clue and route cost", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await applyHandlerTemplate(page, "viridian-house");
+  await page.evaluate(() => {
+    const state = window.HandlerState.readState();
+    state.caseFile.nextPressureBeat = "Lobby camera watches.";
+    window.HandlerState.writeState(state);
+  });
+
+  const clueList = page.getByRole("list", { name: "Core clues" });
+  await clueList.getByRole("button", { name: /Floor 13 appears after a lie under observation/ }).click();
+  await applyClueAction(page, "Discover Clue");
+  await applyClueAction(page, "Reroute Clue");
+
+  const rerouted = await page.evaluate(() => {
+    const state = window.HandlerState.readState();
+    const clue = state.clueIntegrity.clues.find((item) => /Floor 13 appears/.test(item.clue));
+    return {
+      state: clue?.state,
+      routeUsed: clue?.routeUsed,
+      nextClue: state.caseFile.nextClue,
+      nextPressure: state.caseFile.nextPressureBeat
+    };
+  });
+  expect(rerouted.state).toBe("rerouted");
+  expect(rerouted.routeUsed).toBe("alternate");
+  expect(rerouted.nextClue).toContain("Alternate route");
+  expect(rerouted.nextPressure).toContain("alternate route");
 });
 
 test("handler live pressure panel titles wrap cleanly in side columns", async ({ page }) => {

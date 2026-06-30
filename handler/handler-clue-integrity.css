@@ -142,6 +142,15 @@
   font-size: .68rem;
 }
 
+.clue-integrity-actions .button.is-active {
+  border-color: rgba(185, 84, 255, .58);
+  box-shadow: inset 0 0 18px rgba(185, 84, 255, .08);
+}
+
+.clue-preview-panel {
+  margin-top: .65rem;
+}
+
 .clue-integrity-empty,
 .clue-integrity-status {
   display: block;
