@@ -26,6 +26,14 @@
   ];
 
   const attentionStates = ["Unseen", "Noticed", "Focused", "Targeted", "Exposed"];
+  const clueIntegrityStates = ["unknown", "discovered", "secured", "archived", "contaminated", "rerouted"];
+  const clueIntegrityActions = [
+    { id: "discover", label: "Discover Clue", states: ["unknown"] },
+    { id: "secure", label: "Secure Clue", states: ["discovered", "contaminated", "rerouted"] },
+    { id: "archive", label: "Archive Clue", states: ["secured", "contaminated", "rerouted"] },
+    { id: "contaminate", label: "Contaminate Clue", states: ["discovered"] },
+    { id: "reroute", label: "Reroute Clue", states: ["discovered"] }
+  ];
   const attentionAliases = {
     observed: "noticed",
     fixed: "targeted",
@@ -1522,6 +1530,10 @@
       aftermathConsequence: ""
     },
     residueLog: [],
+    clueIntegrity: {
+      activeClueId: "",
+      clues: []
+    },
     unresolvedConsequences: "",
     roomAnswer: {
       object: "",
@@ -1826,6 +1838,214 @@
     };
   }
 
+  function needlepointScaffoldUrl(scaffold) {
+    const clean = safeString(scaffold, 180).replace(/^\.?\//, "");
+    if (!clean) return "";
+    if (clean.startsWith("handler/")) return `/${clean}`;
+    return `/handler/${clean}`;
+  }
+
+  function normalizeCoreClueDefinitions(value) {
+    const list = Array.isArray(value) ? value : [];
+    return list.slice(0, 7).map((item, index) => {
+      const source = item && typeof item === "object" ? item : {};
+      return {
+        id: safeString(source.id, 40) || `core-clue-${index + 1}`,
+        clue: safeString(source.clue, 260),
+        firstRoute: safeString(source.first_route || source.firstRoute, 260),
+        alternateRoute: safeString(source.alternate_route || source.alternateRoute, 260),
+        failureCost: safeString(source.failure_cost || source.failureCost, 320),
+        tableEffect: safeString(source.table_effect || source.tableEffect, 320)
+      };
+    }).filter((item) => item.clue);
+  }
+
+  function normalizeClueIntegrityState(value) {
+    return clueIntegrityStates.includes(value) ? value : "unknown";
+  }
+
+  function normalizeClueIntegrity(value, coreClues, options = {}) {
+    const source = value && typeof value === "object" ? value : {};
+    const existing = Array.isArray(source.clues) ? source.clues : [];
+    const definitions = normalizeCoreClueDefinitions(coreClues);
+    const clues = definitions.map((definition) => {
+      const prior = existing.find((item) => item.id === definition.id);
+      if (prior && !options.reseed) {
+        return {
+          ...definition,
+          state: normalizeClueIntegrityState(prior.state),
+          routeUsed: safeString(prior.routeUsed, 40),
+          handlerNote: safeString(prior.handlerNote, 320),
+          updatedAt: safeString(prior.updatedAt, 40)
+        };
+      }
+      return {
+        ...definition,
+        state: "unknown",
+        routeUsed: "",
+        handlerNote: "",
+        updatedAt: ""
+      };
+    });
+    const activeClueId = clues.some((item) => item.id === source.activeClueId)
+      ? source.activeClueId
+      : (clues[0]?.id || "");
+    return { activeClueId, clues };
+  }
+
+  function clueIntegrityStateLabel(stateId) {
+    const labels = {
+      unknown: "Unknown",
+      discovered: "Discovered",
+      secured: "Secured",
+      archived: "Archived",
+      contaminated: "Contaminated",
+      rerouted: "Rerouted"
+    };
+    return labels[stateId] || "Unknown";
+  }
+
+  function getClueIntegritySummary(state) {
+    const clues = state?.clueIntegrity?.clues || [];
+    const counts = clueIntegrityStates.reduce((next, key) => {
+      next[key] = clues.filter((item) => item.state === key).length;
+      return next;
+    }, {});
+    return {
+      total: clues.length,
+      counts,
+      active: clues.find((item) => item.id === state?.clueIntegrity?.activeClueId) || clues[0] || null
+    };
+  }
+
+  function prependClueResidue(state, residue, consequence = "") {
+    state.residueLog.unshift({
+      id: `residue-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      scene: safeString(state.sceneState?.current, 80),
+      attention: normalizeAttentionDisplay(state.attention?.current),
+      residue: safeString(residue, 240),
+      followsHome: safeString(state.attention?.followsHome, 240),
+      consequence: safeString(consequence, 300)
+    });
+    state.residueLog = state.residueLog.slice(0, 20);
+  }
+
+  function advanceClueState(state, clueId, actionId) {
+    const next = clone(state);
+    const clue = next.clueIntegrity?.clues?.find((item) => item.id === clueId);
+    const action = clueIntegrityActions.find((item) => item.id === actionId);
+    if (!clue || !action) {
+      return { state: next, ok: false, message: "Clue action unavailable." };
+    }
+    if (!action.states.includes(clue.state)) {
+      return {
+        state: next,
+        ok: false,
+        message: `Cannot ${action.label.toLowerCase()} while clue is ${clueIntegrityStateLabel(clue.state).toLowerCase()}.`
+      };
+    }
+
+    const transitionMap = {
+      discover: "discovered",
+      secure: "secured",
+      archive: "archived",
+      contaminate: "contaminated",
+      reroute: "rerouted"
+    };
+    clue.state = transitionMap[actionId];
+    clue.updatedAt = nowStamp();
+    next.clueIntegrity.activeClueId = clue.id;
+
+    if (actionId === "discover") {
+      next.caseFile.nextClue = clue.firstRoute
+        ? `${clue.clue} First route: ${clue.firstRoute}`
+        : clue.clue;
+      clue.routeUsed = "first";
+      prependClueResidue(
+        next,
+        `Discovered: ${clue.clue}`,
+        "Truth surfaced. The case now knows the Operators know."
+      );
+    }
+
+    if (actionId === "secure") {
+      prependClueResidue(
+        next,
+        `Secured: ${clue.clue}`,
+        "Evidence copied, witnessed, anchored, or preserved. Pressure can rise; the clue cannot disappear."
+      );
+    }
+
+    if (actionId === "archive") {
+      prependClueResidue(
+        next,
+        `Archived: ${clue.clue}`,
+        "Truth survives the mission for After Action Report, VeilCorp file, or witness chain."
+      );
+    }
+
+    if (actionId === "contaminate") {
+      clue.handlerNote = clue.failureCost;
+      prependClueResidue(
+        next,
+        `Contaminated: ${clue.clue}`,
+        clue.failureCost || "Truth exists, but it is misleading, incomplete, expensive, or dangerous to use."
+      );
+    }
+
+    if (actionId === "reroute") {
+      clue.routeUsed = "alternate";
+      clue.handlerNote = clue.alternateRoute;
+      next.caseFile.nextClue = clue.alternateRoute
+        ? `${clue.clue} Alternate route: ${clue.alternateRoute}`
+        : next.caseFile.nextClue;
+      prependClueResidue(
+        next,
+        `Rerouted: ${clue.clue}`,
+        clue.alternateRoute || "Operators missed the obvious path; the case opens another route."
+      );
+    }
+
+    return {
+      state: normalizeState(next),
+      ok: true,
+      message: `${action.label}: ${clue.clue}`
+    };
+  }
+
+  async function hydrateClueIntegrity(state, options = {}) {
+    const next = clone(state);
+    const needlepoint = next.activeNeedlepoint || {};
+    if (!needlepoint.id) {
+      next.clueIntegrity = normalizeClueIntegrity(null, [], { reseed: true });
+      return normalizeState(next);
+    }
+
+    let coreClues = needlepoint.core_clues;
+    if (!coreClues?.length && needlepoint.scaffold) {
+      try {
+        const response = await fetch(needlepointScaffoldUrl(needlepoint.scaffold), { cache: "no-store" });
+        if (response.ok) {
+          const payload = await response.json();
+          coreClues = normalizeCoreClueDefinitions(payload.core_clues);
+          next.activeNeedlepoint = {
+            ...needlepoint,
+            core_clues: coreClues
+          };
+        }
+      } catch (error) {
+        coreClues = [];
+      }
+    }
+
+    next.clueIntegrity = normalizeClueIntegrity(
+      next.clueIntegrity,
+      coreClues || needlepoint.core_clues || [],
+      { reseed: Boolean(options.reseed) }
+    );
+    return normalizeState(next);
+  }
+
   function normalizeActiveNeedlepoint(value) {
     const source = value && typeof value === "object" ? value : {};
     const id = safeString(source.id, 80);
@@ -1833,6 +2053,7 @@
     return {
       id,
       scaffold: safeString(source.scaffold, 180),
+      core_clues: normalizeCoreClueDefinitions(source.core_clues),
       scene_state_cards: {
         ...normalizeDeterministicCardTable(seeded.scene_state_cards, sceneStateCardKeys),
         ...normalizeDeterministicCardTable(source.scene_state_cards, sceneStateCardKeys)
@@ -2829,7 +3050,13 @@
       rewrite: normalizeRewrite(merged.rewrite),
       canonTerminology
     };
-    const withNeedlepoint = hasActiveNeedlepoint(next) ? applyNeedlepointDeterministic(next) : next;
+    const activeNeedlepoint = normalizeActiveNeedlepoint(merged.activeNeedlepoint);
+    const withClues = {
+      ...next,
+      activeNeedlepoint,
+      clueIntegrity: normalizeClueIntegrity(merged.clueIntegrity, activeNeedlepoint.core_clues, { reseed: false })
+    };
+    const withNeedlepoint = hasActiveNeedlepoint(withClues) ? applyNeedlepointDeterministic(withClues) : withClues;
     return syncCollapseRewriteStaging(withNeedlepoint);
   }
 
@@ -3154,6 +3381,12 @@
     clearCollapseStaging,
     activateRewriteMode,
     deactivateRewriteMode,
-    markCollapseExitFailed
+    markCollapseExitFailed,
+    clueIntegrityStates,
+    clueIntegrityActions,
+    clueIntegrityStateLabel,
+    getClueIntegritySummary,
+    advanceClueState,
+    hydrateClueIntegrity
   };
 }());

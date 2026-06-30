@@ -11,6 +11,7 @@
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
   <link rel="stylesheet" href="../handler.css?v=20260629-pressuretitles1" />
+  <link rel="stylesheet" href="../handler-clue-integrity.css?v=20260629-clueintegrity1" />
   <link rel="stylesheet" href="./live-flow.css?v=20260629-pressuretitles1" />
 </head>
 <body class="handler-surface live-surface">
@@ -183,6 +184,23 @@
             <div class="loop-grid" id="entity-loop-grid"></div>
           </section>
 
+          <section class="panel clue-integrity-panel" aria-label="Clue Integrity" data-mode-panel="live" data-live-control-zone>
+            <div class="panel-heading">
+              <div class="panel-heading-copy">
+                <p class="kicker">Clue Integrity</p>
+                <h2>Recover truth under pressure. Core clues never permanently disappear.</h2>
+              </div>
+            </div>
+            <p class="panel-note clue-integrity-law">Failure changes cost, exposure, timing, route, and residue — never existence.</p>
+            <div class="clue-integrity-summary" id="clue-integrity-summary" aria-live="polite"></div>
+            <div class="clue-integrity-list" id="clue-integrity-list" role="list" aria-label="Core clues"></div>
+            <div class="clue-integrity-active" id="clue-integrity-active" hidden>
+              <div class="clue-integrity-detail" id="clue-integrity-detail"></div>
+              <div class="clue-integrity-actions" id="clue-integrity-actions" role="group" aria-label="Clue state actions"></div>
+            </div>
+            <output class="clue-integrity-status" id="clue-integrity-status" aria-live="polite">Select a core clue to track truth recovery.</output>
+          </section>
+
           <section class="panel helper-panel" aria-label="The Room Answers helper" data-mode-panel="live">
             <div class="panel-heading">
               <p class="kicker">THE ROOM ANSWERS</p>
@@ -290,13 +308,14 @@
     </section>
   </main>
   <script src="../../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="../handler-state.js?v=20260629-templateapply1"></script>
+  <script src="../handler-state.js?v=20260629-clueintegrity1"></script>
   <script src="../handler-nav.js?v=20260629-templatepicker1"></script>
   <script src="../handler-operator-trackers.js?v=20260626-optrack1"></script>
   <script src="../handler-npc-anchor.js?v=20260628-anchorpreview1"></script>
   <script src="../handler-triggers.js?v=20260627-pressuregrid19"></script>
   <script src="../handler-wind-down.js?v=20260627-pressuregrid19"></script>
   <script src="../handler-collapse.js?v=20260628-collapse4"></script>
-  <script src="../handler.js?v=20260629-clockmobile2"></script>
+  <script src="../handler-clue-integrity.js?v=20260629-clueintegrity1"></script>
+  <script src="../handler.js?v=20260629-clueintegrity1"></script>
 </body>
 </html>

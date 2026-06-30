@@ -174,7 +174,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.getByLabel("Player-facing display")).not.toContainText("TN 15");
   await expect(page.getByLabel("Player-facing display")).not.toContainText("PRIVATE HANDLER NOTES");
 
-  await page.getByRole("button", { name: "ARCHIVE" }).click();
+  await page.locator('.mode-switch [data-dashboard-mode="archive"]').click();
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toBeVisible();
   const privateNoteHeights = await page.locator(".notes-panel .field-grid.three textarea").evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().height));
   expect(privateNoteHeights).toHaveLength(3);
@@ -183,6 +183,36 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.getByLabel("Enemy Opportunities")).toBeHidden();
   await expect(page.getByLabel("Operator Counterplay")).toBeHidden();
   await expect(page.getByLabel("Attention and aftermath")).toBeVisible();
+});
+
+test("handler live clue integrity tracks core clue state flow", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await applyHandlerTemplate(page, "viridian-house");
+
+  await expect(page.getByLabel("Clue Integrity")).toBeVisible();
+  const clueList = page.getByRole("list", { name: "Core clues" });
+  await expect(clueList.getByRole("button", { name: /Floor 13 appears after a lie under observation/ })).toBeVisible();
+
+  await clueList.getByRole("button", { name: /Floor 13 appears after a lie under observation/ }).click();
+  await page.getByRole("button", { name: "Discover Clue" }).click();
+  await expect(page.locator("#clue-integrity-status")).toContainText("Discover Clue");
+  const discoveredState = await page.evaluate(() => {
+    const clue = window.HandlerState.readState().clueIntegrity.clues.find((item) => /Floor 13 appears/.test(item.clue));
+    return {
+      state: clue?.state,
+      nextClue: window.HandlerState.readState().caseFile.nextClue
+    };
+  });
+  expect(discoveredState.state).toBe("discovered");
+  expect(discoveredState.nextClue).toContain("Floor 13 appears after a lie under observation");
+
+  await page.getByRole("button", { name: "Secure Clue" }).click();
+  await expect(page.locator("#clue-integrity-status")).toContainText("Secure Clue");
+
+  await page.getByRole("button", { name: "Archive Clue" }).click();
+  await expect(page.locator("#clue-integrity-status")).toContainText("Archive Clue");
+  await expect(clueList.getByText("Archived")).toBeVisible();
 });
 
 test("handler live pressure panel titles wrap cleanly in side columns", async ({ page }) => {

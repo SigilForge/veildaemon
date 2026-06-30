@@ -465,6 +465,7 @@
     if (window.HandlerTriggers) window.HandlerTriggers.render(state);
     if (window.HandlerWindDown) window.HandlerWindDown.render();
     if (window.HandlerCollapse) window.HandlerCollapse.render(api.readState());
+    if (window.HandlerClueIntegrity) window.HandlerClueIntegrity.render(state);
     if (window.HandlerNav) window.HandlerNav.renderFieldLock();
   }
 
@@ -743,6 +744,22 @@
     });
   }
 
+  function bindClueBridge() {
+    window.addEventListener("veildaemon:handler-clue-updated", (event) => {
+      if (!event.detail?.state) return;
+      state = event.detail.state;
+      syncForm();
+      setStatus(event.detail.message || "CLUE UPDATED");
+      renderDynamic();
+    });
+  }
+
+  async function hydrateClues(reseed = false) {
+    state = await api.hydrateClueIntegrity(state, { reseed });
+    writeState(reseed ? "CORE CLUES LOADED" : "CLUES SYNCED");
+    if (window.HandlerClueIntegrity) window.HandlerClueIntegrity.render(state);
+  }
+
   async function init() {
     await api.loadTemplates();
     bindForm();
@@ -751,7 +768,9 @@
     bindTriggerBridge();
     bindWindDownBridge();
     bindCollapseBridge();
+    bindClueBridge();
     renderAll();
+    await hydrateClues(false);
   }
 
   init();
