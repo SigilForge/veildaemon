@@ -1,21 +1,57 @@
 name: quality
 on:
   push:
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 jobs:
   lint-and-smoke:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect Python quality scope
+        id: scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            mapfile -t changed < <(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          elif [[ "${{ github.event.before }}" =~ ^0+$ ]]; then
+            mapfile -t changed < <(git diff-tree --no-commit-id --name-only -r "${{ github.sha }}")
+          else
+            mapfile -t changed < <(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}")
+          fi
+
+          run_quality=0
+          for file in "${changed[@]}"; do
+            case "$file" in
+              .github/workflows/quality.yml|requirements.txt|pytest.ini|*.md|Docs/**|tools/**|tests/*.py|tests/integration/**|veildaemon/**)
+                run_quality=1
+                ;;
+            esac
+          done
+
+          if [[ $run_quality -eq 1 ]]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Only Cradlepoint public app/static surfaces changed; skipping Python package quality gate."
+          fi
       - uses: actions/setup-python@v5
+        if: steps.scope.outputs.run == 'true'
         with:
           python-version: '3.11'
       - name: Install deps
+        if: steps.scope.outputs.run == 'true'
         run: |
           python -m pip install -U pip
           pip install -r requirements.txt || true
           python -m pip install -e ./veildaemon[dev]
       - name: Import smoke
+        if: steps.scope.outputs.run == 'true'
         run: |
           python - << 'PY'
           import importlib
@@ -33,12 +69,15 @@ jobs:
           print('SMOKE OK')
           PY
       - name: Generate NAV
+        if: steps.scope.outputs.run == 'true'
         run: |
           python tools/gen_nav.py
       - name: Fail if NAV drift
+        if: steps.scope.outputs.run == 'true'
         run: |
           git diff --quiet || (echo "NAV changed; run tools/gen_nav.py and commit." && exit 1)
       - name: Fail on tabs/nbspace/zwsp in docs
+        if: steps.scope.outputs.run == 'true'
         run: |
           set -e
           pattern='[\t\u00A0\u200B\uFEFF]'
@@ -50,8 +89,8 @@ jobs:
           fi
 
       - name: Lint & format check (pinned)
+        if: steps.scope.outputs.run == 'true'
         run: |
           python -m ruff check veildaemon
           python -m black --check veildaemon
           python -m isort --check-only veildaemon
-
