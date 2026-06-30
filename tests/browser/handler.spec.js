@@ -57,6 +57,7 @@ test("handler overview exposes modular control cards", async ({ page }) => {
   await expect(overview.getByRole("link", { name: "Open Entity Library" })).toBeVisible();
   await expect(overview.getByRole("link", { name: "Manage Clocks" })).toBeVisible();
   await expect(overview.getByRole("link", { name: "Open Case File" })).toBeVisible();
+  await expect(overview.getByRole("link", { name: "Open Clue Tracker" })).toBeVisible();
   await expect(overview.getByRole("link", { name: "Open Residue Log" })).toBeVisible();
   await expect(overview.getByRole("link", { name: "View Operator Summaries" })).toBeVisible();
   await expect(overview.getByRole("link", { name: "Open Player View" })).toBeVisible();
@@ -192,12 +193,24 @@ async function applyClueAction(page, actionLabel) {
   await preview.locator("#clue-apply").click();
 }
 
+test("handler clues module exposes clue tracker", async ({ page }) => {
+  await page.goto("/handler/clues/");
+  await enableHandlerFieldEdit(page);
+  await applyHandlerTemplate(page, "viridian-house");
+
+  await expect(page.getByRole("heading", { name: "CORE CLUE TRACKER" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Clue status tracker" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Core clues" })).toBeVisible();
+  await expect(page.locator("#module-clue-progress")).not.toContainText("No core clues loaded");
+});
+
 test("handler live clue integrity tracks core clue state flow", async ({ page }) => {
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
   await applyHandlerTemplate(page, "viridian-house");
 
   await expect(page.getByLabel("Clue Integrity")).toBeVisible();
+  await expect(page.getByRole("list", { name: "Clue status tracker" })).toBeVisible();
   const clueList = page.getByRole("list", { name: "Core clues" });
   await expect(clueList.getByRole("button", { name: /Floor 13 appears after a lie under observation/ })).toBeVisible();
 
@@ -738,7 +751,7 @@ test("handler live wind down mirrors the trigger preview flow", async ({ page })
   await expect(preview).toContainText("Scene State");
   await expect(preview).toContainText("Next Pressure");
 
-  await rail.getByRole("button", { name: /Recover Clean Clue/ }).click();
+  await rail.getByRole("button", { name: /Soften Case Pressure/ }).click();
   await expect(preview).toContainText("Case Clock");
   await expect(preview).toContainText("Case Record");
 });

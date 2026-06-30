@@ -1,9 +1,49 @@
-.clue-integrity-panel {
-  grid-column: 1 / -1;
-}
-
 .clue-integrity-law {
   margin-top: 0;
+}
+
+.clue-status-tracker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-top: .55rem;
+}
+
+.clue-status-chip {
+  display: grid;
+  gap: .18rem;
+  min-width: min(100%, 9.5rem);
+  max-width: 12.5rem;
+  flex: 1 1 9.5rem;
+  padding: .48rem .55rem;
+  border: 1px solid rgba(137, 255, 218, .18);
+  background: rgba(0, 0, 0, .24);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.clue-status-chip.is-active {
+  border-color: rgba(185, 84, 255, .58);
+  box-shadow: inset 0 0 14px rgba(185, 84, 255, .08);
+}
+
+.clue-status-chip em {
+  color: var(--cyan);
+  font-size: .58rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.clue-status-chip strong {
+  font-size: .68rem;
+  line-height: 1.25;
+  overflow-wrap: normal;
+  word-break: normal;
+  text-wrap: pretty;
 }
 
 .clue-integrity-summary,

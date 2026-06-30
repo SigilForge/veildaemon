@@ -51,6 +51,7 @@
     text("overview-location", state.session.location, "No location.");
     text("overview-next-clue", state.caseFile.nextClue, "No clue staged.");
     text("overview-next-pressure", state.caseFile.nextPressureBeat, "No beat staged.");
+    renderClueOverview();
 
     text("overview-attention", state.attention.current, "Unseen");
     text("overview-residue", state.attention.residue, "None logged.");
@@ -66,6 +67,38 @@
       window.HandlerNav.render();
       window.HandlerNav.renderFieldLock();
     }
+  }
+
+  function renderClueOverview() {
+    const summary = api.getClueIntegritySummary(state);
+    const counts = summary.counts;
+    const progressParts = [
+      counts.secured ? `${counts.secured} secured` : "",
+      counts.archived ? `${counts.archived} archived` : "",
+      counts.contaminated ? `${counts.contaminated} contaminated` : "",
+      counts.rerouted ? `${counts.rerouted} rerouted` : "",
+      counts.discovered ? `${counts.discovered} discovered` : "",
+      counts.unknown ? `${counts.unknown} unknown` : ""
+    ].filter(Boolean);
+
+    text(
+      "overview-clue-progress",
+      summary.total ? `${progressParts.join(" // ")} (${summary.total} core)` : "No core clues loaded.",
+      "No core clues loaded."
+    );
+    text(
+      "overview-clue-active",
+      summary.active
+        ? `${api.clueIntegrityStateLabel(summary.active.state)} — ${summary.active.clue}`
+        : "No active clue selected.",
+      "No active clue selected."
+    );
+    text(
+      "overview-clue-archived",
+      summary.total ? `${counts.archived || 0} of ${summary.total} archived` : "0 archived.",
+      "0 archived."
+    );
+    text("overview-clue-next", state.caseFile.nextClue, "No clue staged.");
   }
 
   function roomAnswer() {
