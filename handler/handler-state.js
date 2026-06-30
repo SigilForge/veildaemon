@@ -1795,6 +1795,9 @@
       scene_state_set: effects.scene_state_set
         ? normalizeChoice(effects.scene_state_set, sceneStates.map((item) => item.name), "")
         : "",
+      prevent_scene_state_min: effects.prevent_scene_state_min
+        ? normalizeChoice(effects.prevent_scene_state_min, sceneStates.map((item) => item.name), "")
+        : "",
       consequence: safeString(effects.consequence, 220),
       next_pressure_beat: safeString(effects.next_pressure_beat, 500),
       next_clue: safeString(effects.next_clue, 500),
@@ -1904,6 +1907,93 @@
       }
       return map;
     }, {});
+  }
+
+  const anchorStateEffectKeys = new Set([
+    "clock_target",
+    "clock_delta",
+    "clock_tick",
+    "zone_clock_delta",
+    "case_clock_delta",
+    "attention_delta",
+    "attention_set",
+    "attention_min",
+    "scene_state_min",
+    "scene_state_set",
+    "prevent_scene_state_min",
+    "consequence",
+    "next_pressure_beat",
+    "aftermath"
+  ]);
+
+  function anchorStateOverrideKeyToId(key) {
+    const clean = safeString(key, 40).toLowerCase().replace(/_/g, "-");
+    return anchorNpcStateIds.includes(clean) ? clean : "";
+  }
+
+  function coerceAnchorStateEffectsRaw(value) {
+    const source = value && typeof value === "object" ? value : {};
+    const coerced = {};
+    Object.keys(source).forEach((key) => {
+      if (key === "zone_clock_delta") {
+        coerced.clock_target = "zone";
+        coerced.clock_delta = source[key];
+        return;
+      }
+      if (key === "case_clock_delta") {
+        coerced.clock_target = "case";
+        coerced.clock_delta = source[key];
+        return;
+      }
+      if (key === "aftermath" && source[key] === true) {
+        if (coerced.attention_delta === undefined) coerced.attention_delta = 1;
+        return;
+      }
+      coerced[key] = source[key];
+    });
+    return coerced;
+  }
+
+  function warnUnsupportedAnchorEffectKeys(raw, caseId, stateId) {
+    const source = raw && typeof raw === "object" ? raw : {};
+    Object.keys(source).forEach((key) => {
+      if (!anchorStateEffectKeys.has(key)) {
+        console.warn(
+          `[HandlerState] Unsupported anchor_states.${stateId} effect key "${key}" in ${caseId || "needlepoint"}.`
+        );
+      }
+    });
+  }
+
+  function normalizeAnchorStateEffects(value) {
+    return normalizeTriggerEffects(coerceAnchorStateEffectsRaw(value));
+  }
+
+  function normalizeAnchorStateEffectMap(value) {
+    const source = value && typeof value === "object" ? value : {};
+    const map = {};
+    Object.keys(source).forEach((key) => {
+      const stateId = anchorStateOverrideKeyToId(key);
+      if (!stateId || !source[key] || typeof source[key] !== "object") return;
+      map[stateId] = normalizeAnchorStateEffects(source[key]);
+    });
+    anchorNpcStateIds.forEach((stateId) => {
+      if (source[stateId] && typeof source[stateId] === "object" && !map[stateId]) {
+        map[stateId] = normalizeAnchorStateEffects(source[stateId]);
+      }
+    });
+    return map;
+  }
+
+  function resolveAnchorNpcEffects(state, stateId) {
+    const entry = findAnchorNpcState(stateId);
+    if (!entry) return normalizeTriggerEffects({});
+    const defaults = entry.applyEffects || {};
+    const override = state.activeNeedlepoint?.anchor_states?.[stateId];
+    if (override && typeof override === "object") {
+      warnUnsupportedAnchorEffectKeys(override, state.activeNeedlepoint?.id, stateId);
+    }
+    return normalizeAnchorStateEffects({ ...defaults, ...(override || {}) });
   }
 
   function normalizeCoreClueDefinitions(value) {
@@ -2325,19 +2415,25 @@
     }
 
     let coreClues = needlepoint.core_clues;
-    if (!coreClues?.length && needlepoint.scaffold) {
+    let anchorStates = needlepoint.anchor_states;
+    if (needlepoint.scaffold) {
       try {
         const response = await fetch(needlepointScaffoldUrl(needlepoint.scaffold), { cache: "no-store" });
         if (response.ok) {
           const payload = await response.json();
-          coreClues = normalizeCoreClueDefinitions(payload.core_clues);
-          next.activeNeedlepoint = {
-            ...needlepoint,
-            core_clues: coreClues
-          };
+          const patch = { ...needlepoint };
+          if (options.reseed || !coreClues?.length) {
+            coreClues = normalizeCoreClueDefinitions(payload.core_clues);
+            patch.core_clues = coreClues;
+          }
+          if (payload.anchor_states) {
+            anchorStates = normalizeAnchorStateEffectMap(payload.anchor_states);
+            patch.anchor_states = anchorStates;
+          }
+          next.activeNeedlepoint = patch;
         }
       } catch (error) {
-        coreClues = [];
+        if (!coreClues?.length) coreClues = [];
       }
     }
 
@@ -2370,6 +2466,7 @@
       table_triggers: normalizeTableTriggers(source.table_triggers),
       collapse_staging: normalizeCollapseStaging(source.collapse_staging),
       rewrite_staging: normalizeRewriteStaging(source.rewrite_staging),
+      anchor_states: normalizeAnchorStateEffectMap(source.anchor_states),
       player_view: {
         safe_consequence: safeString(source.player_view?.safe_consequence, 220)
       }
@@ -2714,7 +2811,13 @@
     if (effects.scene_state_set) return effects.scene_state_set;
     const currentRank = sceneStateRank[current] ?? 0;
     const minRank = effects.scene_state_min ? (sceneStateRank[effects.scene_state_min] ?? currentRank) : currentRank;
-    const nextRank = Math.max(currentRank, minRank);
+    let nextRank = Math.max(currentRank, minRank);
+    if (effects.prevent_scene_state_min) {
+      const preventRank = sceneStateRank[effects.prevent_scene_state_min] ?? nextRank;
+      if (nextRank >= preventRank) {
+        nextRank = Math.max(currentRank, preventRank - 1);
+      }
+    }
     return sceneStates[nextRank]?.name || current;
   }
 
@@ -3419,7 +3522,7 @@
       state: stateId
     });
 
-    const effects = normalizeTriggerEffects(entry.applyEffects || {});
+    const effects = resolveAnchorNpcEffects(state, stateId);
     const lines = [
       {
         label: "Anchor State",
@@ -3440,6 +3543,7 @@
       || effects.attention_min
       || effects.scene_state_min
       || effects.scene_state_set
+      || effects.prevent_scene_state_min
       || effects.next_pressure_beat
       || effects.consequence
     );
@@ -3447,6 +3551,13 @@
     if (hasPressureEffects) {
       const { changes } = applyTriggerEffectsToDraft(draft, effects, before);
       lines.push(...changes);
+      if (effects.prevent_scene_state_min && !changes.some((row) => row.label === "Scene State")) {
+        lines.push({
+          label: "Scene Guard",
+          before: before.scene,
+          after: `Cannot escalate to ${effects.prevent_scene_state_min} or higher from this anchor state.`
+        });
+      }
     } else if (stateId === "idle") {
       lines.push({
         label: "Runtime",
@@ -3697,6 +3808,7 @@
     anchorGuidanceForState,
     previewAnchorNpcState,
     applyAnchorNpcState,
+    resolveAnchorNpcEffects,
     presentationCatalog: catalogs.presentationCatalog || {},
     backgroundCatalog: catalogs.backgroundCatalog || {},
     presentationOptions: catalogs.presentationOptions || (() => []),

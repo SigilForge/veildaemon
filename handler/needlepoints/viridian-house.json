@@ -543,6 +543,30 @@
     "missing_locus_bound_npc": "Mara Venn",
     "witness_pressure_npc": "Len Orra"
   },
+  "anchor_states": {
+    "with_operators": {
+      "attention_delta": -1,
+      "next_pressure_beat": "Saffi staying with the Operators denies the Audience an isolated witness."
+    },
+    "hidden": {
+      "zone_clock_delta": 1,
+      "next_pressure_beat": "Keeping Saffi hidden protects her from the camera, but the building gets time to route around her."
+    },
+    "separated": {
+      "attention_delta": 1,
+      "next_pressure_beat": "The Audience finds the gap between Saffi and the Operators."
+    },
+    "left_behind": {
+      "attention_delta": 1,
+      "next_pressure_beat": "Saffi becomes aftermath pressure and the next available lure."
+    },
+    "taken": {
+      "attention_delta": 1,
+      "zone_clock_delta": 1,
+      "scene_state_min": "Breached",
+      "next_pressure_beat": "The Audience turns Saffi into active leverage."
+    }
+  },
   "collapse_staging": {
     "default_break_type": "Body",
     "broken_law": "The performed body becomes easier to maintain than the living one.",
