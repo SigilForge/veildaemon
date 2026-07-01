@@ -403,6 +403,8 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await page.locator("#presentation-readout-layer").click();
   await expect(page.getByText(/Cue: Attention narrows toward pulse/)).toBeVisible();
   await expect(page.getByText(/Risk: Failed restraint/)).toBeVisible();
+  await expect(page.getByText(/Operating condition reads Saturated/)).toBeVisible();
+  await expect(page.getByText(/Mark right after feeding/)).toBeVisible();
   await expect(page.locator('[name="sanguineSaturated"]')).toBeVisible();
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();

@@ -1885,45 +1885,91 @@
   }
 
   function renderSanguineIntakeFlags(container, presentation, status) {
-    const flagFieldset = document.createElement("fieldset");
-    flagFieldset.className = "pressure-readout-flags";
-    flagFieldset.setAttribute("aria-label", "Sanguine intake flags");
-    (presentation.conditionModel?.separateConditions || []).forEach((item) => {
+    const model = presentation.conditionModel || {};
+    const section = document.createElement("section");
+    section.className = "pressure-readout-advanced";
+
+    const heading = document.createElement("p");
+    heading.className = "pressure-readout-subheading";
+    heading.textContent = "Intake conditions";
+    section.append(heading);
+
+    if (model.operatorIntro) {
+      const intro = document.createElement("p");
+      intro.className = "pressure-readout-help";
+      intro.textContent = model.operatorIntro;
+      section.append(intro);
+    }
+    if (model.operatorPriorityNote) {
+      const priority = document.createElement("p");
+      priority.className = "pressure-readout-help pressure-readout-priority";
+      priority.textContent = model.operatorPriorityNote;
+      section.append(priority);
+    }
+
+    const flagList = document.createElement("div");
+    flagList.className = "pressure-readout-flag-list";
+    flagList.setAttribute("role", "group");
+    flagList.setAttribute("aria-label", "Sanguine intake flags");
+    (model.separateConditions || []).forEach((item) => {
       if (!item.flagKey) return;
-      const label = document.createElement("label");
+      const row = document.createElement("label");
+      row.className = "pressure-readout-flag-row";
       const input = document.createElement("input");
       input.type = "checkbox";
       input.name = item.flagKey;
       input.checked = Boolean(status[item.flagKey]);
-      label.append(input, document.createTextNode(` ${item.label}`));
-      flagFieldset.append(label);
+      const copy = document.createElement("span");
+      copy.className = "pressure-readout-flag-copy";
+      const title = document.createElement("strong");
+      title.textContent = item.label;
+      const effect = document.createElement("span");
+      effect.className = "pressure-readout-flag-effect";
+      effect.textContent = item.operatorEffect
+        || `When checked: operating condition reads ${item.label}.`;
+      const hint = document.createElement("span");
+      hint.className = "pressure-readout-flag-when";
+      hint.textContent = item.operatorHint || item.derivesWhen || item.note || "";
+      copy.append(title, effect, hint);
+      row.append(input, copy);
+      flagList.append(row);
     });
-    container.append(flagFieldset);
+    section.append(flagList);
 
-    const overrideLabel = document.createElement("label");
-    overrideLabel.className = "pressure-readout-override";
-    overrideLabel.textContent = "Override ";
+    const overrideBlock = document.createElement("div");
+    overrideBlock.className = "pressure-readout-override-block";
+    const overrideTitle = document.createElement("span");
+    overrideTitle.className = "pressure-readout-subheading";
+    overrideTitle.textContent = "Handler override (optional)";
     const overrideSelect = document.createElement("select");
     overrideSelect.name = "sanguineConditionOverride";
     overrideSelect.setAttribute("aria-label", "Sanguine condition override");
-    [
-      { value: "", label: "Derived" },
-      { value: "Heightened", label: "Heightened" },
-      ...(presentation.conditionModel?.separateConditions || []).map((item) => ({
-        value: item.label,
-        label: item.label
-      }))
-    ].forEach((optionSpec, index, list) => {
-      if (list.findIndex((entry) => entry.value === optionSpec.value) !== index) return;
+    const overrideHint = document.createElement("p");
+    overrideHint.className = "pressure-readout-help";
+    const overrideOptions = Array.isArray(model.overrideOptions) && model.overrideOptions.length
+      ? model.overrideOptions
+      : [{ value: "", label: "Derived", operatorHint: "Use Hunger band plus intake flags above." }];
+    overrideOptions.forEach((optionSpec) => {
       const option = document.createElement("option");
       option.value = optionSpec.value;
       option.textContent = optionSpec.label;
+      option.dataset.hint = optionSpec.operatorHint || "";
       overrideSelect.append(option);
     });
+    const syncOverrideHint = () => {
+      const selected = overrideSelect.selectedOptions[0];
+      overrideHint.textContent = selected?.dataset.hint || "Use Hunger band plus intake flags above.";
+    };
     overrideSelect.value = status.sanguineConditionOverride || "";
-    overrideLabel.append(overrideSelect);
-    container.append(overrideLabel);
-    bindPresentationAutosave(container);
+    syncOverrideHint();
+    overrideSelect.addEventListener("change", () => {
+      syncOverrideHint();
+      autosaveStatus();
+    });
+    overrideBlock.append(overrideTitle, overrideSelect, overrideHint);
+    section.append(overrideBlock);
+    container.append(section);
+    bindPresentationAutosave(flagList);
   }
 
   function renderPresentationReadoutLayer(presentation) {
