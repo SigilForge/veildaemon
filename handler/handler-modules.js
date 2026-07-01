@@ -198,24 +198,81 @@
     state = api.normalizeState(state);
   }
 
-  function syncAttentionFromNeedlepoint() {
-    collectForm();
-    state = api.normalizeState(state);
-    syncForm();
-    writeState();
-    renderDynamic();
-    if (window.HandlerNav) window.HandlerNav.renderSessionStrip();
+  const pressure = () => window.HandlerPressureControls;
+
+  function pressureHooks(alertOptions = null) {
+    return {
+      onApplied: (next, message) => {
+        state = next;
+        syncForm();
+        writeState(message);
+        renderDynamic();
+        if (alertOptions) notifyPendingAlerts(alertOptions);
+        else notifyPendingAlerts();
+        if (window.HandlerNav) window.HandlerNav.renderSessionStrip();
+      }
+    };
+  }
+
+  function requestPressurePreview(change) {
+    const controls = pressure();
+    if (!controls) return false;
+    const result = controls.requestPressurePreview(state, change, pressureHooks({ forceAlert: true, scrollToQueue: true }));
+    state = result.state;
+    return result.deferred;
   }
 
   function bindAttentionControl() {
     const select = document.querySelector('[name="attention.current"]');
     if (!select) return;
-    select.addEventListener("change", syncAttentionFromNeedlepoint);
+    select.addEventListener("change", () => {
+      const before = state.attention.current;
+      const after = select.value;
+      if (before === after) return;
+      const change = pressure().buildManualPressureChange("attention", before, after, {
+        label: `Attention rises to ${after}`,
+        hint: "Manual Attention adjustment."
+      });
+      if (requestPressurePreview(change)) {
+        select.value = before;
+      }
+    });
+  }
+
+  function bindPressureInputs() {
+    const primaryInput = document.querySelector('[name="primaryClock.current"]');
+    const secondaryInput = document.querySelector('[name="secondaryClock.current"]');
+    if (primaryInput) {
+      primaryInput.addEventListener("change", () => {
+        const before = state.primaryClock.current;
+        const after = Math.max(0, Math.min(12, Number(primaryInput.value) || 0));
+        if (after === before) return;
+        const change = pressure().buildManualPressureChange("primary-clock", before, after, {
+          clockName: state.primaryClock.name,
+          label: `${state.primaryClock.name || "Primary Clock"} ${after > before ? `+${after - before}` : "winds down"}`,
+          hint: "Manual clock input."
+        });
+        if (requestPressurePreview(change)) primaryInput.value = String(before);
+      }, true);
+    }
+    if (secondaryInput) {
+      secondaryInput.addEventListener("change", () => {
+        const before = state.secondaryClock.current;
+        const after = Math.max(0, Math.min(12, Number(secondaryInput.value) || 0));
+        if (after === before) return;
+        const change = pressure().buildManualPressureChange("secondary-clock", before, after, {
+          clockName: state.secondaryClock.name,
+          label: `${state.secondaryClock.name || "Secondary Clock"} ${after > before ? `+${after - before}` : "winds down"}`,
+          hint: "Manual clock input."
+        });
+        if (requestPressurePreview(change)) secondaryInput.value = String(before);
+      }, true);
+    }
   }
 
   function bindSimpleForm() {
     document.querySelectorAll("[name]").forEach((input) => {
-      if (input.name === "attention.current") return;
+      if (window.HandlerPressureControls?.isPressureFieldName(input.name)) return;
       input.addEventListener("input", () => {
         collectForm();
         writeState();
@@ -1003,6 +1060,7 @@
     fillSelect("activeEntity.kind", ["Entity", "Zone"]);
     fillSelect("activeEntity.sceneState", api.sceneStates.map((item) => item.name));
     bindAttentionControl();
+    bindPressureInputs();
     syncForm();
     renderDynamic();
     renderNpcs();

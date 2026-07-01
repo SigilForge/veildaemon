@@ -7,6 +7,17 @@ async function enableHandlerFieldEdit(page) {
   await expect(onButton).toBeVisible();
 }
 
+async function setPrimaryClockForCollapseStaging(page, value = 6) {
+  await page.evaluate((clockValue) => {
+    const api = window.HandlerState;
+    let next = api.readState();
+    next.primaryClock.current = clockValue;
+    next = api.syncCollapseRewriteStaging(api.normalizeState(next));
+    api.writeState(next);
+    if (window.HandlerCollapse) window.HandlerCollapse.render(api.readState());
+  }, value);
+}
+
 async function applyHandlerTemplate(page, templateId) {
   const returnTo = page.url();
   const onOverview = /\/handler\/?$/.test(new URL(returnTo).pathname);
@@ -577,6 +588,22 @@ test("handler module pages share case state", async ({ page }) => {
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toHaveCount(0);
 });
 
+test("handler clocks module routes numeric clock input through pressure preview", async ({ page }) => {
+  await page.goto("/handler/clocks/");
+  await enableHandlerFieldEdit(page);
+
+  const before = await page.locator('[name="primaryClock.current"]').inputValue();
+  await page.locator('[name="primaryClock.current"]').fill("3");
+  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+
+  const preview = page.locator("#trigger-preview-panel");
+  await expect(preview).toBeVisible();
+  await expect(page.locator('[name="primaryClock.current"]')).toHaveValue(before);
+
+  await page.getByRole("button", { name: "Apply" }).click();
+  await expect(page.locator('[name="primaryClock.current"]')).toHaveValue("3");
+});
+
 test("manual primary clock tick opens the same pressure preview flow", async ({ page }) => {
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
@@ -621,8 +648,7 @@ test("handler live collapse staging keeps themed target buttons on mobile", asyn
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
   await applyHandlerTemplate(page, "viridian-house");
-  await page.locator('[name="primaryClock.current"]').fill("6");
-  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+  await setPrimaryClockForCollapseStaging(page);
 
   const staging = page.getByLabel("Collapse and Rewrite staging");
   await expect(staging).toContainText("COLLAPSE READY");
@@ -673,8 +699,7 @@ test("handler live collapse staging respects global field lock", async ({ page }
   await page.getByRole("button", { name: "PREP" }).click();
   await applyHandlerTemplate(page, "viridian-house");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
-  await page.locator('[name="primaryClock.current"]').fill("6");
-  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+  await setPrimaryClockForCollapseStaging(page);
 
   await page.getByRole("button", { name: "Edit Fields: On" }).click();
   await expect(page.getByRole("button", { name: "Edit Fields: Off" })).toBeVisible();
@@ -699,8 +724,7 @@ test("handler live collapse staging surfaces from full clock without exposing pl
   await applyHandlerTemplate(page, "viridian-house");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
 
-  await page.locator('[name="primaryClock.current"]').fill("6");
-  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+  await setPrimaryClockForCollapseStaging(page);
 
   const staging = page.getByLabel("Collapse and Rewrite staging");
   await expect(staging).toBeVisible();
@@ -732,8 +756,7 @@ test("handler live collapse staging uses VeilCorp Intake pressure grammar", asyn
   await applyHandlerTemplate(page, "veilcorp-intake");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
 
-  await page.locator('[name="primaryClock.current"]').fill("6");
-  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+  await setPrimaryClockForCollapseStaging(page);
 
   const staging = page.getByLabel("Collapse and Rewrite staging");
   await expect(staging).toContainText("COLLAPSE READY");
@@ -772,8 +795,7 @@ test("handler live custom template carries ideal runtime scaffold", async ({ pag
 
   await expect(page.getByRole("group", { name: "Table triggers" }).getByRole("button", { name: /Operators deny visible pressure/ })).toBeVisible();
 
-  await page.locator('[name="primaryClock.current"]').fill("6");
-  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+  await setPrimaryClockForCollapseStaging(page);
 
   const staging = page.getByLabel("Collapse and Rewrite staging");
   await staging.locator('button[data-break-type="Room"]').evaluate((button) => button.click());
@@ -799,8 +821,7 @@ test("handler live rewrite staging waits for active collapse", async ({ page }) 
   await applyHandlerTemplate(page, "viridian-house");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
 
-  await page.locator('[name="primaryClock.current"]').fill("6");
-  await page.locator('[name="primaryClock.current"]').dispatchEvent("change");
+  await setPrimaryClockForCollapseStaging(page);
 
   const staging = page.getByLabel("Collapse and Rewrite staging");
   await staging.locator("button.button.primary", { hasText: "Activate Collapse" }).evaluate((button) => button.click());
@@ -1021,11 +1042,13 @@ test("handler live scene and attention consequences stay independent", async ({ 
   const attentionBeforeSceneChange = await attentionAftermath.inputValue();
 
   await page.getByLabel("Scene State").getByRole("button", { name: /Echoed/ }).click();
+  await page.getByRole("button", { name: "Apply" }).click();
   await expect(sceneConsequence).toHaveValue("The building repeats avoided truth through cameras, comments, reflections, and elevator timing.");
   await expect(attentionAftermath).toHaveValue(attentionBeforeSceneChange);
 
   const sceneBeforeAttentionChange = await sceneConsequence.inputValue();
   await page.getByLabel("Current Attention").selectOption("Focused");
+  await page.getByRole("button", { name: "Apply" }).click();
   await expect(attentionAftermath).not.toHaveValue("");
   await expect(attentionAftermath).not.toHaveValue(attentionBeforeSceneChange);
   await expect(sceneConsequence).toHaveValue(sceneBeforeAttentionChange);
