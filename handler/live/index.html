@@ -12,7 +12,7 @@
   <link rel="preload" href="../../assets/background.jpg" as="image" />
   <link rel="stylesheet" href="../handler.css?v=20260701-pending1" />
   <link rel="stylesheet" href="../handler-clue-integrity.css?v=20260630-cluereveal2" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260630-cluereveal2" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260701-secondarylive1" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -200,6 +200,24 @@
             </details>
           </section>
 
+          <section class="panel clock-panel secondary-panel no-print" id="secondary-clock-panel" aria-label="Secondary clock" data-mode-panel="live prep">
+            <div class="panel-heading secondary-clock-live-only">
+              <p class="kicker">SECONDARY CLOCK</p>
+              <h2>What decision is ticking?</h2>
+            </div>
+            <label class="secondary-clock-prep-only secondary-clock-enable">Show Secondary Clock<input name="secondaryClock.enabled" type="checkbox" /></label>
+            <details id="secondary-clock-details">
+              <summary class="secondary-clock-prep-only">Secondary Clock Settings</summary>
+              <div class="clock-field-grid secondary-clock-grid live-states-clock-grid">
+                <label>Name<input name="secondaryClock.name" maxlength="100" autocomplete="off" /></label>
+                <label>Segments<select name="secondaryClock.segments"><option>4</option><option selected>6</option><option>8</option></select></label>
+                <label>Current<input name="secondaryClock.current" type="number" min="0" max="12" step="1" /></label>
+                <label>Decision It Changes<textarea name="secondaryClock.liveDecision" maxlength="180" rows="2" autocomplete="off"></textarea></label>
+              </div>
+              <div class="clock-track compact" id="secondary-clock-track" aria-label="Secondary clock segments" data-live-control-zone></div>
+            </details>
+          </section>
+
           <section class="panel clue-integrity-panel" aria-label="Clue Integrity" data-mode-panel="live" data-live-control-zone>
             <div class="panel-heading">
               <div class="panel-heading-copy">
@@ -300,20 +318,6 @@
         </div>
       </div>
 
-      <section class="panel secondary-panel no-print" aria-label="Optional secondary clock" data-mode-panel="prep">
-        <details id="secondary-clock-details">
-          <summary>Optional Secondary Clock</summary>
-          <div class="clock-field-grid secondary-clock-grid">
-            <label>Show<input name="secondaryClock.enabled" type="checkbox" /></label>
-            <label>Name<input name="secondaryClock.name" maxlength="100" autocomplete="off" /></label>
-            <label>Segments<select name="secondaryClock.segments"><option>4</option><option selected>6</option><option>8</option></select></label>
-            <label>Current<input name="secondaryClock.current" type="number" min="0" max="12" step="1" /></label>
-            <label>Decision It Changes<textarea name="secondaryClock.liveDecision" maxlength="180" rows="2" autocomplete="off"></textarea></label>
-          </div>
-          <div class="clock-track compact" id="secondary-clock-track" aria-label="Secondary clock segments" data-live-control-zone></div>
-        </details>
-      </section>
-
       <section class="panel notes-panel private-panel" aria-label="Handler notes" data-mode-panel="archive">
         <div class="panel-heading">
           <p class="kicker">PRIVATE HANDLER NOTES</p>
@@ -354,6 +358,6 @@
   <script src="../handler-wind-down.js?v=20260627-pressuregrid19"></script>
   <script src="../handler-collapse.js?v=20260628-collapse4"></script>
   <script src="../handler-clue-integrity.js?v=20260630-cluereveal2"></script>
-  <script src="../handler.js?v=20260701-pressureunify1"></script>
+  <script src="../handler.js?v=20260701-secondarylive1"></script>
 </body>
 </html>

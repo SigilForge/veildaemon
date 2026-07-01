@@ -588,6 +588,35 @@ test("handler module pages share case state", async ({ page }) => {
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toHaveCount(0);
 });
 
+test("handler live shows secondary clock under primary when enabled", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+
+  await expect(page.locator("#secondary-clock-panel")).toBeHidden();
+
+  await page.getByRole("button", { name: "PREP" }).click();
+  await page.getByLabel("Show Secondary Clock").check();
+  await page.locator('[name="secondaryClock.name"]').fill("Case Clock");
+
+  await page.getByRole("button", { name: "LIVE MODE" }).click();
+  await expect(page.locator("#secondary-clock-panel")).toBeVisible();
+  await expect(page.locator(".secondary-clock-live-only")).toContainText("SECONDARY CLOCK");
+  await expect(page.locator("#secondary-clock-track")).toBeVisible();
+  await expect(page.locator('[name="secondaryClock.name"]')).toHaveValue("Case Clock");
+
+  const order = await page.evaluate(() => {
+    const primary = document.querySelector(".live-center-column .clock-panel:not(.secondary-panel)");
+    const secondary = document.getElementById("secondary-clock-panel");
+    const clue = document.querySelector(".clue-integrity-panel");
+    return {
+      secondaryAfterPrimary: Boolean(primary && secondary && primary.compareDocumentPosition(secondary) & Node.DOCUMENT_POSITION_FOLLOWING),
+      secondaryBeforeClue: Boolean(secondary && clue && secondary.compareDocumentPosition(clue) & Node.DOCUMENT_POSITION_FOLLOWING)
+    };
+  });
+  expect(order.secondaryAfterPrimary).toBe(true);
+  expect(order.secondaryBeforeClue).toBe(true);
+});
+
 test("handler clocks module routes numeric clock input through pressure preview", async ({ page }) => {
   await page.goto("/handler/clocks/");
   await enableHandlerFieldEdit(page);

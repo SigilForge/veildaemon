@@ -10,6 +10,33 @@ body[data-handler-mode="live"] .live-flow-grid {
   min-width: 0;
 }
 
+body[data-handler-mode="live"] .secondary-clock-live-only {
+  display: block;
+}
+
+body[data-handler-mode="live"] .secondary-clock-prep-only,
+body[data-handler-mode="live"] .secondary-clock-enable {
+  display: none !important;
+}
+
+body[data-handler-mode="live"] #secondary-clock-details {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+body[data-handler-mode="live"] #secondary-clock-details > summary {
+  display: none;
+}
+
+body[data-handler-mode="prep"] .secondary-clock-live-only {
+  display: none;
+}
+
+body[data-handler-mode="live"] .clock-panel + .secondary-panel {
+  margin-top: 0;
+}
+
 body[data-handler-mode="live"] .collapse-rewrite-mount {
   margin-top: .65rem;
   padding-top: .55rem;
