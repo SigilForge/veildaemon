@@ -54,9 +54,16 @@
       misfireSeverity: "None",
       presentationPressure: "0",
       sanguineCoherence: "Coherent",
+      presentationPressures: {},
       hungerPressure: "0",
       echoRecursionPressure: "0",
       anchorDriftPressure: "0",
+      voidShardContamination: "0",
+      dreamLucidityDebt: "0",
+      stillnessInertia: "0",
+      becomingInstinctSurge: "0",
+      empyreanRadianceLoad: "0",
+      silenceSuppression: "0",
       lotus: {
         Dream: "0",
         Hunger: "0",
@@ -270,42 +277,17 @@
     return presentationKeyFromDisplayName(consoleState.operatorStatus.ontologyPresentation);
   }
 
-  function presentationPressureConfig(key) {
-    const configs = {
-      SANGUINE: {
-        cardLabel: "Sanguine Pressure",
-        coherence: true,
-        trackers: [{ key: "hungerPressure", label: "Hunger", max: 6, kind: "hunger" }]
-      },
-      ECHO_ALTERED: {
-        cardLabel: "Echo Pressure",
-        trackers: [{ key: "echoRecursionPressure", label: "Recursion", max: 5, kind: "pressure" }]
-      },
-      WRAITH_TOUCHED_ANCHOR_BOUND: {
-        cardLabel: "Wraith Pressure",
-        trackers: [{ key: "anchorDriftPressure", label: "Drift / Anchor", max: 5, kind: "pressure" }]
-      }
-    };
-    return configs[key] || null;
-  }
+  const presentationPressureApi = () => window.PresentationPressure;
 
   function normalizeSanguineCoherence(value) {
-    return SANGUINE_COHERENCE_STATES.includes(value) ? value : "Coherent";
+    const states = presentationPressureApi()?.presentationById("sanguine")?.coherenceStates || SANGUINE_COHERENCE_STATES;
+    return states.includes(value) ? value : (states[0] || "Coherent");
   }
 
   function migratePresentationPressure(status) {
-    const key = presentationKeyFromDisplayName(status.ontologyPresentation);
-    const legacy = normalizeBoxValue(status.presentationPressure, 5);
-    if (!Number(status.hungerPressure) && key === "SANGUINE" && legacy > 0) {
-      status.hungerPressure = normalizeBoxValue(legacy, 6);
-    }
-    if (!Number(status.echoRecursionPressure) && key === "ECHO_ALTERED" && legacy > 0) {
-      status.echoRecursionPressure = legacy;
-    }
-    if (!Number(status.anchorDriftPressure) && key === "WRAITH_TOUCHED_ANCHOR_BOUND" && legacy > 0) {
-      status.anchorDriftPressure = legacy;
-    }
-    return status;
+    const api = presentationPressureApi();
+    if (!api) return { ...(status || {}) };
+    return api.migrateOperatorStatus(status);
   }
 
   function backgroundGrantLabel(entry) {
@@ -488,8 +470,12 @@
 
   function migrateOperatorStatus(status) {
     const migrated = migratePresentationPressure({ ...status });
+    const pressures = migrated.presentationPressures && typeof migrated.presentationPressures === "object"
+      ? migrated.presentationPressures
+      : {};
     return {
       ...migrated,
+      presentationPressures: pressures,
       anchorPerson: migrated.anchorPerson || migrated.anchors || "",
       attentionState: normalizeAttentionState(migrated.attentionState),
       sheetEditMode: Boolean(migrated.sheetEditMode),
@@ -504,8 +490,14 @@
       presentationPressure: normalizeBoxValue(migrated.presentationPressure, 5),
       sanguineCoherence: normalizeSanguineCoherence(migrated.sanguineCoherence),
       hungerPressure: normalizeBoxValue(migrated.hungerPressure, 6),
-      echoRecursionPressure: normalizeBoxValue(migrated.echoRecursionPressure, 5),
-      anchorDriftPressure: normalizeBoxValue(migrated.anchorDriftPressure, 5),
+      echoRecursionPressure: normalizeBoxValue(migrated.echoRecursionPressure, 6),
+      anchorDriftPressure: normalizeBoxValue(migrated.anchorDriftPressure, 6),
+      voidShardContamination: normalizeBoxValue(migrated.voidShardContamination, 6),
+      dreamLucidityDebt: normalizeBoxValue(migrated.dreamLucidityDebt, 6),
+      stillnessInertia: normalizeBoxValue(migrated.stillnessInertia, 6),
+      becomingInstinctSurge: normalizeBoxValue(migrated.becomingInstinctSurge, 6),
+      empyreanRadianceLoad: normalizeBoxValue(migrated.empyreanRadianceLoad, 6),
+      silenceSuppression: normalizeBoxValue(migrated.silenceSuppression, 6),
       lotus: normalizeLotus(migrated.lotus),
       blindPetal: normalizeFrequencyName(status.blindPetal),
       selectedLotusPetal: normalizeFrequencyName(status.selectedLotusPetal),
@@ -1794,9 +1786,15 @@
 
   function renderTrackerBoard(board, trackers) {
     if (!board) return;
+    const api = presentationPressureApi();
+    const status = consoleState.operatorStatus;
     board.textContent = "";
     trackers.forEach((tracker) => {
-      const value = Number(normalizeBoxValue(consoleState.operatorStatus[tracker.key], tracker.max));
+      const track = tracker.track || (api ? api.trackById(tracker.id) : null);
+      const value = track && api
+        ? api.readTrackValue(status, track)
+        : Number(normalizeBoxValue(status[tracker.key], tracker.max));
+      const editable = track ? track.operatorEditable !== false : true;
       const article = document.createElement("article");
       article.className = `line-tracker ${tracker.kind}`;
 
@@ -1816,36 +1814,43 @@
         pip.className = "pip";
         pip.classList.toggle("is-filled", index <= value);
         pip.setAttribute("aria-label", `${tracker.label} ${index}`);
-        pip.addEventListener("click", () => setTrackerValue(tracker.key, index === value ? index - 1 : index, tracker.max));
+        if (editable) {
+          pip.addEventListener("click", () => setTrackerValue(
+            tracker.key,
+            index === value ? index - 1 : index,
+            tracker.max,
+            track
+          ));
+        } else {
+          pip.disabled = true;
+        }
         pips.append(pip);
       }
 
       const controls = document.createElement("div");
       controls.className = "pip-controls";
-      const minus = document.createElement("button");
-      minus.type = "button";
-      minus.textContent = "-";
-      minus.setAttribute("aria-label", `Decrease ${tracker.label}`);
-      minus.addEventListener("click", () => setTrackerValue(tracker.key, value - 1, tracker.max));
-      const plus = document.createElement("button");
-      plus.type = "button";
-      plus.textContent = "+";
-      plus.setAttribute("aria-label", `Increase ${tracker.label}`);
-      plus.addEventListener("click", () => setTrackerValue(tracker.key, value + 1, tracker.max));
-      controls.append(minus, plus);
+      if (editable) {
+        const minus = document.createElement("button");
+        minus.type = "button";
+        minus.textContent = "-";
+        minus.setAttribute("aria-label", `Decrease ${tracker.label}`);
+        minus.addEventListener("click", () => setTrackerValue(tracker.key, value - 1, tracker.max, track));
+        const plus = document.createElement("button");
+        plus.type = "button";
+        plus.textContent = "+";
+        plus.setAttribute("aria-label", `Increase ${tracker.label}`);
+        plus.addEventListener("click", () => setTrackerValue(tracker.key, value + 1, tracker.max, track));
+        controls.append(minus, plus);
+      }
 
       const derived = document.createElement("p");
       derived.className = "pip-derived";
-      if (tracker.key === "harmBoxes") {
+      if (track && api) {
+        derived.textContent = api.formatBandLine(track, value);
+      } else if (tracker.key === "harmBoxes") {
         derived.textContent = `Condition: ${harmCondition(value)}`;
       } else if (tracker.key === "stability") {
         derived.textContent = `Band: ${bandFromLegacyStability(value)}`;
-      } else if (tracker.key === "hungerPressure") {
-        derived.textContent = hungerPressureCue(value);
-      } else if (tracker.key === "echoRecursionPressure") {
-        derived.textContent = value >= 4 ? "Loop active" : value >= 2 ? "Recursion rising" : "Stable";
-      } else if (tracker.key === "anchorDriftPressure") {
-        derived.textContent = value >= 4 ? "Anchor at risk" : value >= 2 ? "Drift rising" : "Anchored";
       } else {
         derived.textContent = "";
       }
@@ -1855,29 +1860,17 @@
     });
   }
 
-  function hungerPressureCue(value) {
-    const cues = [
-      "Baseline",
-      "Appetite noticeable",
-      "Attention narrows",
-      "Masking slips",
-      "Hard choice visible",
-      "Hunger Breach risk",
-      "Collapse / Echo Bleed"
-    ];
-    return cues[Number(normalizeBoxValue(value, 6))] || cues[0];
-  }
-
   function renderPresentationPressure() {
     const strip = document.getElementById("presentation-pressure-strip");
     const label = document.getElementById("presentation-pressure-label");
     const coherencePanel = document.getElementById("presentation-coherence-panel");
     const board = document.getElementById("presentation-pressure-board");
-    const config = presentationPressureConfig(currentPresentationKey());
+    const api = presentationPressureApi();
+    const presentation = api ? api.presentationForCatalogKey(currentPresentationKey()) : null;
 
     if (!strip || !board) return;
 
-    if (!config) {
+    if (!presentation) {
       strip.hidden = true;
       board.textContent = "";
       if (coherencePanel) coherencePanel.hidden = true;
@@ -1885,9 +1878,17 @@
     }
 
     strip.hidden = false;
-    if (label) label.textContent = config.cardLabel;
-    if (coherencePanel) coherencePanel.hidden = !config.coherence;
-    renderTrackerBoard(board, config.trackers);
+    if (label) label.textContent = presentation.cardLabel;
+    if (coherencePanel) coherencePanel.hidden = !presentation.coherenceStates.length;
+    const trackers = presentation.tracks.map((track) => ({
+      track,
+      id: track.id,
+      key: track.stateKey || track.id,
+      label: track.label,
+      max: track.range.max,
+      kind: track.kind
+    }));
+    renderTrackerBoard(board, trackers);
   }
 
   function renderTrackers() {
@@ -2192,8 +2193,13 @@
     }
   }
 
-  function setTrackerValue(key, value, max) {
-    consoleState.operatorStatus[key] = normalizeBoxValue(value, max);
+  function setTrackerValue(key, value, max, track) {
+    const api = presentationPressureApi();
+    if (track && api) {
+      consoleState.operatorStatus = api.writeTrackValue(consoleState.operatorStatus, track, value);
+    } else {
+      consoleState.operatorStatus[key] = normalizeBoxValue(value, max);
+    }
     if (key === "stability") {
       consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(consoleState.operatorStatus.stability);
       renderStatusSummary();
@@ -2821,10 +2827,17 @@
       activeMisfire: safeString(status.activeMisfire, 1000),
       misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity),
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
+      presentationPressures: migratePresentationPressure(status).presentationPressures || {},
       sanguineCoherence: normalizeSanguineCoherence(status.sanguineCoherence),
       hungerPressure: normalizeBoxValue(status.hungerPressure, 6),
-      echoRecursionPressure: normalizeBoxValue(status.echoRecursionPressure, 5),
-      anchorDriftPressure: normalizeBoxValue(status.anchorDriftPressure, 5),
+      echoRecursionPressure: normalizeBoxValue(status.echoRecursionPressure, 6),
+      anchorDriftPressure: normalizeBoxValue(status.anchorDriftPressure, 6),
+      voidShardContamination: normalizeBoxValue(status.voidShardContamination, 6),
+      dreamLucidityDebt: normalizeBoxValue(status.dreamLucidityDebt, 6),
+      stillnessInertia: normalizeBoxValue(status.stillnessInertia, 6),
+      becomingInstinctSurge: normalizeBoxValue(status.becomingInstinctSurge, 6),
+      empyreanRadianceLoad: normalizeBoxValue(status.empyreanRadianceLoad, 6),
+      silenceSuppression: normalizeBoxValue(status.silenceSuppression, 6),
       lotus: normalizeLotus(status.lotus),
       blindPetal: normalizeFrequencyName(status.blindPetal),
       selectedLotusPetal: normalizeFrequencyName(status.selectedLotusPetal),

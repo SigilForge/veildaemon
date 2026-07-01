@@ -4281,7 +4281,11 @@
       equipment: safeString(player.equipment, 260),
       sourceExportedAt: safeString(player.sourceExportedAt, 80),
       lastImported: safeString(player.lastImported, 80),
-      sourceId: safeString(player.sourceId, 120)
+      sourceId: safeString(player.sourceId, 120),
+      ontologyPresentation: safeString(player.ontologyPresentation, 120),
+      ontologyPresentationKey: safeString(player.ontologyPresentationKey, 80),
+      presentationPressureSummary: safeString(player.presentationPressureSummary, 240),
+      operatorStatus: player.operatorStatus && typeof player.operatorStatus === "object" ? player.operatorStatus : undefined
     };
     });
   }
