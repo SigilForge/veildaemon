@@ -595,7 +595,8 @@
     if (!notice) return;
 
     if (!operatorRecord) {
-      notice.innerHTML = '<p><span class="prompt">&gt;</span> No operator intake record found. Console entries remain local, but classification fields will initialize after intake.</p>';
+      notice.innerHTML = '<p><span class="prompt">&gt;</span> No operator intake record found. Console entries remain local, but classification fields will initialize after intake. Handler authorization packets can still be imported under Authorized Unlocks.</p>';
+      activateTab("authorizations");
       return;
     }
 
@@ -795,7 +796,15 @@
     const normalizedTarget = normalizeOperatorKey(target);
     const keys = currentOperatorKeys().map(normalizeOperatorKey).filter(Boolean);
     if (keys.includes(normalizedTarget)) return { ok: true, target };
-    return { ok: false, message: `Authorization refused. Packet targets ${target}.` };
+    if (!keys.length) {
+      consoleState.operatorStatus.operatorName = target;
+      return { ok: true, target, assigned: true };
+    }
+    const accepted = currentOperatorKeys().filter(Boolean).join(", ");
+    return {
+      ok: false,
+      message: `Authorization refused. Packet targets ${target}. This node accepts: ${accepted}.`
+    };
   }
 
   function normalizeOperatorKey(value) {
@@ -819,6 +828,9 @@
       payload = JSON.parse(text);
     } catch (error) {
       payload = null;
+    }
+    if (payload && payload.exportType && payload.exportType !== "cradlepoint.authorization") {
+      throw new Error("Authorization refused. File is not a Handler authorization packet.");
     }
     return payload;
   }
@@ -3138,6 +3150,8 @@
     });
     const openAuthorizations = document.getElementById("open-authorizations");
     if (openAuthorizations) openAuthorizations.addEventListener("click", () => activateTab("authorizations"));
+    const openAuthorizationsSealed = document.getElementById("open-authorizations-sealed");
+    if (openAuthorizationsSealed) openAuthorizationsSealed.addEventListener("click", () => activateTab("authorizations"));
   }
 
   function activateTab(target) {
@@ -3236,8 +3250,10 @@
         consoleState = normalizeConsoleState(consoleState);
         writeConsoleState();
         renderAll();
+        activateTab("authorizations");
         const ontology = unlocks.find((item) => item.type === "ontology");
-        setStorageStatus(ontology ? "NEW ONTOLOGY SIGNAL DETECTED" : `${added || unlocks.length} authorization flag processed.`);
+        const assigned = targetCheck.assigned ? ` Assigned packet target ${targetCheck.target}.` : "";
+        setStorageStatus((ontology ? "NEW ONTOLOGY SIGNAL DETECTED" : `${added || unlocks.length} authorization flag processed.`) + assigned);
       } catch (error) {
         setStorageStatus(error.message || "Authorization refused. No valid unlock flags found.", true);
       } finally {
