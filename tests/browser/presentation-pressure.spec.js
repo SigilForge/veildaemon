@@ -323,7 +323,9 @@ test("load roll modifiers debuff deprived function and buff only one narrow sens
   expect(summary.starvingNerves.delta).toBe(-1);
   expect(summary.starvingInstinct.helpDelta).toBe(1);
   expect(summary.starvingInstinct.hurtDelta).toBe(0);
-  expect(summary.starvingBody.active).toBe(false);
+  expect(summary.starvingBody.active).toBe(true);
+  expect(summary.starvingBody.hurtDelta).toBe(1);
+  expect(summary.starvingBody.delta).toBe(-1);
   expect(summary.coherentBody.active).toBe(false);
   expect(summary.saturatedBody.helpDelta).toBe(1);
   expect(summary.saturatedNerves.hurtDelta).toBe(1);
