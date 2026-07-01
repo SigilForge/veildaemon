@@ -130,46 +130,44 @@
       range: { min: 0, max: 6 },
       bands: [
         {
-          at: 0,
+          min: 0,
+          max: 0,
           label: "Starved",
-          cue: "The cup reads empty — cold embodiment, narrowing empathy, predatory problem-solving.",
-          risk: "Deprivation fiction may force unsafe intake or Stability pressure."
+          descriptor: "Cold, thin, desperate; cognition narrowing around need.",
+          cue: "Cold, thin, desperate; cognition narrows around need.",
+          risk: "Failed restraint may force feeding, withdrawal, or Stability pressure."
         },
         {
-          at: 1,
-          label: "Starved",
-          cue: "Blood load is still too low — warmth thins and appetite starts listening too closely.",
-          risk: "Small wants may read louder than intended."
-        },
-        {
-          at: 2,
+          min: 1,
+          max: 3,
           label: "Coherent",
-          cue: "Human-like warmth returns; cognition and social masking hold in the safe middle.",
-          risk: "Hidden debt may still accumulate off-screen if intake stays uneven."
+          descriptor: "Warm enough; human-like cognition and social masking intact.",
+          cue: "Warm enough; human-like cognition and social masking hold.",
+          risk: "Hidden hunger debt may still accumulate off-screen."
         },
         {
-          at: 3,
-          label: "Coherent",
-          cue: "Steady resonance in the cup — controlled presence, readable empathy, stable bleed.",
-          risk: "Comfort can hide how fast load is drifting."
-        },
-        {
-          at: 4,
+          min: 4,
+          max: 4,
           label: "Saturated",
-          cue: "Recent intake overload — warmth spikes and emotional bleed amplifies.",
-          risk: "Donor fixation or unsafe intimacy pressure may surface."
+          descriptor: "Overfull warmth; emotional bleed and sensory intensity rise.",
+          cue: "Overfull warmth; emotional bleed and sensory intensity rise.",
+          risk: "Donor fixation or resonance spill may complicate the scene."
         },
         {
-          at: 5,
+          min: 5,
+          max: 5,
           label: "Predatory Saturation",
-          cue: "The cup is too full — appetite starts organizing choices before consent catches up.",
-          risk: "Pursuit, coercion pressure, or performative humanity may surface at the table."
+          descriptor: "Appetite organizing behavior; restraint under pressure.",
+          cue: "Appetite starts organizing behavior.",
+          risk: "Restraint failures become pursuit, fixation, or harm."
         },
         {
-          at: 6,
+          min: 6,
+          max: 6,
           label: "Collapse Risk",
-          cue: "Overflow — identity fragmentation or uncontrolled resonance venting.",
-          risk: "Collapse, blowout, or Stability cost now."
+          descriptor: "Containment failure; craving, blackout, or body-symbol collapse.",
+          cue: "Containment failure; craving, blackout, or body-symbol collapse.",
+          risk: "Trigger collapse fallout unless stabilized."
         }
       ],
       conditionModel: {
@@ -486,40 +484,55 @@
     return presentation?.tracks?.[0] || null;
   }
 
+  function bandBounds(band) {
+    const min = Number.isFinite(Number(band?.min)) ? Number(band.min) : Number(band?.at);
+    const max = Number.isFinite(Number(band?.max)) ? Number(band.max) : Number(band?.at);
+    if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+    return { min, max };
+  }
+
+  function bandEntryForValue(bands, value, range) {
+    const clamped = clamp(value, range?.min ?? 0, range?.max ?? 6);
+    let matched = null;
+    (bands || []).forEach((band) => {
+      const bounds = bandBounds(band);
+      if (!bounds) return;
+      if (clamped >= bounds.min && clamped <= bounds.max) matched = band;
+    });
+    return matched || (bands && bands[0]) || null;
+  }
+
   function bandForTrack(track, value) {
     const resolved = trackById[track?.id || track] || null;
     if (!resolved) return "Baseline";
-    const clamped = clamp(value, resolved.range.min, resolved.range.max);
-    let label = resolved.bands[0]?.label || "Baseline";
-    resolved.bands.forEach((band) => {
-      if (Number(band.at) === clamped) label = band.label;
-    });
-    return label;
+    const entry = bandEntryForValue(resolved.bands, value, resolved.range);
+    return entry?.label || "Baseline";
   }
 
   function cueForTrack(track, value) {
     const resolved = trackById[track?.id || track] || null;
     if (!resolved) return "";
-    const clamped = clamp(value, resolved.range.min, resolved.range.max);
-    let cue = "";
-    resolved.bands.forEach((band) => {
-      if (Number(band.at) === clamped && band.cue) cue = band.cue;
-    });
-    return cue;
+    const entry = bandEntryForValue(resolved.bands, value, resolved.range);
+    return entry?.cue || "";
   }
 
   function riskForTrack(track, value) {
     const resolved = trackById[track?.id || track] || null;
     if (!resolved) return "";
     const clamped = clamp(value, resolved.range.min, resolved.range.max);
-    let risk = "";
-    resolved.bands.forEach((band) => {
-      if (Number(band.at) === clamped && band.risk) risk = band.risk;
-    });
+    const entry = bandEntryForValue(resolved.bands, value, resolved.range);
+    const risk = entry?.risk || "";
     if (clamped >= resolved.range.max) {
       return resolved.maxRisk || resolved.atMax || risk;
     }
     return risk;
+  }
+
+  function descriptorForTrack(track, value) {
+    const resolved = trackById[track?.id || track] || null;
+    if (!resolved) return "";
+    const entry = bandEntryForValue(resolved.bands, value, resolved.range);
+    return entry?.descriptor || entry?.cue || "";
   }
 
   function bloodLoadBand(value) {
@@ -630,7 +643,20 @@
     const band = bandForTrack(track, value);
     const cue = cueForTrack(track, value);
     const risk = riskForTrack(track, value);
+    const descriptor = descriptorForTrack(track, value);
+    const bandEntry = bandEntryForValue(track.bands, value, track.range);
     const condition = deriveCondition(status, presentation);
+    const bandLadder = (track.bands || []).map((entry) => {
+      const bounds = bandBounds(entry);
+      const rangeLabel = bounds && bounds.min === bounds.max
+        ? String(bounds.min)
+        : `${bounds?.min}–${bounds?.max}`;
+      return {
+        rangeLabel,
+        label: entry.label,
+        descriptor: entry.descriptor || entry.cue || ""
+      };
+    });
 
     return {
       id: presentation.id,
@@ -641,6 +667,9 @@
       value,
       range: { ...presentation.range },
       band,
+      descriptor,
+      bandEntry,
+      bandLadder,
       cue,
       risk,
       maxRisk: presentation.maxRisk,
@@ -811,9 +840,11 @@
     presentationById: (id) => presentationById[id] || null,
     trackById: (id) => trackById[id] || null,
     primaryTrack,
+    bandEntryForValue,
     bandForTrack,
     cueForTrack,
     riskForTrack,
+    descriptorForTrack,
     bloodLoadBand,
     essenceLoadBand,
     coherenceFromHunger,
