@@ -178,6 +178,17 @@
     const pending = queue.filter((item) => item.status !== "Resolved");
     const resolved = queue.filter((item) => item.status === "Resolved");
 
+    if (pending.length) {
+      const alert = document.createElement("div");
+      alert.className = "track-prompt-pending-alert";
+      alert.setAttribute("role", "alert");
+      const unannounced = pending.filter((item) => item.status === "Pending").length;
+      alert.textContent = unannounced
+        ? `${pending.length} pending — ${unannounced} still need announcement at the table before Operators update their sheets.`
+        : `${pending.length} pending — announced, waiting on Operator sheet updates.`;
+      mount.append(alert);
+    }
+
     const summary = document.createElement("div");
     summary.className = "track-prompt-summary";
     summary.innerHTML = `

@@ -45,6 +45,53 @@
     });
   }
 
+  function pressureRank(kind, value) {
+    if (kind === "scene") return api.sceneStateRank[value] ?? 0;
+    if (kind === "attention") return api.attentionStateRank[value] ?? 0;
+    return Number(value) || 0;
+  }
+
+  function buildManualPressureChange(kind, before, after, extra = {}) {
+    const beforeRank = pressureRank(kind, before);
+    const afterRank = pressureRank(kind, after);
+    const delta = kind === "primary-clock" || kind === "secondary-clock"
+      ? Math.max(0, Number(after) - Number(before))
+      : Math.max(0, afterRank - beforeRank);
+    return {
+      kind,
+      before,
+      after,
+      delta,
+      clockName: extra.clockName || "",
+      label: extra.label || "",
+      hint: extra.hint || "Manual Handler adjustment."
+    };
+  }
+
+  function applyPressureImmediate(change) {
+    state = api.applyManualPressureChange(state, change, { operatorIndices: [] });
+    syncForm();
+    writeState("PRESSURE UPDATED");
+    renderDynamic();
+    renderPlayers();
+    renderNpcs();
+    renderTrackPromptQueue();
+    if (window.HandlerTriggers) window.HandlerTriggers.render(state);
+  }
+
+  function requestPressurePreview(change) {
+    if (!change || change.delta <= 0) {
+      applyPressureImmediate(change);
+      return false;
+    }
+    if (window.HandlerTriggers && typeof window.HandlerTriggers.openManualPreview === "function") {
+      const opened = window.HandlerTriggers.openManualPreview(change);
+      if (opened) return true;
+    }
+    applyPressureImmediate(change);
+    return false;
+  }
+
   function renderSceneButtons() {
     const row = document.getElementById("scene-state-row");
     if (!row) return;
@@ -57,14 +104,13 @@
       button.dataset.value = item.name;
       button.innerHTML = `<strong>${item.name}</strong><span>${item.cue}</span>`;
       button.addEventListener("click", () => {
-        state.sceneState.current = item.name;
-        state.activeEntity.sceneState = item.name;
-        if (api.hasActiveNeedlepoint(state)) {
-          state = api.applyNeedlepointSceneState(state);
-        }
-        syncForm();
-        writeState();
-        renderDynamic();
+        const before = state.sceneState.current;
+        if (before === item.name) return;
+        const change = buildManualPressureChange("scene", before, item.name, {
+          label: `Scene State -> ${item.name}`,
+          hint: "Manual scene escalation."
+        });
+        requestPressurePreview(change);
       });
       row.append(button);
     });
@@ -113,16 +159,22 @@
       button.classList.toggle("is-filled", index <= clock.current && enabled);
       button.setAttribute("aria-label", `${trackId} segment ${index}`);
       button.addEventListener("click", () => {
-        if (trackId === "primary-clock-track") {
-          state.primaryClock.current = index === state.primaryClock.current ? index - 1 : index;
-        } else {
-          state.secondaryClock.current = index === state.secondaryClock.current ? index - 1 : index;
-          state.secondaryClock.enabled = true;
-        }
-        state = api.normalizeState(state);
-        syncForm();
-        writeState();
-        renderDynamic();
+        const isPrimary = trackId === "primary-clock-track";
+        const before = isPrimary ? state.primaryClock.current : state.secondaryClock.current;
+        const after = index === before ? index - 1 : index;
+        const change = buildManualPressureChange(
+          isPrimary ? "primary-clock" : "secondary-clock",
+          before,
+          after,
+          {
+            clockName: isPrimary ? state.primaryClock.name : state.secondaryClock.name,
+            label: isPrimary
+              ? `${state.primaryClock.name || "Primary Clock"} ${after > before ? "ticks" : "winds down"}`
+              : `${state.secondaryClock.name || "Secondary Clock"} ${after > before ? "ticks" : "winds down"}`,
+            hint: "Manual clock adjustment."
+          }
+        );
+        requestPressurePreview(change);
       });
       track.append(button);
     }
@@ -310,16 +362,37 @@
     return card;
   }
 
+  function notifyPendingAlerts(options = {}) {
+    if (!window.HandlerPendingAlerts) return null;
+    const result = window.HandlerPendingAlerts.render(state, options);
+    if (options.scrollToQueue && result?.count) {
+      window.HandlerPendingAlerts.scrollToQueue();
+    }
+    return result;
+  }
+
   function applyPromptState(nextState, message) {
     state = nextState;
-    writeState(message || "PROMPT UPDATED");
+    const pendingMessage = window.HandlerPendingAlerts?.pendingStatusMessage(state) || "";
+    writeState(message || pendingMessage || "PROMPT UPDATED");
     renderTrackPromptQueue();
     renderPlayers();
     renderRiskStrip();
+    notifyPendingAlerts({ forceAlert: Boolean(message) });
   }
 
   function queueTrackPrompt(payload) {
-    applyPromptState(api.createTrackPrompt(state, payload), "Operator track prompt queued.");
+    const next = api.createTrackPrompt(state, payload);
+    const created = next.trackPromptQueue?.[0];
+    const message = created
+      ? `PENDING: Tell ${created.operatorName} — ${created.track === "harm" ? "Harm" : "Stability"} ${created.delta > 0 ? "+" : ""}${created.delta}. Announce at table.`
+      : "Operator track prompt queued.";
+    state = next;
+    writeState(message);
+    renderTrackPromptQueue();
+    renderPlayers();
+    renderRiskStrip();
+    notifyPendingAlerts({ forceAlert: true, scrollToQueue: true });
   }
 
   function trackerBoardOptions(playerIndex) {
@@ -493,17 +566,21 @@
     if (window.HandlerCollapse) window.HandlerCollapse.render(api.readState());
     if (window.HandlerClueIntegrity) window.HandlerClueIntegrity.render();
     if (window.HandlerNav) window.HandlerNav.renderFieldLock();
+    notifyPendingAlerts();
   }
 
   function applyTriggerState(nextState, message) {
     state = nextState;
     syncForm();
-    writeState(message || "TRIGGER APPLIED");
+    const pendingMessage = window.HandlerPendingAlerts?.pendingStatusMessage(state) || "";
+    const statusMessage = pendingMessage || message || "TRIGGER APPLIED";
+    writeState(statusMessage);
     renderDynamic();
     renderPlayers();
     renderNpcs();
     renderTrackPromptQueue();
     if (window.HandlerTriggers) window.HandlerTriggers.render(state);
+    notifyPendingAlerts({ forceAlert: true, scrollToQueue: Boolean(pendingMessage) });
   }
 
   function undoTriggerState(nextState, message) {
@@ -515,6 +592,7 @@
     renderNpcs();
     renderTrackPromptQueue();
     if (window.HandlerTriggers) window.HandlerTriggers.render(state);
+    notifyPendingAlerts();
   }
 
   function applyWindDownState(nextState, message) {
@@ -726,18 +804,52 @@
     return { values: dice };
   }
 
-  function syncAttentionFromNeedlepoint() {
-    collectForm();
-    state = api.normalizeState(state);
-    syncForm();
-    writeState();
-    renderDynamic();
-  }
-
   function bindAttentionControl() {
     const select = document.querySelector('[name="attention.current"]');
     if (!select) return;
-    select.addEventListener("change", syncAttentionFromNeedlepoint);
+    select.addEventListener("change", () => {
+      const before = state.attention.current;
+      const after = select.value;
+      if (before === after) return;
+      const change = buildManualPressureChange("attention", before, after, {
+        label: `Attention rises to ${after}`,
+        hint: "Manual Attention adjustment."
+      });
+      if (requestPressurePreview(change)) {
+        select.value = before;
+      }
+    });
+  }
+
+  function bindPressureInputs() {
+    const primaryInput = document.querySelector('[name="primaryClock.current"]');
+    const secondaryInput = document.querySelector('[name="secondaryClock.current"]');
+    if (primaryInput) {
+      primaryInput.addEventListener("change", () => {
+        const before = state.primaryClock.current;
+        const after = Math.max(0, Math.min(12, Number(primaryInput.value) || 0));
+        if (after === before) return;
+        const change = buildManualPressureChange("primary-clock", before, after, {
+          clockName: state.primaryClock.name,
+          label: `${state.primaryClock.name || "Primary Clock"} ${after > before ? `+${after - before}` : "winds down"}`,
+          hint: "Manual clock input."
+        });
+        if (requestPressurePreview(change)) primaryInput.value = String(before);
+      }, true);
+    }
+    if (secondaryInput) {
+      secondaryInput.addEventListener("change", () => {
+        const before = state.secondaryClock.current;
+        const after = Math.max(0, Math.min(12, Number(secondaryInput.value) || 0));
+        if (after === before) return;
+        const change = buildManualPressureChange("secondary-clock", before, after, {
+          clockName: state.secondaryClock.name,
+          label: `${state.secondaryClock.name || "Secondary Clock"} ${after > before ? `+${after - before}` : "winds down"}`,
+          hint: "Manual clock input."
+        });
+        if (requestPressurePreview(change)) secondaryInput.value = String(before);
+      }, true);
+    }
   }
 
   function renderAll() {
@@ -746,6 +858,7 @@
     fillSelect("attention.current", api.attentionStates);
     renderLoopFields();
     bindAttentionControl();
+    bindPressureInputs();
     syncForm();
     renderPlayers();
     renderNpcs();

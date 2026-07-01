@@ -1,6 +1,7 @@
 (function () {
   const api = window.HandlerState;
   let pendingTriggerId = "";
+  let pendingManualChange = null;
   let pendingOperatorIndices = new Set();
 
   function railNode() {
@@ -29,7 +30,7 @@
       button.classList.toggle("is-active", trigger.id === pendingTriggerId);
       button.title = trigger.hint ? `${trigger.label} — ${trigger.hint}` : trigger.label;
       button.innerHTML = `<em>${clockTargetLabel(trigger.effects?.clock_target)}</em><strong>${api.safeString(trigger.label, 140)}</strong>`;
-      button.addEventListener("click", () => openPreview(trigger.id));
+      button.addEventListener("click", () => openTriggerPreview(trigger.id));
       rail.append(button);
     });
     renderUndoBanner(state);
@@ -112,14 +113,6 @@
       });
       chips.append(chip);
     });
-
-    let helper = picker.querySelector(".trigger-operator-helper");
-    if (!helper) {
-      helper = document.createElement("p");
-      helper.className = "trigger-operator-helper";
-      picker.append(helper);
-    }
-    helper.textContent = "Selected = in area. Tap to exclude.";
   }
 
   function renderUndoBanner(state) {
@@ -139,20 +132,18 @@
     if (copy) copy.textContent = api.safeString(pkg.tableCopy, 2000) || "Trigger applied.";
   }
 
-  function openPreview(triggerId) {
-    pendingTriggerId = triggerId;
-    pendingOperatorIndices = new Set();
-    const state = api.readState();
-    const preview = api.previewTableTrigger(state, triggerId);
+  function renderPreviewPanel(preview) {
     const panel = previewNode();
     if (!preview || !panel) return;
-
-    defaultOperatorIndices(state).forEach((index) => pendingOperatorIndices.add(index));
-    renderRail(state);
+    const state = api.readState();
     panel.hidden = false;
     const title = panel.querySelector(".trigger-preview-title");
     const lines = panel.querySelector(".trigger-preview-lines");
-    if (title) title.textContent = `Apply Trigger: ${preview.trigger.label}?`;
+    if (title) {
+      title.textContent = preview.manual
+        ? `Apply: ${preview.trigger.label}?`
+        : `Apply Trigger: ${preview.trigger.label}?`;
+    }
     if (!lines) return;
     lines.textContent = "";
     preview.lines.forEach((row) => {
@@ -169,8 +160,34 @@
     renderOperatorPicker(state, preview.stabilityCost);
   }
 
+  function openTriggerPreview(triggerId) {
+    pendingTriggerId = triggerId;
+    pendingManualChange = null;
+    pendingOperatorIndices = new Set();
+    const state = api.readState();
+    const preview = api.previewTableTrigger(state, triggerId);
+    if (!preview) return;
+    defaultOperatorIndices(state).forEach((index) => pendingOperatorIndices.add(index));
+    renderRail(state);
+    renderPreviewPanel(preview);
+  }
+
+  function openManualPreview(change) {
+    pendingTriggerId = "";
+    pendingManualChange = change;
+    pendingOperatorIndices = new Set();
+    const state = api.readState();
+    const preview = api.previewManualPressureChange(state, change);
+    if (!preview) return false;
+    defaultOperatorIndices(state).forEach((index) => pendingOperatorIndices.add(index));
+    renderRail(state);
+    renderPreviewPanel(preview);
+    return true;
+  }
+
   function closePreview() {
     pendingTriggerId = "";
+    pendingManualChange = null;
     pendingOperatorIndices = new Set();
     const panel = previewNode();
     if (panel) panel.hidden = true;
@@ -180,17 +197,30 @@
   }
 
   function applyPending() {
-    if (!pendingTriggerId) return;
     const operatorIndices = Array.from(pendingOperatorIndices).sort((a, b) => a - b);
-    const next = api.applyTableTrigger(api.readState(), pendingTriggerId, { operatorIndices });
-    window.dispatchEvent(new CustomEvent("veildaemon:handler-trigger-applied", {
-      detail: {
-        triggerId: pendingTriggerId,
-        state: next,
-        operatorIndices,
-        tableCopy: next.triggerUndo?.tableCopy || ""
-      }
-    }));
+    let next = null;
+    if (pendingManualChange) {
+      next = api.applyManualPressureChange(api.readState(), pendingManualChange, { operatorIndices });
+      window.dispatchEvent(new CustomEvent("veildaemon:handler-trigger-applied", {
+        detail: {
+          manualChange: pendingManualChange,
+          state: next,
+          operatorIndices,
+          tableCopy: next.triggerUndo?.tableCopy || ""
+        }
+      }));
+    } else if (pendingTriggerId) {
+      next = api.applyTableTrigger(api.readState(), pendingTriggerId, { operatorIndices });
+      window.dispatchEvent(new CustomEvent("veildaemon:handler-trigger-applied", {
+        detail: {
+          triggerId: pendingTriggerId,
+          state: next,
+          operatorIndices,
+          tableCopy: next.triggerUndo?.tableCopy || ""
+        }
+      }));
+    }
+    if (!next) return;
     closePreview();
   }
 
@@ -221,5 +251,5 @@
   bindControls();
   render();
   window.addEventListener("veildaemon:handler-state-updated", () => render());
-  window.HandlerTriggers = { render, closePreview, applyPending, undoLastTrigger };
+  window.HandlerTriggers = { render, closePreview, applyPending, undoLastTrigger, openManualPreview };
 }());

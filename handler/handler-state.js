@@ -3155,60 +3155,19 @@
     if (!trigger) return null;
     const { draft: withNeedlepoint, delta } = buildTriggerDraft(state, trigger, { persist: false });
     const stabilityCost = resolveTriggerStabilityCost(state, trigger, withNeedlepoint);
-    const lines = [
-      {
-        label: "Responsibility",
-        before: "Pending",
-        after: clockTargetLabel(trigger.effects.clock_target)
-      },
-      {
-        label: "Clock",
-        before: `${state.primaryClock.current}/${state.primaryClock.segments}`,
-        after: `${withNeedlepoint.primaryClock.current}/${withNeedlepoint.primaryClock.segments}`
-      },
-      {
-        label: "Attention",
-        before: state.attention.current,
-        after: withNeedlepoint.attention.current
-      },
-      {
-        label: "Scene State",
-        before: state.sceneState.current,
-        after: withNeedlepoint.sceneState.current
-      },
-      {
-        label: "Residue",
-        before: state.attention.residue || "None logged.",
-        after: withNeedlepoint.attention.residue || "None logged."
-      },
-      {
-        label: "Scene Consequence",
-        before: state.sceneState.sceneConsequence || "Unset",
-        after: withNeedlepoint.sceneState.sceneConsequence || "Unset"
-      },
-      {
-        label: "Attention Aftermath",
-        before: state.attention.aftermathConsequence || "Unset",
-        after: withNeedlepoint.attention.aftermathConsequence || "Unset"
-      },
-      {
+    const lines = buildPressurePreviewLines(state, withNeedlepoint, trigger, stabilityCost);
+    if ((state.caseFile.nextPressureBeat || "No beat staged.") !== (withNeedlepoint.caseFile.nextPressureBeat || "No beat staged.")) {
+      lines.push({
         label: "Next Pressure",
         before: state.caseFile.nextPressureBeat || "No beat staged.",
         after: withNeedlepoint.caseFile.nextPressureBeat || "No beat staged."
-      }
-    ];
+      });
+    }
     if (trigger.effects.reveal_next_clue && state.caseFile.nextClue) {
       lines.push({
         label: "Next Clue",
         before: "Staged only",
         after: state.caseFile.nextClue
-      });
-    }
-    if (stabilityCost.damage > 0) {
-      lines.unshift({
-        label: "Area Stability",
-        before: "No automatic cost",
-        after: stabilityCost.announce
       });
     }
     return { trigger, lines, nextState: withNeedlepoint, delta, stabilityCost };
@@ -3222,18 +3181,167 @@
     return "Choice";
   }
 
-  function applyTableTrigger(state, triggerId, options = {}) {
-    const trigger = findTableTrigger(state, triggerId);
-    if (!trigger) return state;
-    const before = clone(normalizeState(state));
+  const attentionStateRank = attentionStates.reduce((table, name, index) => {
+    table[name] = index;
+    return table;
+  }, {});
+
+  function manualChangeLabel(change) {
+    const kind = safeString(change?.kind, 40);
+    const before = change?.before;
+    const after = change?.after;
+    const delta = Math.max(0, Number(change?.delta) || 0);
+    if (kind === "primary-clock") {
+      const name = safeString(change?.clockName, 80) || "Primary Clock";
+      return delta > 1 ? `${name} +${delta}` : `${name} ticks`;
+    }
+    if (kind === "secondary-clock") {
+      const name = safeString(change?.clockName, 80) || "Secondary Clock";
+      return delta > 1 ? `${name} +${delta}` : `${name} ticks`;
+    }
+    if (kind === "attention") return `Attention rises to ${safeString(after, 40)}`;
+    if (kind === "scene") return `Scene State -> ${safeString(after, 40)}`;
+    return safeString(change?.label, 140) || "Manual pressure";
+  }
+
+  function syntheticTriggerFromManualChange(change) {
+    const delta = Math.max(0, Number(change?.delta) || 0);
+    const effects = {};
+    const kind = safeString(change?.kind, 40);
+    if ((kind === "primary-clock" || kind === "secondary-clock") && delta > 0) {
+      effects.clock_target = "zone";
+      effects.clock_delta = delta;
+    } else if (kind === "attention" && delta > 0) {
+      effects.clock_target = "attention";
+      effects.attention_delta = delta;
+    } else if (kind === "scene" && delta > 0) {
+      effects.clock_target = "zone";
+      effects.scene_state_set = safeString(change?.after, 40);
+      effects.clock_delta = 1;
+    }
+    return {
+      id: `manual-${kind || "pressure"}`,
+      label: safeString(change?.label, 140) || manualChangeLabel(change),
+      hint: safeString(change?.hint, 240) || "Manual Handler adjustment.",
+      effects
+    };
+  }
+
+  function applyManualChangeToDraft(draft, change) {
+    const kind = safeString(change?.kind, 40);
+    const after = change?.after;
+    if (kind === "primary-clock") {
+      draft.primaryClock.current = safeNumber(after, 0, 12, draft.primaryClock.current);
+      return;
+    }
+    if (kind === "secondary-clock") {
+      draft.secondaryClock.current = safeNumber(after, 0, 12, draft.secondaryClock.current);
+      draft.secondaryClock.enabled = true;
+      return;
+    }
+    if (kind === "attention") {
+      draft.attention.current = normalizeChoice(after, attentionStates, draft.attention.current);
+      return;
+    }
+    if (kind === "scene") {
+      const nextScene = normalizeChoice(after, sceneStates.map((item) => item.name), draft.sceneState.current);
+      draft.sceneState.current = nextScene;
+      draft.activeEntity.sceneState = nextScene;
+    }
+  }
+
+  function buildManualPressureDraft(state, change, options = {}) {
+    const draft = clone(normalizeState(state));
+    applyManualChangeToDraft(draft, change);
+    let withNeedlepoint = draft;
+    const kind = safeString(change?.kind, 40);
+    if (hasActiveNeedlepoint(draft)) {
+      if (kind === "scene") withNeedlepoint = applyNeedlepointSceneState(draft);
+      else if (kind === "attention") withNeedlepoint = applyNeedlepointAttention(draft);
+      else withNeedlepoint = applyNeedlepointDeterministic(draft);
+    }
+    if (options.persist) {
+      const residueStamp = () => `residue-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      withNeedlepoint.residueLog.unshift({
+        id: residueStamp(),
+        scene: safeString(withNeedlepoint.session.location || withNeedlepoint.session.caseTitle, 140),
+        attention: withNeedlepoint.attention.current,
+        residue: `Manual pressure: ${safeString(change?.label, 140) || manualChangeLabel(change)}`,
+        followsHome: withNeedlepoint.attention.followsHome || "",
+        consequence: withNeedlepoint.attention.aftermathConsequence || withNeedlepoint.sceneState.sceneConsequence || ""
+      });
+    }
+    return { draft: withNeedlepoint, change };
+  }
+
+  function buildPressurePreviewLines(state, afterState, trigger, stabilityCost) {
+    const lines = [];
+    if (stabilityCost.damage > 0) {
+      lines.push({
+        label: "Area Stability",
+        before: "No automatic cost",
+        after: stabilityCost.announce
+      });
+    }
+    if (trigger?.effects?.clock_target) {
+      lines.push({
+        label: "Responsibility",
+        before: "Pending",
+        after: clockTargetLabel(trigger.effects.clock_target)
+      });
+    }
+    if (`${state.primaryClock.current}/${state.primaryClock.segments}` !== `${afterState.primaryClock.current}/${afterState.primaryClock.segments}`) {
+      lines.push({
+        label: "Clock",
+        before: `${state.primaryClock.current}/${state.primaryClock.segments}`,
+        after: `${afterState.primaryClock.current}/${afterState.primaryClock.segments}`
+      });
+    }
+    if (state.attention.current !== afterState.attention.current) {
+      lines.push({
+        label: "Attention",
+        before: state.attention.current,
+        after: afterState.attention.current
+      });
+    }
+    if (state.sceneState.current !== afterState.sceneState.current) {
+      lines.push({
+        label: "Scene State",
+        before: state.sceneState.current,
+        after: afterState.sceneState.current
+      });
+    }
+    if ((state.attention.residue || "None logged.") !== (afterState.attention.residue || "None logged.")) {
+      lines.push({
+        label: "Residue",
+        before: state.attention.residue || "None logged.",
+        after: afterState.attention.residue || "None logged."
+      });
+    }
+    if ((state.sceneState.sceneConsequence || "Unset") !== (afterState.sceneState.sceneConsequence || "Unset")) {
+      lines.push({
+        label: "Scene Consequence",
+        before: state.sceneState.sceneConsequence || "Unset",
+        after: afterState.sceneState.sceneConsequence || "Unset"
+      });
+    }
+    if ((state.attention.aftermathConsequence || "Unset") !== (afterState.attention.aftermathConsequence || "Unset")) {
+      lines.push({
+        label: "Attention Aftermath",
+        before: state.attention.aftermathConsequence || "Unset",
+        after: afterState.attention.aftermathConsequence || "Unset"
+      });
+    }
+    return lines;
+  }
+
+  function finalizePressureApply(before, next, trigger, operatorIndices, label) {
+    const stabilityCost = resolveTriggerStabilityCost(before, trigger, next);
+    let draft = normalizeState(next);
     const queueBefore = new Set((before.trackPromptQueue || []).map((item) => item.id));
-    const { draft } = buildTriggerDraft(state, trigger, { persist: true });
-    let next = normalizeState(draft);
-    const stabilityCost = resolveTriggerStabilityCost(state, trigger, next);
-    const operatorIndices = Array.isArray(options.operatorIndices) ? options.operatorIndices : [];
     if (stabilityCost.damage > 0 && operatorIndices.length) {
       operatorIndices.forEach((operatorIndex) => {
-        next = createTrackPrompt(next, {
+        draft = createTrackPrompt(draft, {
           operatorIndex,
           track: "stability",
           delta: -stabilityCost.damage,
@@ -3243,18 +3351,56 @@
         });
       });
     }
-    const promptIds = (next.trackPromptQueue || [])
+    const promptIds = (draft.trackPromptQueue || [])
       .filter((item) => !queueBefore.has(item.id))
       .map((item) => item.id);
-    next.triggerUndo = {
+    draft.triggerUndo = {
       appliedAt: nowStamp(),
-      triggerId: trigger.id,
-      triggerLabel: safeString(trigger.label, 140),
+      triggerId: safeString(trigger.id, 80),
+      triggerLabel: safeString(label || trigger.label, 140),
       tableCopy: buildTriggerTableCopy(before, trigger, stabilityCost, operatorIndices),
       promptIds,
       snapshot: before
     };
-    return normalizeState(next);
+    return normalizeState(draft);
+  }
+
+  function previewManualPressureChange(state, change) {
+    const trigger = syntheticTriggerFromManualChange(change);
+    const { draft: withNeedlepoint } = buildManualPressureDraft(state, change, { persist: false });
+    const stabilityCost = resolveTriggerStabilityCost(state, trigger, withNeedlepoint);
+    const lines = buildPressurePreviewLines(state, withNeedlepoint, trigger, stabilityCost);
+    return {
+      trigger,
+      change,
+      lines,
+      nextState: withNeedlepoint,
+      stabilityCost,
+      manual: true
+    };
+  }
+
+  function applyManualPressureChange(state, change, options = {}) {
+    const before = clone(normalizeState(state));
+    const trigger = syntheticTriggerFromManualChange(change);
+    const { draft } = buildManualPressureDraft(state, change, { persist: true });
+    const operatorIndices = Array.isArray(options.operatorIndices) ? options.operatorIndices : [];
+    return finalizePressureApply(
+      before,
+      draft,
+      trigger,
+      operatorIndices,
+      safeString(change?.label, 140) || manualChangeLabel(change)
+    );
+  }
+
+  function applyTableTrigger(state, triggerId, options = {}) {
+    const trigger = findTableTrigger(state, triggerId);
+    if (!trigger) return state;
+    const before = clone(normalizeState(state));
+    const { draft } = buildTriggerDraft(state, trigger, { persist: true });
+    const operatorIndices = Array.isArray(options.operatorIndices) ? options.operatorIndices : [];
+    return finalizePressureApply(before, draft, trigger, operatorIndices, trigger.label);
   }
 
   function undoLastTriggerPackage(state) {
@@ -4284,6 +4430,10 @@
     getTableTriggers,
     findTableTrigger,
     previewTableTrigger,
+    previewManualPressureChange,
+    applyManualPressureChange,
+    attentionStateRank,
+    sceneStateRank,
     resolveTriggerStabilityCost,
     buildTriggerTableCopy,
     formatOperatorNameList,
