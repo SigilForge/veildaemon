@@ -41,17 +41,14 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.getByText("Roll guide")).toBeVisible();
   const initialLayout = await page.evaluate(() => {
     const trackerTop = document.querySelector(".operator-harm-stability")?.getBoundingClientRect().top || 0;
-    const pressureTop = document.querySelector(".operator-pressure-strip")?.getBoundingClientRect().top || 0;
     const rollTop = document.querySelector(".operator-roll-dock")?.getBoundingClientRect().top || 0;
     const summaryTop = document.querySelector(".skill-summary-card")?.getBoundingClientRect().top || 0;
     return {
       trackersBeforeRoll: trackerTop < rollTop,
-      pressureBeforeRoll: pressureTop < rollTop,
       summaryAfterRoll: summaryTop > rollTop
     };
   });
   expect(initialLayout.trackersBeforeRoll).toBe(true);
-  expect(initialLayout.pressureBeforeRoll).toBe(true);
   expect(initialLayout.summaryAfterRoll).toBe(true);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   const stickyNav = await page.locator(".console-nav").boundingBox();
@@ -59,21 +56,15 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   expect(stickyNav.y).toBeLessThan(90);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await expect(page.getByText("Harm & Stability")).toBeVisible();
-  await expect(page.getByText("Pressure", { exact: true })).toBeVisible();
+  await expect(page.locator("#presentation-pressure-strip")).toBeHidden();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("0/5")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("Condition: Fine")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("10/10")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("Band: Calm")).toBeVisible();
-  await expect(page.locator("#sheet-attention-status")).toHaveText("UNSEEN");
-  await expect(page.locator(".segmented.attention").getByRole("button", { name: "Unseen" })).toHaveClass(/is-active/);
-  await expect(page.locator(".line-tracker").filter({ hasText: "Presentation" })).toBeVisible();
-  await expect(page.locator(".line-tracker").filter({ hasText: "Presentation" }).getByText("0/5")).toBeVisible();
-  await page.locator(".segmented.attention").getByRole("button", { name: "Targeted" }).click();
-  await expect(page.locator("#sheet-attention-status")).toHaveText("TARGETED");
-  await page.locator(".line-tracker").filter({ hasText: "Presentation" }).locator(".pip").nth(1).click();
-  await expect(page.locator(".line-tracker").filter({ hasText: "Presentation" }).getByText("2/5")).toBeVisible();
+  await expect(page.locator("#sheet-attention-status")).toHaveCount(0);
+  await expect(page.locator(".segmented.attention")).toHaveCount(0);
   await expect(page.getByLabel("Operator Name")).toBeVisible();
   await expect(page.locator("#void-bank-readout")).toHaveText("0");
   await expect(page.locator("#breach-bank-readout")).toHaveText("0");
@@ -399,6 +390,12 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator("#skill-summary-list")).toContainText("+1");
   await page.locator('[name="ontologyPresentation"]').selectOption("Sanguine Presentation");
   await expect(page.locator("#ontology-grant-preview")).toHaveText("Grants: none loaded");
+  await expect(page.locator("#presentation-pressure-strip")).toBeVisible();
+  await expect(page.getByText("Sanguine Pressure")).toBeVisible();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Hunger" })).toBeVisible();
+  await expect(page.locator('[name="sanguineCoherence"]')).toHaveValue("Coherent");
+  await page.locator(".line-tracker").filter({ hasText: "Hunger" }).locator(".pip").nth(1).click();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Hunger" }).getByText("2/6")).toBeVisible();
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await expect(page.locator('[name="background"]')).toHaveValue("Field Medic");
