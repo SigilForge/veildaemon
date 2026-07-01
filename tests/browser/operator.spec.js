@@ -68,12 +68,15 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
       const boxes = [...row.querySelectorAll(".pip")].map((pip) => pip.getBoundingClientRect());
       const overlaps = boxes.some((box, index) => index > 0 && box.left < boxes[index - 1].right - 1);
       const collapsed = boxes.some((box) => box.width < 4);
-      return { overlaps, collapsed, count: boxes.length };
+      const verticalStack = boxes.length > 1
+        && boxes.every((box, index) => index === 0 || box.top > boxes[index - 1].bottom - 2);
+      return { overlaps, collapsed, verticalStack, count: boxes.length };
     });
   });
   pipLayout.forEach((row) => {
     expect(row.overlaps).toBe(false);
     expect(row.collapsed).toBe(false);
+    expect(row.verticalStack).toBe(false);
     expect(row.count).toBeGreaterThan(0);
   });
   await page.locator(".line-tracker").filter({ hasText: "Harm" }).locator(".pip").nth(1).click();
@@ -412,23 +415,25 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip-derived")).toHaveText("Coherent");
   await expect(page.locator("#presentation-readout-layer")).toBeVisible();
   await expect(page.locator("#presentation-readout-body")).toContainText(/Coherent/);
+  await expect(page.locator("#presentation-readout-summary")).toContainText("Band guide");
+  await page.locator("#presentation-readout-summary").click();
   await expect(page.locator("#presentation-readout-body")).toContainText(/human-like cognition/);
   await expect(page.getByText(/Band ladder/)).toBeVisible();
-  const bloodPip = page.locator(".line-tracker.fill-meter .pip").first();
+  const bloodPip = page.locator(".line-tracker.blood_load .pip").first();
   const pipBox = await bloodPip.boundingBox();
   expect(pipBox?.width || 0).toBeGreaterThan(16);
   expect(pipBox?.height || 0).toBeGreaterThan(10);
   await page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip").nth(0).click();
   await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" }).getByText("1/6")).toBeVisible();
-  await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip-derived")).toHaveText("Coherent");
+  await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip-derived")).toHaveText("Starved");
   await expect(page.locator("#presentation-readout-body")).toContainText(/Warm enough/);
   await expect(page.locator('[name="sanguineSaturated"]')).toHaveCount(0);
   await page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip").nth(0).click();
   await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" }).getByText("0/6")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip-derived")).toHaveText("Starved");
-  await page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip").nth(3).click();
-  await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip-derived")).toHaveText("Saturated");
-  await expect(page.locator("#presentation-readout-body")).toContainText("Saturated");
+  await page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip").nth(4).click();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip-derived")).toHaveText("Predatory Saturation");
+  await expect(page.locator("#presentation-readout-body")).toContainText("Predatory Saturation");
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await expect(page.locator('[name="background"]')).toHaveValue("Field Medic");
