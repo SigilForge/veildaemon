@@ -45,51 +45,49 @@
     });
   }
 
-  function pressureRank(kind, value) {
-    if (kind === "scene") return api.sceneStateRank[value] ?? 0;
-    if (kind === "attention") return api.attentionStateRank[value] ?? 0;
-    return Number(value) || 0;
+  const pressure = () => window.HandlerPressureControls;
+
+  function applyPressureImmediate(change) {
+    state = pressure().applyPressureImmediate(state, change, {
+      onApplied: (next, message) => {
+        state = next;
+        syncForm();
+        writeState(message);
+        renderDynamic();
+        renderPlayers();
+        renderNpcs();
+        renderTrackPromptQueue();
+        if (window.HandlerTriggers) window.HandlerTriggers.render(state);
+        notifyPendingAlerts();
+      }
+    });
   }
 
-  function buildManualPressureChange(kind, before, after, extra = {}) {
-    const beforeRank = pressureRank(kind, before);
-    const afterRank = pressureRank(kind, after);
-    const delta = kind === "primary-clock" || kind === "secondary-clock"
-      ? Math.max(0, Number(after) - Number(before))
-      : Math.max(0, afterRank - beforeRank);
+  function pressureHooks(alertOptions = null) {
     return {
-      kind,
-      before,
-      after,
-      delta,
-      clockName: extra.clockName || "",
-      label: extra.label || "",
-      hint: extra.hint || "Manual Handler adjustment."
+      onApplied: (next, message) => {
+        state = next;
+        syncForm();
+        writeState(message);
+        renderDynamic();
+        renderPlayers();
+        renderNpcs();
+        renderTrackPromptQueue();
+        if (window.HandlerTriggers) window.HandlerTriggers.render(state);
+        if (alertOptions) notifyPendingAlerts(alertOptions);
+        else notifyPendingAlerts();
+      }
     };
   }
 
-  function applyPressureImmediate(change) {
-    state = api.applyManualPressureChange(state, change, { operatorIndices: [] });
-    syncForm();
-    writeState("PRESSURE UPDATED");
-    renderDynamic();
-    renderPlayers();
-    renderNpcs();
-    renderTrackPromptQueue();
-    if (window.HandlerTriggers) window.HandlerTriggers.render(state);
-  }
-
   function requestPressurePreview(change) {
-    if (!change || change.delta <= 0) {
+    if (!pressure()) {
       applyPressureImmediate(change);
       return false;
     }
-    if (window.HandlerTriggers && typeof window.HandlerTriggers.openManualPreview === "function") {
-      const opened = window.HandlerTriggers.openManualPreview(change);
-      if (opened) return true;
-    }
-    applyPressureImmediate(change);
-    return false;
+    const result = pressure().requestPressurePreview(state, change, pressureHooks({ forceAlert: true, scrollToQueue: true }));
+    state = result.state;
+    return result.deferred;
   }
 
   function renderSceneButtons() {
@@ -106,7 +104,7 @@
       button.addEventListener("click", () => {
         const before = state.sceneState.current;
         if (before === item.name) return;
-        const change = buildManualPressureChange("scene", before, item.name, {
+        const change = pressure().buildManualPressureChange("scene", before, item.name, {
           label: `Scene State -> ${item.name}`,
           hint: "Manual scene escalation."
         });
@@ -162,7 +160,7 @@
         const isPrimary = trackId === "primary-clock-track";
         const before = isPrimary ? state.primaryClock.current : state.secondaryClock.current;
         const after = index === before ? index - 1 : index;
-        const change = buildManualPressureChange(
+        const change = pressure().buildManualPressureChange(
           isPrimary ? "primary-clock" : "secondary-clock",
           before,
           after,
@@ -607,11 +605,13 @@
   function bindForm() {
     document.querySelectorAll("#handler-form input, #handler-form textarea, #handler-form select").forEach((input) => {
       input.addEventListener("input", () => {
+        if (window.HandlerPressureControls?.isPressureFieldName(input.name)) return;
         collectForm();
         writeState();
         renderDynamic();
       });
       input.addEventListener("change", () => {
+        if (window.HandlerPressureControls?.isPressureFieldName(input.name)) return;
         collectForm();
         writeState();
         renderDynamic();
@@ -811,7 +811,7 @@
       const before = state.attention.current;
       const after = select.value;
       if (before === after) return;
-      const change = buildManualPressureChange("attention", before, after, {
+      const change = pressure().buildManualPressureChange("attention", before, after, {
         label: `Attention rises to ${after}`,
         hint: "Manual Attention adjustment."
       });
@@ -829,7 +829,7 @@
         const before = state.primaryClock.current;
         const after = Math.max(0, Math.min(12, Number(primaryInput.value) || 0));
         if (after === before) return;
-        const change = buildManualPressureChange("primary-clock", before, after, {
+        const change = pressure().buildManualPressureChange("primary-clock", before, after, {
           clockName: state.primaryClock.name,
           label: `${state.primaryClock.name || "Primary Clock"} ${after > before ? `+${after - before}` : "winds down"}`,
           hint: "Manual clock input."
@@ -842,7 +842,7 @@
         const before = state.secondaryClock.current;
         const after = Math.max(0, Math.min(12, Number(secondaryInput.value) || 0));
         if (after === before) return;
-        const change = buildManualPressureChange("secondary-clock", before, after, {
+        const change = pressure().buildManualPressureChange("secondary-clock", before, after, {
           clockName: state.secondaryClock.name,
           label: `${state.secondaryClock.name || "Secondary Clock"} ${after > before ? `+${after - before}` : "winds down"}`,
           hint: "Manual clock input."

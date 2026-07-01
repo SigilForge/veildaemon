@@ -241,6 +241,10 @@
     });
   }
 
+  function trackIdFromPath(path) {
+    return path === "primaryClock" ? "primary-clock-track" : "secondary-clock-track";
+  }
+
   function renderClock(trackId, clock, path, enabled = true) {
     const track = document.getElementById(trackId);
     if (!track) return;
@@ -256,13 +260,38 @@
       button.classList.toggle("is-filled", index <= clock.current && enabled);
       button.setAttribute("aria-label", `${trackId} segment ${index}`);
       button.addEventListener("click", () => {
-        api.setPath(state, `${path}.current`, index === clock.current ? index - 1 : index);
-        if (path === "secondaryClock") state.secondaryClock.enabled = true;
-        state = api.normalizeState(state);
-        syncForm();
-        writeState();
-        renderDynamic();
-        if (window.HandlerNav) window.HandlerNav.renderSessionStrip();
+        const controls = window.HandlerPressureControls;
+        if (!controls) {
+          api.setPath(state, `${path}.current`, index === clock.current ? index - 1 : index);
+          if (path === "secondaryClock") state.secondaryClock.enabled = true;
+          state = api.normalizeState(state);
+          syncForm();
+          writeState();
+          renderDynamic();
+          if (window.HandlerNav) window.HandlerNav.renderSessionStrip();
+          return;
+        }
+        const change = controls.buildManualPressureChange(
+          path === "primaryClock" ? "primary-clock" : "secondary-clock",
+          clock.current,
+          index === clock.current ? index - 1 : index,
+          {
+            clockName: clock.name,
+            label: `${clock.name || (path === "primaryClock" ? "Primary Clock" : "Secondary Clock")} ${index > clock.current ? "ticks" : "winds down"}`,
+            hint: "Manual clock adjustment."
+          }
+        );
+        const result = controls.requestPressurePreview(state, change, {
+          onApplied: (next, message) => {
+            state = next;
+            syncForm();
+            writeState(message || "PRESSURE UPDATED");
+            renderDynamic();
+            notifyPendingAlerts({ forceAlert: true, scrollToQueue: true });
+            if (window.HandlerNav) window.HandlerNav.renderSessionStrip();
+          }
+        });
+        state = result.state;
       });
       track.append(button);
     }
@@ -984,10 +1013,32 @@
     if (window.HandlerNav) window.HandlerNav.render();
   }
 
+  function applyTriggerState(nextState, message) {
+    state = nextState;
+    syncForm();
+    writeState(message || "PRESSURE APPLIED");
+    renderDynamic();
+    if (window.HandlerTriggers) window.HandlerTriggers.render(state);
+  }
+
+  function bindTriggerBridge() {
+    window.addEventListener("veildaemon:handler-trigger-applied", (event) => {
+      if (!event.detail?.state) return;
+      const pendingMessage = window.HandlerPendingAlerts?.pendingStatusMessage(event.detail.state) || "";
+      applyTriggerState(event.detail.state, pendingMessage || event.detail.tableCopy ? "PRESSURE APPLIED — table copy ready." : "PRESSURE APPLIED");
+      notifyPendingAlerts({ forceAlert: true, scrollToQueue: Boolean(pendingMessage) });
+    });
+    window.addEventListener("veildaemon:handler-trigger-undone", (event) => {
+      if (!event.detail?.state) return;
+      applyTriggerState(event.detail.state, event.detail.label ? `UNDONE: ${event.detail.label}` : "PRESSURE UNDONE");
+    });
+  }
+
   bindSimpleForm();
   bindDataControls();
   bindOperatorImport();
   bindAuthorizationExport();
+  bindTriggerBridge();
   addNpcs();
   addOperators();
   addResidue();
