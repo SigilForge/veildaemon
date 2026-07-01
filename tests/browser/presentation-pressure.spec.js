@@ -73,6 +73,40 @@ test("sanguine fill meter maps each level to one state", async ({ page }) => {
   ]);
 });
 
+test("wraith essence load uses safe-middle fill bands", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const api = window.PresentationPressure;
+    const status = api.migrateOperatorStatus({
+      essenceLoad: "4",
+      presentationPressures: { "wraith.essence_load": 4 }
+    });
+    const migrated = api.migrateOperatorStatus({
+      anchorDriftPressure: "0",
+      presentationPressures: { "wraith.anchoring": 0 }
+    });
+    return {
+      bands: [0, 1, 2, 3, 4, 5, 6].map((level) => api.essenceLoadBand(level)),
+      view: api.presentationPressureView(status, "WRAITH"),
+      migratedEssence: api.readTrackValue(migrated, "wraith.essence_load"),
+      migratedBand: api.essenceLoadBand(api.readTrackValue(migrated, "wraith.essence_load"))
+    };
+  });
+  expect(summary.bands).toEqual([
+    "Fading",
+    "Anchored",
+    "Anchored",
+    "Anchored",
+    "Overfull",
+    "Possessive Saturation",
+    "Haunting Risk"
+  ]);
+  expect(summary.view.trackLabel).toBe("Essence Load");
+  expect(summary.view.condition).toBe("Overfull");
+  expect(summary.migratedEssence).toBe(3);
+  expect(summary.migratedBand).toBe("Anchored");
+});
+
 test("presentation modules expose distinct track labels and failure modes", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
@@ -84,7 +118,7 @@ test("presentation modules expose distinct track labels and failure modes", asyn
       reliefCount: item.reliefActions.fallsWhen.length
     }));
   });
-  expect(summary.find((item) => item.id === "wraith").trackLabel).toBe("Anchor Strain");
+  expect(summary.find((item) => item.id === "wraith").trackLabel).toBe("Essence Load");
   expect(summary.find((item) => item.id === "echo").trackLabel).toBe("Relevance Drift");
   expect(summary.find((item) => item.id === "void_shard").trackLabel).toBe("Miscompile");
   expect(summary.find((item) => item.id === "sanguine").maxRisk).toContain("Collapse");

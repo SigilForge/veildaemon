@@ -57,7 +57,7 @@
       bloodLoad: "3",
       presentationPressures: {},
       echoRecursionPressure: "0",
-      anchorDriftPressure: "0",
+      essenceLoad: "3",
       voidShardContamination: "0",
       dreamLucidityDebt: "0",
       stillnessInertia: "0",
@@ -484,7 +484,7 @@
       sanguineCoherence: deriveSanguineCoherence(migrated),
       bloodLoad: normalizeBoxValue(migrated.bloodLoad, 6),
       echoRecursionPressure: normalizeBoxValue(migrated.echoRecursionPressure, 6),
-      anchorDriftPressure: normalizeBoxValue(migrated.anchorDriftPressure, 6),
+      essenceLoad: normalizeBoxValue(migrated.essenceLoad, 6),
       voidShardContamination: normalizeBoxValue(migrated.voidShardContamination, 6),
       dreamLucidityDebt: normalizeBoxValue(migrated.dreamLucidityDebt, 6),
       stillnessInertia: normalizeBoxValue(migrated.stillnessInertia, 6),
@@ -1923,7 +1923,7 @@
       conditionEl.textContent = `${view.trackLabel} ${view.value}/${view.range.max}, ${operating}`;
       body.append(conditionEl);
     }
-    if (presentation.id === "sanguine" && view.operatorCopy?.meterHelp) {
+    if ((presentation.id === "sanguine" || presentation.id === "wraith") && view.operatorCopy?.meterHelp) {
       const meterEl = document.createElement("p");
       meterEl.className = "pressure-readout-help";
       meterEl.textContent = view.operatorCopy.meterHelp;
@@ -1947,7 +1947,7 @@
       key: track.stateKey || track.id,
       label: presentation.trackLabel || track.label,
       max: track.range.max,
-      kind: track.kind === "blood_load" ? "blood_load" : "presentation"
+      kind: track.kind === "blood_load" || track.kind === "essence_load" ? track.kind : "presentation"
     };
   }
 
@@ -2900,7 +2900,7 @@
       sanguineCoherence: deriveSanguineCoherence(status),
       bloodLoad: normalizeBoxValue(status.bloodLoad, 6),
       echoRecursionPressure: normalizeBoxValue(status.echoRecursionPressure, 6),
-      anchorDriftPressure: normalizeBoxValue(status.anchorDriftPressure, 6),
+      essenceLoad: normalizeBoxValue(status.essenceLoad, 6),
       voidShardContamination: normalizeBoxValue(status.voidShardContamination, 6),
       dreamLucidityDebt: normalizeBoxValue(status.dreamLucidityDebt, 6),
       stillnessInertia: normalizeBoxValue(status.stillnessInertia, 6),
