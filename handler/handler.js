@@ -420,10 +420,21 @@
       strip.append(riskChip("Operator", "No Operator summary imported."));
       return;
     }
+    const presentationPressure = window.PresentationPressure;
+    const catalogs = window.CradlepointCatalogs || {};
     players.slice(0, 3).forEach((player, index) => {
+      const status = player.operatorStatus && typeof player.operatorStatus === "object" ? player.operatorStatus : player;
+      const catalogKey = player.ontologyPresentationKey
+        || (typeof catalogs.presentationKeyFromDisplayName === "function"
+          ? catalogs.presentationKeyFromDisplayName(player.ontologyPresentation || status.ontologyPresentation)
+          : "");
+      const presentationSummary = presentationPressure && catalogKey
+        ? presentationPressure.handlerSummaryText(status, catalogKey)
+        : player.presentationPressureSummary || "";
       strip.append(riskChip(player.name || `Operator ${index + 1}`, [
         player.stabilityBand ? `Band ${player.stabilityBand}` : player.stability ? `Stability ${player.stability}` : "",
         player.harmBoxes !== undefined ? `Harm ${api.harmConditionFromBoxes(player.harmBoxes)}` : player.harm ? `Harm ${player.harm}` : "",
+        presentationSummary,
         player.misfire ? `Misfire ${player.misfire}` : "",
         player.voidBreach ? player.voidBreach : "",
         player.primaryFrequency ? `Freq ${player.primaryFrequency}` : ""

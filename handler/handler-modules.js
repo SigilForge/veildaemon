@@ -68,11 +68,23 @@
       status.voidMarks ? `Void ${status.voidMarks}` : "",
       status.breachPoints ? `Breach ${status.breachPoints}` : ""
     ]);
+    const ontologyPresentation = api.safeString(status.ontologyPresentation, 120);
+    const catalogs = window.CradlepointCatalogs || {};
+    const ontologyPresentationKey = typeof catalogs.presentationKeyFromDisplayName === "function"
+      ? catalogs.presentationKeyFromDisplayName(ontologyPresentation)
+      : "";
+    const presentationPressureSummary = window.PresentationPressure && ontologyPresentationKey
+      ? window.PresentationPressure.handlerSummaryText(status, ontologyPresentationKey)
+      : "";
 
     return {
       id: sourceId ? `operator-${slug(sourceId)}` : `operator-${slug(operatorName)}-${Date.now()}`,
       sourceId,
       name: operatorName,
+      ontologyPresentation,
+      ontologyPresentationKey,
+      operatorStatus: status,
+      presentationPressureSummary,
       stabilityPoints,
       harmBoxes,
       stabilityBand,
