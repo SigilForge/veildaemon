@@ -1114,24 +1114,46 @@
     const matchedHelps = helpEntries
       .filter((entry) => entryAppliesToRoll(entry, attrKey, skillKey))
       .map((entry) => ({ entry, matches: entryMatchesRollComponents(entry, attrKey, skillKey) }));
-    const hurts = hurtEntries
+    const matchedHurts = hurtEntries
       .filter((entry) => entryAppliesToRoll(entry, attrKey, skillKey))
       .map((entry) => ({ entry, matches: entryMatchesRollComponents(entry, attrKey, skillKey) }));
-    const helps = mode === "deprived" ? matchedHelps.slice(0, 1) : matchedHelps;
 
-    const helpDelta = helps.length;
-    const hurtDelta = hurts.length;
+    let helps = [];
+    let hurts = [];
+    let helpDelta = 0;
+    let hurtDelta = 0;
     let rollHint = "";
-    if (helpDelta > hurtDelta) rollHint = "Advantage or +1 from Load.";
-    else if (hurtDelta > helpDelta) rollHint = "Disadvantage or -1 from Load.";
-    else if (helpDelta && hurtDelta) rollHint = "Mixed Load modifiers cancel on dice.";
+
+    if (mode === "deprived") {
+      if (matchedHelps.length) {
+        helps = matchedHelps.slice(0, 1);
+        helpDelta = 1;
+        rollHint = "Advantage or +1 from Load — narrow survival sense.";
+      } else {
+        hurts = matchedHurts.length
+          ? matchedHurts
+          : [{ entry: `${band} — deprived; presentation functioning impaired`, matches: [] }];
+        hurtDelta = 1;
+        rollHint = "Disadvantage or -1 from Load — resource deprivation.";
+      }
+    } else if (mode === "overfull") {
+      helps = matchedHelps;
+      hurts = matchedHurts;
+      helpDelta = matchedHelps.length ? 1 : 0;
+      hurtDelta = matchedHurts.length ? 1 : 0;
+      if (helpDelta > hurtDelta) rollHint = "Advantage or +1 from Load.";
+      else if (hurtDelta > helpDelta) rollHint = "Disadvantage or -1 from Load.";
+      else if (helpDelta && hurtDelta) rollHint = "Mixed Load modifiers cancel on dice.";
+    }
+
+    const delta = helpDelta - hurtDelta;
 
     return {
       ...base,
-      active: helpDelta > 0 || hurtDelta > 0,
+      active: mode === "deprived" || helpDelta > 0 || hurtDelta > 0,
       helpDelta,
       hurtDelta,
-      delta: helpDelta - hurtDelta,
+      delta,
       rollHint,
       helps,
       hurts
