@@ -2436,16 +2436,31 @@
     return api.rollLoadModifiers(status, key, attrKey, skillKey);
   }
 
-  function formatRollLoadDetail(modifiers) {
+  function formatRollLoadMath(modifiers) {
+    if (modifiers?.crisis) return "LOAD crisis";
     if (!modifiers?.active) return "";
-    const lines = [];
-    (modifiers.helps || []).forEach((item) => {
-      lines.push(`+1 ${item.entry}`);
-    });
-    (modifiers.hurts || []).forEach((item) => {
-      lines.push(`-1 ${item.entry}`);
-    });
-    return lines.join(" // ");
+    const delta = Number(modifiers.delta) || 0;
+    if (!delta) return "";
+    return delta > 0 ? `LOAD +${delta}` : `LOAD ${delta}`;
+  }
+
+  function formatRollLoadReasons(modifiers) {
+    if (!modifiers?.active) return "";
+    const helps = (modifiers.helps || []).map((item) => item.entry);
+    const hurts = (modifiers.hurts || []).map((item) => item.entry);
+    const parts = [];
+    if (helps.length) parts.push(`helps ${helps.join(", ")}`);
+    if (hurts.length) parts.push(`hurts ${hurts.join(", ")}`);
+    if (!parts.length) return "";
+    const band = modifiers.band ? `${modifiers.band}: ` : "";
+    return `${band}${parts.join("; ")}`;
+  }
+
+  function formatRollLoadSuffix(modifiers) {
+    const math = formatRollLoadMath(modifiers);
+    if (!math) return "";
+    const reasons = formatRollLoadReasons(modifiers);
+    return reasons ? ` // ${math} (${reasons})` : ` // ${math}${modifiers.band ? ` (${modifiers.band})` : ""}`;
   }
 
   function clearRollOutputPreview() {
@@ -2467,10 +2482,10 @@
       output.textContent = "Awaiting action.";
       return;
     }
-    const detail = formatRollLoadDetail(modifiers);
-    const signedDelta = modifiers.delta > 0 ? `+${modifiers.delta}` : String(modifiers.delta);
-    const hint = modifiers.rollHint ? ` ${modifiers.rollHint}` : "";
-    output.textContent = `${modifiers.trackLabel || "Load"} ${modifiers.band} (${modifiers.value}/6): ${signedDelta} on this roll.${hint} ${detail}`.trim();
+    const math = formatRollLoadMath(modifiers);
+    const reasons = formatRollLoadReasons(modifiers);
+    const reasonText = reasons ? ` ${reasons}` : "";
+    output.textContent = `${modifiers.trackLabel || "Load"} ${modifiers.band} (${modifiers.value}/6): ${math} on this roll.${reasonText}`.trim();
   }
 
   function renderRollSelectors() {
@@ -3484,20 +3499,9 @@
       const diceText = rollMode === "STANDARD"
         ? `3D6 ${dice.join(" + ")}`
         : `4D6 ${dice.join(" + ")} // ${modeText} ${keptDice.values.join(" + ")} // DROP ${dropped.join(" + ")}`;
-      const loadParts = [];
-      if (loadMods.crisis) {
-        loadParts.push("Load crisis");
-      } else {
-        if (loadMods.helpDelta > 0) loadParts.push(`+${loadMods.helpDelta} Load`);
-        if (loadMods.hurtDelta > 0) loadParts.push(`-${loadMods.hurtDelta} Load`);
-      }
-      const loadText = loadParts.length
-        ? ` // ${loadParts.join(" ")} (${loadMods.band})`
-        : "";
-      const loadDetail = loadMods.active ? ` // ${formatRollLoadDetail(loadMods)}` : "";
-      const loadHint = loadMods.rollHint ? ` // ${loadMods.rollHint}` : "";
+      const loadText = formatRollLoadSuffix(loadMods);
       output.dataset.rolled = "true";
-      output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${loadText}${loadDetail}${loadHint} = ${total}`;
+      output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${loadText} = ${total}`;
     }
   }
 
