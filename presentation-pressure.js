@@ -131,27 +131,19 @@
       bands: [
         {
           min: 0,
-          max: 0,
+          max: 1,
           label: "Starved",
           descriptor: "Cold, thin, desperate; cognition narrowing around need.",
           cue: "Cold, thin, desperate; cognition narrows around need.",
           risk: "Failed restraint may force feeding, withdrawal, or Stability pressure."
         },
         {
-          min: 1,
-          max: 3,
+          min: 2,
+          max: 4,
           label: "Coherent",
           descriptor: "Warm enough; human-like cognition and social masking intact.",
           cue: "Warm enough; human-like cognition and social masking hold.",
           risk: "Hidden hunger debt may still accumulate off-screen."
-        },
-        {
-          min: 4,
-          max: 4,
-          label: "Saturated",
-          descriptor: "Overfull warmth; emotional bleed and sensory intensity rise.",
-          cue: "Overfull warmth; emotional bleed and sensory intensity rise.",
-          risk: "Donor fixation or resonance spill may complicate the scene."
         },
         {
           min: 5,
@@ -193,7 +185,7 @@
         panelTitle: "Sanguine Pressure",
         trackHeading: "Blood Load",
         conditionLabel: "State",
-        meterHelp: "Rain-gauge fill: low is Starved, center is Coherent, high is Saturated. Overflow is Collapse Risk."
+        meterHelp: "Rain-gauge fill: 0–1 Starved, 2–4 Coherent, 5 Predatory Saturation, 6 Collapse Risk."
       }
     }),
     presentationContract({
@@ -749,7 +741,7 @@
       let bloodLoad = 3;
       if (next.sanguineCollapseRisk) bloodLoad = 6;
       else if (next.sanguinePredatorySaturation) bloodLoad = 5;
-      else if (next.sanguineSaturated) bloodLoad = 4;
+      else if (next.sanguineSaturated) bloodLoad = 5;
       else if (next.sanguineStarved) bloodLoad = 1;
       else if (Object.prototype.hasOwnProperty.call(store, "sanguine.hunger")) {
         bloodLoad = clamp(6 - store["sanguine.hunger"], 0, 6);

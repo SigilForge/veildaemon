@@ -47,17 +47,17 @@ test("sanguine blood load derives state, cue, and risk from fill level", async (
   });
   expect(summary.trackLabel).toBe("Blood Load");
   expect(summary.band0).toBe("Starved");
-  expect(summary.band1).toBe("Coherent");
+  expect(summary.band1).toBe("Starved");
   expect(summary.band2).toBe("Coherent");
-  expect(summary.band4).toBe("Saturated");
-  expect(summary.descriptor4).toContain("Overfull warmth");
+  expect(summary.band4).toBe("Coherent");
+  expect(summary.descriptor4).toContain("human-like cognition");
   expect(summary.band6).toBe("Collapse Risk");
-  expect(summary.cue4).toContain("Overfull warmth");
-    expect(summary.risk4).toContain("Donor fixation");
+  expect(summary.cue4).toContain("human-like cognition");
+  expect(summary.risk4).toContain("hunger debt");
   expect(summary.bloodLoadBand).toBe("Coherent");
   expect(summary.maxRisk).toContain("Collapse");
-  expect(summary.condition).toBe("Saturated");
-  expect(summary.cue).toContain("Overfull warmth");
+  expect(summary.condition).toBe("Coherent");
+  expect(summary.cue).toContain("human-like cognition");
 });
 
 test("sanguine fill meter maps each level to one state", async ({ page }) => {
@@ -68,10 +68,10 @@ test("sanguine fill meter maps each level to one state", async ({ page }) => {
   });
   expect(summary).toEqual([
     "Starved",
+    "Starved",
     "Coherent",
     "Coherent",
     "Coherent",
-    "Saturated",
     "Predatory Saturation",
     "Collapse Risk"
   ]);
@@ -173,5 +173,5 @@ test("handler live risk strip shows presentation pressure summary", async ({ pag
   });
   await page.reload();
   await expect(page.locator("#operator-risk-strip")).toContainText("Mara");
-  await expect(page.locator("#operator-risk-strip")).toContainText("Blood Load 4/6 (Saturated)");
+  await expect(page.locator("#operator-risk-strip")).toContainText("Blood Load 4/6 (Coherent)");
 });

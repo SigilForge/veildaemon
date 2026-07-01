@@ -1788,8 +1788,7 @@
         : Number(normalizeBoxValue(status[tracker.key], tracker.max));
       const editable = track ? track.operatorEditable !== false : true;
       const article = document.createElement("article");
-      const fillMeter = tracker.kind === "blood_load" || tracker.kind === "essence_load";
-      article.className = `line-tracker ${tracker.kind}${fillMeter ? " fill-meter" : ""}`;
+      article.className = `line-tracker ${tracker.kind}`;
 
       const header = document.createElement("div");
       header.className = "pip-header";
@@ -1800,7 +1799,8 @@
       header.append(title, count);
 
       const pips = document.createElement("div");
-      pips.className = `line-pips ${tracker.kind}-pips`;
+      const pipKind = String(tracker.kind || "").replace(/_/g, "-");
+      pips.className = `line-pips ${pipKind}-pips`;
       for (let index = 1; index <= tracker.max; index += 1) {
         const pip = document.createElement("button");
         pip.type = "button";
@@ -1896,7 +1896,22 @@
 
     layer.hidden = false;
     const operating = view.operatingCondition || view.condition || view.band;
-    summary.textContent = `${view.cardLabel || view.label}: ${view.trackLabel} ${view.value}/${view.range.max} — ${operating}`;
+    summary.textContent = "";
+    const chevron = document.createElement("span");
+    chevron.className = "pressure-readout-chevron";
+    chevron.setAttribute("aria-hidden", "true");
+    const summaryCopy = document.createElement("span");
+    summaryCopy.className = "pressure-readout-summary-copy";
+    const summaryTitle = document.createElement("strong");
+    summaryTitle.textContent = `${operating} · ${view.trackLabel} ${view.value}/${view.range.max}`;
+    const summaryCue = document.createElement("span");
+    summaryCue.className = "pressure-readout-summary-cue";
+    summaryCue.textContent = truncateReadout(view.descriptor || view.cue, 88);
+    summaryCopy.append(summaryTitle, summaryCue);
+    const expandHint = document.createElement("span");
+    expandHint.className = "pressure-readout-expand-hint";
+    expandHint.textContent = "Band guide";
+    summary.append(chevron, summaryCopy, expandHint);
 
     body.textContent = "";
 
