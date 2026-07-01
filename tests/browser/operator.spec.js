@@ -63,6 +63,21 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("Condition: Fine")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("10/10")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("Band: Calm")).toBeVisible();
+  const pipLayout = await page.evaluate(() => {
+    return [...document.querySelectorAll(".line-tracker")].map((row) => {
+      const boxes = [...row.querySelectorAll(".pip")].map((pip) => pip.getBoundingClientRect());
+      const overlaps = boxes.some((box, index) => index > 0 && box.left < boxes[index - 1].right - 1);
+      const collapsed = boxes.some((box) => box.width < 4);
+      return { overlaps, collapsed, count: boxes.length };
+    });
+  });
+  pipLayout.forEach((row) => {
+    expect(row.overlaps).toBe(false);
+    expect(row.collapsed).toBe(false);
+    expect(row.count).toBeGreaterThan(0);
+  });
+  await page.locator(".line-tracker").filter({ hasText: "Harm" }).locator(".pip").nth(1).click();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("2/5")).toBeVisible();
   await expect(page.locator("#sheet-attention-status")).toHaveCount(0);
   await expect(page.locator(".segmented.attention")).toHaveCount(0);
   await expect(page.getByLabel("Operator Name")).toBeVisible();
