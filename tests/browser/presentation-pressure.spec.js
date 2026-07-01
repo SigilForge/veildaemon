@@ -1,25 +1,75 @@
 const { test, expect } = require("@playwright/test");
 
-test("presentation pressure registry exposes nine ontology modules", async ({ page }) => {
+const LOAD_PRESENTATIONS = [
+  { id: "sanguine", kind: "blood_load", trackId: "sanguine.blood_load", catalog: "SANGUINE", bands: ["Starving", "Coherent", "Predatory Saturation", "Collapse Risk"] },
+  { id: "wraith", kind: "essence_load", trackId: "wraith.essence_load", catalog: "WRAITH", bands: ["Fading", "Anchored", "Possessive Saturation", "Haunting Risk"] },
+  { id: "echo", kind: "echo_load", trackId: "echo.echo_load", catalog: "ECHO_ALTERED", bands: ["Dissolving", "Continuous", "Recursion Pressure", "Loop Collapse"] },
+  { id: "silence", kind: "silence_load", trackId: "silence.silence_load", catalog: "HOLLOW_SILENCE_ALTERED", bands: ["Exposed", "Obscured", "Erasure Pressure", "Null Risk"] },
+  { id: "therian", kind: "instinct_load", trackId: "therian.instinct_load", catalog: "THERIAN_ADAPTATION", bands: ["Dulled", "Integrated", "Feral Pressure", "Loss of Self"] },
+  { id: "technomancer", kind: "signal_load", trackId: "technomancer.signal_load", catalog: "TECHNOMANCER", bands: ["Disconnected", "Synced", "Daemon Bleed", "System Override"] },
+  { id: "construct", kind: "function_load", trackId: "construct.function_load", catalog: "CONSTRUCT", bands: ["Malfunctioning", "Operational", "Directive Pressure", "Purpose Lock"] },
+  { id: "sensitive", kind: "sensory_load", trackId: "sensitive.sensory_load", catalog: "RESONANT_SENSITIVE", bands: ["Numbed", "Attuned", "Overstimulated", "Signal Flood"] }
+];
+
+test("presentation pressure registry exposes eleven ontology modules", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const api = window.PresentationPressure;
     return {
       count: api.presentations.length,
+      loadCount: api.presentations.filter((item) => api.isLoadPresentation(item)).length,
       sanguine: api.trackById("sanguine.blood_load").label,
       voidShard: api.presentationById("void_shard").maxRisk,
-      echoBand: api.bandForTrack("echo.drift", 4),
+      echoBand: api.bandForTrack("echo.echo_load", 4),
       maxRisk: api.formatBandLine(api.trackById("stillness.inertia"), 6)
     };
   });
-  expect(summary.count).toBe(9);
+  expect(summary.count).toBe(11);
+  expect(summary.loadCount).toBe(8);
   expect(summary.sanguine).toBe("Blood Load");
   expect(summary.voidShard).toContain("perceived");
-  expect(summary.echoBand).toBe("Loop");
+  expect(summary.echoBand).toBe("Continuous");
   expect(summary.maxRisk).toContain("Stasis Lock");
 });
 
-test("sanguine blood load derives state, cue, and risk from fill level", async ({ page }) => {
+test("universal load presentations share the 0-6 safe-middle grammar", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate((presentations) => {
+    const api = window.PresentationPressure;
+    return presentations.map((entry) => {
+      const presentation = api.presentationById(entry.id);
+      const view = api.presentationPressureView(
+        api.migrateOperatorStatus({ presentationPressures: { [entry.trackId]: 3 } }),
+        entry.catalog
+      );
+      return {
+        id: entry.id,
+        ladderLabels: view.bandLadder.map((band) => band.label),
+        band0: api.bandForTrack(entry.trackId, 0),
+        band3: api.bandForTrack(entry.trackId, 3),
+        band5: api.bandForTrack(entry.trackId, 5),
+        band6: api.bandForTrack(entry.trackId, 6),
+        prompt3: api.promptForTrack(entry.trackId, 3),
+        misfireRule: view.misfireRule,
+        kind: presentation.tracks[0].kind
+      };
+    });
+  }, LOAD_PRESENTATIONS);
+
+  summary.forEach((entry, index) => {
+    const expected = LOAD_PRESENTATIONS[index];
+    expect(entry.ladderLabels).toEqual(expected.bands);
+    expect(entry.band0).toBe(expected.bands[0]);
+    expect(entry.band3).toBe(expected.bands[1]);
+    expect(entry.band5).toBe(expected.bands[2]);
+    expect(entry.band6).toBe(expected.bands[3]);
+    expect(entry.prompt3).toContain("No modifier");
+    expect(entry.misfireRule).toContain("Misfire fills");
+    expect(entry.kind).toBe(expected.kind);
+  });
+});
+
+test("sanguine blood load derives state, mechanics, and band ladder from fill level", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const api = window.PresentationPressure;
@@ -35,29 +85,38 @@ test("sanguine blood load derives state, cue, and risk from fill level", async (
       band1: api.bandForTrack("sanguine.blood_load", 1),
       band2: api.bandForTrack("sanguine.blood_load", 2),
       band4: api.bandForTrack("sanguine.blood_load", 4),
-      descriptor4: api.descriptorForTrack("sanguine.blood_load", 4),
+      band5: api.bandForTrack("sanguine.blood_load", 5),
       band6: api.bandForTrack("sanguine.blood_load", 6),
-      cue4: api.cueForTrack("sanguine.blood_load", 4),
-      risk4: api.riskForTrack("sanguine.blood_load", 4),
+      helps5: api.helpsForTrack("sanguine.blood_load", 5),
+      hurts0: api.hurtsForTrack("sanguine.blood_load", 0),
+      prompt4: api.promptForTrack("sanguine.blood_load", 4),
       bloodLoadBand: api.bloodLoadBand(3),
-      maxRisk: presentation.maxRisk,
+      modifierRule: view.modifierRule,
+      misfireRule: view.misfireRule,
       condition: view.condition,
-      cue: view.cue
+      ladderLabels: view.bandLadder.map((entry) => entry.label)
     };
   });
   expect(summary.trackLabel).toBe("Blood Load");
-  expect(summary.band0).toBe("Starved");
-  expect(summary.band1).toBe("Starved");
+  expect(summary.band0).toBe("Starving");
+  expect(summary.band1).toBe("Starving");
   expect(summary.band2).toBe("Coherent");
   expect(summary.band4).toBe("Coherent");
-  expect(summary.descriptor4).toContain("human-like cognition");
+  expect(summary.band5).toBe("Predatory Saturation");
   expect(summary.band6).toBe("Collapse Risk");
-  expect(summary.cue4).toContain("human-like cognition");
-  expect(summary.risk4).toContain("hunger debt");
+  expect(summary.helps5).toContain("Body force");
+  expect(summary.hurts0).toContain("Nerves restraint");
+  expect(summary.prompt4).toContain("No modifier");
   expect(summary.bloodLoadBand).toBe("Coherent");
-  expect(summary.maxRisk).toContain("Collapse");
+  expect(summary.modifierRule).toContain("Blood Load modifies rolls only when");
+  expect(summary.misfireRule).toContain("Misfire fills Blood Load");
   expect(summary.condition).toBe("Coherent");
-  expect(summary.cue).toContain("human-like cognition");
+  expect(summary.ladderLabels).toEqual([
+    "Starving",
+    "Coherent",
+    "Predatory Saturation",
+    "Collapse Risk"
+  ]);
 });
 
 test("sanguine fill meter maps each level to one state", async ({ page }) => {
@@ -67,8 +126,8 @@ test("sanguine fill meter maps each level to one state", async ({ page }) => {
     return [0, 1, 2, 3, 4, 5, 6].map((level) => api.resolveSanguineCondition({}, level).label);
   });
   expect(summary).toEqual([
-    "Starved",
-    "Starved",
+    "Starving",
+    "Starving",
     "Coherent",
     "Coherent",
     "Coherent",
@@ -77,7 +136,43 @@ test("sanguine fill meter maps each level to one state", async ({ page }) => {
   ]);
 });
 
-test("wraith essence load uses safe-middle fill bands", async ({ page }) => {
+test("misfire blood load delta fills the cup and formats table copy", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const api = window.PresentationPressure;
+    const status = api.migrateOperatorStatus({
+      operatorName: "Knox",
+      bloodLoad: "3",
+      presentationPressures: { "sanguine.blood_load": 3 }
+    });
+    const severeDelta = api.misfireBloodLoadDelta("Severe");
+    const minorDelta = api.misfireBloodLoadDelta("Minor");
+    const next = api.adjustBloodLoad(status, severeDelta);
+    const copy = api.formatBloodLoadMisfireTableCopy({
+      status: next,
+      operatorName: "Knox",
+      delta: severeDelta,
+      beforeValue: 3,
+      afterValue: api.readTrackValue(next, "sanguine.blood_load")
+    });
+    return {
+      severeDelta,
+      minorDelta,
+      afterValue: api.readTrackValue(next, "sanguine.blood_load"),
+      afterBand: api.bloodLoadBand(api.readTrackValue(next, "sanguine.blood_load")),
+      copy
+    };
+  });
+  expect(summary.severeDelta).toBe(2);
+  expect(summary.minorDelta).toBe(1);
+  expect(summary.afterValue).toBe(5);
+  expect(summary.afterBand).toBe("Predatory Saturation");
+  expect(summary.copy).toContain("Knox: Blood Load rises by 2");
+  expect(summary.copy).toContain("Coherent -> Predatory Saturation");
+  expect(summary.copy).toContain("warmer than the room");
+});
+
+test("wraith essence load uses safe-middle fill bands and mechanics", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const api = window.PresentationPressure;
@@ -86,92 +181,166 @@ test("wraith essence load uses safe-middle fill bands", async ({ page }) => {
       presentationPressures: { "wraith.essence_load": 4 }
     });
     const migrated = api.migrateOperatorStatus({
-      anchorDriftPressure: "0",
       presentationPressures: { "wraith.anchoring": 0 }
     });
+    const view = api.presentationPressureView(status, "WRAITH_TOUCHED_ANCHOR_BOUND");
     return {
-      bands: [0, 1, 2, 3, 4, 5, 6].map((level) => api.essenceLoadBand(level)),
-      view: api.presentationPressureView(status, "WRAITH"),
-      migratedEssence: api.readTrackValue(migrated, "wraith.essence_load"),
-      migratedBand: api.essenceLoadBand(api.readTrackValue(migrated, "wraith.essence_load"))
+      band0: api.bandForTrack("wraith.essence_load", 0),
+      band1: api.bandForTrack("wraith.essence_load", 1),
+      band4: api.bandForTrack("wraith.essence_load", 4),
+      band5: api.bandForTrack("wraith.essence_load", 5),
+      helps5: api.helpsForTrack("wraith.essence_load", 5),
+      prompt2: api.promptForTrack("wraith.essence_load", 2),
+      migrated: api.readTrackValue(migrated, "wraith.essence_load"),
+      viewBand: view.band,
+      modifierRule: view.modifierRule,
+      misfireRule: view.misfireRule,
+      ladderLabels: view.bandLadder.map((entry) => entry.label),
+      fillMap: [0, 1, 2, 3, 4, 5, 6].map((level) => api.resolveWraithCondition({}, level).label)
     };
   });
-  expect(summary.bands).toEqual([
+  expect(summary.band0).toBe("Fading");
+  expect(summary.band1).toBe("Fading");
+  expect(summary.band4).toBe("Anchored");
+  expect(summary.band5).toBe("Possessive Saturation");
+  expect(summary.helps5).toContain("Presence intimidation");
+  expect(summary.prompt2).toContain("No modifier");
+  expect(summary.migrated).toBe(3);
+  expect(summary.viewBand).toBe("Anchored");
+  expect(summary.modifierRule).toContain("Essence Load modifies rolls");
+  expect(summary.misfireRule).toContain("Misfire fills Essence Load");
+  expect(summary.ladderLabels).toEqual([
+    "Fading",
+    "Anchored",
+    "Possessive Saturation",
+    "Haunting Risk"
+  ]);
+  expect(summary.fillMap).toEqual([
+    "Fading",
     "Fading",
     "Anchored",
     "Anchored",
     "Anchored",
-    "Overfull",
     "Possessive Saturation",
     "Haunting Risk"
   ]);
-  expect(summary.view.trackLabel).toBe("Essence Load");
-  expect(summary.view.condition).toBe("Overfull");
-  expect(summary.migratedEssence).toBe(3);
-  expect(summary.migratedBand).toBe("Anchored");
 });
 
-test("presentation modules expose distinct track labels and failure modes", async ({ page }) => {
-  await page.goto("/operator/");
-  const summary = await page.evaluate(() => {
-    const api = window.PresentationPressure;
-    return api.presentations.map((item) => ({
-      id: item.id,
-      trackLabel: item.trackLabel,
-      maxRisk: item.maxRisk,
-      reliefCount: item.reliefActions.fallsWhen.length
-    }));
-  });
-  expect(summary.find((item) => item.id === "wraith").trackLabel).toBe("Essence Load");
-  expect(summary.find((item) => item.id === "echo").trackLabel).toBe("Relevance Drift");
-  expect(summary.find((item) => item.id === "void_shard").trackLabel).toBe("Miscompile");
-  expect(summary.find((item) => item.id === "sanguine").maxRisk).toContain("Collapse");
-  expect(summary.find((item) => item.id === "stillness").maxRisk).toContain("escalate");
-  expect(summary.every((item) => item.reliefCount > 0)).toBe(true);
-});
-
-test("registry resolves echo drift bands from operator status", async ({ page }) => {
+test("misfire essence load delta fills the cup and formats table copy", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const api = window.PresentationPressure;
     const status = api.migrateOperatorStatus({
-      ontologyPresentation: "Echo-Altered Presentation",
-      echoRecursionPressure: "3"
+      operatorName: "Mara",
+      essenceLoad: "4",
+      presentationPressures: { "wraith.essence_load": 4 }
+    });
+    const delta = api.misfireEssenceLoadDelta("Severe");
+    const next = api.adjustEssenceLoad(status, delta);
+    const copy = api.formatEssenceLoadMisfireTableCopy({
+      status: next,
+      operatorName: "Mara",
+      eventLabel: "Mara drains ghost essence",
+      delta,
+      beforeValue: 4,
+      afterValue: api.readTrackValue(next, "wraith.essence_load")
     });
     return {
-      cardLabel: api.presentationForCatalogKey("ECHO_ALTERED")?.cardLabel,
-      value: api.readTrackValue(status, "echo.drift"),
-      band: api.bandForTrack("echo.drift", 3),
-      line: api.formatBandLine(api.trackById("echo.drift"), 3)
+      delta,
+      afterBand: api.essenceLoadBand(api.readTrackValue(next, "wraith.essence_load")),
+      copy
     };
   });
-  expect(summary.cardLabel).toBe("Echo Pressure");
-  expect(summary.value).toBe(3);
-  expect(summary.band).toBe("Mimic");
-  expect(summary.line).toBe("Mimic");
+  expect(summary.delta).toBe(1);
+  expect(summary.afterBand).toBe("Possessive Saturation");
+  expect(summary.copy).toContain("Mara drains ghost essence");
+  expect(summary.copy).toContain("Anchored -> Possessive Saturation");
+  expect(summary.copy).toContain("not hers");
 });
 
-test("handler live risk strip shows presentation pressure summary", async ({ page }) => {
-  await page.goto("/handler/live/");
-  await page.evaluate(() => {
-    const api = window.HandlerState;
-    let state = api.readState();
-    state.players = [{
-      id: "operator-mara",
-      name: "Mara",
-      ontologyPresentation: "Sanguine Presentation",
-      operatorStatus: {
-        ontologyPresentation: "Sanguine Presentation",
-        bloodLoad: "4",
-        presentationPressures: { "sanguine.blood_load": 4 }
-      },
-      stabilityBand: "Calm",
-      harmBoxes: 0
-    }];
-    state = api.normalizeState(state);
-    api.writeState(state);
+test("echo load migrates legacy drift track and formats generic misfire copy", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const api = window.PresentationPressure;
+    const migrated = api.migrateOperatorStatus({
+      presentationPressures: { "echo.drift": 5 },
+      echoRecursionPressure: "5"
+    });
+    const delta = api.misfireLoadDelta("echo", "Major");
+    const status = api.migrateOperatorStatus({
+      operatorName: "Rin",
+      presentationPressures: { "echo.echo_load": 4 }
+    });
+    const next = api.adjustTrackLoad(status, "echo.echo_load", delta);
+    const copy = api.formatLoadMisfireTableCopy("echo", {
+      status: next,
+      operatorName: "Rin",
+      eventLabel: "Misfire resonance surge",
+      delta,
+      beforeValue: 4,
+      afterValue: api.readTrackValue(next, "echo.echo_load")
+    });
+    return {
+      migratedValue: api.readTrackValue(migrated, "echo.echo_load"),
+      migratedBand: api.bandForTrack("echo.echo_load", api.readTrackValue(migrated, "echo.echo_load")),
+      afterBand: api.presentationLoadBand("echo", api.readTrackValue(next, "echo.echo_load")),
+      copy
+    };
   });
-  await page.reload();
-  await expect(page.locator("#operator-risk-strip")).toContainText("Mara");
-  await expect(page.locator("#operator-risk-strip")).toContainText("Blood Load 4/6 (Coherent)");
+  expect(summary.migratedValue).toBe(5);
+  expect(summary.migratedBand).toBe("Recursion Pressure");
+  expect(summary.afterBand).toBe("Recursion Pressure");
+  expect(summary.copy).toContain("Echo Load +1");
+  expect(summary.copy).toContain("last move again");
+});
+
+test("load roll modifiers debuff deprived function and buff only one narrow sense", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const api = window.PresentationPressure;
+    const starving = { presentationPressures: { "sanguine.blood_load": 1 } };
+    const coherent = { presentationPressures: { "sanguine.blood_load": 3 } };
+    const saturated = { presentationPressures: { "sanguine.blood_load": 5 } };
+    const collapse = { presentationPressures: { "sanguine.blood_load": 6 } };
+    return {
+      starvingNerves: api.rollLoadModifiers(starving, "SANGUINE", "Nerves", ""),
+      starvingInstinct: api.rollLoadModifiers(starving, "SANGUINE", "Instinct", ""),
+      starvingBody: api.rollLoadModifiers(starving, "SANGUINE", "Body", ""),
+      coherentBody: api.rollLoadModifiers(coherent, "SANGUINE", "Body", ""),
+      saturatedBody: api.rollLoadModifiers(saturated, "SANGUINE", "Body", ""),
+      saturatedNerves: api.rollLoadModifiers(saturated, "SANGUINE", "Nerves", ""),
+      collapseBody: api.rollLoadModifiers(collapse, "SANGUINE", "Body", ""),
+      therianLowInstinct: api.rollLoadModifiers(
+        { presentationPressures: { "therian.instinct_load": 1 } },
+        "THERIAN_ADAPTATION",
+        "Instinct",
+        "Survival"
+      )
+    };
+  });
+  expect(summary.starvingNerves.hurtDelta).toBe(1);
+  expect(summary.starvingNerves.helpDelta).toBe(0);
+  expect(summary.starvingNerves.delta).toBe(-1);
+  expect(summary.starvingInstinct.helpDelta).toBe(1);
+  expect(summary.starvingInstinct.hurtDelta).toBe(0);
+  expect(summary.starvingBody.active).toBe(false);
+  expect(summary.coherentBody.active).toBe(false);
+  expect(summary.saturatedBody.helpDelta).toBe(1);
+  expect(summary.saturatedNerves.hurtDelta).toBe(1);
+  expect(summary.collapseBody.crisis).toBe(true);
+  expect(summary.collapseBody.delta).toBe(0);
+  expect(summary.therianLowInstinct.hurtDelta).toBe(1);
+  expect(summary.therianLowInstinct.helpDelta).toBe(0);
+});
+
+test("handler summary formats coherent blood load at four", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const api = window.PresentationPressure;
+    const status = api.migrateOperatorStatus({
+      presentationPressures: { "sanguine.blood_load": 4 }
+    });
+    return api.handlerSummaryText(status, "SANGUINE");
+  });
+  expect(summary).toContain("Blood Load 4/6 (Coherent)");
 });

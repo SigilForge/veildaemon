@@ -3144,6 +3144,27 @@
         lines.push("Anyone who hits Collapse Risk may touch an Anchor or attempt Stabilization.");
       }
     }
+    const pp = typeof window !== "undefined" ? window.PresentationPressure : null;
+    if (pp && indices.length) {
+      indices.forEach((index) => {
+        const player = players[index];
+        const presentation = playerLoadPresentation(player);
+        if (!presentation) return;
+        const delta = misfireLoadDeltaForTrigger(trigger, stabilityCost, presentation.id);
+        if (delta <= 0) return;
+        const current = playerTrackLoad(player, presentation);
+        if (current === null) return;
+        const projected = pp.clamp(current + delta, 0, 6);
+        const copy = pp.formatLoadMisfireTableCopy(presentation.id, {
+          operatorName: player.name,
+          eventLabel: "Misfire resonance surge",
+          delta,
+          beforeValue: current,
+          afterValue: projected
+        });
+        if (copy) lines.push(copy);
+      });
+    }
     const consequence = safeString(trigger?.effects?.consequence, 500)
       || safeString(trigger?.effects?.next_pressure_beat, 500);
     if (consequence) lines.push(consequence);
@@ -3347,6 +3368,24 @@
           delta: -stabilityCost.damage,
           source: stabilityCost.source,
           reason: stabilityCost.reason,
+          handlerNote: ""
+        });
+      });
+    }
+    if (operatorIndices.length) {
+      operatorIndices.forEach((operatorIndex) => {
+        const player = playerAtIndex(draft.players, operatorIndex);
+        const presentation = playerLoadPresentation(player);
+        if (!presentation) return;
+        const track = presentationPressureApi()?.primaryTrack(presentation);
+        const delta = misfireLoadDeltaForTrigger(trigger, stabilityCost, presentation.id);
+        if (!track || delta <= 0) return;
+        draft = createTrackPrompt(draft, {
+          operatorIndex,
+          track: track.kind,
+          delta,
+          source: "Misfire",
+          reason: `Resonance surge: +${delta} ${presentation.trackLabel} to exposed ${presentation.label} Operators.`,
           handlerNote: ""
         });
       });
@@ -4018,9 +4057,31 @@
     return trackPromptSources.includes(source) ? source : "Manual";
   }
 
+  function presentationPressureApi() {
+    return typeof window !== "undefined" ? window.PresentationPressure : null;
+  }
+
   function normalizeTrackPromptTrack(value) {
-    const track = safeString(value, 40).toLowerCase();
-    return track === "harm" ? "harm" : "stability";
+    const track = safeString(value, 40).toLowerCase().replace(/-/g, "_");
+    if (track === "harm") return "harm";
+    if (track.endsWith("_load")) return track;
+    if (track === "bloodload") return "blood_load";
+    if (track === "essenceload") return "essence_load";
+    return "stability";
+  }
+
+  function playerLoadPresentation(player) {
+    const pp = presentationPressureApi();
+    if (!pp || !player) return null;
+    const key = safeString(player.ontologyPresentationKey, 80);
+    const presentation = pp.presentationForCatalogKey(key);
+    return pp.isLoadPresentation(presentation) ? presentation : null;
+  }
+
+  function playerIsWraith(player) {
+    if (!player) return false;
+    const key = safeString(player.ontologyPresentationKey, 80);
+    return key === "WRAITH_TOUCHED_ANCHOR_BOUND" || key === "WRAITH";
   }
 
   function playerAtIndex(players, index) {
@@ -4028,9 +4089,105 @@
     return list[index] || null;
   }
 
+  function playerOperatorStatus(player, presentation) {
+    const status = player?.operatorStatus && typeof player.operatorStatus === "object"
+      ? player.operatorStatus
+      : { presentationPressures: {} };
+    if (presentation?.stateKey && status[presentation.stateKey] === undefined) {
+      status[presentation.stateKey] = "3";
+    }
+    return status;
+  }
+
+  function playerTrackLoad(player, presentation) {
+    const pp = presentationPressureApi();
+    const resolved = presentation || playerLoadPresentation(player);
+    if (!pp || !player || !resolved) return null;
+    const track = pp.primaryTrack(resolved);
+    if (!track) return null;
+    const migrated = pp.migrateOperatorStatus(playerOperatorStatus(player, resolved));
+    return pp.readTrackValue(migrated, track.id);
+  }
+
+  function playerBloodLoad(player) {
+    const pp = presentationPressureApi();
+    if (!pp || !player || player.ontologyPresentationKey !== "SANGUINE") return null;
+    return playerTrackLoad(player, pp.presentationById("sanguine"));
+  }
+
+  function bloodLoadHandlerCue(band) {
+    return loadHandlerCue("sanguine", band);
+  }
+
+  function misfireLoadDeltaForTrigger(trigger, stabilityCost, presentationId) {
+    const id = safeString(trigger?.id, 80).toLowerCase();
+    const label = safeString(trigger?.label, 140);
+    const isMisfire = /misfire/.test(id) || /misfire/i.test(label);
+    if (!isMisfire) return 0;
+    const pp = presentationPressureApi();
+    const severity = id.includes("severe")
+      || (stabilityCost?.breakdown || []).some((entry) => /severe misfire/i.test(entry.label))
+      ? "Severe"
+      : "Minor";
+    return pp ? pp.misfireLoadDelta(presentationId, severity) : 1;
+  }
+
+  function misfireBloodLoadDeltaForTrigger(trigger, stabilityCost) {
+    return misfireLoadDeltaForTrigger(trigger, stabilityCost, "sanguine");
+  }
+
+  function misfireEssenceLoadDeltaForTrigger(trigger) {
+    return misfireLoadDeltaForTrigger(trigger, null, "wraith");
+  }
+
+  function playerEssenceLoad(player) {
+    const pp = presentationPressureApi();
+    if (!pp || !playerIsWraith(player)) return null;
+    return playerTrackLoad(player, pp.presentationById("wraith"));
+  }
+
+  function essenceLoadHandlerCue(band) {
+    return loadHandlerCue("wraith", band);
+  }
+
+  function loadHandlerCue(presentationId, band) {
+    const pp = presentationPressureApi();
+    if (!pp) return "";
+    return pp.loadHandlerCueForBand(presentationId, band)
+      || "Stable operating range unless scene touches this Presentation's pressure.";
+  }
+
   function projectTrackChange(player, track, delta) {
     const currentStability = normalizeTrackerValue(player.stabilityPoints, 10, 10);
     const currentHarm = normalizeTrackerValue(player.harmBoxes, 5, 0);
+    if (track.endsWith("_load")) {
+      const pp = presentationPressureApi();
+      const presentation = pp ? pp.presentationForLoadTrackKind(track) : null;
+      const currentValue = playerTrackLoad(player, presentation);
+      if (!pp || !presentation || currentValue === null) {
+        return {
+          currentValue: 0,
+          projectedValue: 0,
+          currentBand: "",
+          projectedBand: "",
+          currentCondition: "",
+          projectedCondition: "",
+          handlerCue: ""
+        };
+      }
+      const projectedValue = pp.clamp(currentValue + delta, 0, 6);
+      const currentBand = pp.presentationLoadBand(presentation.id, currentValue);
+      const projectedBand = pp.presentationLoadBand(presentation.id, projectedValue);
+      return {
+        currentValue,
+        projectedValue,
+        currentBand,
+        projectedBand,
+        currentCondition: currentBand,
+        projectedCondition: projectedBand,
+        handlerCue: loadHandlerCue(presentation.id, projectedBand)
+      };
+    }
     if (track === "harm") {
       const projectedValue = normalizeTrackerValue(currentHarm + delta, 5, 0);
       return {
@@ -4059,6 +4216,26 @@
   function buildTrackPromptCopy(prompt) {
     const reason = safeString(prompt.reason || prompt.source, 240) || "Scene pressure";
     const note = safeString(prompt.handlerNote, 300);
+    if (prompt.track.endsWith("_load")) {
+      const amount = Math.abs(Number(prompt.delta) || 0);
+      const direction = Number(prompt.delta) < 0 ? "reduce" : "increase";
+      const pp = presentationPressureApi();
+      const presentation = pp ? pp.presentationForLoadTrackKind(prompt.track) : null;
+      const trackLabel = presentation?.trackLabel || prompt.track.replace(/_/g, " ");
+      const transition = prompt.currentBand === prompt.projectedBand
+        ? `${prompt.projectedBand} holds at ${prompt.projectedValue}/6`
+        : `${prompt.currentBand} -> ${prompt.projectedBand}`;
+      const lines = [
+        `${prompt.operatorName}: ${trackLabel} ${direction === "reduce" ? "falls" : "rises"} by ${amount}. ${transition}.`
+      ];
+      if (pp && presentation && direction === "increase") {
+        lines.push(pp.loadMisfireFlavor(presentation.id, prompt.projectedBand));
+      }
+      lines.push(`REASON: ${reason}.`);
+      lines.push(`Suggested cue: ${prompt.handlerCue}`);
+      if (note) lines.push(`Handler note: ${note}`);
+      return lines.join("\n");
+    }
     if (prompt.track === "stability") {
       const amount = Math.abs(Number(prompt.delta) || 0);
       const direction = Number(prompt.delta) < 0 ? "reduce" : "increase";
@@ -4200,6 +4377,21 @@
       player.stability = formatPlayerStability(prompt.projectedValue, player.stabilityBand);
       return;
     }
+    if (prompt.track.endsWith("_load")) {
+      const pp = presentationPressureApi();
+      const presentation = pp ? pp.presentationForLoadTrackKind(prompt.track) : null;
+      const track = presentation ? pp.primaryTrack(presentation) : null;
+      if (!pp || !track) return;
+      if (!player.operatorStatus || typeof player.operatorStatus !== "object") {
+        player.operatorStatus = { presentationPressures: {} };
+      }
+      player.operatorStatus = pp.writeTrackValue(player.operatorStatus, track.id, prompt.projectedValue);
+      if (track.stateKey) player.operatorStatus[track.stateKey] = String(prompt.projectedValue);
+      if (presentation.id === "sanguine") {
+        player.operatorStatus.sanguineCoherence = pp.presentationLoadBand("sanguine", prompt.projectedValue);
+      }
+      return;
+    }
     player.harmBoxes = prompt.projectedValue;
     player.harm = formatPlayerHarm(prompt.projectedValue);
   }
@@ -4243,6 +4435,20 @@
           player.stabilityPoints = prompt.currentValue;
           player.stabilityBand = stabilityBandFromPoints(prompt.currentValue);
           player.stability = formatPlayerStability(prompt.currentValue, player.stabilityBand);
+        } else if (prompt.track.endsWith("_load")) {
+          const pp = presentationPressureApi();
+          const presentation = pp ? pp.presentationForLoadTrackKind(prompt.track) : null;
+          const track = presentation ? pp.primaryTrack(presentation) : null;
+          if (pp && track) {
+            if (!player.operatorStatus || typeof player.operatorStatus !== "object") {
+              player.operatorStatus = { presentationPressures: {} };
+            }
+            player.operatorStatus = pp.writeTrackValue(player.operatorStatus, track.id, prompt.currentValue);
+            if (track.stateKey) player.operatorStatus[track.stateKey] = String(prompt.currentValue);
+            if (presentation.id === "sanguine") {
+              player.operatorStatus.sanguineCoherence = pp.presentationLoadBand("sanguine", prompt.currentValue);
+            }
+          }
         } else {
           player.harmBoxes = prompt.currentValue;
           player.harm = formatPlayerHarm(prompt.currentValue);

@@ -52,11 +52,21 @@
       breachPoints: "0",
       activeMisfire: "",
       misfireSeverity: "None",
+      misfireBloodLoadSignature: "",
+      misfireBloodLoadNotice: "",
+      misfirePresentationLoadSignature: "",
+      misfirePresentationLoadNotice: "",
       presentationPressure: "0",
       sanguineCoherence: "Coherent",
       bloodLoad: "3",
       presentationPressures: {},
       echoRecursionPressure: "0",
+      echoLoad: "3",
+      instinctLoad: "3",
+      signalLoad: "3",
+      functionLoad: "3",
+      sensoryLoad: "3",
+      silenceLoad: "3",
       essenceLoad: "3",
       voidShardContamination: "0",
       dreamLucidityDebt: "0",
@@ -268,6 +278,74 @@
   }
 
   const presentationPressureApi = () => window.PresentationPressure;
+
+  function activeLoadPresentation(status) {
+    const api = presentationPressureApi();
+    const key = presentationKeyFromDisplayName(status?.ontologyPresentation);
+    const presentation = api ? api.presentationForCatalogKey(key) : null;
+    if (!api || !api.isLoadPresentation(presentation)) return null;
+    const track = api.primaryTrack(presentation);
+    return track ? { api, presentation, track } : null;
+  }
+
+  function hasPresentationLoadMisfire(status) {
+    return Boolean(activeLoadPresentation(status));
+  }
+
+  function applyMisfirePresentationLoadTransition(status, previous) {
+    const active = activeLoadPresentation(status);
+    const emptyNotice = {
+      status: {
+        ...status,
+        misfireBloodLoadSignature: "",
+        misfireBloodLoadNotice: "",
+        misfirePresentationLoadSignature: "",
+        misfirePresentationLoadNotice: ""
+      },
+      notice: ""
+    };
+    if (!active) return emptyNotice;
+    const { api, presentation, track } = active;
+
+    const severity = normalizeMisfireSeverity(status.misfireSeverity);
+    const symptom = safeString(status.activeMisfire, 1000);
+    if (severity === "None" || !symptom) return emptyNotice;
+
+    const signature = `${severity}:${symptom}`;
+    const priorSignature = safeString(previous.misfirePresentationLoadSignature || previous.misfireBloodLoadSignature, 240);
+    if (priorSignature === signature) {
+      return {
+        status,
+        notice: safeString(status.misfirePresentationLoadNotice || status.misfireBloodLoadNotice, 600)
+      };
+    }
+
+    const before = api.readTrackValue(previous, track.id);
+    const delta = api.misfireLoadDelta(presentation.id, severity);
+    let next = api.adjustTrackLoad(status, track.id, delta);
+    const after = api.readTrackValue(next, track.id);
+    const notice = api.formatLoadMisfireTableCopy(presentation.id, {
+      status: next,
+      operatorName: status.operatorName || "Operator",
+      eventLabel: "Misfire resonance surge",
+      delta,
+      beforeValue: before,
+      afterValue: after
+    });
+    if (track.stateKey) next[track.stateKey] = String(after);
+    if (presentation.id === "sanguine") {
+      next.sanguineCoherence = deriveSanguineCoherence(next);
+      next.bloodLoad = String(after);
+    }
+    next = {
+      ...next,
+      misfireBloodLoadSignature: signature,
+      misfireBloodLoadNotice: notice,
+      misfirePresentationLoadSignature: signature,
+      misfirePresentationLoadNotice: notice
+    };
+    return { status: next, notice };
+  }
 
   function deriveSanguineCoherence(status) {
     const api = presentationPressureApi();
@@ -1774,6 +1852,32 @@
       bleedCue.textContent = humanizeBleedCue(frequency, frequencyCard(frequency).bleedCue);
     }
     setText("sheet-frequency", operatorRecord && operatorRecord.primaryFrequency || "UNASSIGNED");
+    renderMisfirePresentationLoadPanel();
+  }
+
+  function renderMisfirePresentationLoadPanel() {
+    const wrap = document.getElementById("misfire-severity-wrap");
+    const note = document.getElementById("misfire-presentation-load-note");
+    const severeButton = document.querySelector('.misfire-severity button[data-value="Severe"]');
+    const status = consoleState.operatorStatus;
+    const active = hasPresentationLoadMisfire(status);
+    if (wrap) wrap.hidden = !active;
+    if (severeButton) {
+      const active = activeLoadPresentation(status);
+      const severeDelta = active
+        ? active.api.misfireLoadDelta(active.presentation.id, "Severe")
+        : 1;
+      severeButton.textContent = `Severe (+${severeDelta})`;
+    }
+    if (!note) return;
+    const copy = safeString(status.misfirePresentationLoadNotice || status.misfireBloodLoadNotice, 600);
+    if (!active || !copy) {
+      note.hidden = true;
+      note.textContent = "";
+      return;
+    }
+    note.hidden = false;
+    note.textContent = copy;
   }
 
   function renderTrackerBoard(board, trackers) {
@@ -1788,7 +1892,8 @@
         : Number(normalizeBoxValue(status[tracker.key], tracker.max));
       const editable = track ? track.operatorEditable !== false : true;
       const article = document.createElement("article");
-      article.className = `line-tracker ${tracker.kind}`;
+      const fillMeter = (tracker.kind || "").endsWith("_load");
+      article.className = `line-tracker ${tracker.kind}${fillMeter ? " fill-meter" : ""}`;
 
       const header = document.createElement("div");
       header.className = "pip-header";
@@ -1938,6 +2043,36 @@
       riskEl.innerHTML = `<strong>Risk:</strong> ${view.risk}`;
       body.append(riskEl);
     }
+    if (view.helps?.length) {
+      const helpsEl = document.createElement("p");
+      helpsEl.className = "pressure-readout-line";
+      helpsEl.innerHTML = `<strong>Helps:</strong> ${view.helps.join("; ")}`;
+      body.append(helpsEl);
+    }
+    if (view.hurts?.length) {
+      const hurtsEl = document.createElement("p");
+      hurtsEl.className = "pressure-readout-line";
+      hurtsEl.innerHTML = `<strong>Hurts:</strong> ${view.hurts.join("; ")}`;
+      body.append(hurtsEl);
+    }
+    if (view.handlerPrompt) {
+      const promptEl = document.createElement("p");
+      promptEl.className = "pressure-readout-line pressure-readout-risk";
+      promptEl.innerHTML = `<strong>Handler permission:</strong> ${view.handlerPrompt}`;
+      body.append(promptEl);
+    }
+    if (view.modifierRule) {
+      const modifierEl = document.createElement("p");
+      modifierEl.className = "pressure-readout-modifier";
+      modifierEl.textContent = view.modifierRule;
+      body.append(modifierEl);
+    }
+    if (view.misfireRule) {
+      const misfireRuleEl = document.createElement("p");
+      misfireRuleEl.className = "pressure-readout-line";
+      misfireRuleEl.innerHTML = `<strong>Misfire:</strong> ${view.misfireRule}`;
+      body.append(misfireRuleEl);
+    }
     if (view.value >= view.range.max && view.maxRisk) {
       const peakEl = document.createElement("p");
       peakEl.className = "pressure-readout-line pressure-readout-peak";
@@ -1961,7 +2096,13 @@
         const row = document.createElement("p");
         row.className = "pressure-band-ladder-row";
         if (entry.label === operating) row.classList.add("is-active");
-        row.textContent = `${entry.rangeLabel}: ${entry.label} — ${entry.descriptor}`;
+        const mechanics = [];
+        if (entry.helps?.length) mechanics.push(`Helps: ${entry.helps.join("; ")}`);
+        if (entry.hurts?.length) mechanics.push(`Hurts: ${entry.hurts.join("; ")}`);
+        if (entry.prompt) mechanics.push(`Handler: ${entry.prompt}`);
+        row.innerHTML = `${entry.rangeLabel}: ${entry.label} — ${entry.descriptor}${
+          mechanics.length ? `<span class="pressure-band-mechanics">${mechanics.join(" // ")}</span>` : ""
+        }`;
         ladder.append(row);
       });
       body.append(ladder);
@@ -1997,7 +2138,7 @@
       key: track.stateKey || track.id,
       label: presentation.trackLabel || track.label,
       max: track.range.max,
-      kind: track.kind === "blood_load" || track.kind === "essence_load" ? track.kind : "presentation"
+      kind: (track.kind || "").endsWith("_load") ? track.kind : "presentation"
     };
   }
 
@@ -2275,6 +2416,63 @@
     if (meaning) meaning.textContent = `${skill} ${targetRank} // ${skillRankLabel(targetRank)}: ${skillRankDescription(skill, targetRank)}`;
   }
 
+  function resolveRollLoadModifiers(status) {
+    const api = presentationPressureApi();
+    if (!api) {
+      return {
+        active: false,
+        band: "",
+        value: 0,
+        helpDelta: 0,
+        hurtDelta: 0,
+        delta: 0,
+        helps: [],
+        hurts: []
+      };
+    }
+    const key = presentationKeyFromDisplayName(status?.ontologyPresentation);
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    const skillKey = normalizeSkillName(status.rollSkillKey);
+    return api.rollLoadModifiers(status, key, attrKey, skillKey);
+  }
+
+  function formatRollLoadDetail(modifiers) {
+    if (!modifiers?.active) return "";
+    const lines = [];
+    (modifiers.helps || []).forEach((item) => {
+      lines.push(`+1 ${item.entry}`);
+    });
+    (modifiers.hurts || []).forEach((item) => {
+      lines.push(`-1 ${item.entry}`);
+    });
+    return lines.join(" // ");
+  }
+
+  function clearRollOutputPreview() {
+    const output = document.getElementById("roll-output");
+    if (output) delete output.dataset.rolled;
+    renderRollLoadPreview();
+  }
+
+  function renderRollLoadPreview() {
+    const output = document.getElementById("roll-output");
+    if (!output || output.dataset.rolled === "true") return;
+    const status = consoleState.operatorStatus;
+    const modifiers = resolveRollLoadModifiers(status);
+    if (modifiers.crisis) {
+      output.textContent = `${modifiers.trackLabel || "Load"} ${modifiers.band} (${modifiers.value}/6): ${modifiers.rollHint}`;
+      return;
+    }
+    if (!modifiers.active) {
+      output.textContent = "Awaiting action.";
+      return;
+    }
+    const detail = formatRollLoadDetail(modifiers);
+    const signedDelta = modifiers.delta > 0 ? `+${modifiers.delta}` : String(modifiers.delta);
+    const hint = modifiers.rollHint ? ` ${modifiers.rollHint}` : "";
+    output.textContent = `${modifiers.trackLabel || "Load"} ${modifiers.band} (${modifiers.value}/6): ${signedDelta} on this roll.${hint} ${detail}`.trim();
+  }
+
   function renderRollSelectors() {
     const attrSelect = document.getElementById("roll-attribute");
     const skillSelect = document.getElementById("roll-skill");
@@ -2289,6 +2487,14 @@
         attrSelect.append(option);
       });
       attrSelect.value = current;
+      if (!attrSelect.dataset.loadBound) {
+        attrSelect.dataset.loadBound = "true";
+        attrSelect.addEventListener("change", () => {
+          consoleState.operatorStatus.rollAttributeKey = attrSelect.value;
+          writeConsoleState();
+          clearRollOutputPreview();
+        });
+      }
     }
     if (skillSelect) {
       const current = normalizeSkillName(status.rollSkillKey);
@@ -2306,7 +2512,16 @@
         skillSelect.append(option);
       });
       skillSelect.value = current && entries.some((entry) => entry.name === current && entry.effectiveRank > 0) ? current : "";
+      if (!skillSelect.dataset.loadBound) {
+        skillSelect.dataset.loadBound = "true";
+        skillSelect.addEventListener("change", () => {
+          consoleState.operatorStatus.rollSkillKey = skillSelect.value;
+          writeConsoleState();
+          clearRollOutputPreview();
+        });
+      }
     }
+    renderRollLoadPreview();
   }
 
   function setTrackerValue(key, value, max, track) {
@@ -2325,6 +2540,7 @@
     }
     writeConsoleState();
     renderTrackers();
+    if ((track?.kind || "").endsWith("_load")) clearRollOutputPreview();
   }
 
   function renderSegmentedControls() {
@@ -2921,7 +3137,7 @@
 
   function collectStatusPayload() {
     const previous = consoleState.operatorStatus;
-    const status = { ...previous };
+    let status = { ...previous };
     document.querySelectorAll("#status-form input, #status-form textarea, #status-form select, #frequency-form input, #frequency-form textarea, #frequency-form select").forEach((input) => {
       if (!input.name) return;
       status[input.name] = input.type === "checkbox" ? input.checked : safeString(input.value, 3000);
@@ -2932,8 +3148,14 @@
     if (!guardBuildDefiningField("ontologyPresentation", status.ontologyPresentation)) {
       status.ontologyPresentation = safeString(previous.ontologyPresentation, 120);
     }
+    const misfireLoad = applyMisfirePresentationLoadTransition(status, previous);
+    status = misfireLoad.status;
     return {
       ...status,
+      misfireBloodLoadSignature: safeString(status.misfireBloodLoadSignature, 240),
+      misfireBloodLoadNotice: safeString(status.misfireBloodLoadNotice, 600),
+      misfirePresentationLoadSignature: safeString(status.misfirePresentationLoadSignature, 240),
+      misfirePresentationLoadNotice: safeString(status.misfirePresentationLoadNotice, 600),
       stability: normalizeStabilityValue(status.stability),
       stabilityBand: bandFromLegacyStability(status.stability),
       attentionState: normalizeAttentionState(status.attentionState),
@@ -2950,7 +3172,13 @@
       sanguineCoherence: deriveSanguineCoherence(status),
       bloodLoad: normalizeBoxValue(status.bloodLoad, 6),
       echoRecursionPressure: normalizeBoxValue(status.echoRecursionPressure, 6),
+      echoLoad: normalizeBoxValue(status.echoLoad, 6),
       essenceLoad: normalizeBoxValue(status.essenceLoad, 6),
+      instinctLoad: normalizeBoxValue(status.instinctLoad, 6),
+      signalLoad: normalizeBoxValue(status.signalLoad, 6),
+      functionLoad: normalizeBoxValue(status.functionLoad, 6),
+      sensoryLoad: normalizeBoxValue(status.sensoryLoad, 6),
+      silenceLoad: normalizeBoxValue(status.silenceLoad, 6),
       voidShardContamination: normalizeBoxValue(status.voidShardContamination, 6),
       dreamLucidityDebt: normalizeBoxValue(status.dreamLucidityDebt, 6),
       stillnessInertia: normalizeBoxValue(status.stillnessInertia, 6),
@@ -3094,8 +3322,16 @@
     const clearActiveMisfire = document.getElementById("clear-active-misfire");
     if (clearActiveMisfire) clearActiveMisfire.addEventListener("click", () => {
       consoleState.operatorStatus.activeMisfire = "";
+      consoleState.operatorStatus.misfireSeverity = "None";
+      consoleState.operatorStatus.misfireBloodLoadSignature = "";
+      consoleState.operatorStatus.misfireBloodLoadNotice = "";
+      consoleState.operatorStatus.misfirePresentationLoadSignature = "";
+      consoleState.operatorStatus.misfirePresentationLoadNotice = "";
       setNamedValue("activeMisfire", "");
+      setNamedValue("misfireSeverity", "None");
       writeConsoleState();
+      renderSegmentedControls();
+      renderMisfirePresentationLoadPanel();
       setStorageStatus("Active Misfire cleared. Recorded log retained.");
     });
     document.querySelectorAll("#status-form input, #status-form textarea, #status-form select, #frequency-form input, #frequency-form textarea, #frequency-form select").forEach((input) => {
@@ -3234,17 +3470,34 @@
     const skillKey = normalizeSkillName(status.rollSkillKey);
     const attrValue = Number(attrs[attrKey] || 0);
     const skillValue = skillKey ? effectiveSkillRank(skills, skillKey, status) : 0;
+    const loadMods = resolveRollLoadModifiers(status);
+    const loadDelta = loadMods.crisis ? 0 : Number(loadMods.delta || 0);
+    const manualModifier = Number(status.rollModifier || 0);
     const total = keptDice.values.reduce((sum, value) => sum + value, 0)
       + attrValue
       + skillValue
-      + Number(status.rollModifier || 0);
+      + manualModifier
+      + loadDelta;
     const output = document.getElementById("roll-output");
     if (output) {
       const modeText = rollMode === "ADVANTAGE" ? "ADVANTAGE KEEP BEST 3" : "DISADVANTAGE KEEP WORST 3";
       const diceText = rollMode === "STANDARD"
         ? `3D6 ${dice.join(" + ")}`
         : `4D6 ${dice.join(" + ")} // ${modeText} ${keptDice.values.join(" + ")} // DROP ${dropped.join(" + ")}`;
-      output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${status.rollModifier || 0} = ${total}`;
+      const loadParts = [];
+      if (loadMods.crisis) {
+        loadParts.push("Load crisis");
+      } else {
+        if (loadMods.helpDelta > 0) loadParts.push(`+${loadMods.helpDelta} Load`);
+        if (loadMods.hurtDelta > 0) loadParts.push(`-${loadMods.hurtDelta} Load`);
+      }
+      const loadText = loadParts.length
+        ? ` // ${loadParts.join(" ")} (${loadMods.band})`
+        : "";
+      const loadDetail = loadMods.active ? ` // ${formatRollLoadDetail(loadMods)}` : "";
+      const loadHint = loadMods.rollHint ? ` // ${loadMods.rollHint}` : "";
+      output.dataset.rolled = "true";
+      output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${loadText}${loadDetail}${loadHint} = ${total}`;
     }
   }
 

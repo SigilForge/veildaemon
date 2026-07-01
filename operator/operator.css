@@ -1069,8 +1069,7 @@ select.is-locked {
   box-shadow: inset 0 0 0 1px rgba(185,84,255,.42);
 }
 .line-tracker.pressure .pip.is-filled,
-.line-tracker.blood_load .pip.is-filled,
-.line-tracker.essence_load .pip.is-filled,
+.line-tracker[class*="_load"] .pip.is-filled,
 .line-tracker.hunger .pip.is-filled,
 .line-tracker.presentation .pip.is-filled {
   box-shadow: inset 0 0 0 1px rgba(255,179,71,.35);
@@ -1218,6 +1217,39 @@ select.is-locked {
 }
 .active-misfire-card .misfire-help-body li + li {
   margin-top: .18rem;
+}
+.misfire-severity-wrap {
+  display: grid;
+  gap: .35rem;
+  margin: .2rem 0 .45rem;
+}
+.misfire-severity-wrap .segmented.misfire-severity {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.misfire-presentation-load-note,
+.misfire-blood-load-note {
+  margin: 0;
+  padding: .45rem .55rem;
+  border: 1px solid rgba(168, 92, 148, .34);
+  background: rgba(0,0,0,.24);
+  color: rgba(255, 220, 236, .92);
+  font-size: .64rem;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+.pressure-readout-modifier {
+  margin: 0;
+  color: var(--muted);
+  font-size: .62rem;
+  line-height: 1.45;
+  font-style: italic;
+}
+.pressure-band-ladder-row .pressure-band-mechanics {
+  display: block;
+  margin-top: .12rem;
+  color: rgba(176, 196, 188, .82);
+  font-size: .58rem;
+  line-height: 1.35;
 }
 
 .skill-summary-card {
