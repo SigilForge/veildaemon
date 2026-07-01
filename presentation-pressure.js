@@ -173,11 +173,15 @@
           "4-5": "Predatory",
           6: "Feeding Risk"
         },
+        operatorIntro: "Mark intake fiction when the table earns it. Checked flags set the operating condition shown beside Hunger. Hunger band still drives cue and risk.",
+        operatorPriorityNote: "If multiple flags are checked: Collapse Risk beats Predatory Saturation beats Saturated beats Starved.",
         separateConditions: [
           {
             id: "starved",
             label: "Starved",
             flagKey: "sanguineStarved",
+            operatorEffect: "Operating condition reads Starved — cold embodiment and narrowing empathy.",
+            operatorHint: "Mark after prolonged hunger without safe intake, or when empathy is visibly narrowing.",
             note: "Cold embodiment, narrowing empathy, predatory problem-solving.",
             derivesWhen: "hunger high + no intake / cold embodiment"
           },
@@ -185,6 +189,8 @@
             id: "saturated",
             label: "Saturated",
             flagKey: "sanguineSaturated",
+            operatorEffect: "Operating condition reads Saturated — recent intake overload, warmth with amplified bleed.",
+            operatorHint: "Mark right after feeding or intake fiction that overloads the body.",
             note: "Recent intake amplifies emotional bleed.",
             derivesWhen: "recent intake overload"
           },
@@ -192,6 +198,8 @@
             id: "predatory_saturation",
             label: "Predatory Saturation",
             flagKey: "sanguinePredatorySaturation",
+            operatorEffect: "Operating condition reads Predatory Saturation — appetite starts organizing choices before consent catches up.",
+            operatorHint: "Mark when saturated plus a hunger spike, failed restraint, or pursuit pressure at the table.",
             note: "Appetite organizes behavior; human logic becomes performative.",
             derivesWhen: "saturated + hunger spike / failed restraint"
           },
@@ -199,8 +207,22 @@
             id: "collapse_risk",
             label: "Collapse Risk",
             flagKey: "sanguineCollapseRisk",
+            operatorEffect: "Operating condition reads Collapse Risk — overrides every other intake flag.",
+            operatorHint: "Mark for Stability collapse, identity venting, or resonance blowout — not a normal hunger beat.",
             note: "Identity fragmentation or uncontrolled resonance venting.",
             derivesWhen: "stability/collapse condition, not a normal hunger band"
+          }
+        ],
+        overrideOptions: [
+          {
+            value: "",
+            label: "Derived",
+            operatorHint: "Use Hunger band plus intake flags above."
+          },
+          {
+            value: "Heightened",
+            label: "Heightened",
+            operatorHint: "Sharpened presence and recovery; donor fixation risk."
           }
         ]
       },

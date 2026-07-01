@@ -613,40 +613,92 @@ select.is-locked {
 .pressure-readout-note {
   font-style: italic;
 }
-.pressure-readout-flags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .35rem .65rem;
-  margin: .2rem 0 0;
-  padding: .35rem .4rem;
-  border: 0;
-  background: rgba(0,0,0,.12);
+.pressure-readout-advanced {
+  display: grid;
+  gap: .45rem;
+  margin-top: .35rem;
+  padding: .45rem .5rem;
+  border: 1px solid rgba(137,255,218,.08);
+  background: rgba(0,0,0,.1);
 }
-.pressure-readout-flags label {
-  display: inline-flex;
-  align-items: center;
-  gap: .28rem;
-  font-size: .6rem;
+.pressure-readout-subheading {
+  margin: 0;
+  color: var(--cyan);
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.pressure-readout-help {
+  margin: 0;
   color: var(--muted);
+  font-size: .6rem;
+  line-height: 1.4;
 }
-.pressure-readout-flags input {
+.pressure-readout-flag-list {
+  display: grid;
+  gap: .55rem;
+}
+.console-form .pressure-readout-flag-row {
+  display: grid;
+  grid-template-columns: 1.1rem minmax(0, 1fr);
+  gap: .5rem;
+  align-items: start;
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+}
+.pressure-readout-flag-row input {
+  margin-top: .18rem;
   accent-color: #c45a8a;
 }
-.pressure-readout-override {
-  display: inline-flex;
-  align-items: center;
-  gap: .35rem;
-  font-size: .6rem;
-  color: var(--muted);
+.pressure-readout-flag-copy {
+  display: grid;
+  gap: .18rem;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
-.pressure-readout-override select {
-  min-height: 1.65rem;
+.pressure-readout-flag-copy strong {
+  color: var(--text);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  line-height: 1.35;
+  text-transform: none;
+}
+.pressure-readout-flag-effect {
+  color: rgba(230, 255, 247, .92);
+  font-size: .62rem;
+  line-height: 1.45;
+}
+.pressure-readout-flag-when {
+  color: var(--muted);
+  font-size: .6rem;
+  line-height: 1.4;
+}
+.pressure-readout-priority {
+  color: rgba(255, 196, 170, .82);
+}
+.pressure-readout-override-block {
+  display: grid;
+  gap: .35rem;
+  padding-top: .35rem;
+  border-top: 1px solid rgba(137,255,218,.08);
+}
+.pressure-readout-override-block select {
+  width: 100%;
+  min-height: 2rem;
   border: 1px solid rgba(137,255,218,.16);
   background: rgba(0,0,0,.24);
   color: var(--text);
   font: inherit;
-  font-size: .6rem;
-  padding: .15rem .35rem;
+  font-size: .64rem;
+  padding: .3rem .45rem;
 }
 
 .tracker-board {
