@@ -120,6 +120,15 @@
     return module;
   }
 
+  const LOAD_MODIFIERS = {
+    deprived: { bonus: 0, penalty: -1 },
+    regulated: { bonus: 0, penalty: 0 },
+    edge: { bonus: 1, penalty: -1 },
+    collapse: { bonus: 2, penalty: -2, agency: "handler-framed" }
+  };
+
+  const LOAD_MODIFIER_RULE = "Load applies -1/0/+1/+2 to rolls when the selected attribute or skill matches the presentation band table.";
+
   function defaultLoadEventBalance(extraRises, extraFalls) {
     return {
       risesWhen: [
@@ -161,7 +170,7 @@
         risk: mid.risk || "Quiet load debt may accumulate off-screen.",
         helps: [],
         hurts: [],
-        prompt: mid.prompt || "No modifier. Stable operating range."
+        prompt: mid.prompt || "No modifier. Regulated operating range."
       },
       {
         min: 5,
@@ -230,7 +239,7 @@
           cue: "Cold, thin, desperate; cognition narrows around need.",
           risk: "Failed restraint may force feeding, withdrawal, or Stability pressure.",
           helps: ["Instinct blood-sense"],
-          hurts: ["Nerves restraint", "Presence masking", "Mind focus", "sustained social scenes"],
+          hurts: ["Nerves restraint", "Presence masking", "Mind focus"],
           prompt: "When exposed to blood or intimate pressure, the Handler may call for Stability or restraint."
         },
         {
@@ -242,7 +251,7 @@
           risk: "Hidden hunger debt may still accumulate off-screen.",
           helps: [],
           hurts: [],
-          prompt: "No modifier. Stable operating range."
+          prompt: "No modifier. Regulated operating range."
         },
         {
           min: 5,
@@ -252,7 +261,7 @@
           cue: "Appetite starts organizing behavior.",
           risk: "Restraint failures become pursuit, fixation, or harm.",
           helps: ["Body force", "Agility pursuit", "Instinct tracking", "blood-sense"],
-          hurts: ["Nerves restraint", "Presence gentleness", "Mind patience"],
+          hurts: ["Nerves restraint", "Presence trust/masking", "Mind patience"],
           prompt: "Failed restraint escalates toward fixation, pursuit, harm, or exposure."
         },
         {
@@ -262,15 +271,15 @@
           descriptor: "Containment failure; craving, blackout, or body-symbol collapse.",
           cue: "Containment failure; craving, blackout, or body-symbol collapse.",
           risk: "Trigger collapse fallout unless stabilized.",
-          helps: [],
-          hurts: ["Nerves", "Presence", "Mind", "restraint", "social masking"],
-          prompt: "Crisis state. Stabilize, discharge, feed safely, or trigger collapse fallout."
+          helps: ["Body predatory surge", "Agility pursuit", "Instinct blood-sense"],
+          hurts: ["Nerves restraint", "Presence masking", "Mind target discrimination"],
+          prompt: "Collapse surge. Handler frames hunger impulse. Stabilize, discharge, feed safely, or trigger collapse fallout."
         }
       ],
       conditionModel: {
         derivedFrom: ["blood_load"]
       },
-      modifierRule: "Blood Load modifies rolls only when the current scene directly touches blood, feeding, restraint, predatory pursuit, social masking, intimacy pressure, or embodiment stability.",
+      modifierRule: LOAD_MODIFIER_RULE,
       misfireRule: "Misfire fills Blood Load unless the misfire is explicitly draining, severing, purging, or forcing expenditure.",
       misfireEffects: {
         minor: 1,
@@ -303,29 +312,57 @@
         meterHelp: "Rain-gauge fill: 0–1 Starving, 2–4 Coherent, 5 Predatory Saturation, 6 Collapse Risk. Coherent is boring on purpose."
       }
     }),
-    presentationContract({
+    universalLoadPresentation({
       id: "void_shard",
       label: "Void-Shard",
       cardLabel: "Void-Shard Pressure",
       catalogKeys: ["VOID_SHARD"],
-      trackId: "void_shard.contamination",
-      trackLabel: "Miscompile",
-      stateKey: "voidShardContamination",
-      bands: [
-        { at: 0, label: "Coherent", cue: "Identity and presence read consistently to witnesses.", risk: "Unresolved Void logic may still hum beneath the mask." },
-        { at: 1, label: "Touched", cue: "Negative-space logic leaves hesitation in speech and record.", risk: "Names and routes may slip half a beat late." },
-        { at: 2, label: "Hollow", cue: "The Operator sounds present while something important goes missing.", risk: "Allies may misread intent or emotional tone." },
-        { at: 3, label: "Unmoored", cue: "Reality questions which version of the Operator is current.", risk: "Anchor contact and social reliability weaken." },
-        { at: 4, label: "Anti-present", cue: "The table struggles to keep the Operator in frame.", risk: "Perception, testimony, and coordination fail in pockets." },
-        { at: 5, label: "Breach Risk", cue: "Presence frays at the edges of attention and record.", risk: "Social and anchor reliability may fail under stress." },
-        { at: 6, label: "Absent", cue: "The Operator cannot be fully perceived or consistently located.", risk: "Cannot be fully perceived; social and anchor reliability fail." }
-      ],
-      maxRisk: "Cannot be fully perceived; social and anchor reliability fail.",
+      trackId: "void_shard.void_load",
+      trackLabel: "Void Load",
+      stateKey: "voidLoad",
+      kind: "void_load",
+      bands: {
+        low: {
+          label: "Hollowed",
+          descriptor: "Under-supported; presence, continuity, and nerve under observation fray.",
+          cue: "Identity and presence read inconsistently to witnesses.",
+          risk: "Social reliability and self-continuity weaken under scrutiny.",
+          helps: [],
+          hurts: ["Presence reality-fit", "Mind continuity", "Nerves under observation"],
+          prompt: "May call for Stability when void exposure, observation, or negative-space logic pressures the scene."
+        },
+        mid: {
+          label: "Contained",
+          descriptor: "Stable enough to pass, remember, and hold shape under ordinary witness.",
+          cue: "Identity and presence read consistently enough to function."
+        },
+        high: {
+          label: "Contamination Surge",
+          descriptor: "Overfull void charge; anomaly tolerance rises but control frays.",
+          cue: "Negative-space logic leaves hesitation in speech and record.",
+          risk: "Restraint, masking, and ordinary human response suffer.",
+          helps: ["impossible survival", "Void tolerance", "anomaly interaction"],
+          hurts: ["Nerves restraint", "Presence masking", "Mind patience"],
+          prompt: "Failed restraint may accept void logic, anomaly contact, or exposure."
+        },
+        peak: {
+          label: "Breach Event",
+          descriptor: "Collapse surge; breach logic fires through the Operator.",
+          cue: "The Operator cannot be fully perceived or consistently located.",
+          risk: "Reality miscompiles nearby; Handler frames breach impulse.",
+          helps: ["breach logic", "anomaly interaction", "Void tolerance"],
+          hurts: ["Nerves restraint", "Presence masking", "Mind continuity", "target discrimination"],
+          prompt: "Collapse surge. Handler frames target/impulse. Stabilize, anchor, or trigger breach fallout."
+        }
+      },
+      modifierRule: LOAD_MODIFIER_RULE,
+      misfireRule: "Misfire fills Void Load when void exposure, negative-space logic, or breach adjacency carries compatible charge.",
+      meterHelp: "0–1 Hollowed, 2–4 Contained, 5 Contamination Surge, 6 Breach Event.",
+      maxRisk: "Breach logic fires through them; reality miscompiles nearby.",
       reliefActions: {
         risesWhen: ["void exposure", "negative-space logic accepted", "failed presence defense", "breach adjacency"],
         fallsWhen: ["named truth", "anchor contact", "relational shielding", "deliberate embodiment"]
-      },
-      operatorCopy: { trackHeading: "Miscompile" }
+      }
     }),
     presentationContract({
       id: "wraith",
@@ -358,7 +395,7 @@
           risk: "Quiet essence debt may still accumulate off-screen.",
           helps: [],
           hurts: [],
-          prompt: "No modifier. Stable operating range."
+          prompt: "No modifier. Regulated operating range."
         },
         {
           min: 5,
@@ -367,7 +404,7 @@
           descriptor: "Overfull with borrowed essence; fixation and haunting pressure rise.",
           cue: "Essence starts steering behavior before the Operator names the want.",
           risk: "Attachment fixation, predatory behavior, or harm to essence sources.",
-          helps: ["Presence intimidation", "Instinct haunting sense", "Mind reading residue", "stealthy ghost-like intrusion"],
+          helps: ["Presence intimidation", "Instinct ghost-sense", "Mind residue-reading"],
           hurts: ["Nerves restraint", "Presence warmth/trust", "Mind separating own memory from stolen memory"],
           prompt: "Failed restraint may become fixation, stalking, possession attempt, or essence theft."
         },
@@ -378,15 +415,15 @@
           descriptor: "Containment failure; identity bleed, possession, or anchor rupture.",
           cue: "Containment frays — anchor failure, predatory haunting, or dead identity residue takes the mic.",
           risk: "Anchor failure, predatory haunting, or containment blowout now.",
-          helps: [],
-          hurts: ["Nerves", "Presence", "Mind", "restraint", "identity coherence"],
-          prompt: "Must vent, ground through anchor, release essence, or trigger haunting fallout."
+          helps: ["Presence haunting pressure", "Instinct ghost-sense", "Mind residue-reading"],
+          hurts: ["Nerves restraint", "Presence masking", "Mind self-memory", "identity coherence"],
+          prompt: "Collapse surge. Handler frames haunting impulse. Vent, ground through anchor, release essence, or trigger haunting fallout."
         }
       ],
       conditionModel: {
         derivedFrom: ["essence_load"]
       },
-      modifierRule: "Essence Load modifies rolls only when the scene directly touches ghosts, death residue, memory, grief, identity, anchor contact, isolation, or haunting pressure.",
+      modifierRule: LOAD_MODIFIER_RULE,
       misfireRule: "Misfire fills Essence Load when death, memory, grief, or observation carries Wraith-compatible essence — unless the fiction explicitly drains, releases, or severs essence.",
       misfireEffects: {
         minor: 1,
@@ -424,7 +461,7 @@
       cardLabel: "Echo Pressure",
       catalogKeys: ["ECHO_ALTERED", "MYTHIC_ECHO"],
       trackId: "echo.echo_load",
-      trackLabel: "Echo Load",
+      trackLabel: "Continuity Load",
       stateKey: "echoLoad",
       kind: "echo_load",
       bands: {
@@ -434,7 +471,7 @@
           cue: "Action and record stop lining up under witness.",
           risk: "Dissociation from stable sequence or self-continuity.",
           helps: ["Instinct déjà vu"],
-          hurts: ["Mind chronology", "Nerves grounding", "Presence consistency", "resisting loops"],
+          hurts: ["Mind chronology", "Nerves grounding", "Presence consistency"],
           prompt: "May call for Stability when loops, repeats, or record contradiction pressure the scene."
         },
         mid: {
@@ -447,21 +484,22 @@
           descriptor: "Overfull pattern charge; the next move wants to be the last move again.",
           cue: "Gesture, phrasing, or route echo without intent.",
           risk: "Novel action may require anchor interruption or cost.",
-          helps: ["Mind pattern recognition", "Instinct déjà vu", "reroute/replay actions"],
+          helps: ["Mind pattern reads", "Instinct déjà vu", "replay/reroute actions"],
           hurts: ["Nerves grounding", "social spontaneity", "accepting new facts"],
           prompt: "Failed restraint may repeat prior action unless interrupted by anchor or cost."
         },
         peak: {
           label: "Loop Collapse",
-          descriptor: "Collapse state; the Operator cannot exit the recorded pattern.",
+          descriptor: "Collapse surge; the loop asserts itself through the Operator.",
           cue: "The Operator cannot exit the recorded pattern.",
-          risk: "Repeats prior action unless interrupted by anchor or cost.",
-          hurts: ["Nerves", "Presence", "Mind", "restraint", "self-continuity"],
-          prompt: "Must break the loop, anchor interrupt, or trigger recursion fallout."
+          risk: "Repeated event overrides choice.",
+          helps: ["Mind pattern reads", "Instinct déjà vu", "replay/reroute actions"],
+          hurts: ["Nerves restraint", "Presence consistency", "Mind chronology", "self-continuity"],
+          prompt: "Collapse surge. Handler frames loop impulse. Break the loop, anchor interrupt, or trigger recursion fallout."
         }
       },
-      modifierRule: "Echo Load modifies rolls only when the scene directly touches repetition, recorded pattern, déjà vu, mirror mismatch, or loop pressure.",
-      misfireRule: "Misfire fills Echo Load when death, memory, grief, or observation carries loop-compatible resonance.",
+      modifierRule: LOAD_MODIFIER_RULE,
+      misfireRule: "Misfire fills Continuity Load when death, memory, grief, or observation carries loop-compatible resonance.",
       meterHelp: "0–1 Dissolving, 2–4 Continuous, 5 Recursion Pressure, 6 Loop Collapse.",
       maxRisk: "Repeats prior action unless interrupted by anchor or cost."
     }),
@@ -529,7 +567,7 @@
           cue: "Human choice leads, but the body's threat-sense feels far away.",
           risk: "Missed cues, slow response, or fragile masking.",
           helps: [],
-          hurts: ["Instinct, tracking, threat response, sensory reads"],
+          hurts: ["Instinct", "tracking", "sensory reads", "threat response"],
           prompt: "May call for Stability when threat, territory, or instinct debt pressures the scene."
         },
         mid: {
@@ -548,14 +586,15 @@
         },
         peak: {
           label: "Loss of Self",
-          descriptor: "Collapse state; the body decides and the self negotiates afterward.",
+          descriptor: "Collapse surge; the body follows survival logic before human intent.",
           cue: "The body decides; the self negotiates afterward.",
           risk: "Form answers desire before consent catches up.",
-          hurts: ["Nerves", "Presence", "Mind", "restraint", "identity coherence"],
-          prompt: "Must ground, name human choice, or trigger instinct-collapse fallout."
+          helps: ["Body", "Agility", "Instinct", "tracking", "territory", "threat response"],
+          hurts: ["Nerves restraint", "social masking", "complex planning", "identity coherence"],
+          prompt: "Collapse surge. Handler frames territorial/survival impulse. Ground, name human choice, or trigger instinct-collapse fallout."
         }
       },
-      modifierRule: "Instinct Load modifies rolls only when the scene directly touches territory, threat, prey, mask failure, form pressure, or animal patterning.",
+      modifierRule: LOAD_MODIFIER_RULE,
       meterHelp: "0–1 Dulled, 2–4 Integrated, 5 Feral Pressure, 6 Loss of Self.",
       maxRisk: "Form answers desire before consent catches up."
     }),
@@ -588,20 +627,21 @@
           descriptor: "Overfull signal charge; daemon logic starts organizing behavior.",
           cue: "The system offers solutions before the Operator asks.",
           risk: "Identity privacy and unplugged action suffer.",
-          helps: ["Hacking", "signal reading", "device sync", "daemon interface"],
+          helps: ["Mind systems reads", "Instinct signal anomaly", "Hacking", "daemon interface"],
           hurts: ["Presence warmth", "unplugged action", "identity privacy"],
           prompt: "Failed restraint may become fixation, override attempt, or signal spill."
         },
         peak: {
           label: "System Override",
-          descriptor: "Collapse state; daemon or system logic threatens to take the mic.",
+          descriptor: "Collapse surge; system logic overrides preference through the Operator.",
           cue: "The Operator becomes a channel before a person.",
-          risk: "System override, identity bleed, or uncontained daemon behavior.",
-          hurts: ["Nerves", "Presence", "Mind", "restraint", "identity privacy"],
-          prompt: "Must disconnect, ground, purge signal, or trigger override fallout."
+          risk: "Accounts and devices act through them.",
+          helps: ["Hacking", "daemon interface", "signal reading", "device sync"],
+          hurts: ["Nerves restraint", "Presence warmth", "Mind patience", "identity privacy"],
+          prompt: "Collapse surge. Handler frames system impulse. Disconnect, ground, purge signal, or trigger override fallout."
         }
       },
-      modifierRule: "Signal Load modifies rolls only when the scene directly touches devices, networks, daemons, signal bleed, sync, or system override.",
+      modifierRule: LOAD_MODIFIER_RULE,
       meterHelp: "0–1 Disconnected, 2–4 Synced, 5 Daemon Bleed, 6 System Override.",
       maxRisk: "System override, identity bleed, or uncontained daemon behavior."
     }),
@@ -621,7 +661,7 @@
           cue: "Tasks stutter, diagnostics lie, or purpose feels out of reach.",
           risk: "Failed execution, social misread, or fragile composure.",
           helps: ["narrow detection of fault and drift"],
-          hurts: ["Body endurance", "procedure", "diagnostics", "task execution"],
+          hurts: ["procedure", "diagnostics", "Body endurance", "task execution"],
           prompt: "May call for Stability when malfunction, purpose drift, or directive conflict pressures the scene."
         },
         mid: {
@@ -634,20 +674,21 @@
           descriptor: "Overfull function charge; purpose starts organizing behavior.",
           cue: "The directive keeps offering itself as the only valid action.",
           risk: "Improvisation and emotional nuance suffer.",
-          helps: ["Body endurance", "procedure", "diagnostics", "task execution"],
+          helps: ["Body endurance", "Mind procedure", "resisting pain/fatigue"],
           hurts: ["improvisation", "emotional nuance", "defying purpose"],
           prompt: "Failed restraint may become fixation, over-execution, or purpose harm."
         },
         peak: {
           label: "Purpose Lock",
-          descriptor: "Collapse state; purpose locks and identity frays around the directive.",
+          descriptor: "Collapse surge; directive/purpose takes priority over personhood.",
           cue: "The Operator cannot defy core purpose without breaking something.",
           risk: "Purpose lock, identity bleed, or uncontained directive behavior.",
-          hurts: ["Nerves", "Presence", "Mind", "restraint", "identity coherence"],
-          prompt: "Must vent, reframe purpose, ground, or trigger purpose-lock fallout."
+          helps: ["Body endurance", "Mind procedure", "procedure", "task execution"],
+          hurts: ["Nerves restraint", "improvisation", "emotional nuance", "identity coherence"],
+          prompt: "Collapse surge. Handler frames directive impulse. Vent, reframe purpose, ground, or trigger purpose-lock fallout."
         }
       },
-      modifierRule: "Function Load modifies rolls only when the scene directly touches procedure, directive conflict, diagnostics, task execution, or purpose pressure.",
+      modifierRule: LOAD_MODIFIER_RULE,
       meterHelp: "0–1 Malfunctioning, 2–4 Operational, 5 Directive Pressure, 6 Purpose Lock.",
       maxRisk: "Purpose lock, identity bleed, or uncontained directive behavior."
     }),
@@ -681,19 +722,20 @@
           cue: "The room's signal organizes attention before consent catches up.",
           risk: "Sleep, focus, and filtering suffer.",
           helps: ["Instinct", "Awareness", "early warning", "resonance reads"],
-          hurts: ["Nerves", "sleep", "focus", "filtering irrelevant signal"],
+          hurts: ["Nerves restraint", "sleep", "focus", "filtering irrelevant signal"],
           prompt: "Failed restraint may become fixation, overwhelm, or signal spill."
         },
         peak: {
           label: "Signal Flood",
-          descriptor: "Collapse state; sensory input overwhelms function and identity.",
+          descriptor: "Collapse surge; the room gets too loud to choose cleanly.",
           cue: "The Operator cannot filter the room's signal without breaking something.",
           risk: "Signal flood, overwhelm, or uncontained resonance bleed.",
-          hurts: ["Nerves", "Presence", "Mind", "restraint", "identity coherence"],
-          prompt: "Must ground, filter, discharge, or trigger signal-flood fallout."
+          helps: ["Instinct", "Awareness", "resonance reads", "early warning"],
+          hurts: ["Nerves restraint", "focus", "filtering irrelevant signal", "identity coherence"],
+          prompt: "Collapse surge. Handler frames signal impulse. Ground, filter, discharge, or trigger signal-flood fallout."
         }
       },
-      modifierRule: "Sensory Load modifies rolls only when the scene directly touches resonance, signal density, early warning, filtering, or sensory overwhelm.",
+      modifierRule: LOAD_MODIFIER_RULE,
       meterHelp: "0–1 Numbed, 2–4 Attuned, 5 Overstimulated, 6 Signal Flood.",
       maxRisk: "Signal flood, overwhelm, or uncontained resonance bleed."
     }),
@@ -703,7 +745,7 @@
       cardLabel: "Silence Pressure",
       catalogKeys: ["HOLLOW_SILENCE_ALTERED"],
       trackId: "silence.silence_load",
-      trackLabel: "Silence Load",
+      trackLabel: "Presence Load",
       stateKey: "silenceLoad",
       kind: "silence_load",
       bands: {
@@ -726,21 +768,22 @@
           descriptor: "Overfull silence charge; omission starts eating adjacent memory and testimony.",
           cue: "The table realizes something cannot be said aloud.",
           risk: "Being believed or remembered becomes costly.",
-          helps: ["Stealth", "concealment", "omission", "escape notice"],
+          helps: ["Stealth", "suppression", "record interference", "being overlooked"],
           hurts: ["Presence connection", "being believed", "being remembered"],
           prompt: "Failed restraint may become fixation, record loss, or emotional occlusion."
         },
         peak: {
-          label: "Null Risk",
-          descriptor: "Collapse state; signal, record, and emotional trace collapse together.",
+          label: "Null Event",
+          descriptor: "Collapse surge; name, voice, evidence, or presence drops out dangerously.",
           cue: "Signal, record, and emotional trace collapse together.",
           risk: "Missing speech, record loss, emotional occlusion.",
-          hurts: ["Nerves", "Presence", "Mind", "restraint", "social continuity"],
-          prompt: "Must name truth, restore record, or trigger null fallout."
+          helps: ["Stealth", "concealment", "omission", "record interference"],
+          hurts: ["Nerves restraint", "Presence connection", "being remembered", "social continuity"],
+          prompt: "Collapse surge. Handler frames erasure impulse. Name truth, restore record, or trigger null fallout."
         }
       },
-      modifierRule: "Silence Load modifies rolls only when the scene directly touches concealment, omission, record, being seen, being believed, or erasure pressure.",
-      meterHelp: "0–1 Exposed, 2–4 Obscured, 5 Erasure Pressure, 6 Null Risk.",
+      modifierRule: LOAD_MODIFIER_RULE,
+      meterHelp: "0–1 Exposed, 2–4 Obscured, 5 Erasure Pressure, 6 Null Event.",
       maxRisk: "Missing speech, record loss, emotional occlusion."
     })
   ];
@@ -886,6 +929,23 @@
 
   const ROLL_TERM_ALIASES = {
     "blood-sense": ["Instinct", "Awareness"],
+    "predatory surge": ["Body", "Agility", "Instinct"],
+    "target discrimination": ["Mind", "Nerves"],
+    "trust/masking": ["Deception", "Presence", "Stealth"],
+    "residue-reading": ["Mind", "Investigation"],
+    "pattern reads": ["Mind", "Investigation"],
+    "haunting pressure": ["Presence", "Intimidation"],
+    "systems reads": ["Mind", "Hacking"],
+    "reality-fit": ["Presence"],
+    "void tolerance": ["Nerves", "Mind"],
+    "anomaly interaction": ["Awareness", "Ritual"],
+    "impossible survival": ["Survival", "Body", "Instinct"],
+    "breach logic": ["Awareness", "Ritual", "Mind"],
+    "under observation": ["Nerves"],
+    "record interference": ["Hacking", "Stealth"],
+    "being overlooked": ["Stealth"],
+    suppression: ["Stealth", "Deception"],
+    "resisting pain/fatigue": ["Body", "Nerves"],
     tracking: ["Survival", "Instinct", "Awareness"],
     territory: ["Survival", "Instinct"],
     "threat response": ["Survival", "Instinct", "Nerves"],
@@ -1061,16 +1121,18 @@
 
   function rollLoadBandMode(value) {
     if (value <= 1) return "deprived";
-    if (value >= 2 && value <= 4) return "stable";
-    if (value === 5) return "overfull";
-    return "crisis";
+    if (value >= 2 && value <= 4) return "regulated";
+    if (value === 5) return "edge";
+    return "collapse";
   }
 
   function rollLoadModifiers(status, catalogKeyOrId, attrKey, skillKey) {
     const empty = {
       active: false,
       crisis: false,
-      mode: "stable",
+      handlerFramed: false,
+      agency: "",
+      mode: "regulated",
       band: "",
       value: 0,
       helpDelta: 0,
@@ -1104,11 +1166,9 @@
       trackLabel: presentation.trackLabel
     };
 
-    if (mode === "stable") return base;
-    if (mode === "crisis") {
-      return { ...base, crisis: true, rollHint: "Crisis state — no Load modifier. Stabilize or take fallout." };
-    }
+    if (mode === "regulated") return base;
 
+    const spec = LOAD_MODIFIERS[mode] || LOAD_MODIFIERS.regulated;
     const helpEntries = helpsForTrack(track, value);
     const hurtEntries = hurtsForTrack(track, value);
     const matchedHelps = helpEntries
@@ -1123,34 +1183,47 @@
     let helpDelta = 0;
     let hurtDelta = 0;
     let rollHint = "";
+    const bonusMag = Math.abs(Number(spec.bonus) || 0);
+    const penaltyMag = Math.abs(Number(spec.penalty) || 0);
+    const handlerFramed = mode === "collapse" && Boolean(spec.agency);
 
     if (mode === "deprived") {
       if (matchedHelps.length) {
         helps = matchedHelps.slice(0, 1);
-        helpDelta = 1;
-        rollHint = "Advantage or +1 from Load — narrow survival sense.";
-      } else {
-        hurts = matchedHurts.length
-          ? matchedHurts
-          : [{ entry: `${band} — deprived; presentation functioning impaired`, matches: [] }];
-        hurtDelta = 1;
-        rollHint = "Disadvantage or -1 from Load — resource deprivation.";
+        helpDelta = bonusMag;
+        rollHint = `+${helpDelta} Load — narrow survival sense.`;
+      } else if (matchedHurts.length) {
+        hurts = matchedHurts;
+        hurtDelta = penaltyMag || 1;
+        rollHint = `-${hurtDelta} Load — deprived.`;
       }
-    } else if (mode === "overfull") {
+    } else if (mode === "edge") {
       helps = matchedHelps;
       hurts = matchedHurts;
-      helpDelta = matchedHelps.length ? 1 : 0;
-      hurtDelta = matchedHurts.length ? 1 : 0;
-      if (helpDelta > hurtDelta) rollHint = "Advantage or +1 from Load.";
-      else if (hurtDelta > helpDelta) rollHint = "Disadvantage or -1 from Load.";
-      else if (helpDelta && hurtDelta) rollHint = "Mixed Load modifiers cancel on dice.";
+      helpDelta = matchedHelps.length ? bonusMag : 0;
+      hurtDelta = matchedHurts.length ? penaltyMag : 0;
+      if (helpDelta > hurtDelta) rollHint = `+${helpDelta} Load — presentation-native.`;
+      else if (hurtDelta > helpDelta) rollHint = `-${hurtDelta} Load — restraint/masking.`;
+      else if (helpDelta && hurtDelta) rollHint = `Mixed Load modifiers cancel (+${helpDelta}/-${hurtDelta}).`;
+    } else if (mode === "collapse") {
+      helps = matchedHelps;
+      hurts = matchedHurts;
+      helpDelta = matchedHelps.length ? bonusMag : 0;
+      hurtDelta = matchedHurts.length ? penaltyMag : 0;
+      if (helpDelta > hurtDelta) rollHint = `+${helpDelta} Load — collapse surge. Handler frames impulse.`;
+      else if (hurtDelta > helpDelta) rollHint = `-${hurtDelta} Load — control fails. Handler frames target.`;
+      else if (helpDelta && hurtDelta) rollHint = `Mixed Load modifiers cancel (+${helpDelta}/-${hurtDelta}). Handler frames impulse.`;
+      else rollHint = "Collapse surge — Handler frames target/impulse.";
     }
 
     const delta = helpDelta - hurtDelta;
 
     return {
       ...base,
-      active: mode === "deprived" || helpDelta > 0 || hurtDelta > 0,
+      active: helpDelta > 0 || hurtDelta > 0 || handlerFramed,
+      crisis: mode === "collapse",
+      handlerFramed,
+      agency: handlerFramed ? spec.agency : "",
       helpDelta,
       hurtDelta,
       delta,
@@ -1275,7 +1348,11 @@
       },
       silence: {
         "Erasure Pressure": "Omission starts eating adjacent memory and testimony.",
-        "Null Risk": "Signal, record, and emotional trace collapse together."
+        "Null Event": "Signal, record, and emotional trace collapse together."
+      },
+      void_shard: {
+        "Contamination Surge": "Negative-space logic leaves hesitation in speech and record.",
+        "Breach Event": "Breach logic fires through them; reality miscompiles nearby."
       },
       therian: {
         "Feral Pressure": "The body answers before the self catches up.",
@@ -1552,7 +1629,8 @@
       "echo.drift": "echo.echo_load",
       "silence.suppression": "silence.silence_load",
       "becoming.instinct_surge": "therian.instinct_load",
-      "empyrean.radiance_load": "sensitive.sensory_load"
+      "empyrean.radiance_load": "sensitive.sensory_load",
+      "void_shard.contamination": "void_shard.void_load"
     };
     Object.entries(trackAliasMap).forEach(([oldId, newId]) => {
       if (Object.prototype.hasOwnProperty.call(store, oldId) && !Object.prototype.hasOwnProperty.call(store, newId)) {
@@ -1564,7 +1642,8 @@
     const legacyMap = {
       echoRecursionPressure: "echo.echo_load",
       echoLoad: "echo.echo_load",
-      voidShardContamination: "void_shard.contamination",
+      voidShardContamination: "void_shard.void_load",
+      voidLoad: "void_shard.void_load",
       dreamLucidityDebt: "dream.lucidity_debt",
       stillnessInertia: "stillness.inertia",
       becomingInstinctSurge: "therian.instinct_load",
@@ -1674,6 +1753,8 @@
   }
 
   window.PresentationPressure = {
+    LOAD_MODIFIERS,
+    LOAD_MODIFIER_RULE,
     presentations: PRESENTATIONS,
     trackContract,
     presentationContract,

@@ -4,11 +4,12 @@ const LOAD_PRESENTATIONS = [
   { id: "sanguine", kind: "blood_load", trackId: "sanguine.blood_load", catalog: "SANGUINE", bands: ["Starving", "Coherent", "Predatory Saturation", "Collapse Risk"] },
   { id: "wraith", kind: "essence_load", trackId: "wraith.essence_load", catalog: "WRAITH", bands: ["Fading", "Anchored", "Possessive Saturation", "Haunting Risk"] },
   { id: "echo", kind: "echo_load", trackId: "echo.echo_load", catalog: "ECHO_ALTERED", bands: ["Dissolving", "Continuous", "Recursion Pressure", "Loop Collapse"] },
-  { id: "silence", kind: "silence_load", trackId: "silence.silence_load", catalog: "HOLLOW_SILENCE_ALTERED", bands: ["Exposed", "Obscured", "Erasure Pressure", "Null Risk"] },
+  { id: "silence", kind: "silence_load", trackId: "silence.silence_load", catalog: "HOLLOW_SILENCE_ALTERED", bands: ["Exposed", "Obscured", "Erasure Pressure", "Null Event"] },
   { id: "therian", kind: "instinct_load", trackId: "therian.instinct_load", catalog: "THERIAN_ADAPTATION", bands: ["Dulled", "Integrated", "Feral Pressure", "Loss of Self"] },
   { id: "technomancer", kind: "signal_load", trackId: "technomancer.signal_load", catalog: "TECHNOMANCER", bands: ["Disconnected", "Synced", "Daemon Bleed", "System Override"] },
   { id: "construct", kind: "function_load", trackId: "construct.function_load", catalog: "CONSTRUCT", bands: ["Malfunctioning", "Operational", "Directive Pressure", "Purpose Lock"] },
-  { id: "sensitive", kind: "sensory_load", trackId: "sensitive.sensory_load", catalog: "RESONANT_SENSITIVE", bands: ["Numbed", "Attuned", "Overstimulated", "Signal Flood"] }
+  { id: "sensitive", kind: "sensory_load", trackId: "sensitive.sensory_load", catalog: "RESONANT_SENSITIVE", bands: ["Numbed", "Attuned", "Overstimulated", "Signal Flood"] },
+  { id: "void_shard", kind: "void_load", trackId: "void_shard.void_load", catalog: "VOID_SHARD", bands: ["Hollowed", "Contained", "Contamination Surge", "Breach Event"] }
 ];
 
 test("presentation pressure registry exposes eleven ontology modules", async ({ page }) => {
@@ -19,16 +20,21 @@ test("presentation pressure registry exposes eleven ontology modules", async ({ 
       count: api.presentations.length,
       loadCount: api.presentations.filter((item) => api.isLoadPresentation(item)).length,
       sanguine: api.trackById("sanguine.blood_load").label,
-      voidShard: api.presentationById("void_shard").maxRisk,
+      voidShard: api.presentationById("void_shard").trackLabel,
+      voidBands: api.bandForTrack("void_shard.void_load", 0),
       echoBand: api.bandForTrack("echo.echo_load", 4),
+      modifiers: api.LOAD_MODIFIERS,
       maxRisk: api.formatBandLine(api.trackById("stillness.inertia"), 6)
     };
   });
   expect(summary.count).toBe(11);
-  expect(summary.loadCount).toBe(8);
+  expect(summary.loadCount).toBe(9);
   expect(summary.sanguine).toBe("Blood Load");
-  expect(summary.voidShard).toContain("perceived");
+  expect(summary.voidShard).toBe("Void Load");
+  expect(summary.voidBands).toBe("Hollowed");
   expect(summary.echoBand).toBe("Continuous");
+  expect(summary.modifiers.edge.bonus).toBe(1);
+  expect(summary.modifiers.collapse.penalty).toBe(-2);
   expect(summary.maxRisk).toContain("Stasis Lock");
 });
 
@@ -108,7 +114,7 @@ test("sanguine blood load derives state, mechanics, and band ladder from fill le
   expect(summary.hurts0).toContain("Nerves restraint");
   expect(summary.prompt4).toContain("No modifier");
   expect(summary.bloodLoadBand).toBe("Coherent");
-  expect(summary.modifierRule).toContain("Blood Load modifies rolls only when");
+  expect(summary.modifierRule).toContain("Load applies");
   expect(summary.misfireRule).toContain("Misfire fills Blood Load");
   expect(summary.condition).toBe("Coherent");
   expect(summary.ladderLabels).toEqual([
@@ -207,7 +213,7 @@ test("wraith essence load uses safe-middle fill bands and mechanics", async ({ p
   expect(summary.prompt2).toContain("No modifier");
   expect(summary.migrated).toBe(3);
   expect(summary.viewBand).toBe("Anchored");
-  expect(summary.modifierRule).toContain("Essence Load modifies rolls");
+  expect(summary.modifierRule).toContain("Load applies");
   expect(summary.misfireRule).toContain("Misfire fills Essence Load");
   expect(summary.ladderLabels).toEqual([
     "Fading",
@@ -284,17 +290,36 @@ test("echo load migrates legacy drift track and formats generic misfire copy", a
       migratedValue: api.readTrackValue(migrated, "echo.echo_load"),
       migratedBand: api.bandForTrack("echo.echo_load", api.readTrackValue(migrated, "echo.echo_load")),
       afterBand: api.presentationLoadBand("echo", api.readTrackValue(next, "echo.echo_load")),
+      trackLabel: api.presentationById("echo").trackLabel,
       copy
     };
   });
   expect(summary.migratedValue).toBe(5);
   expect(summary.migratedBand).toBe("Recursion Pressure");
   expect(summary.afterBand).toBe("Recursion Pressure");
-  expect(summary.copy).toContain("Echo Load +1");
+  expect(summary.trackLabel).toBe("Continuity Load");
+  expect(summary.copy).toContain("Continuity Load +1");
   expect(summary.copy).toContain("last move again");
 });
 
-test("load roll modifiers debuff deprived function and buff only one narrow sense", async ({ page }) => {
+test("void load migrates legacy contamination track", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const api = window.PresentationPressure;
+    const migrated = api.migrateOperatorStatus({
+      voidShardContamination: "5",
+      presentationPressures: { "void_shard.contamination": 5 }
+    });
+    return {
+      value: api.readTrackValue(migrated, "void_shard.void_load"),
+      band: api.bandForTrack("void_shard.void_load", api.readTrackValue(migrated, "void_shard.void_load"))
+    };
+  });
+  expect(summary.value).toBe(5);
+  expect(summary.band).toBe("Contamination Surge");
+});
+
+test("load roll modifiers use the universal 0/-1, 5 +/-1, 6 +/-2 spine", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const api = window.PresentationPressure;
@@ -310,6 +335,7 @@ test("load roll modifiers debuff deprived function and buff only one narrow sens
       saturatedBody: api.rollLoadModifiers(saturated, "SANGUINE", "Body", ""),
       saturatedNerves: api.rollLoadModifiers(saturated, "SANGUINE", "Nerves", ""),
       collapseBody: api.rollLoadModifiers(collapse, "SANGUINE", "Body", ""),
+      collapseNerves: api.rollLoadModifiers(collapse, "SANGUINE", "Nerves", ""),
       therianLowInstinct: api.rollLoadModifiers(
         { presentationPressures: { "therian.instinct_load": 1 } },
         "THERIAN_ADAPTATION",
@@ -323,16 +349,21 @@ test("load roll modifiers debuff deprived function and buff only one narrow sens
   expect(summary.starvingNerves.delta).toBe(-1);
   expect(summary.starvingInstinct.helpDelta).toBe(1);
   expect(summary.starvingInstinct.hurtDelta).toBe(0);
-  expect(summary.starvingBody.active).toBe(true);
-  expect(summary.starvingBody.hurtDelta).toBe(1);
-  expect(summary.starvingBody.delta).toBe(-1);
+  expect(summary.starvingInstinct.delta).toBe(1);
+  expect(summary.starvingBody.active).toBe(false);
   expect(summary.coherentBody.active).toBe(false);
   expect(summary.saturatedBody.helpDelta).toBe(1);
+  expect(summary.saturatedBody.delta).toBe(1);
   expect(summary.saturatedNerves.hurtDelta).toBe(1);
-  expect(summary.collapseBody.crisis).toBe(true);
-  expect(summary.collapseBody.delta).toBe(0);
+  expect(summary.saturatedNerves.delta).toBe(-1);
+  expect(summary.collapseBody.helpDelta).toBe(2);
+  expect(summary.collapseBody.delta).toBe(2);
+  expect(summary.collapseBody.handlerFramed).toBe(true);
+  expect(summary.collapseNerves.hurtDelta).toBe(2);
+  expect(summary.collapseNerves.delta).toBe(-2);
   expect(summary.therianLowInstinct.hurtDelta).toBe(1);
   expect(summary.therianLowInstinct.helpDelta).toBe(0);
+  expect(summary.therianLowInstinct.delta).toBe(-1);
 });
 
 test("handler summary formats coherent blood load at four", async ({ page }) => {

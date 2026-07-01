@@ -2437,11 +2437,11 @@
   }
 
   function formatRollLoadMath(modifiers) {
-    if (modifiers?.crisis) return "LOAD crisis";
     if (!modifiers?.active) return "";
     const delta = Number(modifiers.delta) || 0;
-    if (!delta) return "";
-    return delta > 0 ? `LOAD +${delta}` : `LOAD ${delta}`;
+    if (delta) return delta > 0 ? `LOAD +${delta}` : `LOAD ${delta}`;
+    if (modifiers.handlerFramed) return "LOAD surge (handler-framed)";
+    return "";
   }
 
   function formatRollLoadReasons(modifiers) {
@@ -2474,10 +2474,6 @@
     if (!output || output.dataset.rolled === "true") return;
     const status = consoleState.operatorStatus;
     const modifiers = resolveRollLoadModifiers(status);
-    if (modifiers.crisis) {
-      output.textContent = `${modifiers.trackLabel || "Load"} ${modifiers.band} (${modifiers.value}/6): ${modifiers.rollHint}`;
-      return;
-    }
     if (!modifiers.active) {
       output.textContent = "Awaiting action.";
       return;
@@ -3486,7 +3482,7 @@
     const attrValue = Number(attrs[attrKey] || 0);
     const skillValue = skillKey ? effectiveSkillRank(skills, skillKey, status) : 0;
     const loadMods = resolveRollLoadModifiers(status);
-    const loadDelta = loadMods.crisis ? 0 : Number(loadMods.delta || 0);
+    const loadDelta = Number(loadMods.delta || 0);
     const manualModifier = Number(status.rollModifier || 0);
     const total = keptDice.values.reduce((sum, value) => sum + value, 0)
       + attrValue
