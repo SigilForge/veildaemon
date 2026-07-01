@@ -40,24 +40,40 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator(".operator-roll-dock")).toBeVisible();
   await expect(page.getByText("Roll guide")).toBeVisible();
   const initialLayout = await page.evaluate(() => {
-    const sheetTop = document.querySelector("#module-sheet")?.getBoundingClientRect().top || 0;
+    const trackerTop = document.querySelector(".operator-harm-stability")?.getBoundingClientRect().top || 0;
+    const pressureTop = document.querySelector(".operator-pressure-strip")?.getBoundingClientRect().top || 0;
     const rollTop = document.querySelector(".operator-roll-dock")?.getBoundingClientRect().top || 0;
     const summaryTop = document.querySelector(".skill-summary-card")?.getBoundingClientRect().top || 0;
-    return { rollOffset: rollTop - sheetTop, summaryAfterRoll: summaryTop > rollTop };
+    return {
+      trackersBeforeRoll: trackerTop < rollTop,
+      pressureBeforeRoll: pressureTop < rollTop,
+      summaryAfterRoll: summaryTop > rollTop
+    };
   });
-  expect(initialLayout.rollOffset).toBeLessThan(560);
+  expect(initialLayout.trackersBeforeRoll).toBe(true);
+  expect(initialLayout.pressureBeforeRoll).toBe(true);
   expect(initialLayout.summaryAfterRoll).toBe(true);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   const stickyNav = await page.locator(".console-nav").boundingBox();
   expect(stickyNav.y).toBeGreaterThanOrEqual(0);
   expect(stickyNav.y).toBeLessThan(90);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.getByText("Harm & Stability")).toBeVisible();
+  await expect(page.getByText("Pressure", { exact: true })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("0/5")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("Condition: Fine")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("10/10")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" }).getByText("Band: Calm")).toBeVisible();
+  await expect(page.locator("#sheet-attention-status")).toHaveText("UNSEEN");
+  await expect(page.locator(".segmented.attention").getByRole("button", { name: "Unseen" })).toHaveClass(/is-active/);
+  await expect(page.locator(".line-tracker").filter({ hasText: "Presentation" })).toBeVisible();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Presentation" }).getByText("0/5")).toBeVisible();
+  await page.locator(".segmented.attention").getByRole("button", { name: "Targeted" }).click();
+  await expect(page.locator("#sheet-attention-status")).toHaveText("TARGETED");
+  await page.locator(".line-tracker").filter({ hasText: "Presentation" }).locator(".pip").nth(1).click();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Presentation" }).getByText("2/5")).toBeVisible();
   await expect(page.getByLabel("Operator Name")).toBeVisible();
   await expect(page.locator("#void-bank-readout")).toHaveText("0");
   await expect(page.locator("#breach-bank-readout")).toHaveText("0");
@@ -71,8 +87,6 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.getByLabel("Observed Symptom")).toHaveValue("");
 
   await expect(page.getByText("Observation Status", { exact: true })).toHaveCount(0);
-  await expect(page.locator("#sheet-attention-status")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Marked" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Apply Core Start" })).toBeHidden();
   await expect(page.getByRole("button", { name: "Add Skill" })).toBeHidden();
   await expect(page.getByText("JSON")).toHaveCount(0);

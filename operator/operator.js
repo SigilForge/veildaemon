@@ -901,7 +901,6 @@
     setNamedChecked("recoveryNameIt", Boolean(status.recoveryNameIt));
     renderTrackers();
     renderSegmentedControls();
-    renderBandMeter();
     renderLotus();
     renderAttributes();
     renderSkills();
@@ -1708,11 +1707,13 @@
   }
 
   function renderStatusSummary() {
-    const band = document.getElementById("status-band");
+    const attention = document.getElementById("sheet-attention-status");
     const bleedCue = document.getElementById("status-bleed-cue");
     const status = consoleState.operatorStatus;
     status.stabilityBand = bandFromLegacyStability(status.stability);
-    if (band) band.textContent = status.stabilityBand.toUpperCase();
+    status.attentionState = normalizeAttentionState(status.attentionState);
+    if (attention) attention.textContent = status.attentionState.toUpperCase();
+    setNamedValue("attentionState", status.attentionState);
     if (bleedCue) {
       const frequency = operatorRecord?.primaryFrequency || "";
       bleedCue.textContent = humanizeBleedCue(frequency, frequencyCard(frequency).bleedCue);
@@ -1720,13 +1721,8 @@
     setText("sheet-frequency", operatorRecord && operatorRecord.primaryFrequency || "UNASSIGNED");
   }
 
-  function renderTrackers() {
-    const board = document.getElementById("tracker-board");
+  function renderTrackerBoard(board, trackers) {
     if (!board) return;
-    const trackers = [
-      { key: "harmBoxes", label: "Harm", max: 5, kind: "harm" },
-      { key: "stability", label: "Stability", max: 10, kind: "stability" }
-    ];
     board.textContent = "";
     trackers.forEach((tracker) => {
       const value = Number(normalizeBoxValue(consoleState.operatorStatus[tracker.key], tracker.max));
@@ -1742,7 +1738,7 @@
       header.append(title, count);
 
       const pips = document.createElement("div");
-      pips.className = "line-pips";
+      pips.className = `line-pips ${tracker.kind}-pips`;
       for (let index = 1; index <= tracker.max; index += 1) {
         const pip = document.createElement("button");
         pip.type = "button";
@@ -1769,13 +1765,29 @@
 
       const derived = document.createElement("p");
       derived.className = "pip-derived";
-      derived.textContent = tracker.key === "harmBoxes"
-        ? `Condition: ${harmCondition(value)}`
-        : `Band: ${bandFromLegacyStability(value)}`;
+      if (tracker.key === "harmBoxes") {
+        derived.textContent = `Condition: ${harmCondition(value)}`;
+      } else if (tracker.key === "stability") {
+        derived.textContent = `Band: ${bandFromLegacyStability(value)}`;
+      } else if (tracker.key === "presentationPressure") {
+        derived.textContent = value >= 4 ? "Vector active" : value >= 2 ? "Pressure rising" : "Baseline";
+      } else {
+        derived.textContent = "";
+      }
 
       article.append(header, pips, derived, controls);
       board.append(article);
     });
+  }
+
+  function renderTrackers() {
+    renderTrackerBoard(document.getElementById("tracker-board"), [
+      { key: "harmBoxes", label: "Harm", max: 5, kind: "harm" },
+      { key: "stability", label: "Stability", max: 10, kind: "stability" }
+    ]);
+    renderTrackerBoard(document.getElementById("pressure-tracker-board"), [
+      { key: "presentationPressure", label: "Presentation", max: 5, kind: "pressure" }
+    ]);
   }
 
   function renderAttributes() {
@@ -2076,7 +2088,6 @@
     consoleState.operatorStatus[key] = normalizeBoxValue(value, max);
     if (key === "stability") {
       consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(consoleState.operatorStatus.stability);
-      renderBandMeter();
       renderStatusSummary();
     }
     writeConsoleState();
@@ -2092,16 +2103,12 @@
           ? normalizeMisfireSeverity(consoleState.operatorStatus[field])
           : normalizeAttentionState(consoleState.operatorStatus[field]);
       group.querySelectorAll("button[data-value]").forEach((button) => {
-        button.classList.toggle("is-active", button.getAttribute("data-value") === current);
+        const value = button.getAttribute("data-value");
+        const activeValue = field === "attentionState"
+          ? normalizeAttentionState(value)
+          : value;
+        button.classList.toggle("is-active", activeValue === current);
       });
-    });
-  }
-
-  function renderBandMeter() {
-    const current = bandFromLegacyStability(consoleState.operatorStatus.stability);
-    consoleState.operatorStatus.stabilityBand = current;
-    document.querySelectorAll("#stability-band-meter [data-band]").forEach((node) => {
-      node.classList.toggle("is-active", node.getAttribute("data-band") === current);
     });
   }
 
@@ -2724,7 +2731,7 @@
     writeConsoleState();
     setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
     renderCurrencyBanks();
-    renderBandMeter();
+    renderTrackers();
     renderLotus();
     renderPageLock();
     renderStatusSummary();
@@ -2885,7 +2892,10 @@
         const group = button.closest("[data-segmented]");
         const field = group && group.getAttribute("data-segmented");
         if (!field) return;
-        consoleState.operatorStatus[field] = button.getAttribute("data-value");
+        const rawValue = button.getAttribute("data-value");
+        consoleState.operatorStatus[field] = field === "attentionState"
+          ? normalizeAttentionState(rawValue)
+          : rawValue;
         setNamedValue(field, consoleState.operatorStatus[field]);
         autosaveStatus();
       });

@@ -561,6 +561,24 @@ select.is-locked {
   border: 1px solid rgba(137,255,218,.2);
   background: rgba(0,0,0,.2);
 }
+.operator-pressure-strip .pressure-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+  gap: .75rem;
+  align-items: start;
+}
+.pressure-sublabel {
+  margin: 0 0 .45rem;
+  color: var(--cyan);
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.pressure-attention .local-note {
+  margin: .45rem 0 0;
+  font-size: .62rem;
+}
 .tracker-board {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
@@ -607,9 +625,17 @@ select.is-locked {
 }
 .line-pips {
   display: grid;
-  grid-template-columns: repeat(10, minmax(.52rem, 1fr));
   gap: .16rem;
   align-content: center;
+}
+.line-pips.stability-pips {
+  grid-template-columns: repeat(10, minmax(.46rem, 1fr));
+}
+.line-pips.harm-pips {
+  grid-template-columns: repeat(5, minmax(.46rem, 1fr));
+}
+.line-pips.pressure-pips {
+  grid-template-columns: repeat(5, minmax(.46rem, 1fr));
 }
 .pip {
   aspect-ratio: 2.2 / 1;
@@ -659,7 +685,7 @@ select.is-locked {
   margin-bottom: .55rem;
 }
 .segmented.attention {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 .segmented.misfire {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -688,25 +714,40 @@ select.is-locked {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: .45rem;
-  margin-bottom: .7rem;
 }
-.band-meter span {
+.band-meter span,
+.band-meter button {
   display: grid;
   min-height: 2.25rem;
   place-items: center;
   border: 1px solid rgba(137,255,218,.18);
   background: rgba(0,0,0,.24);
   color: var(--muted);
+  font: inherit;
   font-size: .65rem;
   font-weight: 800;
   letter-spacing: .05em;
   text-align: center;
   text-transform: uppercase;
+  cursor: pointer;
 }
-.band-meter span.is-active {
+.band-meter button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+.band-meter span.is-active,
+.band-meter button.is-active {
   border-color: rgba(185,84,255,.72);
   color: var(--text);
   box-shadow: inset 0 0 20px rgba(185,84,255,.12), 0 0 18px rgba(185,84,255,.12);
+}
+.line-tracker.stability .pip.is-filled {
+  background: var(--purple);
+  box-shadow: 0 0 16px rgba(185,84,255,.28);
+}
+.line-tracker.pressure .pip.is-filled {
+  background: #ffb347;
+  box-shadow: 0 0 16px rgba(255,179,71,.24);
 }
 .roll-row {
   display: grid;
@@ -2066,6 +2107,12 @@ body.has-reports-drawer-open .surface-tabs {
       "misfire"
       "skills"
       "notes";
+  }
+  .operator-pressure-strip .pressure-panel {
+    grid-template-columns: 1fr;
+  }
+  .segmented.attention {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .tracker-board,
   .line-tracker,
