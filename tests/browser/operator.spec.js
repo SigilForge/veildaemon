@@ -56,7 +56,7 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   expect(stickyNav.y).toBeLessThan(90);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await expect(page.getByText("Harm & Stability")).toBeVisible();
-  await expect(page.locator("#presentation-pressure-strip")).toBeHidden();
+  await expect(page.locator("#presentation-readout-layer")).toBeHidden();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Stability" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Harm" }).getByText("0/5")).toBeVisible();
@@ -390,19 +390,17 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator("#skill-summary-list")).toContainText("+1");
   await page.locator('[name="ontologyPresentation"]').selectOption("Sanguine Presentation");
   await expect(page.locator("#ontology-grant-preview")).toHaveText("Grants: none loaded");
-  await expect(page.locator("#presentation-pressure-strip")).toBeVisible();
-  await expect(page.getByText("Sanguine Pressure")).toBeVisible();
-  await expect(page.locator(".presentation-pressure-track")).toBeVisible();
-  await expect(page.locator(".presentation-pressure-band")).toHaveText("Coherent");
-  await expect(page.getByText("Condition: Coherent")).toBeVisible();
+  await expect(page.locator("#presentation-readout-layer")).toBeVisible();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Hunger" })).toBeVisible();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Hunger" }).locator(".pip-derived")).toHaveText("Coherent");
+  await page.locator("#presentation-readout-layer").click();
   await expect(page.getByText(/Cue: Human-like warmth/)).toBeVisible();
-  await page.locator(".presentation-pressure-track .pip").nth(1).click();
-  await expect(page.getByText("2 / 6")).toBeVisible();
-  await expect(page.locator(".presentation-pressure-band")).toHaveText("Hungry");
-  await expect(page.getByText("Condition: Hungry")).toBeVisible();
+  await page.locator(".line-tracker").filter({ hasText: "Hunger" }).locator(".pip").nth(1).click();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Hunger" }).getByText("2/6")).toBeVisible();
+  await expect(page.locator(".line-tracker").filter({ hasText: "Hunger" }).locator(".pip-derived")).toHaveText("Hungry");
+  await page.locator("#presentation-readout-layer").click();
   await expect(page.getByText(/Cue: Attention narrows toward pulse/)).toBeVisible();
   await expect(page.getByText(/Risk: Failed restraint/)).toBeVisible();
-  await page.getByText("Intake flags / override").click();
   await expect(page.locator('[name="sanguineSaturated"]')).toBeVisible();
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
