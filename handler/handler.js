@@ -544,6 +544,19 @@
     if (hint) hint.hidden = !api.hasActiveNeedlepoint(state);
   }
 
+  function renderSecondaryClockPanel() {
+    const panel = document.getElementById("secondary-clock-panel");
+    const details = document.getElementById("secondary-clock-details");
+    if (!panel) return;
+    const enabled = Boolean(state.secondaryClock.enabled);
+    if (dashboardMode === "live") {
+      panel.hidden = !enabled;
+      if (details) details.open = true;
+    } else if (dashboardMode === "prep") {
+      panel.hidden = false;
+    }
+  }
+
   function setText(id, value) {
     const node = document.getElementById(id);
     if (node) node.textContent = api.safeString(value, 220) || "UNSET";
@@ -552,6 +565,7 @@
   function renderDynamic() {
     renderSceneButtons();
     renderClock("primary-clock-track", state.primaryClock, true);
+    renderSecondaryClockPanel();
     renderClock("secondary-clock-track", state.secondaryClock, state.secondaryClock.enabled);
     renderRoomAnswer();
     renderTrackPromptQueue();
@@ -754,6 +768,7 @@
       const modes = String(panel.dataset.modePanel || "").split(/\s+/).filter(Boolean);
       panel.hidden = modes.length > 0 && !modes.includes(dashboardMode);
     });
+    renderSecondaryClockPanel();
     writeDashboardMode(dashboardMode);
   }
 
