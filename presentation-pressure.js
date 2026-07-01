@@ -1188,14 +1188,10 @@
     const handlerFramed = mode === "collapse" && Boolean(spec.agency);
 
     if (mode === "deprived") {
-      if (matchedHelps.length) {
-        helps = matchedHelps.slice(0, 1);
-        helpDelta = bonusMag;
-        rollHint = `+${helpDelta} Load — narrow survival sense.`;
-      } else if (matchedHurts.length) {
+      if (matchedHurts.length) {
         hurts = matchedHurts;
         hurtDelta = penaltyMag || 1;
-        rollHint = `-${hurtDelta} Load — deprived.`;
+        rollHint = `-${hurtDelta} Load - deprived.`;
       }
     } else if (mode === "edge") {
       helps = matchedHelps;
