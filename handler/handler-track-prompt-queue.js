@@ -174,8 +174,6 @@
     mount.className = "track-prompt-queue";
     mount.setAttribute("data-live-control-zone", "true");
 
-    renderGlobalQueueForm(mount, state, onChange, setStatusMessage);
-
     const queue = Array.isArray(state.trackPromptQueue) ? state.trackPromptQueue : [];
     const pending = queue.filter((item) => item.status !== "Resolved");
     const resolved = queue.filter((item) => item.status === "Resolved");
@@ -191,7 +189,7 @@
     if (!queue.length) {
       const empty = document.createElement("p");
       empty.className = "track-prompt-empty";
-      empty.textContent = "No queued Operator track updates. Use +/- on an Operator summary to queue Stability or Harm changes.";
+      empty.textContent = "No queued Operator track updates. Table triggers auto-queue Stability damage — tap Operators in the trigger preview to choose who was in the blast radius.";
       mount.append(empty);
       return;
     }

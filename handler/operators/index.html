@@ -6,7 +6,7 @@
   <title>VEILDAEMON // Handler Operator Summary</title>
   <meta name="robots" content="noindex, nofollow" />
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
-  <link rel="stylesheet" href="../handler.css?v=20260701-trackprompt1" />
+  <link rel="stylesheet" href="../handler.css?v=20260701-authbrief1" />
 </head>
 <body class="handler-surface module-surface" data-handler-module="operators">
   <div class="noise" aria-hidden="true"></div>
@@ -37,7 +37,7 @@
         <div class="authorization-section"><p class="kicker">BACKGROUND UNLOCKS</p><label>Background<select name="background" multiple size="11"></select></label></div>
         <div class="authorization-section"><p class="kicker">VOID / BREACH REWARDS</p><label>Void Reward<input name="voidReward" type="number" min="0" max="13" step="1" value="0" /></label><label>Breach Reward<input name="breachReward" type="number" min="0" max="99" step="1" value="0" /></label></div>
         <div class="authorization-section wide"><p class="kicker">NOTES / CUSTOM FLAGS</p><label>Handler Message<textarea name="note" rows="4" placeholder="HANDLER AUTHORIZATION RECEIVED&#10;&#10;Operator options available for review."></textarea></label><label>Custom Flags<textarea name="customFlags" rows="3" placeholder="ONTOLOGY_UNLOCK:RED_LEDGER_ADJACENT&#10;BACKGROUND_UNLOCK:SAFEHOUSE_BRAT&#10;BREACH_REWARD:3"></textarea></label></div>
-        <div class="authorization-section wide"><p class="kicker">AUTHORIZATION PACKET PREVIEW</p><pre class="authorization-preview" id="authorization-preview" aria-live="polite"></pre><div class="authorization-actions"><button class="button" id="copy-authorization" type="button">Copy Authorization Packet</button><button class="button primary" id="export-authorization" type="submit">Export Authorization Packet</button></div></div>
+        <div class="authorization-section wide"><p class="kicker">HANDLER BRIEF</p><p class="authorization-brief-lead">Plain-language summary of what this packet grants before you export.</p><div class="authorization-brief" id="authorization-brief" aria-live="polite"></div><p class="kicker authorization-raw-kicker">RAW PACKET JSON</p><pre class="authorization-preview" id="authorization-preview" aria-live="polite"></pre><div class="authorization-actions"><button class="button" id="copy-authorization" type="button">Copy Authorization Packet</button><button class="button primary" id="export-authorization" type="submit">Export Authorization Packet</button></div></div>
       </form>
     </section>
     <section class="panel track-prompt-panel">
@@ -55,6 +55,6 @@
   <script src="../handler-nav.js?v=20260629-templatepicker1"></script>
   <script src="../handler-track-prompt-queue.js?v=20260701-trackprompt1"></script>
   <script src="../handler-operator-trackers.js?v=20260701-trackprompt1"></script>
-  <script src="../handler-modules.js?v=20260701-trackprompt1"></script>
+  <script src="../handler-modules.js?v=20260701-authbrief1"></script>
 </body>
 </html>

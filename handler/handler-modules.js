@@ -357,7 +357,7 @@
   function trackerBoardOptions(playerIndex) {
     return {
       state,
-      showQuickForm: true,
+      showQuickForm: false,
       onStateChange: applyPromptState,
       setStatusMessage: setStatus,
       onQueuePrompt: (payload) => {
@@ -536,9 +536,11 @@
     const form = document.getElementById("authorization-form");
     if (!form) return;
     const preview = document.getElementById("authorization-preview");
+    const brief = document.getElementById("authorization-brief");
     const copy = document.getElementById("copy-authorization");
     const refreshPreview = () => {
       const payload = buildAuthorizationPayload(new FormData(form), { allowEmpty: true });
+      renderAuthorizationBrief(brief, payload);
       if (preview) preview.textContent = JSON.stringify(payload, null, 2);
     };
     form.addEventListener("input", refreshPreview);
@@ -624,6 +626,140 @@
       return `BACKGROUND AUTHORIZATION RECEIVED\n\nHandler authorization received.\n\n${backgroundLabels.join(", ")} available for review.`;
     }
     return "HANDLER AUTHORIZATION RECEIVED\n\nNew Operator option available for review.";
+  }
+
+  function caseUnlockLabel(key) {
+    if (key === "NEEDLEPOINT_SURVIVOR") return "Needlepoint Survivor";
+    return api.titleCaseKey(key);
+  }
+
+  function presentationGrantSummary(entry) {
+    const grants = entry && entry.grants;
+    const skillBonus = grants && Array.isArray(grants.skillBonus) ? grants.skillBonus : [];
+    if (skillBonus.length) return `Skill bonus: ${skillBonus.join(", ")} +1`;
+    return "Unlocks presentation / ontology option on the Operator sheet.";
+  }
+
+  function backgroundGrantSummary(entry) {
+    const skills = entry && Array.isArray(entry.skillBonus) ? entry.skillBonus : [];
+    const parts = [];
+    if (skills.length) parts.push(`Skills: ${skills.join(", ")} +1`);
+    if (entry && entry.perk) parts.push(`Perk: ${entry.perk}`);
+    if (entry && entry.hook) parts.push(`Hook: ${entry.hook}`);
+    return parts.join("\n") || "Unlocks background option on the Operator sheet.";
+  }
+
+  function appendBriefDetail(parent, text) {
+    const detail = document.createElement("p");
+    detail.className = "authorization-brief-detail";
+    detail.textContent = api.safeString(text, 500);
+    parent.append(detail);
+  }
+
+  function appendBriefItem(section, title, details) {
+    const item = document.createElement("div");
+    item.className = "authorization-brief-item";
+    const heading = document.createElement("strong");
+    heading.textContent = api.safeString(title, 120);
+    item.append(heading);
+    (Array.isArray(details) ? details : [details])
+      .map((line) => api.safeString(line, 500))
+      .filter(Boolean)
+      .forEach((line) => appendBriefDetail(item, line));
+    section.append(item);
+    return item;
+  }
+
+  function appendBriefSection(parent, label, items) {
+    if (!items.length) return;
+    const section = document.createElement("section");
+    section.className = "authorization-brief-section";
+    const heading = document.createElement("h4");
+    heading.textContent = label;
+    section.append(heading);
+    items.forEach((item) => {
+      if (typeof item === "function") item(section);
+      else appendBriefItem(section, item.title, item.details);
+    });
+    parent.append(section);
+  }
+
+  function renderAuthorizationBrief(node, payload) {
+    if (!node) return;
+    node.textContent = "";
+    const flags = Array.isArray(payload?.flags) ? payload.flags : [];
+    const operatorName = api.safeString(payload?.operatorName, 80);
+    const packetLabel = api.safeString(payload?.packetLabel, 100);
+    if (!flags.length && !operatorName && !packetLabel) {
+      const empty = document.createElement("p");
+      empty.className = "authorization-brief-empty";
+      empty.textContent = "Select unlocks to see what you're giving out.";
+      node.append(empty);
+      return;
+    }
+    const summary = document.createElement("p");
+    summary.className = "authorization-brief-summary";
+    const target = operatorName || "unspecified Operator";
+    const label = packetLabel ? ` (“${packetLabel}”)` : "";
+    summary.textContent = flags.length
+      ? `Giving ${flags.length} authorization flag${flags.length === 1 ? "" : "s"} to ${target}${label}.`
+      : `No unlock flags yet for ${target}${label}.`;
+    node.append(summary);
+    const ontologyFlags = flags.filter((flag) => flag.startsWith("ONTOLOGY_UNLOCK:"));
+    const backgroundFlags = flags.filter((flag) => flag.startsWith("BACKGROUND_UNLOCK:"));
+    const caseFlags = flags.filter((flag) => flag.startsWith("CASE_UNLOCK:"));
+    const voidReward = flags.find((flag) => flag.startsWith("VOID_REWARD:"));
+    const breachReward = flags.find((flag) => flag.startsWith("BREACH_REWARD:"));
+    appendBriefSection(node, `Presentation / Ontology (${ontologyFlags.length})`, ontologyFlags.map((flag) => {
+      const key = flag.split(":")[1];
+      const entry = api.presentationEntry(key);
+      return {
+        title: entry.displayName,
+        details: [
+          `Access: ${entry.access || "unknown"}`,
+          entry.category ? `Category: ${entry.category}` : "",
+          presentationGrantSummary(entry)
+        ]
+      };
+    }));
+    appendBriefSection(node, `Background (${backgroundFlags.length})`, backgroundFlags.map((flag) => {
+      const key = flag.split(":")[1];
+      const entry = api.backgroundEntry(key);
+      return {
+        title: entry.displayName,
+        details: [
+          `Access: ${entry.access || "unknown"}`,
+          backgroundGrantSummary(entry)
+        ]
+      };
+    }));
+    appendBriefSection(node, `Case Unlock (${caseFlags.length})`, caseFlags.map((flag) => ({
+      title: caseUnlockLabel(flag.split(":")[1]),
+      details: "Unlocks case-specific Operator option."
+    })));
+    const rewardItems = [];
+    if (voidReward) {
+      const amount = voidReward.split(":")[1];
+      rewardItems.push({ title: `${amount} Void`, details: "Adds Void currency on Operator import." });
+    }
+    if (breachReward) {
+      const amount = breachReward.split(":")[1];
+      rewardItems.push({ title: `${amount} Breach`, details: "Adds Breach currency on Operator import." });
+    }
+    appendBriefSection(node, "Void / Breach Rewards", rewardItems);
+    const note = api.safeString(payload?.note, 1000);
+    if (note) {
+      const section = document.createElement("section");
+      section.className = "authorization-brief-section";
+      const heading = document.createElement("h4");
+      heading.textContent = "Operator-Facing Note";
+      section.append(heading);
+      const noteNode = document.createElement("pre");
+      noteNode.className = "authorization-brief-note";
+      noteNode.textContent = note;
+      section.append(noteNode);
+      node.append(section);
+    }
   }
 
   function renderAuthorizationCatalogs() {

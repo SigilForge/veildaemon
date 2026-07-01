@@ -1610,6 +1610,7 @@
       }
     ],
     trackPromptQueue: [],
+    triggerUndo: null,
     players: [
       {
         id: "operator-1",
@@ -3045,10 +3046,115 @@
     };
   }
 
+  function formatOperatorNameList(players, operatorIndices) {
+    const names = (Array.isArray(operatorIndices) ? operatorIndices : [])
+      .map((index) => safeString(players?.[index]?.name, 80) || `Operator ${Number(index) + 1}`);
+    if (!names.length) return "the Operators in the area";
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return `${names[0]} and ${names[1]}`;
+    return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
+  }
+
+  function formatStabilityBreakdownText(breakdown, total) {
+    const lines = (Array.isArray(breakdown) ? breakdown : [])
+      .filter((entry) => entry && entry.amount > 0)
+      .map((entry) => {
+        const prefix = entry.additive ? "+" : "";
+        return `${entry.label}: ${prefix}${entry.amount} Stability damage.`;
+      });
+    if (total > 0) lines.push(`Total: ${total} Stability damage.`);
+    return lines.join("\n");
+  }
+
+  function resolveTriggerStabilityCost(state, trigger, draftAfter) {
+    const effects = trigger?.effects || {};
+    const label = safeString(trigger?.label, 140) || "Table event";
+    if (effects.stability_area_damage !== undefined) {
+      const damage = Math.max(0, Math.min(5, Math.round(Number(effects.stability_area_damage) || 0)));
+      if (!damage) {
+        return { damage: 0, source: "Scene pressure", reason: "", announce: "", breakdown: [], breakdownText: "" };
+      }
+      const breakdown = [{ label: label, amount: damage, additive: false }];
+      const reason = `${label}: characters in the area take ${damage} Stability damage.`;
+      return {
+        damage,
+        source: /misfire/i.test(label) ? "Misfire" : "Zone response",
+        reason,
+        announce: `When this happens, characters in the area take ${damage} Stability damage.`,
+        breakdown,
+        breakdownText: formatStabilityBreakdownText(breakdown, damage)
+      };
+    }
+    const id = safeString(trigger?.id, 80).toLowerCase();
+    const isMisfire = /misfire/.test(id) || /misfire/i.test(label);
+    const clockDelta = Math.max(0, Number(effects.clock_delta) || 0, Number(effects.primary_delta) || 0);
+    const attentionDelta = Number(effects.attention_delta) || 0;
+    const ticksClock = effects.clock_tick !== false && (clockDelta > 0 || attentionDelta > 0);
+    const isRelief = clockDelta < 0 || attentionDelta < 0 || effects.primary_delta < 0 || effects.case_delta < 0;
+    if (isRelief || (!isMisfire && !ticksClock)) {
+      return { damage: 0, source: "Scene pressure", reason: "", announce: "", breakdown: [], breakdownText: "" };
+    }
+    const breakdown = [];
+    let total = 0;
+    if (isMisfire && (id.includes("severe") || clockDelta >= 2)) {
+      breakdown.push({ label: "Severe Misfire", amount: 2, additive: false });
+      total += 2;
+    } else if (isMisfire) {
+      breakdown.push({ label: "Misfire", amount: 1, additive: false });
+      total += 1;
+    } else if (clockDelta >= 2) {
+      breakdown.push({ label: "Heavy clock tick", amount: 2, additive: false });
+      total += 2;
+    } else {
+      breakdown.push({ label: "Zone pressure", amount: 1, additive: false });
+      total += 1;
+    }
+    const afterScene = safeString(draftAfter?.sceneState?.current, 40);
+    if (afterScene === "Collapse") {
+      breakdown.push({ label: "Collapse Scene", amount: 2, additive: true });
+      total += 2;
+    } else if (afterScene === "Breached") {
+      breakdown.push({ label: "Breached Scene", amount: 1, additive: true });
+      total += 1;
+    }
+    const reason = `${label}: characters in the area take ${total} Stability damage.`;
+    return {
+      damage: total,
+      source: isMisfire ? "Misfire" : "Zone response",
+      reason,
+      announce: `When this happens, characters in the area take ${total} Stability damage.`,
+      breakdown,
+      breakdownText: formatStabilityBreakdownText(breakdown, total)
+    };
+  }
+
+  function buildTriggerTableCopy(state, trigger, stabilityCost, operatorIndices) {
+    const players = Array.isArray(state?.players) ? state.players : [];
+    const indices = Array.isArray(operatorIndices) ? operatorIndices : [];
+    const lines = [];
+    if (stabilityCost?.damage > 0 && indices.length) {
+      lines.push(`Tell ${formatOperatorNameList(players, indices)}: reduce Stability by ${stabilityCost.damage}.`);
+      const collapseRisk = indices.some((index) => {
+        const player = players[index];
+        if (!player) return false;
+        const current = normalizeTrackerValue(player.stabilityPoints, 10, 10);
+        return current - stabilityCost.damage <= 2;
+      });
+      if (collapseRisk) {
+        lines.push("Anyone who hits Collapse Risk may touch an Anchor or attempt Stabilization.");
+      }
+    }
+    const consequence = safeString(trigger?.effects?.consequence, 500)
+      || safeString(trigger?.effects?.next_pressure_beat, 500);
+    if (consequence) lines.push(consequence);
+    return lines.join("\n");
+  }
+
   function previewTableTrigger(state, triggerId) {
     const trigger = findTableTrigger(state, triggerId);
     if (!trigger) return null;
     const { draft: withNeedlepoint, delta } = buildTriggerDraft(state, trigger, { persist: false });
+    const stabilityCost = resolveTriggerStabilityCost(state, trigger, withNeedlepoint);
     const lines = [
       {
         label: "Responsibility",
@@ -3098,7 +3204,14 @@
         after: state.caseFile.nextClue
       });
     }
-    return { trigger, lines, nextState: withNeedlepoint, delta };
+    if (stabilityCost.damage > 0) {
+      lines.unshift({
+        label: "Area Stability",
+        before: "No automatic cost",
+        after: stabilityCost.announce
+      });
+    }
+    return { trigger, lines, nextState: withNeedlepoint, delta, stabilityCost };
   }
 
   function clockTargetLabel(target) {
@@ -3109,11 +3222,51 @@
     return "Choice";
   }
 
-  function applyTableTrigger(state, triggerId) {
+  function applyTableTrigger(state, triggerId, options = {}) {
     const trigger = findTableTrigger(state, triggerId);
     if (!trigger) return state;
+    const before = clone(normalizeState(state));
+    const queueBefore = new Set((before.trackPromptQueue || []).map((item) => item.id));
     const { draft } = buildTriggerDraft(state, trigger, { persist: true });
-    return normalizeState(draft);
+    let next = normalizeState(draft);
+    const stabilityCost = resolveTriggerStabilityCost(state, trigger, next);
+    const operatorIndices = Array.isArray(options.operatorIndices) ? options.operatorIndices : [];
+    if (stabilityCost.damage > 0 && operatorIndices.length) {
+      operatorIndices.forEach((operatorIndex) => {
+        next = createTrackPrompt(next, {
+          operatorIndex,
+          track: "stability",
+          delta: -stabilityCost.damage,
+          source: stabilityCost.source,
+          reason: stabilityCost.reason,
+          handlerNote: ""
+        });
+      });
+    }
+    const promptIds = (next.trackPromptQueue || [])
+      .filter((item) => !queueBefore.has(item.id))
+      .map((item) => item.id);
+    next.triggerUndo = {
+      appliedAt: nowStamp(),
+      triggerId: trigger.id,
+      triggerLabel: safeString(trigger.label, 140),
+      tableCopy: buildTriggerTableCopy(before, trigger, stabilityCost, operatorIndices),
+      promptIds,
+      snapshot: before
+    };
+    return normalizeState(next);
+  }
+
+  function undoLastTriggerPackage(state) {
+    const pkg = state?.triggerUndo;
+    if (!pkg?.snapshot) return { state, ok: false };
+    const restored = clone(pkg.snapshot);
+    restored.triggerUndo = null;
+    return {
+      state: normalizeState(restored),
+      ok: true,
+      label: safeString(pkg.triggerLabel, 140)
+    };
   }
 
   function windDownTargetLabel(target) {
@@ -3434,6 +3587,16 @@
       npcs: normalizeNpcs(merged.npcs),
       players: normalizePlayers(merged.players),
       trackPromptQueue: normalizeTrackPromptQueue(merged.trackPromptQueue, normalizePlayers(merged.players)),
+      triggerUndo: merged.triggerUndo && merged.triggerUndo.snapshot ? {
+        appliedAt: safeString(merged.triggerUndo.appliedAt, 80),
+        triggerId: safeString(merged.triggerUndo.triggerId, 80),
+        triggerLabel: safeString(merged.triggerUndo.triggerLabel, 140),
+        tableCopy: safeString(merged.triggerUndo.tableCopy, 2000),
+        promptIds: Array.isArray(merged.triggerUndo.promptIds)
+          ? merged.triggerUndo.promptIds.map((id) => safeString(id, 80)).filter(Boolean)
+          : [],
+        snapshot: merged.triggerUndo.snapshot
+      } : null,
       caseFile: normalizeTextObject(merged.caseFile, defaultState.caseFile),
       activeNeedlepoint: normalizeActiveNeedlepoint(merged.activeNeedlepoint),
       handlerNotes: normalizeTextObject(merged.handlerNotes, defaultState.handlerNotes),
@@ -3753,12 +3916,17 @@
     if (prompt.track === "stability") {
       const amount = Math.abs(Number(prompt.delta) || 0);
       const direction = Number(prompt.delta) < 0 ? "reduce" : "increase";
-      const lines = [
-        `QUEUE: Tell ${prompt.operatorName} to ${direction} Stability by ${amount}.`,
-        `REASON: ${reason}.`,
-        `BAND AFTER CHANGE: ${prompt.projectedValue} / 10 — ${prompt.projectedBand}.`,
-        `Suggested cue: ${prompt.handlerCue}`
-      ];
+      const lines = [];
+      if (/characters in the area take/i.test(reason)) {
+        const eventLine = reason.replace(/:\s*characters in the area take/i, " — characters in the area take");
+        lines.push(eventLine.endsWith(".") ? eventLine : `${eventLine}.`);
+        lines.push(`Tell ${prompt.operatorName} to ${direction} Stability by ${amount}.`);
+      } else {
+        lines.push(`QUEUE: Tell ${prompt.operatorName} to ${direction} Stability by ${amount}.`);
+        lines.push(`REASON: ${reason}.`);
+      }
+      lines.push(`BAND AFTER CHANGE: ${prompt.projectedValue} / 10 — ${prompt.projectedBand}.`);
+      lines.push(`Suggested cue: ${prompt.handlerCue}`);
       if (note) lines.push(`Handler note: ${note}`);
       return lines.join("\n");
     }
@@ -4116,8 +4284,12 @@
     getTableTriggers,
     findTableTrigger,
     previewTableTrigger,
+    resolveTriggerStabilityCost,
+    buildTriggerTableCopy,
+    formatOperatorNameList,
     previewWindDownMove,
     applyTableTrigger,
+    undoLastTriggerPackage,
     windDownMoves,
     getWindDownMoves,
     findWindDownMove,

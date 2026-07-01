@@ -325,7 +325,7 @@
   function trackerBoardOptions(playerIndex) {
     return {
       state,
-      showQuickForm: true,
+      showQuickForm: false,
       onStateChange: applyPromptState,
       setStatusMessage: setStatus,
       onQueuePrompt: (payload) => {
@@ -495,13 +495,26 @@
     if (window.HandlerNav) window.HandlerNav.renderFieldLock();
   }
 
-  function applyTriggerState(nextState) {
+  function applyTriggerState(nextState, message) {
     state = nextState;
     syncForm();
-    writeState("TRIGGER APPLIED");
+    writeState(message || "TRIGGER APPLIED");
     renderDynamic();
     renderPlayers();
     renderNpcs();
+    renderTrackPromptQueue();
+    if (window.HandlerTriggers) window.HandlerTriggers.render(state);
+  }
+
+  function undoTriggerState(nextState, message) {
+    state = nextState;
+    syncForm();
+    writeState(message || "TRIGGER UNDONE");
+    renderDynamic();
+    renderPlayers();
+    renderNpcs();
+    renderTrackPromptQueue();
+    if (window.HandlerTriggers) window.HandlerTriggers.render(state);
   }
 
   function applyWindDownState(nextState, message) {
@@ -745,7 +758,13 @@
   function bindTriggerBridge() {
     window.addEventListener("veildaemon:handler-trigger-applied", (event) => {
       if (!event.detail?.state) return;
-      applyTriggerState(event.detail.state);
+      const tableCopy = api.safeString(event.detail.tableCopy, 2000);
+      applyTriggerState(event.detail.state, tableCopy ? "TRIGGER APPLIED — table copy ready." : "TRIGGER APPLIED");
+    });
+    window.addEventListener("veildaemon:handler-trigger-undone", (event) => {
+      if (!event.detail?.state) return;
+      const label = api.safeString(event.detail.label, 140);
+      undoTriggerState(event.detail.state, label ? `UNDONE: ${label}` : "TRIGGER UNDONE");
     });
   }
 
