@@ -7,7 +7,7 @@ test("presentation pressure registry exposes nine ontology modules", async ({ pa
     return {
       count: api.presentations.length,
       sanguine: api.trackById("sanguine.hunger").label,
-      voidShard: api.trackById("void_shard.contamination").atMax,
+      voidShard: api.presentationById("void_shard").maxRisk,
       echoBand: api.bandForTrack("echo.drift", 4),
       maxRisk: api.formatBandLine(api.trackById("stillness.inertia"), 6)
     };
@@ -17,6 +17,65 @@ test("presentation pressure registry exposes nine ontology modules", async ({ pa
   expect(summary.voidShard).toContain("perceived");
   expect(summary.echoBand).toBe("Loop");
   expect(summary.maxRisk).toContain("Stasis Lock");
+});
+
+test("sanguine hunger derives band, cue, risk, and condition from pressure value", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const api = window.PresentationPressure;
+    const presentation = api.presentationById("sanguine");
+    const status = api.migrateOperatorStatus({
+      hungerPressure: "2",
+      presentationPressures: { "sanguine.hunger": 2 },
+      sanguineSaturated: true
+    });
+    const view = api.presentationPressureView(status, "SANGUINE");
+    return {
+      trackLabel: presentation.trackLabel,
+      hasConditionModel: presentation.conditionModel.separateConditions.length >= 4,
+      band0: api.bandForTrack("sanguine.hunger", 0),
+      band2: api.bandForTrack("sanguine.hunger", 2),
+      band4: api.bandForTrack("sanguine.hunger", 4),
+      cue2: api.cueForTrack("sanguine.hunger", 2),
+      risk2: api.riskForTrack("sanguine.hunger", 2),
+      coherence: api.coherenceFromHunger(3),
+      maxRisk: presentation.maxRisk,
+      condition: view.condition,
+      conditionNote: view.conditionNote,
+      cue: view.cue
+    };
+  });
+  expect(summary.trackLabel).toBe("Hunger");
+  expect(summary.hasConditionModel).toBe(true);
+  expect(summary.band0).toBe("Coherent");
+  expect(summary.band2).toBe("Hungry");
+  expect(summary.band4).toBe("Predatory");
+  expect(summary.cue2).toContain("Attention narrows");
+  expect(summary.risk2).toContain("Failed restraint");
+  expect(summary.coherence).toBe("Hungry");
+  expect(summary.maxRisk).toContain("withdraw");
+  expect(summary.condition).toBe("Saturated");
+  expect(summary.conditionNote).toContain("emotional bleed");
+  expect(summary.cue).toContain("pulse");
+});
+
+test("presentation modules expose distinct track labels and failure modes", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const api = window.PresentationPressure;
+    return api.presentations.map((item) => ({
+      id: item.id,
+      trackLabel: item.trackLabel,
+      maxRisk: item.maxRisk,
+      reliefCount: item.reliefActions.fallsWhen.length
+    }));
+  });
+  expect(summary.find((item) => item.id === "wraith").trackLabel).toBe("Anchor Strain");
+  expect(summary.find((item) => item.id === "echo").trackLabel).toBe("Relevance Drift");
+  expect(summary.find((item) => item.id === "void_shard").trackLabel).toBe("Miscompile");
+  expect(summary.find((item) => item.id === "sanguine").maxRisk).toContain("Stability");
+  expect(summary.find((item) => item.id === "stillness").maxRisk).toContain("escalate");
+  expect(summary.every((item) => item.reliefCount > 0)).toBe(true);
 });
 
 test("registry resolves echo drift bands from operator status", async ({ page }) => {

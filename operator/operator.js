@@ -54,6 +54,11 @@
       misfireSeverity: "None",
       presentationPressure: "0",
       sanguineCoherence: "Coherent",
+      sanguineSaturated: false,
+      sanguineStarved: false,
+      sanguinePredatorySaturation: false,
+      sanguineCollapseRisk: false,
+      sanguineConditionOverride: "",
       presentationPressures: {},
       hungerPressure: "0",
       echoRecursionPressure: "0",
@@ -263,25 +268,18 @@
     return "";
   }
 
-  const SANGUINE_COHERENCE_STATES = [
-    "Coherent",
-    "Hungry",
-    "Starved",
-    "Heightened",
-    "Saturated",
-    "Predatory Saturation",
-    "Collapse Risk"
-  ];
-
   function currentPresentationKey() {
     return presentationKeyFromDisplayName(consoleState.operatorStatus.ontologyPresentation);
   }
 
   const presentationPressureApi = () => window.PresentationPressure;
 
-  function normalizeSanguineCoherence(value) {
-    const states = presentationPressureApi()?.presentationById("sanguine")?.coherenceStates || SANGUINE_COHERENCE_STATES;
-    return states.includes(value) ? value : (states[0] || "Coherent");
+  function deriveSanguineCoherence(status) {
+    const api = presentationPressureApi();
+    if (!api) return "Coherent";
+    const presentation = api.presentationById("sanguine");
+    const condition = presentation ? api.deriveCondition(status, presentation) : null;
+    return condition?.label || api.coherenceFromHunger(api.readTrackValue(status, "sanguine.hunger"));
   }
 
   function migratePresentationPressure(status) {
@@ -488,7 +486,12 @@
       activeMisfire: normalizeActiveMisfire(migrated),
       misfireSeverity: normalizeMisfireSeverity(migrated.misfireSeverity || severityFromLegacyMisfire(migrated.misfireBoxes)),
       presentationPressure: normalizeBoxValue(migrated.presentationPressure, 5),
-      sanguineCoherence: normalizeSanguineCoherence(migrated.sanguineCoherence),
+      sanguineCoherence: deriveSanguineCoherence(migrated),
+      sanguineSaturated: Boolean(migrated.sanguineSaturated),
+      sanguineStarved: Boolean(migrated.sanguineStarved),
+      sanguinePredatorySaturation: Boolean(migrated.sanguinePredatorySaturation),
+      sanguineCollapseRisk: Boolean(migrated.sanguineCollapseRisk),
+      sanguineConditionOverride: safeString(migrated.sanguineConditionOverride, 80),
       hungerPressure: normalizeBoxValue(migrated.hungerPressure, 6),
       echoRecursionPressure: normalizeBoxValue(migrated.echoRecursionPressure, 6),
       anchorDriftPressure: normalizeBoxValue(migrated.anchorDriftPressure, 6),
@@ -1775,8 +1778,7 @@
     const bleedCue = document.getElementById("status-bleed-cue");
     const status = consoleState.operatorStatus;
     status.stabilityBand = bandFromLegacyStability(status.stability);
-    status.sanguineCoherence = normalizeSanguineCoherence(status.sanguineCoherence);
-    setNamedValue("sanguineCoherence", status.sanguineCoherence);
+    status.sanguineCoherence = deriveSanguineCoherence(status);
     if (bleedCue) {
       const frequency = operatorRecord?.primaryFrequency || "";
       bleedCue.textContent = humanizeBleedCue(frequency, frequencyCard(frequency).bleedCue);
@@ -1860,10 +1862,168 @@
     });
   }
 
+  function renderPresentationPressurePips(pips, track, value) {
+    const editable = track.operatorEditable !== false;
+    for (let index = 1; index <= track.range.max; index += 1) {
+      const pip = document.createElement("button");
+      pip.type = "button";
+      pip.className = "pip";
+      pip.classList.toggle("is-filled", index <= value);
+      pip.setAttribute("aria-label", `${track.label} ${index}`);
+      if (editable) {
+        pip.addEventListener("click", () => setTrackerValue(
+          track.stateKey || track.id,
+          index === value ? index - 1 : index,
+          track.range.max,
+          track
+        ));
+      } else {
+        pip.disabled = true;
+      }
+      pips.append(pip);
+    }
+  }
+
+  function bindPresentationAutosave(node) {
+    node.querySelectorAll("input, select").forEach((input) => {
+      input.addEventListener("change", autosaveStatus);
+    });
+  }
+
+  function renderSanguineIntakeFlags(article, presentation, status) {
+    const details = document.createElement("details");
+    details.className = "presentation-pressure-advanced";
+    const summary = document.createElement("summary");
+    summary.textContent = "Intake flags / override";
+    details.append(summary);
+
+    const flagFieldset = document.createElement("fieldset");
+    flagFieldset.className = "presentation-pressure-flags";
+    flagFieldset.setAttribute("aria-label", "Sanguine intake flags");
+    (presentation.conditionModel?.separateConditions || []).forEach((item) => {
+      if (!item.flagKey) return;
+      const label = document.createElement("label");
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.name = item.flagKey;
+      input.checked = Boolean(status[item.flagKey]);
+      label.append(input, document.createTextNode(` ${item.label}`));
+      flagFieldset.append(label);
+    });
+    details.append(flagFieldset);
+
+    const overrideLabel = document.createElement("label");
+    overrideLabel.className = "presentation-pressure-override";
+    overrideLabel.textContent = "Condition override ";
+    const overrideSelect = document.createElement("select");
+    overrideSelect.name = "sanguineConditionOverride";
+    overrideSelect.setAttribute("aria-label", "Sanguine condition override");
+    [
+      { value: "", label: "Derived from track + flags" },
+      { value: "Heightened", label: "Heightened" },
+      ...(presentation.conditionModel?.separateConditions || []).map((item) => ({
+        value: item.label,
+        label: item.label
+      }))
+    ].forEach((optionSpec, index, list) => {
+      if (list.findIndex((entry) => entry.value === optionSpec.value) !== index) return;
+      const option = document.createElement("option");
+      option.value = optionSpec.value;
+      option.textContent = optionSpec.label;
+      overrideSelect.append(option);
+    });
+    overrideSelect.value = status.sanguineConditionOverride || "";
+    overrideLabel.append(overrideSelect);
+    details.append(overrideLabel);
+
+    bindPresentationAutosave(details);
+    article.append(details);
+  }
+
+  function renderPresentationPressureView(board, presentation) {
+    const api = presentationPressureApi();
+    const track = presentation.tracks[0];
+    if (!api || !track || !board) return;
+
+    const status = consoleState.operatorStatus;
+    const view = api.presentationPressureView(status, presentation.id);
+    if (!view) return;
+
+    if (presentation.id === "sanguine") {
+      status.sanguineCoherence = view.condition || view.band;
+    }
+
+    const pipKind = track.kind === "hunger" ? "hunger" : "presentation";
+    board.className = "presentation-pressure-mount";
+    board.textContent = "";
+
+    const article = document.createElement("article");
+    article.className = `presentation-pressure-track ${presentation.id}-pressure`;
+
+    const head = document.createElement("div");
+    head.className = "presentation-pressure-head";
+    const title = document.createElement("span");
+    title.className = "presentation-pressure-track-label";
+    title.textContent = view.trackLabel;
+    const count = document.createElement("span");
+    count.className = "presentation-pressure-count";
+    count.textContent = `${view.value} / ${view.range.max}`;
+    head.append(title, count);
+
+    const row = document.createElement("div");
+    row.className = "presentation-pressure-row";
+    const pips = document.createElement("div");
+    pips.className = `line-pips ${pipKind}-pips`;
+    renderPresentationPressurePips(pips, track, view.value);
+    const bandEl = document.createElement("p");
+    bandEl.className = "presentation-pressure-band";
+    bandEl.textContent = view.band;
+    row.append(pips, bandEl);
+
+    article.append(head, row);
+
+    if (view.cue) {
+      const cueEl = document.createElement("p");
+      cueEl.className = "presentation-pressure-cue";
+      cueEl.textContent = `Cue: ${view.cue}`;
+      article.append(cueEl);
+    }
+    if (view.risk) {
+      const riskEl = document.createElement("p");
+      riskEl.className = "presentation-pressure-risk";
+      riskEl.textContent = `Risk: ${view.risk}`;
+      article.append(riskEl);
+    }
+    if (view.value >= view.range.max && view.maxRisk) {
+      const peakEl = document.createElement("p");
+      peakEl.className = "presentation-pressure-at-max";
+      peakEl.textContent = `At Max: ${view.maxRisk}`;
+      article.append(peakEl);
+    }
+
+    if (view.condition) {
+      const conditionEl = document.createElement("p");
+      conditionEl.className = "presentation-pressure-condition-readout";
+      conditionEl.textContent = `Condition: ${view.condition}`;
+      article.append(conditionEl);
+    }
+    if (view.conditionNote) {
+      const noteEl = document.createElement("p");
+      noteEl.className = "presentation-pressure-condition-note";
+      noteEl.textContent = `Note: ${view.conditionNote}`;
+      article.append(noteEl);
+    }
+
+    if (presentation.id === "sanguine") {
+      renderSanguineIntakeFlags(article, presentation, status);
+    }
+
+    board.append(article);
+  }
+
   function renderPresentationPressure() {
     const strip = document.getElementById("presentation-pressure-strip");
     const label = document.getElementById("presentation-pressure-label");
-    const coherencePanel = document.getElementById("presentation-coherence-panel");
     const board = document.getElementById("presentation-pressure-board");
     const api = presentationPressureApi();
     const presentation = api ? api.presentationForCatalogKey(currentPresentationKey()) : null;
@@ -1873,22 +2033,12 @@
     if (!presentation) {
       strip.hidden = true;
       board.textContent = "";
-      if (coherencePanel) coherencePanel.hidden = true;
       return;
     }
 
     strip.hidden = false;
     if (label) label.textContent = presentation.cardLabel;
-    if (coherencePanel) coherencePanel.hidden = !presentation.coherenceStates.length;
-    const trackers = presentation.tracks.map((track) => ({
-      track,
-      id: track.id,
-      key: track.stateKey || track.id,
-      label: track.label,
-      max: track.range.max,
-      kind: track.kind
-    }));
-    renderTrackerBoard(board, trackers);
+    renderPresentationPressureView(board, presentation);
   }
 
   function renderTrackers() {
@@ -2197,6 +2347,9 @@
     const api = presentationPressureApi();
     if (track && api) {
       consoleState.operatorStatus = api.writeTrackValue(consoleState.operatorStatus, track, value);
+      if (track.id === "sanguine.hunger") {
+        consoleState.operatorStatus.sanguineCoherence = deriveSanguineCoherence(consoleState.operatorStatus);
+      }
     } else {
       consoleState.operatorStatus[key] = normalizeBoxValue(value, max);
     }
@@ -2828,7 +2981,12 @@
       misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity),
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
       presentationPressures: migratePresentationPressure(status).presentationPressures || {},
-      sanguineCoherence: normalizeSanguineCoherence(status.sanguineCoherence),
+      sanguineCoherence: deriveSanguineCoherence(status),
+      sanguineSaturated: Boolean(status.sanguineSaturated),
+      sanguineStarved: Boolean(status.sanguineStarved),
+      sanguinePredatorySaturation: Boolean(status.sanguinePredatorySaturation),
+      sanguineCollapseRisk: Boolean(status.sanguineCollapseRisk),
+      sanguineConditionOverride: safeString(status.sanguineConditionOverride, 80),
       hungerPressure: normalizeBoxValue(status.hungerPressure, 6),
       echoRecursionPressure: normalizeBoxValue(status.echoRecursionPressure, 6),
       anchorDriftPressure: normalizeBoxValue(status.anchorDriftPressure, 6),
