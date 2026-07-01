@@ -201,6 +201,29 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.getByLabel("Attention and aftermath")).toBeVisible();
 });
 
+test("handler queues operator track prompts without silent sheet mutation", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+
+  await expect(page.getByText("OPERATOR TRACK PROMPTS")).toBeVisible();
+  await expect(page.locator(".track-prompt-empty")).toBeVisible();
+  await expect(page.locator("#operator-risk-strip")).toContainText("Band Calm");
+
+  await page.locator(".track-prompt-global-form [data-queue-delta]").selectOption("-3");
+  await page.locator(".track-prompt-global-form [data-queue-reason]").fill("Failed Stability Defense inside Echoed Zone.");
+  await page.locator(".track-prompt-global-form [data-queue-source]").selectOption("Failed defense");
+  await page.locator(".track-prompt-global-form [data-queue-submit]").click();
+  await expect(page.locator(".track-prompt-card")).toHaveCount(1);
+  await expect(page.locator(".track-prompt-copy")).toContainText("QUEUE:");
+  await expect(page.locator(".track-prompt-copy")).toContainText("reduce Stability by 3");
+  await expect(page.locator(".track-prompt-copy")).toContainText("7 / 10");
+  await expect(page.locator("#operator-risk-strip")).toContainText("Band Calm");
+
+  await page.locator(".track-prompt-card").getByRole("button", { name: "Resolve" }).click();
+  await expect(page.locator(".track-prompt-status")).toHaveText("Resolved");
+  await expect(page.locator("#operator-risk-strip")).toContainText("Band Strained");
+});
+
 async function waitForClueChips(page) {
   await page.waitForFunction(() => document.querySelectorAll("#clue-status-tracker .clue-status-chip").length > 0, null, { timeout: 15000 });
 }

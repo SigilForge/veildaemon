@@ -343,6 +343,35 @@
     });
   }
 
+  function applyPromptState(nextState, message) {
+    state = nextState;
+    writeState(message || "PROMPT UPDATED");
+    renderTrackPromptQueue();
+    renderOperators();
+  }
+
+  function queueTrackPrompt(payload) {
+    applyPromptState(api.createTrackPrompt(state, payload), "Operator track prompt queued.");
+  }
+
+  function trackerBoardOptions(playerIndex) {
+    return {
+      state,
+      showQuickForm: true,
+      onStateChange: applyPromptState,
+      setStatusMessage: setStatus,
+      onQueuePrompt: (payload) => {
+        queueTrackPrompt({ ...payload, operatorIndex: playerIndex });
+      }
+    };
+  }
+
+  function renderTrackPromptQueue() {
+    const mount = document.getElementById("track-prompt-queue-mount");
+    if (!mount || !window.HandlerTrackPromptQueue) return;
+    window.HandlerTrackPromptQueue.renderQueue(mount, state, applyPromptState, setStatus);
+  }
+
   function renderOperators() {
     const grid = document.getElementById("operator-grid");
     if (!grid) return;
@@ -374,11 +403,13 @@
       grid.append(card);
       const trackerMount = card.querySelector(`[data-operator-trackers="${index}"]`);
       if (window.HandlerOperatorTrackers) {
-        window.HandlerOperatorTrackers.renderBoard(trackerMount, state.players[index], index, state.players, () => {
-          state = api.normalizeState(state);
-          writeState();
-          renderOperators();
-        });
+        window.HandlerOperatorTrackers.renderBoard(
+          trackerMount,
+          state.players[index],
+          index,
+          state.players,
+          trackerBoardOptions(index)
+        );
       }
     });
     grid.querySelectorAll("[data-operator]").forEach((input) => {
@@ -771,6 +802,7 @@
   function renderDynamic() {
     renderClock("primary-clock-track", state.primaryClock, "primaryClock", true);
     renderClock("secondary-clock-track", state.secondaryClock, "secondaryClock", state.secondaryClock.enabled);
+    renderTrackPromptQueue();
     renderAttentionHint();
     renderModuleContext();
     if (window.HandlerNav) window.HandlerNav.renderFieldLock();

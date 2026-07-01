@@ -134,6 +134,7 @@
 
     if (dataField === "notes") return true;
     if (el.closest(".handler-operator-trackers")) return true;
+    if (el.closest(".track-prompt-queue, .track-prompt-quick-form")) return true;
     if (el.hasAttribute("data-residue") || el.hasAttribute("data-entity-notes")) return true;
     if (name === "attention.current") return true;
     if (/^handlerNotes\./.test(name)) return true;
