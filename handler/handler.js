@@ -156,12 +156,13 @@
       grid.append(card);
       const trackerMount = card.querySelector(`[data-player-trackers="${index}"]`);
       if (window.HandlerOperatorTrackers) {
-        window.HandlerOperatorTrackers.renderBoard(trackerMount, state.players[index], index, state.players, () => {
-          state = api.normalizeState(state);
-          writeState();
-          renderPlayers();
-          renderRiskStrip();
-        });
+        window.HandlerOperatorTrackers.renderBoard(
+          trackerMount,
+          state.players[index],
+          index,
+          state.players,
+          trackerBoardOptions(index)
+        );
       }
     });
 
@@ -309,6 +310,36 @@
     return card;
   }
 
+  function applyPromptState(nextState, message) {
+    state = nextState;
+    writeState(message || "PROMPT UPDATED");
+    renderTrackPromptQueue();
+    renderPlayers();
+    renderRiskStrip();
+  }
+
+  function queueTrackPrompt(payload) {
+    applyPromptState(api.createTrackPrompt(state, payload), "Operator track prompt queued.");
+  }
+
+  function trackerBoardOptions(playerIndex) {
+    return {
+      state,
+      showQuickForm: true,
+      onStateChange: applyPromptState,
+      setStatusMessage: setStatus,
+      onQueuePrompt: (payload) => {
+        queueTrackPrompt({ ...payload, operatorIndex: playerIndex });
+      }
+    };
+  }
+
+  function renderTrackPromptQueue() {
+    const mount = document.getElementById("track-prompt-queue-mount");
+    if (!mount || !window.HandlerTrackPromptQueue) return;
+    window.HandlerTrackPromptQueue.renderQueue(mount, state, applyPromptState, setStatus);
+  }
+
   function renderRiskStrip() {
     const strip = document.getElementById("operator-risk-strip");
     if (!strip) return;
@@ -452,6 +483,7 @@
     renderClock("primary-clock-track", state.primaryClock, true);
     renderClock("secondary-clock-track", state.secondaryClock, state.secondaryClock.enabled);
     renderRoomAnswer();
+    renderTrackPromptQueue();
     renderRiskStrip();
     renderAttentionHint();
     renderActiveEntityReadout();

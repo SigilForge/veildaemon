@@ -1609,6 +1609,7 @@
         notes: ""
       }
     ],
+    trackPromptQueue: [],
     players: [
       {
         id: "operator-1",
@@ -3432,6 +3433,7 @@
       roll: normalizeRoll(merged.roll),
       npcs: normalizeNpcs(merged.npcs),
       players: normalizePlayers(merged.players),
+      trackPromptQueue: normalizeTrackPromptQueue(merged.trackPromptQueue, normalizePlayers(merged.players)),
       caseFile: normalizeTextObject(merged.caseFile, defaultState.caseFile),
       activeNeedlepoint: normalizeActiveNeedlepoint(merged.activeNeedlepoint),
       handlerNotes: normalizeTextObject(merged.handlerNotes, defaultState.handlerNotes),
@@ -3669,6 +3671,274 @@
     return harm ? `${condition} (${harm}/5)` : condition;
   }
 
+  const trackPromptStatuses = ["Pending", "Announced", "Resolved"];
+  const trackPromptSources = [
+    "Failed defense",
+    "Misfire",
+    "Entity pressure",
+    "Overreach",
+    "Zone response",
+    "Scene pressure",
+    "Manual"
+  ];
+
+  function stabilityHandlerCue(band, points) {
+    const stability = normalizeTrackerValue(points, 10, 10);
+    if (band === "Calm" || stability >= 8) return "No bleed. Normal pressure.";
+    if (band === "Strained" || stability >= 5) return "Mention first signs of pressure.";
+    if (band === "Unraveling" || stability >= 3) return "Prompt bleed cue, Misfire risk, Anchor reminder.";
+    return "Queue Collapse warning and stabilization prompt.";
+  }
+
+  function harmHandlerCue(harmBoxes) {
+    const harm = normalizeTrackerValue(harmBoxes, 5, 0);
+    if (harm <= 0) return "No action.";
+    if (harm === 1) return "Cosmetic / discomfort.";
+    if (harm === 2) return "Risk decisions change.";
+    if (harm === 3) return "Apply limitation prompt.";
+    if (harm === 4) return "Stabilization prompt.";
+    return "Collapse / emergency prompt.";
+  }
+
+  function normalizeTrackPromptStatus(value) {
+    return trackPromptStatuses.includes(value) ? value : "Pending";
+  }
+
+  function normalizeTrackPromptSource(value) {
+    const source = safeString(value, 80);
+    return trackPromptSources.includes(source) ? source : "Manual";
+  }
+
+  function normalizeTrackPromptTrack(value) {
+    const track = safeString(value, 40).toLowerCase();
+    return track === "harm" ? "harm" : "stability";
+  }
+
+  function playerAtIndex(players, index) {
+    const list = Array.isArray(players) ? players : [];
+    return list[index] || null;
+  }
+
+  function projectTrackChange(player, track, delta) {
+    const currentStability = normalizeTrackerValue(player.stabilityPoints, 10, 10);
+    const currentHarm = normalizeTrackerValue(player.harmBoxes, 5, 0);
+    if (track === "harm") {
+      const projectedValue = normalizeTrackerValue(currentHarm + delta, 5, 0);
+      return {
+        currentValue: currentHarm,
+        projectedValue,
+        currentBand: "",
+        projectedBand: "",
+        currentCondition: harmConditionFromBoxes(currentHarm),
+        projectedCondition: harmConditionFromBoxes(projectedValue),
+        handlerCue: harmHandlerCue(projectedValue)
+      };
+    }
+    const projectedValue = normalizeTrackerValue(currentStability + delta, 10, 10);
+    const projectedBand = stabilityBandFromPoints(projectedValue);
+    return {
+      currentValue: currentStability,
+      projectedValue,
+      currentBand: stabilityBandFromPoints(currentStability),
+      projectedBand,
+      currentCondition: "",
+      projectedCondition: "",
+      handlerCue: stabilityHandlerCue(projectedBand, projectedValue)
+    };
+  }
+
+  function buildTrackPromptCopy(prompt) {
+    const reason = safeString(prompt.reason || prompt.source, 240) || "Scene pressure";
+    const note = safeString(prompt.handlerNote, 300);
+    if (prompt.track === "stability") {
+      const amount = Math.abs(Number(prompt.delta) || 0);
+      const direction = Number(prompt.delta) < 0 ? "reduce" : "increase";
+      const lines = [
+        `QUEUE: Tell ${prompt.operatorName} to ${direction} Stability by ${amount}.`,
+        `REASON: ${reason}.`,
+        `BAND AFTER CHANGE: ${prompt.projectedValue} / 10 — ${prompt.projectedBand}.`,
+        `Suggested cue: ${prompt.handlerCue}`
+      ];
+      if (note) lines.push(`Handler note: ${note}`);
+      return lines.join("\n");
+    }
+    const amount = Math.abs(Number(prompt.delta) || 0);
+    const direction = Number(prompt.delta) < 0 ? "reduce" : "increase";
+    const lines = [
+      `QUEUE: Tell ${prompt.operatorName} to ${direction} Harm by ${amount}.`,
+      `TARGET AFTER CHANGE: ${prompt.projectedValue} / 5 — ${prompt.projectedCondition}.`,
+      `REASON: ${reason}.`,
+      `Suggested cue: ${prompt.handlerCue}`
+    ];
+    if (note) lines.push(`Handler note: ${note}`);
+    return lines.join("\n");
+  }
+
+  function normalizeTrackPromptQueue(queue, players) {
+    const list = Array.isArray(queue) ? queue : [];
+    return list.slice(0, 40).map((item, index) => {
+      const operatorIndex = Number.isFinite(Number(item.operatorIndex)) ? Number(item.operatorIndex) : 0;
+      const player = playerAtIndex(players, operatorIndex);
+      const track = normalizeTrackPromptTrack(item.track);
+      const delta = Math.max(-10, Math.min(10, Math.round(Number(item.delta) || 0)));
+      const projection = player ? projectTrackChange(player, track, delta) : {
+        currentValue: 0,
+        projectedValue: 0,
+        currentBand: "",
+        projectedBand: "",
+        currentCondition: "Fine",
+        projectedCondition: "Fine",
+        handlerCue: ""
+      };
+      return {
+        id: safeString(item.id, 80) || `track-prompt-${index + 1}`,
+        createdAt: safeString(item.createdAt, 80) || nowStamp(),
+        operatorId: safeString(item.operatorId || player?.id, 120),
+        operatorName: safeString(item.operatorName || player?.name, 80) || `Operator ${operatorIndex + 1}`,
+        operatorIndex,
+        track,
+        delta,
+        reason: safeString(item.reason, 240),
+        source: normalizeTrackPromptSource(item.source),
+        handlerNote: safeString(item.handlerNote, 300),
+        status: normalizeTrackPromptStatus(item.status),
+        announcedAt: safeString(item.announcedAt, 80),
+        resolvedAt: safeString(item.resolvedAt, 80),
+        appliedSummary: Boolean(item.appliedSummary),
+        suggestedCopy: safeString(item.suggestedCopy, 1200) || buildTrackPromptCopy({
+          operatorName: safeString(item.operatorName || player?.name, 80) || `Operator ${operatorIndex + 1}`,
+          track,
+          delta,
+          reason: safeString(item.reason, 240),
+          source: normalizeTrackPromptSource(item.source),
+          handlerNote: safeString(item.handlerNote, 300),
+          projectedValue: projection.projectedValue,
+          projectedBand: projection.projectedBand,
+          projectedCondition: projection.projectedCondition,
+          handlerCue: projection.handlerCue
+        }),
+        currentValue: projection.currentValue,
+        projectedValue: projection.projectedValue,
+        currentBand: projection.currentBand,
+        projectedBand: projection.projectedBand,
+        currentCondition: projection.currentCondition,
+        projectedCondition: projection.projectedCondition,
+        handlerCue: projection.handlerCue
+      };
+    });
+  }
+
+  function createTrackPrompt(state, payload) {
+    const draft = clone(normalizeState(state));
+    const operatorIndex = Number(payload?.operatorIndex);
+    const player = playerAtIndex(draft.players, operatorIndex);
+    if (!player) return draft;
+    const track = normalizeTrackPromptTrack(payload?.track);
+    const delta = Math.max(-10, Math.min(10, Math.round(Number(payload?.delta) || 0)));
+    if (!delta) return draft;
+    const projection = projectTrackChange(player, track, delta);
+    const prompt = {
+      id: `track-prompt-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      createdAt: nowStamp(),
+      operatorId: player.id,
+      operatorName: player.name,
+      operatorIndex,
+      track,
+      delta,
+      reason: safeString(payload?.reason, 240),
+      source: normalizeTrackPromptSource(payload?.source),
+      handlerNote: safeString(payload?.handlerNote, 300),
+      status: "Pending",
+      announcedAt: "",
+      resolvedAt: "",
+      appliedSummary: false,
+      suggestedCopy: "",
+      ...projection
+    };
+    prompt.suggestedCopy = buildTrackPromptCopy(prompt);
+    draft.trackPromptQueue = [prompt, ...(draft.trackPromptQueue || [])].slice(0, 40);
+    return normalizeState(draft);
+  }
+
+  function findTrackPrompt(state, promptId) {
+    return (state.trackPromptQueue || []).find((item) => item.id === promptId) || null;
+  }
+
+  function updateTrackPromptStatus(state, promptId, status) {
+    const draft = clone(normalizeState(state));
+    const nextStatus = normalizeTrackPromptStatus(status);
+    const stamp = nowStamp();
+    draft.trackPromptQueue = (draft.trackPromptQueue || []).map((item) => {
+      if (item.id !== promptId) return item;
+      const updated = { ...item, status: nextStatus };
+      if (nextStatus === "Announced" && !updated.announcedAt) updated.announcedAt = stamp;
+      if (nextStatus === "Resolved" && !updated.resolvedAt) updated.resolvedAt = stamp;
+      return updated;
+    });
+    return normalizeState(draft);
+  }
+
+  function applyPromptToPlayerSummary(player, prompt) {
+    if (!player || !prompt) return;
+    if (prompt.track === "stability") {
+      player.stabilityPoints = prompt.projectedValue;
+      player.stabilityBand = stabilityBandFromPoints(prompt.projectedValue);
+      player.stability = formatPlayerStability(prompt.projectedValue, player.stabilityBand);
+      return;
+    }
+    player.harmBoxes = prompt.projectedValue;
+    player.harm = formatPlayerHarm(prompt.projectedValue);
+  }
+
+  function resolveTrackPrompt(state, promptId, options = {}) {
+    const draft = clone(normalizeState(state));
+    const prompt = findTrackPrompt(draft, promptId);
+    if (!prompt) return draft;
+    if (options.applySummary !== false) {
+      const player = playerAtIndex(draft.players, prompt.operatorIndex);
+      if (player) {
+        applyPromptToPlayerSummary(player, prompt);
+      }
+    }
+    draft.trackPromptQueue = (draft.trackPromptQueue || []).map((item) => {
+      if (item.id !== promptId) return item;
+      return {
+        ...item,
+        status: "Resolved",
+        resolvedAt: item.resolvedAt || nowStamp(),
+        appliedSummary: options.applySummary !== false
+      };
+    });
+    return normalizeState(draft);
+  }
+
+  function removeTrackPrompt(state, promptId) {
+    const draft = clone(normalizeState(state));
+    draft.trackPromptQueue = (draft.trackPromptQueue || []).filter((item) => item.id !== promptId);
+    return normalizeState(draft);
+  }
+
+  function undoTrackPrompt(state, promptId) {
+    const draft = clone(normalizeState(state));
+    const prompt = findTrackPrompt(draft, promptId);
+    if (!prompt) return draft;
+    if (prompt.status === "Resolved" && prompt.appliedSummary) {
+      const player = playerAtIndex(draft.players, prompt.operatorIndex);
+      if (player) {
+        if (prompt.track === "stability") {
+          player.stabilityPoints = prompt.currentValue;
+          player.stabilityBand = stabilityBandFromPoints(prompt.currentValue);
+          player.stability = formatPlayerStability(prompt.currentValue, player.stabilityBand);
+        } else {
+          player.harmBoxes = prompt.currentValue;
+          player.harm = formatPlayerHarm(prompt.currentValue);
+        }
+      }
+    }
+    draft.trackPromptQueue = (draft.trackPromptQueue || []).filter((item) => item.id !== promptId);
+    return normalizeState(draft);
+  }
+
   function normalizePlayers(players) {
     const list = Array.isArray(players) ? players : [];
     return list.slice(0, 8).map((player, index) => {
@@ -3860,6 +4130,17 @@
     harmConditionFromBoxes,
     formatPlayerStability,
     formatPlayerHarm,
+    trackPromptStatuses,
+    trackPromptSources,
+    stabilityHandlerCue,
+    harmHandlerCue,
+    buildTrackPromptCopy,
+    createTrackPrompt,
+    updateTrackPromptStatus,
+    resolveTrackPrompt,
+    removeTrackPrompt,
+    undoTrackPrompt,
+    findTrackPrompt,
     collapseBreakTypes,
     rewriteOverwriteTypes,
     syncCollapseRewriteStaging,
