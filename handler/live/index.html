@@ -10,7 +10,7 @@
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260701-triggerstab2" />
+  <link rel="stylesheet" href="../handler.css?v=20260701-pending1" />
   <link rel="stylesheet" href="../handler-clue-integrity.css?v=20260630-cluereveal2" />
   <link rel="stylesheet" href="./live-flow.css?v=20260630-cluereveal2" />
 </head>
@@ -35,8 +35,14 @@
     <section class="status-strip" aria-label="Dashboard status">
       <div><span>Terminology</span><strong>Handler</strong></div>
       <div><span>Core Roll</span><strong>3d6 + Attribute + Skill</strong></div>
-      <div><span>Tracking Limit</span><strong>3-5 Live Items</strong></div>
+      <div><span>Operator Queue</span><strong id="handler-pending-status">CLEAR</strong></div>
       <div><span>Storage</span><strong id="storage-status">LOCAL READY</strong></div>
+    </section>
+
+    <section class="handler-pending-banner no-print" id="handler-pending-banner" hidden aria-live="assertive">
+      <p class="handler-pending-banner-title" id="handler-pending-banner-title">Operator updates pending at the table</p>
+      <pre class="handler-pending-banner-copy" id="handler-pending-banner-copy"></pre>
+      <button class="button" id="handler-pending-jump" type="button">Open Operator Queue</button>
     </section>
 
     <section class="mode-switch no-print" aria-label="Dashboard mode">
@@ -337,15 +343,16 @@
     </section>
   </main>
   <script src="../../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="../handler-state.js?v=20260701-triggerstab2"></script>
+  <script src="../handler-state.js?v=20260701-triggerstab3"></script>
   <script src="../handler-nav.js?v=20260629-templatepicker1"></script>
-  <script src="../handler-track-prompt-queue.js?v=20260701-triggerstab1"></script>
+  <script src="../handler-pending-alerts.js?v=20260701-pending1"></script>
+  <script src="../handler-track-prompt-queue.js?v=20260701-pending1"></script>
   <script src="../handler-operator-trackers.js?v=20260701-triggerstab1"></script>
   <script src="../handler-npc-anchor.js?v=20260630-anchoridle1"></script>
-  <script src="../handler-triggers.js?v=20260701-triggerstab2"></script>
+  <script src="../handler-triggers.js?v=20260701-triggerstab3"></script>
   <script src="../handler-wind-down.js?v=20260627-pressuregrid19"></script>
   <script src="../handler-collapse.js?v=20260628-collapse4"></script>
   <script src="../handler-clue-integrity.js?v=20260630-cluereveal2"></script>
-  <script src="../handler.js?v=20260701-triggerstab2"></script>
+  <script src="../handler.js?v=20260701-pending1"></script>
 </body>
 </html>

@@ -343,15 +343,35 @@
     });
   }
 
+  function notifyPendingAlerts(options = {}) {
+    if (!window.HandlerPendingAlerts) return null;
+    const result = window.HandlerPendingAlerts.render(state, options);
+    if (options.scrollToQueue && result?.count) {
+      window.HandlerPendingAlerts.scrollToQueue();
+    }
+    return result;
+  }
+
   function applyPromptState(nextState, message) {
     state = nextState;
-    writeState(message || "PROMPT UPDATED");
+    const pendingMessage = window.HandlerPendingAlerts?.pendingStatusMessage(state) || "";
+    writeState(message || pendingMessage || "PROMPT UPDATED");
     renderTrackPromptQueue();
     renderOperators();
+    notifyPendingAlerts({ forceAlert: Boolean(message) });
   }
 
   function queueTrackPrompt(payload) {
-    applyPromptState(api.createTrackPrompt(state, payload), "Operator track prompt queued.");
+    const next = api.createTrackPrompt(state, payload);
+    const created = next.trackPromptQueue?.[0];
+    const message = created
+      ? `PENDING: Tell ${created.operatorName} — ${created.track === "harm" ? "Harm" : "Stability"} ${created.delta > 0 ? "+" : ""}${created.delta}. Announce at table.`
+      : "Operator track prompt queued.";
+    state = next;
+    writeState(message);
+    renderTrackPromptQueue();
+    renderOperators();
+    notifyPendingAlerts({ forceAlert: true, scrollToQueue: true });
   }
 
   function trackerBoardOptions(playerIndex) {
@@ -944,6 +964,7 @@
     if (window.HandlerNav) window.HandlerNav.renderFieldLock();
     renderPlayerView();
     text("clock-warning", api.clockWarning(state.primaryClock), "No warning.");
+    notifyPendingAlerts();
   }
 
   function renderAll() {

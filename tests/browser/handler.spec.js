@@ -221,6 +221,10 @@ test("handler queues operator track prompts without silent sheet mutation", asyn
   await expect(page.getByRole("group", { name: "Who takes Stability damage" }).getByRole("button", { name: "Operator 1" })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Apply" }).click();
 
+  await expect(page.locator("#handler-pending-banner")).toBeVisible();
+  await expect(page.locator("#handler-pending-status")).toContainText("1 PENDING");
+  await expect(page.locator("#handler-pending-banner-copy")).toContainText("needs announcement at the table");
+  await expect(page.locator(".track-prompt-pending-alert")).toContainText("still need announcement");
   await expect(page.locator("#trigger-table-copy")).toContainText("Tell Operator 1: reduce Stability by 3.");
   await expect(page.locator(".track-prompt-card")).toHaveCount(1);
   await expect(page.locator(".track-prompt-copy")).toContainText("characters in the area take 3 Stability damage");
@@ -571,6 +575,25 @@ test("handler module pages share case state", async ({ page }) => {
   await page.goto("/handler/player-view/");
   await expect(page.getByRole("heading", { name: "PLAYER VIEW" })).toBeVisible();
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toHaveCount(0);
+});
+
+test("manual primary clock tick opens the same pressure preview flow", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+
+  await page.getByLabel("Primary clock segments").getByRole("button", { name: "primary-clock-track segment 1" }).click();
+  const preview = page.locator("#trigger-preview-panel");
+  await expect(preview).toBeVisible();
+  await expect(preview).toContainText("Apply:");
+  await expect(page.locator("#trigger-stability-announce")).toContainText(
+    "When this happens, characters in the area take 1 Stability damage."
+  );
+  await expect(page.locator(".trigger-operator-helper")).toContainText("Selected = in area. Tap to exclude.");
+  await page.getByRole("button", { name: "Apply" }).click();
+  await expect(page.locator("#handler-pending-banner")).toBeVisible();
+  await expect(page.locator("#handler-pending-status")).toContainText("1 PENDING");
+  await expect(page.locator("#trigger-table-copy")).toContainText("Tell Operator 1: reduce Stability by 1.");
+  await expect(page.locator('[name="primaryClock.current"]')).toHaveValue("1");
 });
 
 test("handler live triggers route common table events to clock responsibility", async ({ page }) => {
