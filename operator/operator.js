@@ -3286,8 +3286,6 @@
         activateTab(tab.getAttribute("data-module-tab"));
       });
     });
-    const openAuthorizations = document.getElementById("open-authorizations");
-    if (openAuthorizations) openAuthorizations.addEventListener("click", () => activateTab("authorizations"));
     const openAuthorizationsSealed = document.getElementById("open-authorizations-sealed");
     if (openAuthorizationsSealed) openAuthorizationsSealed.addEventListener("click", () => activateTab("authorizations"));
   }
@@ -3301,11 +3299,45 @@
     });
   }
 
+  async function importAuthorizationFile(file) {
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const payload = readAuthorizationPayload(text);
+      const targetCheck = operatorPacketTargetMatches(payload);
+      if (!targetCheck.ok) throw new Error(targetCheck.message);
+      const unlocks = parseAuthorizationPacket(text, payload);
+      if (!unlocks.length) throw new Error("No unlock flags found.");
+      const added = mergeUnlocks(unlocks);
+      applyUnlockEffects();
+      consoleState = normalizeConsoleState(consoleState);
+      writeConsoleState();
+      renderAll();
+      activateTab("authorizations");
+      const ontology = unlocks.find((item) => item.type === "ontology");
+      const assigned = targetCheck.assigned ? ` Assigned packet target ${targetCheck.target}.` : "";
+      setStorageStatus((ontology ? "NEW ONTOLOGY SIGNAL DETECTED" : `${added || unlocks.length} authorization flag processed.`) + assigned);
+    } catch (error) {
+      setStorageStatus(error.message || "Authorization refused. No valid unlock flags found.", true);
+    }
+  }
+
+  function bindAuthorizationImport(input) {
+    if (!input) return;
+    input.addEventListener("change", async () => {
+      const file = input.files && input.files[0];
+      try {
+        await importAuthorizationFile(file);
+      } finally {
+        input.value = "";
+      }
+    });
+  }
+
   function bindDataControls() {
     const exportOperatorFile = document.getElementById("export-operator-file");
     const exportButton = document.getElementById("export-console");
     const importInput = document.getElementById("import-console");
-    const importAuthorization = document.getElementById("import-authorization");
     const purgeButton = document.getElementById("purge-console");
 
     if (exportOperatorFile) exportOperatorFile.addEventListener("click", () => {
@@ -3373,31 +3405,8 @@
       }
     });
 
-    if (importAuthorization) importAuthorization.addEventListener("change", async () => {
-      const file = importAuthorization.files && importAuthorization.files[0];
-      if (!file) return;
-      try {
-        const text = await file.text();
-        const payload = readAuthorizationPayload(text);
-        const targetCheck = operatorPacketTargetMatches(payload);
-        if (!targetCheck.ok) throw new Error(targetCheck.message);
-        const unlocks = parseAuthorizationPacket(text, payload);
-        if (!unlocks.length) throw new Error("No unlock flags found.");
-        const added = mergeUnlocks(unlocks);
-        applyUnlockEffects();
-        consoleState = normalizeConsoleState(consoleState);
-        writeConsoleState();
-        renderAll();
-        activateTab("authorizations");
-        const ontology = unlocks.find((item) => item.type === "ontology");
-        const assigned = targetCheck.assigned ? ` Assigned packet target ${targetCheck.target}.` : "";
-        setStorageStatus((ontology ? "NEW ONTOLOGY SIGNAL DETECTED" : `${added || unlocks.length} authorization flag processed.`) + assigned);
-      } catch (error) {
-        setStorageStatus(error.message || "Authorization refused. No valid unlock flags found.", true);
-      } finally {
-        importAuthorization.value = "";
-      }
-    });
+    bindAuthorizationImport(document.getElementById("import-authorization"));
+    bindAuthorizationImport(document.getElementById("import-authorization-handoff"));
 
     if (purgeButton) purgeButton.addEventListener("click", () => {
       if (!window.confirm("Purge local console entries from this browser? Intake record remains untouched.")) return;

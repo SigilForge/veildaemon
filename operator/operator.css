@@ -651,16 +651,16 @@ select.is-locked {
 
 .tracker-board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: .6rem;
+  grid-template-columns: 1fr;
+  gap: .45rem;
   align-items: start;
 }
 .line-tracker {
   display: grid;
-  grid-template-columns: minmax(8.4rem, .34fr) minmax(8rem, 1fr) minmax(6.8rem, .3fr);
-  gap: .45rem;
+  grid-template-columns: minmax(6.8rem, 7.6rem) max-content minmax(3.8rem, 1fr);
+  gap: .4rem .5rem;
   align-items: center;
-  min-height: 2.8rem;
+  min-height: 2.55rem;
   padding: .3rem .45rem;
   background: rgba(0,0,0,.18);
 }
@@ -699,17 +699,27 @@ select.is-locked {
   align-content: center;
 }
 .line-pips.stability-pips {
-  grid-template-columns: repeat(10, minmax(.46rem, 1fr));
+  grid-template-columns: repeat(10, 0.46rem);
+  width: max-content;
 }
 .line-pips.harm-pips {
-  grid-template-columns: repeat(5, minmax(.46rem, 1fr));
+  grid-template-columns: repeat(5, 0.46rem);
+  width: max-content;
 }
 .line-pips.pressure-pips {
-  grid-template-columns: repeat(5, minmax(.46rem, 1fr));
+  grid-template-columns: repeat(5, 0.46rem);
+  width: max-content;
 }
 .line-pips.hunger-pips,
 .line-pips.presentation-pips {
-  grid-template-columns: repeat(6, minmax(.42rem, 1fr));
+  grid-template-columns: repeat(6, 0.46rem);
+  width: max-content;
+}
+.line-tracker .pip {
+  width: 0.46rem;
+  height: 0.62rem;
+  min-height: 0;
+  aspect-ratio: auto;
 }
 .line-pips.hunger-pips .pip {
   border-color: rgba(168, 92, 148, .42);
@@ -1820,6 +1830,13 @@ a:focus-visible {
   white-space: pre-wrap;
 }
 
+body:not(.operator-record-sealed) .authorization-import-tab-only {
+  display: none;
+}
+body.operator-record-sealed .authorization-import-handoff {
+  display: none;
+}
+
 .authorization-import-surface {
   display: grid;
   grid-template-columns: minmax(min(100%, 16rem), max-content) minmax(min(100%, 22rem), 1fr);
@@ -2210,7 +2227,6 @@ body.has-reports-drawer-open .surface-tabs {
   }
 
   .tracker-board,
-  .line-tracker,
   .roll-row,
   .lotus-workspace,
   .frequency-dashboard,

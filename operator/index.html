@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260701-authunlock1" />
+  <link rel="stylesheet" href="./operator.css?v=20260701-authhandoff1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -337,7 +337,7 @@
         <h2>Import Handler packets and review released options.</h2>
       </div>
       <div class="authorization-import-surface">
-        <label class="button file-button">Import Authorization Packet<input id="import-authorization" type="file" accept=".json,.txt,text/plain,application/json" /></label>
+        <label class="button file-button authorization-import-tab-only">Import Authorization Packet<input id="import-authorization" type="file" accept=".json,.txt,text/plain,application/json" /></label>
         <div class="authorization-current-grid">
           <div><span>Current Presentation</span><strong id="authorized-current-presentation">UNSET</strong></div>
           <div><span>Current Background</span><strong id="authorized-current-background">UNSET</strong></div>
@@ -541,8 +541,8 @@
           <p class="local-note">Handler packets are for table transfer.</p>
           <div class="data-actions">
             <button class="button" type="button" id="export-operator-file">Create Handler Packet</button>
+            <label class="button file-button authorization-import-handoff">Import Authorization Packet<input id="import-authorization-handoff" type="file" accept=".json,.txt,text/plain,application/json" /></label>
             <label class="button file-button">Import Operator Record<input data-operator-file-import type="file" accept="application/json" /></label>
-            <button class="button" type="button" id="open-authorizations">Authorized Unlocks</button>
           </div>
         </section>
         <section class="data-transfer-group" aria-label="Operator local backup">
@@ -561,6 +561,6 @@
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260626-catalog-grants1"></script>
   <script src="../presentation-pressure.js?v=20260701-ppressure2"></script>
-  <script src="./operator.js?v=20260701-ppressure4"></script>
+  <script src="./operator.js?v=20260701-authhandoff1"></script>
 </body>
 </html>
