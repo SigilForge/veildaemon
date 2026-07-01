@@ -281,6 +281,17 @@
                 </details>
               </div>
               <label>Observed Symptom<textarea name="activeMisfire" rows="3" placeholder="What changed, glitched, followed, noticed, or felt wrong."></textarea></label>
+              <div class="misfire-severity-wrap" id="misfire-severity-wrap" hidden>
+                <span class="readout-inline-label">Misfire Severity</span>
+                <input type="hidden" name="misfireSeverity" value="None" />
+                <div class="segmented misfire-severity" data-segmented="misfireSeverity" role="group" aria-label="Misfire severity">
+                  <button type="button" data-value="None">None</button>
+                  <button type="button" data-value="Minor">Minor (+1)</button>
+                  <button type="button" data-value="Major">Major (+1)</button>
+                  <button type="button" data-value="Severe">Severe (+2)</button>
+                </div>
+                <p class="misfire-presentation-load-note" id="misfire-presentation-load-note" hidden></p>
+              </div>
               <button type="button" class="button" id="clear-active-misfire">Clear Active Misfire</button>
               <label>Operator Notes<textarea name="misfires" rows="3" placeholder="What you think caused it, who noticed, or what got worse."></textarea></label>
             </article>
@@ -560,7 +571,7 @@
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260626-catalog-grants1"></script>
-  <script src="../presentation-pressure.js?v=20260701-bloodbands1"></script>
-  <script src="./operator.js?v=20260701-trackerrow1"></script>
+  <script src="../presentation-pressure.js?v=20260701-loaddebuff1"></script>
+  <script src="./operator.js?v=20260701-loaddebuff1"></script>
 </body>
 </html>

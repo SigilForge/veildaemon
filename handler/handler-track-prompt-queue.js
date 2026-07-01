@@ -7,7 +7,22 @@
   }
 
   function trackLabel(track) {
+    const pp = typeof window !== "undefined" ? window.PresentationPressure : null;
+    if (pp && String(track || "").endsWith("_load")) {
+      const presentation = pp.presentationForLoadTrackKind(track);
+      return presentation?.trackLabel || String(track).replace(/_/g, " ");
+    }
     return track === "harm" ? "Harm" : "Stability";
+  }
+
+  function afterChangeLabel(prompt) {
+    if (String(prompt.track || "").endsWith("_load")) {
+      return `${prompt.projectedValue}/6 — ${api.safeString(prompt.projectedBand, 40)}`;
+    }
+    if (prompt.track === "harm") {
+      return `${prompt.projectedValue}/5 — ${api.safeString(prompt.projectedCondition, 40)}`;
+    }
+    return `${prompt.projectedValue}/10 — ${api.safeString(prompt.projectedBand, 40)}`;
   }
 
   function deltaLabel(prompt) {
@@ -45,9 +60,7 @@
     meta.innerHTML = `
       <div><dt>Source</dt><dd>${api.safeString(prompt.source, 80)}</dd></div>
       <div><dt>Reason</dt><dd>${api.safeString(prompt.reason, 240) || "—"}</dd></div>
-      <div><dt>After change</dt><dd>${prompt.track === "harm"
-        ? `${prompt.projectedValue}/5 — ${api.safeString(prompt.projectedCondition, 40)}`
-        : `${prompt.projectedValue}/10 — ${api.safeString(prompt.projectedBand, 40)}`}</dd></div>
+      <div><dt>After change</dt><dd>${afterChangeLabel(prompt)}</dd></div>
     `;
 
     const copyBlock = document.createElement("pre");
