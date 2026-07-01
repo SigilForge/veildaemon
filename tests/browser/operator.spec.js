@@ -310,6 +310,8 @@ test("operator equipment supports default kit and selectable carry", async ({ pa
 test("operator imports Handler authorization unlock packets", async ({ page }) => {
   await page.goto("/operator/");
 
+  await expect(page.locator("#import-authorization-handoff")).toBeAttached();
+  await expect(page.locator(".authorization-import-tab-only")).toBeHidden();
   await expect(page.getByLabel("Console modules").getByRole("button", { name: "Authorized Unlocks" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Background" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Ontology" })).toHaveCount(0);

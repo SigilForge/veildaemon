@@ -54,6 +54,11 @@
 - When adding a visible target/control, verify `Custom Campaign`, `VeilCorp Intake`, and `Viridian House` all have deterministic entries so no button falls back to generic text.
 - For Handler/live, keep Scene State, Attention/Aftermath, Primary Clock, Case Clock, and Collapse/Rewrite responsibilities separate. They may update together, but they should not share one mislabeled consequence field.
 
+## UI / Layout
+- Before changing Operator, Handler, or tracker UI, read `Docs/DESIGN_CONSTRAINTS.md`.
+- At-table pressure (Harm, Stability, Presentation) uses compact `line-tracker` rows inside the Harm & Stability strip; prose cues belong in collapsed readouts, not new full-width cards.
+- Presentation pressure registry: `presentation-pressure.js`. Presentation is a track + derived condition, not a status-picker dropdown.
+
 ## Implementation Notes
 - Static site changes usually touch `index.html`, `styles.css`, and `script.js`.
 - When changing CSS or JS behavior, bump the cache query string in `index.html`.
