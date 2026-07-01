@@ -4,12 +4,15 @@
   function queueTrackerChange(players, index, key, delta, onQueuePrompt) {
     const player = players[index];
     if (!player || !onQueuePrompt) return;
+    const track = key === "harmBoxes" ? "harm" : "stability";
     onQueuePrompt({
       operatorIndex: index,
-      track: key === "harmBoxes" ? "harm" : "stability",
+      track,
       delta,
-      source: "Manual",
-      reason: "",
+      source: track === "harm" ? "Scene pressure" : "Manual",
+      reason: track === "harm"
+        ? "Harm changed at the table."
+        : "Handler adjustment at the table.",
       handlerNote: ""
     });
   }

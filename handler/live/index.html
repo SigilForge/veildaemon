@@ -10,7 +10,7 @@
   <link rel="icon" href="../../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260701-trackprompt1" />
+  <link rel="stylesheet" href="../handler.css?v=20260701-triggerstab2" />
   <link rel="stylesheet" href="../handler-clue-integrity.css?v=20260630-cluereveal2" />
   <link rel="stylesheet" href="./live-flow.css?v=20260630-cluereveal2" />
 </head>
@@ -79,8 +79,19 @@
               </div>
             </div>
             <div class="pressure-tray" id="trigger-rail" role="group" aria-label="Table triggers"></div>
+            <div class="trigger-undo-banner" id="trigger-undo-banner" hidden>
+              <p class="trigger-undo-label" id="trigger-undo-label"></p>
+              <pre class="trigger-table-copy" id="trigger-table-copy"></pre>
+              <button class="button danger ghost" id="trigger-undo" type="button">Undo Last Trigger</button>
+            </div>
             <div class="trigger-preview-panel" id="trigger-preview-panel" hidden>
               <p class="trigger-preview-title">Apply Trigger?</p>
+              <div class="trigger-operator-picker" id="trigger-operator-picker" hidden>
+                <p class="trigger-stability-announce" id="trigger-stability-announce"></p>
+                <pre class="trigger-stability-breakdown" id="trigger-stability-breakdown" hidden></pre>
+                <p class="trigger-operator-helper">Selected = in area. Tap to exclude.</p>
+                <div class="trigger-operator-chips" id="trigger-operator-chips" role="group"></div>
+              </div>
               <p class="panel-note">This will:</p>
               <ul class="trigger-preview-lines"></ul>
               <div class="trigger-preview-actions">
@@ -104,7 +115,7 @@
           <section class="panel track-prompt-panel" aria-label="Operator track prompt queue" data-mode-panel="live">
             <div class="panel-heading">
               <p class="kicker">OPERATOR TRACK PROMPTS</p>
-              <h2>Queue instructions. Operators update their own Stability and Harm.</h2>
+              <h2>Auto-queued from table triggers. Operators update their own sheets.</h2>
             </div>
             <div id="track-prompt-queue-mount" data-live-control-zone></div>
           </section>
@@ -326,15 +337,15 @@
     </section>
   </main>
   <script src="../../catalogs.js?v=20260625-live-catalog1"></script>
-  <script src="../handler-state.js?v=20260701-trackprompt1"></script>
+  <script src="../handler-state.js?v=20260701-triggerstab2"></script>
   <script src="../handler-nav.js?v=20260629-templatepicker1"></script>
-  <script src="../handler-track-prompt-queue.js?v=20260701-trackprompt1"></script>
-  <script src="../handler-operator-trackers.js?v=20260701-trackprompt1"></script>
+  <script src="../handler-track-prompt-queue.js?v=20260701-triggerstab1"></script>
+  <script src="../handler-operator-trackers.js?v=20260701-triggerstab1"></script>
   <script src="../handler-npc-anchor.js?v=20260630-anchoridle1"></script>
-  <script src="../handler-triggers.js?v=20260627-pressuregrid19"></script>
+  <script src="../handler-triggers.js?v=20260701-triggerstab2"></script>
   <script src="../handler-wind-down.js?v=20260627-pressuregrid19"></script>
   <script src="../handler-collapse.js?v=20260628-collapse4"></script>
   <script src="../handler-clue-integrity.js?v=20260630-cluereveal2"></script>
-  <script src="../handler.js?v=20260701-trackprompt1"></script>
+  <script src="../handler.js?v=20260701-triggerstab2"></script>
 </body>
 </html>

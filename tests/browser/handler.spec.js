@@ -209,18 +209,32 @@ test("handler queues operator track prompts without silent sheet mutation", asyn
   await expect(page.locator(".track-prompt-empty")).toBeVisible();
   await expect(page.locator("#operator-risk-strip")).toContainText("Band Calm");
 
-  await page.locator(".track-prompt-global-form [data-queue-delta]").selectOption("-3");
-  await page.locator(".track-prompt-global-form [data-queue-reason]").fill("Failed Stability Defense inside Echoed Zone.");
-  await page.locator(".track-prompt-global-form [data-queue-source]").selectOption("Failed defense");
-  await page.locator(".track-prompt-global-form [data-queue-submit]").click();
+  const rail = page.getByRole("group", { name: "Table triggers" });
+  await rail.getByRole("button", { name: /Both Severe misfire \/ natural 3/ }).click();
+  await expect(page.locator("#trigger-stability-announce")).toContainText(
+    "When this happens, characters in the area take 3 Stability damage."
+  );
+  await expect(page.locator("#trigger-stability-breakdown")).toContainText("Severe Misfire: 2 Stability damage.");
+  await expect(page.locator("#trigger-stability-breakdown")).toContainText("Breached Scene: +1 Stability damage.");
+  await expect(page.locator("#trigger-stability-breakdown")).toContainText("Total: 3 Stability damage.");
+  await expect(page.locator(".trigger-operator-helper")).toContainText("Selected = in area. Tap to exclude.");
+  await expect(page.getByRole("group", { name: "Who takes Stability damage" }).getByRole("button", { name: "Operator 1" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Apply" }).click();
+
+  await expect(page.locator("#trigger-table-copy")).toContainText("Tell Operator 1: reduce Stability by 3.");
   await expect(page.locator(".track-prompt-card")).toHaveCount(1);
-  await expect(page.locator(".track-prompt-copy")).toContainText("QUEUE:");
+  await expect(page.locator(".track-prompt-copy")).toContainText("characters in the area take 3 Stability damage");
   await expect(page.locator(".track-prompt-copy")).toContainText("reduce Stability by 3");
   await expect(page.locator(".track-prompt-copy")).toContainText("7 / 10");
   await expect(page.locator("#operator-risk-strip")).toContainText("Band Calm");
 
+  await page.getByRole("button", { name: "Undo Last Trigger" }).click();
+  await expect(page.locator(".track-prompt-empty")).toBeVisible();
+  await expect(page.locator("#trigger-undo-banner")).toBeHidden();
+
+  await rail.getByRole("button", { name: /Both Severe misfire \/ natural 3/ }).click();
+  await page.getByRole("button", { name: "Apply" }).click();
   await page.locator(".track-prompt-card").getByRole("button", { name: "Resolve" }).click();
-  await expect(page.locator(".track-prompt-status")).toHaveText("Resolved");
   await expect(page.locator("#operator-risk-strip")).toContainText("Band Strained");
 });
 
@@ -571,6 +585,8 @@ test("handler live triggers route common table events to clock responsibility", 
   await rail.getByRole("button", { name: /Both Severe misfire \/ natural 3/ }).click();
   const preview = page.locator("#trigger-preview-panel");
   await expect(preview).toBeVisible();
+  await expect(preview).toContainText("When this happens, characters in the area take 3 Stability damage.");
+  await expect(preview.locator("#trigger-stability-breakdown")).toContainText("Total: 3 Stability damage.");
   await expect(preview).toContainText("Responsibility");
   await expect(preview).toContainText("Primary + Attention");
   await expect(preview).toContainText("0/6 -> 2/6");
@@ -1013,6 +1029,15 @@ test("handler exports Operator authorization packets", async ({ page }) => {
   await page.getByLabel("Target Operator Name / Record ID").fill("June Rook");
   await page.getByLabel("Void Reward").fill("2");
   await page.getByLabel("Breach Reward").fill("5");
+  await expect(page.locator("#authorization-brief")).toContainText("Giving 7 authorization flags to June Rook");
+  await expect(page.locator("#authorization-brief")).toContainText("Sanguine Presentation");
+  await expect(page.locator("#authorization-brief")).toContainText("Void-Shard");
+  await expect(page.locator("#authorization-brief")).toContainText("Field Medic");
+  await expect(page.locator("#authorization-brief")).toContainText("Local Witness");
+  await expect(page.locator("#authorization-brief")).toContainText("Needlepoint Survivor");
+  await expect(page.locator("#authorization-brief")).toContainText("2 Void");
+  await expect(page.locator("#authorization-brief")).toContainText("5 Breach");
+  await expect(page.locator("#authorization-brief")).toContainText("Sanguine Presentation, Void-Shard available for review");
   await expect(page.locator("#authorization-preview")).toContainText("ONTOLOGY_UNLOCK:SANGUINE");
   await expect(page.locator("#authorization-preview")).toContainText("BREACH_REWARD:5");
 
