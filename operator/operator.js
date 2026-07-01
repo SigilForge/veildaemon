@@ -54,13 +54,8 @@
       misfireSeverity: "None",
       presentationPressure: "0",
       sanguineCoherence: "Coherent",
-      sanguineSaturated: false,
-      sanguineStarved: false,
-      sanguinePredatorySaturation: false,
-      sanguineCollapseRisk: false,
-      sanguineConditionOverride: "",
+      bloodLoad: "3",
       presentationPressures: {},
-      hungerPressure: "0",
       echoRecursionPressure: "0",
       anchorDriftPressure: "0",
       voidShardContamination: "0",
@@ -279,7 +274,7 @@
     if (!api) return "Coherent";
     const presentation = api.presentationById("sanguine");
     const condition = presentation ? api.deriveCondition(status, presentation) : null;
-    return condition?.label || api.coherenceFromHunger(api.readTrackValue(status, "sanguine.hunger"));
+    return condition?.label || api.bloodLoadBand(api.readTrackValue(status, "sanguine.blood_load"));
   }
 
   function migratePresentationPressure(status) {
@@ -487,12 +482,7 @@
       misfireSeverity: normalizeMisfireSeverity(migrated.misfireSeverity || severityFromLegacyMisfire(migrated.misfireBoxes)),
       presentationPressure: normalizeBoxValue(migrated.presentationPressure, 5),
       sanguineCoherence: deriveSanguineCoherence(migrated),
-      sanguineSaturated: Boolean(migrated.sanguineSaturated),
-      sanguineStarved: Boolean(migrated.sanguineStarved),
-      sanguinePredatorySaturation: Boolean(migrated.sanguinePredatorySaturation),
-      sanguineCollapseRisk: Boolean(migrated.sanguineCollapseRisk),
-      sanguineConditionOverride: safeString(migrated.sanguineConditionOverride, 80),
-      hungerPressure: normalizeBoxValue(migrated.hungerPressure, 6),
+      bloodLoad: normalizeBoxValue(migrated.bloodLoad, 6),
       echoRecursionPressure: normalizeBoxValue(migrated.echoRecursionPressure, 6),
       anchorDriftPressure: normalizeBoxValue(migrated.anchorDriftPressure, 6),
       voidShardContamination: normalizeBoxValue(migrated.voidShardContamination, 6),
@@ -1853,9 +1843,7 @@
           if (tracker.presentation.id === "sanguine") {
             status.sanguineCoherence = view.condition || view.band;
           }
-          derived.textContent = view.condition && view.condition !== view.band
-            ? view.condition
-            : view.band;
+          derived.textContent = view.operatingCondition || view.condition || view.band;
         }
       } else if (track && api) {
         derived.textContent = api.formatBandLine(track, value);
@@ -1884,94 +1872,6 @@
     });
   }
 
-  function renderSanguineIntakeFlags(container, presentation, status) {
-    const model = presentation.conditionModel || {};
-    const section = document.createElement("section");
-    section.className = "pressure-readout-advanced";
-
-    const heading = document.createElement("p");
-    heading.className = "pressure-readout-subheading";
-    heading.textContent = "Intake conditions";
-    section.append(heading);
-
-    if (model.operatorIntro) {
-      const intro = document.createElement("p");
-      intro.className = "pressure-readout-help";
-      intro.textContent = model.operatorIntro;
-      section.append(intro);
-    }
-    if (model.operatorPriorityNote) {
-      const priority = document.createElement("p");
-      priority.className = "pressure-readout-help pressure-readout-priority";
-      priority.textContent = model.operatorPriorityNote;
-      section.append(priority);
-    }
-
-    const flagList = document.createElement("div");
-    flagList.className = "pressure-readout-flag-list";
-    flagList.setAttribute("role", "group");
-    flagList.setAttribute("aria-label", "Sanguine intake flags");
-    (model.separateConditions || []).forEach((item) => {
-      if (!item.flagKey) return;
-      const row = document.createElement("label");
-      row.className = "pressure-readout-flag-row";
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.name = item.flagKey;
-      input.checked = Boolean(status[item.flagKey]);
-      const copy = document.createElement("span");
-      copy.className = "pressure-readout-flag-copy";
-      const title = document.createElement("strong");
-      title.textContent = item.label;
-      const effect = document.createElement("span");
-      effect.className = "pressure-readout-flag-effect";
-      effect.textContent = item.operatorEffect
-        || `When checked: operating condition reads ${item.label}.`;
-      const hint = document.createElement("span");
-      hint.className = "pressure-readout-flag-when";
-      hint.textContent = item.operatorHint || item.derivesWhen || item.note || "";
-      copy.append(title, effect, hint);
-      row.append(input, copy);
-      flagList.append(row);
-    });
-    section.append(flagList);
-
-    const overrideBlock = document.createElement("div");
-    overrideBlock.className = "pressure-readout-override-block";
-    const overrideTitle = document.createElement("span");
-    overrideTitle.className = "pressure-readout-subheading";
-    overrideTitle.textContent = "Handler override (optional)";
-    const overrideSelect = document.createElement("select");
-    overrideSelect.name = "sanguineConditionOverride";
-    overrideSelect.setAttribute("aria-label", "Sanguine condition override");
-    const overrideHint = document.createElement("p");
-    overrideHint.className = "pressure-readout-help";
-    const overrideOptions = Array.isArray(model.overrideOptions) && model.overrideOptions.length
-      ? model.overrideOptions
-      : [{ value: "", label: "Derived", operatorHint: "Use Hunger band plus intake flags above." }];
-    overrideOptions.forEach((optionSpec) => {
-      const option = document.createElement("option");
-      option.value = optionSpec.value;
-      option.textContent = optionSpec.label;
-      option.dataset.hint = optionSpec.operatorHint || "";
-      overrideSelect.append(option);
-    });
-    const syncOverrideHint = () => {
-      const selected = overrideSelect.selectedOptions[0];
-      overrideHint.textContent = selected?.dataset.hint || "Use Hunger band plus intake flags above.";
-    };
-    overrideSelect.value = status.sanguineConditionOverride || "";
-    syncOverrideHint();
-    overrideSelect.addEventListener("change", () => {
-      syncOverrideHint();
-      autosaveStatus();
-    });
-    overrideBlock.append(overrideTitle, overrideSelect, overrideHint);
-    section.append(overrideBlock);
-    container.append(section);
-    bindPresentationAutosave(flagList);
-  }
-
   function renderPresentationReadoutLayer(presentation) {
     const layer = document.getElementById("presentation-readout-layer");
     const summary = document.getElementById("presentation-readout-summary");
@@ -1995,9 +1895,8 @@
 
     layer.hidden = false;
     const cuePreview = view.cue ? truncateReadout(view.cue, 72) : view.band;
-    summary.textContent = view.condition && view.condition !== view.band
-      ? `${view.trackLabel} · ${view.condition} · ${cuePreview}`
-      : `${view.trackLabel} · ${view.band} · ${cuePreview}`;
+    const operating = view.operatingCondition || view.condition || view.band;
+    summary.textContent = `${view.trackLabel} ${view.value}/${view.range.max}, ${operating} · ${cuePreview}`;
 
     body.textContent = "";
     if (view.cue) {
@@ -2018,20 +1917,23 @@
       peakEl.textContent = `At Max: ${view.maxRisk}`;
       body.append(peakEl);
     }
-    if (view.condition) {
+    if (operating) {
       const conditionEl = document.createElement("p");
-      conditionEl.className = "pressure-readout-line";
-      conditionEl.textContent = `Condition: ${view.condition}`;
+      conditionEl.className = "pressure-readout-line pressure-readout-operating";
+      conditionEl.textContent = `${view.trackLabel} ${view.value}/${view.range.max}, ${operating}`;
       body.append(conditionEl);
+    }
+    if (presentation.id === "sanguine" && view.operatorCopy?.meterHelp) {
+      const meterEl = document.createElement("p");
+      meterEl.className = "pressure-readout-help";
+      meterEl.textContent = view.operatorCopy.meterHelp;
+      body.append(meterEl);
     }
     if (view.conditionNote) {
       const noteEl = document.createElement("p");
       noteEl.className = "pressure-readout-line pressure-readout-note";
       noteEl.textContent = `Note: ${view.conditionNote}`;
       body.append(noteEl);
-    }
-    if (presentation.id === "sanguine") {
-      renderSanguineIntakeFlags(body, presentation, status);
     }
   }
 
@@ -2045,11 +1947,12 @@
       key: track.stateKey || track.id,
       label: presentation.trackLabel || track.label,
       max: track.range.max,
-      kind: track.kind === "hunger" ? "hunger" : "presentation"
+      kind: track.kind === "blood_load" ? "blood_load" : "presentation"
     };
   }
 
   function renderTrackers() {
+    consoleState.operatorStatus = migrateOperatorStatus(consoleState.operatorStatus);
     const api = presentationPressureApi();
     const presentation = api ? api.presentationForCatalogKey(currentPresentationKey()) : null;
     const trackers = [
@@ -2360,7 +2263,7 @@
     const api = presentationPressureApi();
     if (track && api) {
       consoleState.operatorStatus = api.writeTrackValue(consoleState.operatorStatus, track, value);
-      if (track.id === "sanguine.hunger") {
+      if (track.id === "sanguine.blood_load") {
         consoleState.operatorStatus.sanguineCoherence = deriveSanguineCoherence(consoleState.operatorStatus);
       }
     } else {
@@ -2995,12 +2898,7 @@
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
       presentationPressures: migratePresentationPressure(status).presentationPressures || {},
       sanguineCoherence: deriveSanguineCoherence(status),
-      sanguineSaturated: Boolean(status.sanguineSaturated),
-      sanguineStarved: Boolean(status.sanguineStarved),
-      sanguinePredatorySaturation: Boolean(status.sanguinePredatorySaturation),
-      sanguineCollapseRisk: Boolean(status.sanguineCollapseRisk),
-      sanguineConditionOverride: safeString(status.sanguineConditionOverride, 80),
-      hungerPressure: normalizeBoxValue(status.hungerPressure, 6),
+      bloodLoad: normalizeBoxValue(status.bloodLoad, 6),
       echoRecursionPressure: normalizeBoxValue(status.echoRecursionPressure, 6),
       anchorDriftPressure: normalizeBoxValue(status.anchorDriftPressure, 6),
       voidShardContamination: normalizeBoxValue(status.voidShardContamination, 6),
