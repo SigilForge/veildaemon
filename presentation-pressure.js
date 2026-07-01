@@ -64,11 +64,20 @@
       trackId,
       range,
       bands,
-      conditionModel: spec.conditionModel || {
-        derivedFrom: ["track"],
-        separateConditions: [],
-        overrideKey: ""
-      },
+      conditionModel: (() => {
+        const model = spec.conditionModel || {
+          derivedFrom: ["track"],
+          intakeModifiers: [],
+          separateConditions: [],
+          overrideKey: ""
+        };
+        if (Array.isArray(model.intakeModifiers) && !model.separateConditions?.length) {
+          model.separateConditions = model.intakeModifiers.slice();
+        } else if (Array.isArray(model.separateConditions) && !model.intakeModifiers?.length) {
+          model.intakeModifiers = model.separateConditions.slice();
+        }
+        return model;
+      })(),
       cuesByBand: spec.cuesByBand || buildCuesByBand(bands),
       risksByBand: spec.risksByBand || buildRisksByBand(bands),
       maxRisk: spec.maxRisk || "",
@@ -114,138 +123,79 @@
       label: "Sanguine",
       cardLabel: "Sanguine Pressure",
       catalogKeys: ["SANGUINE"],
-      trackId: "sanguine.hunger",
-      trackLabel: "Hunger",
-      stateKey: "hungerPressure",
-      kind: "hunger",
+      trackId: "sanguine.blood_load",
+      trackLabel: "Blood Load",
+      stateKey: "bloodLoad",
+      kind: "blood_load",
       range: { min: 0, max: 6 },
       bands: [
         {
           at: 0,
-          label: "Coherent",
-          cue: "Human-like warmth, steady cognition, controlled appetite, social masking intact.",
-          risk: "Hidden hunger debt may still accumulate off-screen."
+          label: "Starved",
+          cue: "The cup reads empty — cold embodiment, narrowing empathy, predatory problem-solving.",
+          risk: "Deprivation fiction may force unsafe intake or Stability pressure."
         },
         {
           at: 1,
-          label: "Stirred",
-          cue: "Appetite notices pulse, breath, scent, or emotional availability nearby.",
+          label: "Starved",
+          cue: "Blood load is still too low — warmth thins and appetite starts listening too closely.",
           risk: "Small wants may read louder than intended."
         },
         {
           at: 2,
-          label: "Hungry",
-          cue: "Attention narrows toward pulse, breath, warmth, or emotional availability.",
-          risk: "Failed restraint may create fixation, pursuit, or Stability pressure."
+          label: "Coherent",
+          cue: "Human-like warmth returns; cognition and social masking hold in the safe middle.",
+          risk: "Hidden debt may still accumulate off-screen if intake stays uneven."
         },
         {
           at: 3,
-          label: "Hungry",
-          cue: "Attention narrows toward pulse, breath, warmth, or emotional availability.",
-          risk: "Failed restraint may create fixation, pursuit, or Stability pressure."
+          label: "Coherent",
+          cue: "Steady resonance in the cup — controlled presence, readable empathy, stable bleed.",
+          risk: "Comfort can hide how fast load is drifting."
         },
         {
           at: 4,
-          label: "Predatory",
-          cue: "Restraint frays; appetite starts organizing choices before consent catches up.",
-          risk: "Pursuit, coercion pressure, or donor fixation may surface at the table."
+          label: "Saturated",
+          cue: "Recent intake overload — warmth spikes and emotional bleed amplifies.",
+          risk: "Donor fixation or unsafe intimacy pressure may surface."
         },
         {
           at: 5,
-          label: "Predatory",
-          cue: "Restraint frays; appetite starts organizing choices before consent catches up.",
-          risk: "Pursuit, coercion pressure, or donor fixation may surface at the table."
+          label: "Predatory Saturation",
+          cue: "The cup is too full — appetite starts organizing choices before consent catches up.",
+          risk: "Pursuit, coercion pressure, or performative humanity may surface at the table."
         },
         {
           at: 6,
-          label: "Feeding Risk",
-          cue: "Embodiment demands intake, withdrawal, or a costly resist beat now.",
-          risk: "Must feed, withdraw, or resist at Stability cost."
+          label: "Collapse Risk",
+          cue: "Overflow — identity fragmentation or uncontrolled resonance venting.",
+          risk: "Collapse, blowout, or Stability cost now."
         }
       ],
       conditionModel: {
-        derivedFrom: ["hunger", "intakeFlags"],
-        overrideKey: "sanguineConditionOverride",
-        hungerBands: {
-          0: "Coherent",
-          1: "Stirred",
-          "2-3": "Hungry",
-          "4-5": "Predatory",
-          6: "Feeding Risk"
-        },
-        operatorIntro: "Mark intake fiction when the table earns it. Checked flags set the operating condition shown beside Hunger. Hunger band still drives cue and risk.",
-        operatorPriorityNote: "If multiple flags are checked: Collapse Risk beats Predatory Saturation beats Saturated beats Starved.",
-        separateConditions: [
-          {
-            id: "starved",
-            label: "Starved",
-            flagKey: "sanguineStarved",
-            operatorEffect: "Operating condition reads Starved — cold embodiment and narrowing empathy.",
-            operatorHint: "Mark after prolonged hunger without safe intake, or when empathy is visibly narrowing.",
-            note: "Cold embodiment, narrowing empathy, predatory problem-solving.",
-            derivesWhen: "hunger high + no intake / cold embodiment"
-          },
-          {
-            id: "saturated",
-            label: "Saturated",
-            flagKey: "sanguineSaturated",
-            operatorEffect: "Operating condition reads Saturated — recent intake overload, warmth with amplified bleed.",
-            operatorHint: "Mark right after feeding or intake fiction that overloads the body.",
-            note: "Recent intake amplifies emotional bleed.",
-            derivesWhen: "recent intake overload"
-          },
-          {
-            id: "predatory_saturation",
-            label: "Predatory Saturation",
-            flagKey: "sanguinePredatorySaturation",
-            operatorEffect: "Operating condition reads Predatory Saturation — appetite starts organizing choices before consent catches up.",
-            operatorHint: "Mark when saturated plus a hunger spike, failed restraint, or pursuit pressure at the table.",
-            note: "Appetite organizes behavior; human logic becomes performative.",
-            derivesWhen: "saturated + hunger spike / failed restraint"
-          },
-          {
-            id: "collapse_risk",
-            label: "Collapse Risk",
-            flagKey: "sanguineCollapseRisk",
-            operatorEffect: "Operating condition reads Collapse Risk — overrides every other intake flag.",
-            operatorHint: "Mark for Stability collapse, identity venting, or resonance blowout — not a normal hunger beat.",
-            note: "Identity fragmentation or uncontrolled resonance venting.",
-            derivesWhen: "stability/collapse condition, not a normal hunger band"
-          }
-        ],
-        overrideOptions: [
-          {
-            value: "",
-            label: "Derived",
-            operatorHint: "Use Hunger band plus intake flags above."
-          },
-          {
-            value: "Heightened",
-            label: "Heightened",
-            operatorHint: "Sharpened presence and recovery; donor fixation risk."
-          }
-        ]
+        derivedFrom: ["blood_load"]
       },
-      maxRisk: "Must feed, withdraw, or resist at Stability cost.",
+      maxRisk: "Collapse, blowout, or Stability cost now.",
       reliefActions: {
         risesWhen: [
           "blood nearby",
+          "safe feeding",
           "intimacy under pressure",
-          "failed restraint",
-          "charge denied",
+          "resonance charge accepted",
           "severe misfire under observation"
         ],
         fallsWhen: [
-          "safe feeding",
+          "time and metabolism",
           "grounded intimacy with consent",
           "anchor contact",
-          "deliberate withdrawal"
+          "deliberate bleed-off toward center"
         ]
       },
       operatorCopy: {
         panelTitle: "Sanguine Pressure",
-        trackHeading: "Hunger",
-        conditionLabel: "Condition"
+        trackHeading: "Blood Load",
+        conditionLabel: "State",
+        meterHelp: "Rain-gauge fill: low is Starved, center is Coherent, high is Saturated. Overflow is Collapse Risk."
       }
     }),
     presentationContract({
@@ -517,90 +467,57 @@
     return risk;
   }
 
-  function coherenceFromHunger(value) {
-    return bandForTrack("sanguine.hunger", value);
+  function bloodLoadBand(value) {
+    return bandForTrack("sanguine.blood_load", value);
   }
 
-  function activeConditionFlags(status, presentation) {
-    const model = presentation?.conditionModel;
-    if (!model || !Array.isArray(model.separateConditions)) return [];
-    return model.separateConditions.filter((item) => item.flagKey && Boolean(status?.[item.flagKey]));
+  function coherenceFromHunger(value) {
+    return bloodLoadBand(value);
+  }
+
+  function resolveSanguineCondition(status, bloodLoad) {
+    const value = clamp(bloodLoad, 0, 6);
+    const label = bloodLoadBand(value);
+    const intakeIds = {
+      Starved: "starved",
+      Coherent: "coherent",
+      Saturated: "saturated",
+      "Predatory Saturation": "predatory_saturation",
+      "Collapse Risk": "collapse_risk"
+    };
+    return {
+      intakeCondition: intakeIds[label] || "",
+      label,
+      note: ""
+    };
   }
 
   function deriveCondition(status, presentation) {
     if (!presentation || !status) {
-      return { label: "", note: "", flags: [], override: false, band: "" };
+      return {
+        label: "",
+        note: "",
+        flags: [],
+        modifiers: [],
+        intakeCondition: "",
+        override: false,
+        band: ""
+      };
     }
 
     const track = primaryTrack(presentation);
     const value = track ? readTrackValue(status, track) : 0;
     const band = track ? bandForTrack(track, value) : "";
-    const overrideKey = presentation.conditionModel?.overrideKey || "";
-    const override = overrideKey ? safeString(status[overrideKey]) : "";
-    const flags = activeConditionFlags(status, presentation);
 
-    if (override) {
-      const matched = (presentation.conditionModel?.separateConditions || [])
-        .find((item) => item.label === override || item.id === override);
-      return {
-        label: override,
-        note: matched?.note || "",
-        flags,
-        override: true,
-        band
-      };
-    }
-
-    if (presentation.id === "sanguine") {
-      const hunger = value;
-      const saturated = Boolean(status.sanguineSaturated);
-      const starved = Boolean(status.sanguineStarved);
-      const predatorySaturation = Boolean(status.sanguinePredatorySaturation);
-      const collapseRisk = Boolean(status.sanguineCollapseRisk);
-
-      if (collapseRisk) {
-        return {
-          label: "Collapse Risk",
-          note: "Identity fragmentation or uncontrolled resonance venting.",
-          flags,
-          override: false,
-          band
-        };
-      }
-      if (predatorySaturation || (saturated && hunger >= 4)) {
-        return {
-          label: "Predatory Saturation",
-          note: "Appetite organizes behavior; human logic becomes performative.",
-          flags,
-          override: false,
-          band
-        };
-      }
-      if (saturated) {
-        return {
-          label: "Saturated",
-          note: "Recent intake amplifies emotional bleed.",
-          flags,
-          override: false,
-          band
-        };
-      }
-      if (starved || (hunger >= 4 && !saturated)) {
-        // Starved is fiction-triggered; only auto-suggest at very high hunger without intake context.
-        if (starved) {
-          return {
-            label: "Starved",
-            note: "Cold embodiment, narrowing empathy, predatory problem-solving.",
-            flags,
-            override: false,
-            band
-          };
-        }
-      }
-      return { label: band, note: "", flags, override: false, band };
-    }
-
-    return { label: band, note: "", flags, override: false, band };
+    return {
+      label: band,
+      note: "",
+      flags: [],
+      modifiers: [],
+      intakeCondition: presentation.id === "sanguine" ? resolveSanguineCondition(status, value).intakeCondition : "",
+      override: false,
+      band
+    };
   }
 
   function safeString(value, max) {
@@ -650,8 +567,11 @@
       risk,
       maxRisk: presentation.maxRisk,
       condition: condition.label,
+      operatingCondition: condition.label,
       conditionNote: condition.note,
       conditionFlags: condition.flags,
+      activeModifiers: condition.modifiers,
+      intakeCondition: condition.intakeCondition,
       conditionOverride: condition.override,
       reliefActions: presentation.reliefActions,
       operatorCopy: presentation.operatorCopy,
@@ -700,7 +620,6 @@
     const store = { ...normalizePressuresObject(next.presentationPressures) };
 
     const legacyMap = {
-      hungerPressure: "sanguine.hunger",
       echoRecursionPressure: "echo.drift",
       anchorDriftPressure: "wraith.anchoring",
       voidShardContamination: "void_shard.contamination",
@@ -720,30 +639,34 @@
       next[stateKey] = String(readTrackValue({ ...next, presentationPressures: store }, track));
     });
 
-    if (!Object.prototype.hasOwnProperty.call(store, "sanguine.hunger")) {
-      const legacy = Number(next.presentationPressure || 0);
-      const key = String(next.ontologyPresentation || "");
-      if (legacy > 0 && presentationForCatalogKey(key)?.id === "sanguine") {
-        store["sanguine.hunger"] = clamp(legacy, 0, 6);
-        next.hungerPressure = String(store["sanguine.hunger"]);
+    if (!Object.prototype.hasOwnProperty.call(store, "sanguine.blood_load")) {
+      let bloodLoad = 3;
+      if (next.sanguineCollapseRisk) bloodLoad = 6;
+      else if (next.sanguinePredatorySaturation) bloodLoad = 5;
+      else if (next.sanguineSaturated) bloodLoad = 4;
+      else if (next.sanguineStarved) bloodLoad = 1;
+      else if (Object.prototype.hasOwnProperty.call(store, "sanguine.hunger")) {
+        bloodLoad = clamp(6 - store["sanguine.hunger"], 0, 6);
+      } else if (next.hungerPressure !== undefined && next.hungerPressure !== "") {
+        bloodLoad = clamp(6 - Number(next.hungerPressure), 0, 6);
+      } else {
+        const legacy = Number(next.presentationPressure || 0);
+        const key = String(next.ontologyPresentation || "");
+        if (legacy > 0 && presentationForCatalogKey(key)?.id === "sanguine") {
+          bloodLoad = clamp(6 - legacy, 0, 6);
+        }
       }
+      store["sanguine.blood_load"] = bloodLoad;
+      next.bloodLoad = String(bloodLoad);
     }
 
-    const legacyCoherence = String(status?.sanguineCoherence || "");
-    if (legacyCoherence === "Saturated") next.sanguineSaturated = true;
-    if (legacyCoherence === "Starved") next.sanguineStarved = true;
-    if (legacyCoherence === "Predatory Saturation") next.sanguinePredatorySaturation = true;
-    if (legacyCoherence === "Collapse Risk") next.sanguineCollapseRisk = true;
-    if (legacyCoherence && !next.sanguineConditionOverride) {
-      const knownOverrides = ["Starved", "Heightened", "Saturated", "Predatory Saturation", "Collapse Risk"];
-      if (knownOverrides.includes(legacyCoherence)) {
-        next.sanguineConditionOverride = legacyCoherence;
-      }
+    if (Object.prototype.hasOwnProperty.call(store, "sanguine.hunger")) {
+      delete store["sanguine.hunger"];
     }
 
-    const hungerValue = readTrackValue({ ...next, presentationPressures: store }, "sanguine.hunger");
-    next.sanguineCoherence = deriveCondition({ ...next, presentationPressures: store }, presentationById.sanguine).label
-      || coherenceFromHunger(hungerValue);
+    const bloodLoadValue = readTrackValue({ ...next, presentationPressures: store }, "sanguine.blood_load");
+    next.sanguineCoherence = bloodLoadBand(bloodLoadValue);
+    next.bloodLoad = String(bloodLoadValue);
 
     next.presentationPressures = store;
     return next;
@@ -792,7 +715,9 @@
     bandForTrack,
     cueForTrack,
     riskForTrack,
+    bloodLoadBand,
     coherenceFromHunger,
+    resolveSanguineCondition,
     deriveCondition,
     presentationPressureView,
     formatBandLine,
