@@ -709,14 +709,17 @@ select.is-locked {
 }
 .line-tracker {
   display: grid;
-  grid-template-columns: minmax(6.8rem, 7.6rem) max-content minmax(3.8rem, 1fr);
-  gap: .4rem .5rem;
+  grid-template-columns: minmax(5.4rem, 6.8rem) minmax(0, 1fr) minmax(3.6rem, auto);
+  grid-template-areas: "header pips derived";
+  gap: .35rem .45rem;
   align-items: center;
   min-height: 2.55rem;
   padding: .3rem .45rem;
   background: rgba(0,0,0,.18);
+  overflow: hidden;
 }
 .pip-header {
+  grid-area: header;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -738,17 +741,29 @@ select.is-locked {
   white-space: nowrap;
 }
 .pip-derived {
+  grid-area: derived;
   margin: 0;
   color: var(--muted);
   font-size: .64rem;
   line-height: 1.35;
   text-align: right;
   text-transform: uppercase;
+  min-width: 0;
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .line-pips {
+  grid-area: pips;
   display: grid;
   gap: .16rem;
   align-content: center;
+  justify-self: start;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(102,255,220,.35) transparent;
 }
 .line-pips.stability-pips {
   grid-template-columns: repeat(10, 0.46rem);
@@ -826,11 +841,11 @@ select.is-locked {
   box-shadow: 0 0 16px rgba(185,84,255,.28);
 }
 .pip-controls {
-  display: grid;
+  grid-area: controls;
+  display: none;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: .4rem;
   align-self: end;
-  display: none;
 }
 .pip-controls button,
 .segmented button {
@@ -2285,6 +2300,23 @@ body.has-reports-drawer-open .surface-tabs {
   .archive-grid,
   .data-panel {
     grid-template-columns: 1fr;
+  }
+  .line-tracker {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "header derived"
+      "pips pips";
+    gap: .28rem .4rem;
+    align-items: center;
+  }
+  .pip-derived {
+    max-width: none;
+    font-size: .6rem;
+  }
+  .line-pips {
+    width: 100%;
+    justify-self: stretch;
+    padding-bottom: .08rem;
   }
   .resonance-profile {
     grid-template-columns: repeat(2, minmax(0, 1fr));
