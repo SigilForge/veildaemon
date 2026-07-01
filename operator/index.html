@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260701-presentation1" />
+  <link rel="stylesheet" href="./operator.css?v=20260701-authunlock1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -122,7 +122,9 @@
       <div class="route-actions">
         <a class="button primary" href="/#intake-node"><span>Start Intake</span></a>
         <label class="button file-button">Import Operator Record<input data-operator-file-import type="file" accept="application/json" /></label>
+        <button class="button" type="button" id="open-authorizations-sealed">Authorized Unlocks</button>
       </div>
+      <p class="local-note">Handler authorization packets can be imported before intake completes.</p>
     </section>
 
     <nav class="console-nav" aria-label="Console modules">
@@ -571,6 +573,6 @@
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260626-catalog-grants1"></script>
-  <script src="./operator.js?v=20260701-presentation1"></script>
+  <script src="./operator.js?v=20260701-authunlock1"></script>
 </body>
 </html>

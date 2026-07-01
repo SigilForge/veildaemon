@@ -275,10 +275,17 @@ h3 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: .7rem;
 }
-body.operator-record-sealed .console-nav,
-body.operator-record-sealed .module-panel,
+body.operator-record-sealed .console-nav .module-tab:not([data-module-tab="authorizations"]) {
+  display: none;
+}
+body.operator-record-sealed .module-panel:not(#module-authorizations) {
+  display: none;
+}
 body.operator-record-sealed .data-panel {
   display: none;
+}
+body.operator-record-sealed #module-authorizations.is-active {
+  display: block;
 }
 .module-heading {
   display: flex;
