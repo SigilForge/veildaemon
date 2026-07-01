@@ -53,6 +53,10 @@
       activeMisfire: "",
       misfireSeverity: "None",
       presentationPressure: "0",
+      sanguineCoherence: "Coherent",
+      hungerPressure: "0",
+      echoRecursionPressure: "0",
+      anchorDriftPressure: "0",
       lotus: {
         Dream: "0",
         Hunger: "0",
@@ -193,9 +197,9 @@
     "Custom item": "Minor"
   };
 
-  let consoleState = readConsoleState();
-  let operatorRecord = readOperatorRecord();
-  const artifactState = readArtifactState();
+  let consoleState;
+  let operatorRecord;
+  let artifactState;
   let lotusPulseFrequency = "";
 
   function nowStamp() {
@@ -250,6 +254,58 @@
   function presentationKeyFromDisplayName(displayName) {
     if (typeof catalogs.presentationKeyFromDisplayName === "function") return catalogs.presentationKeyFromDisplayName(displayName);
     return "";
+  }
+
+  const SANGUINE_COHERENCE_STATES = [
+    "Coherent",
+    "Hungry",
+    "Starved",
+    "Heightened",
+    "Saturated",
+    "Predatory Saturation",
+    "Collapse Risk"
+  ];
+
+  function currentPresentationKey() {
+    return presentationKeyFromDisplayName(consoleState.operatorStatus.ontologyPresentation);
+  }
+
+  function presentationPressureConfig(key) {
+    const configs = {
+      SANGUINE: {
+        cardLabel: "Sanguine Pressure",
+        coherence: true,
+        trackers: [{ key: "hungerPressure", label: "Hunger", max: 6, kind: "hunger" }]
+      },
+      ECHO_ALTERED: {
+        cardLabel: "Echo Pressure",
+        trackers: [{ key: "echoRecursionPressure", label: "Recursion", max: 5, kind: "pressure" }]
+      },
+      WRAITH_TOUCHED_ANCHOR_BOUND: {
+        cardLabel: "Wraith Pressure",
+        trackers: [{ key: "anchorDriftPressure", label: "Drift / Anchor", max: 5, kind: "pressure" }]
+      }
+    };
+    return configs[key] || null;
+  }
+
+  function normalizeSanguineCoherence(value) {
+    return SANGUINE_COHERENCE_STATES.includes(value) ? value : "Coherent";
+  }
+
+  function migratePresentationPressure(status) {
+    const key = presentationKeyFromDisplayName(status.ontologyPresentation);
+    const legacy = normalizeBoxValue(status.presentationPressure, 5);
+    if (!Number(status.hungerPressure) && key === "SANGUINE" && legacy > 0) {
+      status.hungerPressure = normalizeBoxValue(legacy, 6);
+    }
+    if (!Number(status.echoRecursionPressure) && key === "ECHO_ALTERED" && legacy > 0) {
+      status.echoRecursionPressure = legacy;
+    }
+    if (!Number(status.anchorDriftPressure) && key === "WRAITH_TOUCHED_ANCHOR_BOUND" && legacy > 0) {
+      status.anchorDriftPressure = legacy;
+    }
+    return status;
   }
 
   function backgroundGrantLabel(entry) {
@@ -431,21 +487,26 @@
   }
 
   function migrateOperatorStatus(status) {
+    const migrated = migratePresentationPressure({ ...status });
     return {
-      ...status,
-      anchorPerson: status.anchorPerson || status.anchors || "",
-      attentionState: normalizeAttentionState(status.attentionState),
-      sheetEditMode: Boolean(status.sheetEditMode),
-      creationMode: Boolean(status.creationMode),
-      stability: normalizeStabilityValue(status.stability),
-      harmBoxes: normalizeBoxValue(status.harmBoxes, 5),
-      voidMarks: normalizeNonNegative(status.voidMarks),
-      voidByFrequency: normalizeVoidByFrequency(status.voidByFrequency),
-      breachPoints: normalizeNonNegative(status.breachPoints),
-      activeMisfire: normalizeActiveMisfire(status),
-      misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity || severityFromLegacyMisfire(status.misfireBoxes)),
-      presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
-      lotus: normalizeLotus(status.lotus),
+      ...migrated,
+      anchorPerson: migrated.anchorPerson || migrated.anchors || "",
+      attentionState: normalizeAttentionState(migrated.attentionState),
+      sheetEditMode: Boolean(migrated.sheetEditMode),
+      creationMode: Boolean(migrated.creationMode),
+      stability: normalizeStabilityValue(migrated.stability),
+      harmBoxes: normalizeBoxValue(migrated.harmBoxes, 5),
+      voidMarks: normalizeNonNegative(migrated.voidMarks),
+      voidByFrequency: normalizeVoidByFrequency(migrated.voidByFrequency),
+      breachPoints: normalizeNonNegative(migrated.breachPoints),
+      activeMisfire: normalizeActiveMisfire(migrated),
+      misfireSeverity: normalizeMisfireSeverity(migrated.misfireSeverity || severityFromLegacyMisfire(migrated.misfireBoxes)),
+      presentationPressure: normalizeBoxValue(migrated.presentationPressure, 5),
+      sanguineCoherence: normalizeSanguineCoherence(migrated.sanguineCoherence),
+      hungerPressure: normalizeBoxValue(migrated.hungerPressure, 6),
+      echoRecursionPressure: normalizeBoxValue(migrated.echoRecursionPressure, 5),
+      anchorDriftPressure: normalizeBoxValue(migrated.anchorDriftPressure, 5),
+      lotus: normalizeLotus(migrated.lotus),
       blindPetal: normalizeFrequencyName(status.blindPetal),
       selectedLotusPetal: normalizeFrequencyName(status.selectedLotusPetal),
       attributes: normalizeAttributes(status.attributes),
@@ -1707,13 +1768,11 @@
   }
 
   function renderStatusSummary() {
-    const attention = document.getElementById("sheet-attention-status");
     const bleedCue = document.getElementById("status-bleed-cue");
     const status = consoleState.operatorStatus;
     status.stabilityBand = bandFromLegacyStability(status.stability);
-    status.attentionState = normalizeAttentionState(status.attentionState);
-    if (attention) attention.textContent = status.attentionState.toUpperCase();
-    setNamedValue("attentionState", status.attentionState);
+    status.sanguineCoherence = normalizeSanguineCoherence(status.sanguineCoherence);
+    setNamedValue("sanguineCoherence", status.sanguineCoherence);
     if (bleedCue) {
       const frequency = operatorRecord?.primaryFrequency || "";
       bleedCue.textContent = humanizeBleedCue(frequency, frequencyCard(frequency).bleedCue);
@@ -1769,8 +1828,12 @@
         derived.textContent = `Condition: ${harmCondition(value)}`;
       } else if (tracker.key === "stability") {
         derived.textContent = `Band: ${bandFromLegacyStability(value)}`;
-      } else if (tracker.key === "presentationPressure") {
-        derived.textContent = value >= 4 ? "Vector active" : value >= 2 ? "Pressure rising" : "Baseline";
+      } else if (tracker.key === "hungerPressure") {
+        derived.textContent = hungerPressureCue(value);
+      } else if (tracker.key === "echoRecursionPressure") {
+        derived.textContent = value >= 4 ? "Loop active" : value >= 2 ? "Recursion rising" : "Stable";
+      } else if (tracker.key === "anchorDriftPressure") {
+        derived.textContent = value >= 4 ? "Anchor at risk" : value >= 2 ? "Drift rising" : "Anchored";
       } else {
         derived.textContent = "";
       }
@@ -1780,14 +1843,47 @@
     });
   }
 
+  function hungerPressureCue(value) {
+    const cues = [
+      "Baseline",
+      "Appetite noticeable",
+      "Attention narrows",
+      "Masking slips",
+      "Hard choice visible",
+      "Hunger Breach risk",
+      "Collapse / Echo Bleed"
+    ];
+    return cues[Number(normalizeBoxValue(value, 6))] || cues[0];
+  }
+
+  function renderPresentationPressure() {
+    const strip = document.getElementById("presentation-pressure-strip");
+    const label = document.getElementById("presentation-pressure-label");
+    const coherencePanel = document.getElementById("presentation-coherence-panel");
+    const board = document.getElementById("presentation-pressure-board");
+    const config = presentationPressureConfig(currentPresentationKey());
+
+    if (!strip || !board) return;
+
+    if (!config) {
+      strip.hidden = true;
+      board.textContent = "";
+      if (coherencePanel) coherencePanel.hidden = true;
+      return;
+    }
+
+    strip.hidden = false;
+    if (label) label.textContent = config.cardLabel;
+    if (coherencePanel) coherencePanel.hidden = !config.coherence;
+    renderTrackerBoard(board, config.trackers);
+  }
+
   function renderTrackers() {
     renderTrackerBoard(document.getElementById("tracker-board"), [
       { key: "harmBoxes", label: "Harm", max: 5, kind: "harm" },
       { key: "stability", label: "Stability", max: 10, kind: "stability" }
     ]);
-    renderTrackerBoard(document.getElementById("pressure-tracker-board"), [
-      { key: "presentationPressure", label: "Presentation", max: 5, kind: "pressure" }
-    ]);
+    renderPresentationPressure();
   }
 
   function renderAttributes() {
@@ -2713,6 +2809,10 @@
       activeMisfire: safeString(status.activeMisfire, 1000),
       misfireSeverity: normalizeMisfireSeverity(status.misfireSeverity),
       presentationPressure: normalizeBoxValue(status.presentationPressure, 5),
+      sanguineCoherence: normalizeSanguineCoherence(status.sanguineCoherence),
+      hungerPressure: normalizeBoxValue(status.hungerPressure, 6),
+      echoRecursionPressure: normalizeBoxValue(status.echoRecursionPressure, 5),
+      anchorDriftPressure: normalizeBoxValue(status.anchorDriftPressure, 5),
       lotus: normalizeLotus(status.lotus),
       blindPetal: normalizeFrequencyName(status.blindPetal),
       selectedLotusPetal: normalizeFrequencyName(status.selectedLotusPetal),
@@ -2873,6 +2973,7 @@
         if (!guardBuildDefiningField("ontologyPresentation", presentationSelect.value)) return;
         autosaveStatus();
         renderSkills();
+        renderTrackers();
       });
     }
     const rollAdvantage = document.querySelector('[name="rollAdvantage"]');
@@ -3157,6 +3258,10 @@
       setStorageStatus("Local console entries purged. Intake record preserved.");
     });
   }
+
+  consoleState = readConsoleState();
+  operatorRecord = readOperatorRecord();
+  artifactState = readArtifactState();
 
   bindTabs();
   bindForms();
