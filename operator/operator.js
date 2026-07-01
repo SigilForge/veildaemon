@@ -1788,7 +1788,8 @@
         : Number(normalizeBoxValue(status[tracker.key], tracker.max));
       const editable = track ? track.operatorEditable !== false : true;
       const article = document.createElement("article");
-      article.className = `line-tracker ${tracker.kind}`;
+      const fillMeter = tracker.kind === "blood_load" || tracker.kind === "essence_load";
+      article.className = `line-tracker ${tracker.kind}${fillMeter ? " fill-meter" : ""}`;
 
       const header = document.createElement("div");
       header.className = "pip-header";
@@ -1894,46 +1895,80 @@
     }
 
     layer.hidden = false;
-    const cuePreview = view.cue ? truncateReadout(view.cue, 72) : view.band;
     const operating = view.operatingCondition || view.condition || view.band;
-    summary.textContent = `${view.trackLabel} ${view.value}/${view.range.max}, ${operating} · ${cuePreview}`;
+    summary.textContent = `${view.cardLabel || view.label}: ${view.trackLabel} ${view.value}/${view.range.max} — ${operating}`;
 
     body.textContent = "";
+
+    const stateBlock = document.createElement("div");
+    stateBlock.className = "pressure-readout-state";
+    const stateTitle = document.createElement("p");
+    stateTitle.className = "pressure-readout-state-label";
+    stateTitle.textContent = `${operating} (${view.value}/${view.range.max})`;
+    const stateDescriptor = document.createElement("p");
+    stateDescriptor.className = "pressure-readout-descriptor";
+    stateDescriptor.textContent = view.descriptor || view.cue || "";
+    stateBlock.append(stateTitle, stateDescriptor);
+    body.append(stateBlock);
+
     if (view.cue) {
       const cueEl = document.createElement("p");
       cueEl.className = "pressure-readout-line";
-      cueEl.textContent = `Cue: ${view.cue}`;
+      cueEl.innerHTML = `<strong>Cue:</strong> ${view.cue}`;
       body.append(cueEl);
     }
     if (view.risk) {
       const riskEl = document.createElement("p");
       riskEl.className = "pressure-readout-line pressure-readout-risk";
-      riskEl.textContent = `Risk: ${view.risk}`;
+      riskEl.innerHTML = `<strong>Risk:</strong> ${view.risk}`;
       body.append(riskEl);
     }
     if (view.value >= view.range.max && view.maxRisk) {
       const peakEl = document.createElement("p");
       peakEl.className = "pressure-readout-line pressure-readout-peak";
-      peakEl.textContent = `At Max: ${view.maxRisk}`;
+      peakEl.innerHTML = `<strong>At max:</strong> ${view.maxRisk}`;
       body.append(peakEl);
     }
-    if (operating) {
-      const conditionEl = document.createElement("p");
-      conditionEl.className = "pressure-readout-line pressure-readout-operating";
-      conditionEl.textContent = `${view.trackLabel} ${view.value}/${view.range.max}, ${operating}`;
-      body.append(conditionEl);
-    }
-    if ((presentation.id === "sanguine" || presentation.id === "wraith") && view.operatorCopy?.meterHelp) {
+    if (view.operatorCopy?.meterHelp) {
       const meterEl = document.createElement("p");
       meterEl.className = "pressure-readout-help";
       meterEl.textContent = view.operatorCopy.meterHelp;
       body.append(meterEl);
     }
-    if (view.conditionNote) {
-      const noteEl = document.createElement("p");
-      noteEl.className = "pressure-readout-line pressure-readout-note";
-      noteEl.textContent = `Note: ${view.conditionNote}`;
-      body.append(noteEl);
+    if (Array.isArray(view.bandLadder) && view.bandLadder.length) {
+      const ladder = document.createElement("div");
+      ladder.className = "pressure-band-ladder";
+      const ladderTitle = document.createElement("p");
+      ladderTitle.className = "pressure-readout-subheading";
+      ladderTitle.textContent = "Band ladder";
+      ladder.append(ladderTitle);
+      view.bandLadder.forEach((entry) => {
+        const row = document.createElement("p");
+        row.className = "pressure-band-ladder-row";
+        if (entry.label === operating) row.classList.add("is-active");
+        row.textContent = `${entry.rangeLabel}: ${entry.label} — ${entry.descriptor}`;
+        ladder.append(row);
+      });
+      body.append(ladder);
+    }
+    if (view.reliefActions) {
+      const relief = document.createElement("div");
+      relief.className = "pressure-readout-relief";
+      const rises = (view.reliefActions.risesWhen || []).join("; ");
+      const falls = (view.reliefActions.fallsWhen || []).join("; ");
+      if (rises) {
+        const riseEl = document.createElement("p");
+        riseEl.className = "pressure-readout-line";
+        riseEl.innerHTML = `<strong>Rises when:</strong> ${rises}`;
+        relief.append(riseEl);
+      }
+      if (falls) {
+        const fallEl = document.createElement("p");
+        fallEl.className = "pressure-readout-line";
+        fallEl.innerHTML = `<strong>Falls when:</strong> ${falls}`;
+        relief.append(fallEl);
+      }
+      if (relief.childNodes.length) body.append(relief);
     }
   }
 

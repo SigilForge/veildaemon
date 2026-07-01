@@ -32,8 +32,10 @@ test("sanguine blood load derives state, cue, and risk from fill level", async (
     return {
       trackLabel: presentation.trackLabel,
       band0: api.bandForTrack("sanguine.blood_load", 0),
+      band1: api.bandForTrack("sanguine.blood_load", 1),
       band2: api.bandForTrack("sanguine.blood_load", 2),
       band4: api.bandForTrack("sanguine.blood_load", 4),
+      descriptor4: api.descriptorForTrack("sanguine.blood_load", 4),
       band6: api.bandForTrack("sanguine.blood_load", 6),
       cue4: api.cueForTrack("sanguine.blood_load", 4),
       risk4: api.riskForTrack("sanguine.blood_load", 4),
@@ -45,15 +47,17 @@ test("sanguine blood load derives state, cue, and risk from fill level", async (
   });
   expect(summary.trackLabel).toBe("Blood Load");
   expect(summary.band0).toBe("Starved");
+  expect(summary.band1).toBe("Coherent");
   expect(summary.band2).toBe("Coherent");
   expect(summary.band4).toBe("Saturated");
+  expect(summary.descriptor4).toContain("Overfull warmth");
   expect(summary.band6).toBe("Collapse Risk");
-  expect(summary.cue4).toContain("intake overload");
-  expect(summary.risk4).toContain("intimacy");
+  expect(summary.cue4).toContain("Overfull warmth");
+    expect(summary.risk4).toContain("Donor fixation");
   expect(summary.bloodLoadBand).toBe("Coherent");
   expect(summary.maxRisk).toContain("Collapse");
   expect(summary.condition).toBe("Saturated");
-  expect(summary.cue).toContain("intake overload");
+  expect(summary.cue).toContain("Overfull warmth");
 });
 
 test("sanguine fill meter maps each level to one state", async ({ page }) => {
@@ -64,7 +68,7 @@ test("sanguine fill meter maps each level to one state", async ({ page }) => {
   });
   expect(summary).toEqual([
     "Starved",
-    "Starved",
+    "Coherent",
     "Coherent",
     "Coherent",
     "Saturated",
