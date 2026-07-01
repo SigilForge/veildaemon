@@ -568,121 +568,85 @@ select.is-locked {
   border: 1px solid rgba(137,255,218,.2);
   background: rgba(0,0,0,.2);
 }
-.presentation-pressure-mount {
-  display: grid;
-  gap: .6rem;
-}
-.presentation-pressure-track {
-  display: grid;
-  gap: .45rem;
-  padding: .55rem .65rem;
-  border: 1px solid rgba(137,255,218,.14);
-  background: rgba(0,0,0,.18);
-}
-.presentation-pressure-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: .5rem;
-}
-.presentation-pressure-track-label {
-  color: var(--cyan);
-  font-size: .62rem;
-  font-weight: 800;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
-.presentation-pressure-count {
-  color: var(--muted);
-  font-size: .64rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  white-space: nowrap;
-}
-.presentation-pressure-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(6.5rem, auto);
-  gap: .55rem;
-  align-items: center;
-}
-.presentation-pressure-band {
-  margin: 0;
-  color: var(--text);
-  font-size: .64rem;
-  font-weight: 700;
-  line-height: 1.35;
-  text-align: right;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-}
-.presentation-pressure-condition-readout {
-  margin: 0;
-  color: var(--text);
-  font-size: .68rem;
-  font-weight: 700;
-  letter-spacing: .04em;
-}
-.presentation-pressure-cue,
-.presentation-pressure-risk,
-.presentation-pressure-at-max,
-.presentation-pressure-condition-note {
-  margin: 0;
-  color: var(--muted);
-  font-size: .7rem;
-  line-height: 1.4;
-}
-.presentation-pressure-risk {
-  color: rgba(255, 176, 150, .9);
-}
-.presentation-pressure-condition-note {
-  font-style: italic;
-}
-.presentation-pressure-at-max {
-  color: rgba(255, 196, 170, .88);
-}
-.presentation-pressure-advanced {
-  margin-top: .15rem;
-  color: var(--muted);
-  font-size: .66rem;
-}
-.presentation-pressure-advanced summary {
-  cursor: pointer;
-  color: var(--cyan);
-  font-size: .6rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
-.presentation-pressure-flags {
-  display: grid;
-  gap: .35rem;
-  margin: .5rem 0;
-  padding: .45rem .5rem;
-  border: 1px solid rgba(137,255,218,.12);
+.pressure-readout-layer {
+  margin-top: .45rem;
+  padding: .3rem .45rem;
+  border: 1px solid rgba(137,255,218,.1);
   background: rgba(0,0,0,.14);
 }
-.presentation-pressure-flags label {
-  display: flex;
-  align-items: center;
-  gap: .4rem;
+.pressure-readout-layer summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: .6rem;
+  line-height: 1.35;
+  list-style: none;
 }
-.presentation-pressure-flags input,
-.presentation-pressure-override select {
+.pressure-readout-layer summary::-webkit-details-marker {
+  display: none;
+}
+.pressure-readout-layer summary::before {
+  content: "▸ ";
+  color: var(--cyan);
+}
+.pressure-readout-layer[open] summary::before {
+  content: "▾ ";
+}
+.pressure-readout-body {
+  display: grid;
+  gap: .28rem;
+  margin-top: .4rem;
+  padding-top: .35rem;
+  border-top: 1px solid rgba(137,255,218,.08);
+}
+.pressure-readout-line {
+  margin: 0;
+  color: var(--muted);
+  font-size: .62rem;
+  line-height: 1.35;
+}
+.pressure-readout-risk {
+  color: rgba(255, 176, 150, .88);
+}
+.pressure-readout-peak {
+  color: rgba(255, 196, 170, .88);
+}
+.pressure-readout-note {
+  font-style: italic;
+}
+.pressure-readout-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem .65rem;
+  margin: .2rem 0 0;
+  padding: .35rem .4rem;
+  border: 0;
+  background: rgba(0,0,0,.12);
+}
+.pressure-readout-flags label {
+  display: inline-flex;
+  align-items: center;
+  gap: .28rem;
+  font-size: .6rem;
+  color: var(--muted);
+}
+.pressure-readout-flags input {
   accent-color: #c45a8a;
 }
-.presentation-pressure-override {
-  display: grid;
+.pressure-readout-override {
+  display: inline-flex;
+  align-items: center;
   gap: .35rem;
+  font-size: .6rem;
+  color: var(--muted);
 }
-.presentation-pressure-override select {
-  width: 100%;
-  min-height: 2rem;
-  border: 1px solid rgba(137,255,218,.18);
-  background: rgba(0,0,0,.28);
+.pressure-readout-override select {
+  min-height: 1.65rem;
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.24);
   color: var(--text);
   font: inherit;
-  font-size: .68rem;
-  padding: .3rem .4rem;
+  font-size: .6rem;
+  padding: .15rem .35rem;
 }
 
 .tracker-board {

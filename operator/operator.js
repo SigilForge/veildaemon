@@ -1847,7 +1847,17 @@
 
       const derived = document.createElement("p");
       derived.className = "pip-derived";
-      if (track && api) {
+      if (tracker.presentation && api) {
+        const view = api.presentationPressureView(status, tracker.presentation.id);
+        if (view) {
+          if (tracker.presentation.id === "sanguine") {
+            status.sanguineCoherence = view.condition || view.band;
+          }
+          derived.textContent = view.condition && view.condition !== view.band
+            ? view.condition
+            : view.band;
+        }
+      } else if (track && api) {
         derived.textContent = api.formatBandLine(track, value);
       } else if (tracker.key === "harmBoxes") {
         derived.textContent = `Condition: ${harmCondition(value)}`;
@@ -1862,26 +1872,10 @@
     });
   }
 
-  function renderPresentationPressurePips(pips, track, value) {
-    const editable = track.operatorEditable !== false;
-    for (let index = 1; index <= track.range.max; index += 1) {
-      const pip = document.createElement("button");
-      pip.type = "button";
-      pip.className = "pip";
-      pip.classList.toggle("is-filled", index <= value);
-      pip.setAttribute("aria-label", `${track.label} ${index}`);
-      if (editable) {
-        pip.addEventListener("click", () => setTrackerValue(
-          track.stateKey || track.id,
-          index === value ? index - 1 : index,
-          track.range.max,
-          track
-        ));
-      } else {
-        pip.disabled = true;
-      }
-      pips.append(pip);
-    }
+  function truncateReadout(text, max) {
+    const copy = String(text || "").trim();
+    if (copy.length <= max) return copy;
+    return `${copy.slice(0, max - 1)}…`;
   }
 
   function bindPresentationAutosave(node) {
@@ -1890,15 +1884,9 @@
     });
   }
 
-  function renderSanguineIntakeFlags(article, presentation, status) {
-    const details = document.createElement("details");
-    details.className = "presentation-pressure-advanced";
-    const summary = document.createElement("summary");
-    summary.textContent = "Intake flags / override";
-    details.append(summary);
-
+  function renderSanguineIntakeFlags(container, presentation, status) {
     const flagFieldset = document.createElement("fieldset");
-    flagFieldset.className = "presentation-pressure-flags";
+    flagFieldset.className = "pressure-readout-flags";
     flagFieldset.setAttribute("aria-label", "Sanguine intake flags");
     (presentation.conditionModel?.separateConditions || []).forEach((item) => {
       if (!item.flagKey) return;
@@ -1910,16 +1898,16 @@
       label.append(input, document.createTextNode(` ${item.label}`));
       flagFieldset.append(label);
     });
-    details.append(flagFieldset);
+    container.append(flagFieldset);
 
     const overrideLabel = document.createElement("label");
-    overrideLabel.className = "presentation-pressure-override";
-    overrideLabel.textContent = "Condition override ";
+    overrideLabel.className = "pressure-readout-override";
+    overrideLabel.textContent = "Override ";
     const overrideSelect = document.createElement("select");
     overrideSelect.name = "sanguineConditionOverride";
     overrideSelect.setAttribute("aria-label", "Sanguine condition override");
     [
-      { value: "", label: "Derived from track + flags" },
+      { value: "", label: "Derived" },
       { value: "Heightened", label: "Heightened" },
       ...(presentation.conditionModel?.separateConditions || []).map((item) => ({
         value: item.label,
@@ -1934,119 +1922,98 @@
     });
     overrideSelect.value = status.sanguineConditionOverride || "";
     overrideLabel.append(overrideSelect);
-    details.append(overrideLabel);
-
-    bindPresentationAutosave(details);
-    article.append(details);
+    container.append(overrideLabel);
+    bindPresentationAutosave(container);
   }
 
-  function renderPresentationPressureView(board, presentation) {
+  function renderPresentationReadoutLayer(presentation) {
+    const layer = document.getElementById("presentation-readout-layer");
+    const summary = document.getElementById("presentation-readout-summary");
+    const body = document.getElementById("presentation-readout-body");
     const api = presentationPressureApi();
-    const track = presentation.tracks[0];
-    if (!api || !track || !board) return;
+    if (!layer || !summary || !body) return;
 
-    const status = consoleState.operatorStatus;
-    const view = api.presentationPressureView(status, presentation.id);
-    if (!view) return;
-
-    if (presentation.id === "sanguine") {
-      status.sanguineCoherence = view.condition || view.band;
-    }
-
-    const pipKind = track.kind === "hunger" ? "hunger" : "presentation";
-    board.className = "presentation-pressure-mount";
-    board.textContent = "";
-
-    const article = document.createElement("article");
-    article.className = `presentation-pressure-track ${presentation.id}-pressure`;
-
-    const head = document.createElement("div");
-    head.className = "presentation-pressure-head";
-    const title = document.createElement("span");
-    title.className = "presentation-pressure-track-label";
-    title.textContent = view.trackLabel;
-    const count = document.createElement("span");
-    count.className = "presentation-pressure-count";
-    count.textContent = `${view.value} / ${view.range.max}`;
-    head.append(title, count);
-
-    const row = document.createElement("div");
-    row.className = "presentation-pressure-row";
-    const pips = document.createElement("div");
-    pips.className = `line-pips ${pipKind}-pips`;
-    renderPresentationPressurePips(pips, track, view.value);
-    const bandEl = document.createElement("p");
-    bandEl.className = "presentation-pressure-band";
-    bandEl.textContent = view.band;
-    row.append(pips, bandEl);
-
-    article.append(head, row);
-
-    if (view.cue) {
-      const cueEl = document.createElement("p");
-      cueEl.className = "presentation-pressure-cue";
-      cueEl.textContent = `Cue: ${view.cue}`;
-      article.append(cueEl);
-    }
-    if (view.risk) {
-      const riskEl = document.createElement("p");
-      riskEl.className = "presentation-pressure-risk";
-      riskEl.textContent = `Risk: ${view.risk}`;
-      article.append(riskEl);
-    }
-    if (view.value >= view.range.max && view.maxRisk) {
-      const peakEl = document.createElement("p");
-      peakEl.className = "presentation-pressure-at-max";
-      peakEl.textContent = `At Max: ${view.maxRisk}`;
-      article.append(peakEl);
-    }
-
-    if (view.condition) {
-      const conditionEl = document.createElement("p");
-      conditionEl.className = "presentation-pressure-condition-readout";
-      conditionEl.textContent = `Condition: ${view.condition}`;
-      article.append(conditionEl);
-    }
-    if (view.conditionNote) {
-      const noteEl = document.createElement("p");
-      noteEl.className = "presentation-pressure-condition-note";
-      noteEl.textContent = `Note: ${view.conditionNote}`;
-      article.append(noteEl);
-    }
-
-    if (presentation.id === "sanguine") {
-      renderSanguineIntakeFlags(article, presentation, status);
-    }
-
-    board.append(article);
-  }
-
-  function renderPresentationPressure() {
-    const strip = document.getElementById("presentation-pressure-strip");
-    const label = document.getElementById("presentation-pressure-label");
-    const board = document.getElementById("presentation-pressure-board");
-    const api = presentationPressureApi();
-    const presentation = api ? api.presentationForCatalogKey(currentPresentationKey()) : null;
-
-    if (!strip || !board) return;
-
-    if (!presentation) {
-      strip.hidden = true;
-      board.textContent = "";
+    if (!presentation || !api) {
+      layer.hidden = true;
+      body.textContent = "";
       return;
     }
 
-    strip.hidden = false;
-    if (label) label.textContent = presentation.cardLabel;
-    renderPresentationPressureView(board, presentation);
+    const status = consoleState.operatorStatus;
+    const view = api.presentationPressureView(status, presentation.id);
+    if (!view) {
+      layer.hidden = true;
+      body.textContent = "";
+      return;
+    }
+
+    layer.hidden = false;
+    const cuePreview = view.cue ? truncateReadout(view.cue, 72) : view.band;
+    summary.textContent = view.condition && view.condition !== view.band
+      ? `${view.trackLabel} · ${view.condition} · ${cuePreview}`
+      : `${view.trackLabel} · ${view.band} · ${cuePreview}`;
+
+    body.textContent = "";
+    if (view.cue) {
+      const cueEl = document.createElement("p");
+      cueEl.className = "pressure-readout-line";
+      cueEl.textContent = `Cue: ${view.cue}`;
+      body.append(cueEl);
+    }
+    if (view.risk) {
+      const riskEl = document.createElement("p");
+      riskEl.className = "pressure-readout-line pressure-readout-risk";
+      riskEl.textContent = `Risk: ${view.risk}`;
+      body.append(riskEl);
+    }
+    if (view.value >= view.range.max && view.maxRisk) {
+      const peakEl = document.createElement("p");
+      peakEl.className = "pressure-readout-line pressure-readout-peak";
+      peakEl.textContent = `At Max: ${view.maxRisk}`;
+      body.append(peakEl);
+    }
+    if (view.condition) {
+      const conditionEl = document.createElement("p");
+      conditionEl.className = "pressure-readout-line";
+      conditionEl.textContent = `Condition: ${view.condition}`;
+      body.append(conditionEl);
+    }
+    if (view.conditionNote) {
+      const noteEl = document.createElement("p");
+      noteEl.className = "pressure-readout-line pressure-readout-note";
+      noteEl.textContent = `Note: ${view.conditionNote}`;
+      body.append(noteEl);
+    }
+    if (presentation.id === "sanguine") {
+      renderSanguineIntakeFlags(body, presentation, status);
+    }
+  }
+
+  function presentationTrackerSpec(presentation) {
+    if (!presentation || !presentation.tracks?.[0]) return null;
+    const track = presentation.tracks[0];
+    return {
+      track,
+      presentation,
+      id: track.id,
+      key: track.stateKey || track.id,
+      label: presentation.trackLabel || track.label,
+      max: track.range.max,
+      kind: track.kind === "hunger" ? "hunger" : "presentation"
+    };
   }
 
   function renderTrackers() {
-    renderTrackerBoard(document.getElementById("tracker-board"), [
+    const api = presentationPressureApi();
+    const presentation = api ? api.presentationForCatalogKey(currentPresentationKey()) : null;
+    const trackers = [
       { key: "harmBoxes", label: "Harm", max: 5, kind: "harm" },
       { key: "stability", label: "Stability", max: 10, kind: "stability" }
-    ]);
-    renderPresentationPressure();
+    ];
+    const presentationTracker = presentationTrackerSpec(presentation);
+    if (presentationTracker) trackers.push(presentationTracker);
+    renderTrackerBoard(document.getElementById("tracker-board"), trackers);
+    renderPresentationReadoutLayer(presentation);
   }
 
   function renderAttributes() {
