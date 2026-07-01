@@ -10,7 +10,7 @@
   <link rel="icon" href="../favicon.ico?v=20260608-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" href="../VeilCorp_Avatar_favicon_512.png?v=20260608-veilcorp1" />
   <link rel="preload" href="../assets/background.jpg" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260628-wrap1" />
+  <link rel="stylesheet" href="./operator.css?v=20260701-pressure1" />
 </head>
 <body class="operator-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -205,6 +205,37 @@
             </div>
           </article>
 
+          <article class="condition-strip operator-harm-stability wide">
+            <p class="card-label">Harm &amp; Stability</p>
+            <div class="tracker-board" id="tracker-board"></div>
+          </article>
+
+          <article class="condition-strip operator-pressure-strip wide">
+            <p class="card-label">Pressure</p>
+            <div class="pressure-panel">
+              <div class="pressure-attention">
+                <p class="pressure-sublabel">Observation / Attention</p>
+                <div class="segmented attention" data-segmented="attentionState" aria-label="Attention pressure">
+                  <button type="button" data-value="Unseen">Unseen</button>
+                  <button type="button" data-value="Noticed">Noticed</button>
+                  <button type="button" data-value="Focused">Focused</button>
+                  <button type="button" data-value="Targeted">Targeted</button>
+                  <button type="button" data-value="Exposed">Exposed</button>
+                </div>
+                <input name="attentionState" type="hidden" />
+                <div class="readout-block compact">
+                  <span>Current Attention</span>
+                  <strong id="sheet-attention-status">UNSEEN</strong>
+                </div>
+                <p class="local-note">Local mirror for table pressure. Handler owns scene Attention.</p>
+              </div>
+              <div class="pressure-presentation">
+                <p class="pressure-sublabel">Presentation Pressure</p>
+                <div class="tracker-board" id="pressure-tracker-board"></div>
+              </div>
+            </div>
+          </article>
+
           <article class="sheet-card operator-roll-dock wide">
             <div class="operator-roll-heading">
               <p class="card-label">Action Roll</p>
@@ -240,10 +271,6 @@
               <button type="button" class="button primary roll-button" id="roll-action">Roll 3D6</button>
             </div>
             <div class="roll-output" id="roll-output">Awaiting action.</div>
-          </article>
-
-          <article class="condition-strip operator-harm-stability wide">
-            <div class="tracker-board" id="tracker-board"></div>
           </article>
 
           <div class="operator-live-grid live-lower-grid wide">
@@ -553,6 +580,6 @@
   </main>
   <script src="../surface-nav.js?v=20260624-tabimport1"></script>
   <script src="../catalogs.js?v=20260626-catalog-grants1"></script>
-  <script src="./operator.js?v=20260626-pagelock1"></script>
+  <script src="./operator.js?v=20260701-pressure1"></script>
 </body>
 </html>
