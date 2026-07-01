@@ -392,10 +392,18 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator("#ontology-grant-preview")).toHaveText("Grants: none loaded");
   await expect(page.locator("#presentation-pressure-strip")).toBeVisible();
   await expect(page.getByText("Sanguine Pressure")).toBeVisible();
-  await expect(page.locator(".line-tracker").filter({ hasText: "Hunger" })).toBeVisible();
-  await expect(page.locator('[name="sanguineCoherence"]')).toHaveValue("Coherent");
-  await page.locator(".line-tracker").filter({ hasText: "Hunger" }).locator(".pip").nth(1).click();
-  await expect(page.locator(".line-tracker").filter({ hasText: "Hunger" }).getByText("2/6")).toBeVisible();
+  await expect(page.locator(".presentation-pressure-track")).toBeVisible();
+  await expect(page.locator(".presentation-pressure-band")).toHaveText("Coherent");
+  await expect(page.getByText("Condition: Coherent")).toBeVisible();
+  await expect(page.getByText(/Cue: Human-like warmth/)).toBeVisible();
+  await page.locator(".presentation-pressure-track .pip").nth(1).click();
+  await expect(page.getByText("2 / 6")).toBeVisible();
+  await expect(page.locator(".presentation-pressure-band")).toHaveText("Hungry");
+  await expect(page.getByText("Condition: Hungry")).toBeVisible();
+  await expect(page.getByText(/Cue: Attention narrows toward pulse/)).toBeVisible();
+  await expect(page.getByText(/Risk: Failed restraint/)).toBeVisible();
+  await page.getByText("Intake flags / override").click();
+  await expect(page.locator('[name="sanguineSaturated"]')).toBeVisible();
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await expect(page.locator('[name="background"]')).toHaveValue("Field Medic");

@@ -568,26 +568,121 @@ select.is-locked {
   border: 1px solid rgba(137,255,218,.2);
   background: rgba(0,0,0,.2);
 }
-.operator-presentation-strip .presentation-coherence {
-  margin-bottom: .65rem;
+.presentation-pressure-mount {
+  display: grid;
+  gap: .6rem;
 }
-.operator-presentation-strip .presentation-coherence select {
-  width: 100%;
-  min-height: 2.35rem;
-  border: 1px solid rgba(137,255,218,.22);
-  background: rgba(0,0,0,.32);
-  color: var(--text);
-  font: inherit;
-  font-size: .72rem;
-  padding: .35rem .45rem;
+.presentation-pressure-track {
+  display: grid;
+  gap: .45rem;
+  padding: .55rem .65rem;
+  border: 1px solid rgba(137,255,218,.14);
+  background: rgba(0,0,0,.18);
 }
-.pressure-sublabel {
-  margin: 0 0 .45rem;
+.presentation-pressure-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: .5rem;
+}
+.presentation-pressure-track-label {
   color: var(--cyan);
   font-size: .62rem;
   font-weight: 800;
   letter-spacing: .12em;
   text-transform: uppercase;
+}
+.presentation-pressure-count {
+  color: var(--muted);
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  white-space: nowrap;
+}
+.presentation-pressure-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(6.5rem, auto);
+  gap: .55rem;
+  align-items: center;
+}
+.presentation-pressure-band {
+  margin: 0;
+  color: var(--text);
+  font-size: .64rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: right;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.presentation-pressure-condition-readout {
+  margin: 0;
+  color: var(--text);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.presentation-pressure-cue,
+.presentation-pressure-risk,
+.presentation-pressure-at-max,
+.presentation-pressure-condition-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: .7rem;
+  line-height: 1.4;
+}
+.presentation-pressure-risk {
+  color: rgba(255, 176, 150, .9);
+}
+.presentation-pressure-condition-note {
+  font-style: italic;
+}
+.presentation-pressure-at-max {
+  color: rgba(255, 196, 170, .88);
+}
+.presentation-pressure-advanced {
+  margin-top: .15rem;
+  color: var(--muted);
+  font-size: .66rem;
+}
+.presentation-pressure-advanced summary {
+  cursor: pointer;
+  color: var(--cyan);
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.presentation-pressure-flags {
+  display: grid;
+  gap: .35rem;
+  margin: .5rem 0;
+  padding: .45rem .5rem;
+  border: 1px solid rgba(137,255,218,.12);
+  background: rgba(0,0,0,.14);
+}
+.presentation-pressure-flags label {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.presentation-pressure-flags input,
+.presentation-pressure-override select {
+  accent-color: #c45a8a;
+}
+.presentation-pressure-override {
+  display: grid;
+  gap: .35rem;
+}
+.presentation-pressure-override select {
+  width: 100%;
+  min-height: 2rem;
+  border: 1px solid rgba(137,255,218,.18);
+  background: rgba(0,0,0,.28);
+  color: var(--text);
+  font: inherit;
+  font-size: .68rem;
+  padding: .3rem .4rem;
 }
 
 .tracker-board {
@@ -648,8 +743,37 @@ select.is-locked {
 .line-pips.pressure-pips {
   grid-template-columns: repeat(5, minmax(.46rem, 1fr));
 }
-.line-pips.hunger-pips {
+.line-pips.hunger-pips,
+.line-pips.presentation-pips {
   grid-template-columns: repeat(6, minmax(.42rem, 1fr));
+}
+.line-pips.hunger-pips .pip {
+  border-color: rgba(168, 92, 148, .42);
+}
+.line-pips.hunger-pips .pip.is-filled:nth-child(1) {
+  background: #5a3d7a;
+  box-shadow: 0 0 10px rgba(120, 72, 150, .28);
+}
+.line-pips.hunger-pips .pip.is-filled:nth-child(2) {
+  background: #7a2d5c;
+  box-shadow: 0 0 12px rgba(150, 52, 96, .3);
+}
+.line-pips.hunger-pips .pip.is-filled:nth-child(3) {
+  background: #a31d45;
+  box-shadow: 0 0 14px rgba(180, 36, 72, .34);
+}
+.line-pips.hunger-pips .pip.is-filled:nth-child(4) {
+  background: #c41e2a;
+  box-shadow: 0 0 16px rgba(210, 40, 48, .36);
+}
+.line-pips.hunger-pips .pip.is-filled:nth-child(5) {
+  background: #e63a1a;
+  box-shadow: 0 0 18px rgba(235, 72, 32, .38);
+}
+.line-pips.hunger-pips .pip.is-filled:nth-child(6) {
+  background: linear-gradient(180deg, #fff0e8 0%, #ff8a62 100%);
+  border-color: rgba(255, 220, 200, .72);
+  box-shadow: 0 0 20px rgba(255, 168, 128, .48);
 }
 .pip {
   aspect-ratio: 2.2 / 1;

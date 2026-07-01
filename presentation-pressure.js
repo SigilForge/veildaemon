@@ -1,21 +1,45 @@
 (function () {
   /**
-   * Presentation Pressure = metabolic load of a nonbaseline ontology inside a
-   * human-scale Operator. Not damage, XP, or corruption by default.
+   * Presentation Pressure = live metabolic / ontological load inside a human-scale
+   * Operator. Not a status picker, damage track, or charge bar.
+   *
+   * Three layers per module:
+   *   1. Pressure Track — numeric load that rises and falls
+   *   2. Operating Condition — derived table-facing state (not the primary control)
+   *   3. Fiction Cue / Risk — what the table notices or what failure looks like
    */
-  function trackContract(spec) {
-    const max = Number(spec.range?.max ?? spec.max ?? 6);
-    const min = Number(spec.range?.min ?? spec.min ?? 0);
+  function buildCuesByBand(bands) {
+    const map = {};
+    (bands || []).forEach((band) => {
+      if (band.cue) map[band.label] = band.cue;
+      if (band.cue && Number.isFinite(Number(band.at))) map[String(band.at)] = band.cue;
+    });
+    return map;
+  }
+
+  function buildRisksByBand(bands) {
+    const map = {};
+    (bands || []).forEach((band) => {
+      if (band.risk) map[band.label] = band.risk;
+      if (band.risk && Number.isFinite(Number(band.at))) map[String(band.at)] = band.risk;
+    });
+    return map;
+  }
+
+  function trackContract(spec, presentation) {
+    const max = Number(spec.range?.max ?? spec.max ?? presentation.range?.max ?? 6);
+    const min = Number(spec.range?.min ?? spec.min ?? presentation.range?.min ?? 0);
     return {
       id: spec.id,
-      label: spec.label,
+      label: spec.label || presentation.trackLabel,
       owner: spec.owner || "operator",
       range: { min, max },
-      bands: Array.isArray(spec.bands) ? spec.bands.slice() : [],
-      risesWhen: Array.isArray(spec.risesWhen) ? spec.risesWhen.slice() : [],
-      fallsWhen: Array.isArray(spec.fallsWhen) ? spec.fallsWhen.slice() : [],
-      atMax: spec.atMax || spec.maxConsequence || "",
-      maxConsequence: spec.maxConsequence || spec.atMax || "",
+      bands: Array.isArray(spec.bands) ? spec.bands.slice() : presentation.bands.slice(),
+      risesWhen: presentation.reliefActions?.risesWhen || [],
+      fallsWhen: presentation.reliefActions?.fallsWhen || [],
+      atMax: presentation.maxRisk || "",
+      maxConsequence: presentation.maxRisk || "",
+      maxRisk: presentation.maxRisk || "",
       handlerVisible: spec.handlerVisible !== false,
       operatorEditable: spec.operatorEditable !== false,
       triggerPrompt: spec.triggerPrompt !== false,
@@ -25,14 +49,63 @@
   }
 
   function presentationContract(spec) {
-    return {
+    const range = {
+      min: Number(spec.range?.min ?? 0),
+      max: Number(spec.range?.max ?? 6)
+    };
+    const bands = Array.isArray(spec.bands) ? spec.bands.slice() : [];
+    const trackId = spec.trackId || `${spec.id}.track`;
+    const module = {
       id: spec.id,
       label: spec.label,
       cardLabel: spec.cardLabel || `${spec.label} Pressure`,
       catalogKeys: Array.isArray(spec.catalogKeys) ? spec.catalogKeys.slice() : [],
-      coherenceStates: Array.isArray(spec.coherenceStates) ? spec.coherenceStates.slice() : [],
-      tracks: (spec.tracks || []).map(trackContract)
+      trackLabel: spec.trackLabel,
+      trackId,
+      range,
+      bands,
+      conditionModel: spec.conditionModel || {
+        derivedFrom: ["track"],
+        separateConditions: [],
+        overrideKey: ""
+      },
+      cuesByBand: spec.cuesByBand || buildCuesByBand(bands),
+      risksByBand: spec.risksByBand || buildRisksByBand(bands),
+      maxRisk: spec.maxRisk || "",
+      reliefActions: {
+        risesWhen: Array.isArray(spec.reliefActions?.risesWhen)
+          ? spec.reliefActions.risesWhen.slice()
+          : Array.isArray(spec.risesWhen) ? spec.risesWhen.slice() : [],
+        fallsWhen: Array.isArray(spec.reliefActions?.fallsWhen)
+          ? spec.reliefActions.fallsWhen.slice()
+          : Array.isArray(spec.fallsWhen) ? spec.fallsWhen.slice() : []
+      },
+      handlerSummary: spec.handlerSummary || "{trackLabel} {value}/{max} ({band})",
+      operatorCopy: spec.operatorCopy || {},
+      stateKey: spec.stateKey || "",
+      kind: spec.kind || "presentation",
+      tracks: [trackContract({
+        id: trackId,
+        label: spec.trackLabel,
+        stateKey: spec.stateKey,
+        kind: spec.kind,
+        range,
+        bands
+      }, {
+        trackLabel: spec.trackLabel,
+        bands,
+        maxRisk: spec.maxRisk,
+        reliefActions: {
+          risesWhen: Array.isArray(spec.reliefActions?.risesWhen)
+            ? spec.reliefActions.risesWhen
+            : spec.risesWhen,
+          fallsWhen: Array.isArray(spec.reliefActions?.fallsWhen)
+            ? spec.reliefActions.fallsWhen
+            : spec.fallsWhen
+        }
+      })]
     };
+    return module;
   }
 
   const PRESENTATIONS = [
@@ -41,29 +114,98 @@
       label: "Sanguine",
       cardLabel: "Sanguine Pressure",
       catalogKeys: ["SANGUINE"],
-      coherenceStates: [
-        "Coherent",
-        "Hungry",
-        "Starved",
-        "Heightened",
-        "Saturated",
-        "Predatory Saturation",
-        "Collapse Risk"
+      trackId: "sanguine.hunger",
+      trackLabel: "Hunger",
+      stateKey: "hungerPressure",
+      kind: "hunger",
+      range: { min: 0, max: 6 },
+      bands: [
+        {
+          at: 0,
+          label: "Coherent",
+          cue: "Human-like warmth, steady cognition, controlled appetite, social masking intact.",
+          risk: "Hidden hunger debt may still accumulate off-screen."
+        },
+        {
+          at: 1,
+          label: "Stirred",
+          cue: "Appetite notices pulse, breath, scent, or emotional availability nearby.",
+          risk: "Small wants may read louder than intended."
+        },
+        {
+          at: 2,
+          label: "Hungry",
+          cue: "Attention narrows toward pulse, breath, warmth, or emotional availability.",
+          risk: "Failed restraint may create fixation, pursuit, or Stability pressure."
+        },
+        {
+          at: 3,
+          label: "Hungry",
+          cue: "Attention narrows toward pulse, breath, warmth, or emotional availability.",
+          risk: "Failed restraint may create fixation, pursuit, or Stability pressure."
+        },
+        {
+          at: 4,
+          label: "Predatory",
+          cue: "Restraint frays; appetite starts organizing choices before consent catches up.",
+          risk: "Pursuit, coercion pressure, or donor fixation may surface at the table."
+        },
+        {
+          at: 5,
+          label: "Predatory",
+          cue: "Restraint frays; appetite starts organizing choices before consent catches up.",
+          risk: "Pursuit, coercion pressure, or donor fixation may surface at the table."
+        },
+        {
+          at: 6,
+          label: "Feeding Risk",
+          cue: "Embodiment demands intake, withdrawal, or a costly resist beat now.",
+          risk: "Must feed, withdraw, or resist at Stability cost."
+        }
       ],
-      tracks: [{
-        id: "sanguine.hunger",
-        label: "Hunger",
-        owner: "operator",
-        range: { min: 0, max: 6 },
-        bands: [
-          { at: 0, label: "Baseline" },
-          { at: 1, label: "Stirred" },
-          { at: 2, label: "Hungry" },
-          { at: 3, label: "Hungry" },
-          { at: 4, label: "Predatory" },
-          { at: 5, label: "Predatory" },
-          { at: 6, label: "Feeding Risk" }
-        ],
+      conditionModel: {
+        derivedFrom: ["hunger", "intakeFlags"],
+        overrideKey: "sanguineConditionOverride",
+        hungerBands: {
+          0: "Coherent",
+          1: "Stirred",
+          "2-3": "Hungry",
+          "4-5": "Predatory",
+          6: "Feeding Risk"
+        },
+        separateConditions: [
+          {
+            id: "starved",
+            label: "Starved",
+            flagKey: "sanguineStarved",
+            note: "Cold embodiment, narrowing empathy, predatory problem-solving.",
+            derivesWhen: "hunger high + no intake / cold embodiment"
+          },
+          {
+            id: "saturated",
+            label: "Saturated",
+            flagKey: "sanguineSaturated",
+            note: "Recent intake amplifies emotional bleed.",
+            derivesWhen: "recent intake overload"
+          },
+          {
+            id: "predatory_saturation",
+            label: "Predatory Saturation",
+            flagKey: "sanguinePredatorySaturation",
+            note: "Appetite organizes behavior; human logic becomes performative.",
+            derivesWhen: "saturated + hunger spike / failed restraint"
+          },
+          {
+            id: "collapse_risk",
+            label: "Collapse Risk",
+            flagKey: "sanguineCollapseRisk",
+            note: "Identity fragmentation or uncontrolled resonance venting.",
+            derivesWhen: "stability/collapse condition, not a normal hunger band"
+          }
+        ]
+      },
+      maxRisk: "Must feed, withdraw, or resist at Stability cost.",
+      reliefActions: {
         risesWhen: [
           "blood nearby",
           "intimacy under pressure",
@@ -76,300 +218,205 @@
           "grounded intimacy with consent",
           "anchor contact",
           "deliberate withdrawal"
-        ],
-        atMax: "Must feed, lash out, or resist at Stability cost.",
-        maxConsequence: "Must feed, lash out, or resist at Stability cost.",
-        stateKey: "hungerPressure",
-        kind: "hunger"
-      }]
+        ]
+      },
+      operatorCopy: {
+        panelTitle: "Sanguine Pressure",
+        trackHeading: "Hunger",
+        conditionLabel: "Condition"
+      }
     }),
     presentationContract({
       id: "void_shard",
       label: "Void-Shard",
       cardLabel: "Void-Shard Pressure",
       catalogKeys: ["VOID_SHARD"],
-      tracks: [{
-        id: "void_shard.contamination",
-        label: "Contamination",
-        owner: "operator",
-        range: { min: 0, max: 6 },
-        bands: [
-          { at: 0, label: "Baseline" },
-          { at: 1, label: "Touched" },
-          { at: 2, label: "Hollow" },
-          { at: 3, label: "Unmoored" },
-          { at: 4, label: "Anti-present" },
-          { at: 5, label: "Breach Risk" },
-          { at: 6, label: "Absent" }
-        ],
-        risesWhen: [
-          "void exposure",
-          "negative-space logic accepted",
-          "failed presence defense",
-          "breach adjacency"
-        ],
-        fallsWhen: [
-          "named truth",
-          "anchor contact",
-          "relational shielding",
-          "deliberate embodiment"
-        ],
-        atMax: "Cannot be fully perceived; social and anchor reliability fail.",
-        maxConsequence: "Cannot be fully perceived; social and anchor reliability fail.",
-        stateKey: "voidShardContamination"
-      }]
+      trackId: "void_shard.contamination",
+      trackLabel: "Miscompile",
+      stateKey: "voidShardContamination",
+      bands: [
+        { at: 0, label: "Coherent", cue: "Identity and presence read consistently to witnesses.", risk: "Unresolved Void logic may still hum beneath the mask." },
+        { at: 1, label: "Touched", cue: "Negative-space logic leaves hesitation in speech and record.", risk: "Names and routes may slip half a beat late." },
+        { at: 2, label: "Hollow", cue: "The Operator sounds present while something important goes missing.", risk: "Allies may misread intent or emotional tone." },
+        { at: 3, label: "Unmoored", cue: "Reality questions which version of the Operator is current.", risk: "Anchor contact and social reliability weaken." },
+        { at: 4, label: "Anti-present", cue: "The table struggles to keep the Operator in frame.", risk: "Perception, testimony, and coordination fail in pockets." },
+        { at: 5, label: "Breach Risk", cue: "Presence frays at the edges of attention and record.", risk: "Social and anchor reliability may fail under stress." },
+        { at: 6, label: "Absent", cue: "The Operator cannot be fully perceived or consistently located.", risk: "Cannot be fully perceived; social and anchor reliability fail." }
+      ],
+      maxRisk: "Cannot be fully perceived; social and anchor reliability fail.",
+      reliefActions: {
+        risesWhen: ["void exposure", "negative-space logic accepted", "failed presence defense", "breach adjacency"],
+        fallsWhen: ["named truth", "anchor contact", "relational shielding", "deliberate embodiment"]
+      },
+      operatorCopy: { trackHeading: "Miscompile" }
     }),
     presentationContract({
       id: "wraith",
       label: "Wraith",
       cardLabel: "Wraith Pressure",
       catalogKeys: ["WRAITH_TOUCHED_ANCHOR_BOUND", "WRAITH"],
-      tracks: [{
-        id: "wraith.anchoring",
-        label: "Anchoring",
-        owner: "operator",
-        range: { min: 0, max: 6 },
-        bands: [
-          { at: 0, label: "Baseline" },
-          { at: 1, label: "Loosened" },
-          { at: 2, label: "Pulling" },
-          { at: 3, label: "Bound" },
-          { at: 4, label: "Commanded" },
-          { at: 5, label: "Possession Risk" },
-          { at: 6, label: "Anchor Lock" }
-        ],
-        risesWhen: [
-          "anchor threatened",
-          "continuity denied",
-          "death-memory surfacing",
-          "unmoored travel"
-        ],
-        fallsWhen: [
-          "anchor restored",
-          "witnessed continuity",
-          "shared memory named",
-          "safe return to mooring"
-        ],
-        atMax: "Anchor can command, trap, or overwrite priority.",
-        maxConsequence: "Anchor can command, trap, or overwrite priority.",
-        stateKey: "anchorDriftPressure"
-      }]
+      trackId: "wraith.anchoring",
+      trackLabel: "Anchor Strain",
+      stateKey: "anchorDriftPressure",
+      bands: [
+        { at: 0, label: "Moored", cue: "Continuity with the Anchor reads steady.", risk: "Old death-memory may still pull in quiet moments." },
+        { at: 1, label: "Loosened", cue: "Distance or damage tugs at mooring.", risk: "Small continuity breaks become easier to miss." },
+        { at: 2, label: "Pulling", cue: "The Anchor's gravity reorganizes priorities.", risk: "Travel and refusal may cost extra attention." },
+        { at: 3, label: "Bound", cue: "Behavior bends toward Anchor preservation.", risk: "Independent choices may require explicit resistance." },
+        { at: 4, label: "Commanded", cue: "The Anchor can steer intent before the Operator names it.", risk: "Shared memory and command pressure intensify." },
+        { at: 5, label: "Possession Risk", cue: "Agency and Anchor voice compete in the same breath.", risk: "Anchor can trap, redirect, or overwrite priority." },
+        { at: 6, label: "Anchor Lock", cue: "Continuity collapses into Anchor command.", risk: "Anchor can command, trap, or overwrite priority." }
+      ],
+      maxRisk: "Anchor can command, trap, or overwrite priority.",
+      reliefActions: {
+        risesWhen: ["anchor threatened", "continuity denied", "death-memory surfacing", "unmoored travel"],
+        fallsWhen: ["anchor restored", "witnessed continuity", "shared memory named", "safe return to mooring"]
+      },
+      operatorCopy: { trackHeading: "Anchor Strain" }
     }),
     presentationContract({
       id: "echo",
       label: "Echo",
       cardLabel: "Echo Pressure",
       catalogKeys: ["ECHO_ALTERED", "MYTHIC_ECHO"],
-      tracks: [{
-        id: "echo.drift",
-        label: "Drift",
-        owner: "operator",
-        range: { min: 0, max: 6 },
-        bands: [
-          { at: 0, label: "Baseline" },
-          { at: 1, label: "Echoing" },
-          { at: 2, label: "Repeating" },
-          { at: 3, label: "Mimic" },
-          { at: 4, label: "Loop" },
-          { at: 5, label: "Recursion Risk" },
-          { at: 6, label: "Stuck Loop" }
-        ],
-        risesWhen: [
-          "recorded repetition",
-          "mirror mismatch",
-          "prior action replayed",
-          "camera contradiction"
-        ],
-        fallsWhen: [
-          "novel action under witness",
-          "anchor interruption",
-          "named difference",
-          "route change"
-        ],
-        atMax: "Repeats prior action unless interrupted by Anchor or cost.",
-        maxConsequence: "Repeats prior action unless interrupted by Anchor or cost.",
-        stateKey: "echoRecursionPressure"
-      }]
+      trackId: "echo.drift",
+      trackLabel: "Relevance Drift",
+      stateKey: "echoRecursionPressure",
+      bands: [
+        { at: 0, label: "Present", cue: "Action and record align under witness.", risk: "Old repetition may still lurk in footage or memory." },
+        { at: 1, label: "Echoing", cue: "Prior beats feel too close to the current moment.", risk: "Small repeats may pass as coincidence." },
+        { at: 2, label: "Repeating", cue: "Gesture, phrasing, or route echo without intent.", risk: "Cameras and testimony may contradict the body." },
+        { at: 3, label: "Mimic", cue: "The Operator mirrors a prior version too cleanly.", risk: "Difference becomes hard to prove at the table." },
+        { at: 4, label: "Loop", cue: "Attention and repetition literalize into behavior.", risk: "Novel action may require anchor interruption or cost." },
+        { at: 5, label: "Recursion Risk", cue: "The next move wants to be the last move again.", risk: "Repeats prior action unless interrupted by Anchor or cost." },
+        { at: 6, label: "Stuck Loop", cue: "The Operator cannot exit the recorded pattern.", risk: "Repeats prior action unless interrupted by Anchor or cost." }
+      ],
+      maxRisk: "Repeats prior action unless interrupted by Anchor or cost.",
+      reliefActions: {
+        risesWhen: ["recorded repetition", "mirror mismatch", "prior action replayed", "camera contradiction"],
+        fallsWhen: ["novel action under witness", "anchor interruption", "named difference", "route change"]
+      },
+      operatorCopy: { trackHeading: "Relevance Drift" }
     }),
     presentationContract({
       id: "dream",
       label: "Dream",
       cardLabel: "Dream Pressure",
       catalogKeys: [],
-      tracks: [{
-        id: "dream.lucidity_debt",
-        label: "Lucidity Debt",
-        owner: "operator",
-        range: { min: 0, max: 6 },
-        bands: [
-          { at: 0, label: "Baseline" },
-          { at: 1, label: "Thin" },
-          { at: 2, label: "Smearing" },
-          { at: 3, label: "False Memory" },
-          { at: 4, label: "Dream Logic" },
-          { at: 5, label: "Debt Due" },
-          { at: 6, label: "Lost Thread" }
-        ],
-        risesWhen: [
-          "sleep debt",
-          "dream logic accepted",
-          "false continuity rewarded",
-          "symbolic substitution"
-        ],
-        fallsWhen: [
-          "grounding",
-          "shared witness",
-          "named waking fact",
-          "rest with anchor"
-        ],
-        atMax: "Memory smear and false continuity take over function.",
-        maxConsequence: "Memory smear and false continuity take over function.",
-        stateKey: "dreamLucidityDebt"
-      }]
+      trackId: "dream.lucidity_debt",
+      trackLabel: "Lucidity Debt",
+      stateKey: "dreamLucidityDebt",
+      bands: [
+        { at: 0, label: "Rested", cue: "Waking facts and dream residue stay separated.", risk: "Sleep debt can still accumulate quietly." },
+        { at: 1, label: "Thin", cue: "Symbols leak into ordinary perception.", risk: "Small metaphors may answer too literally." },
+        { at: 2, label: "Smearing", cue: "Memory boundaries soften between scenes.", risk: "False familiarity may steer choices." },
+        { at: 3, label: "False Memory", cue: "The Operator trusts an invented continuity.", risk: "Shared witness may be required to correct course." },
+        { at: 4, label: "Dream Logic", cue: "Symbolic substitution starts winning function.", risk: "Practical tasks may fail in dream-consistent ways." },
+        { at: 5, label: "Debt Due", cue: "Waking function borrows against unslept symbolism.", risk: "Memory smear and false continuity threaten play." },
+        { at: 6, label: "Lost Thread", cue: "The waking route dissolves into dream continuity.", risk: "Memory smear and false continuity take over function." }
+      ],
+      maxRisk: "Memory smear and false continuity take over function.",
+      reliefActions: {
+        risesWhen: ["sleep debt", "dream logic accepted", "false continuity rewarded", "symbolic substitution"],
+        fallsWhen: ["grounding", "shared witness", "named waking fact", "rest with anchor"]
+      },
+      operatorCopy: { trackHeading: "Lucidity Debt" }
     }),
     presentationContract({
       id: "stillness",
       label: "Stillness",
       cardLabel: "Stillness Pressure",
       catalogKeys: [],
-      tracks: [{
-        id: "stillness.inertia",
-        label: "Inertia",
-        owner: "operator",
-        range: { min: 0, max: 6 },
-        bands: [
-          { at: 0, label: "Baseline" },
-          { at: 1, label: "Heavy" },
-          { at: 2, label: "Stalled" },
-          { at: 3, label: "Frozen" },
-          { at: 4, label: "Petrified" },
-          { at: 5, label: "Cannot Move" },
-          { at: 6, label: "Stasis Lock" }
-        ],
-        risesWhen: [
-          "refusal rewarded",
-          "death-stasis contact",
-          "non-escalation enforced",
-          "grief freeze"
-        ],
-        fallsWhen: [
-          "forced motion",
-          "broken pattern",
-          "anchor jolt",
-          "accepted change"
-        ],
-        atMax: "Cannot escalate, flee, or transform without breaking something.",
-        maxConsequence: "Cannot escalate, flee, or transform without breaking something.",
-        stateKey: "stillnessInertia"
-      }]
+      trackId: "stillness.inertia",
+      trackLabel: "Inertia",
+      stateKey: "stillnessInertia",
+      bands: [
+        { at: 0, label: "Fluid", cue: "Motion, change, and refusal all remain available.", risk: "Grief-freeze may still wait beneath composure." },
+        { at: 1, label: "Heavy", cue: "Escalation and departure take extra weight.", risk: "Non-escalation may start feeling virtuous." },
+        { at: 2, label: "Stalled", cue: "The scene rewards staying exactly as you are.", risk: "Breaking pattern may require a jolt or cost." },
+        { at: 3, label: "Frozen", cue: "Change feels more dangerous than preservation.", risk: "Fleeing or transforming may need to break something." },
+        { at: 4, label: "Petrified", cue: "Stillness becomes the safest story in the room.", risk: "Momentum traps may spread to allies or terrain." },
+        { at: 5, label: "Cannot Move", cue: "Even urgent motion reads as betrayal of the freeze.", risk: "Cannot escalate, flee, or transform without breaking something." },
+        { at: 6, label: "Stasis Lock", cue: "Preservation hardens into refusal of all change.", risk: "Cannot escalate, flee, or transform without breaking something." }
+      ],
+      maxRisk: "Cannot escalate, flee, or transform without breaking something.",
+      reliefActions: {
+        risesWhen: ["refusal rewarded", "death-stasis contact", "non-escalation enforced", "grief freeze"],
+        fallsWhen: ["forced motion", "broken pattern", "anchor jolt", "accepted change"]
+      },
+      operatorCopy: { trackHeading: "Inertia" }
     }),
     presentationContract({
       id: "becoming",
       label: "Becoming",
       cardLabel: "Becoming Pressure",
       catalogKeys: ["THERIAN_ADAPTATION"],
-      tracks: [{
-        id: "becoming.instinct_surge",
-        label: "Instinct Surge",
-        owner: "operator",
-        range: { min: 0, max: 6 },
-        bands: [
-          { at: 0, label: "Baseline" },
-          { at: 1, label: "Stirring" },
-          { at: 2, label: "Yielding" },
-          { at: 3, label: "Feral Read" },
-          { at: 4, label: "Form Calling" },
-          { at: 5, label: "Surge" },
-          { at: 6, label: "Body Rule" }
-        ],
-        risesWhen: [
-          "desired form rewarded",
-          "instinct validated",
-          "mask failure",
-          "territorial pressure"
-        ],
-        fallsWhen: [
-          "human choice named",
-          "consent check",
-          "anchor grounding",
-          "deliberate restraint"
-        ],
-        atMax: "Form answers desire before consent catches up.",
-        maxConsequence: "Form answers desire before consent catches up.",
-        stateKey: "becomingInstinctSurge"
-      }]
+      trackId: "becoming.instinct_surge",
+      trackLabel: "Instinct Surge",
+      stateKey: "becomingInstinctSurge",
+      bands: [
+        { at: 0, label: "Chosen", cue: "Human choice leads; form follows consent.", risk: "Validated instinct may still warm beneath the mask." },
+        { at: 1, label: "Stirring", cue: "The body notices the desired shape before speech does.", risk: "Small tells may leak into posture or appetite." },
+        { at: 2, label: "Yielding", cue: "Form pressure answers want a beat too early.", risk: "Consent checks may arrive after the body moves." },
+        { at: 3, label: "Feral Read", cue: "Threat and desire read through nonhuman patterning.", risk: "Allies may misread intent or boundaries." },
+        { at: 4, label: "Form Calling", cue: "The desired form keeps offering itself as solution.", risk: "Mask failure may become socially costly." },
+        { at: 5, label: "Surge", cue: "Instinct answers before self catches up.", risk: "Form answers desire before consent catches up." },
+        { at: 6, label: "Body Rule", cue: "The body decides; the self negotiates afterward.", risk: "Form answers desire before consent catches up." }
+      ],
+      maxRisk: "Form answers desire before consent catches up.",
+      reliefActions: {
+        risesWhen: ["desired form rewarded", "instinct validated", "mask failure", "territorial pressure"],
+        fallsWhen: ["human choice named", "consent check", "anchor grounding", "deliberate restraint"]
+      },
+      operatorCopy: { trackHeading: "Instinct Surge" }
     }),
     presentationContract({
       id: "empyrean",
       label: "Empyrean",
       cardLabel: "Empyrean Pressure",
       catalogKeys: [],
-      tracks: [{
-        id: "empyrean.radiance_load",
-        label: "Radiance Load",
-        owner: "operator",
-        range: { min: 0, max: 6 },
-        bands: [
-          { at: 0, label: "Baseline" },
-          { at: 1, label: "Glowing" },
-          { at: 2, label: "Beacon" },
-          { at: 3, label: "Martyrdom" },
-          { at: 4, label: "Impossible Weight" },
-          { at: 5, label: "Radiance Risk" },
-          { at: 6, label: "Singularity" }
-        ],
-        risesWhen: [
-          "impossible significance witnessed",
-          "savior logic rewarded",
-          "attention magnetism",
-          "shared grief elevation"
-        ],
-        fallsWhen: [
-          "ordinary detail named",
-          "distributed burden",
-          "refused canonization",
-          "private truth"
-        ],
-        atMax: "Beaconing, attention magnet, martyr logic.",
-        maxConsequence: "Beaconing, attention magnet, martyr logic.",
-        stateKey: "empyreanRadianceLoad"
-      }]
+      trackId: "empyrean.radiance_load",
+      trackLabel: "Radiance Load",
+      stateKey: "empyreanRadianceLoad",
+      bands: [
+        { at: 0, label: "Ordinary", cue: "Connection stays proportionate to the moment.", risk: "Awe and grief may still magnetize attention quietly." },
+        { at: 1, label: "Glowing", cue: "Emotional presence reads brighter than intended.", risk: "Small bonds may feel heavier than agreed." },
+        { at: 2, label: "Beacon", cue: "The room orients around the Operator's feeling.", risk: "Attention magnetism may outpace consent." },
+        { at: 3, label: "Martyrdom", cue: "Burden and significance invite shared elevation.", risk: "Distributed burden may collapse back onto one body." },
+        { at: 4, label: "Impossible Weight", cue: "Awe synchronizes pain, duty, and visibility.", risk: "Refusal of canonization may require explicit cost." },
+        { at: 5, label: "Radiance Risk", cue: "Connection overload threatens individual boundary.", risk: "Beaconing, attention magnet, martyr logic." },
+        { at: 6, label: "Singularity", cue: "The Operator becomes the scene's emotional sun.", risk: "Beaconing, attention magnet, martyr logic." }
+      ],
+      maxRisk: "Beaconing, attention magnet, martyr logic.",
+      reliefActions: {
+        risesWhen: ["impossible significance witnessed", "savior logic rewarded", "attention magnetism", "shared grief elevation"],
+        fallsWhen: ["ordinary detail named", "distributed burden", "refused canonization", "private truth"]
+      },
+      operatorCopy: { trackHeading: "Radiance Load" }
     }),
     presentationContract({
       id: "silence",
       label: "Silence",
       cardLabel: "Silence Pressure",
       catalogKeys: ["HOLLOW_SILENCE_ALTERED"],
-      tracks: [{
-        id: "silence.suppression",
-        label: "Suppression",
-        owner: "operator",
-        range: { min: 0, max: 6 },
-        bands: [
-          { at: 0, label: "Baseline" },
-          { at: 1, label: "Muted" },
-          { at: 2, label: "Unnamed" },
-          { at: 3, label: "Occluded" },
-          { at: 4, label: "Missing Speech" },
-          { at: 5, label: "Record Loss" },
-          { at: 6, label: "Total Silence" }
-        ],
-        risesWhen: [
-          "truth swallowed",
-          "name withheld",
-          "record gap rewarded",
-          "emotional occlusion"
-        ],
-        fallsWhen: [
-          "named aloud",
-          "witnessed speech",
-          "record restored",
-          "anchor asks directly"
-        ],
-        atMax: "Missing speech, record loss, emotional occlusion.",
-        maxConsequence: "Missing speech, record loss, emotional occlusion.",
-        stateKey: "silenceSuppression"
-      }]
+      trackId: "silence.suppression",
+      trackLabel: "Suppression",
+      stateKey: "silenceSuppression",
+      bands: [
+        { at: 0, label: "Named", cue: "Speech, record, and omission stay distinguishable.", risk: "Swallowed truth may still press against composure." },
+        { at: 1, label: "Muted", cue: "The Operator chooses quiet over precision.", risk: "Allies may fill silence with the wrong story." },
+        { at: 2, label: "Unnamed", cue: "Important facts lack a speakable handle.", risk: "Direct questions may cost extra Stability." },
+        { at: 3, label: "Occluded", cue: "Emotional signal drops out of the scene.", risk: "Record gaps may start feeling safer than speech." },
+        { at: 4, label: "Missing Speech", cue: "The table realizes something cannot be said aloud.", risk: "Witnessed speech may require anchor intervention." },
+        { at: 5, label: "Record Loss", cue: "Omission starts eating adjacent memory and testimony.", risk: "Missing speech, record loss, emotional occlusion." },
+        { at: 6, label: "Total Silence", cue: "Signal, record, and emotional trace collapse together.", risk: "Missing speech, record loss, emotional occlusion." }
+      ],
+      maxRisk: "Missing speech, record loss, emotional occlusion.",
+      reliefActions: {
+        risesWhen: ["truth swallowed", "name withheld", "record gap rewarded", "emotional occlusion"],
+        fallsWhen: ["named aloud", "witnessed speech", "record restored", "anchor asks directly"]
+      },
+      operatorCopy: { trackHeading: "Suppression" }
     })
   ];
 
@@ -408,6 +455,10 @@
     return id ? presentationById[id] : null;
   }
 
+  function primaryTrack(presentation) {
+    return presentation?.tracks?.[0] || null;
+  }
+
   function bandForTrack(track, value) {
     const resolved = trackById[track?.id || track] || null;
     if (!resolved) return "Baseline";
@@ -419,13 +470,180 @@
     return label;
   }
 
+  function cueForTrack(track, value) {
+    const resolved = trackById[track?.id || track] || null;
+    if (!resolved) return "";
+    const clamped = clamp(value, resolved.range.min, resolved.range.max);
+    let cue = "";
+    resolved.bands.forEach((band) => {
+      if (Number(band.at) === clamped && band.cue) cue = band.cue;
+    });
+    return cue;
+  }
+
+  function riskForTrack(track, value) {
+    const resolved = trackById[track?.id || track] || null;
+    if (!resolved) return "";
+    const clamped = clamp(value, resolved.range.min, resolved.range.max);
+    let risk = "";
+    resolved.bands.forEach((band) => {
+      if (Number(band.at) === clamped && band.risk) risk = band.risk;
+    });
+    if (clamped >= resolved.range.max) {
+      return resolved.maxRisk || resolved.atMax || risk;
+    }
+    return risk;
+  }
+
+  function coherenceFromHunger(value) {
+    return bandForTrack("sanguine.hunger", value);
+  }
+
+  function activeConditionFlags(status, presentation) {
+    const model = presentation?.conditionModel;
+    if (!model || !Array.isArray(model.separateConditions)) return [];
+    return model.separateConditions.filter((item) => item.flagKey && Boolean(status?.[item.flagKey]));
+  }
+
+  function deriveCondition(status, presentation) {
+    if (!presentation || !status) {
+      return { label: "", note: "", flags: [], override: false, band: "" };
+    }
+
+    const track = primaryTrack(presentation);
+    const value = track ? readTrackValue(status, track) : 0;
+    const band = track ? bandForTrack(track, value) : "";
+    const overrideKey = presentation.conditionModel?.overrideKey || "";
+    const override = overrideKey ? safeString(status[overrideKey]) : "";
+    const flags = activeConditionFlags(status, presentation);
+
+    if (override) {
+      const matched = (presentation.conditionModel?.separateConditions || [])
+        .find((item) => item.label === override || item.id === override);
+      return {
+        label: override,
+        note: matched?.note || "",
+        flags,
+        override: true,
+        band
+      };
+    }
+
+    if (presentation.id === "sanguine") {
+      const hunger = value;
+      const saturated = Boolean(status.sanguineSaturated);
+      const starved = Boolean(status.sanguineStarved);
+      const predatorySaturation = Boolean(status.sanguinePredatorySaturation);
+      const collapseRisk = Boolean(status.sanguineCollapseRisk);
+
+      if (collapseRisk) {
+        return {
+          label: "Collapse Risk",
+          note: "Identity fragmentation or uncontrolled resonance venting.",
+          flags,
+          override: false,
+          band
+        };
+      }
+      if (predatorySaturation || (saturated && hunger >= 4)) {
+        return {
+          label: "Predatory Saturation",
+          note: "Appetite organizes behavior; human logic becomes performative.",
+          flags,
+          override: false,
+          band
+        };
+      }
+      if (saturated) {
+        return {
+          label: "Saturated",
+          note: "Recent intake amplifies emotional bleed.",
+          flags,
+          override: false,
+          band
+        };
+      }
+      if (starved || (hunger >= 4 && !saturated)) {
+        // Starved is fiction-triggered; only auto-suggest at very high hunger without intake context.
+        if (starved) {
+          return {
+            label: "Starved",
+            note: "Cold embodiment, narrowing empathy, predatory problem-solving.",
+            flags,
+            override: false,
+            band
+          };
+        }
+      }
+      return { label: band, note: "", flags, override: false, band };
+    }
+
+    return { label: band, note: "", flags, override: false, band };
+  }
+
+  function safeString(value, max) {
+    const text = String(value ?? "").trim();
+    return text.length > max ? text.slice(0, max) : text;
+  }
+
+  function formatHandlerSummary(presentation, track, value, band) {
+    const template = presentation.handlerSummary || "{trackLabel} {value}/{max} ({band})";
+    return template
+      .replace("{trackLabel}", presentation.trackLabel || track.label)
+      .replace("{value}", String(value))
+      .replace("{max}", String(track.range.max))
+      .replace("{band}", band);
+  }
+
+  function presentationPressureView(status, catalogKeyOrId) {
+    let presentation = null;
+    if (typeof catalogKeyOrId === "string") {
+      presentation = presentationForCatalogKey(catalogKeyOrId) || presentationById[catalogKeyOrId] || null;
+    } else if (catalogKeyOrId && typeof catalogKeyOrId === "object") {
+      presentation = presentationById[catalogKeyOrId.id] || catalogKeyOrId;
+    } else {
+      presentation = presentationById[catalogKeyOrId] || null;
+    }
+    if (!presentation || !status) return null;
+
+    const track = primaryTrack(presentation);
+    if (!track) return null;
+
+    const value = readTrackValue(status, track);
+    const band = bandForTrack(track, value);
+    const cue = cueForTrack(track, value);
+    const risk = riskForTrack(track, value);
+    const condition = deriveCondition(status, presentation);
+
+    return {
+      id: presentation.id,
+      label: presentation.label,
+      cardLabel: presentation.cardLabel,
+      trackLabel: presentation.trackLabel,
+      trackId: track.id,
+      value,
+      range: { ...presentation.range },
+      band,
+      cue,
+      risk,
+      maxRisk: presentation.maxRisk,
+      condition: condition.label,
+      conditionNote: condition.note,
+      conditionFlags: condition.flags,
+      conditionOverride: condition.override,
+      reliefActions: presentation.reliefActions,
+      operatorCopy: presentation.operatorCopy,
+      handlerSummary: formatHandlerSummary(presentation, track, value, band)
+    };
+  }
+
   function formatBandLine(track, value) {
     const resolved = trackById[track?.id || track] || null;
     if (!resolved) return "";
     const clamped = clamp(value, resolved.range.min, resolved.range.max);
     const band = bandForTrack(resolved, clamped);
     if (clamped >= resolved.range.max) {
-      return `${band} — ${resolved.atMax}`;
+      return `${band} — ${resolved.maxRisk || resolved.atMax}`;
     }
     return band;
   }
@@ -489,6 +707,22 @@
       }
     }
 
+    const legacyCoherence = String(status?.sanguineCoherence || "");
+    if (legacyCoherence === "Saturated") next.sanguineSaturated = true;
+    if (legacyCoherence === "Starved") next.sanguineStarved = true;
+    if (legacyCoherence === "Predatory Saturation") next.sanguinePredatorySaturation = true;
+    if (legacyCoherence === "Collapse Risk") next.sanguineCollapseRisk = true;
+    if (legacyCoherence && !next.sanguineConditionOverride) {
+      const knownOverrides = ["Starved", "Heightened", "Saturated", "Predatory Saturation", "Collapse Risk"];
+      if (knownOverrides.includes(legacyCoherence)) {
+        next.sanguineConditionOverride = legacyCoherence;
+      }
+    }
+
+    const hungerValue = readTrackValue({ ...next, presentationPressures: store }, "sanguine.hunger");
+    next.sanguineCoherence = deriveCondition({ ...next, presentationPressures: store }, presentationById.sanguine).label
+      || coherenceFromHunger(hungerValue);
+
     next.presentationPressures = store;
     return next;
   }
@@ -502,7 +736,7 @@
         const value = readTrackValue(status, track);
         const band = bandForTrack(track, value);
         if (value <= track.range.min) return "";
-        return `${track.label} ${value}/${track.range.max} (${band})`;
+        return formatHandlerSummary(presentation, track, value, band);
       })
       .filter(Boolean);
   }
@@ -512,10 +746,12 @@
   }
 
   function presentationUiTrack(track) {
+    const presentation = PRESENTATIONS.find((item) => item.trackId === track.id) || null;
     return {
       id: track.id,
       key: track.stateKey || track.id,
       label: track.label,
+      trackLabel: presentation?.trackLabel || track.label,
       max: track.range.max,
       kind: track.kind,
       operatorEditable: track.operatorEditable,
@@ -530,7 +766,13 @@
     presentationForCatalogKey,
     presentationById: (id) => presentationById[id] || null,
     trackById: (id) => trackById[id] || null,
+    primaryTrack,
     bandForTrack,
+    cueForTrack,
+    riskForTrack,
+    coherenceFromHunger,
+    deriveCondition,
+    presentationPressureView,
     formatBandLine,
     readTrackValue,
     writeTrackValue,
