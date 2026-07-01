@@ -227,24 +227,79 @@
       label: "Wraith",
       cardLabel: "Wraith Pressure",
       catalogKeys: ["WRAITH_TOUCHED_ANCHOR_BOUND", "WRAITH"],
-      trackId: "wraith.anchoring",
-      trackLabel: "Anchor Strain",
-      stateKey: "anchorDriftPressure",
+      trackId: "wraith.essence_load",
+      trackLabel: "Essence Load",
+      stateKey: "essenceLoad",
+      kind: "essence_load",
+      range: { min: 0, max: 6 },
       bands: [
-        { at: 0, label: "Moored", cue: "Continuity with the Anchor reads steady.", risk: "Old death-memory may still pull in quiet moments." },
-        { at: 1, label: "Loosened", cue: "Distance or damage tugs at mooring.", risk: "Small continuity breaks become easier to miss." },
-        { at: 2, label: "Pulling", cue: "The Anchor's gravity reorganizes priorities.", risk: "Travel and refusal may cost extra attention." },
-        { at: 3, label: "Bound", cue: "Behavior bends toward Anchor preservation.", risk: "Independent choices may require explicit resistance." },
-        { at: 4, label: "Commanded", cue: "The Anchor can steer intent before the Operator names it.", risk: "Shared memory and command pressure intensify." },
-        { at: 5, label: "Possession Risk", cue: "Agency and Anchor voice compete in the same breath.", risk: "Anchor can trap, redirect, or overwrite priority." },
-        { at: 6, label: "Anchor Lock", cue: "Continuity collapses into Anchor command.", risk: "Anchor can command, trap, or overwrite priority." }
+        {
+          at: 0,
+          label: "Fading",
+          cue: "The cup reads empty — presence thins, memory smears, and coherence starts to slip.",
+          risk: "Dissociation, loss of witnessability, or predatory hunger for essence."
+        },
+        {
+          at: 1,
+          label: "Anchored",
+          cue: "Enough borrowed continuity to hold — grief and identity stay mostly legible.",
+          risk: "Quiet debt may still accumulate if intake stays uneven."
+        },
+        {
+          at: 2,
+          label: "Anchored",
+          cue: "Functional wraith presence — anchor memory, emotion, and selfhood stay in workable balance.",
+          risk: "Comfort can hide how fast essence is drifting."
+        },
+        {
+          at: 3,
+          label: "Anchored",
+          cue: "Stable middle — the Operator reads present, moored, and socially navigable.",
+          risk: "A sudden intake spike or anchor threat can swing the meter fast."
+        },
+        {
+          at: 4,
+          label: "Overfull",
+          cue: "Too much borrowed identity, memory, or emotion — the body holds more than it can metabolize.",
+          risk: "Memory bleed, grief contamination, or ethical pressure around living essence."
+        },
+        {
+          at: 5,
+          label: "Possessive Saturation",
+          cue: "Essence starts steering behavior before the Operator names the want.",
+          risk: "Attachment fixation, predatory behavior, or harm to essence sources."
+        },
+        {
+          at: 6,
+          label: "Haunting Risk",
+          cue: "Containment frays — anchor failure, predatory haunting, or dead identity residue takes the mic.",
+          risk: "Anchor failure, predatory haunting, or containment blowout now."
+        }
       ],
-      maxRisk: "Anchor can command, trap, or overwrite priority.",
-      reliefActions: {
-        risesWhen: ["anchor threatened", "continuity denied", "death-memory surfacing", "unmoored travel"],
-        fallsWhen: ["anchor restored", "witnessed continuity", "shared memory named", "safe return to mooring"]
+      conditionModel: {
+        derivedFrom: ["essence_load"]
       },
-      operatorCopy: { trackHeading: "Anchor Strain" }
+      maxRisk: "Anchor failure, predatory haunting, or containment blowout now.",
+      reliefActions: {
+        risesWhen: [
+          "ghost essence intake",
+          "living essence intake",
+          "borrowed memory or emotion absorbed",
+          "anchor threatened while overfull"
+        ],
+        fallsWhen: [
+          "anchor contact",
+          "witnessed continuity",
+          "deliberate bleed-off toward center",
+          "isolation / neglect reversed"
+        ]
+      },
+      operatorCopy: {
+        panelTitle: "Wraith Pressure",
+        trackHeading: "Essence Load",
+        conditionLabel: "State",
+        meterHelp: "Rain-gauge fill: low is Fading, center is Anchored, high is Overfull. Overflow is Haunting Risk."
+      }
     }),
     presentationContract({
       id: "echo",
@@ -471,8 +526,29 @@
     return bandForTrack("sanguine.blood_load", value);
   }
 
+  function essenceLoadBand(value) {
+    return bandForTrack("wraith.essence_load", value);
+  }
+
   function coherenceFromHunger(value) {
     return bloodLoadBand(value);
+  }
+
+  function resolveWraithCondition(status, essenceLoad) {
+    const value = clamp(essenceLoad, 0, 6);
+    const label = essenceLoadBand(value);
+    const stateIds = {
+      Fading: "fading",
+      Anchored: "anchored",
+      Overfull: "overfull",
+      "Possessive Saturation": "possessive_saturation",
+      "Haunting Risk": "haunting_risk"
+    };
+    return {
+      intakeCondition: stateIds[label] || "",
+      label,
+      note: ""
+    };
   }
 
   function resolveSanguineCondition(status, bloodLoad) {
@@ -514,7 +590,9 @@
       note: "",
       flags: [],
       modifiers: [],
-      intakeCondition: presentation.id === "sanguine" ? resolveSanguineCondition(status, value).intakeCondition : "",
+      intakeCondition: presentation.id === "sanguine"
+        ? resolveSanguineCondition(status, value).intakeCondition
+        : (presentation.id === "wraith" ? resolveWraithCondition(status, value).intakeCondition : ""),
       override: false,
       band
     };
@@ -621,7 +699,6 @@
 
     const legacyMap = {
       echoRecursionPressure: "echo.drift",
-      anchorDriftPressure: "wraith.anchoring",
       voidShardContamination: "void_shard.contamination",
       dreamLucidityDebt: "dream.lucidity_debt",
       stillnessInertia: "stillness.inertia",
@@ -664,9 +741,31 @@
       delete store["sanguine.hunger"];
     }
 
+    if (!Object.prototype.hasOwnProperty.call(store, "wraith.essence_load")) {
+      let essenceLoad = 3;
+      if (Object.prototype.hasOwnProperty.call(store, "wraith.anchoring")) {
+        const oldAnchor = store["wraith.anchoring"];
+        essenceLoad = oldAnchor <= 1 ? 3 : clamp(oldAnchor + 1, 4, 6);
+      } else if (next.anchorDriftPressure !== undefined && next.anchorDriftPressure !== "") {
+        const oldAnchor = clamp(next.anchorDriftPressure, 0, 6);
+        essenceLoad = oldAnchor <= 1 ? 3 : clamp(oldAnchor + 1, 4, 6);
+      } else if (next.essenceLoad !== undefined && next.essenceLoad !== "") {
+        essenceLoad = clamp(next.essenceLoad, 0, 6);
+      }
+      store["wraith.essence_load"] = essenceLoad;
+      next.essenceLoad = String(essenceLoad);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(store, "wraith.anchoring")) {
+      delete store["wraith.anchoring"];
+    }
+
     const bloodLoadValue = readTrackValue({ ...next, presentationPressures: store }, "sanguine.blood_load");
     next.sanguineCoherence = bloodLoadBand(bloodLoadValue);
     next.bloodLoad = String(bloodLoadValue);
+
+    const essenceLoadValue = readTrackValue({ ...next, presentationPressures: store }, "wraith.essence_load");
+    next.essenceLoad = String(essenceLoadValue);
 
     next.presentationPressures = store;
     return next;
@@ -680,7 +779,7 @@
       .map((track) => {
         const value = readTrackValue(status, track);
         const band = bandForTrack(track, value);
-        if (value <= track.range.min) return "";
+        if (value <= track.range.min && !["blood_load", "essence_load"].includes(track.kind)) return "";
         return formatHandlerSummary(presentation, track, value, band);
       })
       .filter(Boolean);
@@ -716,8 +815,10 @@
     cueForTrack,
     riskForTrack,
     bloodLoadBand,
+    essenceLoadBand,
     coherenceFromHunger,
     resolveSanguineCondition,
+    resolveWraithCondition,
     deriveCondition,
     presentationPressureView,
     formatBandLine,
