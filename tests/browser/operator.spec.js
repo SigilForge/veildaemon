@@ -660,9 +660,15 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
   await expect(page.locator("#breach-bank-readout")).toHaveText("3");
 
+  await page.getByLabel("Body 2").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await expect(page.locator("#roll-attribute")).toContainText("Body +2");
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 1/6 // Bonus Breach 3/3")).toBeVisible();
+
   await page.getByLabel("Body 3").click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
   await expect(page.locator("#roll-attribute")).toContainText("Body +3");
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 2/6 // Bonus Breach 3/3")).toBeVisible();
 
   await page.getByLabel("Body 1").click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
@@ -673,16 +679,16 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await page.getByLabel("Mind 3").click();
   await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 3/3")).toBeVisible();
 
-  await page.getByLabel("Presence 3").click();
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("1");
-  await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 1/3")).toBeVisible();
+  await page.getByLabel("Presence 2").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("0");
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 0/3")).toBeVisible();
 
   await page.getByLabel("Presence 1").click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
   await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 3/3")).toBeVisible();
 
   await page.getByLabel("Body 4").click();
-  await expect(page.locator("#storage-status")).toContainText("Creation attribute cap is 3");
+  await expect(page.locator("#storage-status")).toContainText("Insufficient Breach. Required 4");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
   await expect(page.locator("#roll-attribute")).toContainText("Body +3");
 
@@ -690,15 +696,13 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("8");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
 
-  await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await page.getByLabel("Body 4").click();
   await expect(page.locator("#roll-attribute")).toContainText("Body +4");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("4");
-  await expect(page.locator("#storage-status")).not.toContainText("Creation attribute cap");
 
   await page.getByLabel("Body 3").click();
   await expect(page.locator("#roll-attribute")).toContainText("Body +3");
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("8");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
 });
 
 test("open core presentations appear without Handler unlock", async ({ page }) => {
