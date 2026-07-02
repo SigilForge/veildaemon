@@ -1,6 +1,23 @@
 # VEILDAEMON.APP deploy notes
 
-This is a static GitHub Pages site. No build step. Upload the files as-is.
+This is a static GitHub Pages site. No Jekyll build step. `.nojekyll` is present at repo root.
+
+## GitHub Pages source
+
+Use **one** deploy path only. Mixing legacy branch publishing with GitHub Actions Pages leaves `veildaemon.app` stale.
+
+**Automatic deploys:** publish from branch `main` at `/` (legacy static mode). `.nojekyll` disables Jekyll processing.
+
+**Manual fallback:** workflow `Deploy Pages` (`.github/workflows/deploy-pages.yml`)
+- Run from **Actions → Deploy Pages → Run workflow** when the automatic build errors or the site is stuck
+- Uploads a slim static artifact and waits up to 30 minutes for GitHub Pages to finish syncing
+
+If the site looks stale after a push:
+
+1. Check **Settings → Pages** for a failed build
+2. If needed, run **Actions → Deploy Pages** manually
+3. Hard refresh the browser (or open a private window)
+4. Confirm `operator/index.html` references the expected `?v=` cache string
 
 ## Replace links if needed
 Open `index.html` and search for these button labels:
