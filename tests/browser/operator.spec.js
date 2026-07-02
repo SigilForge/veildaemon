@@ -596,6 +596,10 @@ test("burnout professional nerves bonus lands on attributes not skills", async (
   await expect(page.locator("#roll-attribute")).toContainText("Nerves +4");
   await page.getByRole("button", { name: "Roll 3D6" }).click();
   await expect(page.locator("#roll-output")).toContainText("Nerves +4");
+
+  await page.getByLabel("Nerves 4").click();
+  await expect(page.locator("#roll-attribute")).toContainText("Nerves +5");
+  await expect(page.getByLabel("Nerves 5")).toBeDisabled();
 });
 
 test("legacy nerves skill entries are scrubbed from saved builds", async ({ page }) => {
@@ -649,6 +653,28 @@ test("legacy nerves skill entries are scrubbed from saved builds", async ({ page
   await expect(page.locator("#skill-summary-list")).toContainText("Investigation");
   await expect(page.locator(".attribute-bonus-pips .is-background-bonus")).toHaveCount(1);
   await expect(page.locator("#roll-attribute")).toContainText("Nerves +2");
+});
+
+test("creation frequency pip spending uses and refunds bonus breach", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+
+  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByLabel("Dream pip 2").click();
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("2");
+
+  await page.getByLabel("Dream pip 2").click();
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("1 / 6");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.locator("#breach-bank-readout")).toHaveText("3");
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
 });
 
 test("creation mode guards attribute bonus breach spending", async ({ page }) => {
