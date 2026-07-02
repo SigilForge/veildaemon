@@ -122,7 +122,7 @@
           label: "Shadow lag, partial transparency, object attachment",
           tier: "persistent_scar",
           minDrift: 3,
-          benefit: "Haunt Reach improves through Tethers",
+          benefit: "Locus Reach improves through Tethers",
           cost: "Distance from Locus feels unsafe"
         }),
         scar({
