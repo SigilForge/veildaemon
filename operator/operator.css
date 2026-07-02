@@ -811,6 +811,105 @@ select.is-locked {
   padding: .3rem .45rem;
 }
 
+.scene-timer-strip {
+  display: grid;
+  gap: .4rem;
+  margin-bottom: .5rem;
+  padding: .45rem .55rem;
+  border: 1px solid rgba(137,255,218,.14);
+  background: rgba(0,0,0,.16);
+}
+.scene-timer-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .35rem .55rem;
+}
+.scene-timer-round {
+  margin: 0;
+  color: var(--cyan);
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.scene-timer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+.scene-timer-btn,
+.harm-treat-btn {
+  min-height: 1.85rem;
+  padding: .2rem .55rem;
+  border: 1px solid rgba(137,255,218,.28);
+  background: rgba(0,0,0,.28);
+  color: var(--text);
+  font: inherit;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.scene-timer-btn.subtle,
+.harm-treat-btn.subtle {
+  border-color: rgba(137,255,218,.16);
+  color: var(--muted);
+}
+.scene-timer-btn.ghost,
+.harm-treat-btn.ghost {
+  border-color: transparent;
+  color: var(--muted);
+}
+.scene-timer-btn:disabled,
+.harm-treat-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.scene-timer-active-label {
+  margin: 0 0 .2rem;
+  color: var(--muted);
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.scene-timer-active-line,
+.scene-timer-log-line {
+  margin: 0;
+  color: var(--text);
+  font-size: .62rem;
+  line-height: 1.4;
+}
+.scene-timer-log-line {
+  color: var(--muted);
+}
+.scene-timer-end-confirm,
+.scene-timer-end-prompt {
+  margin: 0;
+  color: var(--muted);
+  font-size: .62rem;
+  line-height: 1.4;
+}
+.harm-treat-wrap {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .35rem .5rem;
+  padding-top: .15rem;
+}
+.harm-treat-note,
+.harm-treat-hint {
+  margin: 0;
+  flex: 1 1 100%;
+  color: var(--muted);
+  font-size: .6rem;
+  line-height: 1.35;
+}
+
 .tracker-board {
   display: grid;
   grid-template-columns: 1fr;
@@ -1473,6 +1572,186 @@ select.is-locked {
 .presentation-band-state-collapse {
   border-color: rgba(255, 120, 96, .48);
   box-shadow: inset 0 0 16px rgba(255, 96, 72, .1);
+}
+.presentation-active-tag {
+  margin-bottom: .5rem;
+  padding: .45rem .5rem;
+  border: 1px solid rgba(196, 48, 64, .42);
+  background: rgba(80, 24, 32, .22);
+}
+.presentation-active-tag-title {
+  margin: 0;
+  color: #f0a8a0;
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.presentation-active-tag-copy,
+.presentation-active-tag-risk {
+  margin: .25rem 0 0;
+  color: var(--muted);
+  font-size: .62rem;
+  line-height: 1.4;
+}
+.presentation-active-tag-risk {
+  color: #f0b0a0;
+}
+.presentation-ability-btn {
+  margin-top: .35rem;
+  min-height: 1.85rem;
+  padding: .25rem .45rem;
+  border: 1px solid rgba(137,255,218,.28);
+  background: rgba(0,0,0,.28);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.presentation-ability-btn.subtle {
+  border-color: rgba(137,255,218,.18);
+  color: var(--muted);
+}
+.presentation-ability-btn.ghost {
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+}
+.presentation-ability-btn:hover {
+  border-color: rgba(185,84,255,.5);
+}
+.presentation-ability-confirm {
+  margin-top: .4rem;
+  padding: .4rem .45rem;
+  border: 1px solid rgba(196, 48, 64, .28);
+  background: rgba(0,0,0,.24);
+}
+.presentation-ability-confirm-prompt {
+  margin: 0 0 .35rem;
+  color: var(--text);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.presentation-ability-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+}
+.presentation-ability-confirm-actions .presentation-ability-btn {
+  margin-top: 0;
+}
+.presentation-ability.is-used,
+.presentation-ability.is-resolved {
+  opacity: .82;
+}
+.presentation-ability-used {
+  margin: .25rem 0 0;
+  color: #c8c0d8;
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.haunt-interface {
+  margin-bottom: .55rem;
+  padding: .5rem .55rem;
+  border: 1px solid rgba(132, 168, 196, .22);
+  background: rgba(12, 16, 24, .42);
+  box-shadow: inset 0 0 24px rgba(100, 120, 180, .05);
+}
+.haunt-interface-title {
+  margin: 0 0 .35rem;
+  color: #d8e0f0;
+  font-size: .66rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.haunt-interface-track {
+  margin: 0 0 .45rem;
+  color: var(--muted);
+  font-size: .62rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.haunt-interface-grid {
+  display: grid;
+  gap: .35rem;
+  margin-bottom: .5rem;
+}
+.haunt-interface-field {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 7rem) minmax(0, 1fr);
+  gap: .35rem;
+  align-items: center;
+  font-size: .62rem;
+}
+.haunt-interface-field span {
+  color: var(--muted);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.haunt-interface-field input,
+.haunt-interface-field span:last-child {
+  min-height: 1.7rem;
+  padding: .2rem .35rem;
+  border: 1px solid rgba(132, 168, 196, .18);
+  background: rgba(0,0,0,.22);
+  color: var(--text);
+  font: inherit;
+  font-size: .64rem;
+}
+.haunt-tether-tracker {
+  margin-top: .35rem;
+}
+.haunt-tether-summary {
+  margin: 0 0 .35rem;
+  color: var(--muted);
+  font-size: .6rem;
+  line-height: 1.4;
+}
+.haunt-tether-empty {
+  margin: 0 0 .35rem;
+  color: var(--muted);
+  font-size: .6rem;
+}
+.haunt-tether-table {
+  display: grid;
+  gap: .25rem;
+}
+.haunt-tether-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  gap: .25rem;
+  align-items: center;
+}
+.haunt-tether-header {
+  color: var(--muted);
+  font-size: .58rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.haunt-tether-row input {
+  min-height: 1.55rem;
+  padding: .15rem .3rem;
+  border: 1px solid rgba(132, 168, 196, .16);
+  background: rgba(0,0,0,.2);
+  color: var(--text);
+  font: inherit;
+  font-size: .6rem;
+}
+.haunt-tether-row span {
+  font-size: .6rem;
+  color: var(--muted);
+}
+.presentation-permissions-wraith .presentation-ability-headline {
+  border-color: rgba(132, 168, 196, .34);
+  box-shadow: inset 0 0 16px rgba(100, 140, 196, .06);
 }
 .pressure-readout-modifier {
   margin: 0;

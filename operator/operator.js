@@ -113,7 +113,9 @@
       recoveryLeave: false,
       recoveryNameIt: false,
       voidBreach: "",
-      emotionalState: ""
+      emotionalState: "",
+      presentationAbilityState: {},
+      sceneTimer: { round: 1, timers: [] }
     },
     anomalies: [],
     relationships: [],
@@ -597,6 +599,100 @@
     return "";
   }
 
+  function normalizePresentationAbilityStore(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.normalizePresentationAbilityState) {
+      return status?.presentationAbilityState && typeof status.presentationAbilityState === "object"
+        ? status.presentationAbilityState
+        : {};
+    }
+    return api.normalizePresentationAbilityState(status).presentationAbilityState;
+  }
+
+  function normalizeSceneTimerStore(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.normalizeSceneTimer) {
+      const raw = status?.sceneTimer && typeof status.sceneTimer === "object" ? status.sceneTimer : {};
+      return {
+        round: Math.max(1, Number(raw.round) || 1),
+        timers: Array.isArray(raw.timers) ? raw.timers.slice(0, 24) : []
+      };
+    }
+    return api.normalizeSceneTimer(status).sceneTimer;
+  }
+
+  function dispatchPresentationAbilityAction(action, payload) {
+    const api = presentationAbilitiesApi();
+    if (!api?.applyPresentationAbilityAction) return;
+    const data = payload && typeof payload === "object" ? payload : {};
+    if ((action === "treat_harm_start" || action === "treat_harm_cancel") && !data.catalogKey) {
+      data.catalogKey = currentPresentationKey();
+    }
+    consoleState.operatorStatus = migrateOperatorStatus(
+      api.applyPresentationAbilityAction(consoleState.operatorStatus, action, data)
+    );
+    writeConsoleState();
+    renderTrackers();
+    renderRollSelectors();
+    renderStatusSummary();
+  }
+
+  function dispatchSceneTimerAction(action, payload) {
+    const api = presentationAbilitiesApi();
+    if (!api?.applySceneTimerAction) return;
+    const beforeRound = consoleState.operatorStatus.sceneTimer?.round || 1;
+    consoleState.operatorStatus = migrateOperatorStatus(
+      api.applySceneTimerAction(consoleState.operatorStatus, action, payload)
+    );
+    const status = consoleState.operatorStatus;
+    if (action === "next_round") {
+      if (status.sceneTimer?.lastError) {
+        setStorageStatus(status.sceneTimer.lastError, true);
+      } else if ((status.sceneTimer?.round || 1) > beforeRound) {
+        status.stabilityBand = bandFromLegacyStability(status.stability);
+        status.sanguineCoherence = deriveSanguineCoherence(status);
+        setNamedChecked("recoveryGround", Boolean(status.recoveryGround));
+        setNamedChecked("recoveryBreathe", Boolean(status.recoveryBreathe));
+        setNamedChecked("recoveryConnect", Boolean(status.recoveryConnect));
+        setNamedChecked("recoveryLeave", Boolean(status.recoveryLeave));
+        setNamedChecked("recoveryNameIt", Boolean(status.recoveryNameIt));
+      }
+    }
+    if (action === "end_scene") {
+      setNamedChecked("recoveryGround", false);
+      setNamedChecked("recoveryBreathe", false);
+      setNamedChecked("recoveryConnect", false);
+      setNamedChecked("recoveryLeave", false);
+      setNamedChecked("recoveryNameIt", false);
+    }
+    writeConsoleState();
+    renderTrackers();
+    renderRollSelectors();
+    renderStatusSummary();
+  }
+
+  function bindRecoverySingleSelect() {
+    const keys = ["recoveryGround", "recoveryBreathe", "recoveryConnect", "recoveryLeave", "recoveryNameIt"];
+    keys.forEach((name) => {
+      const input = document.querySelector(`[name="${name}"]`);
+      if (!input) return;
+      input.addEventListener("change", () => {
+        if (!input.checked) {
+          autosaveStatus();
+          renderTrackers();
+          return;
+        }
+        keys.forEach((other) => {
+          if (other === name) return;
+          const peer = document.querySelector(`[name="${other}"]`);
+          if (peer?.checked) peer.checked = false;
+        });
+        autosaveStatus();
+        renderTrackers();
+      });
+    });
+  }
+
   function migrateOperatorStatus(status) {
     const migrated = migratePresentationPressure({ ...status });
     const pressures = migrated.presentationPressures && typeof migrated.presentationPressures === "object"
@@ -642,7 +738,9 @@
       recoveryConnect: Boolean(status.recoveryConnect),
       recoveryLeave: Boolean(status.recoveryLeave),
       recoveryNameIt: Boolean(status.recoveryNameIt),
-      stabilityBand: bandFromLegacyStability(status.stability)
+      stabilityBand: bandFromLegacyStability(status.stability),
+      presentationAbilityState: normalizePresentationAbilityStore(migrated),
+      sceneTimer: normalizeSceneTimerStore(migrated)
     };
   }
 
@@ -2136,8 +2234,59 @@
       }
 
       article.append(header, pips, derived, controls);
+      if (tracker.key === "harmBoxes") {
+        article.append(renderHarmTreatControl(status, value));
+      }
       board.append(article);
     });
+  }
+
+  function renderHarmTreatControl(status, harmValue) {
+    const wrap = document.createElement("div");
+    wrap.className = "harm-treat-wrap";
+    const api = presentationAbilitiesApi();
+    const catalogKey = currentPresentationKey();
+    const pending = (status.sceneTimer?.timers || []).some(
+      (timer) => timer.abilityId === "treat_harm" && timer.remainingRounds > 0
+    );
+    if (pending) {
+      const note = document.createElement("p");
+      note.className = "harm-treat-note";
+      note.textContent = "Treat Harm pending. Next Round: Harm -1 if still safe and treatment remains possible.";
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "harm-treat-btn subtle";
+      cancel.textContent = "Cancel";
+      cancel.addEventListener("click", () => dispatchPresentationAbilityAction("treat_harm_cancel"));
+      wrap.append(note, cancel);
+      return wrap;
+    }
+    const eligible = api?.treatHarmEligibility
+      ? api.treatHarmEligibility(status, catalogKey)
+      : { ok: Number(harmValue) > 0, reason: "" };
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "harm-treat-btn";
+    button.textContent = "Treat Harm";
+    button.disabled = !eligible.ok;
+    if (!eligible.ok && eligible.reason) {
+      button.title = eligible.reason;
+    }
+    button.addEventListener("click", () => {
+      dispatchPresentationAbilityAction("treat_harm_start", { catalogKey });
+      const next = consoleState.operatorStatus;
+      if (next.sceneTimer?.lastError) {
+        setStorageStatus(next.sceneTimer.lastError, true);
+      }
+    });
+    wrap.append(button);
+    if (!eligible.ok && eligible.reason) {
+      const hint = document.createElement("p");
+      hint.className = "harm-treat-hint";
+      hint.textContent = eligible.reason;
+      wrap.append(hint);
+    }
+    return wrap;
   }
 
   function truncateReadout(text, max) {
@@ -2210,7 +2359,12 @@
     body.append(stateBlock);
 
     if (abilityView && abilitiesApi) {
-      abilitiesApi.appendPresentationPermissionsReadout(body, abilityView);
+      const mount = abilitiesApi.mountPresentationPermissionsReadout
+        || abilitiesApi.appendPresentationPermissionsReadout;
+      mount(body, abilityView, {
+        editable: pageEditUnlocked(),
+        dispatch: dispatchPresentationAbilityAction
+      });
     }
 
     if (view.cue) {
@@ -2324,6 +2478,110 @@
     };
   }
 
+  function renderSceneTimerStrip() {
+    const strip = document.getElementById("scene-timer-strip");
+    const api = presentationAbilitiesApi();
+    if (!strip || !api) return;
+
+    const status = consoleState.operatorStatus;
+    const round = status.sceneTimer?.round || 1;
+    const entries = api.activeTimerDisplayEntries
+      ? api.activeTimerDisplayEntries(status)
+      : [];
+    const logs = status.sceneTimer?.log || [];
+
+    strip.textContent = "";
+
+    const header = document.createElement("div");
+    header.className = "scene-timer-header";
+    const roundLabel = document.createElement("p");
+    roundLabel.className = "scene-timer-round";
+    roundLabel.textContent = `ROUND ${round}`;
+    const actions = document.createElement("div");
+    actions.className = "scene-timer-actions";
+    const nextRound = document.createElement("button");
+    nextRound.type = "button";
+    nextRound.className = "scene-timer-btn";
+    nextRound.textContent = "Next Round";
+    nextRound.addEventListener("click", () => {
+      autosaveStatus();
+      dispatchSceneTimerAction("next_round", { catalogKey: currentPresentationKey() });
+    });
+    const endScene = document.createElement("button");
+    endScene.type = "button";
+    endScene.className = "scene-timer-btn subtle";
+    endScene.textContent = "End Scene";
+    endScene.addEventListener("click", () => {
+      strip.querySelector(".scene-timer-end-confirm")?.remove();
+      const confirm = document.createElement("div");
+      confirm.className = "scene-timer-end-confirm";
+      const prompt = document.createElement("p");
+      prompt.className = "scene-timer-end-prompt";
+      prompt.textContent = "End scene: clear once-per-scene flags and unused roll tags. Metabolize presentation load?";
+      const confirmActions = document.createElement("div");
+      confirmActions.className = "scene-timer-actions";
+      const decay = document.createElement("button");
+      decay.type = "button";
+      decay.className = "scene-timer-btn";
+      decay.textContent = "Decay Load 1";
+      decay.addEventListener("click", () => {
+        dispatchSceneTimerAction("end_scene", { decayLoad: true, catalogKey: currentPresentationKey() });
+        confirm.remove();
+      });
+      const leave = document.createElement("button");
+      leave.type = "button";
+      leave.className = "scene-timer-btn subtle";
+      leave.textContent = "Leave Load";
+      leave.addEventListener("click", () => {
+        dispatchSceneTimerAction("end_scene", { decayLoad: false });
+        confirm.remove();
+      });
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "scene-timer-btn ghost";
+      cancel.textContent = "Cancel";
+      cancel.addEventListener("click", () => confirm.remove());
+      confirmActions.append(decay, leave, cancel);
+      confirm.append(prompt, confirmActions);
+      strip.append(confirm);
+    });
+    actions.append(nextRound, endScene);
+    header.append(roundLabel, actions);
+    strip.append(header);
+
+    if (entries.length) {
+      const list = document.createElement("div");
+      list.className = "scene-timer-active";
+      const title = document.createElement("p");
+      title.className = "scene-timer-active-label";
+      title.textContent = "Active Timers";
+      list.append(title);
+      entries.forEach((entry) => {
+        const line = document.createElement("p");
+        line.className = "scene-timer-active-line";
+        line.textContent = entry.line;
+        list.append(line);
+      });
+      strip.append(list);
+    }
+
+    if (logs.length) {
+      const logBlock = document.createElement("div");
+      logBlock.className = "scene-timer-log";
+      const logTitle = document.createElement("p");
+      logTitle.className = "scene-timer-active-label";
+      logTitle.textContent = "Round Log";
+      logBlock.append(logTitle);
+      logs.forEach((line) => {
+        const entry = document.createElement("p");
+        entry.className = "scene-timer-log-line";
+        entry.textContent = line;
+        logBlock.append(entry);
+      });
+      strip.append(logBlock);
+    }
+  }
+
   function renderTrackers() {
     consoleState.operatorStatus = migrateOperatorStatus(consoleState.operatorStatus);
     const api = presentationPressureApi();
@@ -2334,6 +2592,7 @@
     ];
     const presentationTracker = presentationTrackerSpec(presentation);
     if (presentationTracker) trackers.push(presentationTracker);
+    renderSceneTimerStrip();
     renderTrackerBoard(document.getElementById("tracker-board"), trackers);
     renderPresentationReadoutLayer(presentation);
   }
@@ -2598,6 +2857,21 @@
     if (meaning) meaning.textContent = `${skill} ${targetRank} // ${skillRankLabel(targetRank)}: ${skillRankDescription(skill, targetRank)}`;
   }
 
+  function resolveBloodSurgeBonus(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.bloodSurgeRollBonus) return 0;
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    return api.bloodSurgeRollBonus(status, attrKey);
+  }
+
+  function resolveNamedPressureBonus(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.namedPressureRollBonus) return 0;
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    const skillKey = normalizeSkillName(status.rollSkillKey);
+    return api.namedPressureRollBonus(status, attrKey, skillKey);
+  }
+
   function resolveRollLoadModifiers(status) {
     const api = presentationPressureApi();
     if (!api) {
@@ -2656,14 +2930,22 @@
     if (!output || output.dataset.rolled === "true") return;
     const status = consoleState.operatorStatus;
     const modifiers = resolveRollLoadModifiers(status);
-    if (!modifiers.active) {
+    const surgeBonus = resolveBloodSurgeBonus(status);
+    if (!modifiers.active && !surgeBonus) {
       output.textContent = "Awaiting action.";
       return;
     }
-    const math = formatRollLoadMath(modifiers);
-    const reasons = formatRollLoadReasons(modifiers);
-    const reasonText = reasons ? ` ${reasons}` : "";
-    output.textContent = `${modifiers.trackLabel || "Load"} ${modifiers.band} (${modifiers.value}/6): ${math} on this roll.${reasonText}`.trim();
+    const parts = [];
+    if (modifiers.active) {
+      const math = formatRollLoadMath(modifiers);
+      const reasons = formatRollLoadReasons(modifiers);
+      const reasonText = reasons ? ` ${reasons}` : "";
+      parts.push(`${modifiers.trackLabel || "Load"} ${modifiers.band} (${modifiers.value}/6): ${math} on this roll.${reasonText}`.trim());
+    }
+    if (surgeBonus) {
+      parts.push(`Blood Surge +${surgeBonus} on next Body/Agility/Instinct roll.`);
+    }
+    output.textContent = parts.join(" ");
   }
 
   function renderRollSelectors() {
@@ -3387,7 +3669,8 @@
       rollSkillKey: normalizeSkillName(status.rollSkillKey),
       rollModifier: normalizeSignedValue(status.rollModifier, -10, 10),
       rollAdvantage: Boolean(status.rollAdvantage) && !Boolean(status.rollDisadvantage),
-      rollDisadvantage: Boolean(status.rollDisadvantage)
+      rollDisadvantage: Boolean(status.rollDisadvantage),
+      presentationAbilityState: normalizePresentationAbilityStore(status)
     };
   }
 
@@ -3458,6 +3741,7 @@
   }
 
   function bindForms() {
+    bindRecoverySingleSelect();
     if (forms.cases) forms.cases.addEventListener("submit", (event) => {
       event.preventDefault();
       addEntry("cases", forms.cases);
@@ -3665,12 +3949,31 @@
     const skillValue = skillKey ? effectiveSkillRank(skills, skillKey, status) : 0;
     const loadMods = resolveRollLoadModifiers(status);
     const loadDelta = Number(loadMods.delta || 0);
+    const surgeBonus = resolveBloodSurgeBonus(status);
+    const namedBonus = resolveNamedPressureBonus(status);
     const manualModifier = Number(status.rollModifier || 0);
     const total = keptDice.values.reduce((sum, value) => sum + value, 0)
       + attrValue
       + skillValue
       + manualModifier
-      + loadDelta;
+      + loadDelta
+      + surgeBonus
+      + namedBonus;
+    const abilitiesApi = presentationAbilitiesApi();
+    if (abilitiesApi) {
+      let nextStatus = consoleState.operatorStatus;
+      if (surgeBonus && abilitiesApi.consumeBloodSurgeOnRoll) {
+        nextStatus = migrateOperatorStatus(abilitiesApi.consumeBloodSurgeOnRoll(nextStatus));
+      }
+      if (namedBonus && abilitiesApi.consumeNamedPressureOnRoll) {
+        nextStatus = migrateOperatorStatus(abilitiesApi.consumeNamedPressureOnRoll(nextStatus));
+      }
+      if (nextStatus !== consoleState.operatorStatus) {
+        consoleState.operatorStatus = nextStatus;
+        writeConsoleState();
+        renderTrackers();
+      }
+    }
     const output = document.getElementById("roll-output");
     if (output) {
       const modeText = rollMode === "ADVANTAGE" ? "ADVANTAGE KEEP BEST 3" : "DISADVANTAGE KEEP WORST 3";
@@ -3678,8 +3981,10 @@
         ? `3D6 ${dice.join(" + ")}`
         : `4D6 ${dice.join(" + ")} // ${modeText} ${keptDice.values.join(" + ")} // DROP ${dropped.join(" + ")}`;
       const loadText = formatRollLoadSuffix(loadMods);
+      const surgeText = surgeBonus ? ` // BLOOD SURGE +${surgeBonus}` : "";
+      const namedText = namedBonus ? ` // NAMED PRESSURE +${namedBonus}` : "";
       output.dataset.rolled = "true";
-      output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${loadText} = ${total}`;
+      output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${surgeText}${namedText}${loadText} = ${total}`;
     }
   }
 
