@@ -65,6 +65,7 @@
       instinctLoad: "3",
       signalLoad: "3",
       functionLoad: "3",
+      containmentLoad: "3",
       sensoryLoad: "3",
       silenceLoad: "3",
       essenceLoad: "3",
@@ -338,6 +339,7 @@
 
   const presentationPressureApi = () => window.PresentationPressure;
   const presentationAbilitiesApi = () => window.PresentationAbilities;
+  const presentationDriftApi = () => window.PresentationDrift;
 
   function activeLoadPresentation(status) {
     const api = presentationPressureApi();
@@ -621,6 +623,22 @@
     return api.normalizeSceneTimer(status).sceneTimer;
   }
 
+  function dispatchPresentationDriftAction(action) {
+    const api = presentationDriftApi();
+    if (!api?.applyCollapseDriftResolve || action !== "collapse_drift_resolve") return;
+    const result = api.applyCollapseDriftResolve(consoleState.operatorStatus, currentPresentationKey());
+    if (!result.ok) {
+      setStorageStatus(result.reason || "Could not mark Presentation Drift.", true);
+      return;
+    }
+    consoleState.operatorStatus = migrateOperatorStatus(result.status);
+    writeConsoleState();
+    renderTrackers();
+    renderStatusSummary();
+    const tierLabel = result.tier?.label || "Drift";
+    setStorageStatus(`Presentation Drift marked — ${tierLabel} (${result.value}).`);
+  }
+
   function dispatchPresentationAbilityAction(action, payload) {
     const api = presentationAbilitiesApi();
     if (!api?.applyPresentationAbilityAction) return;
@@ -693,8 +711,14 @@
     });
   }
 
+  function migratePresentationDrift(status) {
+    const api = presentationDriftApi();
+    if (!api?.normalizePresentationDrift) return status || {};
+    return api.normalizePresentationDrift(status);
+  }
+
   function migrateOperatorStatus(status) {
-    const migrated = migratePresentationPressure({ ...status });
+    const migrated = migratePresentationDrift(migratePresentationPressure({ ...status }));
     const pressures = migrated.presentationPressures && typeof migrated.presentationPressures === "object"
       ? migrated.presentationPressures
       : {};
@@ -2330,8 +2354,13 @@
     chevron.setAttribute("aria-hidden", "true");
     const summaryCopy = document.createElement("span");
     summaryCopy.className = "pressure-readout-summary-copy";
+    const driftApi = presentationDriftApi();
+    const driftView = driftApi?.presentationDriftView
+      ? driftApi.presentationDriftView(status, presentation.id)
+      : null;
     const summaryTitle = document.createElement("strong");
-    summaryTitle.textContent = `${operating} · ${view.trackLabel} ${view.value}/${view.range.max}`;
+    const driftSuffix = driftView?.value ? ` · Drift ${driftView.value}` : "";
+    summaryTitle.textContent = `${operating} · ${view.trackLabel} ${view.value}/${view.range.max}${driftSuffix}`;
     const summaryCue = document.createElement("span");
     summaryCue.className = "pressure-readout-summary-cue";
     summaryCue.textContent = truncateReadout(view.descriptor || view.cue, 88);
@@ -2342,7 +2371,7 @@
     const abilityView = abilitiesApi
       ? abilitiesApi.presentationAbilityView(status, presentation.id)
       : null;
-    expandHint.textContent = abilityView ? "Band guide · permissions" : "Band guide";
+    expandHint.textContent = abilityView ? "Band guide · permissions · drift" : "Band guide · drift";
     summary.append(chevron, summaryCopy, expandHint);
 
     body.textContent = "";
@@ -2364,6 +2393,12 @@
       mount(body, abilityView, {
         editable: pageEditUnlocked(),
         dispatch: dispatchPresentationAbilityAction
+      });
+    }
+
+    if (driftView && driftApi?.mountPresentationDriftReadout) {
+      driftApi.mountPresentationDriftReadout(body, driftView, {
+        dispatch: dispatchPresentationDriftAction
       });
     }
 
@@ -2871,6 +2906,55 @@
     return api.resonantReadRollBonus(status, attrKey);
   }
 
+  function resolveSecondPassBonus(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.secondPassRollBonus) return 0;
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    return api.secondPassRollBonus(status, attrKey);
+  }
+
+  function resolveSlipNoticeBonus(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.slipNoticeRollBonus) return 0;
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    return api.slipNoticeRollBonus(status, attrKey);
+  }
+
+  function resolveDaemonPushBonus(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.daemonPushRollBonus) return 0;
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    return api.daemonPushRollBonus(status, attrKey);
+  }
+
+  function resolveFeralDriveBonus(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.feralDriveRollBonus) return 0;
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    return api.feralDriveRollBonus(status, attrKey);
+  }
+
+  function resolveBorrowedForceBonus(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.borrowedForceRollBonus) return 0;
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    return api.borrowedForceRollBonus(status, attrKey);
+  }
+
+  function resolveFunctionSurgeBonus(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.functionSurgeRollBonus) return 0;
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    return api.functionSurgeRollBonus(status, attrKey);
+  }
+
+  function resolveAnomalyPushBonus(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.anomalyPushRollBonus) return 0;
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    return api.anomalyPushRollBonus(status, attrKey);
+  }
+
   function resolveNamedPressureBonus(status) {
     const api = presentationAbilitiesApi();
     if (!api?.namedPressureRollBonus) return 0;
@@ -2939,7 +3023,14 @@
     const modifiers = resolveRollLoadModifiers(status);
     const surgeBonus = resolveBloodSurgeBonus(status);
     const resonantBonus = resolveResonantReadBonus(status);
-    if (!modifiers.active && !surgeBonus && !resonantBonus) {
+    const secondPassBonus = resolveSecondPassBonus(status);
+    const slipNoticeBonus = resolveSlipNoticeBonus(status);
+    const daemonPushBonus = resolveDaemonPushBonus(status);
+    const feralDriveBonus = resolveFeralDriveBonus(status);
+    const borrowedForceBonus = resolveBorrowedForceBonus(status);
+    const functionSurgeBonus = resolveFunctionSurgeBonus(status);
+    const anomalyPushBonus = resolveAnomalyPushBonus(status);
+    if (!modifiers.active && !surgeBonus && !resonantBonus && !secondPassBonus && !slipNoticeBonus && !daemonPushBonus && !feralDriveBonus && !borrowedForceBonus && !functionSurgeBonus && !anomalyPushBonus) {
       output.textContent = "Awaiting action.";
       return;
     }
@@ -2955,6 +3046,27 @@
     }
     if (resonantBonus) {
       parts.push(`Resonant Read +${resonantBonus} on next Instinct/Mind/Presence pressure read.`);
+    }
+    if (secondPassBonus) {
+      parts.push(`Second Pass +${secondPassBonus} on next Mind/Agility/Instinct repeat/retrace action.`);
+    }
+    if (slipNoticeBonus) {
+      parts.push(`Slip Notice +${slipNoticeBonus} on next Agility/Presence/Mind omission/escape action.`);
+    }
+    if (daemonPushBonus) {
+      parts.push(`Daemon Push +${daemonPushBonus} on next Mind/Presence device/interface action.`);
+    }
+    if (feralDriveBonus) {
+      parts.push(`Feral Drive +${feralDriveBonus} on next Body/Agility/Instinct pursuit/territory action.`);
+    }
+    if (borrowedForceBonus) {
+      parts.push(`Borrowed Force +${borrowedForceBonus} on next Body/Presence/Mind/Instinct borrowed-presence action.`);
+    }
+    if (functionSurgeBonus) {
+      parts.push(`Function Surge +${functionSurgeBonus} on next Body/Mind directive action.`);
+    }
+    if (anomalyPushBonus) {
+      parts.push(`Anomaly Push +${anomalyPushBonus} on next Body/Mind/Instinct anomaly action.`);
     }
     output.textContent = parts.join(" ");
   }
@@ -3663,6 +3775,7 @@
       instinctLoad: normalizeBoxValue(status.instinctLoad, 6),
       signalLoad: normalizeBoxValue(status.signalLoad, 6),
       functionLoad: normalizeBoxValue(status.functionLoad, 6),
+      containmentLoad: normalizeBoxValue(status.containmentLoad, 6),
       sensoryLoad: normalizeBoxValue(status.sensoryLoad, 6),
       silenceLoad: normalizeBoxValue(status.silenceLoad, 6),
       voidShardContamination: normalizeBoxValue(status.voidShardContamination, 6),
@@ -3962,6 +4075,13 @@
     const loadDelta = Number(loadMods.delta || 0);
     const surgeBonus = resolveBloodSurgeBonus(status);
     const resonantBonus = resolveResonantReadBonus(status);
+    const secondPassBonus = resolveSecondPassBonus(status);
+    const slipNoticeBonus = resolveSlipNoticeBonus(status);
+    const daemonPushBonus = resolveDaemonPushBonus(status);
+    const feralDriveBonus = resolveFeralDriveBonus(status);
+    const borrowedForceBonus = resolveBorrowedForceBonus(status);
+    const functionSurgeBonus = resolveFunctionSurgeBonus(status);
+    const anomalyPushBonus = resolveAnomalyPushBonus(status);
     const namedBonus = resolveNamedPressureBonus(status);
     const manualModifier = Number(status.rollModifier || 0);
     const total = keptDice.values.reduce((sum, value) => sum + value, 0)
@@ -3971,6 +4091,13 @@
       + loadDelta
       + surgeBonus
       + resonantBonus
+      + secondPassBonus
+      + slipNoticeBonus
+      + daemonPushBonus
+      + feralDriveBonus
+      + borrowedForceBonus
+      + functionSurgeBonus
+      + anomalyPushBonus
       + namedBonus;
     const abilitiesApi = presentationAbilitiesApi();
     if (abilitiesApi) {
@@ -3980,6 +4107,27 @@
       }
       if (resonantBonus && abilitiesApi.consumeResonantReadOnRoll) {
         nextStatus = migrateOperatorStatus(abilitiesApi.consumeResonantReadOnRoll(nextStatus));
+      }
+      if (secondPassBonus && abilitiesApi.consumeSecondPassOnRoll) {
+        nextStatus = migrateOperatorStatus(abilitiesApi.consumeSecondPassOnRoll(nextStatus));
+      }
+      if (slipNoticeBonus && abilitiesApi.consumeSlipNoticeOnRoll) {
+        nextStatus = migrateOperatorStatus(abilitiesApi.consumeSlipNoticeOnRoll(nextStatus));
+      }
+      if (daemonPushBonus && abilitiesApi.consumeDaemonPushOnRoll) {
+        nextStatus = migrateOperatorStatus(abilitiesApi.consumeDaemonPushOnRoll(nextStatus));
+      }
+      if (feralDriveBonus && abilitiesApi.consumeFeralDriveOnRoll) {
+        nextStatus = migrateOperatorStatus(abilitiesApi.consumeFeralDriveOnRoll(nextStatus));
+      }
+      if (borrowedForceBonus && abilitiesApi.consumeBorrowedForceOnRoll) {
+        nextStatus = migrateOperatorStatus(abilitiesApi.consumeBorrowedForceOnRoll(nextStatus));
+      }
+      if (functionSurgeBonus && abilitiesApi.consumeFunctionSurgeOnRoll) {
+        nextStatus = migrateOperatorStatus(abilitiesApi.consumeFunctionSurgeOnRoll(nextStatus));
+      }
+      if (anomalyPushBonus && abilitiesApi.consumeAnomalyPushOnRoll) {
+        nextStatus = migrateOperatorStatus(abilitiesApi.consumeAnomalyPushOnRoll(nextStatus));
       }
       if (namedBonus && abilitiesApi.consumeNamedPressureOnRoll) {
         nextStatus = migrateOperatorStatus(abilitiesApi.consumeNamedPressureOnRoll(nextStatus));
@@ -3999,9 +4147,16 @@
       const loadText = formatRollLoadSuffix(loadMods);
       const surgeText = surgeBonus ? ` // BLOOD SURGE +${surgeBonus}` : "";
       const resonantText = resonantBonus ? ` // RESONANT READ +${resonantBonus}` : "";
+      const secondPassText = secondPassBonus ? ` // SECOND PASS +${secondPassBonus}` : "";
+      const slipNoticeText = slipNoticeBonus ? ` // SLIP NOTICE +${slipNoticeBonus}` : "";
+      const daemonPushText = daemonPushBonus ? ` // DAEMON PUSH +${daemonPushBonus}` : "";
+      const feralDriveText = feralDriveBonus ? ` // FERAL DRIVE +${feralDriveBonus}` : "";
+      const borrowedForceText = borrowedForceBonus ? ` // BORROWED FORCE +${borrowedForceBonus}` : "";
+      const functionSurgeText = functionSurgeBonus ? ` // FUNCTION SURGE +${functionSurgeBonus}` : "";
+      const anomalyPushText = anomalyPushBonus ? ` // ANOMALY PUSH +${anomalyPushBonus}` : "";
       const namedText = namedBonus ? ` // NAMED PRESSURE +${namedBonus}` : "";
       output.dataset.rolled = "true";
-      output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${surgeText}${resonantText}${namedText}${loadText} = ${total}`;
+      output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${surgeText}${resonantText}${secondPassText}${slipNoticeText}${daemonPushText}${feralDriveText}${borrowedForceText}${functionSurgeText}${anomalyPushText}${namedText}${loadText} = ${total}`;
     }
   }
 

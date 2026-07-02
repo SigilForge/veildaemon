@@ -3,13 +3,14 @@ const { test, expect } = require("@playwright/test");
 const LOAD_PRESENTATIONS = [
   { id: "sanguine", kind: "blood_load", trackId: "sanguine.blood_load", catalog: "SANGUINE", bands: ["Starving", "Coherent", "Predatory Saturation", "Collapse Risk"] },
   { id: "wraith", kind: "essence_load", trackId: "wraith.essence_load", catalog: "WRAITH", bands: ["Fading", "Anchored", "Possessive Saturation", "Haunting Risk"] },
-  { id: "echo", kind: "echo_load", trackId: "echo.echo_load", catalog: "ECHO_ALTERED", bands: ["Dissolving", "Continuous", "Recursion Pressure", "Loop Collapse"] },
-  { id: "silence", kind: "silence_load", trackId: "silence.silence_load", catalog: "HOLLOW_SILENCE_ALTERED", bands: ["Exposed", "Obscured", "Erasure Pressure", "Null Event"] },
-  { id: "therian", kind: "instinct_load", trackId: "therian.instinct_load", catalog: "THERIAN_ADAPTATION", bands: ["Dulled", "Integrated", "Feral Pressure", "Loss of Self"] },
-  { id: "technomancer", kind: "signal_load", trackId: "technomancer.signal_load", catalog: "TECHNOMANCER", bands: ["Disconnected", "Synced", "Daemon Bleed", "System Override"] },
-  { id: "construct", kind: "function_load", trackId: "construct.function_load", catalog: "CONSTRUCT", bands: ["Malfunctioning", "Operational", "Directive Pressure", "Purpose Lock"] },
+  { id: "echo", kind: "echo_load", trackId: "echo.echo_load", catalog: "ECHO_ALTERED", bands: ["Dislocated", "In Sequence", "Continuity Saturation", "Loop Risk"] },
+  { id: "silence", kind: "silence_load", trackId: "silence.silence_load", catalog: "HOLLOW_SILENCE_ALTERED", bands: ["Overexposed", "Present Enough", "Negative Space", "Erasure Risk"] },
+  { id: "therian", kind: "instinct_load", trackId: "therian.instinct_load", catalog: "THERIAN_ADAPTATION", bands: ["Leashed", "Integrated", "Hunting Pitch", "Feral Break"] },
+  { id: "technomancer", kind: "signal_load", trackId: "technomancer.signal_load", catalog: "TECHNOMANCER_DAEMON_ALIGNED", bands: ["Desynced", "Linked", "Overclocked Link", "System Breach"] },
+  { id: "construct", kind: "function_load", trackId: "construct.function_load", catalog: "CONSTRUCT", bands: ["Degraded", "Operational", "Purpose Lock", "Directive Override"] },
+  { id: "vessel", kind: "containment_load", trackId: "vessel.containment_load", catalog: "VESSEL", bands: ["Sealed Shut", "Contained", "Seal Strain", "Emergence Risk"] },
   { id: "sensitive", kind: "sensory_load", trackId: "sensitive.sensory_load", catalog: "RESONANT_SENSITIVE", bands: ["Numbed", "Tuned", "Over-Tuned", "Signal Break"] },
-  { id: "void_shard", kind: "void_load", trackId: "void_shard.void_load", catalog: "VOID_SHARD", bands: ["Hollowed", "Contained", "Contamination Surge", "Breach Event"] }
+  { id: "void_shard", kind: "void_load", trackId: "void_shard.void_load", catalog: "VOID_SHARD", bands: ["Cold Shard", "Contained Contamination", "Contamination Bloom", "Breach Event"] }
 ];
 
 test("presentation pressure registry exposes eleven ontology modules", async ({ page }) => {
@@ -27,12 +28,12 @@ test("presentation pressure registry exposes eleven ontology modules", async ({ 
       maxRisk: api.formatBandLine(api.trackById("stillness.inertia"), 6)
     };
   });
-  expect(summary.count).toBe(11);
-  expect(summary.loadCount).toBe(9);
+  expect(summary.count).toBe(12);
+  expect(summary.loadCount).toBe(10);
   expect(summary.sanguine).toBe("Blood Load");
   expect(summary.voidShard).toBe("Void Load");
-  expect(summary.voidBands).toBe("Hollowed");
-  expect(summary.echoBand).toBe("Continuous");
+  expect(summary.voidBands).toBe("Cold Shard");
+  expect(summary.echoBand).toBe("In Sequence");
   expect(summary.modifiers.edge.bonus).toBe(1);
   expect(summary.modifiers.collapse.penalty).toBe(-2);
   expect(summary.maxRisk).toContain("Stasis Lock");
@@ -397,10 +398,10 @@ test("echo load migrates legacy drift track and formats generic misfire copy", a
     };
   });
   expect(summary.migratedValue).toBe(5);
-  expect(summary.migratedBand).toBe("Recursion Pressure");
-  expect(summary.afterBand).toBe("Recursion Pressure");
-  expect(summary.trackLabel).toBe("Continuity Load");
-  expect(summary.copy).toContain("Continuity Load +1");
+  expect(summary.migratedBand).toBe("Continuity Saturation");
+  expect(summary.afterBand).toBe("Continuity Saturation");
+  expect(summary.trackLabel).toBe("Echo Load");
+  expect(summary.copy).toContain("Echo Load +1");
   expect(summary.copy).toContain("last move again");
 });
 
@@ -418,7 +419,7 @@ test("void load migrates legacy contamination track", async ({ page }) => {
     };
   });
   expect(summary.value).toBe(5);
-  expect(summary.band).toBe("Contamination Surge");
+  expect(summary.band).toBe("Contamination Bloom");
 });
 
 test("load roll modifiers use the universal 0/-1, 5 +/-1, 6 +/-2 spine", async ({ page }) => {
@@ -501,6 +502,266 @@ test("load pip styles use horizontal grid and presentation tint variables", asyn
   expect(summary.gridTemplateColumns.split(/\s+/).filter(Boolean).length).toBe(6);
   expect(summary.filledBackground).not.toBe("rgba(0, 0, 0, 0)");
   expect(summary.echoAccent).toBe("#00b8a8");
+});
+
+test("hollow silence-altered permissions expose leave a blank and slip notice", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const tuned = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "silence.silence_load": 3 } }),
+      "HOLLOW_SILENCE_ALTERED"
+    );
+    const edge = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "silence.silence_load": 5 } }),
+      "HOLLOW_SILENCE_ALTERED"
+    );
+    const collapse = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "silence.silence_load": 6 } }),
+      "HOLLOW_SILENCE_ALTERED"
+    );
+    return {
+      headline: tuned.headlineAbility?.name,
+      passiveNames: tuned.passivePermissions.map((entry) => entry.name),
+      activeNames: tuned.activeAbilities.map((entry) => entry.name),
+      accessTier: tuned.accessTier,
+      identityLine: tuned.identityLine,
+      trackLabel: tuned.pressureTrack.trackLabel,
+      edgeBand: edge.activeBandState?.bandLabel,
+      edgeHelps: edge.activeBandState?.helps,
+      collapseName: collapse.activeBandState?.name,
+      collapseBonus: collapse.activeBandState?.bonus
+    };
+  });
+  expect(summary.headline).toBe("Leave a Blank");
+  expect(summary.passiveNames).toEqual(["Omitted Presence", "Quiet Cut"]);
+  expect(summary.activeNames).toEqual(["Leave a Blank", "Slip Notice"]);
+  expect(summary.accessTier).toBe("open");
+  expect(summary.identityLine).toContain("Too quiet");
+  expect(summary.trackLabel).toBe("Silence Load");
+  expect(summary.edgeBand).toBe("Negative Space");
+  expect(summary.edgeHelps).toContain("+1");
+  expect(summary.collapseName).toBe("The Missing Part Wins");
+  expect(summary.collapseBonus).toContain("+2");
+});
+
+test("slip notice spend reduces silence load and arms roll tag", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const status = pressure.migrateOperatorStatus({
+      presentationPressures: { "silence.silence_load": 4 }
+    });
+    const spent = abilities.applyPresentationAbilityAction(status, "slip_notice_spend");
+    return {
+      load: pressure.readTrackValue(spent, "silence.silence_load"),
+      active: spent.presentationAbilityState.silence.slipNotice.active,
+      bonus: abilities.slipNoticeRollBonus(spent, "Agility"),
+      cleared: abilities.slipNoticeRollBonus(abilities.consumeSlipNoticeOnRoll(spent), "Agility")
+    };
+  });
+  expect(summary.load).toBe(3);
+  expect(summary.active).toBe(true);
+  expect(summary.bonus).toBe(1);
+  expect(summary.cleared).toBe(0);
+});
+
+test("technomancer daemon-aligned permissions expose soft override and daemon push", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const linked = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "technomancer.signal_load": 3 } }),
+      "TECHNOMANCER_DAEMON_ALIGNED"
+    );
+    const edge = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "technomancer.signal_load": 5 } }),
+      "TECHNOMANCER_DAEMON_ALIGNED"
+    );
+    const collapse = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "technomancer.signal_load": 6 } }),
+      "TECHNOMANCER_DAEMON_ALIGNED"
+    );
+    return {
+      headline: linked.headlineAbility?.name,
+      passiveNames: linked.passivePermissions.map((entry) => entry.name),
+      activeNames: linked.activeAbilities.map((entry) => entry.name),
+      accessTier: linked.accessTier,
+      identityLine: linked.identityLine,
+      trackLabel: linked.pressureTrack.trackLabel,
+      edgeBand: edge.activeBandState?.bandLabel,
+      edgeHelps: edge.activeBandState?.helps,
+      collapseName: collapse.activeBandState?.name,
+      collapseBonus: collapse.activeBandState?.bonus
+    };
+  });
+  expect(summary.headline).toBe("Soft Override");
+  expect(summary.passiveNames).toEqual(["Signal Sight", "Interface Sympathy"]);
+  expect(summary.activeNames).toEqual(["Soft Override", "Daemon Push"]);
+  expect(summary.accessTier).toBe("open");
+  expect(summary.identityLine).toContain("Too connected");
+  expect(summary.trackLabel).toBe("Signal Load");
+  expect(summary.edgeBand).toBe("Overclocked Link");
+  expect(summary.edgeHelps).toContain("+1");
+  expect(summary.collapseName).toBe("The System Writes Back");
+  expect(summary.collapseBonus).toContain("+2");
+});
+
+test("therian adaptation permissions expose claim ground and feral drive", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const integrated = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "therian.instinct_load": 3 } }),
+      "THERIAN_ADAPTATION"
+    );
+    const edge = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "therian.instinct_load": 5 } }),
+      "THERIAN_ADAPTATION"
+    );
+    const collapse = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "therian.instinct_load": 6 } }),
+      "THERIAN_ADAPTATION"
+    );
+    return {
+      headline: integrated.headlineAbility?.name,
+      passiveNames: integrated.passivePermissions.map((entry) => entry.name),
+      activeNames: integrated.activeAbilities.map((entry) => entry.name),
+      accessTier: integrated.accessTier,
+      identityLine: integrated.identityLine,
+      trackLabel: integrated.pressureTrack.trackLabel,
+      edgeBand: edge.activeBandState?.bandLabel,
+      edgeHelps: edge.activeBandState?.helps,
+      collapseName: collapse.activeBandState?.name,
+      collapseBonus: collapse.activeBandState?.bonus
+    };
+  });
+  expect(summary.headline).toBe("Claim Ground");
+  expect(summary.passiveNames).toEqual(["Animal Read", "Body Memory"]);
+  expect(summary.activeNames).toEqual(["Claim Ground", "Feral Drive"]);
+  expect(summary.accessTier).toBe("open");
+  expect(summary.identityLine).toContain("Too alert");
+  expect(summary.trackLabel).toBe("Instinct Load");
+  expect(summary.edgeBand).toBe("Hunting Pitch");
+  expect(summary.edgeHelps).toContain("+1");
+  expect(summary.collapseName).toBe("The Body Decides");
+  expect(summary.collapseBonus).toContain("+2");
+});
+
+test("feral drive spend reduces instinct load and arms roll tag", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const status = pressure.migrateOperatorStatus({
+      presentationPressures: { "therian.instinct_load": 4 }
+    });
+    const spent = abilities.applyPresentationAbilityAction(status, "feral_drive_spend");
+    return {
+      load: pressure.readTrackValue(spent, "therian.instinct_load"),
+      active: spent.presentationAbilityState.therian.feralDrive.active,
+      bonus: abilities.feralDriveRollBonus(spent, "Instinct"),
+      wrongAttr: abilities.feralDriveRollBonus(spent, "Mind"),
+      cleared: abilities.feralDriveRollBonus(abilities.consumeFeralDriveOnRoll(spent), "Instinct")
+    };
+  });
+  expect(summary.load).toBe(3);
+  expect(summary.active).toBe(true);
+  expect(summary.bonus).toBe(1);
+  expect(summary.wrongAttr).toBe(0);
+  expect(summary.cleared).toBe(0);
+});
+
+test("daemon push spend reduces signal load and arms roll tag", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const status = pressure.migrateOperatorStatus({
+      presentationPressures: { "technomancer.signal_load": 4 }
+    });
+    const spent = abilities.applyPresentationAbilityAction(status, "daemon_push_spend");
+    return {
+      load: pressure.readTrackValue(spent, "technomancer.signal_load"),
+      active: spent.presentationAbilityState.technomancer.daemonPush.active,
+      bonus: abilities.daemonPushRollBonus(spent, "Mind"),
+      wrongAttr: abilities.daemonPushRollBonus(spent, "Body"),
+      cleared: abilities.daemonPushRollBonus(abilities.consumeDaemonPushOnRoll(spent), "Mind")
+    };
+  });
+  expect(summary.load).toBe(3);
+  expect(summary.active).toBe(true);
+  expect(summary.bonus).toBe(1);
+  expect(summary.wrongAttr).toBe(0);
+  expect(summary.cleared).toBe(0);
+});
+
+test("echo-altered permissions expose replay slip and second pass", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const tuned = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "echo.echo_load": 3 } }),
+      "ECHO_ALTERED"
+    );
+    const edge = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "echo.echo_load": 5 } }),
+      "ECHO_ALTERED"
+    );
+    const collapse = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "echo.echo_load": 6 } }),
+      "ECHO_ALTERED"
+    );
+    return {
+      headline: tuned.headlineAbility?.name,
+      passiveNames: tuned.passivePermissions.map((entry) => entry.name),
+      activeNames: tuned.activeAbilities.map((entry) => entry.name),
+      accessTier: tuned.accessTier,
+      identityLine: tuned.identityLine,
+      trackLabel: tuned.pressureTrack.trackLabel,
+      edgeBand: edge.activeBandState?.bandLabel,
+      edgeHelps: edge.activeBandState?.helps,
+      collapseName: collapse.activeBandState?.name,
+      collapseBonus: collapse.activeBandState?.bonus
+    };
+  });
+  expect(summary.headline).toBe("Replay Slip");
+  expect(summary.passiveNames).toEqual(["Echo Recognition", "Residual Familiarity"]);
+  expect(summary.activeNames).toEqual(["Replay Slip", "Second Pass"]);
+  expect(summary.accessTier).toBe("open");
+  expect(summary.identityLine).toContain("Too familiar");
+  expect(summary.trackLabel).toBe("Echo Load");
+  expect(summary.edgeBand).toBe("Continuity Saturation");
+  expect(summary.edgeHelps).toContain("+1");
+  expect(summary.collapseName).toBe("The Loop Closes");
+  expect(summary.collapseBonus).toContain("+2");
+});
+
+test("second pass spend reduces echo load and arms roll tag", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const status = pressure.migrateOperatorStatus({
+      presentationPressures: { "echo.echo_load": 4 }
+    });
+    const spent = abilities.applyPresentationAbilityAction(status, "second_pass_spend");
+    return {
+      load: pressure.readTrackValue(spent, "echo.echo_load"),
+      active: spent.presentationAbilityState.echo.secondPass.active,
+      bonus: abilities.secondPassRollBonus(spent, "Mind"),
+      cleared: abilities.secondPassRollBonus(abilities.consumeSecondPassOnRoll(spent), "Mind")
+    };
+  });
+  expect(summary.load).toBe(3);
+  expect(summary.active).toBe(true);
+  expect(summary.bonus).toBe(1);
+  expect(summary.cleared).toBe(0);
 });
 
 test("resonant sensitive permissions expose bad room read and resonant read", async ({ page }) => {
@@ -653,4 +914,361 @@ test("handler summary formats coherent blood load at four", async ({ page }) => 
     return api.handlerSummaryText(status, "SANGUINE");
   });
   expect(summary).toContain("Blood Load 4/6 (Coherent)");
+});
+
+test("presentation drift tiers follow the universal 1-2, 3-4, 5+ scale", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const drift = window.PresentationDrift;
+    return {
+      surface: drift.driftTierForValue(2)?.id,
+      scar: drift.driftTierForValue(4)?.id,
+      deep: drift.driftTierForValue(6)?.id,
+      zero: drift.driftTierForValue(0)
+    };
+  });
+  expect(summary.surface).toBe("surface_tell");
+  expect(summary.scar).toBe("persistent_scar");
+  expect(summary.deep).toBe("deep_drift");
+  expect(summary.zero).toBeNull();
+});
+
+test("collapse drift resolve increments only at load 6", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const drift = window.PresentationDrift;
+    const atFive = pressure.migrateOperatorStatus({
+      presentationPressures: { "sanguine.blood_load": 5 }
+    });
+    const blocked = drift.applyCollapseDriftResolve(atFive, "SANGUINE");
+    const atSix = pressure.migrateOperatorStatus({
+      presentationPressures: { "sanguine.blood_load": 6 }
+    });
+    const resolved = drift.applyCollapseDriftResolve(atSix, "SANGUINE");
+    return {
+      blocked: blocked.ok,
+      blockedReason: blocked.reason,
+      value: drift.readDriftValue(resolved.status, "sanguine"),
+      tier: resolved.tier?.label,
+      tagline: drift.presentationDriftView(resolved.status, "SANGUINE")?.tagline
+    };
+  });
+  expect(summary.blocked).toBe(false);
+  expect(summary.blockedReason).toContain("Load 6");
+  expect(summary.value).toBe(1);
+  expect(summary.tier).toBe("Surface Tell");
+  expect(summary.tagline).toContain("body remembers hunger");
+});
+
+test("sanguine drift exposes cumulative scars by tier", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const drift = window.PresentationDrift;
+    const atTwo = drift.presentationDriftView(
+      drift.normalizePresentationDrift({
+        presentationDrift: { byPresentation: { sanguine: { value: 2, log: [] } } }
+      }),
+      "SANGUINE"
+    );
+    const atFour = drift.presentationDriftView(
+      drift.normalizePresentationDrift({
+        presentationDrift: { byPresentation: { sanguine: { value: 4, log: [] } } }
+      }),
+      "SANGUINE"
+    );
+    const atFive = drift.presentationDriftView(
+      drift.normalizePresentationDrift({
+        presentationDrift: { byPresentation: { sanguine: { value: 5, log: [] } } }
+      }),
+      "SANGUINE"
+    );
+    return {
+      twoCount: atTwo.accumulatedScars.length,
+      fourCount: atFour.accumulatedScars.length,
+      fiveHasEvolution: atFive.accumulatedScars.some((entry) => entry.id === "sanguine_evolution"),
+      fiveTier: atFive.tier?.id
+    };
+  });
+  expect(summary.twoCount).toBe(2);
+  expect(summary.fourCount).toBe(4);
+  expect(summary.fiveHasEvolution).toBe(true);
+  expect(summary.fiveTier).toBe("deep_drift");
+});
+
+test("vessel permissions expose let it look and borrowed force", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const contained = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "vessel.containment_load": 3 } }),
+      "VESSEL"
+    );
+    const edge = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "vessel.containment_load": 5 } }),
+      "VESSEL"
+    );
+    const collapse = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "vessel.containment_load": 6 } }),
+      "VESSEL"
+    );
+    return {
+      headline: contained.headlineAbility?.name,
+      passiveNames: contained.passivePermissions.map((entry) => entry.name),
+      activeNames: contained.activeAbilities.map((entry) => entry.name),
+      accessTier: contained.accessTier,
+      identityLine: contained.identityLine,
+      trackLabel: contained.pressureTrack.trackLabel,
+      containedType: contained.runtimeState.containedType,
+      containmentEnabled: contained.containmentInterface?.enabled,
+      edgeBand: edge.activeBandState?.bandLabel,
+      edgeHelps: edge.activeBandState?.helps,
+      collapseName: collapse.activeBandState?.name,
+      collapseBonus: collapse.activeBandState?.bonus
+    };
+  });
+  expect(summary.headline).toBe("Let It Look");
+  expect(summary.passiveNames).toEqual(["Inner Pressure", "Sealed Resilience"]);
+  expect(summary.activeNames).toEqual(["Let It Look", "Borrowed Force"]);
+  expect(summary.accessTier).toBe("handler_approval");
+  expect(summary.identityLine).toContain("Too full");
+  expect(summary.trackLabel).toBe("Containment Load");
+  expect(summary.containedType).toBe("unknown");
+  expect(summary.containmentEnabled).toBe(true);
+  expect(summary.edgeBand).toBe("Seal Strain");
+  expect(summary.edgeHelps).toContain("+1");
+  expect(summary.collapseName).toBe("Something Opens Its Eyes");
+  expect(summary.collapseBonus).toContain("+2");
+});
+
+test("borrowed force spend reduces containment load and arms roll tag", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const status = pressure.migrateOperatorStatus({
+      presentationPressures: { "vessel.containment_load": 4 }
+    });
+    const spent = abilities.applyPresentationAbilityAction(status, "borrowed_force_spend");
+    return {
+      load: pressure.readTrackValue(spent, "vessel.containment_load"),
+      active: spent.presentationAbilityState.vessel.borrowedForce.active,
+      bonus: abilities.borrowedForceRollBonus(spent, "Presence"),
+      wrongAttr: abilities.borrowedForceRollBonus(spent, "Agility"),
+      cleared: abilities.borrowedForceRollBonus(abilities.consumeBorrowedForceOnRoll(spent), "Presence")
+    };
+  });
+  expect(summary.load).toBe(3);
+  expect(summary.active).toBe(true);
+  expect(summary.bonus).toBe(1);
+  expect(summary.wrongAttr).toBe(0);
+  expect(summary.cleared).toBe(0);
+});
+
+test("vessel drift resolves from load 6 collapse", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const drift = window.PresentationDrift;
+    const resolved = drift.applyCollapseDriftResolve(
+      pressure.migrateOperatorStatus({ presentationPressures: { "vessel.containment_load": 6 } }),
+      "VESSEL"
+    );
+    return {
+      value: drift.readDriftValue(resolved.status, "vessel"),
+      tagline: drift.presentationDriftView(resolved.status, "VESSEL")?.tagline,
+      evolutionWarning: drift.presentationDriftView(
+        drift.normalizePresentationDrift({
+          presentationDrift: { byPresentation: { vessel: { value: 5, log: [] } } }
+        }),
+        "VESSEL"
+      )?.value
+    };
+  });
+  expect(summary.value).toBe(1);
+  expect(summary.tagline).toContain("door is");
+  expect(summary.evolutionWarning).toBe(5);
+});
+
+test("construct permissions expose execute directive and function surge", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const contained = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "construct.function_load": 3 } }),
+      "CONSTRUCT"
+    );
+    const edge = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "construct.function_load": 5 } }),
+      "CONSTRUCT"
+    );
+    const collapse = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "construct.function_load": 6 } }),
+      "CONSTRUCT"
+    );
+    return {
+      headline: contained.headlineAbility?.name,
+      passiveNames: contained.passivePermissions.map((entry) => entry.name),
+      activeNames: contained.activeAbilities.map((entry) => entry.name),
+      accessTier: contained.accessTier,
+      identityLine: contained.identityLine,
+      trackLabel: contained.pressureTrack.trackLabel,
+      edgeBand: edge.activeBandState?.bandLabel,
+      edgeHelps: edge.activeBandState?.helps,
+      collapseName: collapse.activeBandState?.name,
+      collapseBonus: collapse.activeBandState?.bonus
+    };
+  });
+  expect(summary.headline).toBe("Execute Directive");
+  expect(summary.passiveNames).toEqual(["Diagnostic Sense", "Built To Continue"]);
+  expect(summary.activeNames).toEqual(["Execute Directive", "Function Surge"]);
+  expect(summary.accessTier).toBe("handler_approval");
+  expect(summary.identityLine).toContain("Too useful");
+  expect(summary.trackLabel).toBe("Function Load");
+  expect(summary.edgeBand).toBe("Purpose Lock");
+  expect(summary.edgeHelps).toContain("+1");
+  expect(summary.collapseName).toBe("The Directive Overrides");
+  expect(summary.collapseBonus).toContain("+2");
+});
+
+test("function surge spend reduces function load and arms roll tag", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const status = pressure.migrateOperatorStatus({
+      presentationPressures: { "construct.function_load": 4 }
+    });
+    const spent = abilities.applyPresentationAbilityAction(status, "function_surge_spend");
+    return {
+      load: pressure.readTrackValue(spent, "construct.function_load"),
+      active: spent.presentationAbilityState.construct.functionSurge.active,
+      bonus: abilities.functionSurgeRollBonus(spent, "Mind"),
+      wrongAttr: abilities.functionSurgeRollBonus(spent, "Agility"),
+      cleared: abilities.functionSurgeRollBonus(abilities.consumeFunctionSurgeOnRoll(spent), "Mind")
+    };
+  });
+  expect(summary.load).toBe(3);
+  expect(summary.active).toBe(true);
+  expect(summary.bonus).toBe(1);
+  expect(summary.wrongAttr).toBe(0);
+  expect(summary.cleared).toBe(0);
+});
+
+test("construct drift resolves from load 6 collapse", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const drift = window.PresentationDrift;
+    const resolved = drift.applyCollapseDriftResolve(
+      pressure.migrateOperatorStatus({ presentationPressures: { "construct.function_load": 6 } }),
+      "CONSTRUCT"
+    );
+    return {
+      value: drift.readDriftValue(resolved.status, "construct"),
+      tagline: drift.presentationDriftView(resolved.status, "CONSTRUCT")?.tagline,
+      evolution: drift.presentationDriftView(
+        drift.normalizePresentationDrift({
+          presentationDrift: { byPresentation: { construct: { value: 5, log: [] } } }
+        }),
+        "CONSTRUCT"
+      )?.accumulatedScars.some((entry) => entry.id === "construct_evolution")
+    };
+  });
+  expect(summary.value).toBe(1);
+  expect(summary.tagline).toContain("purpose found");
+  expect(summary.evolution).toBe(true);
+});
+
+test("void-shard permissions expose break pattern and anomaly push", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const contained = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "void_shard.void_load": 3 } }),
+      "VOID_SHARD"
+    );
+    const edge = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "void_shard.void_load": 5 } }),
+      "VOID_SHARD"
+    );
+    const collapse = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "void_shard.void_load": 6 } }),
+      "VOID_SHARD"
+    );
+    return {
+      headline: contained.headlineAbility?.name,
+      passiveNames: contained.passivePermissions.map((entry) => entry.name),
+      activeNames: contained.activeAbilities.map((entry) => entry.name),
+      accessTier: contained.accessTier,
+      identityLine: contained.identityLine,
+      trackLabel: contained.pressureTrack.trackLabel,
+      edgeBand: edge.activeBandState?.bandLabel,
+      edgeHelps: edge.activeBandState?.helps,
+      collapseName: collapse.activeBandState?.name,
+      collapseBonus: collapse.activeBandState?.bonus
+    };
+  });
+  expect(summary.headline).toBe("Break Pattern");
+  expect(summary.passiveNames).toEqual(["Breach Tolerance", "Wrongness Sense"]);
+  expect(summary.activeNames).toEqual(["Break Pattern", "Anomaly Push"]);
+  expect(summary.accessTier).toBe("handler_approval");
+  expect(summary.identityLine).toContain("Too contaminated");
+  expect(summary.trackLabel).toBe("Void Load");
+  expect(summary.edgeBand).toBe("Contamination Bloom");
+  expect(summary.edgeHelps).toContain("+1");
+  expect(summary.collapseName).toBe("The Breach Answers");
+  expect(summary.collapseBonus).toContain("+2");
+});
+
+test("anomaly push spend reduces void load and arms roll tag", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const status = pressure.migrateOperatorStatus({
+      presentationPressures: { "void_shard.void_load": 4 }
+    });
+    const spent = abilities.applyPresentationAbilityAction(status, "anomaly_push_spend");
+    return {
+      load: pressure.readTrackValue(spent, "void_shard.void_load"),
+      active: spent.presentationAbilityState.void_shard.anomalyPush.active,
+      bonus: abilities.anomalyPushRollBonus(spent, "Instinct"),
+      wrongAttr: abilities.anomalyPushRollBonus(spent, "Presence"),
+      cleared: abilities.anomalyPushRollBonus(abilities.consumeAnomalyPushOnRoll(spent), "Instinct")
+    };
+  });
+  expect(summary.load).toBe(3);
+  expect(summary.active).toBe(true);
+  expect(summary.bonus).toBe(1);
+  expect(summary.wrongAttr).toBe(0);
+  expect(summary.cleared).toBe(0);
+});
+
+test("void-shard drift resolves from load 6 collapse", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const drift = window.PresentationDrift;
+    const resolved = drift.applyCollapseDriftResolve(
+      pressure.migrateOperatorStatus({ presentationPressures: { "void_shard.void_load": 6 } }),
+      "VOID_SHARD"
+    );
+    return {
+      value: drift.readDriftValue(resolved.status, "void_shard"),
+      tagline: drift.presentationDriftView(resolved.status, "VOID_SHARD")?.tagline,
+      evolution: drift.presentationDriftView(
+        drift.normalizePresentationDrift({
+          presentationDrift: { byPresentation: { void_shard: { value: 5, log: [] } } }
+        }),
+        "VOID_SHARD"
+      )?.accumulatedScars.some((entry) => entry.id === "void_shard_evolution")
+    };
+  });
+  expect(summary.value).toBe(1);
+  expect(summary.tagline).toContain("wound learned");
+  expect(summary.evolution).toBe(true);
 });
