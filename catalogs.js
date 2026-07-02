@@ -1,26 +1,383 @@
 (function () {
+  const presentationArchiveCatalog = {
+    CORE: {
+      id: "CORE",
+      label: "Core / Free",
+      tier: "core",
+      expansion: 0,
+      summary: "Baseline weird for beta and core play."
+    },
+    PREDATORY_ARCHIVE: {
+      id: "PREDATORY_ARCHIVE",
+      label: "Predatory Archive",
+      expansion: 1,
+      summary: "Vampire and werewolf pressure without tropes."
+    },
+    DEATH_ARCHIVE: {
+      id: "DEATH_ARCHIVE",
+      label: "Death Archive",
+      expansion: 2,
+      summary: "Ghosts, mummies, anchor horror, and death economy."
+    },
+    COVENANT_ARCHIVE: {
+      id: "COVENANT_ARCHIVE",
+      label: "Covenant Archive",
+      expansion: 3,
+      summary: "Demonic contracts, possession, and infernal binding."
+    },
+    RADIANCE_ARCHIVE: {
+      id: "RADIANCE_ARCHIVE",
+      label: "Radiance Archive",
+      expansion: 4,
+      summary: "Angelic vessels, divine alignment, and oracle pressure."
+    },
+    MACHINE_ARCHIVE: {
+      id: "MACHINE_ARCHIVE",
+      label: "Machine Archive",
+      expansion: 5,
+      summary: "Daemon bleed, synthetic saints, and myth-tech hosts."
+    },
+    DEEP_VOID_ARCHIVE: {
+      id: "DEEP_VOID_ARCHIVE",
+      label: "Deep Void Archive",
+      expansion: 6,
+      summary: "Late-game anti-reality and breach survivors."
+    }
+  };
+
   const presentationCatalog = {
-    BASELINE_HUMAN: { label: "Baseline Human", displayName: "Baseline Human", category: "presentation", access: "starter", grants: {} },
-    RESONANT_SENSITIVE: { label: "Resonant Sensitive", displayName: "Resonant Sensitive", category: "presentation", access: "starter", grants: {} },
-    SANGUINE: { label: "Sanguine Presentation", displayName: "Sanguine Presentation", category: "presentation", access: "handler", grants: {} },
-    ECHO_ALTERED: { label: "Echo-Altered Presentation", displayName: "Echo-Altered Presentation", category: "presentation", access: "handler", grants: {} },
-    THERIAN_ADAPTATION: { label: "Therian Adaptation", displayName: "Therian Adaptation", category: "presentation", access: "handler", grants: {} },
-    HOLLOW_SILENCE_ALTERED: { label: "Hollow / Silence-Altered", displayName: "Hollow / Silence-Altered", category: "presentation", access: "handler", grants: {} },
-    WRAITH_TOUCHED_ANCHOR_BOUND: { label: "Wraith-Touched / Anchor-Bound", displayName: "Wraith-Touched / Anchor-Bound", category: "presentation", access: "handler", grants: {} },
-    TECHNOMANCER_DAEMON_ALIGNED: { label: "Technomancer / Daemon-Aligned", displayName: "Technomancer / Daemon-Aligned", category: "presentation", access: "handler", grants: {} },
-    CONSTRUCT_VESSEL: { label: "Construct / Vessel", displayName: "Construct / Vessel", category: "presentation", access: "handler", grants: {} },
-    MYTHIC_ECHO: { label: "Mythic Echo", displayName: "Mythic Echo", category: "ontology", access: "advanced", grants: {} },
+    BASELINE_HUMAN: {
+      label: "Baseline Human",
+      displayName: "Baseline Human",
+      category: "presentation",
+      access: "starter",
+      archive: "CORE",
+      grants: {}
+    },
+    RESONANT_SENSITIVE: {
+      label: "Resonant Sensitive",
+      displayName: "Resonant Sensitive",
+      category: "presentation",
+      access: "core",
+      archive: "CORE",
+      grants: {}
+    },
+    SANGUINE: {
+      label: "Sanguine Presentation",
+      displayName: "Sanguine Presentation",
+      category: "presentation",
+      access: "core",
+      archive: "CORE",
+      grants: {}
+    },
+    ECHO_ALTERED: {
+      label: "Echo-Altered Presentation",
+      displayName: "Echo-Altered Presentation",
+      category: "presentation",
+      access: "core",
+      archive: "CORE",
+      grants: {}
+    },
+    THERIAN_ADAPTATION: {
+      label: "Therian Adaptation",
+      displayName: "Therian Adaptation",
+      category: "presentation",
+      access: "core",
+      archive: "CORE",
+      grants: {}
+    },
+    HOLLOW_SILENCE_ALTERED: {
+      label: "Hollow / Silence-Altered",
+      displayName: "Hollow / Silence-Altered",
+      category: "presentation",
+      access: "core",
+      archive: "CORE",
+      grants: {}
+    },
+    WRAITH_TOUCHED_ANCHOR_BOUND: {
+      label: "Wraith-Touched / Anchor-Bound",
+      displayName: "Wraith-Touched / Anchor-Bound",
+      category: "presentation",
+      access: "core",
+      archive: "CORE",
+      grants: {}
+    },
+    TECHNOMANCER_DAEMON_ALIGNED: {
+      label: "Technomancer / Daemon-Aligned",
+      displayName: "Technomancer / Daemon-Aligned",
+      category: "presentation",
+      access: "core",
+      archive: "CORE",
+      grants: {}
+    },
+    CONSTRUCT_VESSEL: {
+      label: "Construct / Vessel",
+      displayName: "Construct / Vessel",
+      category: "presentation",
+      access: "core",
+      archive: "CORE",
+      grants: {}
+    },
+    VOID_SHARD: {
+      label: "Void-Shard",
+      displayName: "Void-Shard",
+      category: "presentation",
+      access: "core",
+      archive: "CORE",
+      grants: {}
+    },
+    MYTHIC_ECHO: {
+      label: "Mythic Echo",
+      displayName: "Mythic Echo",
+      category: "ontology",
+      access: "advanced",
+      archive: "CORE",
+      grants: {}
+    },
     GHOST: { label: "Ghost", displayName: "Ghost", category: "ontology", access: "advanced", grants: {} },
     WRAITH: { label: "Wraith", displayName: "Wraith", category: "ontology", access: "advanced", grants: {} },
     VESSEL: { label: "Vessel", displayName: "Vessel", category: "ontology", access: "advanced", grants: {} },
     TECHNOMANCER: { label: "Technomancer", displayName: "Technomancer", category: "ontology", access: "advanced", grants: {} },
     CONSTRUCT: { label: "Construct", displayName: "Construct", category: "ontology", access: "advanced", grants: {} },
-    VOID_SHARD: { label: "Void-Shard", displayName: "Void-Shard", category: "ontology", access: "advanced", grants: {} },
     MYTH_TECH_SYMBIOTE: { label: "Myth-Tech Symbiote", displayName: "Myth-Tech Symbiote", category: "ontology", access: "advanced", grants: {} },
     VEILWALKER: { label: "Veilwalker", displayName: "Veilwalker", category: "ontology", access: "advanced", grants: {} },
     DOMAIN_TOUCHED: { label: "Domain-Touched", displayName: "Domain-Touched", category: "ontology", access: "advanced", grants: {} },
     FREQUENCY_DISTORTION: { label: "Frequency Distortion", displayName: "Frequency Distortion", category: "ontology", access: "advanced", grants: {} },
-    ENTITY_ADJACENT: { label: "Entity-Adjacent", displayName: "Entity-Adjacent", category: "ontology", access: "advanced", grants: {} }
+    ENTITY_ADJACENT: { label: "Entity-Adjacent", displayName: "Entity-Adjacent", category: "ontology", access: "advanced", grants: {} },
+    SANGUINE_VARIANT: {
+      label: "Sanguine Variant",
+      displayName: "Sanguine Variant",
+      category: "presentation",
+      access: "archive",
+      archive: "PREDATORY_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    THERIAN_ADVANCED: {
+      label: "Advanced Therian",
+      displayName: "Advanced Therian",
+      category: "presentation",
+      access: "archive",
+      archive: "PREDATORY_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    HUNGER_ADJACENT: {
+      label: "Hunger-Adjacent Entity",
+      displayName: "Hunger-Adjacent Entity",
+      category: "presentation",
+      access: "archive",
+      archive: "PREDATORY_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    FERAL_ADAPTATION: {
+      label: "Feral Adaptation",
+      displayName: "Feral Adaptation",
+      category: "presentation",
+      access: "archive",
+      archive: "PREDATORY_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    WRAITH_ADVANCED: {
+      label: "Advanced Wraith",
+      displayName: "Advanced Wraith",
+      category: "presentation",
+      access: "archive",
+      archive: "DEATH_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    GHOST_BOUND: {
+      label: "Ghost-Bound",
+      displayName: "Ghost-Bound",
+      category: "presentation",
+      access: "archive",
+      archive: "DEATH_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    GRAVE_TOUCHED: {
+      label: "Grave-Touched",
+      displayName: "Grave-Touched",
+      category: "presentation",
+      access: "archive",
+      archive: "DEATH_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    FUNERARY_BOUND: {
+      label: "Funerary-Bound",
+      displayName: "Funerary-Bound",
+      category: "presentation",
+      access: "archive",
+      archive: "DEATH_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    DEMON_BOUND: {
+      label: "Demon-Bound",
+      displayName: "Demon-Bound",
+      category: "presentation",
+      access: "archive",
+      archive: "COVENANT_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    INFERNAL: {
+      label: "Infernal",
+      displayName: "Infernal",
+      category: "presentation",
+      access: "archive",
+      archive: "COVENANT_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    CONTRACTED: {
+      label: "Contracted",
+      displayName: "Contracted",
+      category: "presentation",
+      access: "archive",
+      archive: "COVENANT_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    POSSESSION_SURVIVOR: {
+      label: "Possession Survivor",
+      displayName: "Possession Survivor",
+      category: "presentation",
+      access: "archive",
+      archive: "COVENANT_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    ANGELIC_VESSEL: {
+      label: "Angelic Vessel",
+      displayName: "Angelic Vessel",
+      category: "presentation",
+      access: "archive",
+      archive: "RADIANCE_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    DIVINE_ALIGNED: {
+      label: "Divine-Aligned",
+      displayName: "Divine-Aligned",
+      category: "presentation",
+      access: "archive",
+      archive: "RADIANCE_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    SAINTED: {
+      label: "Sainted",
+      displayName: "Sainted",
+      category: "presentation",
+      access: "archive",
+      archive: "RADIANCE_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    ORACLE_BOUND: {
+      label: "Oracle-Bound",
+      displayName: "Oracle-Bound",
+      category: "presentation",
+      access: "archive",
+      archive: "RADIANCE_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    RELIC_BEARER: {
+      label: "Relic-Bearer",
+      displayName: "Relic-Bearer",
+      category: "presentation",
+      access: "archive",
+      archive: "RADIANCE_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    TECHNOMANCER_ADVANCED: {
+      label: "Advanced Technomancer",
+      displayName: "Advanced Technomancer",
+      category: "presentation",
+      access: "archive",
+      archive: "MACHINE_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    AI_HOSTED: {
+      label: "AI-Hosted",
+      displayName: "AI-Hosted",
+      category: "presentation",
+      access: "archive",
+      archive: "MACHINE_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    DAEMON_BONDED: {
+      label: "Daemon-Bonded",
+      displayName: "Daemon-Bonded",
+      category: "presentation",
+      access: "archive",
+      archive: "MACHINE_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    SYNTHETIC_SAINT: {
+      label: "Synthetic Saint",
+      displayName: "Synthetic Saint",
+      category: "presentation",
+      access: "archive",
+      archive: "MACHINE_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    CONSTRUCT_LINEAGE: {
+      label: "Construct Lineage",
+      displayName: "Construct Lineage",
+      category: "presentation",
+      access: "archive",
+      archive: "MACHINE_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    VOID_SHARD_VARIANT: {
+      label: "Void-Shard Variant",
+      displayName: "Void-Shard Variant",
+      category: "presentation",
+      access: "archive",
+      archive: "DEEP_VOID_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    NULL_BORN: {
+      label: "Null-Born",
+      displayName: "Null-Born",
+      category: "presentation",
+      access: "archive",
+      archive: "DEEP_VOID_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    BREACH_WALKED: {
+      label: "Breach-Walked",
+      displayName: "Breach-Walked",
+      category: "presentation",
+      access: "archive",
+      archive: "DEEP_VOID_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
+    ANTI_REALITY_SURVIVOR: {
+      label: "Anti-Reality Survivor",
+      displayName: "Anti-Reality Survivor",
+      category: "presentation",
+      access: "archive",
+      archive: "DEEP_VOID_ARCHIVE",
+      locked: true,
+      grants: {}
+    }
   };
 
   const backgroundCatalog = {
@@ -102,14 +459,49 @@
     return skillBonusGrantLabel(entry && entry.skillBonus) || "none loaded";
   }
 
+  function presentationArchiveEntry(key) {
+    const normalized = String(key || "").toUpperCase().replace(/[^A-Z0-9_]+/g, "_").replace(/^_|_$/g, "");
+    return presentationArchiveCatalog[normalized]
+      ? { id: normalized, ...presentationArchiveCatalog[normalized] }
+      : { id: normalized, label: titleCaseKey(normalized), expansion: 0, summary: "" };
+  }
+
+  function presentationArchiveOptions() {
+    return Object.entries(presentationArchiveCatalog)
+      .map(([id, entry]) => ({ id, ...entry }))
+      .sort((left, right) => Number(left.expansion || 0) - Number(right.expansion || 0));
+  }
+
+  function presentationVaultOptions() {
+    return Object.entries(presentationCatalog)
+      .map(([key, entry]) => ({ key, ...entry }))
+      .filter((entry) => entry.access === "archive" && entry.locked);
+  }
+
+  function presentationCoreOptions() {
+    return Object.entries(presentationCatalog)
+      .map(([key, entry]) => ({ key, ...entry }))
+      .filter((entry) => entry.access === "core" || entry.access === "starter");
+  }
+
+  function archiveLabelForKey(archiveKey) {
+    return presentationArchiveEntry(archiveKey).label || titleCaseKey(archiveKey);
+  }
+
   window.CradlepointCatalogs = {
     presentationCatalog,
+    presentationArchiveCatalog,
     backgroundCatalog,
     titleCaseKey,
     skillBonusGrantLabel,
     ontologyGrantLabel,
     backgroundGrantLabel,
     grantsSkillBonuses,
+    presentationArchiveEntry,
+    presentationArchiveOptions,
+    presentationVaultOptions,
+    presentationCoreOptions,
+    archiveLabelForKey,
     presentationEntry: (key) => catalogEntry(presentationCatalog, key),
     backgroundEntry: (key) => catalogEntry(backgroundCatalog, key),
     presentationKeyFromDisplayName: (displayName) => {

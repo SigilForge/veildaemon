@@ -346,7 +346,6 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
       "ONTOLOGY_UNLOCK:SANGUINE",
       "ONTOLOGY_UNLOCK:MYTHIC_ECHO",
       "ONTOLOGY_UNLOCK:TECHNOMANCER_DAEMON_ALIGNED",
-      "ONTOLOGY_UNLOCK:RED_LEDGER_ADJACENT",
       "BACKGROUND_UNLOCK:FIELD_MEDIC",
       "BACKGROUND_UNLOCK:LOCAL_WITNESS",
       "BACKGROUND_UNLOCK:SANGUINE_ADJACENT",
@@ -375,7 +374,7 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator("#authorized-ontology-list")).toContainText("Sanguine Presentation");
   await expect(page.locator("#authorized-ontology-list")).toContainText("Mythic Echo");
   await expect(page.locator("#authorized-ontology-list")).toContainText("Technomancer / Daemon-Aligned");
-  await expect(page.locator("#authorized-ontology-list")).toContainText("Red Ledger Adjacent");
+  await expect(page.locator("#authorized-ontology-list")).toContainText("Mythic Echo");
   await expect(page.locator("#authorized-reward-list")).toContainText("2 Void");
   await expect(page.locator("#authorized-reward-list")).toContainText("5 Breach");
   await expect(page.locator("#authorized-reward-list")).toContainText("Applied");
@@ -385,7 +384,7 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator('[name="background"]')).toContainText("Field Medic");
   await expect(page.locator('[name="background"]')).toContainText("Safehouse Brat");
   await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Sanguine Presentation");
-  await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Red Ledger Adjacent");
+  await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Mythic Echo");
   await expect(page.locator("#background-grant-preview")).toHaveText("Grants: —");
   await expect(page.locator("#ontology-grant-preview")).toHaveText("Grants: —");
   await expect(page.locator('input[name="voidMarks"]')).toHaveValue("2");
@@ -535,4 +534,45 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await page.getByLabel("Body 3").click();
   await expect(page.locator("#roll-attribute")).toContainText("Body +3");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("8");
+});
+
+test("core presentations are cleared without Handler unlock", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+
+  const options = page.locator('[name="ontologyPresentation"] option');
+  await expect(options).toContainText(["Sanguine Presentation"]);
+  await expect(options).toContainText(["Void-Shard"]);
+  await expect(options).toContainText(["Resonant Sensitive"]);
+  await expect(options).not.toContainText(["Angelic Vessel"]);
+  await expect(options).not.toContainText(["Demon-Bound"]);
+});
+
+test("presentation vault shows locked archive cards without rules text", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+
+  const vault = page.locator("#presentation-vault-preview");
+  await expect(vault).toContainText("Angelic Vessel");
+  await expect(vault).toContainText("Archive Locked");
+  await expect(vault).toContainText("Requires Radiance Archive");
+  await expect(vault).toContainText("Demon-Bound");
+  await expect(vault).toContainText("Requires Covenant Archive");
+  await expect(vault).toContainText("Funerary-Bound");
+  await expect(vault).not.toContainText("Blood Load");
+  await expect(vault).not.toContainText("LOAD_MODIFIERS");
+});
+
+test("archive unlock keys clear sealed presentations for assignment", async ({ page }) => {
+  await page.goto("/operator/");
+  await importAuthorizationPacket(page, ["ARCHIVE_UNLOCK:COVENANT_ARCHIVE"]);
+
+  await expect(page.locator("#storage-status")).toContainText("ARCHIVE KEY ACCEPTED — Covenant Archive");
+  await expect(page.locator("#presentation-vault-grid")).toContainText("Demon-Bound");
+  await expect(page.locator("#presentation-vault-grid")).toContainText("Archive Cleared");
+  await expect(page.locator("#authorized-ontology-list")).toContainText("Covenant Archive Key");
+
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Demon-Bound");
+  await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Infernal");
 });
