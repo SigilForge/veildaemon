@@ -478,8 +478,9 @@
   }
 
   function maxEffectiveAttributeRank(attribute, status) {
+    const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
     if (status && status.creationMode) {
-      return creationAttributeRankCap();
+      return Math.min(5, creationAttributeRankCap() + bonus);
     }
     return 5;
   }
@@ -487,7 +488,7 @@
   function maxBaseAttributeRank(attribute, status) {
     const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
     if (status && status.creationMode) {
-      return Math.max(1, creationAttributeRankCap() - bonus);
+      return creationAttributeRankCap();
     }
     return Math.max(1, 5 - bonus);
   }
@@ -1778,11 +1779,10 @@
     }, 0);
   }
 
-  function totalAttributeBoosts(attributes, status = consoleState.operatorStatus) {
+  function totalAttributeBoosts(attributes) {
     return attributeNames().reduce((sum, name) => {
       const base = Number(normalizeAttributes(attributes)[name] || 1);
-      const bonus = backgroundAttributeBonuses(status)[name] || 0;
-      return sum + Math.max(0, base + bonus - 1);
+      return sum + Math.max(0, base - 1);
     }, 0);
   }
 
@@ -1815,13 +1815,11 @@
     return sorted.slice(freeBudget).reduce((sum, rank) => sum + rank, 0);
   }
 
-  function creationAttributeRankSteps(attributes, status = consoleState.operatorStatus) {
+  function creationAttributeRankSteps(attributes) {
     const steps = [];
     attributeNames().forEach((name) => {
       const base = Number(normalizeAttributes(attributes)[name] || 1);
-      const bonus = backgroundAttributeBonuses(status)[name] || 0;
-      const effective = base + bonus;
-      for (let step = 2; step <= effective; step += 1) steps.push(step);
+      for (let step = 2; step <= base; step += 1) steps.push(step);
     });
     return steps;
   }
@@ -1977,7 +1975,11 @@
     }
     if (nextEffective > maxEffectiveAttributeRank(attribute, status)) {
       if (creationActive()) {
-        return { ok: false, message: `Creation attribute cap is ${creationAttributeRankCap()}.` };
+        const cap = creationAttributeRankCap();
+        if (bonus > 0) {
+          return { ok: false, message: `${attribute} can buy to ${cap} at creation. Background bonus adds above that.` };
+        }
+        return { ok: false, message: `Creation attribute cap is ${cap}.` };
       }
       return { ok: false, message: `${attribute} cannot exceed 5.` };
     }
@@ -1986,11 +1988,7 @@
     }
     if (creationActive()) {
       if (nextBase > maxBaseAttributeRank(attribute, status)) {
-        const cap = creationAttributeRankCap();
-        if (bonus > 0) {
-          return { ok: false, message: `${attribute} cannot exceed ${cap} at creation (${maxBaseAttributeRank(attribute, status)} base + ${bonus} background bonus).` };
-        }
-        return { ok: false, message: `Creation attribute cap is ${cap}.` };
+        return { ok: false, message: `Creation attribute purchases cap at ${creationAttributeRankCap()}.` };
       }
       const cost = creationAttributeCostDelta(attributes, attribute, nextEffective, status);
       if (cost > 0 && !canSpendBreach(cost)) {
