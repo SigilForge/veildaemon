@@ -273,6 +273,26 @@
     return [];
   }
 
+  function presentationOpenOptions() {
+    if (typeof catalogs.presentationOpenOptions === "function") return catalogs.presentationOpenOptions();
+    return [];
+  }
+
+  function presentationHandlerApprovalOptions() {
+    if (typeof catalogs.presentationHandlerApprovalOptions === "function") return catalogs.presentationHandlerApprovalOptions();
+    return [];
+  }
+
+  function presentationCoreCatalogOptions() {
+    if (typeof catalogs.presentationCoreCatalogOptions === "function") return catalogs.presentationCoreCatalogOptions();
+    return [];
+  }
+
+  function presentationAccessLabel(entry) {
+    if (typeof catalogs.presentationAccessLabel === "function") return catalogs.presentationAccessLabel(entry);
+    return "";
+  }
+
   function archiveLabelForKey(key) {
     if (typeof catalogs.archiveLabelForKey === "function") return catalogs.archiveLabelForKey(key);
     return titleCaseKey(key);
@@ -286,9 +306,12 @@
 
   function isPresentationUnlocked(entry) {
     if (!entry) return false;
-    if (entry.access === "starter" || entry.access === "core") return true;
+    if (entry.access === "starter" || entry.access === "open") return true;
     if (entry.access === "archive" && entry.archive && hasArchiveUnlock(entry.archive)) return true;
     if (consoleState.unlocks.some((unlock) => unlock.type === "ontology" && unlock.key === entry.key)) return true;
+    if (entry.key === "CONSTRUCT" || entry.key === "VESSEL") {
+      return consoleState.unlocks.some((unlock) => unlock.type === "ontology" && unlock.key === "CONSTRUCT_VESSEL");
+    }
     return false;
   }
 
@@ -864,7 +887,7 @@
       } else if (archiveUnlocks.length) {
         ontologyNotice.textContent = authorizationNotice("archive", archiveUnlocks[0]);
       } else {
-        ontologyNotice.textContent = "Core presentations are cleared. Expansion archives remain sealed until a key arrives.";
+        ontologyNotice.textContent = "Open core presentations are cleared. Handler Approval picks need a packet. Expansion archives stay sealed until a key arrives.";
       }
     }
     const ontologyList = document.getElementById("authorized-ontology-list");
@@ -1157,8 +1180,9 @@
     if (ontologyPreview) {
       const key = presentationKeyFromDisplayName(status.ontologyPresentation);
       const entry = key ? presentationEntry(key) : null;
+      const accessLabel = entry ? presentationAccessLabel(entry) : "";
       ontologyPreview.textContent = status.ontologyPresentation
-        ? `Grants: ${ontologyGrantLabel(entry)}`
+        ? `${accessLabel ? `${accessLabel} // ` : ""}Grants: ${ontologyGrantLabel(entry)}`
         : "Grants: —";
     }
   }
@@ -1191,13 +1215,26 @@
     const source = kind === "background" ? backgroundOptions() : presentationOptions();
     const entryFor = kind === "background" ? backgroundEntry : presentationEntry;
     const allowed = source
-      .filter((entry) => kind === "background" ? entry.access === "starter" : isPresentationUnlocked(entry))
+      .filter((entry) => {
+        if (kind === "background") return entry.access === "starter";
+        if (entry.legacyAlias) return false;
+        return isPresentationUnlocked(entry);
+      })
       .map((entry) => ({ value: entry.displayName, label: entry.displayName }));
     if (kind === "background") {
       consoleState.unlocks
         .filter((unlock) => unlock.type === "background")
         .forEach((unlock) => {
           const entry = entryFor(unlock.key);
+          allowed.push({ value: entry.displayName, label: entry.displayName });
+        });
+    }
+    if (kind === "ontology") {
+      consoleState.unlocks
+        .filter((unlock) => unlock.type === "ontology")
+        .forEach((unlock) => {
+          const entry = entryFor(unlock.key);
+          if (!entry || entry.legacyAlias) return;
           allowed.push({ value: entry.displayName, label: entry.displayName });
         });
     }
@@ -1230,14 +1267,11 @@
       presentationSelect.value = current;
     }
     renderBuildDefiningChoices();
-    renderPresentationVault();
   }
 
   function renderPresentationVault() {
-    const grids = [
-      document.getElementById("presentation-vault-grid"),
-      document.getElementById("presentation-vault-preview")
-    ].filter(Boolean);
+    const grid = document.getElementById("presentation-vault-grid");
+    const grids = grid ? [grid] : [];
     if (!grids.length) return;
     const vaultEntries = presentationVaultOptions();
     const archives = presentationArchiveOptions().filter((archive) => archive.id !== "CORE");

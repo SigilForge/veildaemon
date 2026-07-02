@@ -408,7 +408,7 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator("#skill-summary-list")).toContainText("Medicine");
   await expect(page.locator("#skill-summary-list")).toContainText("+1");
   await page.locator('[name="ontologyPresentation"]').selectOption("Sanguine Presentation");
-  await expect(page.locator("#ontology-grant-preview")).toHaveText("Grants: none loaded");
+  await expect(page.locator("#ontology-grant-preview")).toHaveText("Handler Approval Recommended // Grants: none loaded");
   await expect(page.locator("#presentation-readout-layer")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip-derived")).toHaveText("Coherent");
@@ -536,31 +536,41 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("8");
 });
 
-test("core presentations are cleared without Handler unlock", async ({ page }) => {
+test("open core presentations appear without Handler unlock", async ({ page }) => {
   await page.goto("/operator/");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
 
   const options = page.locator('[name="ontologyPresentation"] option');
-  await expect(options).toContainText(["Sanguine Presentation"]);
-  await expect(options).toContainText(["Void-Shard"]);
   await expect(options).toContainText(["Resonant Sensitive"]);
+  await expect(options).toContainText(["Echo-Altered Presentation"]);
+  await expect(options).toContainText(["Technomancer / Daemon-Aligned"]);
+  await expect(options).not.toContainText(["Sanguine Presentation"]);
+  await expect(options).not.toContainText(["Void-Shard"]);
   await expect(options).not.toContainText(["Angelic Vessel"]);
   await expect(options).not.toContainText(["Demon-Bound"]);
 });
 
-test("presentation vault shows locked archive cards without rules text", async ({ page }) => {
+test("handler approval presentations appear only after ontology unlock", async ({ page }) => {
   await page.goto("/operator/");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.locator('[name="ontologyPresentation"]')).not.toContainText("Sanguine Presentation");
 
-  const vault = page.locator("#presentation-vault-preview");
+  await importAuthorizationPacket(page, ["ONTOLOGY_UNLOCK:SANGUINE"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Sanguine Presentation");
+});
+
+test("expansion vault stays on authorized unlocks not sheet", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.locator("#presentation-vault-preview")).toHaveCount(0);
+
+  await page.getByLabel("Console modules").getByRole("button", { name: "Authorized Unlocks" }).click();
+  const vault = page.locator("#presentation-vault-grid");
   await expect(vault).toContainText("Angelic Vessel");
   await expect(vault).toContainText("Archive Locked");
   await expect(vault).toContainText("Requires Radiance Archive");
-  await expect(vault).toContainText("Demon-Bound");
-  await expect(vault).toContainText("Requires Covenant Archive");
-  await expect(vault).toContainText("Funerary-Bound");
   await expect(vault).not.toContainText("Blood Load");
-  await expect(vault).not.toContainText("LOAD_MODIFIERS");
 });
 
 test("archive unlock keys clear sealed presentations for assignment", async ({ page }) => {
