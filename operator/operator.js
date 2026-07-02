@@ -507,7 +507,11 @@
   function skillDisplayEntries(status) {
     const skills = normalizeSkills(status.skills);
     const bonuses = derivedSkillBonuses(status);
-    const names = new Set([...Object.keys(skills), ...Object.keys(bonuses)]);
+    const validSkills = new Set(skillNames());
+    const names = new Set([
+      ...Object.keys(skills).filter((name) => validSkills.has(name)),
+      ...Object.keys(bonuses).filter((name) => validSkills.has(name))
+    ]);
     return [...names]
       .sort((left, right) => left.localeCompare(right))
       .map((name) => {
@@ -1703,7 +1707,7 @@
     return attributes;
   }
 
-  function normalizeSkills(value) {
+  function scrubMisfiledSkills(value) {
     const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
     const skills = {};
     skillNames().forEach((name) => {
@@ -1711,6 +1715,10 @@
       if (rank > 0) skills[name] = String(rank);
     });
     return skills;
+  }
+
+  function normalizeSkills(value) {
+    return scrubMisfiledSkills(value);
   }
 
   function advancementCost(from, to) {
@@ -2749,6 +2757,8 @@
         writeConsoleState();
         renderRollSelectors();
       });
+      const pipTrack = document.createElement("div");
+      pipTrack.className = "attribute-pip-track";
       const pips = document.createElement("div");
       pips.className = "attribute-pips";
       for (let index = 1; index <= 5; index += 1) {
@@ -2781,15 +2791,20 @@
         });
         pips.append(pip);
       }
-      row.append(label, pips);
-      if (bonusRank > 0) {
-        const rankBadge = document.createElement("span");
-        rankBadge.className = "attribute-effective-rank";
-        rankBadge.textContent = value > 0
-          ? `+${effectiveRank} (${value}+${bonusRank})`
-          : `+${effectiveRank}`;
-        row.append(rankBadge);
+      pipTrack.append(pips);
+      if (bonusRank > 0 && effectiveRank > value) {
+        const bonusPips = document.createElement("div");
+        bonusPips.className = "attribute-bonus-pips";
+        bonusPips.title = "Background attribute bonus";
+        for (let index = 0; index < bonusRank && value + index + 1 <= effectiveRank; index += 1) {
+          const bonusPip = document.createElement("span");
+          bonusPip.className = "pip is-filled is-background-bonus";
+          bonusPip.setAttribute("aria-label", `${name} background bonus ${index + 1}`);
+          bonusPips.append(bonusPip);
+        }
+        pipTrack.append(bonusPips);
       }
+      row.append(label, pipTrack);
       grid.append(row);
     });
   }
@@ -3914,6 +3929,8 @@
     renderPageLock();
     renderStatusSummary();
     renderSegmentedControls();
+    renderGrantPreviews();
+    renderAttributes();
     renderRollSelectors();
     renderCreationMode();
   }

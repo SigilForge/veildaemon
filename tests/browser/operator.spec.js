@@ -585,11 +585,70 @@ test("burnout professional nerves bonus lands on attributes not skills", async (
   await expect(page.locator("#background-grant-preview")).toHaveText("Grants: Investigation +1 // Nerves +1");
   await expect(page.locator("#skill-summary-list")).toContainText("Investigation");
   await expect(page.locator("#skill-summary-list")).not.toContainText("Nerves");
-  await expect(page.locator(".attribute-effective-rank")).toHaveText("+2 (1+1)");
+  await expect(page.locator(".attribute-bonus-pips .is-background-bonus")).toHaveCount(1);
   await expect(page.locator("#roll-attribute")).toContainText("Nerves +2");
   await page.locator("#roll-attribute").selectOption("Nerves");
   await page.getByRole("button", { name: "Roll 3D6" }).click();
   await expect(page.locator("#roll-output")).toContainText("Nerves +2");
+
+  await page.getByLabel("Nerves 3").click();
+  await expect(page.locator(".attribute-bonus-pips .is-background-bonus")).toHaveCount(1);
+  await expect(page.locator("#roll-attribute")).toContainText("Nerves +4");
+  await page.getByRole("button", { name: "Roll 3D6" }).click();
+  await expect(page.locator("#roll-output")).toContainText("Nerves +4");
+});
+
+test("legacy nerves skill entries are scrubbed from saved builds", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify({
+      version: 1,
+      operatorStatus: {
+        sheetEditMode: true,
+        creationMode: true,
+        background: "Burnout Professional",
+        breachPoints: "3",
+        voidMarks: "0",
+        attributes: {
+          Body: "1",
+          Agility: "1",
+          Mind: "1",
+          Instinct: "1",
+          Presence: "1",
+          Nerves: "1"
+        },
+        skills: {
+          Nerves: "2",
+          Investigation: "1"
+        },
+        voidByFrequency: {
+          Dream: "1",
+          Hunger: "0",
+          Silence: "0",
+          Stillness: "0",
+          Empyrean: "0",
+          Becoming: "0"
+        },
+        lotus: {
+          Dream: "1",
+          Hunger: "0",
+          Silence: "0",
+          Stillness: "0",
+          Empyrean: "0",
+          Becoming: "0"
+        }
+      },
+      equipment: [],
+      cases: [],
+      unlocks: [],
+      appliedUnlocks: []
+    }));
+  });
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.locator("#skill-summary-list")).not.toContainText("Nerves");
+  await expect(page.locator("#skill-summary-list")).toContainText("Investigation");
+  await expect(page.locator(".attribute-bonus-pips .is-background-bonus")).toHaveCount(1);
+  await expect(page.locator("#roll-attribute")).toContainText("Nerves +2");
 });
 
 test("creation mode guards attribute bonus breach spending", async ({ page }) => {
