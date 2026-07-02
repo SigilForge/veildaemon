@@ -547,6 +547,35 @@ test("apply core start resets frequency pips skills and bonus breach", async ({ 
   await expect(page.getByLabel("Dream pip 2")).not.toHaveClass(/is-filled/);
 });
 
+test("background skill bonuses do not count against creation skill budget", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+  await page.locator('[name="background"]').selectOption("Tech");
+  await expect(page.locator("#background-grant-preview")).toHaveText("Grants: Hacking +1, Engineering +1");
+
+  await page.locator("#skill-picker").selectOption("Investigation");
+  await page.locator("#skill-rank").fill("2");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await expect(page.getByText("Creation: skills 2/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+
+  await page.locator("#skill-picker").selectOption("Hacking");
+  await page.locator("#skill-rank").fill("1");
+  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 0 Bonus Breach");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await expect(page.getByText("Creation: skills 2/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+  await expect(page.locator("#skill-summary-list")).toContainText("Hacking");
+  await expect(page.locator("#skill-summary-list")).toContainText("+1");
+
+  await page.locator("#skill-picker").selectOption("Hacking");
+  await page.locator("#skill-rank").fill("2");
+  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 0 Bonus Breach");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await expect(page.getByText("Creation: skills 3/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+  await expect(page.locator("#skill-summary-list")).toContainText("+3 (2+1)");
+});
+
 test("creation mode guards attribute bonus breach spending", async ({ page }) => {
   await page.goto("/operator/");
 

@@ -1703,6 +1703,16 @@
     return Object.values(normalizeSkills(skills)).reduce((sum, value) => sum + Number(value || 0), 0);
   }
 
+  function creationSkillRanksSpent(status) {
+    const skills = normalizeSkills(status.skills);
+    const bgBonuses = backgroundSkillBonuses(status);
+    return Object.entries(skills).reduce((sum, [skill, rank]) => {
+      const baseRank = Number(rank || 0);
+      const bgBonus = bgBonuses[skill] || 0;
+      return sum + Math.max(0, baseRank - bgBonus);
+    }, 0);
+  }
+
   function totalAttributeBoosts(attributes) {
     return Object.values(normalizeAttributes(attributes)).reduce((sum, value) => sum + Math.max(0, Number(value || 1) - 1), 0);
   }
@@ -1838,12 +1848,14 @@
     return true;
   }
 
-  function skillChangeAllowed(skills, skill, targetRank) {
+  function skillChangeAllowed(skills, skill, targetRank, status = consoleState.operatorStatus) {
     const next = normalizeSkills({ ...skills, [skill]: String(targetRank) });
     if (creationActive()) {
       if (targetRank > 3) return { ok: false, message: "Creation skill cap is Rank 3." };
-      const oldOverage = Math.max(0, totalSkillRanks(skills) - creationSkillBudget());
-      const newOverage = Math.max(0, totalSkillRanks(next) - creationSkillBudget());
+      const oldSpent = creationSkillRanksSpent({ ...status, skills });
+      const newSpent = creationSkillRanksSpent({ ...status, skills: next });
+      const oldOverage = Math.max(0, oldSpent - creationSkillBudget());
+      const newOverage = Math.max(0, newSpent - creationSkillBudget());
       return { ok: true, cost: newOverage - oldOverage };
     }
     const oldRank = Number(normalizeSkills(skills)[skill] || 0);
@@ -2910,7 +2922,7 @@
     }
     if (budget) {
       if (creationActive()) {
-        const skillUsed = totalSkillRanks(status.skills);
+        const skillUsed = creationSkillRanksSpent(status);
         const attrUsed = totalAttributeBoosts(status.attributes);
         budget.textContent = `Creation: skills ${Math.min(skillUsed, creationSkillBudget())}/${creationSkillBudget()} // attribute spread ${Math.min(attrUsed, creationAttributeSpreadBudget())}/${creationAttributeSpreadBudget()} // Bonus Breach ${normalizeNonNegative(status.breachPoints)}/${creationBonusBreachBudget()}`;
       } else {
