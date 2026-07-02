@@ -2268,6 +2268,15 @@ fieldset.recovery-field.compact label {
   min-height: .78rem;
   width: 100%;
 }
+.attribute-pips .pip.is-background-bonus {
+  border-color: rgba(185, 84, 255, .78);
+  background: rgba(185, 84, 255, .18);
+  box-shadow: 0 0 .55rem rgba(185, 84, 255, .42);
+}
+.attribute-pips .pip.is-background-bonus.is-filled {
+  background: var(--purple);
+  box-shadow: 0 0 .7rem rgba(185, 84, 255, .55);
+}
 .skill-builder {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(4.5rem, .35fr) minmax(7rem, .5fr) auto;

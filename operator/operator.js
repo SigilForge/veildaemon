@@ -473,23 +473,27 @@
     return Math.min(5, base + bonus);
   }
 
-  function maxBaseAttributeRank(attribute, status) {
+  function attributeBaseFromEffective(effectiveRank, bonus) {
+    return Math.max(1, Number(effectiveRank || 1) - Number(bonus || 0));
+  }
+
+  function maxEffectiveAttributeRank(attribute, status) {
     const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
-    const bonusLimitedCap = Math.max(1, 5 - bonus);
     if (status && status.creationMode) {
-      return Math.min(creationAttributeRankCap(), bonusLimitedCap);
+      return Math.min(5, creationAttributeRankCap() + bonus);
     }
-    return bonusLimitedCap;
+    return 5;
   }
 
   function clampAttributesForBonuses(status) {
     const attrs = normalizeAttributes(status.attributes);
     let changed = false;
     attributeNames().forEach((name) => {
-      const maxRank = maxBaseAttributeRank(name, status);
+      const bonus = backgroundAttributeBonuses(status)[name] || 0;
+      const maxBase = Math.max(1, 5 - bonus);
       const current = Number(attrs[name] || 1);
-      if (current > maxRank) {
-        attrs[name] = String(maxRank);
+      if (current > maxBase) {
+        attrs[name] = String(maxBase);
         changed = true;
       }
     });
@@ -1768,8 +1772,12 @@
     }, 0);
   }
 
-  function totalAttributeBoosts(attributes) {
-    return Object.values(normalizeAttributes(attributes)).reduce((sum, value) => sum + Math.max(0, Number(value || 1) - 1), 0);
+  function totalAttributeBoosts(attributes, status = consoleState.operatorStatus) {
+    return attributeNames().reduce((sum, name) => {
+      const base = Number(normalizeAttributes(attributes)[name] || 1);
+      const bonus = backgroundAttributeBonuses(status)[name] || 0;
+      return sum + Math.max(0, base + bonus - 1);
+    }, 0);
   }
 
   function creationSkillBudget() {
@@ -1801,11 +1809,13 @@
     return sorted.slice(freeBudget).reduce((sum, rank) => sum + rank, 0);
   }
 
-  function creationAttributeRankSteps(attributes) {
+  function creationAttributeRankSteps(attributes, status = consoleState.operatorStatus) {
     const steps = [];
-    Object.values(normalizeAttributes(attributes)).forEach((value) => {
-      const rank = Number(value || 1);
-      for (let step = 2; step <= rank; step += 1) steps.push(step);
+    attributeNames().forEach((name) => {
+      const base = Number(normalizeAttributes(attributes)[name] || 1);
+      const bonus = backgroundAttributeBonuses(status)[name] || 0;
+      const effective = base + bonus;
+      for (let step = 2; step <= effective; step += 1) steps.push(step);
     });
     return steps;
   }
@@ -1823,8 +1833,8 @@
     return steps;
   }
 
-  function creationAttributeBreachSpent(attributes) {
-    return breachSpentFromRankSteps(creationAttributeRankSteps(attributes), creationAttributeSpreadBudget());
+  function creationAttributeBreachSpent(attributes, status = consoleState.operatorStatus) {
+    return breachSpentFromRankSteps(creationAttributeRankSteps(attributes, status), creationAttributeSpreadBudget());
   }
 
   function creationSkillBreachSpent(status) {
@@ -1939,44 +1949,50 @@
     return { ok: true, cost: advancementCost(oldRank, targetRank) };
   }
 
-  function creationAttributeCostDelta(attributes, attribute, targetRank) {
-    const next = normalizeAttributes({ ...attributes, [attribute]: String(targetRank) });
-    return creationAttributeBreachSpent(next) - creationAttributeBreachSpent(attributes);
+  function creationAttributeCostDelta(attributes, attribute, targetEffectiveRank, status = consoleState.operatorStatus) {
+    const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
+    const targetBase = attributeBaseFromEffective(targetEffectiveRank, bonus);
+    const next = normalizeAttributes({ ...attributes, [attribute]: String(targetBase) });
+    return creationAttributeBreachSpent(next, status) - creationAttributeBreachSpent(attributes, status);
   }
 
-  function attributeChangeAllowed(attributes, attribute, targetRank) {
+  function attributeChangeAllowed(attributes, attribute, targetEffectiveRank) {
     if (!pageEditUnlocked()) {
       return { ok: false, message: "Edit Sheet required to change Attributes." };
     }
-    const oldRank = Number(normalizeAttributes(attributes)[attribute] || 1);
-    const nextRank = Number(normalizeBoxValue(targetRank, 5));
-    if (nextRank === oldRank) {
+    const status = consoleState.operatorStatus;
+    const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
+    const oldBase = Number(normalizeAttributes(attributes)[attribute] || 1);
+    const oldEffective = oldBase + bonus;
+    const nextEffective = Number(normalizeBoxValue(targetEffectiveRank, 5));
+    const nextBase = attributeBaseFromEffective(nextEffective, bonus);
+    if (nextEffective === oldEffective) {
       return { ok: false, message: "" };
     }
-    const status = consoleState.operatorStatus;
-    const maxRank = maxBaseAttributeRank(attribute, status);
-    if (nextRank > maxRank) {
-      const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
-      if (bonus > 0) {
-        return { ok: false, message: `${attribute} cannot exceed 5 total (${maxRank} base + ${bonus} background bonus).` };
-      }
+    if (nextEffective > maxEffectiveAttributeRank(attribute, status)) {
       if (creationActive()) {
         return { ok: false, message: `Creation attribute cap is ${creationAttributeRankCap()}.` };
       }
-      return { ok: false, message: `${attribute} cannot exceed ${maxRank}.` };
+      return { ok: false, message: `${attribute} cannot exceed 5.` };
+    }
+    if (nextEffective < 1 + bonus) {
+      return { ok: false, message: "" };
     }
     if (creationActive()) {
-      const cost = creationAttributeCostDelta(attributes, attribute, nextRank);
+      if (nextBase > creationAttributeRankCap()) {
+        return { ok: false, message: `Creation attribute cap is ${creationAttributeRankCap()}.` };
+      }
+      const cost = creationAttributeCostDelta(attributes, attribute, nextEffective, status);
       if (cost > 0 && !canSpendBreach(cost)) {
         return { ok: false, message: `Insufficient Breach. Required ${cost}.` };
       }
-      return { ok: true, cost };
+      return { ok: true, cost, targetBase: nextBase };
     }
-    const cost = attributeAdvancementCostDelta(oldRank, nextRank);
+    const cost = attributeAdvancementCostDelta(oldBase, nextBase);
     if (cost > 0 && !canSpendBreach(cost)) {
       return { ok: false, message: `Insufficient Breach. Required ${cost}.` };
     }
-    return { ok: true, cost };
+    return { ok: true, cost, targetBase: nextBase };
   }
 
   function frequencyPipBreachCost(pip) {
@@ -2798,10 +2814,10 @@
     consoleState.operatorStatus.attributes = attrs;
     grid.textContent = "";
     attributeNames().forEach((name) => {
-      const value = Number(attrs[name]);
+      const baseRank = Number(attrs[name]);
       const bonusRank = attrBonuses[name] || 0;
-      const maxRank = maxBaseAttributeRank(name, status);
-      const effectiveRank = Math.min(5, value + bonusRank);
+      const effectiveRank = Math.min(5, baseRank + bonusRank);
+      const maxPip = maxEffectiveAttributeRank(name, status);
       const row = document.createElement("article");
       row.className = "attribute-row";
       const label = document.createElement("button");
@@ -2818,12 +2834,15 @@
       const pips = document.createElement("div");
       pips.className = "attribute-pips";
       for (let index = 1; index <= 5; index += 1) {
+        const isBonusPip = bonusRank > 0 && index > baseRank && index <= effectiveRank;
         const pip = document.createElement("button");
         pip.type = "button";
         pip.className = "pip";
-        pip.disabled = !editing || index > maxRank;
-        pip.classList.toggle("is-filled", index <= value);
-        pip.setAttribute("aria-label", `${name} ${index}`);
+        pip.disabled = !editing || index > maxPip || (bonusRank > 0 && index < 1 + bonusRank);
+        pip.classList.toggle("is-filled", index <= effectiveRank);
+        pip.classList.toggle("is-background-bonus", isBonusPip);
+        if (isBonusPip) pip.title = "Background attribute bonus";
+        pip.setAttribute("aria-label", isBonusPip ? `${name} background bonus ${index}` : `${name} ${index}`);
         pip.addEventListener("click", () => {
           const allowed = attributeChangeAllowed(attrs, name, index);
           if (!allowed.ok) {
@@ -2837,7 +2856,7 @@
             renderCreationMode();
             return;
           }
-          attrs[name] = normalizeBoxValue(index, 5);
+          attrs[name] = normalizeBoxValue(allowed.targetBase ?? attributeBaseFromEffective(index, bonusRank), 5);
           consoleState.operatorStatus.attributes = attrs;
           consoleState.operatorStatus.rollAttributeKey = name;
           writeConsoleState();
@@ -2848,18 +2867,6 @@
         pips.append(pip);
       }
       pipTrack.append(pips);
-      if (bonusRank > 0 && effectiveRank > value) {
-        const bonusPips = document.createElement("div");
-        bonusPips.className = "attribute-bonus-pips";
-        bonusPips.title = "Background attribute bonus";
-        for (let index = 0; index < bonusRank && value + index + 1 <= effectiveRank; index += 1) {
-          const bonusPip = document.createElement("span");
-          bonusPip.className = "pip is-filled is-background-bonus";
-          bonusPip.setAttribute("aria-label", `${name} background bonus ${index + 1}`);
-          bonusPips.append(bonusPip);
-        }
-        pipTrack.append(bonusPips);
-      }
       row.append(label, pipTrack);
       grid.append(row);
     });
@@ -3029,7 +3036,7 @@
     if (budget) {
       if (creationActive()) {
         const skillUsed = creationSkillRanksSpent(status);
-        const attrUsed = totalAttributeBoosts(status.attributes);
+        const attrUsed = totalAttributeBoosts(status.attributes, status);
         budget.textContent = `Creation: skills ${Math.min(skillUsed, creationSkillBudget())}/${creationSkillBudget()} // attribute spread ${Math.min(attrUsed, creationAttributeSpreadBudget())}/${creationAttributeSpreadBudget()} // Bonus Breach ${normalizeNonNegative(status.breachPoints)}/${creationBonusBreachBudget()}`;
       } else {
         budget.textContent = `Advancement: Breach bank ${normalizeNonNegative(status.breachPoints)}`;
@@ -4128,6 +4135,7 @@
         autosaveStatus();
         renderAttributes();
         renderRollSelectors();
+        renderCreationMode();
         renderSkills();
       });
     }
