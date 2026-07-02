@@ -698,7 +698,7 @@
       cardLabel: "Sensitive Pressure",
       catalogKeys: ["RESONANT_SENSITIVE"],
       trackId: "sensitive.sensory_load",
-      trackLabel: "Sensory Load",
+      trackLabel: "Resonance Load",
       stateKey: "sensoryLoad",
       kind: "sensory_load",
       bands: {
@@ -712,12 +712,12 @@
           prompt: "May call for Stability when sensory debt, isolation, or signal starvation pressures the scene."
         },
         mid: {
-          label: "Attuned",
+          label: "Tuned",
           descriptor: "Stable sensory filtering with workable resonance reads.",
           cue: "Connection stays proportionate to the moment."
         },
         high: {
-          label: "Overstimulated",
+          label: "Over-Tuned",
           descriptor: "Overfull sensory charge; everything reads too loud and too close.",
           cue: "The room's signal organizes attention before consent catches up.",
           risk: "Sleep, focus, and filtering suffer.",
@@ -726,17 +726,17 @@
           prompt: "Failed restraint may become fixation, overwhelm, or signal spill."
         },
         peak: {
-          label: "Signal Flood",
-          descriptor: "Collapse surge; the room gets too loud to choose cleanly.",
+          label: "Signal Break",
+          descriptor: "Collapse surge; the signal reads back.",
           cue: "The Operator cannot filter the room's signal without breaking something.",
-          risk: "Signal flood, overwhelm, or uncontained resonance bleed.",
+          risk: "Signal break, overwhelm, or uncontained resonance bleed.",
           helps: ["Instinct", "Awareness", "resonance reads", "early warning"],
           hurts: ["Nerves restraint", "focus", "filtering irrelevant signal", "identity coherence"],
-          prompt: "Collapse surge. Handler frames signal impulse. Ground, filter, discharge, or trigger signal-flood fallout."
+          prompt: "Collapse surge. Handler frames signal impulse. Ground, filter, discharge, or trigger signal-break fallout."
         }
       },
       modifierRule: LOAD_MODIFIER_RULE,
-      meterHelp: "0–1 Numbed, 2–4 Attuned, 5 Overstimulated, 6 Signal Flood.",
+      meterHelp: "0–1 Numbed, 2–4 Tuned, 5 Over-Tuned, 6 Signal Break.",
       maxRisk: "Signal flood, overwhelm, or uncontained resonance bleed."
     }),
     universalLoadPresentation({
@@ -1367,8 +1367,8 @@
         "Purpose Lock": "The directive locks; improvisation frays."
       },
       sensitive: {
-        Overstimulated: "Everything reads too loud and too close.",
-        "Signal Flood": "The room's signal overwhelms filtering."
+        "Over-Tuned": "Everything reads too loud and too close.",
+        "Signal Break": "The room's signal overwhelms filtering."
       }
     };
     const pack = flavors[presentationId] || {};

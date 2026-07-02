@@ -5,6 +5,8 @@
    */
   const SURGE_ATTRS = ["Body", "Agility", "Instinct"];
   const SURGE_APPLIES_COPY = "Applies to next pursuit, force, escape, predatory movement, or blood-sense roll.";
+  const RESONANT_READ_ATTRS = ["Instinct", "Mind", "Presence"];
+  const RESONANT_READ_APPLIES_COPY = "Applies to next Instinct, Mind, or Presence read of a person, room, object, threat, ritual, recording, or pressure pattern.";
   const RECOVERY_ACTIONS = {
     ground: {
       label: "Ground",
@@ -199,6 +201,78 @@
         agency: "handler-framed",
         effect: "Blood-body dominance kicks past normal human limits for one decisive beat — then keeps going.",
         risk: "Handler frames impulse, target pressure, and collateral risk."
+      }
+    }),
+    presentationAbilityContract({
+      id: "sensitive",
+      catalogKeys: ["RESONANT_SENSITIVE"],
+      label: "Resonant Sensitive",
+      displayLabel: "Resonant Sensitive",
+      accessTier: "open",
+      identityLine: "Too aware, too open, too early, too easy to reach.",
+      pressureTrack: {
+        trackId: "sensitive.sensory_load",
+        trackLabel: "Resonance Load"
+      },
+      passivePermissions: [
+        {
+          id: "pressure_sense",
+          name: "Pressure Sense",
+          effect: "Detect emotional charge, recent violence, unstable attention, fear, grief, obsession, or supernatural pressure when fiction allows.",
+          handlerNote: "Handler decides what answers. Not perfect answers — pressure before language.",
+          interaction: "reference"
+        },
+        {
+          id: "signal_bruising",
+          name: "Signal Bruising",
+          effect: "When a room, object, person, or recording carries strong residue, feel that something happened here before proof appears.",
+          handlerNote: "Residue sense, not generic perception.",
+          interaction: "reference"
+        }
+      ],
+      activeAbilities: [
+        {
+          id: "bad_room_read",
+          name: "Bad Room Read",
+          headline: true,
+          cadence: "Once per scene",
+          effect: "Ask the Handler one pressure question: what feels wrong, what is building, what is watching, what emotion does not belong, or what is about to become dangerous.",
+          roll: "No roll. Handler frames the read.",
+          interaction: "once_per_scene"
+        },
+        {
+          id: "resonant_read",
+          name: "Resonant Read",
+          cost: "Spend or risk Resonance Load",
+          effect: "+1 on one Instinct, Mind, or Presence action involving reading a person, room, object, threat, ritual, recording, or pressure pattern.",
+          tags: ["pressure read", "danger read", "pattern recognition", "resonance read"],
+          interaction: "resonant_read"
+        }
+      ],
+      bandModifiers: [
+        {
+          atLoad: 0,
+          bandLabel: "Numbed",
+          kind: "deprived",
+          hurts: "-1 to pressure-reading and resonance-native function",
+          note: "Signal arrives muted; the world feels padded wrong."
+        },
+        {
+          atLoad: 5,
+          bandLabel: "Over-Tuned",
+          kind: "edge",
+          helps: "+1 to pressure reads, danger reads, pattern recognition, supernatural detection",
+          hurts: "-1 to masking, calm social presence, or ignoring stimuli",
+          note: "The room's signal organizes attention before consent catches up."
+        }
+      ],
+      collapseBehavior: {
+        atLoad: 6,
+        name: "The Signal Reads Back",
+        bonus: "+2 to one urgent pressure-read or danger-response action",
+        agency: "handler-framed",
+        effect: "Sensory bleed, false certainty, unwanted empathy, attention spike, or emotional contamination take the mic.",
+        risk: "Handler frames sensory bleed. -2 to masking, restraint, or control."
       }
     }),
     presentationAbilityContract({
@@ -623,6 +697,12 @@
         closingBurstUsed: false
       };
     }
+    if (presentationId === "sensitive") {
+      return {
+        resonantRead: { active: false, mode: "", riskQueued: false },
+        sceneUses: {}
+      };
+    }
     if (presentationId === "wraith") {
       return {
         primaryLocus: "",
@@ -664,6 +744,17 @@
             riskQueued: Boolean(current.bloodSurge?.riskQueued)
           },
           closingBurstUsed: Boolean(current.closingBurstUsed)
+        };
+      } else if (entry.id === "sensitive") {
+        store[entry.id] = {
+          ...base,
+          ...current,
+          resonantRead: {
+            active: Boolean(current.resonantRead?.active),
+            mode: current.resonantRead?.mode === "risk" ? "risk" : (current.resonantRead?.mode === "spend" ? "spend" : ""),
+            riskQueued: Boolean(current.resonantRead?.riskQueued)
+          },
+          sceneUses: current.sceneUses && typeof current.sceneUses === "object" ? { ...current.sceneUses } : {}
         };
       } else if (entry.id === "wraith") {
         const tethers = Array.isArray(current.tethers) ? current.tethers.map(normalizeTether) : [];
@@ -752,6 +843,26 @@
     state.bloodSurge.active = false;
     state.bloodSurge.mode = "";
     normalized.presentationAbilityState.sanguine = state;
+    return normalized;
+  }
+
+  function resonantReadAppliesToRoll(status, attrKey) {
+    const state = presentationState(status, "sensitive");
+    if (!state.resonantRead?.active) return false;
+    return RESONANT_READ_ATTRS.includes(String(attrKey || "").trim());
+  }
+
+  function resonantReadRollBonus(status, attrKey) {
+    return resonantReadAppliesToRoll(status, attrKey) ? 1 : 0;
+  }
+
+  function consumeResonantReadOnRoll(status) {
+    const normalized = normalizePresentationAbilityState(status);
+    const state = normalized.presentationAbilityState.sensitive;
+    if (!state?.resonantRead?.active) return normalized;
+    state.resonantRead.active = false;
+    state.resonantRead.mode = "";
+    normalized.presentationAbilityState.sensitive = state;
     return normalized;
   }
 
@@ -854,6 +965,15 @@
         sceneFlag: true
       });
     }
+    const sensitive = normalized.presentationAbilityState.sensitive;
+    if (sensitive?.resonantRead?.active) {
+      entries.push({
+        id: "scene-tag-resonant_read",
+        label: "Resonant Read",
+        line: "Resonant Read: +1 next pressure read",
+        sceneFlag: true
+      });
+    }
 
     PRESENTATION_ABILITIES.forEach((presentation) => {
       const bucket = normalized.presentationAbilityState[presentation.id];
@@ -884,6 +1004,13 @@
     });
     if (next.presentationAbilityState.sanguine?.bloodSurge?.active) {
       next.presentationAbilityState.sanguine.bloodSurge = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+    }
+    if (next.presentationAbilityState.sensitive?.resonantRead?.active) {
+      next.presentationAbilityState.sensitive.resonantRead = {
         active: false,
         mode: "",
         riskQueued: false
@@ -1023,6 +1150,36 @@
 
     if (action === "blood_surge_clear") {
       next.presentationAbilityState.sanguine.bloodSurge = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "resonant_read_spend") {
+      if (pressure) {
+        next = pressure.adjustTrackLoad(next, "sensitive.sensory_load", -1);
+      }
+      next.presentationAbilityState.sensitive.resonantRead = {
+        active: true,
+        mode: "spend",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "resonant_read_risk") {
+      next.presentationAbilityState.sensitive.resonantRead = {
+        active: true,
+        mode: "risk",
+        riskQueued: true
+      };
+      return next;
+    }
+
+    if (action === "resonant_read_clear") {
+      next.presentationAbilityState.sensitive.resonantRead = {
         active: false,
         mode: "",
         riskQueued: false
@@ -1217,33 +1374,53 @@
     return button;
   }
 
-  function appendActiveTag(block, view, dispatch) {
-    const surge = view.runtimeState?.bloodSurge;
-    if (!surge?.active) return;
+  function appendRollTag(block, view, dispatch, spec) {
+    const state = view.runtimeState?.[spec.stateKey];
+    if (!state?.active) return;
     const tag = document.createElement("div");
     tag.className = "presentation-active-tag";
     const title = document.createElement("p");
     title.className = "presentation-active-tag-title";
-    title.textContent = "ACTIVE: Blood Surge +1";
+    title.textContent = spec.title;
     const copy = document.createElement("p");
     copy.className = "presentation-active-tag-copy";
-    copy.textContent = SURGE_APPLIES_COPY;
+    copy.textContent = spec.copy;
     tag.append(title, copy);
-    if (surge.mode === "risk" || surge.riskQueued) {
+    if (state.mode === "risk" || state.riskQueued) {
       const risk = document.createElement("p");
       risk.className = "presentation-active-tag-risk";
-      risk.textContent = "RISK: On miss or severe consequence, Blood Load +1 or Handler escalates.";
+      risk.textContent = spec.riskCopy;
       tag.append(risk);
     }
     tag.append(createButton("Clear", "presentation-ability-btn subtle", () => {
-      dispatch("blood_surge_clear");
+      dispatch(spec.clearAction);
     }));
     block.append(tag);
   }
 
-  function appendBloodSurgeCard(card, entry, view, dispatch) {
-    const surge = view.runtimeState?.bloodSurge;
-    if (surge?.active) {
+  function appendActiveTag(block, view, dispatch) {
+    appendRollTag(block, view, dispatch, {
+      stateKey: "bloodSurge",
+      title: "ACTIVE: Blood Surge +1",
+      copy: SURGE_APPLIES_COPY,
+      riskCopy: "RISK: On miss or severe consequence, Blood Load +1 or Handler escalates.",
+      clearAction: "blood_surge_clear"
+    });
+  }
+
+  function appendResonantReadTag(block, view, dispatch) {
+    appendRollTag(block, view, dispatch, {
+      stateKey: "resonantRead",
+      title: "ACTIVE: Resonant Read +1",
+      copy: RESONANT_READ_APPLIES_COPY,
+      riskCopy: "RISK: On miss or severe consequence, Resonance Load +1 or Handler escalates.",
+      clearAction: "resonant_read_clear"
+    });
+  }
+
+  function appendSpendRiskReadCard(card, entry, view, dispatch, spec) {
+    const state = view.runtimeState?.[spec.stateKey];
+    if (state?.active) {
       card.classList.add("is-resolved");
       return;
     }
@@ -1253,18 +1430,40 @@
       confirm.className = "presentation-ability-confirm";
       const prompt = document.createElement("p");
       prompt.className = "presentation-ability-confirm-prompt";
-      prompt.textContent = "Spend or risk Blood Load?";
+      prompt.textContent = spec.prompt;
       const actions = document.createElement("div");
       actions.className = "presentation-ability-confirm-actions";
       actions.append(
-        createButton("Spend 1 Blood Load", "presentation-ability-btn", () => dispatch("blood_surge_spend")),
-        createButton("Risk Blood Load", "presentation-ability-btn subtle", () => dispatch("blood_surge_risk")),
+        createButton(spec.spendLabel, "presentation-ability-btn", () => dispatch(spec.spendAction)),
+        createButton(spec.riskLabel, "presentation-ability-btn subtle", () => dispatch(spec.riskAction)),
         createButton("Cancel", "presentation-ability-btn ghost", () => confirm.remove())
       );
       confirm.append(prompt, actions);
       card.append(confirm);
     });
     card.append(open);
+  }
+
+  function appendBloodSurgeCard(card, entry, view, dispatch) {
+    appendSpendRiskReadCard(card, entry, view, dispatch, {
+      stateKey: "bloodSurge",
+      prompt: "Spend or risk Blood Load?",
+      spendLabel: "Spend 1 Blood Load",
+      riskLabel: "Risk Blood Load",
+      spendAction: "blood_surge_spend",
+      riskAction: "blood_surge_risk"
+    });
+  }
+
+  function appendResonantReadCard(card, entry, view, dispatch) {
+    appendSpendRiskReadCard(card, entry, view, dispatch, {
+      stateKey: "resonantRead",
+      prompt: "Spend or risk Resonance Load?",
+      spendLabel: "Spend 1 Resonance Load",
+      riskLabel: "Risk Resonance Load",
+      spendAction: "resonant_read_spend",
+      riskAction: "resonant_read_risk"
+    });
   }
 
   function sceneAbilityUsed(view, entry) {
@@ -1306,6 +1505,10 @@
     if (entry.interaction === "reference") return;
     if (entry.interaction === "blood_surge") {
       appendBloodSurgeCard(card, entry, view, dispatch);
+      return;
+    }
+    if (entry.interaction === "resonant_read") {
+      appendResonantReadCard(card, entry, view, dispatch);
       return;
     }
     if (entry.interaction === "once_per_scene") {
@@ -1473,6 +1676,9 @@
     if (view.id === "sanguine") {
       appendActiveTag(block, view, dispatch);
     }
+    if (view.id === "sensitive") {
+      appendResonantReadTag(block, view, dispatch);
+    }
 
     appendHauntInterface(block, view, runtime);
 
@@ -1630,6 +1836,10 @@
     bloodSurgeAppliesToRoll,
     bloodSurgeRollBonus,
     consumeBloodSurgeOnRoll,
+    resonantReadAppliesToRoll,
+    resonantReadRollBonus,
+    consumeResonantReadOnRoll,
+    RESONANT_READ_APPLIES_COPY,
     mountPresentationPermissionsReadout,
     appendPresentationPermissionsReadout,
     accessTierFromCatalog,
