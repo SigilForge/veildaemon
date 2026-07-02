@@ -416,6 +416,10 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator("#presentation-readout-body")).toContainText(/Coherent/);
   await expect(page.locator("#presentation-readout-summary")).toContainText("Band guide");
   await page.locator("#presentation-readout-summary").click();
+  await expect(page.locator("#presentation-readout-body")).toContainText(/Presentation permissions/);
+  await expect(page.locator("#presentation-readout-body")).toContainText(/Blood Surge/);
+  await expect(page.locator("#presentation-readout-body")).toContainText(/Closing Burst/);
+  await expect(page.locator("#presentation-readout-body")).toContainText(/too fast, too close/);
   await expect(page.locator("#presentation-readout-body")).toContainText(/human-like cognition/);
   await expect(page.getByText(/Band ladder/)).toBeVisible();
   await expect(page.locator("#presentation-readout-body")).toContainText(/Handler permission/);

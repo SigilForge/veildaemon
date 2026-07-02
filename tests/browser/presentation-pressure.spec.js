@@ -75,6 +75,48 @@ test("universal load presentations share the 0-6 safe-middle grammar", async ({ 
   });
 });
 
+test("sanguine presentation permissions expose blood surge and band-linked collapse", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const coherent = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 3 } }),
+      "SANGUINE"
+    );
+    const edge = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } }),
+      "SANGUINE"
+    );
+    const collapse = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 6 } }),
+      "SANGUINE"
+    );
+    return {
+      headline: coherent.headlineAbility?.name,
+      surgeEffect: coherent.headlineAbility?.effect,
+      passiveNames: coherent.passivePermissions.map((entry) => entry.name),
+      activeNames: coherent.activeAbilities.map((entry) => entry.name),
+      edgeBand: edge.activeBandState?.bandLabel,
+      edgeHelps: edge.activeBandState?.helps,
+      collapseName: collapse.activeBandState?.name,
+      collapseBonus: collapse.activeBandState?.bonus,
+      accessTier: coherent.accessTier,
+      identityLine: coherent.identityLine
+    };
+  });
+  expect(summary.headline).toBe("Blood Surge");
+  expect(summary.surgeEffect).toContain("+1");
+  expect(summary.passiveNames).toEqual(["Blood Sense", "Blood-Warm Recovery"]);
+  expect(summary.activeNames).toEqual(["Blood Surge", "Closing Burst"]);
+  expect(summary.edgeBand).toBe("Predatory Saturation");
+  expect(summary.edgeHelps).toContain("+1");
+  expect(summary.collapseName).toBe("Hunger Takes the Wheel");
+  expect(summary.collapseBonus).toContain("+2");
+  expect(summary.accessTier).toBe("handler_approval");
+  expect(summary.identityLine).toContain("too fast");
+});
+
 test("sanguine blood load derives state, mechanics, and band ladder from fill level", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {

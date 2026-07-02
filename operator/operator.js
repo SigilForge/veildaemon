@@ -335,6 +335,7 @@
   }
 
   const presentationPressureApi = () => window.PresentationPressure;
+  const presentationAbilitiesApi = () => window.PresentationAbilities;
 
   function activeLoadPresentation(status) {
     const api = presentationPressureApi();
@@ -2188,7 +2189,11 @@
     summaryCopy.append(summaryTitle, summaryCue);
     const expandHint = document.createElement("span");
     expandHint.className = "pressure-readout-expand-hint";
-    expandHint.textContent = "Band guide";
+    const abilitiesApi = presentationAbilitiesApi();
+    const abilityView = abilitiesApi
+      ? abilitiesApi.presentationAbilityView(status, presentation.id)
+      : null;
+    expandHint.textContent = abilityView ? "Band guide · permissions" : "Band guide";
     summary.append(chevron, summaryCopy, expandHint);
 
     body.textContent = "";
@@ -2203,6 +2208,10 @@
     stateDescriptor.textContent = view.descriptor || view.cue || "";
     stateBlock.append(stateTitle, stateDescriptor);
     body.append(stateBlock);
+
+    if (abilityView && abilitiesApi) {
+      abilitiesApi.appendPresentationPermissionsReadout(body, abilityView);
+    }
 
     if (view.cue) {
       const cueEl = document.createElement("p");

@@ -1399,6 +1399,81 @@ select.is-locked {
   line-height: 1.45;
   white-space: pre-line;
 }
+.presentation-permissions-readout {
+  margin: .55rem 0 .35rem;
+  padding-top: .45rem;
+  border-top: 1px solid rgba(137,255,218,.12);
+}
+.presentation-identity-line {
+  margin: 0 0 .45rem;
+  color: var(--muted);
+  font-size: .64rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+.presentation-ability-group {
+  display: grid;
+  gap: .35rem;
+  margin-bottom: .45rem;
+}
+.presentation-ability-group-label,
+.presentation-ability-title {
+  margin: 0;
+  color: var(--text);
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.presentation-ability-group-label {
+  color: var(--muted);
+}
+.presentation-ability {
+  padding: .4rem .45rem;
+  border: 1px solid rgba(137,255,218,.14);
+  background: rgba(0,0,0,.16);
+}
+.presentation-ability-headline {
+  margin-bottom: .45rem;
+  border-color: rgba(196, 48, 64, .42);
+  box-shadow: inset 0 0 18px rgba(196, 48, 64, .08);
+}
+.presentation-ability-headline .presentation-ability-title {
+  color: #f0a8a0;
+}
+.presentation-ability-passive {
+  border-color: rgba(137,255,218,.1);
+}
+.presentation-ability-meta {
+  margin: .2rem 0 0;
+  color: var(--muted);
+  font-size: .6rem;
+  letter-spacing: .04em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+.presentation-ability-effect {
+  margin: .25rem 0 0;
+  color: var(--muted);
+  font-size: .66rem;
+  line-height: 1.45;
+}
+.presentation-ability-risk {
+  color: #f0a8a0;
+}
+.presentation-band-state {
+  padding: .4rem .45rem;
+  border: 1px solid rgba(255,179,71,.28);
+  background: rgba(0,0,0,.2);
+}
+.presentation-band-state-edge {
+  border-color: rgba(196, 48, 64, .36);
+  box-shadow: inset 0 0 14px rgba(196, 48, 64, .06);
+}
+.presentation-band-state-collapse {
+  border-color: rgba(255, 120, 96, .48);
+  box-shadow: inset 0 0 16px rgba(255, 96, 72, .1);
+}
 .pressure-readout-modifier {
   margin: 0;
   color: var(--muted);
