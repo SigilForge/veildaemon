@@ -1,6 +1,8 @@
 name: Deploy Pages
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -34,6 +36,6 @@ jobs:
         id: deploy
         uses: actions/deploy-pages@v4
         with:
-          timeout: 600000
-          error_count: 20
+          timeout: 1800000
+          error_count: 30
           reporting_interval: 10000
