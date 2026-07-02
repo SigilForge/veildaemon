@@ -1,0 +1,44 @@
+name: Sync GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  actions: write
+
+concurrency:
+  group: sync-github-pages
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel competing Pages Actions deploys
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run list \
+            --repo "${{ github.repository }}" \
+            --workflow=pages-build-deployment \
+            --status=in_progress \
+            --json databaseId \
+            --jq '.[].databaseId' | while read -r id; do
+              gh run cancel "$id" --repo "${{ github.repository }}" || true
+            done
+
+      - name: Enforce legacy branch publishing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method PUT "repos/${{ github.repository }}/pages" \
+            -f build_type=legacy \
+            -f source[branch]=main \
+            -f source[path]=/
+
+      - name: Queue Pages rebuild
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${{ github.repository }}/pages/builds"
