@@ -760,8 +760,10 @@
 
   function backgroundGrantSummary(entry) {
     const skills = entry && Array.isArray(entry.skillBonus) ? entry.skillBonus : [];
+    const attributes = entry && Array.isArray(entry.attributeBonus) ? entry.attributeBonus : [];
     const parts = [];
     if (skills.length) parts.push(`Skills: ${skills.join(", ")} +1`);
+    if (attributes.length) parts.push(`Attributes: ${attributes.join(", ")} +1`);
     if (entry && entry.perk) parts.push(`Perk: ${entry.perk}`);
     if (entry && entry.hook) parts.push(`Hook: ${entry.hook}`);
     return parts.join("\n") || "Unlocks background option on the Operator sheet.";

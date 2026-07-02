@@ -445,9 +445,32 @@
     const entry = backgroundEntry(key);
     const bonuses = {};
     (entry.skillBonus || []).forEach((skill) => {
+      if (!skillNames().includes(skill)) return;
       bonuses[skill] = (bonuses[skill] || 0) + 1;
     });
     return bonuses;
+  }
+
+  function backgroundAttributeBonuses(status) {
+    const key = backgroundKeyFromDisplayName(status.background);
+    if (!key) return {};
+    const entry = backgroundEntry(key);
+    const bonuses = {};
+    (entry.attributeBonus || []).forEach((attribute) => {
+      if (!attributeNames().includes(attribute)) return;
+      bonuses[attribute] = (bonuses[attribute] || 0) + 1;
+    });
+    return bonuses;
+  }
+
+  function baseAttributeRank(attributes, attribute) {
+    return Number(normalizeAttributes(attributes)[attribute] || 0);
+  }
+
+  function effectiveAttributeRank(attributes, attribute, status) {
+    const base = baseAttributeRank(attributes, attribute);
+    const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
+    return Math.min(5, base + bonus);
   }
 
   function ontologySkillBonuses(status) {
@@ -2705,12 +2728,16 @@
   function renderAttributes() {
     const grid = document.getElementById("attribute-grid");
     if (!grid) return;
-    const attrs = normalizeAttributes(consoleState.operatorStatus.attributes);
+    const status = consoleState.operatorStatus;
+    const attrs = normalizeAttributes(status.attributes);
+    const attrBonuses = backgroundAttributeBonuses(status);
     const editing = pageEditUnlocked();
     consoleState.operatorStatus.attributes = attrs;
     grid.textContent = "";
     attributeNames().forEach((name) => {
       const value = Number(attrs[name]);
+      const bonusRank = attrBonuses[name] || 0;
+      const effectiveRank = Math.min(5, value + bonusRank);
       const row = document.createElement("article");
       row.className = "attribute-row";
       const label = document.createElement("button");
@@ -2755,6 +2782,14 @@
         pips.append(pip);
       }
       row.append(label, pips);
+      if (bonusRank > 0) {
+        const rankBadge = document.createElement("span");
+        rankBadge.className = "attribute-effective-rank";
+        rankBadge.textContent = value > 0
+          ? `+${effectiveRank} (${value}+${bonusRank})`
+          : `+${effectiveRank}`;
+        row.append(rankBadge);
+      }
       grid.append(row);
     });
   }
@@ -3148,10 +3183,11 @@
     if (attrSelect) {
       const current = normalizeAttributeName(status.rollAttributeKey) || "Body";
       attrSelect.textContent = "";
+      const attrs = normalizeAttributes(status.attributes);
       attributeNames().forEach((name) => {
         const option = document.createElement("option");
         option.value = name;
-        option.textContent = `${name} +${normalizeAttributes(status.attributes)[name]}`;
+        option.textContent = `${name} +${effectiveAttributeRank(attrs, name, status)}`;
         attrSelect.append(option);
       });
       attrSelect.value = current;
@@ -4130,7 +4166,7 @@
     const skills = normalizeSkills(status.skills);
     const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
     const skillKey = normalizeSkillName(status.rollSkillKey);
-    const attrValue = Number(attrs[attrKey] || 0);
+    const attrValue = effectiveAttributeRank(attrs, attrKey, status);
     const skillValue = skillKey ? effectiveSkillRank(skills, skillKey, status) : 0;
     const loadMods = resolveRollLoadModifiers(status);
     const loadDelta = Number(loadMods.delta || 0);
