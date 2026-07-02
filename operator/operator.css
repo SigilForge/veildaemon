@@ -2078,6 +2078,71 @@ a:focus-visible {
   white-space: pre-wrap;
 }
 
+.presentation-vault-section,
+.presentation-vault-drawer {
+  margin-top: 1rem;
+}
+
+.presentation-vault-lead,
+.presentation-vault-archive-copy {
+  margin: 0 0 .75rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.presentation-vault-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.presentation-vault-archive h4 {
+  margin: 0 0 .35rem;
+  font-size: .95rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.presentation-vault-cards {
+  display: grid;
+  gap: .65rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+
+.archive-card {
+  padding: .8rem .85rem;
+  border: 1px solid rgba(137,255,218,.18);
+  background: rgba(0,0,0,.18);
+}
+
+.archive-locked-card {
+  border-style: dashed;
+  border-color: rgba(185,84,255,.28);
+  background: rgba(26,4,37,.18);
+}
+
+.archive-card.is-cleared {
+  border-color: rgba(137,255,218,.34);
+}
+
+.archive-card-title {
+  margin: 0 0 .35rem;
+  font-size: .92rem;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.archive-card-status,
+.archive-card-requirement {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.4;
+  font-size: .86rem;
+}
+
+.archive-card-status {
+  color: var(--text);
+}
+
 body:not(.operator-record-sealed) .authorization-import-tab-only {
   display: none;
 }

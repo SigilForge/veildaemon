@@ -258,6 +258,40 @@
     return [];
   }
 
+  function presentationArchiveEntry(key) {
+    if (typeof catalogs.presentationArchiveEntry === "function") return catalogs.presentationArchiveEntry(key);
+    return { id: key, label: titleCaseKey(key) };
+  }
+
+  function presentationArchiveOptions() {
+    if (typeof catalogs.presentationArchiveOptions === "function") return catalogs.presentationArchiveOptions();
+    return [];
+  }
+
+  function presentationVaultOptions() {
+    if (typeof catalogs.presentationVaultOptions === "function") return catalogs.presentationVaultOptions();
+    return [];
+  }
+
+  function archiveLabelForKey(key) {
+    if (typeof catalogs.archiveLabelForKey === "function") return catalogs.archiveLabelForKey(key);
+    return titleCaseKey(key);
+  }
+
+  function hasArchiveUnlock(archiveId) {
+    const normalized = String(archiveId || "").toUpperCase();
+    if (!normalized || normalized === "CORE") return true;
+    return consoleState.unlocks.some((unlock) => unlock.type === "archive" && unlock.key === normalized);
+  }
+
+  function isPresentationUnlocked(entry) {
+    if (!entry) return false;
+    if (entry.access === "starter" || entry.access === "core") return true;
+    if (entry.access === "archive" && entry.archive && hasArchiveUnlock(entry.archive)) return true;
+    if (consoleState.unlocks.some((unlock) => unlock.type === "ontology" && unlock.key === entry.key)) return true;
+    return false;
+  }
+
   function backgroundOptions() {
     if (typeof catalogs.backgroundOptions === "function") return catalogs.backgroundOptions();
     return [];
@@ -535,7 +569,7 @@
 
   function normalizeUnlockType(value) {
     const type = safeString(value, 40).toLowerCase();
-    if (["ontology", "background", "case", "void", "breach"].includes(type)) return type;
+    if (["ontology", "background", "case", "void", "breach", "archive"].includes(type)) return type;
     return "";
   }
 
@@ -779,12 +813,14 @@
   function renderAuthorization() {
     const backgroundUnlocks = consoleState.unlocks.filter((item) => item.type === "background");
     const ontologyUnlocks = consoleState.unlocks.filter((item) => item.type === "ontology");
+    const archiveUnlocks = consoleState.unlocks.filter((item) => item.type === "archive");
     const rewardUnlocks = consoleState.unlocks.filter((item) => item.type === "void" || item.type === "breach");
     toggleUnlockPanel("background", backgroundUnlocks.length > 0);
-    toggleUnlockPanel("ontology", ontologyUnlocks.length > 0);
+    toggleUnlockPanel("ontology", ontologyUnlocks.length > 0 || archiveUnlocks.length > 0);
     renderUnlockList("background", backgroundUnlocks);
     renderUnlockList("ontology", ontologyUnlocks);
-    renderAuthorizedUnlockSurface(backgroundUnlocks, ontologyUnlocks, rewardUnlocks);
+    renderAuthorizedUnlockSurface(backgroundUnlocks, ontologyUnlocks, archiveUnlocks, rewardUnlocks);
+    renderPresentationVault();
   }
 
   function toggleUnlockPanel(kind, enabled) {
@@ -818,15 +854,40 @@
     });
   }
 
-  function renderAuthorizedUnlockSurface(backgroundUnlocks, ontologyUnlocks, rewardUnlocks) {
+  function renderAuthorizedUnlockSurface(backgroundUnlocks, ontologyUnlocks, archiveUnlocks, rewardUnlocks) {
     setText("authorized-current-presentation", consoleState.operatorStatus.ontologyPresentation || "UNSET");
     setText("authorized-current-background", consoleState.operatorStatus.background || "UNSET");
-    renderUnlockListInto(
-      document.getElementById("authorized-ontology-notice"),
-      document.getElementById("authorized-ontology-list"),
-      "ontology",
-      ontologyUnlocks
-    );
+    const ontologyNotice = document.getElementById("authorized-ontology-notice");
+    if (ontologyNotice) {
+      if (ontologyUnlocks.length) {
+        ontologyNotice.textContent = authorizationNotice("ontology", ontologyUnlocks[0]);
+      } else if (archiveUnlocks.length) {
+        ontologyNotice.textContent = authorizationNotice("archive", archiveUnlocks[0]);
+      } else {
+        ontologyNotice.textContent = "Core presentations are cleared. Expansion archives remain sealed until a key arrives.";
+      }
+    }
+    const ontologyList = document.getElementById("authorized-ontology-list");
+    if (ontologyList) {
+      ontologyList.textContent = "";
+      ontologyUnlocks.forEach((unlock) => {
+        ontologyList.append(entry(unlock.label || unlock.key, [
+          ["Authorization", unlockFlag(unlock)],
+          ["Status", "Available"],
+          ["Handler note", unlock.note],
+          ["Imported", formatDate(unlock.importedAt)]
+        ], "unlocks", unlock.id));
+      });
+      archiveUnlocks.forEach((unlock) => {
+        const archive = presentationArchiveEntry(unlock.key);
+        ontologyList.append(entry(`${archive.label} Key`, [
+          ["Authorization", unlockFlag(unlock)],
+          ["Status", "Archive cleared"],
+          ["Handler note", unlock.note],
+          ["Imported", formatDate(unlock.importedAt)]
+        ], "unlocks", unlock.id));
+      });
+    }
     renderUnlockListInto(
       document.getElementById("authorized-background-notice"),
       document.getElementById("authorized-background-list"),
@@ -842,6 +903,10 @@
   }
 
   function authorizationNotice(kind, unlock) {
+    if (kind === "archive") {
+      const archive = presentationArchiveEntry(unlock.key);
+      return unlock.note || `ARCHIVE KEY ACCEPTED\n\n${archive.label} cleared for this node.\n\nSealed presentation files in that archive may now be assigned.`;
+    }
     if (kind === "ontology") {
       const entry = presentationEntry(unlock.key);
       return unlock.note || `NEW ONTOLOGY SIGNAL DETECTED\n\nHandler authorization received.\n\n${entry.displayName} available for review.`;
@@ -908,7 +973,7 @@
         ? packet.unlocks.map((item) => item.flag || `${String(item.type || "").toUpperCase()}_UNLOCK:${item.key || item.value || ""}`)
         : [];
     const source = rawFlags.length ? rawFlags.join("\n") : text;
-    const matches = Array.from(source.matchAll(/\b((?:ONTOLOGY|BACKGROUND|CASE)_UNLOCK|(?:VOID|BREACH)_REWARD)\s*:\s*([A-Z0-9_ -]+)/gi));
+    const matches = Array.from(source.matchAll(/\b((?:ONTOLOGY|BACKGROUND|CASE|ARCHIVE)_UNLOCK|(?:VOID|BREACH)_REWARD)\s*:\s*([A-Z0-9_ -]+)/gi));
     return matches.map((match) => {
       const flagKind = match[1].toUpperCase();
       const type = flagKind.includes("_REWARD") ? flagKind.split("_")[0].toLowerCase() : flagKind.split("_")[0].toLowerCase();
@@ -927,6 +992,7 @@
   }
 
   function unlockLabel(type, key) {
+    if (type === "archive") return `${presentationArchiveEntry(key).label} Key`;
     if (type === "ontology") return presentationEntry(key).displayName;
     if (type === "background") return backgroundEntry(key).displayName;
     if (type === "void") return `${normalizeNonNegative(key)} Void`;
@@ -1125,14 +1191,16 @@
     const source = kind === "background" ? backgroundOptions() : presentationOptions();
     const entryFor = kind === "background" ? backgroundEntry : presentationEntry;
     const allowed = source
-      .filter((entry) => entry.access === "starter")
+      .filter((entry) => kind === "background" ? entry.access === "starter" : isPresentationUnlocked(entry))
       .map((entry) => ({ value: entry.displayName, label: entry.displayName }));
-    consoleState.unlocks
-      .filter((unlock) => unlock.type === kind)
-      .forEach((unlock) => {
-        const entry = entryFor(unlock.key);
-        allowed.push({ value: entry.displayName, label: entry.displayName });
-      });
+    if (kind === "background") {
+      consoleState.unlocks
+        .filter((unlock) => unlock.type === "background")
+        .forEach((unlock) => {
+          const entry = entryFor(unlock.key);
+          allowed.push({ value: entry.displayName, label: entry.displayName });
+        });
+    }
     if (currentValue) allowed.push({ value: currentValue, label: currentValue });
     const seen = new Set();
     return allowed.filter((item) => {
@@ -1162,6 +1230,59 @@
       presentationSelect.value = current;
     }
     renderBuildDefiningChoices();
+    renderPresentationVault();
+  }
+
+  function renderPresentationVault() {
+    const grids = [
+      document.getElementById("presentation-vault-grid"),
+      document.getElementById("presentation-vault-preview")
+    ].filter(Boolean);
+    if (!grids.length) return;
+    const vaultEntries = presentationVaultOptions();
+    const archives = presentationArchiveOptions().filter((archive) => archive.id !== "CORE");
+    grids.forEach((grid) => {
+      grid.textContent = "";
+      archives.forEach((archive) => {
+        const entries = vaultEntries.filter((entry) => entry.archive === archive.id);
+        if (!entries.length) return;
+        const section = document.createElement("section");
+        section.className = "presentation-vault-archive";
+        const heading = document.createElement("h4");
+        heading.textContent = archive.label;
+        section.append(heading);
+        if (archive.summary) {
+          const summary = document.createElement("p");
+          summary.className = "presentation-vault-archive-copy";
+          summary.textContent = archive.summary;
+          section.append(summary);
+        }
+        const cards = document.createElement("div");
+        cards.className = "presentation-vault-cards";
+        const archiveOpen = hasArchiveUnlock(archive.id);
+        entries.forEach((entry) => {
+          const card = document.createElement("article");
+          card.className = `archive-card${archiveOpen ? " is-cleared" : " archive-locked-card"}`;
+          const title = document.createElement("h5");
+          title.className = "archive-card-title";
+          title.textContent = entry.displayName;
+          card.append(title);
+          const status = document.createElement("p");
+          status.className = "archive-card-status";
+          status.textContent = archiveOpen ? "Archive Cleared" : "Archive Locked";
+          card.append(status);
+          const requirement = document.createElement("p");
+          requirement.className = "archive-card-requirement";
+          requirement.textContent = archiveOpen
+            ? "Mechanics vault pending release. Handler may assign when files publish."
+            : `Requires ${archive.label}`;
+          card.append(requirement);
+          cards.append(card);
+        });
+        section.append(cards);
+        grid.append(section);
+      });
+    });
   }
 
   function renderCurrencyBanks() {
@@ -3562,8 +3683,14 @@
       renderAll();
       activateTab("authorizations");
       const ontology = unlocks.find((item) => item.type === "ontology");
+      const archive = unlocks.find((item) => item.type === "archive");
       const assigned = targetCheck.assigned ? ` Assigned packet target ${targetCheck.target}.` : "";
-      setStorageStatus((ontology ? "NEW ONTOLOGY SIGNAL DETECTED" : `${added || unlocks.length} authorization flag processed.`) + assigned);
+      const statusMessage = ontology
+        ? "NEW ONTOLOGY SIGNAL DETECTED"
+        : archive
+          ? `ARCHIVE KEY ACCEPTED — ${presentationArchiveEntry(archive.key).label}`
+          : `${added || unlocks.length} authorization flag processed.`;
+      setStorageStatus(statusMessage + assigned);
     } catch (error) {
       setStorageStatus(error.message || "Authorization refused. No valid unlock flags found.", true);
     }
