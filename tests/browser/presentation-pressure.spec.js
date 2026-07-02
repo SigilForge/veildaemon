@@ -75,6 +75,66 @@ test("universal load presentations share the 0-6 safe-middle grammar", async ({ 
   });
 });
 
+test("blood surge spend reduces load and arms roll tag", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const status = pressure.migrateOperatorStatus({
+      presentationPressures: { "sanguine.blood_load": 4 }
+    });
+    const spent = abilities.applyPresentationAbilityAction(status, "blood_surge_spend");
+    return {
+      load: pressure.readTrackValue(spent, "sanguine.blood_load"),
+      active: spent.presentationAbilityState.sanguine.bloodSurge.active,
+      mode: spent.presentationAbilityState.sanguine.bloodSurge.mode,
+      bonus: abilities.bloodSurgeRollBonus(spent, "Body"),
+      cleared: abilities.bloodSurgeRollBonus(abilities.consumeBloodSurgeOnRoll(spent), "Body")
+    };
+  });
+  expect(summary.load).toBe(3);
+  expect(summary.active).toBe(true);
+  expect(summary.mode).toBe("spend");
+  expect(summary.bonus).toBe(1);
+  expect(summary.cleared).toBe(0);
+});
+
+test("wraith haunt interface exposes player-owned locus and tether fields", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const abilities = window.PresentationAbilities;
+    const view = abilities.presentationAbilityView(
+      abilities.normalizePresentationAbilityState({
+        ontologyPresentation: "Wraith-Touched / Anchor-Bound",
+        presentationPressures: { "wraith.essence_load": 3 },
+        presentationAbilityState: {
+          wraith: {
+            primaryLocus: "1978 Monte Carlo",
+            locusScale: "Vehicle",
+            tethers: [{ id: "t1", name: "Silver Locket", type: "Object", essence: "1", status: "Intact" }]
+          }
+        }
+      }),
+      "WRAITH_TOUCHED_ANCHOR_BOUND"
+    );
+    return {
+      displayLabel: view.displayLabel,
+      haunt: view.hauntInterface.enabled,
+      locus: view.runtimeState.primaryLocus,
+      passiveCount: view.passivePermissions.length,
+      activeNames: view.activeAbilities.map((entry) => entry.name),
+      tether: view.runtimeState.tethers[0]?.name
+    };
+  });
+  expect(summary.haunt).toBe(true);
+  expect(summary.displayLabel).toContain("Wraith");
+  expect(summary.locus).toBe("1978 Monte Carlo");
+  expect(summary.passiveCount).toBe(3);
+  expect(summary.activeNames).toContain("Poltergeist Touch");
+  expect(summary.activeNames).toContain("Anchor Pull");
+  expect(summary.tether).toBe("Silver Locket");
+});
+
 test("sanguine presentation permissions expose blood surge and band-linked collapse", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
@@ -441,6 +501,82 @@ test("load pip styles use horizontal grid and presentation tint variables", asyn
   expect(summary.gridTemplateColumns.split(/\s+/).filter(Boolean).length).toBe(6);
   expect(summary.filledBackground).not.toBe("rgba(0, 0, 0, 0)");
   expect(summary.echoAccent).toBe("#00b8a8");
+});
+
+test("recovery checkboxes resolve deterministically on next round", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const abilities = window.PresentationAbilities;
+    const pressure = window.PresentationPressure;
+    let status = pressure.migrateOperatorStatus({
+      stability: "6",
+      harmBoxes: "2",
+      recoveryGround: true,
+      presentationPressures: { "sanguine.blood_load": 3 },
+      ontologyPresentation: "Sanguine"
+    });
+    status = abilities.applySceneTimerAction(status, "next_round", { catalogKey: "SANGUINE" });
+    return {
+      stability: status.stability,
+      round: status.sceneTimer.round,
+      log: status.sceneTimer.log[0] || ""
+    };
+  });
+  expect(summary.stability).toBe("7");
+  expect(summary.round).toBe(2);
+  expect(summary.log).toContain("Ground resolved");
+  expect(summary.log).toContain("Stability +1");
+});
+
+test("treat harm creates pending timer and resolves harm on next round", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const abilities = window.PresentationAbilities;
+    const pressure = window.PresentationPressure;
+    let status = pressure.migrateOperatorStatus({
+      harmBoxes: "2",
+      attentionState: "Noticed",
+      presentationPressures: { "sanguine.blood_load": 3 },
+      ontologyPresentation: "Sanguine"
+    });
+    status = abilities.applyPresentationAbilityAction(status, "treat_harm_start", { catalogKey: "SANGUINE" });
+    const pending = status.sceneTimer.timers.some((timer) => timer.abilityId === "treat_harm");
+    status = abilities.applySceneTimerAction(status, "next_round", { catalogKey: "SANGUINE" });
+    return {
+      pending,
+      harm: status.harmBoxes,
+      harmRecovered: status.sceneTimer.harmRecoveredThisScene,
+      log: status.sceneTimer.log[0] || ""
+    };
+  });
+  expect(summary.pending).toBe(true);
+  expect(summary.harm).toBe("1");
+  expect(summary.harmRecovered).toBe(true);
+  expect(summary.log).toContain("Treat Harm resolved");
+});
+
+test("breathe clears blood surge before stabilizing", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const abilities = window.PresentationAbilities;
+    const pressure = window.PresentationPressure;
+    let status = pressure.migrateOperatorStatus({
+      stability: "6",
+      recoveryBreathe: true,
+      presentationAbilityState: {
+        sanguine: { bloodSurge: { active: true, mode: "risk", riskQueued: true } }
+      }
+    });
+    status = abilities.applySceneTimerAction(status, "next_round", { catalogKey: "SANGUINE" });
+    return {
+      stability: status.stability,
+      surgeActive: status.presentationAbilityState.sanguine.bloodSurge.active,
+      log: status.sceneTimer.log[0] || ""
+    };
+  });
+  expect(summary.stability).toBe("6");
+  expect(summary.surgeActive).toBe(false);
+  expect(summary.log).toContain("Cleared temporary pressure tag");
 });
 
 test("handler summary formats coherent blood load at four", async ({ page }) => {
