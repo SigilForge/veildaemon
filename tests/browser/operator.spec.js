@@ -587,7 +587,7 @@ test("burnout professional nerves bonus lands on attributes not skills", async (
   await expect(page.locator("#skill-summary-list")).not.toContainText("Nerves");
   await expect(page.locator(".attribute-pips .is-background-bonus")).toHaveCount(1);
   await expect(page.getByLabel("Nerves background bonus 2")).toHaveClass(/is-background-bonus/);
-  await expect(page.getByText("Creation: skills 0/8 // attribute spread 1/6 // Bonus Breach 3/3")).toBeVisible();
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
   await expect(page.locator("#roll-attribute")).toContainText("Nerves +2");
   await page.locator("#roll-attribute").selectOption("Nerves");
   await page.getByRole("button", { name: "Roll 3D6" }).click();
@@ -595,12 +595,14 @@ test("burnout professional nerves bonus lands on attributes not skills", async (
 
   await page.getByLabel("Nerves 3").click();
   await expect(page.locator(".attribute-pips .is-background-bonus")).toHaveCount(1);
-  await expect(page.getByText("Creation: skills 0/8 // attribute spread 2/6 // Bonus Breach 3/3")).toBeVisible();
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 1/6 // Bonus Breach 3/3")).toBeVisible();
   await expect(page.locator("#roll-attribute")).toContainText("Nerves +3");
   await page.getByRole("button", { name: "Roll 3D6" }).click();
   await expect(page.locator("#roll-output")).toContainText("Nerves +3");
 
-  await expect(page.getByLabel("Nerves 4")).toBeDisabled();
+  await page.getByLabel("Nerves 4").click();
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 2/6 // Bonus Breach 3/3")).toBeVisible();
+  await expect(page.locator("#roll-attribute")).toContainText("Nerves +4");
   await expect(page.getByLabel("Nerves 5")).toBeDisabled();
 });
 
