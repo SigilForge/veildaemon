@@ -366,6 +366,41 @@ test("load roll modifiers use the universal 0/-1, 5 +/-1, 6 +/-2 spine", async (
   expect(summary.therianLowInstinct.delta).toBe(-1);
 });
 
+test("load pip styles use horizontal grid and presentation tint variables", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const mount = document.createElement("div");
+    mount.innerHTML = `
+      <article class="line-tracker echo_load fill-meter presentation-echo load-band-regulated">
+        <div class="line-pips echo-load-pips">
+          <button class="pip is-filled" type="button"></button>
+          <button class="pip is-filled" type="button"></button>
+          <button class="pip is-filled" type="button"></button>
+          <button class="pip" type="button"></button>
+          <button class="pip" type="button"></button>
+          <button class="pip" type="button"></button>
+        </div>
+      </article>
+    `;
+    document.body.append(mount);
+    const tracker = mount.querySelector(".line-tracker.echo_load");
+    const pips = mount.querySelector(".echo-load-pips");
+    const first = mount.querySelector(".pip");
+    const pipStyle = getComputedStyle(pips);
+    const filledStyle = getComputedStyle(first);
+    const result = {
+      gridTemplateColumns: pipStyle.gridTemplateColumns,
+      filledBackground: filledStyle.backgroundColor,
+      echoAccent: getComputedStyle(tracker).getPropertyValue("--load-pip-5").trim()
+    };
+    mount.remove();
+    return result;
+  });
+  expect(summary.gridTemplateColumns.split(/\s+/).filter(Boolean).length).toBe(6);
+  expect(summary.filledBackground).not.toBe("rgba(0, 0, 0, 0)");
+  expect(summary.echoAccent).toBe("#00b8a8");
+});
+
 test("handler summary formats coherent blood load at four", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {

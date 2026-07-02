@@ -875,6 +875,7 @@ select.is-locked {
 .line-pips.pressure-pips {
   grid-template-columns: repeat(5, 1.35rem);
 }
+.line-pips[class*="-load-pips"],
 .line-pips.blood-load-pips,
 .line-pips.essence-load-pips,
 .line-pips.hunger-pips,
@@ -893,69 +894,231 @@ select.is-locked {
   position: relative;
   isolation: isolate;
 }
+.line-tracker[class*="_load"] .line-pips[class*="-load-pips"] .pip,
 .line-pips.blood-load-pips .pip,
 .line-pips.essence-load-pips .pip,
 .line-pips.hunger-pips .pip {
-  border-color: rgba(168, 92, 148, .42);
+  border-color: var(--load-pip-border, rgba(168, 92, 148, .42));
 }
-.line-pips.essence-load-pips .pip {
-  border-color: rgba(132, 168, 196, .38);
+.line-tracker[class*="_load"] .line-pips[class*="-load-pips"] .pip.is-filled:nth-child(1) {
+  background: var(--load-pip-1, #4a3560);
+  box-shadow: inset 0 0 0 1px var(--load-pip-1-ring, rgba(148, 112, 176, .35));
 }
-.line-pips.essence-load-pips .pip.is-filled:nth-child(1) {
-  background: #3a4258;
-  box-shadow: inset 0 0 0 1px rgba(156, 168, 196, .32);
+.line-tracker[class*="_load"] .line-pips[class*="-load-pips"] .pip.is-filled:nth-child(2) {
+  background: var(--load-pip-2, #5a3d7a);
+  box-shadow: inset 0 0 0 1px var(--load-pip-2-ring, rgba(168, 120, 190, .35));
 }
-.line-pips.essence-load-pips .pip.is-filled:nth-child(2) {
-  background: #4a5870;
-  box-shadow: inset 0 0 0 1px rgba(176, 188, 214, .34);
+.line-tracker[class*="_load"] .line-pips[class*="-load-pips"] .pip.is-filled:nth-child(3) {
+  background: var(--load-pip-3, #3d7a6a);
+  box-shadow: inset 0 0 0 1px var(--load-pip-3-ring, rgba(102, 255, 220, .32));
 }
-.line-pips.essence-load-pips .pip.is-filled:nth-child(3) {
-  background: #5a7898;
-  box-shadow: inset 0 0 0 1px rgba(176, 220, 255, .34);
+.line-tracker[class*="_load"] .line-pips[class*="-load-pips"] .pip.is-filled:nth-child(4) {
+  background: var(--load-pip-4, #66c4a8);
+  box-shadow: inset 0 0 0 1px var(--load-pip-4-ring, rgba(102, 255, 220, .42));
 }
-.line-pips.essence-load-pips .pip.is-filled:nth-child(4) {
-  background: #7a9cc4;
-  box-shadow: inset 0 0 0 1px rgba(196, 232, 255, .38);
+.line-tracker[class*="_load"] .line-pips[class*="-load-pips"] .pip.is-filled:nth-child(5) {
+  background: var(--load-pip-5, #c41e2a);
+  box-shadow: inset 0 0 0 1px var(--load-pip-5-ring, rgba(240, 88, 96, .35));
 }
-.line-pips.essence-load-pips .pip.is-filled:nth-child(5) {
-  background: #6a4a9a;
-  box-shadow: inset 0 0 0 1px rgba(176, 136, 220, .36);
+.line-tracker[class*="_load"] .line-pips[class*="-load-pips"] .pip.is-filled:nth-child(6) {
+  background: var(--load-pip-6, linear-gradient(180deg, #fff0e8 0%, #ff5a32 100%));
+  border-color: var(--load-pip-6-border, rgba(255, 220, 200, .72));
+  box-shadow: inset 0 0 0 1px var(--load-pip-6-ring, rgba(255, 200, 168, .45));
 }
-.line-pips.essence-load-pips .pip.is-filled:nth-child(6) {
-  background: linear-gradient(180deg, #e8e0ff 0%, #7a3ab8 100%);
-  border-color: rgba(210, 188, 255, .72);
-  box-shadow: inset 0 0 0 1px rgba(220, 200, 255, .42);
+.line-tracker.blood_load,
+.line-tracker.presentation-sanguine {
+  --load-pip-border: rgba(168, 92, 148, .42);
+  --load-pip-1: #4a3560;
+  --load-pip-1-ring: rgba(148, 112, 176, .35);
+  --load-pip-2: #5a3d7a;
+  --load-pip-2-ring: rgba(168, 120, 190, .35);
+  --load-pip-3: #5a3040;
+  --load-pip-3-ring: rgba(176, 96, 112, .34);
+  --load-pip-4: #8a3848;
+  --load-pip-4-ring: rgba(220, 96, 112, .38);
+  --load-pip-5: #c41e2a;
+  --load-pip-5-ring: rgba(240, 88, 96, .35);
+  --load-pip-6: linear-gradient(180deg, #fff0e8 0%, #ff5a32 100%);
+  --load-pip-6-border: rgba(255, 220, 200, .72);
+  --load-pip-6-ring: rgba(255, 200, 168, .45);
+  --load-edge-glow: rgba(240, 72, 88, .55);
+  --load-collapse-border: rgba(255, 200, 168, .85);
 }
-.line-pips.blood-load-pips .pip.is-filled:nth-child(1),
-.line-pips.hunger-pips .pip.is-filled:nth-child(1) {
-  background: #4a3560;
-  box-shadow: inset 0 0 0 1px rgba(148, 112, 176, .35);
+.line-tracker.essence_load,
+.line-tracker.presentation-wraith {
+  --load-pip-border: rgba(132, 168, 196, .38);
+  --load-pip-1: #3a4258;
+  --load-pip-1-ring: rgba(156, 168, 196, .32);
+  --load-pip-2: #4a5870;
+  --load-pip-2-ring: rgba(176, 188, 214, .34);
+  --load-pip-3: #5a7898;
+  --load-pip-3-ring: rgba(176, 220, 255, .34);
+  --load-pip-4: #7a9cc4;
+  --load-pip-4-ring: rgba(196, 232, 255, .38);
+  --load-pip-5: #8a9cb0;
+  --load-pip-5-ring: rgba(220, 232, 248, .42);
+  --load-pip-6: linear-gradient(180deg, #e8e0ff 0%, #7a3ab8 100%);
+  --load-pip-6-border: rgba(210, 188, 255, .72);
+  --load-pip-6-ring: rgba(220, 200, 255, .42);
+  --load-edge-glow: rgba(196, 220, 255, .5);
+  --load-collapse-border: rgba(210, 188, 255, .82);
 }
-.line-pips.blood-load-pips .pip.is-filled:nth-child(2),
-.line-pips.hunger-pips .pip.is-filled:nth-child(2) {
-  background: #5a3d7a;
-  box-shadow: inset 0 0 0 1px rgba(168, 120, 190, .35);
+.line-tracker.echo_load,
+.line-tracker.presentation-echo {
+  --load-pip-border: rgba(72, 196, 196, .34);
+  --load-pip-1: #1a3a40;
+  --load-pip-1-ring: rgba(72, 168, 168, .28);
+  --load-pip-2: #2a4a50;
+  --load-pip-2-ring: rgba(88, 188, 180, .3);
+  --load-pip-3: #3a6878;
+  --load-pip-3-ring: rgba(96, 208, 196, .34);
+  --load-pip-4: #4a8898;
+  --load-pip-4-ring: rgba(112, 220, 208, .36);
+  --load-pip-5: #00b8a8;
+  --load-pip-5-ring: rgba(0, 229, 204, .42);
+  --load-pip-6: linear-gradient(180deg, #a0ffc8 0%, #00c878 55%, #006848 100%);
+  --load-pip-6-border: rgba(160, 255, 200, .68);
+  --load-pip-6-ring: rgba(0, 255, 136, .38);
+  --load-edge-glow: rgba(0, 229, 204, .55);
+  --load-collapse-border: rgba(160, 255, 200, .78);
 }
-.line-pips.blood-load-pips .pip.is-filled:nth-child(3),
-.line-pips.hunger-pips .pip.is-filled:nth-child(3) {
-  background: #3d7a6a;
-  box-shadow: inset 0 0 0 1px rgba(102, 255, 220, .32);
+.line-tracker.silence_load,
+.line-tracker.presentation-silence {
+  --load-pip-border: rgba(148, 148, 156, .32);
+  --load-pip-1: #2a2a30;
+  --load-pip-1-ring: rgba(120, 120, 128, .28);
+  --load-pip-2: #3a3a42;
+  --load-pip-2-ring: rgba(140, 140, 148, .3);
+  --load-pip-3: #5a5a62;
+  --load-pip-3-ring: rgba(168, 168, 176, .32);
+  --load-pip-4: #7a7a82;
+  --load-pip-4-ring: rgba(188, 188, 196, .34);
+  --load-pip-5: #c8c8d0;
+  --load-pip-5-ring: rgba(220, 220, 228, .42);
+  --load-pip-6: linear-gradient(180deg, #f0f0f8 0%, #888890 100%);
+  --load-pip-6-border: rgba(232, 232, 240, .68);
+  --load-pip-6-ring: rgba(240, 240, 248, .38);
+  --load-edge-glow: rgba(220, 220, 228, .5);
+  --load-collapse-border: rgba(240, 240, 248, .78);
 }
-.line-pips.blood-load-pips .pip.is-filled:nth-child(4),
-.line-pips.hunger-pips .pip.is-filled:nth-child(4) {
-  background: #66c4a8;
-  box-shadow: inset 0 0 0 1px rgba(102, 255, 220, .42);
+.line-tracker.instinct_load,
+.line-tracker.presentation-therian {
+  --load-pip-border: rgba(168, 132, 72, .36);
+  --load-pip-1: #3a3020;
+  --load-pip-1-ring: rgba(148, 116, 64, .28);
+  --load-pip-2: #4a4028;
+  --load-pip-2-ring: rgba(168, 132, 72, .3);
+  --load-pip-3: #6a5a30;
+  --load-pip-3-ring: rgba(196, 156, 72, .34);
+  --load-pip-4: #8a7a40;
+  --load-pip-4-ring: rgba(212, 176, 80, .36);
+  --load-pip-5: #d4a020;
+  --load-pip-5-ring: rgba(240, 192, 64, .42);
+  --load-pip-6: linear-gradient(180deg, #a0e040 0%, #406020 100%);
+  --load-pip-6-border: rgba(176, 224, 96, .68);
+  --load-pip-6-ring: rgba(128, 208, 64, .38);
+  --load-edge-glow: rgba(240, 192, 64, .55);
+  --load-collapse-border: rgba(176, 224, 96, .78);
 }
-.line-pips.blood-load-pips .pip.is-filled:nth-child(5),
-.line-pips.hunger-pips .pip.is-filled:nth-child(5) {
-  background: #c41e2a;
-  box-shadow: inset 0 0 0 1px rgba(240, 88, 96, .35);
+.line-tracker.signal_load,
+.line-tracker.presentation-technomancer {
+  --load-pip-border: rgba(72, 132, 220, .34);
+  --load-pip-1: #1a2040;
+  --load-pip-1-ring: rgba(72, 112, 196, .28);
+  --load-pip-2: #2a3060;
+  --load-pip-2-ring: rgba(88, 132, 212, .3);
+  --load-pip-3: #3a5090;
+  --load-pip-3-ring: rgba(96, 156, 232, .34);
+  --load-pip-4: #4a70b0;
+  --load-pip-4-ring: rgba(112, 176, 240, .36);
+  --load-pip-5: #00a0ff;
+  --load-pip-5-ring: rgba(96, 192, 255, .42);
+  --load-pip-6: linear-gradient(180deg, #00ff88 0%, #001a10 100%);
+  --load-pip-6-border: rgba(0, 255, 136, .62);
+  --load-pip-6-ring: rgba(0, 220, 120, .38);
+  --load-edge-glow: rgba(96, 192, 255, .55);
+  --load-collapse-border: rgba(0, 255, 136, .72);
 }
-.line-pips.blood-load-pips .pip.is-filled:nth-child(6),
-.line-pips.hunger-pips .pip.is-filled:nth-child(6) {
-  background: linear-gradient(180deg, #fff0e8 0%, #ff5a32 100%);
-  border-color: rgba(255, 220, 200, .72);
-  box-shadow: inset 0 0 0 1px rgba(255, 200, 168, .45);
+.line-tracker.function_load,
+.line-tracker.presentation-construct {
+  --load-pip-border: rgba(168, 160, 120, .34);
+  --load-pip-1: #3a3a38;
+  --load-pip-1-ring: rgba(140, 140, 132, .28);
+  --load-pip-2: #4a4a46;
+  --load-pip-2-ring: rgba(156, 156, 148, .3);
+  --load-pip-3: #6a6a60;
+  --load-pip-3-ring: rgba(176, 176, 164, .32);
+  --load-pip-4: #8a8a78;
+  --load-pip-4-ring: rgba(196, 196, 176, .34);
+  --load-pip-5: #e8c020;
+  --load-pip-5-ring: rgba(240, 208, 72, .42);
+  --load-pip-6: linear-gradient(180deg, #ffe860 0%, #6a6a58 100%);
+  --load-pip-6-border: rgba(240, 216, 96, .68);
+  --load-pip-6-ring: rgba(232, 192, 32, .38);
+  --load-edge-glow: rgba(240, 208, 72, .55);
+  --load-collapse-border: rgba(240, 216, 96, .78);
+}
+.line-tracker.sensory_load,
+.line-tracker.presentation-sensitive {
+  --load-pip-border: rgba(148, 104, 220, .34);
+  --load-pip-1: #2a2040;
+  --load-pip-1-ring: rgba(132, 96, 196, .28);
+  --load-pip-2: #3a2860;
+  --load-pip-2-ring: rgba(156, 112, 212, .3);
+  --load-pip-3: #5a4080;
+  --load-pip-3-ring: rgba(176, 132, 228, .34);
+  --load-pip-4: #7a60a8;
+  --load-pip-4-ring: rgba(196, 156, 240, .36);
+  --load-pip-5: #b060ff;
+  --load-pip-5-ring: rgba(208, 128, 255, .42);
+  --load-pip-6: linear-gradient(135deg, #b060ff 0%, #60d8ff 50%, #ff80d8 100%);
+  --load-pip-6-border: rgba(208, 160, 255, .68);
+  --load-pip-6-ring: rgba(176, 128, 255, .38);
+  --load-edge-glow: rgba(208, 128, 255, .55);
+  --load-collapse-border: rgba(208, 160, 255, .78);
+}
+.line-tracker.void_load,
+.line-tracker.presentation-void_shard {
+  --load-pip-border: rgba(120, 72, 168, .36);
+  --load-pip-1: #1a1020;
+  --load-pip-1-ring: rgba(108, 72, 148, .28);
+  --load-pip-2: #2a1830;
+  --load-pip-2-ring: rgba(132, 88, 168, .3);
+  --load-pip-3: #4a2860;
+  --load-pip-3-ring: rgba(156, 104, 196, .34);
+  --load-pip-4: #6a3880;
+  --load-pip-4-ring: rgba(176, 120, 212, .36);
+  --load-pip-5: #a030c8;
+  --load-pip-5-ring: rgba(208, 96, 240, .42);
+  --load-pip-6: linear-gradient(180deg, #ff00ff 0%, #1a001a 100%);
+  --load-pip-6-border: rgba(255, 96, 255, .68);
+  --load-pip-6-ring: rgba(240, 72, 240, .38);
+  --load-edge-glow: rgba(208, 96, 240, .55);
+  --load-collapse-border: rgba(255, 96, 255, .78);
+}
+@keyframes load-flicker {
+  0%, 100% { opacity: 1; filter: saturate(1); }
+  50% { opacity: .62; filter: saturate(.55); }
+}
+@keyframes load-edge-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 1px var(--load-pip-5-ring, rgba(240, 88, 96, .35)); }
+  50% { box-shadow: inset 0 0 10px var(--load-edge-glow, rgba(240, 88, 96, .45)), 0 0 8px var(--load-edge-glow, rgba(240, 88, 96, .35)); }
+}
+@keyframes load-collapse-flash {
+  0%, 100% { border-color: var(--load-pip-6-border, rgba(255, 220, 200, .72)); }
+  50% { border-color: var(--load-collapse-border, rgba(255, 240, 220, .95)); }
+}
+.line-tracker.load-band-deprived .line-pips[class*="-load-pips"] .pip.is-filled {
+  animation: load-flicker 2.4s ease-in-out infinite;
+}
+.line-tracker.load-band-edge .line-pips[class*="-load-pips"] .pip.is-filled:nth-child(5) {
+  animation: load-edge-pulse 1.6s ease-in-out infinite;
+}
+.line-tracker.load-band-collapse .line-pips[class*="-load-pips"] .pip.is-filled:nth-child(6) {
+  animation: load-collapse-flash .9s steps(2) infinite;
+}
+.line-tracker.load-band-collapse.fill-meter {
+  box-shadow: inset 0 0 0 1px var(--load-collapse-border, rgba(255, 200, 168, .35));
 }
 .pip {
   aspect-ratio: 2.2 / 1;
@@ -1069,7 +1232,6 @@ select.is-locked {
   box-shadow: inset 0 0 0 1px rgba(185,84,255,.42);
 }
 .line-tracker.pressure .pip.is-filled,
-.line-tracker[class*="_load"] .pip.is-filled,
 .line-tracker.hunger .pip.is-filled,
 .line-tracker.presentation .pip.is-filled {
   box-shadow: inset 0 0 0 1px rgba(255,179,71,.35);

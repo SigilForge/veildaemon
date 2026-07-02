@@ -386,7 +386,7 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Sanguine Presentation");
   await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Mythic Echo");
   await expect(page.locator("#background-grant-preview")).toHaveText("Grants: —");
-  await expect(page.locator("#ontology-grant-preview")).toHaveText("Grants: —");
+  await expect(page.locator("#ontology-grant-preview")).toHaveText("Load: —");
   await expect(page.locator('input[name="voidMarks"]')).toHaveValue("2");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("5");
 
@@ -408,7 +408,7 @@ test("operator imports Handler authorization unlock packets", async ({ page }) =
   await expect(page.locator("#skill-summary-list")).toContainText("Medicine");
   await expect(page.locator("#skill-summary-list")).toContainText("+1");
   await page.locator('[name="ontologyPresentation"]').selectOption("Sanguine Presentation");
-  await expect(page.locator("#ontology-grant-preview")).toHaveText("Handler Approval Recommended // Grants: none loaded");
+  await expect(page.locator("#ontology-grant-preview")).toHaveText("Handler Approval Recommended // Load: Blood Load");
   await expect(page.locator("#presentation-readout-layer")).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" })).toBeVisible();
   await expect(page.locator(".line-tracker").filter({ hasText: "Blood Load" }).locator(".pip-derived")).toHaveText("Coherent");
@@ -543,9 +543,14 @@ test("open core presentations appear without Handler unlock", async ({ page }) =
   const options = page.locator('[name="ontologyPresentation"] option');
   await expect(options).toContainText(["Resonant Sensitive"]);
   await expect(options).toContainText(["Echo-Altered Presentation"]);
+  await expect(options).toContainText(["Hollow / Silence-Altered"]);
   await expect(options).toContainText(["Technomancer / Daemon-Aligned"]);
+  await expect(options).toContainText(["Therian Adaptation"]);
   await expect(options).not.toContainText(["Sanguine Presentation"]);
+  await expect(options).not.toContainText(["Wraith-Touched / Anchor-Bound"]);
   await expect(options).not.toContainText(["Void-Shard"]);
+  await expect(options).not.toContainText(["Construct"]);
+  await expect(options).not.toContainText(["Vessel"]);
   await expect(options).not.toContainText(["Angelic Vessel"]);
   await expect(options).not.toContainText(["Demon-Bound"]);
 });
@@ -568,8 +573,8 @@ test("expansion vault stays on authorized unlocks not sheet", async ({ page }) =
   await page.getByLabel("Console modules").getByRole("button", { name: "Authorized Unlocks" }).click();
   const vault = page.locator("#presentation-vault-grid");
   await expect(vault).toContainText("Angelic Vessel");
-  await expect(vault).toContainText("Archive Locked");
-  await expect(vault).toContainText("Requires Radiance Archive");
+  await expect(vault).toContainText("Archive Locked: Radiance Archive");
+  await expect(vault).toContainText("Requires Radiance Archive key");
   await expect(vault).not.toContainText("Blood Load");
 });
 

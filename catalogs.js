@@ -215,6 +215,15 @@
       locked: true,
       grants: {}
     },
+    MUMMIFIED: {
+      label: "Mummified",
+      displayName: "Mummified",
+      category: "presentation",
+      access: "archive",
+      archive: "DEATH_ARCHIVE",
+      locked: true,
+      grants: {}
+    },
     FUNERARY_BOUND: {
       label: "Funerary-Bound",
       displayName: "Funerary-Bound",
@@ -463,6 +472,26 @@
     return "none loaded";
   }
 
+  function presentationGrantLabel(entry) {
+    if (!entry) return "—";
+    const skillBonus = grantsSkillBonuses(entry.grants);
+    if (skillBonus.length) return skillBonusGrantLabel(skillBonus);
+    const api = typeof window !== "undefined" ? window.PresentationPressure : null;
+    if (api && entry.key) {
+      const presentation = api.presentationForCatalogKey(entry.key);
+      if (presentation && api.isLoadPresentation(presentation)) {
+        return presentation.trackLabel;
+      }
+    }
+    if (entry.access === "starter" && entry.key === "BASELINE_HUMAN") {
+      return "none";
+    }
+    if (entry.category === "ontology") {
+      return "advanced ontology";
+    }
+    return "pressure pending";
+  }
+
   function backgroundGrantLabel(entry) {
     return skillBonusGrantLabel(entry && entry.skillBonus) || "none loaded";
   }
@@ -527,6 +556,7 @@
     titleCaseKey,
     skillBonusGrantLabel,
     ontologyGrantLabel,
+    presentationGrantLabel,
     backgroundGrantLabel,
     grantsSkillBonuses,
     presentationArchiveEntry,
