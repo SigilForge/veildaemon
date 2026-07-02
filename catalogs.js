@@ -2,10 +2,10 @@
   const presentationArchiveCatalog = {
     CORE: {
       id: "CORE",
-      label: "Core / Free",
+      label: "Core Package",
       tier: "core",
       expansion: 0,
-      summary: "Baseline weird for beta and core play."
+      summary: "Open and Handler Approval presentations ship with core rules."
     },
     PREDATORY_ARCHIVE: {
       id: "PREDATORY_ARCHIVE",
@@ -51,79 +51,90 @@
       displayName: "Baseline Human",
       category: "presentation",
       access: "starter",
-      archive: "CORE",
       grants: {}
     },
     RESONANT_SENSITIVE: {
       label: "Resonant Sensitive",
       displayName: "Resonant Sensitive",
       category: "presentation",
-      access: "core",
-      archive: "CORE",
+      access: "open",
       grants: {}
     },
     SANGUINE: {
       label: "Sanguine Presentation",
       displayName: "Sanguine Presentation",
       category: "presentation",
-      access: "core",
-      archive: "CORE",
+      access: "handler",
+      approval: "recommended",
       grants: {}
     },
     ECHO_ALTERED: {
       label: "Echo-Altered Presentation",
       displayName: "Echo-Altered Presentation",
       category: "presentation",
-      access: "core",
-      archive: "CORE",
+      access: "open",
       grants: {}
     },
     THERIAN_ADAPTATION: {
       label: "Therian Adaptation",
       displayName: "Therian Adaptation",
       category: "presentation",
-      access: "core",
-      archive: "CORE",
+      access: "open",
       grants: {}
     },
     HOLLOW_SILENCE_ALTERED: {
       label: "Hollow / Silence-Altered",
       displayName: "Hollow / Silence-Altered",
       category: "presentation",
-      access: "core",
-      archive: "CORE",
+      access: "open",
       grants: {}
     },
     WRAITH_TOUCHED_ANCHOR_BOUND: {
       label: "Wraith-Touched / Anchor-Bound",
       displayName: "Wraith-Touched / Anchor-Bound",
       category: "presentation",
-      access: "core",
-      archive: "CORE",
+      access: "handler",
+      approval: "required",
       grants: {}
     },
     TECHNOMANCER_DAEMON_ALIGNED: {
       label: "Technomancer / Daemon-Aligned",
       displayName: "Technomancer / Daemon-Aligned",
       category: "presentation",
-      access: "core",
-      archive: "CORE",
+      access: "open",
+      grants: {}
+    },
+    CONSTRUCT: {
+      label: "Construct",
+      displayName: "Construct",
+      category: "presentation",
+      access: "handler",
+      approval: "required",
+      grants: {}
+    },
+    VESSEL: {
+      label: "Vessel",
+      displayName: "Vessel",
+      category: "presentation",
+      access: "handler",
+      approval: "required",
       grants: {}
     },
     CONSTRUCT_VESSEL: {
       label: "Construct / Vessel",
       displayName: "Construct / Vessel",
       category: "presentation",
-      access: "core",
-      archive: "CORE",
+      access: "handler",
+      approval: "required",
+      legacyAlias: true,
       grants: {}
     },
     VOID_SHARD: {
       label: "Void-Shard",
       displayName: "Void-Shard",
       category: "presentation",
-      access: "core",
-      archive: "CORE",
+      access: "handler",
+      approval: "required",
       grants: {}
     },
     MYTHIC_ECHO: {
@@ -131,14 +142,11 @@
       displayName: "Mythic Echo",
       category: "ontology",
       access: "advanced",
-      archive: "CORE",
       grants: {}
     },
     GHOST: { label: "Ghost", displayName: "Ghost", category: "ontology", access: "advanced", grants: {} },
     WRAITH: { label: "Wraith", displayName: "Wraith", category: "ontology", access: "advanced", grants: {} },
-    VESSEL: { label: "Vessel", displayName: "Vessel", category: "ontology", access: "advanced", grants: {} },
     TECHNOMANCER: { label: "Technomancer", displayName: "Technomancer", category: "ontology", access: "advanced", grants: {} },
-    CONSTRUCT: { label: "Construct", displayName: "Construct", category: "ontology", access: "advanced", grants: {} },
     MYTH_TECH_SYMBIOTE: { label: "Myth-Tech Symbiote", displayName: "Myth-Tech Symbiote", category: "ontology", access: "advanced", grants: {} },
     VEILWALKER: { label: "Veilwalker", displayName: "Veilwalker", category: "ontology", access: "advanced", grants: {} },
     DOMAIN_TOUCHED: { label: "Domain-Touched", displayName: "Domain-Touched", category: "ontology", access: "advanced", grants: {} },
@@ -478,14 +486,38 @@
       .filter((entry) => entry.access === "archive" && entry.locked);
   }
 
-  function presentationCoreOptions() {
+  function presentationOpenOptions() {
     return Object.entries(presentationCatalog)
       .map(([key, entry]) => ({ key, ...entry }))
-      .filter((entry) => entry.access === "core" || entry.access === "starter");
+      .filter((entry) => entry.access === "open" || entry.access === "starter");
+  }
+
+  function presentationHandlerApprovalOptions() {
+    return Object.entries(presentationCatalog)
+      .map(([key, entry]) => ({ key, ...entry }))
+      .filter((entry) => entry.access === "handler" && !entry.legacyAlias);
+  }
+
+  function presentationCoreCatalogOptions() {
+    return [...presentationOpenOptions(), ...presentationHandlerApprovalOptions()];
   }
 
   function archiveLabelForKey(archiveKey) {
     return presentationArchiveEntry(archiveKey).label || titleCaseKey(archiveKey);
+  }
+
+  function presentationAccessLabel(entry) {
+    if (!entry) return "";
+    if (entry.access === "open" || entry.access === "starter") return "Open Core";
+    if (entry.access === "handler") {
+      return entry.approval === "recommended"
+        ? "Handler Approval Recommended"
+        : "Handler Approval Required";
+    }
+    if (entry.access === "archive") {
+      return `Archive Locked: ${archiveLabelForKey(entry.archive)}`;
+    }
+    return "";
   }
 
   window.CradlepointCatalogs = {
@@ -500,7 +532,10 @@
     presentationArchiveEntry,
     presentationArchiveOptions,
     presentationVaultOptions,
-    presentationCoreOptions,
+    presentationOpenOptions,
+    presentationHandlerApprovalOptions,
+    presentationCoreCatalogOptions,
+    presentationAccessLabel,
     archiveLabelForKey,
     presentationEntry: (key) => catalogEntry(presentationCatalog, key),
     backgroundEntry: (key) => catalogEntry(backgroundCatalog, key),

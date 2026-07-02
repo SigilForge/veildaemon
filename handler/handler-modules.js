@@ -881,14 +881,19 @@
   }
 
   function renderAuthorizationCatalogs() {
+    const catalogs = window.CradlepointCatalogs || {};
     const ontology = document.querySelector('[name="ontology"]');
     const background = document.querySelector('[name="background"]');
     if (ontology) {
       ontology.textContent = "";
       api.presentationOptions().forEach((entry) => {
+        if (entry.access === "archive" || entry.legacyAlias) return;
         const option = document.createElement("option");
         option.value = entry.key;
-        option.textContent = `${entry.label} // ${entry.access}`;
+        const accessLabel = typeof catalogs.presentationAccessLabel === "function"
+          ? catalogs.presentationAccessLabel(entry)
+          : entry.access;
+        option.textContent = `${entry.label} // ${accessLabel || entry.access}`;
         ontology.append(option);
       });
     }
