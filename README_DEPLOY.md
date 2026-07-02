@@ -4,20 +4,28 @@ This is a static GitHub Pages site. No Jekyll build step. `.nojekyll` is present
 
 ## GitHub Pages source
 
-Use **one** deploy path only. Mixing legacy branch publishing with GitHub Actions Pages leaves `veildaemon.app` stale.
+Use **one** deploy path only. Racing legacy branch publishing against GitHub Actions Pages leaves `veildaemon.app` stale.
 
 **Automatic deploys:** publish from branch `main` at `/` (legacy static mode). `.nojekyll` disables Jekyll processing.
 
-**Manual fallback:** workflow `Deploy Pages` (`.github/workflows/deploy-pages.yml`)
-- Run from **Actions → Deploy Pages → Run workflow** when the automatic build errors or the site is stuck
-- Uploads a slim static artifact and waits up to 30 minutes for GitHub Pages to finish syncing
+In **Settings → Pages**, source should be **Deploy from a branch** (`main` / `/`), not **GitHub Actions**. If both are active, pushes can spawn a stuck `pages-build-deployment` run while the legacy build is still working.
 
-If the site looks stale after a push:
+Legacy builds for this repo usually take **10–15 minutes**. A successful build is normal even when Actions deploy times out in `deployment_queued`.
 
-1. Check **Settings → Pages** for a failed build
-2. If needed, run **Actions → Deploy Pages** manually
-3. Hard refresh the browser (or open a private window)
-4. Confirm `operator/index.html` references the expected `?v=` cache string
+### If the site looks stale after a push
+
+1. Check **Settings → Pages** build status. Wait for `built`, not just the GitHub Actions check.
+2. Do **not** re-run `pages-build-deployment` while a legacy build is in progress.
+3. If no build is running, trigger one manually:
+   ```bash
+   gh api --method POST repos/SigilForge/veildaemon/pages/builds
+   ```
+4. Hard refresh the browser (or open a private window).
+5. Confirm `operator/index.html` references the expected `?v=` cache string.
+
+### Emergency fallback
+
+Workflow `Deploy Pages` exists for manual recovery, but GitHub currently caps `actions/deploy-pages` polling at 10 minutes. Prefer the legacy rebuild command above unless Actions Pages is the only configured source.
 
 ## Replace links if needed
 Open `index.html` and search for these button labels:
