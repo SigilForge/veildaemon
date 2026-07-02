@@ -600,9 +600,8 @@ test("burnout professional nerves bonus lands on attributes not skills", async (
   await page.getByRole("button", { name: "Roll 3D6" }).click();
   await expect(page.locator("#roll-output")).toContainText("Nerves +3");
 
-  await page.getByLabel("Nerves 5").click();
-  await expect(page.locator("#roll-attribute")).toContainText("Nerves +5");
-  await expect(page.getByLabel("Nerves background bonus 5")).toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Nerves 4")).toBeDisabled();
+  await expect(page.getByLabel("Nerves 5")).toBeDisabled();
 });
 
 test("legacy nerves skill entries are scrubbed from saved builds", async ({ page }) => {
@@ -716,22 +715,15 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
   await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 3/3")).toBeVisible();
 
-  await page.getByLabel("Body 4").click();
-  await expect(page.locator("#storage-status")).toContainText("Insufficient Breach. Required 4");
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await expect(page.getByLabel("Body 4")).toBeDisabled();
   await expect(page.locator("#roll-attribute")).toContainText("Body +3");
 
   await importAuthorizationPacket(page, ["BREACH_REWARD:5"]);
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("8");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
-
-  await page.getByLabel("Body 4").click();
-  await expect(page.locator("#roll-attribute")).toContainText("Body +4");
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("4");
-
-  await page.getByLabel("Body 3").click();
+  await expect(page.getByLabel("Body 4")).toBeDisabled();
   await expect(page.locator("#roll-attribute")).toContainText("Body +3");
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("8");
 });
 
 test("open core presentations appear without Handler unlock", async ({ page }) => {
