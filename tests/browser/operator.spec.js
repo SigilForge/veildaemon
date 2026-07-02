@@ -12,6 +12,17 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+async function applyCoreStart(page, options = {}) {
+  const accept = options.accept !== false;
+  page.once("dialog", (dialog) => {
+    expect(dialog.type()).toBe("confirm");
+    expect(dialog.message()).toContain("reset the Operator sheet to Core Start baseline");
+    if (accept) dialog.accept();
+    else dialog.dismiss();
+  });
+  await page.getByRole("button", { name: "Apply Core Start" }).click();
+}
+
 async function importAuthorizationPacket(page, flags, operatorName = "TEST-OP") {
   await page.getByLabel("Console modules").getByRole("button", { name: "Authorized Unlocks" }).click();
   await page.locator("#import-authorization").setInputFiles({
@@ -104,7 +115,7 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Edit Sheet: On" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Apply Core Start" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Add Skill" })).toBeVisible();
-  await page.getByRole("button", { name: "Apply Core Start" }).click();
+  await applyCoreStart(page);
   await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
   await expect(page.locator('input[name="voidMarks"]')).toHaveValue("0");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
@@ -152,7 +163,7 @@ test("secondary material is separated into tabs", async ({ page }) => {
 
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByRole("button", { name: "Apply Core Start" }).click();
+  await applyCoreStart(page);
   await importAuthorizationPacket(page, ["VOID_REWARD:7", "BREACH_REWARD:27"]);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
@@ -490,12 +501,58 @@ test("frequency advancement enforces released Lotus caps", async ({ page }) => {
   await expect(page.locator("#lotus-tier")).toHaveText("None");
 });
 
+test("apply core start confirm cancels without resetting build state", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+  await page.getByLabel("Body 3").click();
+  await page.locator("#skill-picker").selectOption("Investigation");
+  await page.locator("#skill-rank").fill("2");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByLabel("Dream pip 2").click();
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+
+  await applyCoreStart(page, { accept: false });
+  await expect(page.locator("#roll-attribute")).toContainText("Body +3");
+  await expect(page.locator("#skill-summary-list")).toContainText("Investigation");
+  await page.getByRole("button", { name: "Frequency" }).click();
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
+});
+
+test("apply core start resets frequency pips skills and bonus breach", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+  await page.getByLabel("Body 3").click();
+  await page.locator("#skill-picker").selectOption("Investigation");
+  await page.locator("#skill-rank").fill("2");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByLabel("Dream pip 2").click();
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+
+  await applyCoreStart(page);
+  await expect(page.locator("#roll-attribute")).toContainText("Body +1");
+  await expect(page.locator("#skill-summary-list")).not.toContainText("Investigation");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+  await page.getByRole("button", { name: "Frequency" }).click();
+  await expect(page.getByLabel("Dream Void")).toHaveValue("1");
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("1 / 6");
+  await expect(page.locator("#lotus-tier")).toHaveText("Basic");
+  await expect(page.getByLabel("Dream pip 2")).not.toHaveClass(/is-filled/);
+});
+
 test("creation mode guards attribute bonus breach spending", async ({ page }) => {
   await page.goto("/operator/");
 
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByRole("button", { name: "Apply Core Start" }).click();
+  await applyCoreStart(page);
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
   await expect(page.locator("#breach-bank-readout")).toHaveText("3");
 

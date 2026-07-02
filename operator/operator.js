@@ -1746,6 +1746,42 @@
     return candidates.find((frequency) => frequency && frequency !== blind) || "Dream";
   }
 
+  function operatorStatusCoreStartBaseline(frequency) {
+    const fresh = cloneDefaultState().operatorStatus;
+    const current = consoleState.operatorStatus;
+    const blind = normalizeFrequencyName(current.blindPetal);
+    const gateFrequency = frequency && frequency !== blind ? frequency : selectedCoreFrequency();
+    const preserved = {
+      operatorName: current.operatorName,
+      designation: current.designation,
+      role: current.role || fresh.role,
+      activeNeedlepoint: current.activeNeedlepoint,
+      background: current.background,
+      ontologyPresentation: current.ontologyPresentation,
+      blindPetal: current.blindPetal,
+      sheetEditMode: current.sheetEditMode
+    };
+    const next = {
+      ...fresh,
+      ...preserved,
+      creationMode: true,
+      voidMarks: "0",
+      breachPoints: String(creationBonusBreachBudget()),
+      voidByFrequency: normalizeVoidByFrequency(fresh.voidByFrequency),
+      lotus: normalizeLotus(fresh.lotus),
+      selectedLotusPetal: gateFrequency
+    };
+    next.voidByFrequency[gateFrequency] = "1";
+    next.lotus[gateFrequency] = "1";
+    return migrateOperatorStatus(next);
+  }
+
+  function confirmCoreStartReset() {
+    return window.confirm(
+      "This will reset the Operator sheet to Core Start baseline — attributes, skills, Frequency pips, Void investment, and Bonus Breach. Are you sure?"
+    );
+  }
+
   function canSpendBreach(cost) {
     return Number(consoleState.operatorStatus.breachPoints || 0) >= cost;
   }
@@ -2358,19 +2394,24 @@
     const driftView = driftApi?.presentationDriftView
       ? driftApi.presentationDriftView(status, presentation.id)
       : null;
-    const summaryTitle = document.createElement("strong");
-    const driftSuffix = driftView?.value ? ` · Drift ${driftView.value}` : "";
-    summaryTitle.textContent = `${operating} · ${view.trackLabel} ${view.value}/${view.range.max}${driftSuffix}`;
-    const summaryCue = document.createElement("span");
-    summaryCue.className = "pressure-readout-summary-cue";
-    summaryCue.textContent = truncateReadout(view.descriptor || view.cue, 88);
-    summaryCopy.append(summaryTitle, summaryCue);
-    const expandHint = document.createElement("span");
-    expandHint.className = "pressure-readout-expand-hint";
     const abilitiesApi = presentationAbilitiesApi();
     const abilityView = abilitiesApi
       ? abilitiesApi.presentationAbilityView(status, presentation.id)
       : null;
+    const summaryTitle = document.createElement("strong");
+    const driftSuffix = driftView?.value ? ` · Drift ${driftView.value}` : "";
+    const armedPower = abilitiesApi?.armedRollActiveLabel
+      ? abilitiesApi.armedRollActiveLabel(abilityView)
+      : "";
+    const armedSuffix = armedPower ? ` · ${armedPower} armed` : "";
+    summaryTitle.textContent = `${operating} · ${view.trackLabel} ${view.value}/${view.range.max}${driftSuffix}${armedSuffix}`;
+    const summaryCue = document.createElement("span");
+    summaryCue.className = "pressure-readout-summary-cue";
+    const permissionsHint = abilityView ? "Powers in strip below · expand for band guide" : "";
+    summaryCue.textContent = truncateReadout(permissionsHint || view.descriptor || view.cue, 88);
+    summaryCopy.append(summaryTitle, summaryCue);
+    const expandHint = document.createElement("span");
+    expandHint.className = "pressure-readout-expand-hint";
     expandHint.textContent = abilityView ? "Band guide · permissions · drift" : "Band guide · drift";
     summary.append(chevron, summaryCopy, expandHint);
 
@@ -2391,7 +2432,7 @@
       const mount = abilitiesApi.mountPresentationPermissionsReadout
         || abilitiesApi.appendPresentationPermissionsReadout;
       mount(body, abilityView, {
-        editable: pageEditUnlocked(),
+        editable: true,
         dispatch: dispatchPresentationAbilityAction
       });
     }
@@ -2583,6 +2624,23 @@
     actions.append(nextRound, endScene);
     header.append(roundLabel, actions);
     strip.append(header);
+
+    const abilityView = api.presentationAbilityView
+      ? api.presentationAbilityView(status, currentPresentationKey())
+      : null;
+    if (abilityView && api.mountPresentationPowersQuickStrip) {
+      api.mountPresentationPowersQuickStrip(strip, abilityView, {
+        dispatch: dispatchPresentationAbilityAction,
+        openPermissions: () => {
+          const layer = document.getElementById("presentation-readout-layer");
+          if (layer) {
+            layer.hidden = false;
+            layer.open = true;
+            layer.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+        }
+      });
+    }
 
     if (entries.length) {
       const list = document.createElement("div");
@@ -4019,20 +4077,11 @@
     });
     const applyCoreStart = document.getElementById("apply-core-start");
     if (applyCoreStart) applyCoreStart.addEventListener("click", () => {
-      const status = consoleState.operatorStatus;
+      if (!confirmCoreStartReset()) return;
       const frequency = selectedCoreFrequency();
-      const fresh = cloneDefaultState().operatorStatus;
-      status.creationMode = true;
-      status.attributes = normalizeAttributes(fresh.attributes);
-      status.voidMarks = "0";
-      status.voidByFrequency = normalizeVoidByFrequency(status.voidByFrequency);
-      status.voidByFrequency[frequency] = String(Math.max(1, Number(status.voidByFrequency[frequency] || 0)));
-      status.breachPoints = String(creationBonusBreachBudget());
-      status.lotus = normalizeLotus(status.lotus);
-      status.lotus[frequency] = String(Math.max(1, Number(status.lotus[frequency] || 0)));
-      status.selectedLotusPetal = frequency;
-      setNamedValue("voidMarks", status.voidMarks);
-      setNamedValue("breachPoints", status.breachPoints);
+      consoleState.operatorStatus = operatorStatusCoreStartBaseline(frequency);
+      setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
+      setNamedValue("breachPoints", consoleState.operatorStatus.breachPoints);
       renderCurrencyBanks();
       writeConsoleState();
       renderAll();

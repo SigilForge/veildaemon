@@ -868,6 +868,34 @@ select.is-locked {
   opacity: .45;
   cursor: not-allowed;
 }
+.presentation-powers-quick {
+  margin-top: .45rem;
+  padding-top: .4rem;
+  border-top: 1px solid rgba(137, 255, 218, .12);
+}
+.presentation-powers-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+  align-items: flex-start;
+}
+.presentation-powers-quick-actions .presentation-ability-btn {
+  margin-top: 0;
+}
+.presentation-powers-quick-armed {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+  align-items: center;
+  padding: .25rem .35rem;
+  border: 1px solid rgba(185, 84, 255, .28);
+  background: rgba(0, 0, 0, .22);
+  color: var(--text);
+  font-size: .62rem;
+}
+.presentation-powers-quick-confirm {
+  flex: 1 1 100%;
+}
 .scene-timer-active-label {
   margin: 0 0 .2rem;
   color: var(--muted);

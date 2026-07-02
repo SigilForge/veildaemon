@@ -21,6 +21,98 @@
   const FUNCTION_SURGE_APPLIES_COPY = "Applies to next Body or Mind action involving repair, endurance, precision, protection, purpose execution, system interaction, or continuing under pressure.";
   const ANOMALY_PUSH_ATTRS = ["Body", "Mind", "Instinct"];
   const ANOMALY_PUSH_APPLIES_COPY = "Applies to next Body, Mind, or Instinct action involving breach survival, anomaly handling, impossible spaces, corrupted physics, Void exposure, or resisting reality pressure.";
+  const PRESENTATION_ROLL_ACTIVE_SPECS = {
+    sanguine: {
+      stateKey: "bloodSurge",
+      label: "Blood Surge",
+      prompt: "Spend or risk Blood Load?",
+      spendLabel: "Spend 1 Blood Load",
+      riskLabel: "Risk Blood Load",
+      spendAction: "blood_surge_spend",
+      riskAction: "blood_surge_risk",
+      clearAction: "blood_surge_clear"
+    },
+    sensitive: {
+      stateKey: "resonantRead",
+      label: "Resonant Read",
+      prompt: "Spend or risk Resonance Load?",
+      spendLabel: "Spend 1 Resonance Load",
+      riskLabel: "Risk Resonance Load",
+      spendAction: "resonant_read_spend",
+      riskAction: "resonant_read_risk",
+      clearAction: "resonant_read_clear"
+    },
+    echo: {
+      stateKey: "secondPass",
+      label: "Second Pass",
+      prompt: "Spend or risk Echo Load?",
+      spendLabel: "Spend 1 Echo Load",
+      riskLabel: "Risk Echo Load",
+      spendAction: "second_pass_spend",
+      riskAction: "second_pass_risk",
+      clearAction: "second_pass_clear"
+    },
+    silence: {
+      stateKey: "slipNotice",
+      label: "Slip Notice",
+      prompt: "Spend or risk Silence Load?",
+      spendLabel: "Spend 1 Silence Load",
+      riskLabel: "Risk Silence Load",
+      spendAction: "slip_notice_spend",
+      riskAction: "slip_notice_risk",
+      clearAction: "slip_notice_clear"
+    },
+    technomancer: {
+      stateKey: "daemonPush",
+      label: "Daemon Push",
+      prompt: "Spend or risk Signal Load?",
+      spendLabel: "Spend 1 Signal Load",
+      riskLabel: "Risk Signal Load",
+      spendAction: "daemon_push_spend",
+      riskAction: "daemon_push_risk",
+      clearAction: "daemon_push_clear"
+    },
+    therian: {
+      stateKey: "feralDrive",
+      label: "Feral Drive",
+      prompt: "Spend or risk Instinct Load?",
+      spendLabel: "Spend 1 Instinct Load",
+      riskLabel: "Risk Instinct Load",
+      spendAction: "feral_drive_spend",
+      riskAction: "feral_drive_risk",
+      clearAction: "feral_drive_clear"
+    },
+    vessel: {
+      stateKey: "borrowedForce",
+      label: "Borrowed Force",
+      prompt: "Spend or risk Containment Load?",
+      spendLabel: "Spend 1 Containment Load",
+      riskLabel: "Risk Containment Load",
+      spendAction: "borrowed_force_spend",
+      riskAction: "borrowed_force_risk",
+      clearAction: "borrowed_force_clear"
+    },
+    construct: {
+      stateKey: "functionSurge",
+      label: "Function Surge",
+      prompt: "Spend or risk Function Load?",
+      spendLabel: "Spend 1 Function Load",
+      riskLabel: "Risk Function Load",
+      spendAction: "function_surge_spend",
+      riskAction: "function_surge_risk",
+      clearAction: "function_surge_clear"
+    },
+    void_shard: {
+      stateKey: "anomalyPush",
+      label: "Anomaly Push",
+      prompt: "Spend or risk Void Load?",
+      spendLabel: "Spend 1 Void Load",
+      riskLabel: "Risk Void Load",
+      spendAction: "anomaly_push_spend",
+      riskAction: "anomaly_push_risk",
+      clearAction: "anomaly_push_clear"
+    }
+  };
   const CONTAINED_TYPE_OPTIONS = [
     { id: "unknown", label: "Unknown" },
     { id: "angelic", label: "Angelic / Divine / Sainted" },
@@ -3247,6 +3339,108 @@
     mountPresentationPermissionsReadout(body, view, runtime);
   }
 
+  function armedRollActiveLabel(view) {
+    const spec = PRESENTATION_ROLL_ACTIVE_SPECS[view?.id];
+    if (!spec) return "";
+    const state = view.runtimeState?.[spec.stateKey];
+    return state?.active ? spec.label : "";
+  }
+
+  function mountPresentationPowersQuickStrip(container, view, runtime) {
+    if (!container || !view) return;
+    const dispatch = typeof runtime?.dispatch === "function" ? runtime.dispatch : null;
+    if (!dispatch) return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "presentation-powers-quick";
+
+    const title = document.createElement("p");
+    title.className = "scene-timer-active-label";
+    title.textContent = "Presentation Powers";
+    wrap.append(title);
+
+    const actions = document.createElement("div");
+    actions.className = "presentation-powers-quick-actions";
+
+    const rollSpec = PRESENTATION_ROLL_ACTIVE_SPECS[view.id];
+    if (rollSpec) {
+      const rollState = view.runtimeState?.[rollSpec.stateKey];
+      if (rollState?.active) {
+        const armed = document.createElement("div");
+        armed.className = "presentation-powers-quick-armed";
+        const armedCopy = document.createElement("span");
+        armedCopy.textContent = `${rollSpec.label}: +1 next roll`;
+        armed.append(
+          armedCopy,
+          createButton("Clear", "presentation-ability-btn subtle", () => dispatch(rollSpec.clearAction))
+        );
+        actions.append(armed);
+      } else {
+        const rollBtn = createButton(rollSpec.label, "presentation-ability-btn", () => {
+          actions.querySelector(".presentation-powers-quick-confirm")?.remove();
+          const confirm = document.createElement("div");
+          confirm.className = "presentation-powers-quick-confirm presentation-ability-confirm";
+          const prompt = document.createElement("p");
+          prompt.className = "presentation-ability-confirm-prompt";
+          prompt.textContent = rollSpec.prompt;
+          const confirmActions = document.createElement("div");
+          confirmActions.className = "presentation-ability-confirm-actions";
+          confirmActions.append(
+            createButton(rollSpec.spendLabel, "presentation-ability-btn", () => dispatch(rollSpec.spendAction)),
+            createButton(rollSpec.riskLabel, "presentation-ability-btn subtle", () => dispatch(rollSpec.riskAction)),
+            createButton("Cancel", "presentation-ability-btn ghost", () => confirm.remove())
+          );
+          confirm.append(prompt, confirmActions);
+          actions.append(confirm);
+        });
+        actions.append(rollBtn);
+      }
+    }
+
+    view.activeAbilities.forEach((entry) => {
+      if (entry.interaction === "once_per_scene") {
+        const used = sceneAbilityUsed(view, entry);
+        const button = createButton(
+          used ? `${entry.name} (used)` : `Use: ${entry.name}`,
+          `presentation-ability-btn${used ? " subtle" : ""}`,
+          () => {
+            if (used) {
+              dispatch("scene_reset", { presentationId: view.id, abilityId: entry.id });
+            } else {
+              dispatch("scene_use", { presentationId: view.id, abilityId: entry.id });
+            }
+          }
+        );
+        actions.append(button);
+        return;
+      }
+      if (entry.interaction === "load_shift_center") {
+        actions.append(createButton(entry.name, "presentation-ability-btn", () => dispatch("anchor_pull")));
+        return;
+      }
+      if (entry.interaction === "essence_transfer_note") {
+        actions.append(createButton("Queue Transfer", "presentation-ability-btn", () => dispatch("essence_transfer_note")));
+        return;
+      }
+      if (entry.interaction === "countdown_timer") {
+        const pending = (view.runtimeSceneTimers || []).find((timer) => timer.abilityId === entry.id);
+        if (pending) {
+          actions.append(createButton("Cancel Countdown", "presentation-ability-btn subtle", () => dispatch("re_corporealize_cancel")));
+        } else {
+          actions.append(createButton("Begin Countdown", "presentation-ability-btn", () => dispatch("re_corporealize_start")));
+        }
+      }
+    });
+
+    if (typeof runtime?.openPermissions === "function") {
+      actions.append(createButton("All Permissions", "presentation-ability-btn ghost", () => runtime.openPermissions()));
+    }
+
+    if (!actions.children.length) return;
+    wrap.append(actions);
+    container.append(wrap);
+  }
+
   window.PresentationAbilities = {
     passivePermission,
     activeAbility,
@@ -3307,6 +3501,8 @@
     CONTAINED_TYPE_OPTIONS,
     mountPresentationPermissionsReadout,
     appendPresentationPermissionsReadout,
+    mountPresentationPowersQuickStrip,
+    armedRollActiveLabel,
     accessTierFromCatalog,
     SURGE_APPLIES_COPY
   };
