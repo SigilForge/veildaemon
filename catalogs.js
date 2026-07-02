@@ -406,7 +406,7 @@
     FIELD_MEDIC: { label: "Field Medic", displayName: "Field Medic", skillBonus: ["Medicine"], perk: "Once per scene, when giving immediate aid, identify the most urgent ordinary injury or exposure risk before acting.", hook: "You learned the body fails before the story does.", tether: "A patient, accident, or bad call still follows you.", access: "starter" },
     FIRST_RESPONDER: { label: "First Responder", displayName: "First Responder", skillBonus: ["Tactics", "Athletics"], perk: "Advantage to act quickly during disasters, evacuations, fires, crashes, panic, or crowd collapse.", hook: "You move toward the alarm.", tether: "Your badge, radio, unit, or old crew can still pull you back in.", access: "starter" },
     SERVICE_WORKER: { label: "Service Worker", displayName: "Service Worker", skillBonus: ["Persuasion", "Awareness"], perk: "Once per scene, read the mood of a workplace, crowd, queue, or customer-facing space.", hook: "You survived invisible labor and public masks.", tether: "A manager, coworker, regular, or unpaid bill still has leverage.", access: "starter" },
-    BURNOUT_PROFESSIONAL: { label: "Burnout Professional", displayName: "Burnout Professional", skillBonus: ["Investigation", "Nerves"], perk: "Once per session, ignore one minor exhaustion, stress, or bureaucracy-related penalty long enough to finish a task.", hook: "You used to function. Technically.", tether: "Your old career can still identify you on paper.", access: "starter" },
+    BURNOUT_PROFESSIONAL: { label: "Burnout Professional", displayName: "Burnout Professional", skillBonus: ["Investigation"], attributeBonus: ["Nerves"], perk: "Once per session, ignore one minor exhaustion, stress, or bureaucracy-related penalty long enough to finish a task.", hook: "You used to function. Technically.", tether: "Your old career can still identify you on paper.", access: "starter" },
     OCCULT_DABBLER: { label: "Occult Dabbler", displayName: "Occult Dabbler", skillBonus: ["Ritual"], perk: "Advantage to recognize folk wards, symbolic repetition, amateur rites, cult aesthetics, or fake occult theater.", hook: "You were playing with matches before the room became flammable.", tether: "You own, owe, or inherited something you do not fully understand.", access: "starter" },
     FORMER_BELIEVER: { label: "Former Believer", displayName: "Former Believer", skillBonus: ["Empathy", "Academics"], perk: "Advantage to spot coercive doctrine, ritualized guilt, spiritual manipulation, or groupthink.", hook: "You escaped one explanation and do not trust new ones easily.", tether: "Someone from the old circle wants you back, saved, silent, or punished.", access: "starter" },
     LOCAL_WITNESS: { label: "Local Witness", displayName: "Local Witness", skillBonus: ["Awareness", "Investigation"], perk: "Once per session, declare one mundane local detail you already know: a shortcut, rumor, business owner, camera blind spot, or neighborhood habit.", hook: "You saw something impossible and kept living nearby.", tether: "The place remembers you noticing.", access: "starter" },
@@ -439,6 +439,7 @@
       displayName: label,
       access: "unknown",
       skillBonus: [],
+      attributeBonus: [],
       grants: {}
     };
   }
@@ -455,6 +456,11 @@
   function skillBonusGrantLabel(bonuses) {
     if (!Array.isArray(bonuses) || !bonuses.length) return "";
     return bonuses.map((skill) => `${skill} +1`).join(", ");
+  }
+
+  function attributeBonusGrantLabel(bonuses) {
+    if (!Array.isArray(bonuses) || !bonuses.length) return "";
+    return bonuses.map((attribute) => `${attribute} +1`).join(", ");
   }
 
   function grantsSkillBonuses(grants) {
@@ -493,7 +499,12 @@
   }
 
   function backgroundGrantLabel(entry) {
-    return skillBonusGrantLabel(entry && entry.skillBonus) || "none loaded";
+    if (!entry) return "none loaded";
+    const parts = [
+      skillBonusGrantLabel(entry.skillBonus),
+      attributeBonusGrantLabel(entry.attributeBonus)
+    ].filter(Boolean);
+    return parts.length ? parts.join(" // ") : "none loaded";
   }
 
   function presentationArchiveEntry(key) {
@@ -555,6 +566,7 @@
     backgroundCatalog,
     titleCaseKey,
     skillBonusGrantLabel,
+    attributeBonusGrantLabel,
     ontologyGrantLabel,
     presentationGrantLabel,
     backgroundGrantLabel,

@@ -2210,9 +2210,18 @@ fieldset.recovery-field.compact label {
 }
 .attribute-row {
   display: grid;
-  grid-template-columns: minmax(5.6rem, .34fr) minmax(0, 1fr);
+  grid-template-columns: minmax(5.6rem, .34fr) minmax(0, 1fr) minmax(3.2rem, auto);
   gap: .42rem;
   align-items: center;
+}
+.attribute-effective-rank {
+  justify-self: end;
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: var(--text);
+  text-align: right;
+  white-space: nowrap;
 }
 .attribute-name {
   min-height: 2rem;

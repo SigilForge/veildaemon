@@ -576,6 +576,22 @@ test("background skill bonuses do not count against creation skill budget", asyn
   await expect(page.locator("#skill-summary-list")).toContainText("+3 (2+1)");
 });
 
+test("burnout professional nerves bonus lands on attributes not skills", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+  await page.locator('[name="background"]').selectOption("Burnout Professional");
+  await expect(page.locator("#background-grant-preview")).toHaveText("Grants: Investigation +1 // Nerves +1");
+  await expect(page.locator("#skill-summary-list")).toContainText("Investigation");
+  await expect(page.locator("#skill-summary-list")).not.toContainText("Nerves");
+  await expect(page.locator(".attribute-effective-rank")).toHaveText("+2 (1+1)");
+  await expect(page.locator("#roll-attribute")).toContainText("Nerves +2");
+  await page.locator("#roll-attribute").selectOption("Nerves");
+  await page.getByRole("button", { name: "Roll 3D6" }).click();
+  await expect(page.locator("#roll-output")).toContainText("Nerves +2");
+});
+
 test("creation mode guards attribute bonus breach spending", async ({ page }) => {
   await page.goto("/operator/");
 
