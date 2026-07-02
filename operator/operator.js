@@ -424,9 +424,9 @@
     return bonuses && bonuses.length ? bonuses.map((skill) => `${skill} +1`).join(", ") : "none loaded";
   }
 
-  function ontologyGrantLabel(entry) {
-    if (typeof catalogs.ontologyGrantLabel === "function") return catalogs.ontologyGrantLabel(entry && entry.grants);
-    return "none loaded";
+  function presentationGrantLabel(entry) {
+    if (typeof catalogs.presentationGrantLabel === "function") return catalogs.presentationGrantLabel(entry);
+    return "—";
   }
 
   function grantsSkillBonuses(grants) {
@@ -1182,8 +1182,8 @@
       const entry = key ? presentationEntry(key) : null;
       const accessLabel = entry ? presentationAccessLabel(entry) : "";
       ontologyPreview.textContent = status.ontologyPresentation
-        ? `${accessLabel ? `${accessLabel} // ` : ""}Grants: ${ontologyGrantLabel(entry)}`
-        : "Grants: —";
+        ? `${accessLabel ? `${accessLabel} // ` : ""}Load: ${presentationGrantLabel(entry)}`
+        : "Load: —";
     }
   }
 
@@ -1212,24 +1212,31 @@
   }
 
   function buildUnlockedOptions(kind, currentValue) {
-    const source = kind === "background" ? backgroundOptions() : presentationOptions();
     const entryFor = kind === "background" ? backgroundEntry : presentationEntry;
-    const allowed = source
-      .filter((entry) => {
-        if (kind === "background") return entry.access === "starter";
-        if (entry.legacyAlias) return false;
-        return isPresentationUnlocked(entry);
-      })
-      .map((entry) => ({ value: entry.displayName, label: entry.displayName }));
+    const allowed = [];
     if (kind === "background") {
+      backgroundOptions()
+        .filter((entry) => entry.access === "starter")
+        .forEach((entry) => {
+          allowed.push({ value: entry.displayName, label: entry.displayName });
+        });
       consoleState.unlocks
         .filter((unlock) => unlock.type === "background")
         .forEach((unlock) => {
           const entry = entryFor(unlock.key);
           allowed.push({ value: entry.displayName, label: entry.displayName });
         });
-    }
-    if (kind === "ontology") {
+    } else {
+      presentationOpenOptions()
+        .filter((entry) => !entry.legacyAlias)
+        .forEach((entry) => {
+          allowed.push({ value: entry.displayName, label: entry.displayName });
+        });
+      presentationVaultOptions()
+        .filter((entry) => isPresentationUnlocked(entry))
+        .forEach((entry) => {
+          allowed.push({ value: entry.displayName, label: entry.displayName });
+        });
       consoleState.unlocks
         .filter((unlock) => unlock.type === "ontology")
         .forEach((unlock) => {
@@ -1303,13 +1310,15 @@
           card.append(title);
           const status = document.createElement("p");
           status.className = "archive-card-status";
-          status.textContent = archiveOpen ? "Archive Cleared" : "Archive Locked";
+          status.textContent = archiveOpen
+            ? "Archive Cleared"
+            : (presentationAccessLabel(entry) || `Archive Locked: ${archive.label}`);
           card.append(status);
           const requirement = document.createElement("p");
           requirement.className = "archive-card-requirement";
           requirement.textContent = archiveOpen
             ? "Mechanics vault pending release. Handler may assign when files publish."
-            : `Requires ${archive.label}`;
+            : `Requires ${archive.label} key`;
           card.append(requirement);
           cards.append(card);
         });
@@ -2048,7 +2057,16 @@
       const editable = track ? track.operatorEditable !== false : true;
       const article = document.createElement("article");
       const fillMeter = (tracker.kind || "").endsWith("_load");
-      article.className = `line-tracker ${tracker.kind}${fillMeter ? " fill-meter" : ""}`;
+      const presentationId = tracker.presentation?.id || "";
+      article.className = [
+        "line-tracker",
+        tracker.kind,
+        fillMeter ? "fill-meter" : "",
+        presentationId ? `presentation-${presentationId}` : ""
+      ].filter(Boolean).join(" ");
+      if (fillMeter && api) {
+        article.classList.add(`load-band-${api.rollLoadBandMode(value)}`);
+      }
 
       const header = document.createElement("div");
       header.className = "pip-header";
