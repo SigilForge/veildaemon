@@ -941,7 +941,7 @@
         fields: [
           { id: "primaryLocus", label: "Primary Locus", placeholder: "Name your Locus" },
           { id: "locusScale", label: "Locus Scale", placeholder: "Vehicle, room, building…" },
-          { id: "hauntRange", label: "Haunt Range", placeholder: "Full in/through Locus. Limited through Tethers." }
+          { id: "hauntRange", label: "Locus Range", placeholder: "Full in/through Locus. Limited through Tethers." }
         ]
       },
       passivePermissions: [
@@ -953,8 +953,8 @@
         },
         {
           id: "haunt_reach",
-          name: "Haunt Reach",
-          effect: "You may attempt Wraith actions through your Locus without physical contact.",
+          name: "Locus Reach",
+          effect: "You may attempt Wraith actions through a valid Locus or Tether without direct physical contact. The action originates from continuity, not distance.",
           interaction: "reference"
         },
         {
