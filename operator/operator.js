@@ -473,6 +473,30 @@
     return Math.min(5, base + bonus);
   }
 
+  function maxBaseAttributeRank(attribute, status) {
+    const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
+    const bonusLimitedCap = Math.max(1, 5 - bonus);
+    if (status && status.creationMode) {
+      return Math.min(creationAttributeRankCap(), bonusLimitedCap);
+    }
+    return bonusLimitedCap;
+  }
+
+  function clampAttributesForBonuses(status) {
+    const attrs = normalizeAttributes(status.attributes);
+    let changed = false;
+    attributeNames().forEach((name) => {
+      const maxRank = maxBaseAttributeRank(name, status);
+      const current = Number(attrs[name] || 1);
+      if (current > maxRank) {
+        attrs[name] = String(maxRank);
+        changed = true;
+      }
+    });
+    if (changed) status.attributes = attrs;
+    return status;
+  }
+
   function ontologySkillBonuses(status) {
     const key = presentationKeyFromDisplayName(status.ontologyPresentation);
     if (!key) return {};
@@ -749,7 +773,7 @@
     const pressures = migrated.presentationPressures && typeof migrated.presentationPressures === "object"
       ? migrated.presentationPressures
       : {};
-    return {
+    return clampAttributesForBonuses({
       ...migrated,
       presentationPressures: pressures,
       anchorPerson: migrated.anchorPerson || migrated.anchors || "",
@@ -792,7 +816,7 @@
       stabilityBand: bandFromLegacyStability(status.stability),
       presentationAbilityState: normalizePresentationAbilityStore(migrated),
       sceneTimer: normalizeSceneTimerStore(migrated)
-    };
+    });
   }
 
   function readConsoleState() {
@@ -1900,14 +1924,7 @@
   }
 
   function applyFrequencyBreachDelta(delta) {
-    if (delta > 0) return spendBreach(delta);
-    if (delta < 0) {
-      const current = Number(normalizeNonNegative(consoleState.operatorStatus.breachPoints));
-      consoleState.operatorStatus.breachPoints = String(Math.min(99, current + Math.abs(delta)));
-      setNamedValue("breachPoints", consoleState.operatorStatus.breachPoints);
-      renderCurrencyBanks();
-    }
-    return true;
+    return applyBreachDelta(delta);
   }
 
   function skillChangeAllowed(skills, skill, targetRank, status = consoleState.operatorStatus) {
@@ -1936,10 +1953,19 @@
     if (nextRank === oldRank) {
       return { ok: false, message: "" };
     }
-    if (creationActive()) {
-      if (nextRank > creationAttributeRankCap()) {
+    const status = consoleState.operatorStatus;
+    const maxRank = maxBaseAttributeRank(attribute, status);
+    if (nextRank > maxRank) {
+      const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
+      if (bonus > 0) {
+        return { ok: false, message: `${attribute} cannot exceed 5 total (${maxRank} base + ${bonus} background bonus).` };
+      }
+      if (creationActive()) {
         return { ok: false, message: `Creation attribute cap is ${creationAttributeRankCap()}.` };
       }
+      return { ok: false, message: `${attribute} cannot exceed ${maxRank}.` };
+    }
+    if (creationActive()) {
       const cost = creationAttributeCostDelta(attributes, attribute, nextRank);
       if (cost > 0 && !canSpendBreach(cost)) {
         return { ok: false, message: `Insufficient Breach. Required ${cost}.` };
@@ -2774,6 +2800,7 @@
     attributeNames().forEach((name) => {
       const value = Number(attrs[name]);
       const bonusRank = attrBonuses[name] || 0;
+      const maxRank = maxBaseAttributeRank(name, status);
       const effectiveRank = Math.min(5, value + bonusRank);
       const row = document.createElement("article");
       row.className = "attribute-row";
@@ -2794,7 +2821,7 @@
         const pip = document.createElement("button");
         pip.type = "button";
         pip.className = "pip";
-        pip.disabled = !editing;
+        pip.disabled = !editing || index > maxRank;
         pip.classList.toggle("is-filled", index <= value);
         pip.setAttribute("aria-label", `${name} ${index}`);
         pip.addEventListener("click", () => {
@@ -4097,7 +4124,10 @@
     if (backgroundSelect) {
       backgroundSelect.addEventListener("change", () => {
         if (!guardBuildDefiningField("background", backgroundSelect.value)) return;
+        consoleState.operatorStatus = clampAttributesForBonuses(consoleState.operatorStatus);
         autosaveStatus();
+        renderAttributes();
+        renderRollSelectors();
         renderSkills();
       });
     }
