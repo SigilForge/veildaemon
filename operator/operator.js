@@ -478,19 +478,25 @@
   }
 
   function maxEffectiveAttributeRank(attribute, status) {
-    const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
     if (status && status.creationMode) {
-      return Math.min(5, creationAttributeRankCap() + bonus);
+      return creationAttributeRankCap();
     }
     return 5;
+  }
+
+  function maxBaseAttributeRank(attribute, status) {
+    const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
+    if (status && status.creationMode) {
+      return Math.max(1, creationAttributeRankCap() - bonus);
+    }
+    return Math.max(1, 5 - bonus);
   }
 
   function clampAttributesForBonuses(status) {
     const attrs = normalizeAttributes(status.attributes);
     let changed = false;
     attributeNames().forEach((name) => {
-      const bonus = backgroundAttributeBonuses(status)[name] || 0;
-      const maxBase = Math.max(1, 5 - bonus);
+      const maxBase = maxBaseAttributeRank(name, status);
       const current = Number(attrs[name] || 1);
       if (current > maxBase) {
         attrs[name] = String(maxBase);
@@ -1789,7 +1795,7 @@
   }
 
   function creationAttributeRankCap() {
-    return 4;
+    return 3;
   }
 
   function creationBonusBreachBudget() {
@@ -1979,8 +1985,12 @@
       return { ok: false, message: "" };
     }
     if (creationActive()) {
-      if (nextBase > creationAttributeRankCap()) {
-        return { ok: false, message: `Creation attribute cap is ${creationAttributeRankCap()}.` };
+      if (nextBase > maxBaseAttributeRank(attribute, status)) {
+        const cap = creationAttributeRankCap();
+        if (bonus > 0) {
+          return { ok: false, message: `${attribute} cannot exceed ${cap} at creation (${maxBaseAttributeRank(attribute, status)} base + ${bonus} background bonus).` };
+        }
+        return { ok: false, message: `Creation attribute cap is ${cap}.` };
       }
       const cost = creationAttributeCostDelta(attributes, attribute, nextEffective, status);
       if (cost > 0 && !canSpendBreach(cost)) {
