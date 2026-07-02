@@ -1757,7 +1757,7 @@
   }
 
   function creationAttributeRankCap() {
-    return 3;
+    return 4;
   }
 
   function creationBonusBreachBudget() {
@@ -1772,8 +1772,39 @@
     return 13;
   }
 
-  function creationBonusSpent(attributes) {
-    return Math.max(0, totalAttributeBoosts(attributes) - creationAttributeSpreadBudget());
+  function breachSpentFromRankSteps(steps, freeBudget) {
+    const sorted = steps.slice().sort((left, right) => left - right);
+    return sorted.slice(freeBudget).reduce((sum, rank) => sum + rank, 0);
+  }
+
+  function creationAttributeRankSteps(attributes) {
+    const steps = [];
+    Object.values(normalizeAttributes(attributes)).forEach((value) => {
+      const rank = Number(value || 1);
+      for (let step = 2; step <= rank; step += 1) steps.push(step);
+    });
+    return steps;
+  }
+
+  function creationSkillRankSteps(status) {
+    const skills = normalizeSkills(status.skills);
+    const bgBonuses = backgroundSkillBonuses(status);
+    const steps = [];
+    Object.entries(skills).forEach(([skill, rankStr]) => {
+      const baseRank = Number(rankStr || 0);
+      const bgBonus = bgBonuses[skill] || 0;
+      const playerRanks = Math.max(0, baseRank - bgBonus);
+      for (let step = 1; step <= playerRanks; step += 1) steps.push(step);
+    });
+    return steps;
+  }
+
+  function creationAttributeBreachSpent(attributes) {
+    return breachSpentFromRankSteps(creationAttributeRankSteps(attributes), creationAttributeSpreadBudget());
+  }
+
+  function creationSkillBreachSpent(status) {
+    return breachSpentFromRankSteps(creationSkillRankSteps(status), creationSkillBudget());
   }
 
   function selectedCoreFrequency() {
@@ -1883,11 +1914,9 @@
     const next = normalizeSkills({ ...skills, [skill]: String(targetRank) });
     if (creationActive()) {
       if (targetRank > 3) return { ok: false, message: "Creation skill cap is Rank 3." };
-      const oldSpent = creationSkillRanksSpent({ ...status, skills });
-      const newSpent = creationSkillRanksSpent({ ...status, skills: next });
-      const oldOverage = Math.max(0, oldSpent - creationSkillBudget());
-      const newOverage = Math.max(0, newSpent - creationSkillBudget());
-      return { ok: true, cost: newOverage - oldOverage };
+      const oldBreach = creationSkillBreachSpent({ ...status, skills });
+      const newBreach = creationSkillBreachSpent({ ...status, skills: next });
+      return { ok: true, cost: newBreach - oldBreach };
     }
     const oldRank = Number(normalizeSkills(skills)[skill] || 0);
     return { ok: true, cost: advancementCost(oldRank, targetRank) };
@@ -1895,7 +1924,7 @@
 
   function creationAttributeCostDelta(attributes, attribute, targetRank) {
     const next = normalizeAttributes({ ...attributes, [attribute]: String(targetRank) });
-    return creationBonusSpent(next) - creationBonusSpent(attributes);
+    return creationAttributeBreachSpent(next) - creationAttributeBreachSpent(attributes);
   }
 
   function attributeChangeAllowed(attributes, attribute, targetRank) {
