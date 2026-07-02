@@ -2210,18 +2210,38 @@ fieldset.recovery-field.compact label {
 }
 .attribute-row {
   display: grid;
-  grid-template-columns: minmax(5.6rem, .34fr) minmax(0, 1fr) minmax(3.2rem, auto);
+  grid-template-columns: minmax(5.6rem, .34fr) minmax(0, 1fr);
   gap: .42rem;
   align-items: center;
 }
-.attribute-effective-rank {
-  justify-self: end;
-  font-size: .64rem;
-  font-weight: 800;
-  letter-spacing: .04em;
-  color: var(--text);
-  text-align: right;
-  white-space: nowrap;
+.attribute-pip-track {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  min-width: 0;
+}
+.attribute-bonus-pips {
+  display: flex;
+  align-items: center;
+  gap: .22rem;
+  padding-left: .38rem;
+  border-left: 1px solid rgba(185, 84, 255, .34);
+}
+.attribute-bonus-pips .pip.is-background-bonus {
+  aspect-ratio: 1;
+  min-height: .78rem;
+  width: .78rem;
+  border-radius: 50%;
+  cursor: default;
+  pointer-events: none;
+  border-color: rgba(185, 84, 255, .78);
+  background: rgba(185, 84, 255, .18);
+  box-shadow: 0 0 .55rem rgba(185, 84, 255, .42);
+  transform: translateY(-.1rem);
+}
+.attribute-bonus-pips .pip.is-background-bonus.is-filled {
+  background: var(--purple);
+  box-shadow: 0 0 .7rem rgba(185, 84, 255, .55);
 }
 .attribute-name {
   min-height: 2rem;
