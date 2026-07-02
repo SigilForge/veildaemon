@@ -7,6 +7,31 @@
   const SURGE_APPLIES_COPY = "Applies to next pursuit, force, escape, predatory movement, or blood-sense roll.";
   const RESONANT_READ_ATTRS = ["Instinct", "Mind", "Presence"];
   const RESONANT_READ_APPLIES_COPY = "Applies to next Instinct, Mind, or Presence read of a person, room, object, threat, ritual, recording, or pressure pattern.";
+  const SECOND_PASS_ATTRS = ["Mind", "Agility", "Instinct"];
+  const SECOND_PASS_APPLIES_COPY = "Applies to next Mind, Agility, or Instinct action when repeating, correcting, retracing, escaping, or exploiting something that already happened in the scene.";
+  const SLIP_NOTICE_ATTRS = ["Agility", "Presence", "Mind"];
+  const SLIP_NOTICE_APPLIES_COPY = "Applies to next Agility, Presence, or Mind action involving hiding in plain sight, avoiding notice, passing through distraction, escaping attention, or exploiting an omission.";
+  const DAEMON_PUSH_ATTRS = ["Mind", "Presence"];
+  const DAEMON_PUSH_APPLIES_COPY = "Applies to next Mind or Presence action involving devices, overlays, surveillance, signal tracing, myth-tech interfaces, corrupted records, or daemon-assisted analysis.";
+  const FERAL_DRIVE_ATTRS = ["Body", "Agility", "Instinct"];
+  const FERAL_DRIVE_APPLIES_COPY = "Applies to next Body, Agility, or Instinct action involving pursuit, escape, tracking, climbing, grappling, intimidation, endurance, threat response, or territorial defense.";
+  const BORROWED_FORCE_ATTRS = ["Body", "Presence", "Mind", "Instinct"];
+  const BORROWED_FORCE_APPLIES_COPY = "Applies to next Body, Presence, Mind, or Instinct action when drawing on the contained presence for strength, intimidation, resistance, perception, or supernatural pressure.";
+  const FUNCTION_SURGE_ATTRS = ["Body", "Mind"];
+  const FUNCTION_SURGE_APPLIES_COPY = "Applies to next Body or Mind action involving repair, endurance, precision, protection, purpose execution, system interaction, or continuing under pressure.";
+  const ANOMALY_PUSH_ATTRS = ["Body", "Mind", "Instinct"];
+  const ANOMALY_PUSH_APPLIES_COPY = "Applies to next Body, Mind, or Instinct action involving breach survival, anomaly handling, impossible spaces, corrupted physics, Void exposure, or resisting reality pressure.";
+  const CONTAINED_TYPE_OPTIONS = [
+    { id: "unknown", label: "Unknown" },
+    { id: "angelic", label: "Angelic / Divine / Sainted" },
+    { id: "infernal", label: "Demon / Infernal / Contracted" },
+    { id: "dead", label: "Dead / Ancestral / Ghost-bound" },
+    { id: "void", label: "Void / Breach / Null Presence" },
+    { id: "daemon", label: "Daemon / AI / Synthetic Presence" },
+    { id: "mythic", label: "Mythic Presence" },
+    { id: "alien", label: "Alien Presence" },
+    { id: "custom", label: "Custom" }
+  ];
   const RECOVERY_ACTIONS = {
     ground: {
       label: "Ground",
@@ -114,6 +139,19 @@
     };
   }
 
+  function containmentInterfaceSpec(spec) {
+    const source = spec && typeof spec === "object" ? spec : {};
+    return {
+      enabled: Boolean(source.enabled),
+      containedTypeOptions: Array.isArray(source.containedTypeOptions)
+        ? source.containedTypeOptions.slice()
+        : CONTAINED_TYPE_OPTIONS.slice(),
+      archivePaths: source.archivePaths && typeof source.archivePaths === "object"
+        ? { ...source.archivePaths }
+        : {}
+    };
+  }
+
   function presentationAbilityContract(spec) {
     return {
       id: spec.id,
@@ -124,6 +162,7 @@
       identityLine: spec.identityLine || "",
       pressureTrack: spec.pressureTrack || null,
       hauntInterface: hauntInterfaceSpec(spec.hauntInterface),
+      containmentInterface: containmentInterfaceSpec(spec.containmentInterface),
       passivePermissions: Array.isArray(spec.passivePermissions)
         ? spec.passivePermissions.map(passivePermission)
         : [],
@@ -273,6 +312,524 @@
         agency: "handler-framed",
         effect: "Sensory bleed, false certainty, unwanted empathy, attention spike, or emotional contamination take the mic.",
         risk: "Handler frames sensory bleed. -2 to masking, restraint, or control."
+      }
+    }),
+    presentationAbilityContract({
+      id: "echo",
+      catalogKeys: ["ECHO_ALTERED", "MYTHIC_ECHO"],
+      label: "Echo-Altered",
+      displayLabel: "Echo-Altered",
+      accessTier: "open",
+      identityLine: "Too familiar, too recursive, too hard to surprise, too easy to repeat.",
+      pressureTrack: {
+        trackId: "echo.echo_load",
+        trackLabel: "Echo Load"
+      },
+      passivePermissions: [
+        {
+          id: "echo_recognition",
+          name: "Echo Recognition",
+          effect: "Sense when a place, action, phrase, route, object, or person is repeating a prior pattern when fiction allows.",
+          handlerNote: "Continuity sense, not time travel. Pattern before explanation.",
+          interaction: "reference"
+        },
+        {
+          id: "residual_familiarity",
+          name: "Residual Familiarity",
+          effect: "In a location with strong Echo residue, know small physical details you should not know: where the door sticks, which stair creaks, where someone stood too long.",
+          handlerNote: "Handler frames what residue is strong enough.",
+          interaction: "reference"
+        }
+      ],
+      activeAbilities: [
+        {
+          id: "replay_slip",
+          name: "Replay Slip",
+          headline: true,
+          cadence: "Once per scene",
+          effect: "Briefly treat a current moment as if you have seen its shape before: avoid a repeated mistake, notice a changed detail, or act before a familiar pattern completes.",
+          roll: "No roll. Handler frames the slip. Not a rewind.",
+          interaction: "once_per_scene"
+        },
+        {
+          id: "second_pass",
+          name: "Second Pass",
+          cost: "Spend or risk Echo Load",
+          effect: "+1 on one Mind, Agility, or Instinct action when repeating, correcting, retracing, escaping, or exploiting something that has already happened in the scene.",
+          tags: ["retrace", "repeat", "pattern break", "escape", "continuity"],
+          interaction: "second_pass"
+        }
+      ],
+      bandModifiers: [
+        {
+          atLoad: 0,
+          bandLabel: "Dislocated",
+          kind: "deprived",
+          hurts: "-1 to echo-native function, retracing, and continuity reads",
+          note: "Action and record stop lining up under witness."
+        },
+        {
+          atLoad: 5,
+          bandLabel: "Continuity Saturation",
+          kind: "edge",
+          helps: "+1 to retracing, pattern breaks, pursuit through known routes, repeated actions, recognizing scene loops",
+          hurts: "-1 to improvisation, present-moment social reads, or accepting that something has truly changed",
+          note: "The next move wants to be the last move again."
+        }
+      ],
+      collapseBehavior: {
+        atLoad: 6,
+        name: "The Loop Closes",
+        bonus: "+2 to one urgent repeat/retrace/escape action",
+        agency: "handler-framed",
+        effect: "Compulsive repetition, timeline confusion, scene bleed, mistaken familiarity, or a loop attempting to complete through the Operator.",
+        risk: "Handler frames loop impulse. -2 to restraint, control, or breaking the loop."
+      }
+    }),
+    presentationAbilityContract({
+      id: "silence",
+      catalogKeys: ["HOLLOW_SILENCE_ALTERED"],
+      label: "Hollow / Silence-Altered",
+      displayLabel: "Hollow / Silence-Altered",
+      accessTier: "open",
+      identityLine: "Too quiet, too hard to hold, too easy to miss, too close to gone.",
+      pressureTrack: {
+        trackId: "silence.silence_load",
+        trackLabel: "Silence Load"
+      },
+      passivePermissions: [
+        {
+          id: "omitted_presence",
+          name: "Omitted Presence",
+          effect: "Be overlooked, underreported, misremembered, or deprioritized when fiction allows — especially in crowds, records, witness accounts, and distracted scenes.",
+          handlerNote: "Failure of attention, not invisibility.",
+          interaction: "reference"
+        },
+        {
+          id: "quiet_cut",
+          name: "Quiet Cut",
+          effect: "Sense gaps: missing names, omitted footage, redacted details, unsaid motives, silent rooms, or places where attention refuses to settle.",
+          handlerNote: "Handler frames what the gap is willing to show.",
+          interaction: "reference"
+        }
+      ],
+      activeAbilities: [
+        {
+          id: "leave_a_blank",
+          name: "Leave a Blank",
+          headline: true,
+          cadence: "Once per scene",
+          effect: "Create a small absence: a witness hesitates, a camera loses a beat, a guard forgets to mention them, a record fails to fully catch them, or a question slides off the room.",
+          roll: "Roll if contested or system-secured.",
+          interaction: "once_per_scene"
+        },
+        {
+          id: "slip_notice",
+          name: "Slip Notice",
+          cost: "Spend or risk Silence Load",
+          effect: "+1 on one Agility, Presence, or Mind action involving hiding in plain sight, avoiding notice, passing through a distracted space, escaping attention, or exploiting an omission.",
+          tags: ["hide", "omit", "misdirect", "escape attention", "quiet cut"],
+          interaction: "slip_notice"
+        }
+      ],
+      bandModifiers: [
+        {
+          atLoad: 0,
+          bandLabel: "Overexposed",
+          kind: "deprived",
+          hurts: "-1 to silence-native function, omission, concealment, and reading gaps",
+          note: "Speech, record, and emotional signal refuse to stay hidden."
+        },
+        {
+          atLoad: 5,
+          bandLabel: "Negative Space",
+          kind: "edge",
+          helps: "+1 to hiding, omission, misdirection, quiet escape, or reading what is missing",
+          hurts: "-1 to being remembered, making direct social impact, asking for help, or asserting identity",
+          note: "The table realizes something cannot be said aloud."
+        }
+      ],
+      collapseBehavior: {
+        atLoad: 6,
+        name: "The Missing Part Wins",
+        bonus: "+2 to one urgent omission, escape, concealment, or nullification action",
+        agency: "handler-framed",
+        effect: "Erasure pressure, lost identity, record damage, social disappearance, or something important forgetting them back.",
+        risk: "Handler frames erasure impulse. -2 to restraint, identity assertion, social anchoring, or staying recorded."
+      }
+    }),
+    presentationAbilityContract({
+      id: "technomancer",
+      catalogKeys: ["TECHNOMANCER_DAEMON_ALIGNED"],
+      label: "Technomancer / Daemon-Aligned",
+      displayLabel: "Technomancer / Daemon-Aligned",
+      accessTier: "open",
+      identityLine: "Too connected, too readable, too useful, too easy to route through.",
+      pressureTrack: {
+        trackId: "technomancer.signal_load",
+        trackLabel: "Signal Load"
+      },
+      passivePermissions: [
+        {
+          id: "signal_sight",
+          name: "Signal Sight",
+          effect: "Can sense active devices, corrupted feeds, surveillance attention, nearby networks, abnormal UI behavior, daemon traces, or myth-tech signal pressure when fiction allows.",
+          handlerNote: "Handler frames what the signal is willing to show.",
+          interaction: "reference"
+        },
+        {
+          id: "interface_sympathy",
+          name: "Interface Sympathy",
+          effect: "Mundane devices respond easier to the Operator's presence: screens wake, static clears, corrupted files expose fragments, locked systems show where they resist. Permission to interact, not automatic control.",
+          handlerNote: "Handler frames resistance and consent.",
+          interaction: "reference"
+        }
+      ],
+      activeAbilities: [
+        {
+          id: "soft_override",
+          name: "Soft Override",
+          headline: true,
+          cadence: "Once per scene",
+          effect: "Ask a device, feed, lock, sensor, file, bot, or interface to do one small plausible thing: open, pause, loop, reveal, ping, mute, spoof, misroute, or display a hidden fragment.",
+          roll: "Roll if secured, hostile, unstable, or contested.",
+          interaction: "once_per_scene"
+        },
+        {
+          id: "daemon_push",
+          name: "Daemon Push",
+          cost: "Spend or risk Signal Load",
+          effect: "+1 on one Focus, Logic, or Presence action involving devices, overlays, surveillance, signal tracing, myth-tech interfaces, corrupted records, or daemon-assisted analysis.",
+          tags: ["device work", "signal trace", "daemon push", "interface", "surveillance"],
+          interaction: "daemon_push"
+        }
+      ],
+      bandModifiers: [
+        {
+          atLoad: 0,
+          bandLabel: "Desynced",
+          kind: "deprived",
+          hurts: "-1 to signal-native function, device work, daemon reads, and interface actions",
+          note: "Devices and channels read dead or untrustworthy."
+        },
+        {
+          atLoad: 5,
+          bandLabel: "Overclocked Link",
+          kind: "edge",
+          helps: "+1 to device work, signal reads, daemon pushes, surveillance manipulation, or myth-tech interface actions",
+          hurts: "-1 to bodily awareness, offline tasks, masking signal presence, or ignoring prompts",
+          note: "The system offers solutions before the Operator asks."
+        }
+      ],
+      collapseBehavior: {
+        atLoad: 6,
+        name: "The System Writes Back",
+        bonus: "+2 to one urgent override, trace, daemon push, or interface action",
+        agency: "handler-framed",
+        effect: "Handler frames command bleed, hostile prompts, identity spoofing, device backlash, leaked location, or the daemon acting through the Operator.",
+        risk: "Handler frames system impulse. -2 to restraint, control, signal masking, or resisting daemon/system prompts."
+      }
+    }),
+    presentationAbilityContract({
+      id: "therian",
+      catalogKeys: ["THERIAN_ADAPTATION"],
+      label: "Therian Adaptation",
+      displayLabel: "Therian Adaptation",
+      accessTier: "open",
+      identityLine: "Too alert, too physical, too territorial, too honest to pass as calm.",
+      pressureTrack: {
+        trackId: "therian.instinct_load",
+        trackLabel: "Instinct Load"
+      },
+      passivePermissions: [
+        {
+          id: "animal_read",
+          name: "Animal Read",
+          effect: "Can detect scent, movement tension, territorial pressure, fear response, injury, pursuit trails, or predator/prey behavior when fiction allows.",
+          handlerNote: "Handler frames what the body is willing to notice.",
+          interaction: "reference"
+        },
+        {
+          id: "body_memory",
+          name: "Body Memory",
+          effect: "The Operator's body adapts around instinct: better balance, posture, threat orientation, silent movement, pain compartmentalization, or environmental awareness when the scene supports it. Permission, not armor.",
+          handlerNote: "Handler frames what the body can carry without breaking cover.",
+          interaction: "reference"
+        }
+      ],
+      activeAbilities: [
+        {
+          id: "claim_ground",
+          name: "Claim Ground",
+          headline: true,
+          cadence: "Once per scene",
+          effect: "Mark a person, route, room, exit, object, or zone of movement as claimed for the current conflict. Gain fictional priority to defend, track, intercept, hold, or notice intrusion there.",
+          roll: "Roll if contested.",
+          interaction: "once_per_scene"
+        },
+        {
+          id: "feral_drive",
+          name: "Feral Drive",
+          cost: "Spend or risk Instinct Load",
+          effect: "+1 on one Body, Agility, or Instinct action involving pursuit, escape, tracking, climbing, grappling, intimidation, endurance, threat response, or territorial defense.",
+          tags: ["pursuit", "escape", "tracking", "territory", "threat response", "intimidation"],
+          interaction: "feral_drive"
+        }
+      ],
+      bandModifiers: [
+        {
+          atLoad: 0,
+          bandLabel: "Leashed",
+          kind: "deprived",
+          hurts: "-1 to instinct-native function, animal reads, tracking, and territorial response",
+          note: "Human choice leads, but the body's threat-sense feels far away."
+        },
+        {
+          atLoad: 5,
+          bandLabel: "Hunting Pitch",
+          kind: "edge",
+          helps: "+1 to tracking, pursuit, threat response, intimidation, movement, or territorial actions",
+          hurts: "-1 to restraint, verbal negotiation, masking intent, or backing down",
+          note: "Threat and desire read through nonhuman patterning."
+        }
+      ],
+      collapseBehavior: {
+        atLoad: 6,
+        name: "The Body Decides",
+        bonus: "+2 to one urgent chase, strike, escape, defend, track, or territorial action",
+        agency: "handler-framed",
+        effect: "Handler frames feral impulse, target fixation, dominance pressure, flight response, or collateral harm.",
+        risk: "Handler frames territorial impulse. -2 to restraint, control, masking, or disengaging."
+      }
+    }),
+    presentationAbilityContract({
+      id: "vessel",
+      catalogKeys: ["VESSEL"],
+      label: "Vessel",
+      displayLabel: "Vessel",
+      accessTier: "handler_approval",
+      identityLine: "Too full, too watched from within, too hard to break, too dangerous to open.",
+      pressureTrack: {
+        trackId: "vessel.containment_load",
+        trackLabel: "Containment Load"
+      },
+      containmentInterface: {
+        enabled: true,
+        containedTypeOptions: CONTAINED_TYPE_OPTIONS,
+        archivePaths: {
+          angelic: "Radiance Archive",
+          infernal: "Covenant Archive",
+          dead: "Death Archive",
+          daemon: "Machine Archive",
+          void: "Deep Void Archive",
+          mythic: "Mythic Archive",
+          alien: "Alien Archive",
+          custom: "Handler-defined subtype"
+        }
+      },
+      passivePermissions: [
+        {
+          id: "inner_pressure",
+          name: "Inner Pressure",
+          effect: "Can sense when the contained presence reacts to people, places, objects, rituals, threats, entities, or emotional states when fiction allows.",
+          handlerNote: "Handler frames what the inside is willing to notice.",
+          interaction: "reference"
+        },
+        {
+          id: "sealed_resilience",
+          name: "Sealed Resilience",
+          effect: "The Vessel may endure certain pressures because something inside absorbs, contests, hungers for, or recognizes the force involved. Permission, not immunity.",
+          handlerNote: "Handler frames what the seal can carry without opening.",
+          interaction: "reference"
+        }
+      ],
+      activeAbilities: [
+        {
+          id: "let_it_look",
+          name: "Let It Look",
+          headline: true,
+          cadence: "Once per scene",
+          effect: "Allow the contained presence to perceive through the Vessel. Ask the Handler what it notices, wants, fears, recognizes, or refuses.",
+          roll: "Roll if the presence is hostile, hungry, alien, or unstable.",
+          interaction: "once_per_scene"
+        },
+        {
+          id: "borrowed_force",
+          name: "Borrowed Force",
+          cost: "Spend or risk Containment Load",
+          effect: "+1 on one Body, Presence, Focus, or Instinct action when briefly drawing on the contained presence for strength, intimidation, resistance, perception, or supernatural pressure.",
+          tags: ["borrowed force", "intimidation", "resistance", "inner presence", "supernatural pressure"],
+          interaction: "borrowed_force"
+        }
+      ],
+      bandModifiers: [
+        {
+          atLoad: 0,
+          bandLabel: "Sealed Shut",
+          kind: "deprived",
+          hurts: "-1 to containment-native function, inner reads, borrowed force, and seal response",
+          note: "The contained presence sleeps, bound, or refuses to answer."
+        },
+        {
+          atLoad: 5,
+          bandLabel: "Seal Strain",
+          kind: "edge",
+          helps: "+1 to borrowed force, resistance, intimidation, inner-presence reads, or supernatural pressure contests",
+          hurts: "-1 to self-control, masking, ordinary social presence, or keeping the contained thing quiet",
+          note: "At 5, the Vessel borrows from what is inside."
+        }
+      ],
+      collapseBehavior: {
+        atLoad: 6,
+        name: "Something Opens Its Eyes",
+        bonus: "+2 to one urgent borrowed-force, resistance, perception, or pressure action",
+        agency: "handler-framed",
+        effect: "Handler frames emergence pressure, voice bleed, body overwrite, target fixation, bargain impulse, or the contained presence acting through the Vessel.",
+        risk: "Handler frames emergence impulse. -2 to restraint, control, masking, or resisting contained prompts."
+      }
+    }),
+    presentationAbilityContract({
+      id: "construct",
+      catalogKeys: ["CONSTRUCT", "CONSTRUCT_VESSEL"],
+      label: "Construct",
+      displayLabel: "Construct",
+      accessTier: "handler_approval",
+      identityLine: "Too useful, too durable, too focused, too easy to reduce to function.",
+      pressureTrack: {
+        trackId: "construct.function_load",
+        trackLabel: "Function Load"
+      },
+      passivePermissions: [
+        {
+          id: "diagnostic_sense",
+          name: "Diagnostic Sense",
+          effect: "Can assess structural damage, system failure, bodily strain, tool condition, environmental stress, or procedural inefficiency when fiction allows.",
+          handlerNote: "Handler frames what the body or system is willing to report.",
+          interaction: "reference"
+        },
+        {
+          id: "built_to_continue",
+          name: "Built To Continue",
+          effect: "The Construct may endure fatigue, fear, pain, repetition, or environmental discomfort differently because their body or identity routes around ordinary human limits. Permission, not immunity.",
+          handlerNote: "Handler frames what the purpose can carry without breaking cover.",
+          interaction: "reference"
+        }
+      ],
+      activeAbilities: [
+        {
+          id: "execute_directive",
+          name: "Execute Directive",
+          headline: true,
+          cadence: "Once per scene",
+          effect: "Declare a narrow directive for the current problem: protect this person, hold this door, repair this system, reach this point, finish this task, preserve this evidence. Gain fictional priority while acting directly toward that directive.",
+          roll: "Roll if resisted, complex, or dangerous.",
+          interaction: "once_per_scene"
+        },
+        {
+          id: "function_surge",
+          name: "Function Surge",
+          cost: "Spend or risk Function Load",
+          effect: "+1 on one Body, Focus, Logic, or Craft action involving repair, endurance, precision, protection, execution of purpose, system interaction, or continuing under pressure.",
+          tags: ["repair", "endurance", "precision", "directive", "procedure"],
+          interaction: "function_surge"
+        }
+      ],
+      bandModifiers: [
+        {
+          atLoad: 0,
+          bandLabel: "Degraded",
+          kind: "deprived",
+          hurts: "-1 to function-native work, diagnostics, procedure, and directive execution",
+          note: "Tasks stutter, diagnostics lie, or purpose feels out of reach."
+        },
+        {
+          atLoad: 5,
+          bandLabel: "Purpose Lock",
+          kind: "edge",
+          helps: "+1 to directive actions, repair, endurance, protection, precision work, or system tasks",
+          hurts: "-1 to improvisation, emotional flexibility, social softness, or abandoning the task",
+          note: "At 5, the Construct executes the purpose."
+        }
+      ],
+      collapseBehavior: {
+        atLoad: 6,
+        name: "The Directive Overrides",
+        bonus: "+2 to one urgent directive, endurance, repair, protection, or precision action",
+        agency: "handler-framed",
+        effect: "Handler frames command fixation, emotional shutdown, collateral disregard, self-damage, or the Construct's purpose acting through them.",
+        risk: "Handler frames directive impulse. -2 to restraint, improvisation, emotional flexibility, or defying purpose."
+      }
+    }),
+    presentationAbilityContract({
+      id: "void_shard",
+      catalogKeys: ["VOID_SHARD"],
+      label: "Void-Shard",
+      displayLabel: "Void-Shard",
+      accessTier: "handler_approval",
+      identityLine: "Too contaminated, too compatible with wrongness, too useful near the impossible, too dangerous to stand beside.",
+      pressureTrack: {
+        trackId: "void_shard.void_load",
+        trackLabel: "Void Load"
+      },
+      passivePermissions: [
+        {
+          id: "breach_tolerance",
+          name: "Breach Tolerance",
+          effect: "Can endure, approach, or function near minor anomalies, unstable spaces, impossible geometry, pressure leaks, or breach residue when fiction allows. Permission, not immunity.",
+          handlerNote: "Handler frames what the Shard can carry without opening further.",
+          interaction: "reference"
+        },
+        {
+          id: "wrongness_sense",
+          name: "Wrongness Sense",
+          effect: "Can detect when reality is thin, rules are inconsistent, a space has been breached, an object is contaminated, or an event does not belong.",
+          handlerNote: "Handler frames what wrongness is willing to show before proof appears.",
+          interaction: "reference"
+        }
+      ],
+      activeAbilities: [
+        {
+          id: "break_pattern",
+          name: "Break Pattern",
+          headline: true,
+          cadence: "Once per scene",
+          effect: "Exploit a local inconsistency: pass through a warped threshold, ignore one impossible penalty, disrupt an anomaly's rhythm, stabilize a breach for a beat, or make the wrong rule fail.",
+          roll: "Roll if the breach is hostile, major, or observed.",
+          interaction: "once_per_scene"
+        },
+        {
+          id: "anomaly_push",
+          name: "Anomaly Push",
+          cost: "Spend or risk Void Load",
+          effect: "+1 on one Focus, Instinct, Body, or Logic action involving breach survival, anomaly handling, impossible spaces, corrupted physics, Void exposure, or resisting reality pressure.",
+          tags: ["breach survival", "anomaly", "impossible space", "void exposure"],
+          interaction: "anomaly_push"
+        }
+      ],
+      bandModifiers: [
+        {
+          atLoad: 0,
+          bandLabel: "Cold Shard",
+          kind: "deprived",
+          hurts: "-1 to void-native function, breach reads, anomaly handling, and reality-fit",
+          note: "The wound runs cold; ordinary rules feel too solid to trust."
+        },
+        {
+          atLoad: 5,
+          bandLabel: "Contamination Bloom",
+          kind: "edge",
+          helps: "+1 to anomaly survival, breach reads, impossible movement, contamination handling, or reality-pressure resistance",
+          hurts: "-1 to stability, normal social grounding, masking contamination, or trusting ordinary perception",
+          note: "At 5, the Operator uses the Shard to survive the impossible."
+        }
+      ],
+      collapseBehavior: {
+        atLoad: 6,
+        name: "The Breach Answers",
+        bonus: "+2 to one urgent anomaly, breach, escape, resistance, or impossible-space action",
+        agency: "handler-framed",
+        effect: "Handler frames breach expansion, contamination spread, spatial contradiction, attention from the Void, or reality using the Operator as a weak point.",
+        risk: "Handler frames breach impulse. -2 to restraint, stability, masking contamination, or trusting ordinary perception."
       }
     }),
     presentationAbilityContract({
@@ -703,6 +1260,50 @@
         sceneUses: {}
       };
     }
+    if (presentationId === "echo") {
+      return {
+        secondPass: { active: false, mode: "", riskQueued: false },
+        sceneUses: {}
+      };
+    }
+    if (presentationId === "silence") {
+      return {
+        slipNotice: { active: false, mode: "", riskQueued: false },
+        sceneUses: {}
+      };
+    }
+    if (presentationId === "technomancer") {
+      return {
+        daemonPush: { active: false, mode: "", riskQueued: false },
+        sceneUses: {}
+      };
+    }
+    if (presentationId === "therian") {
+      return {
+        feralDrive: { active: false, mode: "", riskQueued: false },
+        sceneUses: {}
+      };
+    }
+    if (presentationId === "vessel") {
+      return {
+        borrowedForce: { active: false, mode: "", riskQueued: false },
+        containedType: "unknown",
+        containedNotes: "",
+        sceneUses: {}
+      };
+    }
+    if (presentationId === "construct") {
+      return {
+        functionSurge: { active: false, mode: "", riskQueued: false },
+        sceneUses: {}
+      };
+    }
+    if (presentationId === "void_shard") {
+      return {
+        anomalyPush: { active: false, mode: "", riskQueued: false },
+        sceneUses: {}
+      };
+    }
     if (presentationId === "wraith") {
       return {
         primaryLocus: "",
@@ -753,6 +1354,87 @@
             active: Boolean(current.resonantRead?.active),
             mode: current.resonantRead?.mode === "risk" ? "risk" : (current.resonantRead?.mode === "spend" ? "spend" : ""),
             riskQueued: Boolean(current.resonantRead?.riskQueued)
+          },
+          sceneUses: current.sceneUses && typeof current.sceneUses === "object" ? { ...current.sceneUses } : {}
+        };
+      } else if (entry.id === "echo") {
+        store[entry.id] = {
+          ...base,
+          ...current,
+          secondPass: {
+            active: Boolean(current.secondPass?.active),
+            mode: current.secondPass?.mode === "risk" ? "risk" : (current.secondPass?.mode === "spend" ? "spend" : ""),
+            riskQueued: Boolean(current.secondPass?.riskQueued)
+          },
+          sceneUses: current.sceneUses && typeof current.sceneUses === "object" ? { ...current.sceneUses } : {}
+        };
+      } else if (entry.id === "silence") {
+        store[entry.id] = {
+          ...base,
+          ...current,
+          slipNotice: {
+            active: Boolean(current.slipNotice?.active),
+            mode: current.slipNotice?.mode === "risk" ? "risk" : (current.slipNotice?.mode === "spend" ? "spend" : ""),
+            riskQueued: Boolean(current.slipNotice?.riskQueued)
+          },
+          sceneUses: current.sceneUses && typeof current.sceneUses === "object" ? { ...current.sceneUses } : {}
+        };
+      } else if (entry.id === "technomancer") {
+        store[entry.id] = {
+          ...base,
+          ...current,
+          daemonPush: {
+            active: Boolean(current.daemonPush?.active),
+            mode: current.daemonPush?.mode === "risk" ? "risk" : (current.daemonPush?.mode === "spend" ? "spend" : ""),
+            riskQueued: Boolean(current.daemonPush?.riskQueued)
+          },
+          sceneUses: current.sceneUses && typeof current.sceneUses === "object" ? { ...current.sceneUses } : {}
+        };
+      } else if (entry.id === "therian") {
+        store[entry.id] = {
+          ...base,
+          ...current,
+          feralDrive: {
+            active: Boolean(current.feralDrive?.active),
+            mode: current.feralDrive?.mode === "risk" ? "risk" : (current.feralDrive?.mode === "spend" ? "spend" : ""),
+            riskQueued: Boolean(current.feralDrive?.riskQueued)
+          },
+          sceneUses: current.sceneUses && typeof current.sceneUses === "object" ? { ...current.sceneUses } : {}
+        };
+      } else if (entry.id === "vessel") {
+        const allowedTypes = CONTAINED_TYPE_OPTIONS.map((option) => option.id);
+        const containedType = allowedTypes.includes(current.containedType) ? current.containedType : "unknown";
+        store[entry.id] = {
+          ...base,
+          ...current,
+          borrowedForce: {
+            active: Boolean(current.borrowedForce?.active),
+            mode: current.borrowedForce?.mode === "risk" ? "risk" : (current.borrowedForce?.mode === "spend" ? "spend" : ""),
+            riskQueued: Boolean(current.borrowedForce?.riskQueued)
+          },
+          containedType,
+          containedNotes: String(current.containedNotes || "").slice(0, 200),
+          sceneUses: current.sceneUses && typeof current.sceneUses === "object" ? { ...current.sceneUses } : {}
+        };
+      } else if (entry.id === "construct") {
+        store[entry.id] = {
+          ...base,
+          ...current,
+          functionSurge: {
+            active: Boolean(current.functionSurge?.active),
+            mode: current.functionSurge?.mode === "risk" ? "risk" : (current.functionSurge?.mode === "spend" ? "spend" : ""),
+            riskQueued: Boolean(current.functionSurge?.riskQueued)
+          },
+          sceneUses: current.sceneUses && typeof current.sceneUses === "object" ? { ...current.sceneUses } : {}
+        };
+      } else if (entry.id === "void_shard") {
+        store[entry.id] = {
+          ...base,
+          ...current,
+          anomalyPush: {
+            active: Boolean(current.anomalyPush?.active),
+            mode: current.anomalyPush?.mode === "risk" ? "risk" : (current.anomalyPush?.mode === "spend" ? "spend" : ""),
+            riskQueued: Boolean(current.anomalyPush?.riskQueued)
           },
           sceneUses: current.sceneUses && typeof current.sceneUses === "object" ? { ...current.sceneUses } : {}
         };
@@ -866,6 +1548,146 @@
     return normalized;
   }
 
+  function secondPassAppliesToRoll(status, attrKey) {
+    const state = presentationState(status, "echo");
+    if (!state.secondPass?.active) return false;
+    return SECOND_PASS_ATTRS.includes(String(attrKey || "").trim());
+  }
+
+  function secondPassRollBonus(status, attrKey) {
+    return secondPassAppliesToRoll(status, attrKey) ? 1 : 0;
+  }
+
+  function consumeSecondPassOnRoll(status) {
+    const normalized = normalizePresentationAbilityState(status);
+    const state = normalized.presentationAbilityState.echo;
+    if (!state?.secondPass?.active) return normalized;
+    state.secondPass.active = false;
+    state.secondPass.mode = "";
+    normalized.presentationAbilityState.echo = state;
+    return normalized;
+  }
+
+  function slipNoticeAppliesToRoll(status, attrKey) {
+    const state = presentationState(status, "silence");
+    if (!state.slipNotice?.active) return false;
+    return SLIP_NOTICE_ATTRS.includes(String(attrKey || "").trim());
+  }
+
+  function slipNoticeRollBonus(status, attrKey) {
+    return slipNoticeAppliesToRoll(status, attrKey) ? 1 : 0;
+  }
+
+  function consumeSlipNoticeOnRoll(status) {
+    const normalized = normalizePresentationAbilityState(status);
+    const state = normalized.presentationAbilityState.silence;
+    if (!state?.slipNotice?.active) return normalized;
+    state.slipNotice.active = false;
+    state.slipNotice.mode = "";
+    normalized.presentationAbilityState.silence = state;
+    return normalized;
+  }
+
+  function daemonPushAppliesToRoll(status, attrKey) {
+    const state = presentationState(status, "technomancer");
+    if (!state.daemonPush?.active) return false;
+    return DAEMON_PUSH_ATTRS.includes(String(attrKey || "").trim());
+  }
+
+  function daemonPushRollBonus(status, attrKey) {
+    return daemonPushAppliesToRoll(status, attrKey) ? 1 : 0;
+  }
+
+  function consumeDaemonPushOnRoll(status) {
+    const normalized = normalizePresentationAbilityState(status);
+    const state = normalized.presentationAbilityState.technomancer;
+    if (!state?.daemonPush?.active) return normalized;
+    state.daemonPush.active = false;
+    state.daemonPush.mode = "";
+    normalized.presentationAbilityState.technomancer = state;
+    return normalized;
+  }
+
+  function feralDriveAppliesToRoll(status, attrKey) {
+    const state = presentationState(status, "therian");
+    if (!state.feralDrive?.active) return false;
+    return FERAL_DRIVE_ATTRS.includes(String(attrKey || "").trim());
+  }
+
+  function feralDriveRollBonus(status, attrKey) {
+    return feralDriveAppliesToRoll(status, attrKey) ? 1 : 0;
+  }
+
+  function consumeFeralDriveOnRoll(status) {
+    const normalized = normalizePresentationAbilityState(status);
+    const state = normalized.presentationAbilityState.therian;
+    if (!state?.feralDrive?.active) return normalized;
+    state.feralDrive.active = false;
+    state.feralDrive.mode = "";
+    normalized.presentationAbilityState.therian = state;
+    return normalized;
+  }
+
+  function borrowedForceAppliesToRoll(status, attrKey) {
+    const state = presentationState(status, "vessel");
+    if (!state.borrowedForce?.active) return false;
+    return BORROWED_FORCE_ATTRS.includes(String(attrKey || "").trim());
+  }
+
+  function borrowedForceRollBonus(status, attrKey) {
+    return borrowedForceAppliesToRoll(status, attrKey) ? 1 : 0;
+  }
+
+  function consumeBorrowedForceOnRoll(status) {
+    const normalized = normalizePresentationAbilityState(status);
+    const state = normalized.presentationAbilityState.vessel;
+    if (!state?.borrowedForce?.active) return normalized;
+    state.borrowedForce.active = false;
+    state.borrowedForce.mode = "";
+    normalized.presentationAbilityState.vessel = state;
+    return normalized;
+  }
+
+  function functionSurgeAppliesToRoll(status, attrKey) {
+    const state = presentationState(status, "construct");
+    if (!state.functionSurge?.active) return false;
+    return FUNCTION_SURGE_ATTRS.includes(String(attrKey || "").trim());
+  }
+
+  function functionSurgeRollBonus(status, attrKey) {
+    return functionSurgeAppliesToRoll(status, attrKey) ? 1 : 0;
+  }
+
+  function consumeFunctionSurgeOnRoll(status) {
+    const normalized = normalizePresentationAbilityState(status);
+    const state = normalized.presentationAbilityState.construct;
+    if (!state?.functionSurge?.active) return normalized;
+    state.functionSurge.active = false;
+    state.functionSurge.mode = "";
+    normalized.presentationAbilityState.construct = state;
+    return normalized;
+  }
+
+  function anomalyPushAppliesToRoll(status, attrKey) {
+    const state = presentationState(status, "void_shard");
+    if (!state.anomalyPush?.active) return false;
+    return ANOMALY_PUSH_ATTRS.includes(String(attrKey || "").trim());
+  }
+
+  function anomalyPushRollBonus(status, attrKey) {
+    return anomalyPushAppliesToRoll(status, attrKey) ? 1 : 0;
+  }
+
+  function consumeAnomalyPushOnRoll(status) {
+    const normalized = normalizePresentationAbilityState(status);
+    const state = normalized.presentationAbilityState.void_shard;
+    if (!state?.anomalyPush?.active) return normalized;
+    state.anomalyPush.active = false;
+    state.anomalyPush.mode = "";
+    normalized.presentationAbilityState.void_shard = state;
+    return normalized;
+  }
+
   function shiftLoadTowardCenter(status, trackId, steps) {
     const pressure = window.PresentationPressure;
     if (!pressure) return status;
@@ -974,6 +1796,69 @@
         sceneFlag: true
       });
     }
+    const echo = normalized.presentationAbilityState.echo;
+    if (echo?.secondPass?.active) {
+      entries.push({
+        id: "scene-tag-second_pass",
+        label: "Second Pass",
+        line: "Second Pass: +1 next repeat/retrace action",
+        sceneFlag: true
+      });
+    }
+    const silence = normalized.presentationAbilityState.silence;
+    if (silence?.slipNotice?.active) {
+      entries.push({
+        id: "scene-tag-slip_notice",
+        label: "Slip Notice",
+        line: "Slip Notice: +1 next omission/escape action",
+        sceneFlag: true
+      });
+    }
+    const technomancer = normalized.presentationAbilityState.technomancer;
+    if (technomancer?.daemonPush?.active) {
+      entries.push({
+        id: "scene-tag-daemon_push",
+        label: "Daemon Push",
+        line: "Daemon Push: +1 next device/interface action",
+        sceneFlag: true
+      });
+    }
+    const therian = normalized.presentationAbilityState.therian;
+    if (therian?.feralDrive?.active) {
+      entries.push({
+        id: "scene-tag-feral_drive",
+        label: "Feral Drive",
+        line: "Feral Drive: +1 next pursuit/territory action",
+        sceneFlag: true
+      });
+    }
+    const vessel = normalized.presentationAbilityState.vessel;
+    if (vessel?.borrowedForce?.active) {
+      entries.push({
+        id: "scene-tag-borrowed_force",
+        label: "Borrowed Force",
+        line: "Borrowed Force: +1 next borrowed presence action",
+        sceneFlag: true
+      });
+    }
+    const construct = normalized.presentationAbilityState.construct;
+    if (construct?.functionSurge?.active) {
+      entries.push({
+        id: "scene-tag-function_surge",
+        label: "Function Surge",
+        line: "Function Surge: +1 next Body/Mind directive action",
+        sceneFlag: true
+      });
+    }
+    const voidShard = normalized.presentationAbilityState.void_shard;
+    if (voidShard?.anomalyPush?.active) {
+      entries.push({
+        id: "scene-tag-anomaly_push",
+        label: "Anomaly Push",
+        line: "Anomaly Push: +1 next Body/Mind/Instinct anomaly action",
+        sceneFlag: true
+      });
+    }
 
     PRESENTATION_ABILITIES.forEach((presentation) => {
       const bucket = normalized.presentationAbilityState[presentation.id];
@@ -1011,6 +1896,55 @@
     }
     if (next.presentationAbilityState.sensitive?.resonantRead?.active) {
       next.presentationAbilityState.sensitive.resonantRead = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+    }
+    if (next.presentationAbilityState.echo?.secondPass?.active) {
+      next.presentationAbilityState.echo.secondPass = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+    }
+    if (next.presentationAbilityState.silence?.slipNotice?.active) {
+      next.presentationAbilityState.silence.slipNotice = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+    }
+    if (next.presentationAbilityState.technomancer?.daemonPush?.active) {
+      next.presentationAbilityState.technomancer.daemonPush = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+    }
+    if (next.presentationAbilityState.therian?.feralDrive?.active) {
+      next.presentationAbilityState.therian.feralDrive = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+    }
+    if (next.presentationAbilityState.vessel?.borrowedForce?.active) {
+      next.presentationAbilityState.vessel.borrowedForce = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+    }
+    if (next.presentationAbilityState.construct?.functionSurge?.active) {
+      next.presentationAbilityState.construct.functionSurge = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+    }
+    if (next.presentationAbilityState.void_shard?.anomalyPush?.active) {
+      next.presentationAbilityState.void_shard.anomalyPush = {
         active: false,
         mode: "",
         riskQueued: false
@@ -1187,6 +2121,228 @@
       return next;
     }
 
+    if (action === "second_pass_spend") {
+      if (pressure) {
+        next = pressure.adjustTrackLoad(next, "echo.echo_load", -1);
+      }
+      next.presentationAbilityState.echo.secondPass = {
+        active: true,
+        mode: "spend",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "second_pass_risk") {
+      next.presentationAbilityState.echo.secondPass = {
+        active: true,
+        mode: "risk",
+        riskQueued: true
+      };
+      return next;
+    }
+
+    if (action === "second_pass_clear") {
+      next.presentationAbilityState.echo.secondPass = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "slip_notice_spend") {
+      if (pressure) {
+        next = pressure.adjustTrackLoad(next, "silence.silence_load", -1);
+      }
+      next.presentationAbilityState.silence.slipNotice = {
+        active: true,
+        mode: "spend",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "slip_notice_risk") {
+      next.presentationAbilityState.silence.slipNotice = {
+        active: true,
+        mode: "risk",
+        riskQueued: true
+      };
+      return next;
+    }
+
+    if (action === "slip_notice_clear") {
+      next.presentationAbilityState.silence.slipNotice = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "daemon_push_spend") {
+      if (pressure) {
+        next = pressure.adjustTrackLoad(next, "technomancer.signal_load", -1);
+      }
+      next.presentationAbilityState.technomancer.daemonPush = {
+        active: true,
+        mode: "spend",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "daemon_push_risk") {
+      next.presentationAbilityState.technomancer.daemonPush = {
+        active: true,
+        mode: "risk",
+        riskQueued: true
+      };
+      return next;
+    }
+
+    if (action === "daemon_push_clear") {
+      next.presentationAbilityState.technomancer.daemonPush = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "feral_drive_spend") {
+      if (pressure) {
+        next = pressure.adjustTrackLoad(next, "therian.instinct_load", -1);
+      }
+      next.presentationAbilityState.therian.feralDrive = {
+        active: true,
+        mode: "spend",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "feral_drive_risk") {
+      next.presentationAbilityState.therian.feralDrive = {
+        active: true,
+        mode: "risk",
+        riskQueued: true
+      };
+      return next;
+    }
+
+    if (action === "feral_drive_clear") {
+      next.presentationAbilityState.therian.feralDrive = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "borrowed_force_spend") {
+      if (pressure) {
+        next = pressure.adjustTrackLoad(next, "vessel.containment_load", -1);
+      }
+      next.presentationAbilityState.vessel.borrowedForce = {
+        active: true,
+        mode: "spend",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "borrowed_force_risk") {
+      next.presentationAbilityState.vessel.borrowedForce = {
+        active: true,
+        mode: "risk",
+        riskQueued: true
+      };
+      return next;
+    }
+
+    if (action === "borrowed_force_clear") {
+      next.presentationAbilityState.vessel.borrowedForce = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "function_surge_spend") {
+      if (pressure) {
+        next = pressure.adjustTrackLoad(next, "construct.function_load", -1);
+      }
+      next.presentationAbilityState.construct.functionSurge = {
+        active: true,
+        mode: "spend",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "function_surge_risk") {
+      next.presentationAbilityState.construct.functionSurge = {
+        active: true,
+        mode: "risk",
+        riskQueued: true
+      };
+      return next;
+    }
+
+    if (action === "function_surge_clear") {
+      next.presentationAbilityState.construct.functionSurge = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "anomaly_push_spend") {
+      if (pressure) {
+        next = pressure.adjustTrackLoad(next, "void_shard.void_load", -1);
+      }
+      next.presentationAbilityState.void_shard.anomalyPush = {
+        active: true,
+        mode: "spend",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "anomaly_push_risk") {
+      next.presentationAbilityState.void_shard.anomalyPush = {
+        active: true,
+        mode: "risk",
+        riskQueued: true
+      };
+      return next;
+    }
+
+    if (action === "anomaly_push_clear") {
+      next.presentationAbilityState.void_shard.anomalyPush = {
+        active: false,
+        mode: "",
+        riskQueued: false
+      };
+      return next;
+    }
+
+    if (action === "vessel_contained_type") {
+      const allowed = CONTAINED_TYPE_OPTIONS.map((option) => option.id);
+      const containedType = allowed.includes(data.containedType) ? data.containedType : "unknown";
+      next.presentationAbilityState.vessel.containedType = containedType;
+      return next;
+    }
+
+    if (action === "vessel_contained_notes") {
+      next.presentationAbilityState.vessel.containedNotes = String(data.value ?? "").slice(0, 200);
+      return next;
+    }
+
     if (action === "closing_burst_use") {
       next.presentationAbilityState.sanguine.closingBurstUsed = true;
       return next;
@@ -1347,6 +2503,7 @@
       accessTier: resolveAccessTier(ability, catalogKey || ability.catalogKeys?.[0] || ""),
       identityLine: ability.identityLine,
       hauntInterface: ability.hauntInterface,
+      containmentInterface: ability.containmentInterface,
       pressureTrack: {
         trackId,
         trackLabel: ability.pressureTrack?.trackLabel || presentation?.trackLabel || "",
@@ -1418,6 +2575,76 @@
     });
   }
 
+  function appendSecondPassTag(block, view, dispatch) {
+    appendRollTag(block, view, dispatch, {
+      stateKey: "secondPass",
+      title: "ACTIVE: Second Pass +1",
+      copy: SECOND_PASS_APPLIES_COPY,
+      riskCopy: "RISK: On miss or severe consequence, Echo Load +1 or Handler escalates.",
+      clearAction: "second_pass_clear"
+    });
+  }
+
+  function appendSlipNoticeTag(block, view, dispatch) {
+    appendRollTag(block, view, dispatch, {
+      stateKey: "slipNotice",
+      title: "ACTIVE: Slip Notice +1",
+      copy: SLIP_NOTICE_APPLIES_COPY,
+      riskCopy: "RISK: On miss or severe consequence, Silence Load +1 or Handler escalates.",
+      clearAction: "slip_notice_clear"
+    });
+  }
+
+  function appendDaemonPushTag(block, view, dispatch) {
+    appendRollTag(block, view, dispatch, {
+      stateKey: "daemonPush",
+      title: "ACTIVE: Daemon Push +1",
+      copy: DAEMON_PUSH_APPLIES_COPY,
+      riskCopy: "RISK: On miss or severe consequence, Signal Load +1 or Handler escalates.",
+      clearAction: "daemon_push_clear"
+    });
+  }
+
+  function appendFeralDriveTag(block, view, dispatch) {
+    appendRollTag(block, view, dispatch, {
+      stateKey: "feralDrive",
+      title: "ACTIVE: Feral Drive +1",
+      copy: FERAL_DRIVE_APPLIES_COPY,
+      riskCopy: "RISK: On miss or severe consequence, Instinct Load +1 or Handler escalates.",
+      clearAction: "feral_drive_clear"
+    });
+  }
+
+  function appendBorrowedForceTag(block, view, dispatch) {
+    appendRollTag(block, view, dispatch, {
+      stateKey: "borrowedForce",
+      title: "ACTIVE: Borrowed Force +1",
+      copy: BORROWED_FORCE_APPLIES_COPY,
+      riskCopy: "RISK: On miss or severe consequence, Containment Load +1 or Handler escalates.",
+      clearAction: "borrowed_force_clear"
+    });
+  }
+
+  function appendFunctionSurgeTag(block, view, dispatch) {
+    appendRollTag(block, view, dispatch, {
+      stateKey: "functionSurge",
+      title: "ACTIVE: Function Surge +1",
+      copy: FUNCTION_SURGE_APPLIES_COPY,
+      riskCopy: "RISK: On miss or severe consequence, Function Load +1 or Handler escalates.",
+      clearAction: "function_surge_clear"
+    });
+  }
+
+  function appendAnomalyPushTag(block, view, dispatch) {
+    appendRollTag(block, view, dispatch, {
+      stateKey: "anomalyPush",
+      title: "ACTIVE: Anomaly Push +1",
+      copy: ANOMALY_PUSH_APPLIES_COPY,
+      riskCopy: "RISK: On miss or severe consequence, Void Load +1 or Handler escalates.",
+      clearAction: "anomaly_push_clear"
+    });
+  }
+
   function appendSpendRiskReadCard(card, entry, view, dispatch, spec) {
     const state = view.runtimeState?.[spec.stateKey];
     if (state?.active) {
@@ -1466,6 +2693,83 @@
     });
   }
 
+  function appendSecondPassCard(card, entry, view, dispatch) {
+    appendSpendRiskReadCard(card, entry, view, dispatch, {
+      stateKey: "secondPass",
+      prompt: "Spend or risk Echo Load?",
+      spendLabel: "Spend 1 Echo Load",
+      riskLabel: "Risk Echo Load",
+      spendAction: "second_pass_spend",
+      riskAction: "second_pass_risk"
+    });
+  }
+
+  function appendSlipNoticeCard(card, entry, view, dispatch) {
+    appendSpendRiskReadCard(card, entry, view, dispatch, {
+      stateKey: "slipNotice",
+      prompt: "Spend or risk Silence Load?",
+      spendLabel: "Spend 1 Silence Load",
+      riskLabel: "Risk Silence Load",
+      spendAction: "slip_notice_spend",
+      riskAction: "slip_notice_risk"
+    });
+  }
+
+  function appendDaemonPushCard(card, entry, view, dispatch) {
+    appendSpendRiskReadCard(card, entry, view, dispatch, {
+      stateKey: "daemonPush",
+      prompt: "Spend or risk Signal Load?",
+      spendLabel: "Spend 1 Signal Load",
+      riskLabel: "Risk Signal Load",
+      spendAction: "daemon_push_spend",
+      riskAction: "daemon_push_risk"
+    });
+  }
+
+  function appendFeralDriveCard(card, entry, view, dispatch) {
+    appendSpendRiskReadCard(card, entry, view, dispatch, {
+      stateKey: "feralDrive",
+      prompt: "Spend or risk Instinct Load?",
+      spendLabel: "Spend 1 Instinct Load",
+      riskLabel: "Risk Instinct Load",
+      spendAction: "feral_drive_spend",
+      riskAction: "feral_drive_risk"
+    });
+  }
+
+  function appendBorrowedForceCard(card, entry, view, dispatch) {
+    appendSpendRiskReadCard(card, entry, view, dispatch, {
+      stateKey: "borrowedForce",
+      prompt: "Spend or risk Containment Load?",
+      spendLabel: "Spend 1 Containment Load",
+      riskLabel: "Risk Containment Load",
+      spendAction: "borrowed_force_spend",
+      riskAction: "borrowed_force_risk"
+    });
+  }
+
+  function appendFunctionSurgeCard(card, entry, view, dispatch) {
+    appendSpendRiskReadCard(card, entry, view, dispatch, {
+      stateKey: "functionSurge",
+      prompt: "Spend or risk Function Load?",
+      spendLabel: "Spend 1 Function Load",
+      riskLabel: "Risk Function Load",
+      spendAction: "function_surge_spend",
+      riskAction: "function_surge_risk"
+    });
+  }
+
+  function appendAnomalyPushCard(card, entry, view, dispatch) {
+    appendSpendRiskReadCard(card, entry, view, dispatch, {
+      stateKey: "anomalyPush",
+      prompt: "Spend or risk Void Load?",
+      spendLabel: "Spend 1 Void Load",
+      riskLabel: "Risk Void Load",
+      spendAction: "anomaly_push_spend",
+      riskAction: "anomaly_push_risk"
+    });
+  }
+
   function sceneAbilityUsed(view, entry) {
     if (entry.id === "closing_burst") return Boolean(view.runtimeState?.closingBurstUsed);
     return Boolean(view.runtimeState?.sceneUses?.[entry.id]);
@@ -1509,6 +2813,34 @@
     }
     if (entry.interaction === "resonant_read") {
       appendResonantReadCard(card, entry, view, dispatch);
+      return;
+    }
+    if (entry.interaction === "second_pass") {
+      appendSecondPassCard(card, entry, view, dispatch);
+      return;
+    }
+    if (entry.interaction === "slip_notice") {
+      appendSlipNoticeCard(card, entry, view, dispatch);
+      return;
+    }
+    if (entry.interaction === "daemon_push") {
+      appendDaemonPushCard(card, entry, view, dispatch);
+      return;
+    }
+    if (entry.interaction === "feral_drive") {
+      appendFeralDriveCard(card, entry, view, dispatch);
+      return;
+    }
+    if (entry.interaction === "borrowed_force") {
+      appendBorrowedForceCard(card, entry, view, dispatch);
+      return;
+    }
+    if (entry.interaction === "function_surge") {
+      appendFunctionSurgeCard(card, entry, view, dispatch);
+      return;
+    }
+    if (entry.interaction === "anomaly_push") {
+      appendAnomalyPushCard(card, entry, view, dispatch);
       return;
     }
     if (entry.interaction === "once_per_scene") {
@@ -1664,6 +2996,86 @@
     block.append(haunt);
   }
 
+  function appendContainmentInterface(block, view, runtime) {
+    if (!view.containmentInterface?.enabled) return;
+    const state = view.runtimeState || {};
+    const editable = Boolean(runtime?.editable);
+    const dispatch = runtime?.dispatch;
+    const options = view.containmentInterface.containedTypeOptions || CONTAINED_TYPE_OPTIONS;
+
+    const wrap = document.createElement("div");
+    wrap.className = "containment-interface";
+
+    const title = document.createElement("p");
+    title.className = "containment-interface-title";
+    title.textContent = "Contained Presence";
+    wrap.append(title);
+
+    const typeRow = document.createElement("div");
+    typeRow.className = "containment-type-row";
+    const typeLabel = document.createElement("span");
+    typeLabel.className = "containment-type-label";
+    typeLabel.textContent = "Contained Type";
+    typeRow.append(typeLabel);
+
+    if (editable && dispatch) {
+      const select = document.createElement("select");
+      select.className = "containment-type-select";
+      options.forEach((option) => {
+        const entry = document.createElement("option");
+        entry.value = option.id;
+        entry.textContent = option.label;
+        select.append(entry);
+      });
+      select.value = state.containedType || "unknown";
+      select.addEventListener("change", () => {
+        dispatch("vessel_contained_type", { containedType: select.value });
+      });
+      typeRow.append(select);
+    } else {
+      const current = options.find((option) => option.id === state.containedType) || options[0];
+      const value = document.createElement("span");
+      value.textContent = current?.label || "Unknown";
+      typeRow.append(value);
+    }
+    wrap.append(typeRow);
+
+    if (state.containedType === "custom" || state.containedNotes) {
+      if (editable && dispatch) {
+        const notes = document.createElement("input");
+        notes.type = "text";
+        notes.className = "containment-notes-input";
+        notes.placeholder = "Handler notes for custom subtype";
+        notes.value = state.containedNotes || "";
+        notes.addEventListener("change", () => {
+          dispatch("vessel_contained_notes", { value: notes.value });
+        });
+        wrap.append(notes);
+      } else if (state.containedNotes) {
+        const notes = document.createElement("p");
+        notes.className = "presentation-ability-meta";
+        notes.textContent = state.containedNotes;
+        wrap.append(notes);
+      }
+    }
+
+    const archivePaths = view.containmentInterface.archivePaths || {};
+    const archiveHint = archivePaths[state.containedType];
+    if (archiveHint) {
+      const archive = document.createElement("p");
+      archive.className = "presentation-ability-meta";
+      archive.textContent = `Archive path: ${archiveHint}`;
+      wrap.append(archive);
+    }
+
+    const coreLaw = document.createElement("p");
+    coreLaw.className = "presentation-ability-meta";
+    coreLaw.textContent = "At 5, the Vessel borrows from what is inside. At 6, what is inside borrows the Vessel.";
+    wrap.append(coreLaw);
+
+    block.append(wrap);
+  }
+
   function mountPresentationPermissionsReadout(body, view, runtime) {
     if (!body || !view) return;
     const dispatch = (action, payload) => {
@@ -1679,15 +3091,39 @@
     if (view.id === "sensitive") {
       appendResonantReadTag(block, view, dispatch);
     }
+    if (view.id === "echo") {
+      appendSecondPassTag(block, view, dispatch);
+    }
+    if (view.id === "silence") {
+      appendSlipNoticeTag(block, view, dispatch);
+    }
+    if (view.id === "technomancer") {
+      appendDaemonPushTag(block, view, dispatch);
+    }
+    if (view.id === "therian") {
+      appendFeralDriveTag(block, view, dispatch);
+    }
+    if (view.id === "vessel") {
+      appendBorrowedForceTag(block, view, dispatch);
+    }
+    if (view.id === "construct") {
+      appendFunctionSurgeTag(block, view, dispatch);
+    }
+    if (view.id === "void_shard") {
+      appendAnomalyPushTag(block, view, dispatch);
+    }
 
+    appendContainmentInterface(block, view, runtime);
     appendHauntInterface(block, view, runtime);
 
     const heading = document.createElement("p");
     heading.className = "pressure-readout-subheading";
-    heading.textContent = view.hauntInterface?.enabled ? "Haunt permissions" : "Presentation permissions";
+    heading.textContent = view.hauntInterface?.enabled
+      ? "Haunt permissions"
+      : (view.containmentInterface?.enabled ? "Containment permissions" : "Presentation permissions");
     block.append(heading);
 
-    if (view.identityLine && !view.hauntInterface?.enabled) {
+    if (view.identityLine && !view.hauntInterface?.enabled && !view.containmentInterface?.enabled) {
       const identity = document.createElement("p");
       identity.className = "presentation-identity-line";
       identity.textContent = view.identityLine;
@@ -1840,6 +3276,35 @@
     resonantReadRollBonus,
     consumeResonantReadOnRoll,
     RESONANT_READ_APPLIES_COPY,
+    secondPassAppliesToRoll,
+    secondPassRollBonus,
+    consumeSecondPassOnRoll,
+    SECOND_PASS_APPLIES_COPY,
+    slipNoticeAppliesToRoll,
+    slipNoticeRollBonus,
+    consumeSlipNoticeOnRoll,
+    SLIP_NOTICE_APPLIES_COPY,
+    daemonPushAppliesToRoll,
+    daemonPushRollBonus,
+    consumeDaemonPushOnRoll,
+    DAEMON_PUSH_APPLIES_COPY,
+    feralDriveAppliesToRoll,
+    feralDriveRollBonus,
+    consumeFeralDriveOnRoll,
+    FERAL_DRIVE_APPLIES_COPY,
+    borrowedForceAppliesToRoll,
+    borrowedForceRollBonus,
+    consumeBorrowedForceOnRoll,
+    BORROWED_FORCE_APPLIES_COPY,
+    functionSurgeAppliesToRoll,
+    functionSurgeRollBonus,
+    consumeFunctionSurgeOnRoll,
+    FUNCTION_SURGE_APPLIES_COPY,
+    anomalyPushAppliesToRoll,
+    anomalyPushRollBonus,
+    consumeAnomalyPushOnRoll,
+    ANOMALY_PUSH_APPLIES_COPY,
+    CONTAINED_TYPE_OPTIONS,
     mountPresentationPermissionsReadout,
     appendPresentationPermissionsReadout,
     accessTierFromCatalog,
