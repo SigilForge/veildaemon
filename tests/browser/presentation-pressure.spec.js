@@ -8,7 +8,7 @@ const LOAD_PRESENTATIONS = [
   { id: "therian", kind: "instinct_load", trackId: "therian.instinct_load", catalog: "THERIAN_ADAPTATION", bands: ["Dulled", "Integrated", "Feral Pressure", "Loss of Self"] },
   { id: "technomancer", kind: "signal_load", trackId: "technomancer.signal_load", catalog: "TECHNOMANCER", bands: ["Disconnected", "Synced", "Daemon Bleed", "System Override"] },
   { id: "construct", kind: "function_load", trackId: "construct.function_load", catalog: "CONSTRUCT", bands: ["Malfunctioning", "Operational", "Directive Pressure", "Purpose Lock"] },
-  { id: "sensitive", kind: "sensory_load", trackId: "sensitive.sensory_load", catalog: "RESONANT_SENSITIVE", bands: ["Numbed", "Attuned", "Overstimulated", "Signal Flood"] },
+  { id: "sensitive", kind: "sensory_load", trackId: "sensitive.sensory_load", catalog: "RESONANT_SENSITIVE", bands: ["Numbed", "Tuned", "Over-Tuned", "Signal Break"] },
   { id: "void_shard", kind: "void_load", trackId: "void_shard.void_load", catalog: "VOID_SHARD", bands: ["Hollowed", "Contained", "Contamination Surge", "Breach Event"] }
 ];
 
@@ -501,6 +501,70 @@ test("load pip styles use horizontal grid and presentation tint variables", asyn
   expect(summary.gridTemplateColumns.split(/\s+/).filter(Boolean).length).toBe(6);
   expect(summary.filledBackground).not.toBe("rgba(0, 0, 0, 0)");
   expect(summary.echoAccent).toBe("#00b8a8");
+});
+
+test("resonant sensitive permissions expose bad room read and resonant read", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const tuned = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "sensitive.sensory_load": 3 } }),
+      "RESONANT_SENSITIVE"
+    );
+    const edge = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "sensitive.sensory_load": 5 } }),
+      "RESONANT_SENSITIVE"
+    );
+    const collapse = abilities.presentationAbilityView(
+      pressure.migrateOperatorStatus({ presentationPressures: { "sensitive.sensory_load": 6 } }),
+      "RESONANT_SENSITIVE"
+    );
+    return {
+      headline: tuned.headlineAbility?.name,
+      passiveNames: tuned.passivePermissions.map((entry) => entry.name),
+      activeNames: tuned.activeAbilities.map((entry) => entry.name),
+      accessTier: tuned.accessTier,
+      identityLine: tuned.identityLine,
+      trackLabel: tuned.pressureTrack.trackLabel,
+      edgeBand: edge.activeBandState?.bandLabel,
+      edgeHelps: edge.activeBandState?.helps,
+      collapseName: collapse.activeBandState?.name,
+      collapseBonus: collapse.activeBandState?.bonus
+    };
+  });
+  expect(summary.headline).toBe("Bad Room Read");
+  expect(summary.passiveNames).toEqual(["Pressure Sense", "Signal Bruising"]);
+  expect(summary.activeNames).toEqual(["Bad Room Read", "Resonant Read"]);
+  expect(summary.accessTier).toBe("open");
+  expect(summary.identityLine).toContain("Too aware");
+  expect(summary.trackLabel).toBe("Resonance Load");
+  expect(summary.edgeBand).toBe("Over-Tuned");
+  expect(summary.edgeHelps).toContain("+1");
+  expect(summary.collapseName).toBe("The Signal Reads Back");
+  expect(summary.collapseBonus).toContain("+2");
+});
+
+test("resonant read spend reduces load and arms roll tag", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    const status = pressure.migrateOperatorStatus({
+      presentationPressures: { "sensitive.sensory_load": 4 }
+    });
+    const spent = abilities.applyPresentationAbilityAction(status, "resonant_read_spend");
+    return {
+      load: pressure.readTrackValue(spent, "sensitive.sensory_load"),
+      active: spent.presentationAbilityState.sensitive.resonantRead.active,
+      bonus: abilities.resonantReadRollBonus(spent, "Instinct"),
+      cleared: abilities.resonantReadRollBonus(abilities.consumeResonantReadOnRoll(spent), "Instinct")
+    };
+  });
+  expect(summary.load).toBe(3);
+  expect(summary.active).toBe(true);
+  expect(summary.bonus).toBe(1);
+  expect(summary.cleared).toBe(0);
 });
 
 test("recovery checkboxes resolve deterministically on next round", async ({ page }) => {

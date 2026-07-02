@@ -2864,6 +2864,13 @@
     return api.bloodSurgeRollBonus(status, attrKey);
   }
 
+  function resolveResonantReadBonus(status) {
+    const api = presentationAbilitiesApi();
+    if (!api?.resonantReadRollBonus) return 0;
+    const attrKey = normalizeAttributeName(status.rollAttributeKey) || "Body";
+    return api.resonantReadRollBonus(status, attrKey);
+  }
+
   function resolveNamedPressureBonus(status) {
     const api = presentationAbilitiesApi();
     if (!api?.namedPressureRollBonus) return 0;
@@ -2931,7 +2938,8 @@
     const status = consoleState.operatorStatus;
     const modifiers = resolveRollLoadModifiers(status);
     const surgeBonus = resolveBloodSurgeBonus(status);
-    if (!modifiers.active && !surgeBonus) {
+    const resonantBonus = resolveResonantReadBonus(status);
+    if (!modifiers.active && !surgeBonus && !resonantBonus) {
       output.textContent = "Awaiting action.";
       return;
     }
@@ -2944,6 +2952,9 @@
     }
     if (surgeBonus) {
       parts.push(`Blood Surge +${surgeBonus} on next Body/Agility/Instinct roll.`);
+    }
+    if (resonantBonus) {
+      parts.push(`Resonant Read +${resonantBonus} on next Instinct/Mind/Presence pressure read.`);
     }
     output.textContent = parts.join(" ");
   }
@@ -3950,6 +3961,7 @@
     const loadMods = resolveRollLoadModifiers(status);
     const loadDelta = Number(loadMods.delta || 0);
     const surgeBonus = resolveBloodSurgeBonus(status);
+    const resonantBonus = resolveResonantReadBonus(status);
     const namedBonus = resolveNamedPressureBonus(status);
     const manualModifier = Number(status.rollModifier || 0);
     const total = keptDice.values.reduce((sum, value) => sum + value, 0)
@@ -3958,12 +3970,16 @@
       + manualModifier
       + loadDelta
       + surgeBonus
+      + resonantBonus
       + namedBonus;
     const abilitiesApi = presentationAbilitiesApi();
     if (abilitiesApi) {
       let nextStatus = consoleState.operatorStatus;
       if (surgeBonus && abilitiesApi.consumeBloodSurgeOnRoll) {
         nextStatus = migrateOperatorStatus(abilitiesApi.consumeBloodSurgeOnRoll(nextStatus));
+      }
+      if (resonantBonus && abilitiesApi.consumeResonantReadOnRoll) {
+        nextStatus = migrateOperatorStatus(abilitiesApi.consumeResonantReadOnRoll(nextStatus));
       }
       if (namedBonus && abilitiesApi.consumeNamedPressureOnRoll) {
         nextStatus = migrateOperatorStatus(abilitiesApi.consumeNamedPressureOnRoll(nextStatus));
@@ -3982,9 +3998,10 @@
         : `4D6 ${dice.join(" + ")} // ${modeText} ${keptDice.values.join(" + ")} // DROP ${dropped.join(" + ")}`;
       const loadText = formatRollLoadSuffix(loadMods);
       const surgeText = surgeBonus ? ` // BLOOD SURGE +${surgeBonus}` : "";
+      const resonantText = resonantBonus ? ` // RESONANT READ +${resonantBonus}` : "";
       const namedText = namedBonus ? ` // NAMED PRESSURE +${namedBonus}` : "";
       output.dataset.rolled = "true";
-      output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${surgeText}${namedText}${loadText} = ${total}`;
+      output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${surgeText}${resonantText}${namedText}${loadText} = ${total}`;
     }
   }
 
