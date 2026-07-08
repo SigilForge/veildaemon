@@ -29,3 +29,38 @@ npm run browser:check
 ```
 
 The current Node target is declared in `package.json`.
+
+## VeilCorp QR Assets
+
+Generate permanent static QR assets locally. The generator uses direct URLs only, refuses common short-link hosts, defaults to QR error correction `H`, and writes an editable SVG as the publishing asset.
+
+```bash
+npm run qr -- \
+  --url "https://veildaemon.app" \
+  --title "VEILCORP ARCHIVES" \
+  --subtitle "ACCESS NODE // VERIFIED" \
+  --node "OPERATOR INTAKE" \
+  --clearance "THREADBREAKER" \
+  --out "operator-intake"
+```
+
+Default output:
+
+```text
+public/assets/qr/operator-intake.svg
+```
+
+Use the SVG for print, stickers, cards, and any resized asset so the QR modules stay crisp. A PNG can be generated as a local preview only:
+
+```bash
+npm run qr -- --url "https://veildaemon.app" --out "operator-intake" --png-preview
+```
+
+Useful optional controls:
+
+- `--accent purple|red|white|none`
+- `--footer "HUMAN AUTHORIZATION PARTIAL. SURVIVAL AUTHORIZATION ACTIVE."`
+- `--logo-svg path/to/logo.svg`
+- `--accent-rate 0.025`
+
+Always scan-test the generated asset before publishing or printing.
