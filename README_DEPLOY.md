@@ -32,7 +32,7 @@ Open `index.html` and search for these button labels:
 
 - Access VeilCorp Archives -> https://wiki.veildaemon.app/
 - Open Case Files -> https://the-cradlepoint-archives.itch.io/needlepoint
-- Begin Operator Intake -> https://veilborn.carrd.co/
+- Begin Operator Intake -> https://relic.veildaemon.app/
 - Archive Index -> https://wiki.veildaemon.app/wiki/Main_Page
 
 ## Files
