@@ -22,10 +22,17 @@ test("studio portal routes visitors and captures desktop review", async ({ page 
   await page.goto("/studio/funding/");
   await expect(page.getByRole("heading", { name: /investment case/i })).toBeVisible();
   await expect(page.locator("#problem")).toContainText(/persistent system/i);
-  await expect(page.locator("#customer")).toContainText(/Horror and narrative-focused TTRPG/i);
-  await expect(page.locator("#revenue")).toContainText(/Near-term/i);
-  await expect(page.locator("#capital")).toContainText(/twelve-month outcomes/i);
-  await expect(page.locator("#founder")).toContainText(/several disciplines/i);
+  await expect(page.locator("#structure")).toContainText(/Funding instruments/i);
+
+  await page.goto("/studio/press/");
+  await expect(page.getByRole("heading", { name: /Approved materials/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Download short boilerplate/i })).toBeVisible();
+
+  await page.goto("/studio/projects/");
+  await expect(page.locator(".portfolio-card")).toHaveCount(6);
+
+  await page.goto("/studio/data-room/");
+  await expect(page.getByRole("link", { name: /Executive overview/i })).toBeVisible();
 
   await page.screenshot({ path: reviewDir + "/cradlepoint-studio-desktop.png", fullPage: true });
 });

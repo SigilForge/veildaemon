@@ -1,0 +1,42 @@
+# Public Roadmap Summary
+
+**Studio:** Cradlepoint Studio  
+**Version:** Public summary · July 2026  
+**Access:** Public
+
+## Sequencing principle
+
+Compound layers: what ships now, what funding accelerates next, and what long-horizon work inherits from canon already in motion. Long-horizon interactive (including survival-scale concepts) is not presented as a current product promise.
+
+## Layer 1 — Current commercial foundation (now)
+
+Already shipping or live:
+
+- Operator Core and Handler Core (paid)
+- Free Needlepoint onboarding funnel
+- VeilDaemon companion tools
+- Public archive / wiki
+- Fiction line and canon library
+
+## Layer 2 — Funded publishing growth (12–24 months)
+
+Funding accelerates:
+
+- Weekly Needlepoint cadence toward target
+- Professional finish of flagship materials
+- Storefront, print stock, conventions, creator media
+- Structured progression-year releases
+
+## Layer 3 — ARG + long-term AR / Ritual Sites (2–5 years)
+
+Near-term funded work stays adjacent to publishing (infrastructure, hooks, companion hardening).  
+Persistent Mobile AR and Ritual Sites remain long-term platform vision and bounded proof-of-concept research—not near-term launch SKUs unless separately scoped and funded.
+
+## Capital separation
+
+- **$67K / 12 months** — studio growth envelope  
+- **Publishing production** — separate after route choice  
+- **Mobile AR MVP** — separate after technical quotes  
+- **≤$20K PoC** — optional bounded barrier, not company valuation  
+
+Detail: https://veildaemon.app/studio/funding/#structure
