@@ -9,6 +9,11 @@
   const statusLine = document.getElementById("status-line");
   const fields = [
     "vdVisits",
+    "instagramViews",
+    "instagramReach",
+    "facebookViews",
+    "facebookViewers",
+    "socialEngagements",
     "archiveClicks",
     "itchClicks",
     "youtubeClicks",
@@ -126,7 +131,7 @@
     const caseActions = sumValues(entry, ["itchPlays", "itchDownloads"]);
     const itchViews = value(entry, "itchViews");
     return {
-      reach: sumValues(entry, ["vdVisits", "wikiViews", "itchViews", "youtubeViews"]),
+      reach: sumValues(entry, ["vdVisits", "instagramViews", "facebookViews", "wikiViews", "itchViews", "youtubeViews"]),
       deepActions,
       deepeningRate: rate(deepActions, vdVisits),
       caseActions,
@@ -267,6 +272,7 @@
       return;
     }
     const rows = [
+      ["Social discovery", sumValues(entry, ["instagramViews", "facebookViews"]), value(entry, "socialEngagements"), rate(value(entry, "socialEngagements"), sumValues(entry, ["instagramViews", "facebookViews"]))],
       ["VeilDaemon", value(entry, "vdVisits"), sumValues(entry, ["archiveClicks", "itchClicks", "youtubeClicks", "intakeCompletions"]), rate(sumValues(entry, ["archiveClicks", "itchClicks", "youtubeClicks", "intakeCompletions"]), value(entry, "vdVisits"))],
       ["Archive", value(entry, "wikiViews"), sumValues(entry, ["wikiReturns", "wikiItchExits"]), rate(sumValues(entry, ["wikiReturns", "wikiItchExits"]), value(entry, "wikiViews"))],
       ["Itch", value(entry, "itchViews"), sumValues(entry, ["itchPlays", "itchDownloads"]), rate(sumValues(entry, ["itchPlays", "itchDownloads"]), value(entry, "itchViews"))],
