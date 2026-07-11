@@ -1,5 +1,7 @@
 # TTRPG Publishing Prospectus — Public Summary
 
+> **Open-web summary only.** Not the private Cradlepoint archive. Full diligence materials are shared by request, not linked here.
+
 **Version:** 0.1 summary · July 2026  
 **Access:** Public overview (full scenarios on request)
 

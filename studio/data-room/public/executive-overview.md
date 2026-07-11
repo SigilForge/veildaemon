@@ -1,5 +1,7 @@
 # Cradlepoint Studio — Executive Overview (Public)
 
+> **Open-web summary only.** Not the private Cradlepoint archive. Full diligence materials are shared by request, not linked here.
+
 **Version:** Public · July 2026
 
 ## What it is
