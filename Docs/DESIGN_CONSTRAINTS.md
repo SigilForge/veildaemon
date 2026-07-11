@@ -190,6 +190,13 @@ New tracker UI must survive both breakpoints without introducing horizontal scro
 
 ---
 
+## Web images
+
+- **Display on the web = WebP.** `<img>`, CSS backgrounds, and Studio art paint WebP, not PNG/JPEG.
+- PNG/JPEG may remain as masters or press download originals only.
+- Convert with `npm run webp -- path/to/image.png` or `node scripts/ensure-webp.mjs`.
+- `npm run webp:check` fails if HTML/CSS still points display URLs at PNG/JPEG (download links ignored).
+
 ## Agent checklist (before shipping UI)
 
 1. **Does this belong in an existing strip?** (Harm & Stability, case strip, handler panel, trigger tray)
@@ -198,6 +205,7 @@ New tracker UI must survive both breakpoints without introducing horizontal scro
 4. **Is the primary control the track, not a status picker?**
 5. **Same margins as neighbors?** Compare padding to `.condition-strip` / `.line-tracker`, not `.sheet-card` essay blocks.
 6. **Bump cache query** on touched CSS/JS in HTML.
+7. **Web display images are WebP** (not PNG/JPEG in `src` / `url()`).
 7. **Run** `npm run check` and `npm run browser:check` in `Veildaemon/`.
 
 ---

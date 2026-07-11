@@ -43,7 +43,7 @@ body {
   min-height: 100vh;
   background:
     linear-gradient(90deg, rgba(5,7,9,.82), rgba(5,7,9,.54), rgba(5,7,9,.82)),
-    url("../assets/background.jpg") center top / cover no-repeat fixed,
+    url("../assets/background.webp") center top / cover no-repeat fixed,
     var(--bg);
   color: var(--text);
   font-family: var(--font);

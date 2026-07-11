@@ -57,7 +57,7 @@ html {
   text-rendering: optimizeLegibility;
   background:
     linear-gradient(90deg, rgba(5, 7, 9, 0.62), rgba(5, 7, 9, 0.16), rgba(5, 7, 9, 0.62)),
-    url("../assets/background.jpg") center top / cover no-repeat fixed,
+    url("../assets/background.webp") center top / cover no-repeat fixed,
     #050709;
 }
 

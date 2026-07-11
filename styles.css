@@ -57,7 +57,7 @@ body {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   background:
     linear-gradient(90deg, rgba(5,7,9,.62), rgba(5,7,9,.16), rgba(5,7,9,.62)),
-    url("assets/background.jpg") center top / cover no-repeat fixed;
+    url("assets/background.webp") center top / cover no-repeat fixed;
   overflow-x: hidden;
 }
 body.has-casefile-drawer-open,

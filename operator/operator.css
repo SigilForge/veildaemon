@@ -50,7 +50,7 @@ body {
     radial-gradient(circle at 72% 18%, rgba(185,84,255,.2), transparent 28rem),
     radial-gradient(circle at 18% 0, rgba(102,255,220,.1), transparent 24rem),
     linear-gradient(90deg, rgba(0,0,0,.78), rgba(5,7,9,.44) 48%, rgba(0,0,0,.6)),
-    url("../assets/background.jpg") center top / cover no-repeat fixed,
+    url("../assets/background.webp") center top / cover no-repeat fixed,
     #050709;
   color: var(--text);
   font-family: var(--font);
