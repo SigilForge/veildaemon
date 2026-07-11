@@ -1,0 +1,46 @@
+{
+  "source": "Marketing/VeilCorp Art/Site Art (WSL)",
+  "kind": "full-HD plates",
+  "cards": [
+    {
+      "id": "studio-hero-cathedral-hd",
+      "source": "Studio Hero Cthedrial.png",
+      "size": [
+        1672,
+        941
+      ]
+    },
+    {
+      "id": "studio-funding-hero-hd",
+      "source": "Funding Hero.png",
+      "size": [
+        1672,
+        941
+      ]
+    },
+    {
+      "id": "studio-publishing-hero-hd",
+      "source": "publishing.png",
+      "size": [
+        1672,
+        941
+      ]
+    },
+    {
+      "id": "studio-products-hero-hd",
+      "source": "Products.png",
+      "size": [
+        1672,
+        941
+      ]
+    },
+    {
+      "id": "studio-technology-ar-hd",
+      "source": "studio-door-technology-alt.png",
+      "size": [
+        1672,
+        941
+      ]
+    }
+  ]
+}
