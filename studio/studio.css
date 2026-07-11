@@ -45,16 +45,22 @@
   box-sizing: border-box;
 }
 
+/*
+  Home scene lives on html so body.portal / body.subpage tints
+  cannot wipe it (those classes sit on <body> in the markup).
+*/
 html {
   scroll-behavior: smooth;
   min-height: 100%;
-  background: #050709;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  background:
+    linear-gradient(90deg, rgba(5, 7, 9, 0.62), rgba(5, 7, 9, 0.16), rgba(5, 7, 9, 0.62)),
+    url("../assets/background.jpg") center top / cover no-repeat fixed,
+    #050709;
 }
 
-/* Same fixed scene as veildaemon.app home (styles.css body) */
 body {
   margin: 0;
   min-height: 100vh;
@@ -64,9 +70,7 @@ body {
   font-size: 1rem;
   line-height: 1.65;
   overflow-x: hidden;
-  background:
-    linear-gradient(90deg, rgba(5, 7, 9, 0.62), rgba(5, 7, 9, 0.16), rgba(5, 7, 9, 0.62)),
-    url("../assets/background.jpg") center top / cover no-repeat fixed;
+  background: transparent;
 }
 
 /* Home-page scanline + depth overlay */
@@ -346,8 +350,9 @@ footer nav a:hover {
 /* Portal home                                                                */
 /* ========================================================================== */
 
-.portal {
-  /* Let home background show through — only soft tints, no solid ink slab */
+.portal,
+.subpage {
+  /* Soft tints only — never opaque, never replace the html scene */
   background:
     radial-gradient(ellipse 80% 50% at 70% 0%, rgba(181, 117, 104, 0.06), transparent 55%),
     radial-gradient(ellipse 60% 40% at 10% 30%, rgba(126, 184, 168, 0.04), transparent 50%);
@@ -893,11 +898,7 @@ footer > p {
 /* Subpages                                                                   */
 /* ========================================================================== */
 
-.subpage {
-  /* Match portal: transparent shell over shared home background */
-  background:
-    radial-gradient(ellipse 70% 40% at 80% 0%, rgba(181, 117, 104, 0.05), transparent 55%);
-}
+
 
 .subpage main {
   min-height: 75vh;
