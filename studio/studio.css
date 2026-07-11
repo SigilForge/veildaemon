@@ -1452,6 +1452,311 @@ footer > p {
   }
 }
 
+/* ==========================================================================
+   Guided pitch deck (Funding page) — linear argument, not brochure collage
+   ========================================================================== */
+
+.pitch-page main {
+  max-width: none;
+}
+
+.pitch-open .pitch-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 1.75rem;
+}
+
+.pitch-toc a {
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: rgba(5, 7, 9, 0.45);
+  color: var(--text-soft);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+
+.pitch-toc a:hover {
+  color: var(--text);
+  border-color: rgba(181, 117, 104, 0.4);
+  background: rgba(181, 117, 104, 0.1);
+}
+
+.pitch-section {
+  padding: clamp(3.5rem, 7vw, 5.5rem) var(--pad);
+  border-top: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(5, 7, 9, 0.55), rgba(5, 7, 9, 0.72));
+}
+
+.pitch-section:nth-of-type(even) {
+  background: linear-gradient(180deg, rgba(8, 10, 11, 0.72), rgba(5, 7, 9, 0.62));
+}
+
+.pitch-head {
+  max-width: 42rem;
+  margin-bottom: 1.75rem;
+}
+
+.pitch-head h2 {
+  margin-top: 0.4rem;
+  font-size: clamp(2rem, 4.2vw, 3.2rem);
+  color: var(--text);
+}
+
+.pitch-lede,
+.pitch-note {
+  max-width: 44rem;
+  color: var(--text-soft);
+  font-size: 1.02rem;
+}
+
+.pitch-note {
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--text-faint);
+}
+
+.pitch-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.95fr;
+  gap: 0.9rem;
+}
+
+.pitch-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pitch-card {
+  padding: 1.4rem 1.35rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: rgba(17, 19, 20, 0.88);
+  backdrop-filter: blur(10px);
+}
+
+.pitch-card h3 {
+  margin: 0 0 0.65rem;
+  font-size: 1.45rem;
+  color: var(--text);
+}
+
+.pitch-card p,
+.pitch-card li {
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.pitch-card ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.pitch-card li + li {
+  margin-top: 0.4rem;
+}
+
+.pitch-card a {
+  color: var(--rust-soft);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pitch-card a:hover {
+  color: var(--text);
+}
+
+.pitch-card-lead {
+  grid-row: span 2;
+}
+
+.pitch-statement {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.2vw, 1.55rem);
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: var(--paper) !important;
+  margin: 0 0 1rem;
+}
+
+.pitch-priority {
+  border-color: rgba(181, 117, 104, 0.35);
+  box-shadow: 0 0 0 1px rgba(181, 117, 104, 0.08);
+}
+
+.pitch-priority > span,
+.pitch-card > span:first-child {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  color: var(--rust-soft);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.beachhead {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.beachhead li {
+  display: grid;
+  grid-template-columns: 3rem 1fr;
+  gap: 1rem;
+  align-items: start;
+  padding: 1.15rem 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: rgba(17, 19, 20, 0.88);
+}
+
+.beachhead li > span {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--rust-soft);
+  line-height: 1;
+}
+
+.beachhead strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.beachhead p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
+.pitch-table-wrap {
+  overflow-x: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: rgba(17, 19, 20, 0.9);
+}
+
+.pitch-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.pitch-table th,
+.pitch-table td {
+  padding: 1rem 1.2rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+.pitch-table thead th {
+  color: var(--rust-soft);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.pitch-table tbody th {
+  width: 32%;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.pitch-table td {
+  color: var(--text-soft);
+}
+
+.pitch-table tr:last-child th,
+.pitch-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.pitch-outcomes {
+  margin-top: 0.9rem;
+}
+
+.pitch-outcomes ul {
+  columns: 2;
+  column-gap: 2rem;
+}
+
+.pitch-funding-embed {
+  padding: 0;
+  background: transparent;
+}
+
+.pitch-funding-embed.funding-page {
+  margin: 0;
+}
+
+.pitch-step-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.pitch-step-nav a {
+  color: var(--rust-soft);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pitch-step-nav a:hover {
+  color: var(--text);
+}
+
+.pitch-close {
+  padding-bottom: clamp(4rem, 8vw, 6rem);
+}
+
+@media (max-width: 900px) {
+  .pitch-grid,
+  .pitch-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .pitch-card-lead {
+    grid-row: auto;
+  }
+
+  .pitch-outcomes ul {
+    columns: 1;
+  }
+}
+
+@media (max-width: 720px) {
+  .beachhead li {
+    grid-template-columns: 2.25rem 1fr;
+    gap: 0.75rem;
+  }
+
+  .pitch-table tbody th {
+    width: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
