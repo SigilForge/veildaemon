@@ -1,3 +1,11 @@
+(function loadVercelAnalytics() {
+  if (document.querySelector('script[src="/_vercel/insights/script.js"]')) return;
+  const script = document.createElement("script");
+  script.defer = true;
+  script.src = "/_vercel/insights/script.js";
+  document.head.append(script);
+}());
+
 (function () {
   const catalogs = window.CradlepointCatalogs || {};
   const consoleStorageKey = "veildaemon.operatorConsole.v1";
