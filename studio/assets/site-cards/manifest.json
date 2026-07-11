@@ -1,223 +1,138 @@
 {
-  "source": "Marketing/VeilCorp Art/Site Art/Concept for site cards.png",
-  "method": "select black caption plate \u2192 invert \u2192 keep square 4x3 panels only (drop words)",
-  "caption_px": 72,
+  "source": "hand crops from F: Site Art",
+  "method": "hand",
   "cards": [
     {
-      "id": "studio-hero-cathedral",
-      "label": "01 Studio Hero",
-      "grid": [
-        0,
-        0
-      ],
-      "box": [
-        2,
-        2,
-        416,
-        240
-      ],
+      "id": "studio-door-archive",
       "size": [
-        414,
-        238
-      ]
-    },
-    {
-      "id": "studio-door-funding",
-      "label": "02 Funding & Partnerships",
-      "grid": [
-        1,
-        0
+        427,
+        241
       ],
-      "box": [
-        420,
-        2,
-        834,
-        240
-      ],
-      "size": [
-        414,
-        238
-      ]
-    },
-    {
-      "id": "studio-door-publishing",
-      "label": "03 Publishing",
-      "grid": [
-        2,
-        0
-      ],
-      "box": [
-        838,
-        2,
-        1252,
-        240
-      ],
-      "size": [
-        414,
-        238
-      ]
-    },
-    {
-      "id": "studio-door-technology",
-      "label": "04 Technology & Mobile AR",
-      "grid": [
-        3,
-        0
-      ],
-      "box": [
-        1256,
-        2,
-        1670,
-        240
-      ],
-      "size": [
-        414,
-        238
-      ]
-    },
-    {
-      "id": "studio-door-narrative",
-      "label": "05 Narrative & Lore",
-      "grid": [
-        0,
-        1
-      ],
-      "box": [
-        2,
-        316,
-        416,
-        553
-      ],
-      "size": [
-        414,
-        237
-      ]
-    },
-    {
-      "id": "studio-door-ttrpg",
-      "label": "06 TTRPG System",
-      "grid": [
-        1,
-        1
-      ],
-      "box": [
-        420,
-        316,
-        834,
-        553
-      ],
-      "size": [
-        414,
-        237
-      ]
-    },
-    {
-      "id": "studio-door-djveil",
-      "label": "07 DJ Veil / Live Experiences",
-      "grid": [
-        2,
-        1
-      ],
-      "box": [
-        838,
-        316,
-        1252,
-        553
-      ],
-      "size": [
-        414,
-        237
-      ]
-    },
-    {
-      "id": "studio-door-products",
-      "label": "08 Products & Packs",
-      "grid": [
-        3,
-        1
-      ],
-      "box": [
-        1256,
-        316,
-        1670,
-        553
-      ],
-      "size": [
-        414,
-        237
-      ]
-    },
-    {
-      "id": "studio-door-press",
-      "label": "09 Press & Cultural Outreach",
-      "grid": [
-        0,
-        2
-      ],
-      "box": [
-        2,
-        629,
-        416,
-        867
-      ],
-      "size": [
-        414,
-        238
-      ]
+      "files": {
+        "png": "studio/assets/site-cards/studio-door-archive.png",
+        "webp": "studio/assets/site-cards/studio-door-archive.webp"
+      }
     },
     {
       "id": "studio-door-community",
-      "label": "10 Community & Veilborn",
-      "grid": [
-        1,
-        2
-      ],
-      "box": [
-        420,
-        629,
-        834,
-        867
-      ],
       "size": [
-        414,
-        238
-      ]
+        399,
+        244
+      ],
+      "files": {
+        "png": "studio/assets/site-cards/studio-door-community.png",
+        "webp": "studio/assets/site-cards/studio-door-community.webp"
+      }
+    },
+    {
+      "id": "studio-door-djveil",
+      "size": [
+        394,
+        248
+      ],
+      "files": {
+        "png": "studio/assets/site-cards/studio-door-djveil.png",
+        "webp": "studio/assets/site-cards/studio-door-djveil.webp"
+      }
     },
     {
       "id": "studio-door-funding-ask",
-      "label": "11 Funding Ask Overview",
-      "grid": [
-        2,
-        2
-      ],
-      "box": [
-        838,
-        629,
-        1252,
-        867
-      ],
       "size": [
-        414,
-        238
-      ]
+        395,
+        244
+      ],
+      "files": {
+        "png": "studio/assets/site-cards/studio-door-funding-ask.png",
+        "webp": "studio/assets/site-cards/studio-door-funding-ask.webp"
+      }
     },
     {
-      "id": "studio-door-archive",
-      "label": "12 Archive Access / Data Room",
-      "grid": [
-        3,
-        2
-      ],
-      "box": [
-        1256,
-        629,
-        1670,
-        867
-      ],
+      "id": "studio-door-funding",
       "size": [
-        414,
-        238
-      ]
+        399,
+        268
+      ],
+      "files": {
+        "png": "studio/assets/site-cards/studio-door-funding.png",
+        "webp": "studio/assets/site-cards/studio-door-funding.webp"
+      }
+    },
+    {
+      "id": "studio-door-narrative",
+      "size": [
+        418,
+        249
+      ],
+      "files": {
+        "png": "studio/assets/site-cards/studio-door-narrative.png",
+        "webp": "studio/assets/site-cards/studio-door-narrative.webp"
+      }
+    },
+    {
+      "id": "studio-door-press",
+      "size": [
+        418,
+        242
+      ],
+      "files": {
+        "png": "studio/assets/site-cards/studio-door-press.png",
+        "webp": "studio/assets/site-cards/studio-door-press.webp"
+      }
+    },
+    {
+      "id": "studio-door-products",
+      "size": [
+        425,
+        248
+      ],
+      "files": {
+        "png": "studio/assets/site-cards/studio-door-products.png",
+        "webp": "studio/assets/site-cards/studio-door-products.webp"
+      }
+    },
+    {
+      "id": "studio-door-publishing",
+      "size": [
+        393,
+        269
+      ],
+      "files": {
+        "png": "studio/assets/site-cards/studio-door-publishing.png",
+        "webp": "studio/assets/site-cards/studio-door-publishing.webp"
+      }
+    },
+    {
+      "id": "studio-door-technology",
+      "size": [
+        426,
+        269
+      ],
+      "files": {
+        "png": "studio/assets/site-cards/studio-door-technology.png",
+        "webp": "studio/assets/site-cards/studio-door-technology.webp"
+      }
+    },
+    {
+      "id": "studio-door-ttrpg",
+      "size": [
+        399,
+        248
+      ],
+      "files": {
+        "png": "studio/assets/site-cards/studio-door-ttrpg.png",
+        "webp": "studio/assets/site-cards/studio-door-ttrpg.webp"
+      }
+    },
+    {
+      "id": "studio-hero-cathedral",
+      "size": [
+        417,
+        267
+      ],
+      "files": {
+        "png": "studio/assets/site-cards/studio-hero-cathedral.png",
+        "webp": "studio/assets/site-cards/studio-hero-cathedral.webp"
+      }
     }
   ]
 }
