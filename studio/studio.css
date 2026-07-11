@@ -1673,15 +1673,28 @@ footer > p {
 }
 
 .pitch-table tbody th {
-  width: 32%;
+  width: 22%;
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 400;
   color: var(--text);
 }
 
 .pitch-table td {
   color: var(--text-soft);
+}
+
+.pitch-table td:nth-child(2),
+.pitch-table td:nth-child(3) {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--paper);
+  font-weight: 600;
+}
+
+.pitch-table th[scope="col"]:nth-child(2),
+.pitch-table th[scope="col"]:nth-child(3) {
+  width: 12%;
 }
 
 .pitch-table tr:last-child th,
