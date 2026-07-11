@@ -6,6 +6,14 @@
   <url>
     <loc>https://veildaemon.app/studio/</loc>
   </url>
+  <url><loc>https://veildaemon.app/studio/about/</loc></url>
+  <url><loc>https://veildaemon.app/studio/projects/</loc></url>
+  <url><loc>https://veildaemon.app/studio/publishing/</loc></url>
+  <url><loc>https://veildaemon.app/studio/technology/</loc></url>
+  <url><loc>https://veildaemon.app/studio/funding/</loc></url>
+  <url><loc>https://veildaemon.app/studio/traction/</loc></url>
+  <url><loc>https://veildaemon.app/studio/press/</loc></url>
+  <url><loc>https://veildaemon.app/studio/data-room/</loc></url>
   <url>
     <loc>https://veildaemon.app/handler/</loc>
   </url>
