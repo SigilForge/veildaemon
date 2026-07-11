@@ -64,6 +64,15 @@
           </fieldset>
 
           <fieldset>
+            <legend>Discovery</legend>
+            <label>Instagram views<input name="instagramViews" type="number" min="0" inputmode="numeric" /></label>
+            <label>Instagram reach<input name="instagramReach" type="number" min="0" inputmode="numeric" /></label>
+            <label>Facebook views<input name="facebookViews" type="number" min="0" inputmode="numeric" /></label>
+            <label>Facebook viewers<input name="facebookViewers" type="number" min="0" inputmode="numeric" /></label>
+            <label>Social engagements<input name="socialEngagements" type="number" min="0" inputmode="numeric" /></label>
+          </fieldset>
+
+          <fieldset>
             <legend>Archive</legend>
             <label>Wiki views<input name="wikiViews" type="number" min="0" inputmode="numeric" /></label>
             <label>Top page<input name="wikiTopPage" type="text" maxlength="90" /></label>
@@ -90,6 +99,7 @@
 
           <div class="form-actions">
             <button type="submit" class="primary">Hold Snapshot</button>
+            <button type="button" id="load-july-baseline">Load July Baseline</button>
             <button type="button" id="clear-form">Clear Form</button>
             <button type="button" class="danger" id="delete-entry">Delete Day</button>
           </div>
@@ -137,8 +147,8 @@
       </article>
     </section>
 
-    <p class="status-line" id="status-line" role="status">Conversion board ready. Build 20260623-conversion1.</p>
+    <p class="status-line" id="status-line" role="status">Conversion board ready. Build 20260710-conversion2.</p>
   </main>
-  <script src="/admin/conversion/conversion.js?v=20260623-conversion1"></script>
+  <script src="/admin/conversion/conversion.js?v=20260710-conversion2"></script>
 </body>
 </html>
