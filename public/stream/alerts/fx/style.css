@@ -133,7 +133,7 @@ body {
   width: clamp(240px, 32vw, 560px);
   aspect-ratio: 420 / 630;
   opacity: 0;
-  background: url("/stream/alerts/assets/witness-key.png") center / contain no-repeat;
+  background: url("/stream/alerts/assets/witness-key.webp") center / contain no-repeat;
   filter:
     drop-shadow(0 0 20px rgba(230, 232, 239, 0.86))
     drop-shadow(0 0 44px rgba(138, 57, 255, 0.98));

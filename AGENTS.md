@@ -65,6 +65,13 @@
 - Keep favicon and image paths browser-safe; encode spaces in URLs when referencing filenames with spaces.
 - Preserve mobile usability without yanking desktop users around. Scroll only when an opened panel would otherwise be off-screen.
 
+## Web Image Rule (WebP)
+- **If it ships on the web for display, it must be WebP.** That includes `<img>`, CSS `background-image`, OG/Twitter preview plates when the platform accepts WebP, and Studio portal/subpage art.
+- Keep PNG/JPEG as **source masters** or **download originals** (press kits, logos for print) — not as the bytes the browser paints in layout.
+- When adding new art: drop the master (PNG/JPG) next to web assets if needed, then export a WebP for the page and point HTML/CSS at the `.webp`.
+- Prefer `scripts/ensure-webp.mjs` (or equivalent sharp conversion) rather than linking raw PNG/JPG for UI.
+- Exceptions: favicon `.ico`, SVG (already vector), and intentional binary downloads labeled as PNG/PDF for press.
+
 ## Stream Overlay Notes
 - Treat `stream/` as hosted OBS browser-source material, not local-only production scraps.
 - Prefer adding a route with an `index.html` for stream overlays and utility layers instead of requiring OBS to point directly at local image or video files.

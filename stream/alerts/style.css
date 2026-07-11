@@ -101,7 +101,7 @@ body {
   top: 50%;
   width: clamp(130px, 24vw, 210px);
   aspect-ratio: 420 / 630;
-  background: url("/stream/alerts/assets/witness-key.png") center / contain no-repeat;
+  background: url("/stream/alerts/assets/witness-key.webp") center / contain no-repeat;
   opacity: 0.16;
   transform: translateY(-50%) rotate(3deg);
   filter: drop-shadow(0 0 22px rgba(138, 57, 255, 0.52));

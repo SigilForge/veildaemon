@@ -11,7 +11,9 @@
     "twitch:auth-code": "node scripts/twitch-auth-code.mjs",
     "twitch:delete-failed": "node scripts/twitch-delete-failed.mjs",
     "twitch:list-subscriptions": "node scripts/twitch-list-subscriptions.mjs",
-    "twitch:subscribe": "node scripts/twitch-subscribe.mjs"
+    "twitch:subscribe": "node scripts/twitch-subscribe.mjs",
+    "webp": "node scripts/ensure-webp.mjs",
+    "webp:check": "node scripts/ensure-webp.mjs --check"
   },
   "engines": {
     "node": ">=20"
