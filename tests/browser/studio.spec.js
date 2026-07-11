@@ -1,6 +1,6 @@
 const { test, expect } = require("@playwright/test");
 
-const reviewDir = "/mnt/c/Users/Knox/.codex/visualizations/2026/07/11/019f52b8-1f12-7053-add9-9e399282b76b";
+const reviewDir = "/tmp/studio-review";
 
 test("studio portal routes visitors and captures desktop review", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
