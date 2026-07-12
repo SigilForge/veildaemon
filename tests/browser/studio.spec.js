@@ -124,8 +124,71 @@ test.describe("studio subtree routes", () => {
       const response = await page.goto(summary);
       expect(response && response.ok(), summary).toBeTruthy();
       await expect(page.locator("h1")).toBeVisible();
+      await expect(page.locator("main")).not.toContainText("**");
+      await expect(page.getByRole("link", { name: /Download Markdown/i })).toBeVisible();
       await assertLocalAssets(page, summary);
     }
+
+    await page.goto("/studio/data-room/");
+    await expect(page.getByText(/HTML \+ MD/i).first()).toBeVisible();
+    await expect(page.locator("main")).not.toContainText("sit on this site as Markdown");
+  });
+
+  test("unique titles, JSON-LD validity, fragments, and focus", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    const titles = [];
+    for (const route of studioRoutes) {
+      await page.goto(route.path);
+      const title = await page.title();
+      expect(title.length, route.path + " title length").toBeGreaterThan(8);
+      titles.push(title);
+
+      // Visible focus treatment on primary skip + a footer privacy link
+      await page.keyboard.press("Tab");
+      const focused = await page.evaluate(() => {
+        const el = document.activeElement;
+        if (!el) return null;
+        const cs = getComputedStyle(el);
+        return {
+          tag: el.tagName,
+          outline: cs.outlineStyle + " " + cs.outlineWidth,
+          outlineColor: cs.outlineColor,
+          className: el.className,
+        };
+      });
+      expect(focused, route.path + " focus target").toBeTruthy();
+    }
+    const unique = new Set(titles);
+    expect(unique.size, "duplicate titles: " + titles.join(" | ")).toBe(titles.length);
+
+    await page.goto("/studio/");
+    const jsonLd = await page.locator('script[type="application/ld+json"]').first().textContent();
+    const data = JSON.parse(jsonLd);
+    expect(data["@type"]).toBe("Organization");
+    expect(data.name).toBe("Cradlepoint Studio");
+    expect(data.logo, "Organization must not declare VeilCorp seal as logo").toBeUndefined();
+    expect(data.founder.name).toBe("J. Donavon Love");
+    expect(Array.isArray(data.sameAs)).toBeTruthy();
+    expect(data.sameAs.join(" ")).not.toContain("veilcorp-avatar");
+    expect(data.sameAs).toContain("https://github.com/SigilForge/veildaemon");
+
+    // Fragment targets on funding pitch must exist
+    await page.goto("/studio/funding/");
+    for (const id of ["problem", "customer", "revenue", "capital", "founder", "structure", "ask"]) {
+      await expect(page.locator("#" + id)).toHaveCount(1);
+    }
+    // Click a fragment nav link and confirm destination is in view-ish
+    await page.locator('a[href="#structure"]').first().click();
+    await expect(page.locator("#structure")).toBeVisible();
+
+    // Portal pathways fragment
+    await page.goto("/studio/");
+    await page.locator('a[href="#pathways"]').first().click();
+    await expect(page.locator("#pathways")).toBeVisible();
+
+    // Cache-bust query present on Studio CSS
+    const cssHref = await page.locator('link[rel="stylesheet"][href*="studio.css"]').first().getAttribute("href");
+    expect(cssHref).toMatch(/studio\.css\?v=20260712-mustfix1/);
   });
 
   test("mobile route matrix and screenshots", async ({ page }) => {
@@ -185,7 +248,15 @@ test.describe("studio subtree routes", () => {
       });
 
       for (const raw of links) {
-        if (raw.startsWith("mailto:") || raw.startsWith("http") || raw.startsWith("//") || raw.startsWith("#") || raw.startsWith("data:")) {
+        if (raw.startsWith("mailto:") || raw.startsWith("http") || raw.startsWith("//") || raw.startsWith("data:")) {
+          continue;
+        }
+        // Validate same-page fragments resolve to an element id
+        if (raw.startsWith("#")) {
+          if (raw === "#") continue;
+          const id = raw.slice(1);
+          const exists = await page.evaluate((frag) => !!document.getElementById(frag), id);
+          if (!exists) broken.push({ url: raw, status: "missing-fragment", from: current });
           continue;
         }
         const absolute = new URL(raw, "https://veildaemon.app" + current).pathname;
