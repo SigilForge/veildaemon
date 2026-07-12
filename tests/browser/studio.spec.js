@@ -188,6 +188,20 @@ test.describe("studio subtree routes", () => {
     await noHorizontalOverflow(page);
   });
 
+  test("technology page leads with live tools and bounded partner work", async ({ page }) => {
+    await page.goto("/studio/technology/");
+    await expect(page.locator(".technology-brief")).toContainText("VeilDaemon + Operator and Handler browser tools");
+    await expect(page.locator(".technology-brief")).toContainText("Local-first tools · open core · protected creative layer");
+    await expect(page.locator("#trust-boundaries")).toContainText(/remain in the browser by default/i);
+    await expect(page.locator("#trust-boundaries")).toContainText(/separate Studio review/i);
+    await expect(page.locator("#next-platform-work")).toContainText(/Reliability and operations/i);
+    await expect(page.locator("#poc")).toContainText(/Full MVP development and the studio-growth envelope remain separately budgeted/i);
+    await expect(page.locator("#hypotheses")).not.toContainText("Paid acquisition");
+    await expect(page.locator("#technology-partner")).toContainText(/One defined barrier, prototype, audit, or pilot/i);
+    await expect(page.locator("#validation")).toContainText(/return to local records/i);
+    await noHorizontalOverflow(page);
+  });
+
   test("positioning stays mythpunk, publishing-first, and technically bounded", async ({ page }) => {
     await page.goto("/studio/");
     await expect(page.locator(".portal-hero-copy")).toContainText(/mythpunk studio/i);
