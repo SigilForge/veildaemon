@@ -11,7 +11,7 @@ Public audit remediation (July 2026). Do not invent values for outreach packets 
 - [ ] Contractor vs collaborator status for any outside contributors
 - [ ] Registered business contact details if different from founder email
 
-Public site currently states: **founder-operated; entity formation not invented for appearances.**
+Public site currently states: **founder-operated by J. Donavon Love; formal entity/contracting details provided during diligence.** Internal TODOs stay here—not on public pages.
 
 ## Brand
 
@@ -49,3 +49,8 @@ Public site already labels the $18K founder line as **partial stipend + in-kind 
 ## Not invented on this pass
 
 Revenue, customer counts, conversion rates, market size, valuation, legal structure details, contractor quotes, investor terms.
+
+## Credit / license identity
+
+- [ ] Align LICENSE credit (Knoxmortis) with public credit (J. Donavon Love)
+- [ ] Confirm legal owner string for Copyright page once entity exists
