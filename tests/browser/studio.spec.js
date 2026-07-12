@@ -166,7 +166,10 @@ test.describe("studio subtree routes", () => {
     const data = JSON.parse(jsonLd);
     expect(data["@type"]).toBe("Organization");
     expect(data.name).toBe("Cradlepoint Studio");
-    expect(data.logo, "Organization must not declare VeilCorp seal as logo").toBeUndefined();
+    expect(data.logo || "", "Organization logo should be Cradlepoint Studio mark").toMatch(
+      /cradlepoint-studio/
+    );
+    expect(String(data.logo || "")).not.toContain("veilcorp-avatar");
     expect(data.founder.name).toBe("J. Donavon Love");
     expect(Array.isArray(data.sameAs)).toBeTruthy();
     expect(data.sameAs.join(" ")).not.toContain("veilcorp-avatar");
@@ -188,7 +191,88 @@ test.describe("studio subtree routes", () => {
 
     // Cache-bust query present on Studio CSS
     const cssHref = await page.locator('link[rel="stylesheet"][href*="studio.css"]').first().getAttribute("href");
-    expect(cssHref).toMatch(/studio\.css\?v=20260712-readfix1/);
+    expect(cssHref).toMatch(/studio\.css\?v=20260712-srcfix1/);
+
+    // Portal images must load and use versioned currentSrc
+    await page.goto("/studio/");
+    await page.waitForLoadState("networkidle");
+    const imgReport = await page.evaluate(() => {
+      return [...document.images].map((img) => ({
+        src: img.getAttribute("src"),
+        currentSrc: img.currentSrc,
+        complete: img.complete,
+        naturalWidth: img.naturalWidth,
+      }));
+    });
+    const broken = imgReport.filter((i) => !i.complete || i.naturalWidth === 0);
+    expect(broken, JSON.stringify(broken, null, 2)).toEqual([]);
+    const portalArt = imgReport.filter(
+      (i) =>
+        (i.src || "").includes("/studio/assets/site-") ||
+        (i.src || "").includes("/studio/assets/site-hd/") ||
+        (i.src || "").includes("/studio/assets/site-cards/")
+    );
+    expect(portalArt.length).toBeGreaterThan(3);
+    for (const img of portalArt) {
+      expect(img.src, img.src).toMatch(/\?v=20260712-srcfix1/);
+      expect(img.currentSrc, img.currentSrc).toContain("20260712-srcfix1");
+    }
+    // Brand mark is Cradlepoint Studio, not only VeilCorp
+    expect(imgReport.some((i) => (i.src || "").includes("cradlepoint-studio-mark"))).toBeTruthy();
+
+    // Build marker present
+    await expect(page.locator('meta[name="build-version"]')).toHaveAttribute(
+      "content",
+      /20260712-srcfix1/
+    );
+    const version = await page.request.get("/studio/version.json");
+    expect(version.ok()).toBeTruthy();
+  });
+
+  test("static html rejects malformed cache-bust attributes", async () => {
+    const fs = require("fs");
+    const path = require("path");
+    const root = path.join(__dirname, "../../studio");
+    const bad = [];
+    function walk(dir) {
+      for (const name of fs.readdirSync(dir)) {
+        const full = path.join(dir, name);
+        const st = fs.statSync(full);
+        if (st.isDirectory()) walk(full);
+        else if (name.endsWith(".html")) {
+          const text = fs.readFileSync(full, "utf8");
+          if (/\.(webp|png|jpe?g|css)"\?v=/i.test(text) || /"\?v=/.test(text)) {
+            bad.push(full);
+          }
+        }
+      }
+    }
+    walk(root);
+    expect(bad, "malformed cache-bust outside quotes:\n" + bad.join("\n")).toEqual([]);
+  });
+
+  test("every studio route renders all images", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    for (const route of studioRoutes) {
+      await page.goto(route.path, { waitUntil: "networkidle" });
+      // force lazy images
+      await page.evaluate(async () => {
+        for (const img of document.images) {
+          img.loading = "eager";
+          if (!img.complete) {
+            await new Promise((resolve) => {
+              img.onload = img.onerror = resolve;
+            });
+          }
+        }
+      });
+      const broken = await page.locator("img").evaluateAll((images) =>
+        images
+          .filter((img) => !img.complete || img.naturalWidth === 0)
+          .map((img) => img.getAttribute("src"))
+      );
+      expect(broken, route.path + " broken images: " + JSON.stringify(broken)).toEqual([]);
+    }
   });
 
   test("mobile route matrix and screenshots", async ({ page }) => {

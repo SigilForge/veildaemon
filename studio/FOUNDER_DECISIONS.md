@@ -15,7 +15,7 @@ Public site currently states: **founder-operated by J. Donavon Love; formal enti
 
 ## Brand
 
-- [ ] Dedicated **Cradlepoint Studio** lockup (not only VeilCorp diegetic marks)
+- [x] Dedicated **Cradlepoint Studio** lockup (press pack + site header; SVG/clear-space still open)
 - [ ] SVG / vector masters for Studio + product marks
 - [ ] Transparent PNG variants with clear-space and minimum-size guidance
 - [ ] Written brand color tokens for external designers
