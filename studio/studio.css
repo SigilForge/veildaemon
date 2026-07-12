@@ -2230,6 +2230,8 @@ footer > p {
   place-items: center;
   background: #0a0c0d;
   padding: 1rem;
+  overflow: hidden;
+  position: relative;
 }
 .asset-card .preview img {
   max-width: 100%;
@@ -2238,11 +2240,16 @@ footer > p {
   height: auto;
   object-fit: contain;
 }
+.asset-card .preview.cover {
+  padding: 0;
+}
 .asset-card .preview.cover img {
   width: 100%;
-  max-height: none;
   height: 100%;
+  max-height: none;
   object-fit: cover;
+  position: absolute;
+  inset: 0;
 }
 .asset-card .meta {
   padding: 1rem 1.1rem 1.15rem;
@@ -2309,8 +2316,8 @@ footer > p {
 }
 .doc-row {
   display: grid;
-  grid-template-columns: minmax(0,1.4fr) minmax(0,1.6fr) auto auto;
-  gap: 1rem;
+  grid-template-columns: minmax(10rem,1.2fr) minmax(0,1.8fr) minmax(7rem,auto) auto;
+  gap: 0.75rem 1rem;
   align-items: center;
   padding: 1rem 1.15rem;
   border-radius: var(--radius-sm);
@@ -2319,6 +2326,16 @@ footer > p {
   text-decoration: none;
   color: inherit;
   transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.doc-row > :last-child {
+  justify-self: end;
+  color: var(--rust-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.doc-row em {
+  white-space: nowrap;
 }
 .doc-row:hover {
   border-color: rgba(181,117,104,.35);
@@ -2368,7 +2385,21 @@ footer > p {
   .release-inventory,
   .lifecycle,
   .stack-flow { grid-template-columns: 1fr 1fr; }
-  .doc-row { grid-template-columns: 1fr; gap: .35rem; }
+  .doc-row {
+    grid-template-columns: 1fr auto;
+    gap: 0.35rem 0.75rem;
+  }
+  .doc-row span:nth-child(2) {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+  .doc-row em {
+    order: 2;
+    justify-self: end;
+  }
+  .doc-row > :last-child {
+    order: 2;
+  }
 }
 @media (max-width: 720px) {
   .capability-grid,
@@ -2411,6 +2442,57 @@ footer > p {
 }
 
 
+
+/* Paper surfaces: gate cards must not keep dark terminal chrome */
+.section-block.paper .gate-list article {
+  background: var(--paper-3);
+  border-color: rgba(22, 24, 23, 0.12);
+  border-left-color: var(--rust-deep);
+  color: var(--ink-text);
+  box-shadow: var(--shadow-sm);
+}
+.section-block.paper .gate-list article h3 {
+  color: var(--ink-text);
+}
+.section-block.paper .gate-list article p {
+  color: var(--ink-muted);
+}
+.section-block.paper .metric-board article {
+  background: var(--paper-3);
+  border-color: rgba(22, 24, 23, 0.1);
+  color: var(--ink-text);
+}
+.section-block.paper .metric-board strong {
+  color: var(--ink-text);
+}
+.section-block.paper .metric-board span {
+  color: var(--ink-muted);
+}
+.section-block.paper .pitch-note,
+.section-block.paper .doc-summary .pitch-note,
+.doc-summary .callout {
+  color: var(--ink-muted);
+  border-left: 3px solid var(--rust-deep);
+  padding-left: 0.85rem;
+  margin: 0 0 1rem;
+}
+.section-block.paper .doc-summary a,
+.doc-summary a {
+  color: var(--rust-deep);
+}
+.section-block.paper .pitch-table {
+  color: var(--ink-text);
+}
+.section-block.paper .pitch-table th,
+.section-block.paper .pitch-table td {
+  border-color: rgba(22, 24, 23, 0.12);
+  color: var(--ink-text);
+}
+.section-block.paper .pitch-table thead th {
+  background: rgba(22, 24, 23, 0.06);
+  color: var(--rust-deep);
+}
+
 /* Public data-room HTML summaries */
 .doc-summary {
   max-width: 48rem;
@@ -2443,5 +2525,20 @@ footer > p {
     opacity: 0.12;
     mix-blend-mode: normal;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.45));
+  }
+}
+
+
+/* digests mid-width */
+@media (max-width: 1100px) {
+  .doc-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.4rem 0.85rem;
+  }
+  .doc-row span:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+  .doc-row em {
+    justify-self: start;
   }
 }
