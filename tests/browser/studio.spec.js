@@ -188,7 +188,7 @@ test.describe("studio subtree routes", () => {
 
     // Cache-bust query present on Studio CSS
     const cssHref = await page.locator('link[rel="stylesheet"][href*="studio.css"]').first().getAttribute("href");
-    expect(cssHref).toMatch(/studio\.css\?v=20260712-mustfix1/);
+    expect(cssHref).toMatch(/studio\.css\?v=20260712-noblank3/);
   });
 
   test("mobile route matrix and screenshots", async ({ page }) => {
