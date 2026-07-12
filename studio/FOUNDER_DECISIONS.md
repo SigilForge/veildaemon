@@ -17,7 +17,8 @@ Public site currently states: **founder-operated by J. Donavon Love; formal enti
 
 - [x] Dedicated **Cradlepoint Studio** lockup (press pack + site header; SVG/clear-space still open)
 - [ ] SVG / vector masters for Studio + product marks
-- [ ] Transparent PNG variants with clear-space and minimum-size guidance
+- [x] Transparent PNG, lossless WebP, favicon, and Apple touch icon variants
+- [ ] Formal clear-space and minimum-size guidance
 - [ ] Written brand color tokens for external designers
 
 ## Finance (private data room)
