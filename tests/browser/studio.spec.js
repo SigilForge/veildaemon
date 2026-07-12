@@ -115,6 +115,7 @@ test.describe("studio subtree routes", () => {
 
     await page.goto("/studio/projects/");
     await expect(page.locator(".portfolio-card")).toHaveCount(6);
+    await expect(page.locator(".portfolio-card .card-media")).toHaveCount(6);
     await expect(page.locator(".portfolio-card img.art-zoom")).toHaveCount(2);
     await expect(page.locator('.dual-system-card a[href="/operator/"]')).toHaveCount(1);
     await expect(page.locator('.dual-system-card a[href="/handler/"]')).toHaveCount(1);

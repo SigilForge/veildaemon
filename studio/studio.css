@@ -2006,13 +2006,20 @@ footer > p {
   transform: translateY(-3px);
   border-color: rgba(181,117,104,.35);
 }
-.portfolio-card img {
+.portfolio-card .card-media {
   width: 100%;
   aspect-ratio: 16 / 9;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: #0a0c0d;
+}
+.portfolio-card .card-media img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
-.portfolio-card img.art-zoom {
+.portfolio-card .card-media img.art-zoom {
   transform: scale(1.08);
   transform-origin: center;
 }
