@@ -178,6 +178,10 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator(".publishing-brief")).toContainText("Direct digital sales");
     await expect(page.locator(".publishing-brief")).toContainText("Professional production, print, distribution, and audience growth");
     await expect(page.locator(".release-inventory > a")).toHaveCount(4);
+    await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/"]')).toHaveCount(1);
+    await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/cradlepoint-handler-core"]')).toHaveCount(1);
+    await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/cradlepoint-operator-core"]')).toHaveCount(1);
+    await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/needlepoint"]')).toHaveCount(1);
     await expect(page.locator("#partner-frame")).toContainText(/rights, exclusivity, marketing obligations/i);
     await expect(page.getByRole("heading", { name: "Choose the route around an existing catalog" })).toBeVisible();
     await noHorizontalOverflow(page);
