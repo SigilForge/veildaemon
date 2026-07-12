@@ -172,6 +172,17 @@ test.describe("studio subtree routes", () => {
     await noHorizontalOverflow(page);
   });
 
+  test("publishing page leads with the existing commercial opportunity", async ({ page }) => {
+    await page.goto("/studio/publishing/");
+    await expect(page.locator(".publishing-brief")).toContainText("Operator Core · Handler Core · recurring Needlepoints");
+    await expect(page.locator(".publishing-brief")).toContainText("Direct digital sales");
+    await expect(page.locator(".publishing-brief")).toContainText("Professional production, print, distribution, and audience growth");
+    await expect(page.locator(".release-inventory > a")).toHaveCount(4);
+    await expect(page.locator("#partner-frame")).toContainText(/rights, exclusivity, marketing obligations/i);
+    await expect(page.getByRole("heading", { name: "Choose the route around an existing catalog" })).toBeVisible();
+    await noHorizontalOverflow(page);
+  });
+
   test("positioning stays mythpunk, publishing-first, and technically bounded", async ({ page }) => {
     await page.goto("/studio/");
     await expect(page.locator(".portal-hero-copy")).toContainText(/mythpunk studio/i);
