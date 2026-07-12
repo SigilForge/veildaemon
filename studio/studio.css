@@ -113,7 +113,8 @@ h1,
 h2,
 h3,
 p {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 h1,
@@ -483,7 +484,7 @@ footer nav a:hover {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.35;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
     transform var(--dur) var(--ease);
 }
@@ -922,7 +923,12 @@ footer > p {
 }
 
 .sub-hero.text-only {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+}
+.sub-hero.text-only > div {
+  max-width: 46rem;
+  min-width: 0;
+  width: 100%;
 }
 
 .sub-hero > div {
@@ -2502,31 +2508,120 @@ footer > p {
   color: var(--rust-deep);
 }
 
-/* Public data-room HTML summaries */
-.doc-summary {
-  max-width: 48rem;
+/* Public data-room HTML summaries
+   Paper band is FULL WIDTH. Measure lives on the inner prose shell only.
+   Never put max-width on the same element as .section-block.paper. */
+.section-block.paper.doc-summary,
+.section-block.paper {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
 }
-.doc-summary h2 {
+
+.doc-summary-inner,
+.doc-prose {
+  max-width: 42rem;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Legacy: if content is direct child of .doc-summary without inner wrapper */
+.section-block.doc-summary {
+  /* keep full bleed paper via section-block padding */
+}
+
+.doc-summary h2,
+.doc-prose h2 {
   font-family: var(--font-display);
   font-weight: 400;
   font-size: clamp(1.45rem, 2.4vw, 1.85rem);
   margin: 1.75rem 0 0.75rem;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: manual;
 }
-.doc-summary h3 {
+.doc-summary h3,
+.doc-prose h3 {
   margin: 1.25rem 0 0.5rem;
-  font-size: 1rem;
+  font-size: 1.05rem;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
-.doc-summary ul {
+.doc-summary p,
+.doc-prose p {
+  max-width: none;
+  line-height: 1.65;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.doc-summary ul,
+.doc-prose ul {
   margin: 0.5rem 0 1rem;
-  padding-left: 1.2rem;
+  padding-left: 1.25rem;
 }
-.doc-summary li {
-  margin: 0.35rem 0;
+.doc-summary li,
+.doc-prose li {
+  margin: 0.4rem 0;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
-.doc-summary .pitch-table-wrap {
+.doc-summary .pitch-table-wrap,
+.doc-prose .pitch-table-wrap {
   margin: 1rem 0;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  max-width: 100%;
 }
+.doc-summary .pitch-table,
+.doc-prose .pitch-table {
+  width: 100%;
+  min-width: 28rem;
+}
+.doc-summary .callout,
+.doc-prose .callout {
+  line-height: 1.55;
+}
+
+/* Data-room reading pages: stack CTAs cleanly */
+.next-routes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding: 1.25rem var(--pad) 2rem;
+  max-width: none;
+}
+.next-routes a {
+  display: block;
+  text-align: center;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: rgba(17,19,20,.92);
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--text);
+}
+.next-routes a:last-child {
+  background: linear-gradient(160deg, rgba(40,23,26,.95), rgba(17,19,20,.95));
+}
+@media (max-width: 720px) {
+  .next-routes {
+    grid-template-columns: 1fr;
+  }
+  .subpage > footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+  .subpage > footer a {
+    display: inline-block;
+  }
+}
+
 
 /* Soften terminal scanlines for reduced motion / editorial preference */
 @media (prefers-reduced-motion: reduce) {
@@ -2576,4 +2671,11 @@ footer > p {
 .work-row > a:hover img,
 .portal-hero-art:hover img {
   filter: none;
+}
+
+/* text-only hero stays one column at all breakpoints */
+@media (max-width: 1000px) {
+  .sub-hero.text-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
