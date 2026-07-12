@@ -121,6 +121,7 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator('.dual-system-card a[href="/handler/"]')).toHaveCount(1);
     await expect(page.locator('.narrative-card a[href="https://wiki.veildaemon.app/"]')).toHaveCount(1);
     await expect(page.locator('.narrative-card a[href="https://www.youtube.com/@CradlepointArchive"]')).toHaveCount(1);
+    await expect(page.locator(".narrative-card")).toContainText(/fiction in development/i);
     const projectTileMetrics = await page.locator(".portfolio-card").evaluateAll((cards) => cards.map((card) => {
       const cardBox = card.getBoundingClientRect();
       const imageBox = card.querySelector("img").getBoundingClientRect();
