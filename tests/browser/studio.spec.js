@@ -15,6 +15,7 @@ const studioRoutes = [
   { path: "/studio/data-room/", name: "data-room", title: /Data Room/, h1: /Summaries open/ },
   { path: "/studio/privacy/", name: "privacy", title: /Privacy/, h1: /Privacy notice/ },
   { path: "/studio/copyright/", name: "copyright", title: /Copyright/, h1: /Copyright and intellectual property/ },
+  { path: "/studio/media-usage/", name: "media-usage", title: /Media Usage/, h1: /Media usage guidance/ },
 ];
 
 const summaryRoutes = [
@@ -71,7 +72,8 @@ test.describe("studio subtree routes", () => {
       await expect(page).toHaveTitle(route.title);
       await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
       await expect(page.locator("h1").first()).toContainText(route.h1);
-      await expect(page.locator('a[href="/studio/privacy/"]')).toHaveCount(1);
+      await expect(page.locator('a[href="/studio/privacy/"]').first()).toBeVisible();
+      await expect(page.locator('a[href="/studio/media-usage/"]').first()).toBeVisible();
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(route.path.replace(/\/$/, "") + "/?$"));
       await noHorizontalOverflow(page);
       await assertLocalAssets(page, route.path);
