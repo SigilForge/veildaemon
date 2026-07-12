@@ -116,6 +116,13 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/projects/");
     await expect(page.locator(".portfolio-card")).toHaveCount(6);
     await expect(page.locator('a.portfolio-card[href="/handler/"]')).toHaveCount(1);
+    const projectTileMetrics = await page.locator(".portfolio-card").evaluateAll((cards) => cards.map((card) => {
+      const cardBox = card.getBoundingClientRect();
+      const imageBox = card.querySelector("img").getBoundingClientRect();
+      return { height: cardBox.height, imageHeight: imageBox.height };
+    }));
+    expect(Math.max(...projectTileMetrics.map((item) => item.height)) - Math.min(...projectTileMetrics.map((item) => item.height))).toBeLessThanOrEqual(1);
+    expect(Math.max(...projectTileMetrics.map((item) => item.imageHeight)) - Math.min(...projectTileMetrics.map((item) => item.imageHeight))).toBeLessThanOrEqual(1);
 
     await page.goto("/studio/funding/");
     await expect(page.locator("#structure")).toContainText(/Funding instruments/i);
@@ -141,6 +148,22 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/data-room/");
     await expect(page.getByText(/HTML \+ MD/i).first()).toBeVisible();
     await expect(page.locator("main")).not.toContainText("sit on this site as Markdown");
+  });
+
+  test("positioning stays mythpunk, publishing-first, and technically bounded", async ({ page }) => {
+    await page.goto("/studio/");
+    await expect(page.locator(".portal-hero-copy")).toContainText(/mythpunk studio/i);
+    await expect(page.locator(".portal-hero-copy")).toContainText(/emotional-physics framework/i);
+    await expect(page.locator(".portal-proof")).toContainText(/internally audited rules words/i);
+
+    await page.goto("/studio/technology/");
+    await expect(page.locator("#veildaemon-today")).toContainText(/studio-controlled browser infrastructure/i);
+    await expect(page.locator("#veildaemon-today")).toContainText(/open core and protected creative layer/i);
+    await expect(page.locator("#veildaemon-today")).toContainText(/not presented as a proprietary AI framework/i);
+
+    await page.goto("/studio/projects/");
+    await expect(page.locator(".ecosystem")).toContainText(/Audience & IP validation/i);
+    await expect(page.locator(".ecosystem")).toContainText(/local-first Operator and Handler tools/i);
   });
 
   test("unique titles, JSON-LD validity, fragments, and focus", async ({ page }) => {

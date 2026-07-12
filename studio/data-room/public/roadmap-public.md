@@ -2,8 +2,8 @@
 
 > **Open-web summary only.** Not the private Cradlepoint archive. Full diligence materials are shared by request, not linked here.
 
-**Studio:** Cradlepoint Studio  
-**Version:** Public summary · July 2026  
+**Studio:** Cradlepoint Studio
+**Version:** Public summary · July 2026
 **Access:** Public
 
 ## Sequencing principle
@@ -31,14 +31,14 @@ Funding accelerates:
 
 ## Layer 3 — ARG + long-term AR / Ritual Sites (2–5 years)
 
-Near-term funded work stays adjacent to publishing (infrastructure, hooks, companion hardening).  
+Near-term funded work stays adjacent to publishing (infrastructure, hooks, companion hardening).
 Persistent Mobile AR and Ritual Sites remain long-term platform vision and bounded proof-of-concept research—not near-term launch SKUs unless separately scoped and funded.
 
 ## Capital separation
 
-- **$67K / 12 months** — studio growth envelope  
-- **Publishing production** — separate after route choice  
-- **Mobile AR MVP** — separate after technical quotes  
-- **≤$20K PoC** — optional bounded barrier, not company valuation  
+- **$67K / 12 months** — studio growth envelope
+- **Publishing production** — separate after route choice
+- **Mobile AR MVP** — separate after technical quotes
+- **≤$20K PoC** — optional bounded barrier, not studio valuation
 
 Detail: https://veildaemon.app/studio/funding/#structure

@@ -10,7 +10,7 @@
 
 | Signal | Public figure |
 |--------|----------------|
-| Audited core rules words | 350K+ |
+| Internally audited core rules words | 350K+ |
 | Current final release PDFs | 25 |
 | Public wiki articles | 130+ |
 | Passing browser tests | 100+ |

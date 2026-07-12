@@ -6,7 +6,7 @@ Cradlepoint’s commercial thesis is that tabletop, fiction, software identity, 
 
 J. Donavon Love is the systems designer, creative director, and canon authority. AI assists drafting and retrieval inside a governed pipeline; human release approval retains authority.
 
-Public, audited production evidence (rounded, with periods disclosed separately) includes 350K+ core rules words, 25 current final release PDFs, 130+ public wiki articles, live VeilDaemon infrastructure with extensive browser testing, nearly 1K marketing images, and $0 paid acquisition to date.
+Public, internally audited production evidence (rounded, with periods disclosed separately) includes 350K+ core rules words, 25 current final release PDFs, 130+ public wiki articles, live VeilDaemon infrastructure with extensive browser testing, nearly 1K marketing images, and $0 paid acquisition to date.
 
 Storefront: https://the-cradlepoint-archives.itch.io/needlepoint
 Platform: https://veildaemon.app/
