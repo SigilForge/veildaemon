@@ -2024,6 +2024,24 @@ footer > p {
 .portfolio-card h3 { margin: 0; font-size: 1.45rem; }
 .portfolio-card p { margin: 0; color: var(--text-soft); font-size: .88rem; flex: 1; }
 .portfolio-card .action { color: var(--rust-soft); font-size: .82rem; font-weight: 600; }
+.portfolio-card .card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .5rem;
+}
+.portfolio-card .card-actions .action {
+  display: flex;
+  align-items: center;
+  padding: .55rem .65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+}
+.portfolio-card .card-actions .action:hover,
+.portfolio-card .card-actions .action:focus-visible {
+  border-color: rgba(181,117,104,.5);
+  background: rgba(181,117,104,.08);
+}
 .ecosystem {
   display: grid;
   grid-template-columns: repeat(3, minmax(0,1fr));
@@ -2440,6 +2458,7 @@ footer > p {
   .release-inventory,
   .lifecycle,
   .stack-flow { grid-template-columns: 1fr; }
+  .portfolio-card .card-actions { grid-template-columns: 1fr; }
 }
 
 

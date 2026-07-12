@@ -115,7 +115,8 @@ test.describe("studio subtree routes", () => {
 
     await page.goto("/studio/projects/");
     await expect(page.locator(".portfolio-card")).toHaveCount(6);
-    await expect(page.locator('a.portfolio-card[href="/handler/"]')).toHaveCount(1);
+    await expect(page.locator('.dual-system-card a[href="/operator/"]')).toHaveCount(1);
+    await expect(page.locator('.dual-system-card a[href="/handler/"]')).toHaveCount(1);
     const projectTileMetrics = await page.locator(".portfolio-card").evaluateAll((cards) => cards.map((card) => {
       const cardBox = card.getBoundingClientRect();
       const imageBox = card.querySelector("img").getBoundingClientRect();
