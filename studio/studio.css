@@ -741,12 +741,14 @@ footer nav a:hover {
   width: 100%;
   aspect-ratio: 16 / 9;
   height: auto;
+  min-height: 8.5rem;
   object-fit: cover;
   object-position: center center;
   margin-bottom: 0.9rem;
   border-radius: calc(var(--radius-sm) + 0.1rem);
-  background: #121416;
-  filter: saturate(0.92) contrast(1.02);
+  background: #1a1512;
+  /* Cream section: keep art legible without screen-blend wash */
+  filter: brightness(1.12) contrast(1.06) saturate(1.05);
 }
 
 .work-row h3 {
@@ -2561,12 +2563,13 @@ footer > p {
 }
 
 .pathway img,
-.work-row img,
 .portal-hero-art img,
 .portfolio-card img {
   mix-blend-mode: normal;
-  /* Prefer readable art over heavy grade that can wash on some GPUs */
   filter: none;
+}
+.work-row img {
+  mix-blend-mode: normal;
 }
 
 .pathway:hover img,
