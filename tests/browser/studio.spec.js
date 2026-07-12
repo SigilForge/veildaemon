@@ -190,6 +190,8 @@ test.describe("studio subtree routes", () => {
 
   test("technology page leads with live tools and bounded partner work", async ({ page }) => {
     await page.goto("/studio/technology/");
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://veildaemon.app/studio/assets/social/technology-social-preview.jpg");
+    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", "https://veildaemon.app/studio/assets/social/technology-social-preview.jpg");
     await expect(page.locator(".technology-brief")).toContainText("VeilDaemon + Operator and Handler browser tools");
     await expect(page.locator(".technology-brief")).toContainText("Local-first tools · open core · protected creative layer");
     await expect(page.locator("#trust-boundaries")).toContainText(/remain in the browser by default/i);
