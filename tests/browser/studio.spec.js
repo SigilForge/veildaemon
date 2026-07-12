@@ -204,6 +204,19 @@ test.describe("studio subtree routes", () => {
     await noHorizontalOverflow(page);
   });
 
+  test("traction separates production proof, market evidence, and measurement next", async ({ page }) => {
+    await page.goto("/studio/traction/");
+    await expect(page.locator("h1")).toHaveText("Built before permission arrived.");
+    await expect(page.locator("#production-proof")).toContainText("Automated browser test suite");
+    await expect(page.locator("#production-proof")).not.toContainText("100+ Passing browser tests");
+    await expect(page.locator("#market-evidence")).toContainText(/itch.io analytics · latest tracked month · organic · reach \+ action/i);
+    await expect(page.locator("#market-evidence")).toContainText("$0 paid acquisition");
+    await expect(page.locator("#measurement-next")).toContainText(/VeilDaemon Operator or Handler use/i);
+    await expect(page.locator(".traction-disclosure")).toHaveCount(1);
+    await expect(page.locator(".disclosure-box")).toHaveCount(0);
+    await noHorizontalOverflow(page);
+  });
+
   test("positioning stays mythpunk, publishing-first, and technically bounded", async ({ page }) => {
     await page.goto("/studio/");
     await expect(page.locator(".portal-hero-copy")).toContainText(/mythpunk studio/i);

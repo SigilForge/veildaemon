@@ -6,23 +6,27 @@
 **As-of:** July 10, 2026 (public rounded figures)  
 **Access:** Public
 
-## Production evidence (not market maturity claims)
+## Production proof
 
 | Signal | Public figure |
 |--------|----------------|
 | Internally audited core rules words | 350K+ |
 | Current final release PDFs | 25 |
 | Public wiki articles | 130+ |
-| Passing browser tests | 100+ |
+| Software verification | Automated browser test suite; repository evidence linked below |
 | Marketing image library | Nearly 1K |
-| Paid acquisition spend | $0 |
 
-## Early organic discovery (periods not combined)
+## Market evidence
 
-- 100+ storefront views and 10+ free downloads in the latest tracked month
-- ~1K Instagram views over 60 days
-- ~1.1K Facebook views over 28 days
-- ~2.2K X impressions over three months
+- Storefront: 100+ views and 10+ free downloads; itch.io analytics; latest tracked month; organic; reach + action
+- Instagram: ~1K views; platform insights; 60 days; organic; reach
+- Facebook: ~1.1K views; platform insights; 28 days; organic; reach
+- X: ~2.2K impressions; platform analytics; three months; organic; reach
+- Paid acquisition spend: $0 through the July 10, 2026 snapshot
+
+## Measurement next
+
+Discovery → free Needlepoint download → paid Operator or Handler core → VeilDaemon activation → repeat release engagement.
 
 ## Disclosure
 
@@ -34,3 +38,4 @@ Public metrics are rounded from audited internal data. Platform periods differ a
 - Traction page: https://veildaemon.app/studio/traction/
 - Storefront: https://the-cradlepoint-archives.itch.io/needlepoint
 - Platform: https://veildaemon.app/
+- Repository evidence: https://github.com/SigilForge/veildaemon
