@@ -159,6 +159,19 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("main")).not.toContainText("sit on this site as Markdown");
   });
 
+  test("funding conversion summary and scope boundaries", async ({ page }) => {
+    await page.goto("/studio/funding/");
+    await expect(page.locator(".funding-glance")).toContainText("Shipping tabletop products + live software");
+    await expect(page.locator(".funding-glance")).toContainText("Professional tabletop publishing");
+    await expect(page.locator(".funding-glance")).toContainText("$67K over 12 months");
+    await expect(page.locator(".funding-glance")).toContainText("Separately scoped Mobile AR");
+    await expect(page.locator("#capital h2")).toHaveText("What changes within twelve months?");
+    await expect(page.locator("#founder h2")).toHaveText("Why this founder can execute");
+    await expect(page.locator("#structure")).toContainText(/separate publishing budget covers title-specific editorial production/i);
+    await expect(page.locator("#structure")).toContainText(/does not include a full Mobile AR product budget/i);
+    await noHorizontalOverflow(page);
+  });
+
   test("positioning stays mythpunk, publishing-first, and technically bounded", async ({ page }) => {
     await page.goto("/studio/");
     await expect(page.locator(".portal-hero-copy")).toContainText(/mythpunk studio/i);

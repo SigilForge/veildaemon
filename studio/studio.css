@@ -1514,6 +1514,43 @@ footer > p {
   background: rgba(181, 117, 104, 0.1);
 }
 
+.funding-glance {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  padding: 1px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--line);
+}
+
+.funding-glance div {
+  min-width: 0;
+  padding: 1.15rem var(--pad);
+  background: rgba(8, 10, 11, 0.96);
+}
+
+.funding-glance span,
+.funding-glance strong {
+  display: block;
+}
+
+.funding-glance span {
+  margin-bottom: 0.35rem;
+  color: var(--rust-soft);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.funding-glance strong {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+  line-height: 1.25;
+}
+
 .pitch-section {
   padding: clamp(3.5rem, 7vw, 5.5rem) var(--pad);
   border-top: 1px solid var(--line);
@@ -1771,6 +1808,10 @@ footer > p {
 }
 
 @media (max-width: 900px) {
+  .funding-glance {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .pitch-grid,
   .pitch-grid-3 {
     grid-template-columns: 1fr;
@@ -1786,6 +1827,10 @@ footer > p {
 }
 
 @media (max-width: 720px) {
+  .funding-glance {
+    grid-template-columns: 1fr;
+  }
+
   .beachhead li {
     grid-template-columns: 2.25rem 1fr;
     gap: 0.75rem;
