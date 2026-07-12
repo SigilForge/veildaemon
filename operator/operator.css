@@ -14,6 +14,29 @@
 
 * { box-sizing: border-box; }
 
+.submission-terms {
+  grid-column: 1 / -1;
+  margin: .25rem 0 0;
+  color: var(--muted);
+  font-size: .68rem;
+  line-height: 1.5;
+}
+
+.submission-terms a,
+.legal-footer a { color: var(--cyan); }
+
+.legal-footer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1rem 2rem;
+  color: var(--muted);
+  font-size: .68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
 :where(.operator-shell, .operator-header, .notice-panel, .snapshot-grid, .module-panel, .data-panel, .button, label, p, li, span, strong, em, h1, h2, h3, h4, summary, output, input, textarea, select) {
   min-width: 0;
   overflow-wrap: anywhere;

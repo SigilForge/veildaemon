@@ -46,11 +46,11 @@ Open `index.html` and search for these button labels:
 
 ## Primary Feed Embed
 
-The homepage embeds the Primary Feed playlist using:
+The homepage creates the Primary Feed iframe only after the visitor opens the viewer. It uses YouTube's privacy-enhanced host:
 
-`https://www.youtube.com/embed/videoseries?list=PLEoIdLPqOjeuJaD74EtiQWXScSqVtXJh4`
+`https://www.youtube-nocookie.com/embed/videoseries?list=PLEoIdLPqOjeuJaD74EtiQWXScSqVtXJh4`
 
-To change the playlist later, replace the playlist ID in `index.html`.
+To change the playlist later, replace the `data-youtube-playlist` value in `index.html`. Keep iframe creation interaction-gated in `script.js`.
 
 ## Debrief API
 

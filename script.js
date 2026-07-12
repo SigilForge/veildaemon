@@ -2457,6 +2457,19 @@ function toggleTransmissionViewer() {
   const video = document.getElementById("primary-feed-video");
   const isOpen = !video.hidden;
 
+  if (isOpen === false && !video.querySelector("iframe")) {
+    const mount = video.querySelector("[data-youtube-playlist]");
+    if (mount) {
+      const iframe = document.createElement("iframe");
+      iframe.src = `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(mount.dataset.youtubePlaylist || "")}`;
+      iframe.title = mount.dataset.youtubeTitle || "Primary Feed playlist";
+      iframe.loading = "lazy";
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      iframe.allowFullscreen = true;
+      mount.replaceWith(iframe);
+    }
+  }
+
   video.hidden = isOpen;
   toggle.setAttribute("aria-expanded", String(!isOpen));
   setButtonLabel(toggle, isOpen ? "Open Transmission Viewer" : "Collapse Transmission Viewer");
