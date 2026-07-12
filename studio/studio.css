@@ -2012,6 +2012,10 @@ footer > p {
   object-fit: cover;
   display: block;
 }
+.portfolio-card img.art-zoom {
+  transform: scale(1.08);
+  transform-origin: center;
+}
 .portfolio-card .body {
   padding: 1.1rem 1.15rem 1.25rem;
   display: grid;
