@@ -1,24 +1,39 @@
 Cradlepoint Studio — Media Usage Guidance (public)
 
+Brand architecture (keep separate)
+- Cradlepoint Studio — real-world studio and primary business identity
+- VeilDaemon — public product / platform
+- VeilCorp — fictional in-universe organization (not a real-world endorser or contracting party)
+
 Approved uses
 - Editorial coverage, reviews, interviews, and partnership evaluation
 - Non-commercial attribution when describing the studio or products
 
 Preferred attribution
-- “Cradlepoint Studio” or “Cradlepoint / VeilDaemon”
+- “Cradlepoint Studio” for the real-world company/studio
+- “VeilDaemon” for the software product
 - Credit: J. Donavon Love where a creator credit is appropriate
+- Do not present VeilCorp as the negotiating party on real-world contracts
 
 Please do
 - Use the provided logos, founder image, product, and software art without cropping out trademarks in misleading ways
+- Label VeilCorp marks as in-universe / diegetic when context matters
 - Preserve context when quoting metrics (periods, “$0 paid acquisition,” production vs market validation)
 
 Please do not
 - Present concept or planned work (Mobile AR, Ritual Sites) as currently shipping products
 - Alter logos into new brand marks
-- Imply endorsement by VeilCorp as a real-world corporation (VeilCorp is diegetic fiction inside the setting)
+- Imply endorsement by VeilCorp as a real-world corporation
+- Treat current VeilCorp downloadable marks as the only general-purpose Cradlepoint Studio company logo (dedicated Studio lockups may still be pending)
 
 Higher-resolution or exclusive assets
 - Request via J.Donavon.Love@gmail.com with subject “Cradlepoint Studio Press Inquiry”
+
+Still needed for professional brand packs
+- Dedicated Cradlepoint Studio lockup (founder design)
+- SVG / vector masters
+- Transparent PNG variants with clear-space and minimum-size guidance
+- Written brand color values for external designers
 
 Contact
 - J. Donavon Love — J.Donavon.Love@gmail.com
