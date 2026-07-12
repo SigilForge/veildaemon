@@ -24,7 +24,7 @@ Already shipping or live:
 
 Funding accelerates:
 
-- Weekly Needlepoint cadence toward target
+- Weekly production cadence with monthly public release target (not a claim of one complete commercial module every week)
 - Professional finish of flagship materials
 - Storefront, print stock, conventions, creator media
 - Structured progression-year releases

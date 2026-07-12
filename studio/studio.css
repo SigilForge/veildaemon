@@ -2409,3 +2409,39 @@ footer > p {
     transform: none;
   }
 }
+
+
+/* Public data-room HTML summaries */
+.doc-summary {
+  max-width: 48rem;
+}
+.doc-summary h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+  margin: 1.75rem 0 0.75rem;
+}
+.doc-summary h3 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1rem;
+}
+.doc-summary ul {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.2rem;
+}
+.doc-summary li {
+  margin: 0.35rem 0;
+}
+.doc-summary .pitch-table-wrap {
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+/* Soften terminal scanlines for reduced motion / editorial preference */
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    opacity: 0.12;
+    mix-blend-mode: normal;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.45));
+  }
+}
