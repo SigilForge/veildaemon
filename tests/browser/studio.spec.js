@@ -7,7 +7,7 @@ const studioRoutes = [
   { path: "/studio/", name: "portal", title: /Cradlepoint Studio/, h1: /One universe/ },
   { path: "/studio/about/", name: "about", title: /About/, h1: /Translation before mythology/ },
   { path: "/studio/projects/", name: "projects", title: /Projects/, h1: /One system/ },
-  { path: "/studio/publishing/", name: "publishing", title: /Publishing/, h1: /developed commercial surface/ },
+  { path: "/studio/publishing/", name: "publishing", title: /Publishing/, h1: /publishing line already in market/ },
   { path: "/studio/technology/", name: "technology", title: /Technology/, h1: /Shipping infrastructure first/ },
   { path: "/studio/funding/", name: "funding", title: /Funding and Partnerships/, h1: /funding and partnership case/i },
   { path: "/studio/traction/", name: "traction", title: /Traction/, h1: /Built before permission/ },
@@ -174,6 +174,7 @@ test.describe("studio subtree routes", () => {
 
   test("publishing page leads with the existing commercial opportunity", async ({ page }) => {
     await page.goto("/studio/publishing/");
+    await expect(page.locator("h1")).toHaveText("A publishing line already in market.");
     await expect(page.locator(".publishing-brief")).toContainText("Operator Core · Handler Core · recurring Needlepoints");
     await expect(page.locator(".publishing-brief")).toContainText("Direct digital sales");
     await expect(page.locator(".publishing-brief")).toContainText("Professional production, print, distribution, and audience growth");
