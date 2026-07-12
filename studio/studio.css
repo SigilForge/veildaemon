@@ -1963,6 +1963,7 @@ footer > p {
 .portfolio-feature {
   display: grid;
   grid-template-columns: 1.15fr .85fr;
+  align-items: stretch;
   gap: 1rem;
   padding: clamp(2.5rem, 5vw, 4rem) var(--pad);
 }
@@ -1975,10 +1976,16 @@ footer > p {
   border: 1px solid var(--line);
   background: rgba(17,19,20,.9);
 }
+.portfolio-feature .media-frame { min-height: 0; }
+.portfolio-feature .media-frame img {
+  height: 100%;
+  aspect-ratio: auto;
+  object-fit: cover;
+  object-position: center 42%;
+}
 .portfolio-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0,1fr));
-  grid-auto-rows: 1fr;
+  grid-template-columns: repeat(2, minmax(0,1fr));
   align-items: stretch;
   gap: .9rem;
   padding: 0 var(--pad) clamp(3rem, 6vw, 5rem);
@@ -2020,7 +2027,6 @@ footer > p {
 .ecosystem {
   display: grid;
   grid-template-columns: repeat(3, minmax(0,1fr));
-  grid-auto-rows: 1fr;
   align-items: stretch;
   gap: .65rem;
 }
@@ -2434,8 +2440,6 @@ footer > p {
   .release-inventory,
   .lifecycle,
   .stack-flow { grid-template-columns: 1fr; }
-  .portfolio-grid,
-  .ecosystem { grid-auto-rows: auto; }
 }
 
 
