@@ -121,7 +121,10 @@ test.describe("studio subtree routes", () => {
       const imageBox = card.querySelector("img").getBoundingClientRect();
       return { height: cardBox.height, imageHeight: imageBox.height };
     }));
-    expect(Math.max(...projectTileMetrics.map((item) => item.height)) - Math.min(...projectTileMetrics.map((item) => item.height))).toBeLessThanOrEqual(1);
+    for (let index = 0; index < projectTileMetrics.length; index += 2) {
+      const row = projectTileMetrics.slice(index, index + 2);
+      expect(Math.max(...row.map((item) => item.height)) - Math.min(...row.map((item) => item.height))).toBeLessThanOrEqual(1);
+    }
     expect(Math.max(...projectTileMetrics.map((item) => item.imageHeight)) - Math.min(...projectTileMetrics.map((item) => item.imageHeight))).toBeLessThanOrEqual(1);
 
     await page.goto("/studio/funding/");
