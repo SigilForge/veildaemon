@@ -161,15 +161,17 @@
     const approve = el("button", "approve", "Approve");
     const reject = el("button", "reject", "Reject");
     const review = el("button", "", "Return To Review");
+    const remove = el("button", "reject", "Delete");
 
-    save.type = approve.type = reject.type = review.type = "button";
+    save.type = approve.type = reject.type = review.type = remove.type = "button";
     save.addEventListener("click", () => updateReport(report.id, "draft", card).catch((error) => setStatus(error.message, true)));
     approve.addEventListener("click", () => updateReport(report.id, "approve", card).catch((error) => setStatus(error.message, true)));
     reject.addEventListener("click", () => updateReport(report.id, "reject", card).catch((error) => setStatus(error.message, true)));
     review.addEventListener("click", () => updateReport(report.id, "review", card).catch((error) => setStatus(error.message, true)));
+    remove.addEventListener("click", () => updateReport(report.id, "delete", card).catch((error) => setStatus(error.message, true)));
 
     approve.disabled = !report.publicDraftApproved;
-    actions.append(save, approve, reject, review);
+    actions.append(save, approve, reject, review, remove);
     card.append(actions);
 
     return card;

@@ -207,6 +207,10 @@ async function handleAdmin(req, res) {
   } else if (input.action === "review") {
     record.status = "under_review";
     record.updatedAt = new Date().toISOString();
+  } else if (input.action === "delete") {
+    reports.splice(index, 1);
+    await writeReports(reports);
+    return json(res, 200, { ok: true, report: null });
   } else {
     return json(res, 400, { ok: false, error: "Unknown report action." });
   }

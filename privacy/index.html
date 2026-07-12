@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy // VeilDaemon</title>
+  <meta name="description" content="How VeilDaemon handles local Operator records, analytics, volunteered reports, and embedded media." />
+  <link rel="canonical" href="https://veildaemon.app/privacy/" />
+  <meta name="theme-color" content="#050709" />
+  <link rel="icon" href="../favicon.ico?v=20260711-cradlepoint1" sizes="any" />
+  <link rel="stylesheet" href="../styles.css?v=20260712-legal1" />
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <main class="shell legal-shell">
+    <article class="terminal legal-terminal">
+      <header class="topline">
+        <div><p class="kicker">VEILDAEMON // TRUST SURFACE</p><h1>PRIVACY</h1><p class="subhead">Local records and volunteered transfers are different systems.</p></div>
+      </header>
+      <section class="readout"><p><span class="prompt">&gt;</span> Effective July 12, 2026.</p><p><span class="prompt">&gt;</span> VeilDaemon does not sell personal data.</p></section>
+      <section class="legal-copy">
+        <h2>Local browser records</h2>
+        <p>Operator intake, local Operator records, console state, case notes, and related local tools use browser storage on the device you are using. They are not transferred merely because you create or edit them. Browser clearing, private-browsing behavior, device loss, software changes, or the local purge controls can remove them. “Purge Local Record” removes the identified local browser record; Operator-console purge controls remove that console’s local state. These controls do not delete reports you separately volunteered to the report service.</p>
+
+        <h2>Analytics</h2>
+        <p>Public VeilDaemon pages use Vercel Web Analytics to understand aggregate traffic and page use. VeilDaemon does not intentionally install advertising-network trackers or sell analytics data.</p>
+
+        <h2>Debrief submissions</h2>
+        <p>When you submit a debrief, VeilDaemon transmits the selected role, Needlepoint, Operator count, best moment, confusing rule or scene, requested improvements, full feedback, and any optional handle or email to <code>api.veildaemon.app</code>. The information is used for product feedback, review, redaction, and—only when separately approved—possible publication of the reviewed public version.</p>
+
+        <h2>Volunteered anomaly reports</h2>
+        <p>Local anomaly logs remain local unless you choose “Log + Volunteer Copy.” A volunteered copy transmits Operator name and designation, primary Frequency, classification, active Needlepoint, scene, impossible detail, severity, tags, and notes. Do not volunteer sensitive information.</p>
+
+        <h2>Storage, access, and retention</h2>
+        <p>Submitted debriefs and volunteered anomaly reports are stored through the report service. Production storage uses Upstash Redis when configured; an in-memory fallback may be used in other environments. Access to full submissions is restricted to administrators with the report-review credential. The service retains up to 500 debriefs and 500 anomaly reports; older records may be displaced by that collection limit, and administrators may delete records during review. No fixed time-based deletion schedule is currently established.</p>
+
+        <h2>Redaction and publication</h2>
+        <p>Private submission does not authorize publication. A debrief can enter the public recovery index only after you generate and approve its redacted version and an administrator separately approves it. Public output excludes the optional handle and email. Volunteered anomaly reports enter private review and are not automatically published.</p>
+
+        <h2>Correction or deletion requests</h2>
+        <p>To request correction or deletion of a submitted report, email <a href="mailto:J.Donavon.Love@gmail.com?subject=VeilDaemon%20Privacy%20Request">J.Donavon.Love@gmail.com</a>. Include the report ID when available and enough non-sensitive context to locate the record. Local browser records must be corrected or purged on the device where they are stored.</p>
+
+        <h2>Third-party media and links</h2>
+        <p>The Primary Feed loads a YouTube privacy-enhanced embed only after you open the transmission viewer. YouTube may then receive technical request data under its own policies. External links, storefronts, Discord, GitHub, and other services operate under their own privacy terms.</p>
+
+        <h2>Contact</h2>
+        <p>Privacy questions: <a href="mailto:J.Donavon.Love@gmail.com?subject=VeilDaemon%20Privacy">J.Donavon.Love@gmail.com</a>.</p>
+      </section>
+      <nav class="route-actions legal-actions" aria-label="Legal routes"><a class="button primary" href="/terms/"><span>Terms of Use</span></a><a class="button" href="/"><span>Return Home</span></a><a class="button ghost" href="/studio/privacy/"><span>Studio Privacy</span></a></nav>
+    </article>
+  </main>
+</body>
+</html>

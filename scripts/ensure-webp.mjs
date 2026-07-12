@@ -63,7 +63,7 @@ function checkDisplayRefs() {
       const start = Math.max(0, m.index - 120);
       const ctx = text.slice(start, m.index + (ref?.length || 0) + 40);
       // allow press/download masters and favicons
-      if (/download/i.test(ctx) || /favicon/i.test(ref) || /\.ico$/i.test(ref)) continue;
+      if (/download/i.test(ctx) || /favicon/i.test(ref) || /rel=["'](?:apple-touch-)?icon["']/i.test(ctx) || /\.ico$/i.test(ref)) continue;
       if (/Press Kit|download originals|PNG for print/i.test(ctx)) continue;
       bad.push(`${f}: ${ref}`);
     }

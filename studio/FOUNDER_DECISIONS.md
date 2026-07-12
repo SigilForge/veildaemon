@@ -21,6 +21,15 @@ Public site currently states: **founder-operated by J. Donavon Love; formal enti
 - [ ] Formal clear-space and minimum-size guidance
 - [ ] Written brand color tokens for external designers
 
+### Private trademark-risk record
+
+- “Cradlepoint” is also an active Ericsson enterprise-networking brand.
+- Public real-world branding should consistently use **Cradlepoint Studio**.
+- **VeilDaemon** remains the primary software and AR product identity.
+- Avoid standalone Cradlepoint branding for networking, routers, cloud connectivity, or enterprise communications.
+- Complete federal, state, common-law, domain, and international clearance before filing or major brand investment.
+- Do not add a public Ericsson disclaimer without founder or counsel approval.
+
 ## Finance (private data room)
 
 - [ ] Current revenue and sales history
@@ -53,5 +62,5 @@ Revenue, customer counts, conversion rates, market size, valuation, legal struct
 
 ## Credit / license identity
 
-- [ ] Align LICENSE credit (Knoxmortis) with public credit (J. Donavon Love)
+- [x] Align LICENSE credit (Knoxmortis) with public credit (J. Donavon Love)
 - [ ] Confirm legal owner string for Copyright page once entity exists
