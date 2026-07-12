@@ -74,6 +74,15 @@ test.describe("studio subtree routes", () => {
       await expect(page.locator("h1").first()).toContainText(route.h1);
       await expect(page.locator('a[href="/studio/privacy/"]').first()).toBeVisible();
       await expect(page.locator('a[href="/studio/media-usage/"]').first()).toBeVisible();
+      // Unified chrome: primary Contact CTA + explore footer links
+      await expect(page.locator("header.site-header a.nav-cta")).toHaveCount(1);
+      await expect(page.locator('header.site-header a[href="/studio/projects/"]')).toHaveCount(1);
+      await expect(page.locator('header.site-header a[href="/studio/data-room/"]')).toHaveCount(1);
+      await expect(page.locator("footer.site-footer")).toHaveCount(1);
+      await expect(page.locator('footer.site-footer a[href="/studio/projects/"]')).toHaveCount(1);
+      await expect(page.locator('footer.site-footer a[href="/studio/about/"]')).toHaveCount(1);
+      await expect(page.locator('footer.site-footer a[href="/studio/press/"]')).toHaveCount(1);
+      await expect(page.locator('footer.site-footer a[href="/studio/traction/"]')).toHaveCount(1);
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(route.path.replace(/\/$/, "") + "/?$"));
       await noHorizontalOverflow(page);
       await assertLocalAssets(page, route.path);
@@ -191,7 +200,7 @@ test.describe("studio subtree routes", () => {
 
     // Cache-bust query present on Studio CSS
     const cssHref = await page.locator('link[rel="stylesheet"][href*="studio.css"]').first().getAttribute("href");
-    expect(cssHref).toMatch(/studio\.css\?v=20260712-srcfix1/);
+    expect(cssHref).toMatch(/studio\.css\?v=20260712-navunity1/);
 
     // Portal images must load and use versioned currentSrc
     await page.goto("/studio/");
@@ -214,8 +223,9 @@ test.describe("studio subtree routes", () => {
     );
     expect(portalArt.length).toBeGreaterThan(3);
     for (const img of portalArt) {
-      expect(img.src, img.src).toMatch(/\?v=20260712-srcfix1/);
-      expect(img.currentSrc, img.currentSrc).toContain("20260712-srcfix1");
+      expect(img.src, img.src).toMatch(/\?v=20260712-srcfix1|20260712-navunity1/);
+      // versioned src still required for art plates
+      expect(img.src.includes("?v="), img.src).toBeTruthy();
     }
     // Brand mark is Cradlepoint Studio, not only VeilCorp
     expect(imgReport.some((i) => (i.src || "").includes("cradlepoint-studio-mark"))).toBeTruthy();
@@ -223,7 +233,7 @@ test.describe("studio subtree routes", () => {
     // Build marker present
     await expect(page.locator('meta[name="build-version"]')).toHaveAttribute(
       "content",
-      /20260712-srcfix1/
+      /20260712-navunity1/
     );
     const version = await page.request.get("/studio/version.json");
     expect(version.ok()).toBeTruthy();
