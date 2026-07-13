@@ -114,11 +114,11 @@ test.describe("studio subtree routes", () => {
     });
 
     await page.goto("/studio/projects/");
-    await expect(page.locator(".portfolio-card")).toHaveCount(8);
-    await expect(page.locator(".portfolio-card .card-media")).toHaveCount(8);
+    await expect(page.locator(".portfolio-card")).toHaveCount(7);
+    await expect(page.locator(".portfolio-card .card-media")).toHaveCount(7);
     await expect(page.locator(".portfolio-card img.art-zoom")).toHaveCount(2);
-    await expect(page.locator('.physical-core-card[href="/studio/publishing/#physical-core-edition"]')).toContainText("Commercial planning / supplier quoting");
-    await expect(page.locator(".physical-core-card")).toContainText(/production partners, manufacturing, and fulfillment are currently being evaluated/i);
+    await expect(page.locator('.physical-core-card[href="/studio/publishing/#physical-core-edition"]')).toContainText("Digital line shipping · physical edition in planning");
+    await expect(page.locator(".physical-core-card")).toContainText(/physical editions are now in commercial planning and supplier quoting/i);
     await expect(page.locator('.dual-system-card a[href="/operator/"]')).toHaveCount(1);
     await expect(page.locator('.dual-system-card a[href="/handler/"]')).toHaveCount(1);
     await expect(page.locator('.narrative-card a[href="https://wiki.veildaemon.app/"]')).toHaveCount(1);
