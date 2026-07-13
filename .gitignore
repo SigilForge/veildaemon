@@ -207,6 +207,8 @@ pip-wheel-metadata/
 *.whl
 *.spec
 *.zip
+!studio/press/downloads/
+!studio/press/downloads/cradlepoint-studio-press-kit-july-2026.zip
 *.7z
 *.tar
 *.tar.gz

@@ -2,11 +2,11 @@ Cradlepoint Studio is an independent creative technology studio built around ori
 
 The studio develops tabletop publishing (Operator and Handler products, free and paid Needlepoint case modules), VeilDaemon companion software for Operators and Handlers, fiction, marketing and archive media, and a longer-horizon Mobile AR / Ritual Sites direction.
 
-Cradlepoint’s commercial thesis is that tabletop, fiction, software identity, and physical-world participation are usually sold as disconnected products. Cradlepoint connects them through one persistent emotional-physics system so each surface can reinforce the others.
+Cradlepoint Studio’s commercial thesis is that tabletop, fiction, software identity, and physical-world participation are usually sold as disconnected products. Cradlepoint Studio connects them through one persistent emotional-physics system so each surface can reinforce the others.
 
 J. Donavon Love is the systems designer, creative director, and canon authority. AI assists drafting and retrieval inside a governed pipeline; human release approval retains authority.
 
-Public, internally audited production evidence (rounded, with periods disclosed separately) includes 350K+ core rules words, 25 current final release PDFs, 130+ public wiki articles, live VeilDaemon infrastructure with extensive browser testing, nearly 1K marketing images, and $0 paid acquisition to date.
+Documented internal production evidence (public figures rounded, with periods disclosed separately) includes 350K+ core rules words, 25 current final release PDFs, 130+ public wiki articles, live VeilDaemon infrastructure with an automated browser test suite, nearly 1K marketing images, and $0 paid acquisition through the July 10, 2026 snapshot.
 
 Storefront: https://the-cradlepoint-archives.itch.io/needlepoint
 Platform: https://veildaemon.app/

@@ -249,6 +249,27 @@ test.describe("studio subtree routes", () => {
     await noHorizontalOverflow(page);
   });
 
+  test("press room provides a five-minute public asset grab", async ({ page }) => {
+    await page.goto("/studio/press/");
+    const kitLink = page.getByRole("link", { name: /Download complete press kit/i });
+    await expect(kitLink).toBeVisible();
+    await expect(kitLink).toHaveAttribute("href", "downloads/cradlepoint-studio-press-kit-july-2026.zip");
+    await expect(page.locator(".press-copy-grid .long-copy")).toContainText(/Cradlepoint Studio is an independent creative technology studio/i);
+    await expect(page.locator(".press-copy-grid").first()).not.toContainText("See full text in download");
+    await expect(page.locator(".press-copy-grid")).toContainText(/Cradlepoint Studio is an independent founder-operated studio/i);
+    for (const id of ["studio-assets", "veildaemon-assets", "veilcorp-assets"]) {
+      await expect(page.locator("#" + id)).toHaveCount(1);
+    }
+    await expect(page.locator("#veildaemon-assets").locator("xpath=following-sibling::*[1]")).toContainText(/Technology social graphic/i);
+    await expect(page.locator(".asset-caption").first()).toContainText(/Approved caption/i);
+    await expect(page.locator(".metric-board")).toContainText(/Jul 10 2026/i);
+    await expect(page.locator(".metric-board")).toContainText(/Automated browser test suite/i);
+    await assertLocalAssets(page, "/studio/press/");
+    await noHorizontalOverflow(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await noHorizontalOverflow(page);
+  });
+
   test("positioning stays mythpunk, publishing-first, and technically bounded", async ({ page }) => {
     await page.goto("/studio/");
     await expect(page.locator(".portal-hero-copy")).toContainText(/mythpunk studio/i);
