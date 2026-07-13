@@ -45,7 +45,6 @@ body {
 .sky-aurora,
 .tower-beam,
 .scanline,
-.barcode-scan,
 .glitch-band,
 .text-glint,
 .camera-sweep,
@@ -139,67 +138,6 @@ body {
   mix-blend-mode: screen;
   opacity: 0.34;
   animation: scanFall 6s linear infinite;
-}
-
-.barcode-scan {
-  overflow: hidden;
-  background: #fff url("../../assets/veilcorp-url-barcode.svg") center / 100% 100% no-repeat;
-  border: 1px solid rgba(216, 180, 254, 0.34);
-  box-shadow: 0 0 10px rgba(102, 247, 231, 0.28), 0 0 18px rgba(168, 85, 255, 0.18);
-  opacity: 0.82;
-}
-
-.barcode-scan::before {
-  content: "";
-  position: absolute;
-  top: -10%;
-  bottom: -10%;
-  width: 20%;
-  background: linear-gradient(90deg, transparent, rgba(102, 247, 231, 0.8), rgba(216, 180, 254, 0.7), transparent);
-  filter: blur(0.6px);
-  box-shadow: 0 0 10px rgba(102, 247, 231, 0.58);
-  mix-blend-mode: screen;
-  animation: barcodeSweep 2.7s ease-in-out infinite;
-}
-
-.barcode-header {
-  left: 79.65%;
-  top: 6.55%;
-  width: 6.75%;
-  height: 3.6%;
-}
-
-.barcode-left {
-  left: 1.82%;
-  top: 28.55%;
-  width: 6.95%;
-  height: 2.9%;
-}
-
-.barcode-right {
-  left: 93.35%;
-  top: 69.55%;
-  width: 5.55%;
-  height: 3.15%;
-}
-
-.barcode-bottom {
-  left: 91.55%;
-  top: 7%;
-  width: 6.95%;
-  height: 2.9%;
-}
-
-.barcode-left::before {
-  animation-delay: -0.8s;
-}
-
-.barcode-right::before {
-  animation-delay: -1.4s;
-}
-
-.barcode-bottom::before {
-  animation-delay: -2.1s;
 }
 
 .glitch-band {
@@ -613,13 +551,6 @@ body {
   16% { opacity: 0.92; }
   72% { opacity: 0.7; }
   100% { transform: translateX(228%); opacity: 0.2; }
-}
-
-@keyframes barcodeSweep {
-  0%, 100% { transform: translateX(-140%); opacity: 0; }
-  18% { opacity: 0.86; }
-  54% { opacity: 0.52; }
-  82% { opacity: 0; transform: translateX(680%); }
 }
 
 @keyframes slowRotate {
