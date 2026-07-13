@@ -4,7 +4,9 @@
 **Thesis year:** 2026  
 **One-sentence version:** Feed the Daemon is a web-native collective feeder where audience attention grows a generative Sheep Node from abstract signal into a persistent entity, allowing the same learned daemon to continue through a personal music game, livestream performances, physical Ritual Sites, and location-aware AR.
 
-When programming starts: `README.md` in this folder, then this file, then cross-links to Ritual Sites and VeilDaemon stream substrate.
+When programming starts: read [README.md](./README.md), then use [SHEEP_NODE_MVP_SPEC.md](./SHEEP_NODE_MVP_SPEC.md) as the Proof 0 + Proof 1 build authority. Use this file for the broader product thesis and later evolution, then follow its cross-links to Ritual Sites and the VeilDaemon stream substrate.
+
+**Authority boundary:** if this older Product Spine differs from the Sheep Node MVP Spec on first-MVP mechanics, technical architecture, delivery phases, or build order, the MVP Spec governs until deliberately revised. This file remains authoritative for the larger continuity chain and post-MVP direction.
 
 ---
 
