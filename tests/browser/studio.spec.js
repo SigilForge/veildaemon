@@ -189,6 +189,7 @@ test.describe("studio subtree routes", () => {
   });
 
   test("technology page leads with live tools and bounded partner work", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("/studio/technology/");
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://veildaemon.app/studio/assets/social/technology-social-preview.jpg");
     await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", "https://veildaemon.app/studio/assets/social/technology-social-preview.jpg");
@@ -306,7 +307,12 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/technology/");
     await expect(page.locator("#veilforge-track")).toContainText(/emotional runtime state/i);
     await expect(page.locator("#veilforge-track")).toContainText(/implementation core remains private/i);
+    await expect(page.locator("#veilforge-track")).toContainText(/streamer-facing daemon persona/i);
+    await expect(page.locator("#veilforge-track")).toContainText(/broader agent capabilities later/i);
+    await expect(page.locator("#veilforge-track")).not.toContainText(/production-ready|shipping|reliable general-purpose agent|completed framework/i);
     await expect(page.locator('#veilforge-track a[href="' + showcase + '"]')).toHaveCount(1);
+    await noHorizontalOverflow(page);
+    await page.setViewportSize({ width: 390, height: 844 });
     await noHorizontalOverflow(page);
 
     await page.goto("/studio/data-room/");
