@@ -221,8 +221,8 @@ h3 {
 
 .brand img,
 .footer-brand img {
-  width: 2.35rem;
-  height: 2.35rem;
+  width: 2.7rem;
+  height: 2.7rem;
   object-fit: contain;
   border-radius: 0.55rem;
 }
@@ -396,6 +396,26 @@ footer nav a:hover {
   font-size: clamp(1.05rem, 1.5vw, 1.18rem);
   line-height: 1.7;
   font-weight: 400;
+}
+
+.studio-wordmark {
+  display: block;
+  width: min(100%, 34rem);
+  height: auto;
+  margin: 0 0 clamp(1.35rem, 3vw, 2rem);
+  border: 1px solid rgba(146, 92, 201, 0.12);
+  border-radius: 0.45rem;
+  background: #000;
+  filter: drop-shadow(0 0 1.4rem rgba(128, 63, 210, 0.14));
+}
+
+.asset-card .preview.light-preview {
+  background: #f4f2ef;
+}
+
+.asset-card .preview.wordmark-preview img {
+  width: 100%;
+  max-height: none;
 }
 
 .hero-actions {

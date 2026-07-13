@@ -15,9 +15,10 @@ Public site currently states: **founder-operated by J. Donavon Love; formal enti
 
 ## Brand
 
-- [x] Dedicated **Cradlepoint Studio** lockup (press pack + site header; SVG/clear-space still open)
+- [x] Dedicated **Cradlepoint Studio** lotus-eye family (horizontal lockups, compact emblem, and city-duality seal)
+- [ ] Transparent-background masters for the current lotus-eye family
 - [ ] SVG / vector masters for Studio + product marks
-- [x] Transparent PNG, lossless WebP, favicon, and Apple touch icon variants
+- [x] WebP display assets, PNG source masters, favicon, and Apple touch icon variants
 - [ ] Formal clear-space and minimum-size guidance
 - [ ] Written brand color tokens for external designers
 

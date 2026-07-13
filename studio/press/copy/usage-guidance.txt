@@ -17,6 +17,7 @@ Preferred attribution
 
 Please do
 - Use the provided logos, founder image, product, and software art without cropping out trademarks in misleading ways
+- Prefer the horizontal color lockup for wide layouts, the lotus-eye emblem for compact placements, and the city-duality seal for editorial or ceremonial use
 - Label VeilCorp marks as in-universe / diegetic when context matters
 - Preserve context when quoting metrics (periods, “$0 paid acquisition,” production vs market validation)
 
@@ -30,6 +31,7 @@ Higher-resolution or exclusive assets
 - Request via J.Donavon.Love@gmail.com with subject “Cradlepoint Studio Press Inquiry”
 
 Still needed for professional brand packs
+- Transparent-background masters
 - SVG / vector masters
 - Formal clear-space and minimum-size guidance
 - Written brand color values for external designers
