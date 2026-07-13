@@ -2194,6 +2194,11 @@ footer > p {
   transform: translateY(-3px);
   border-color: rgba(181,117,104,.35);
 }
+.portfolio-grid > .veilforge-card {
+  grid-column: 1 / -1;
+  width: calc((100% - .9rem) / 2);
+  justify-self: center;
+}
 .portfolio-card .card-media {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -3021,6 +3026,10 @@ footer > p {
   .lifecycle,
   .stack-flow { grid-template-columns: 1fr; }
   .portfolio-card .card-actions { grid-template-columns: 1fr; }
+  .portfolio-grid > .veilforge-card {
+    grid-column: auto;
+    width: 100%;
+  }
 }
 
 
