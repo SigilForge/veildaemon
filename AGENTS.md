@@ -78,6 +78,7 @@
 - Keep hosted stream routes `noindex`, transparent by default, and sized for the intended OBS canvas.
 - Bump cache query strings in stream route HTML after changing referenced CSS, JS, image, or video assets.
 - Keep OBS-facing assets small enough for hosted use; avoid full-canvas video exports when browser scaling or static image layers solve the problem.
+- **Ritual Sites / DJ Veil programming:** design ore lives in `Docs/Ritual Sites/` (field notes + v0.9 stream-compositor thesis). Public Studio status stays **future / concept** until a ship decision. First slice is OBS-like composition that *alters how the performance is perceived*, not a co-host AI avatar.
 
 ## Validation
 - Run `node --check script.js` after JavaScript edits.
