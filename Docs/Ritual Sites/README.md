@@ -78,6 +78,14 @@ Checklist:
 - [ ] Keep Studio public copy status pills accurate (future / planning / live)  
 - [ ] Gate any Handler-only or Systems Metaphysics material off public surfaces  
 
+## Related: Feed the Daemon
+
+The same continuity can originate as a public **Sheep Node** (collective web feeder) and later drive stream/Ritual Site visuals. Product spine:
+
+**`Docs/Feed the Daemon/`**
+
+Shared rule: presence alters perception; daemon is not a mascot or co-host avatar. Sheep Node state (Resonance / Presence / Frequency weights) is a valid **input bus** into Ritual Site cues when that integration ships.
+
 ## Related public language
 
 Use Studio wording: **future vertical**, **concept**, **not a live offer**. Internal engineering may say “v0.9 stream compositor” freely; public pages must not upgrade status without a ship decision.

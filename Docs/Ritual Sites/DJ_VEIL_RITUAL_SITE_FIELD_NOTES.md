@@ -87,6 +87,7 @@ They should feel like a presence has entered the broadcast.
 ## See also
 
 * [README.md](./README.md) — programming start order and code map  
+* [../Feed the Daemon/](../Feed%20the%20Daemon/) — Sheep Node → stream intelligence → Field Node / AR product spine  
 * [../DESIGN_CONSTRAINTS.md](../DESIGN_CONSTRAINTS.md) — at-table UI constraints (do not conflate with venue/stream canvas)  
 * Hosted OBS layers: `stream/` (live browser sources)  
 * Studio public surface: `/studio/technology/#ritual-sites`, `/studio/projects/` Ritual Sites card  
