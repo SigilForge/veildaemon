@@ -6,11 +6,16 @@
 
 ## Read order when you start programming
 
-1. **[2026_PRODUCT_SPINE.md](./2026_PRODUCT_SPINE.md)** — full product spine, phases, evolutions, MVP, build order  
-2. This README — code map and guardrails  
-3. **[../Ritual Sites/](../Ritual%20Sites/)** — how the same presence alters live performance (not a co-host avatar)  
-4. **`stream/`** — existing OBS browser-source substrate  
-5. VeilDaemon intake Frequency vocabulary (Dream, Hunger, Silence, Stillness, Empyrean, Becoming) in live `script.js` / operator surfaces — **reuse, do not fork**
+1. This README — current authority map, code breadcrumbs, and status guardrails
+2. **[SHEEP_NODE_MVP_SPEC.md](./SHEEP_NODE_MVP_SPEC.md)** — Proof 0 + Proof 1 implementation authority, acceptance criteria, data objects, and six-sprint build order
+3. **[2026_PRODUCT_SPINE.md](./2026_PRODUCT_SPINE.md)** — broader product thesis and later evolution across personal feeder, stream, Ritual Site, Field Node, and AR
+4. **[../Ritual Sites/](../Ritual%20Sites/)** — how the same presence alters live performance after the Sheep Node MVP (not a co-host avatar)
+5. **`stream/`** — existing OBS browser-source substrate
+6. VeilDaemon intake Frequency vocabulary (Dream, Hunger, Silence, Stillness, Empyrean, Becoming) in live `script.js` / operator surfaces — **reuse, do not fork**
+
+### Authority rule
+
+The Product Spine preserves the full product direction. The Sheep Node MVP Spec governs Proof 0 and Proof 1 mechanics, technical architecture, delivery phases, and build order when the two documents differ.
 
 ## Core product rule
 
@@ -52,13 +57,15 @@ Align with existing Operator primary Frequency language.
 
 ## First MVP proof (build now)
 
-See product spine “First public MVP” and “Build now.” Minimum: one Sheep Node page, Resonance/Presence, three phases (Dormant Sheep → Pattern Emergence → Matrix Breach), six Frequency weights, motif persistence, one fragment sequence, one manifestation event, public history.
+See [SHEEP_NODE_MVP_SPEC.md](./SHEEP_NODE_MVP_SPEC.md). The build target is Proof 0 + Proof 1: validate the dormant shared node, then the bounded musical ensemble, performer decay, ritual threshold, and saved track provenance. The Product Spine’s later phases remain direction, not first-build requirements.
 
 ## Code / route breadcrumbs (today)
 
 | Location | Role |
 |----------|------|
-| This folder | Product spine + start map |
+| `Docs/Feed the Daemon/README.md` | Start map and authority rule |
+| `Docs/Feed the Daemon/SHEEP_NODE_MVP_SPEC.md` | Proof 0 + Proof 1 build authority |
+| `Docs/Feed the Daemon/2026_PRODUCT_SPINE.md` | Long-horizon product and continuity thesis |
 | `Docs/Ritual Sites/` | Live composition / DJ Veil translation |
 | `stream/` | Hosted OBS layers (authority / apparition / kinetic planes later) |
 | VeilDaemon intake / Frequency drift (`script.js`, operator) | Existing Frequency taxonomy |
