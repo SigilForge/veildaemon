@@ -270,6 +270,28 @@ test.describe("studio subtree routes", () => {
     await noHorizontalOverflow(page);
   });
 
+  test("about page tells the human founder and discovery story", async ({ page }) => {
+    await page.goto("/studio/about/");
+    await expect(page.locator(".about-portrait img")).toHaveAttribute("alt", /J\. Donavon Love/i);
+    await expect(page.locator("#original-problem")).toContainText(/What could AI meaningfully support through mobile tools/i);
+    await expect(page.locator("#original-problem")).toContainText(/without flattening it into a label/i);
+    const chain = page.locator("#discovery-chain");
+    await expect(chain).toContainText(/Mobile support posed the question/i);
+    await expect(chain).toContainText(/Story supplied lived context/i);
+    await expect(chain).toContainText(/Tabletop made the laws testable/i);
+    await expect(chain).toContainText(/VeilDaemon returned it to software/i);
+    await expect(page.locator("#operating-model")).toContainText(/AI supports drafting, retrieval, comparison, and pressure-testing/i);
+    await expect(page.locator("#operating-model")).toContainText(/Human release authority/i);
+    await expect(page.locator("#founder-and-collaborators")).toContainText(/Where collaborators enter/i);
+    await expect(page.locator("#current-chapter")).toContainText(/revealed itself as a studio/i);
+    await expect(page.locator("#current-chapter")).toContainText(/Long-form fiction/i);
+    await expect(page.locator("main")).not.toContainText(/Formal contracting, ownership, and entity details/i);
+    await assertLocalAssets(page, "/studio/about/");
+    await noHorizontalOverflow(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await noHorizontalOverflow(page);
+  });
+
   test("positioning stays mythpunk, publishing-first, and technically bounded", async ({ page }) => {
     await page.goto("/studio/");
     await expect(page.locator(".portal-hero-copy")).toContainText(/mythpunk studio/i);
