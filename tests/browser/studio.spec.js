@@ -124,14 +124,14 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator(".narrative-card")).toContainText(/fiction in development/i);
     const projectTileMetrics = await page.locator(".portfolio-card").evaluateAll((cards) => cards.map((card) => {
       const cardBox = card.getBoundingClientRect();
-      const imageBox = card.querySelector("img").getBoundingClientRect();
-      return { height: cardBox.height, imageHeight: imageBox.height };
+      const mediaBox = card.querySelector(".card-media").getBoundingClientRect();
+      return { height: cardBox.height, mediaHeight: mediaBox.height };
     }));
     for (let index = 0; index < projectTileMetrics.length; index += 2) {
       const row = projectTileMetrics.slice(index, index + 2);
       expect(Math.max(...row.map((item) => item.height)) - Math.min(...row.map((item) => item.height))).toBeLessThanOrEqual(1);
     }
-    expect(Math.max(...projectTileMetrics.map((item) => item.imageHeight)) - Math.min(...projectTileMetrics.map((item) => item.imageHeight))).toBeLessThanOrEqual(1);
+    expect(Math.max(...projectTileMetrics.map((item) => item.mediaHeight)) - Math.min(...projectTileMetrics.map((item) => item.mediaHeight))).toBeLessThanOrEqual(1);
 
     await page.goto("/studio/funding/");
     await expect(page.locator("#structure")).toContainText(/Funding instruments/i);
@@ -140,10 +140,10 @@ test.describe("studio subtree routes", () => {
 
     await page.goto("/studio/press/");
     await expect(page.getByRole("link", { name: /Download short boilerplate/i })).toBeVisible();
-    await expect(page.getByText(/Real-world vs in-universe marks/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Studio, product, and in-universe identity/i })).toBeVisible();
 
     await page.goto("/studio/data-room/");
-    await expect(page.getByRole("link", { name: /Executive overview/i })).toBeVisible();
+    await expect(page.locator('a[href="public/executive-overview.html"]').first()).toBeVisible();
 
     for (const summary of summaryRoutes) {
       const response = await page.goto(summary);
@@ -155,7 +155,7 @@ test.describe("studio subtree routes", () => {
     }
 
     await page.goto("/studio/data-room/");
-    await expect(page.getByText(/HTML \+ MD/i).first()).toBeVisible();
+    await expect(page.locator(".doc-index .doc-row").first()).toBeVisible();
     await expect(page.locator("main")).not.toContainText("sit on this site as Markdown");
   });
 
@@ -401,7 +401,7 @@ test.describe("studio subtree routes", () => {
 
     // Cache-bust query present on Studio CSS
     const cssHref = await page.locator('link[rel="stylesheet"][href*="studio.css"]').first().getAttribute("href");
-    expect(cssHref).toMatch(/studio\.css\?v=20260712-navunity1/);
+    expect(cssHref).toMatch(/studio\.css\?v=20260713-brand1/);
 
     // Portal images must load and use versioned currentSrc
     await page.goto("/studio/");
@@ -429,12 +429,12 @@ test.describe("studio subtree routes", () => {
       expect(img.src.includes("?v="), img.src).toBeTruthy();
     }
     // Brand mark is Cradlepoint Studio, not only VeilCorp
-    expect(imgReport.some((i) => (i.src || "").includes("cradlepoint-studio-mark"))).toBeTruthy();
+    expect(imgReport.some((i) => (i.src || "").includes("cradlepoint-studio-emblem"))).toBeTruthy();
 
     // Build marker present
     await expect(page.locator('meta[name="build-version"]')).toHaveAttribute(
       "content",
-      /20260712-navunity1/
+      /20260713-brand1/
     );
     const version = await page.request.get("/studio/version.json");
     expect(version.ok()).toBeTruthy();
