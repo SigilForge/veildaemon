@@ -30,7 +30,7 @@
 - Top-level CTAs should teach the visitor's options without exposing Discord directly:
   - Read the Archive -> `https://wiki.veildaemon.app/`
   - Begin Operator Intake -> local intake terminal
-  - Play the Case File -> `https://the-cradlepoint-archives.itch.io/needlepoint`
+  - Browse Case Files -> `https://play.veildaemon.app/`
 - Discord access belongs behind the intake result:
   - PASS -> `operator-*` route keys resolved by `/api/route`
   - CLAIMED / fail-state -> `triage-*` route keys resolved by `/api/route`

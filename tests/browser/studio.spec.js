@@ -182,10 +182,10 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator(".publishing-brief")).toContainText("Direct digital sales");
     await expect(page.locator(".publishing-brief")).toContainText("Professional production, print, distribution, and audience growth");
     await expect(page.locator(".release-inventory > a")).toHaveCount(4);
-    await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/"]')).toHaveCount(1);
+    await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/needlepoint"]')).toHaveCount(1);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/cradlepoint-handler-core"]')).toHaveCount(1);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/cradlepoint-operator-core"]')).toHaveCount(1);
-    await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/needlepoint"]')).toHaveCount(1);
+    await expect(page.locator('.release-inventory > a[href="https://play.veildaemon.app/"]')).toHaveCount(1);
     await expect(page.locator("#partner-frame")).toContainText(/rights, exclusivity, marketing obligations/i);
     await expect(page.getByRole("heading", { name: "Choose the route around an existing catalog" })).toBeVisible();
     await noHorizontalOverflow(page);
@@ -401,7 +401,7 @@ test.describe("studio subtree routes", () => {
 
     // Cache-bust query present on Studio CSS
     const cssHref = await page.locator('link[rel="stylesheet"][href*="studio.css"]').first().getAttribute("href");
-    expect(cssHref).toMatch(/studio\.css\?v=20260713-brand1/);
+    expect(cssHref).toMatch(/studio\.css\?v=20260713-brand2/);
 
     // Portal images must load and use versioned currentSrc
     await page.goto("/studio/");
@@ -434,7 +434,7 @@ test.describe("studio subtree routes", () => {
     // Build marker present
     await expect(page.locator('meta[name="build-version"]')).toHaveAttribute(
       "content",
-      /20260713-brand1/
+      /20260713-brand2/
     );
     const version = await page.request.get("/studio/version.json");
     expect(version.ok()).toBeTruthy();

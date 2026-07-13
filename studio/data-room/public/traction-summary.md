@@ -36,6 +36,6 @@ Public metrics are rounded from documented internal snapshots. Platform periods 
 
 - Studio portal: https://veildaemon.app/studio/
 - Traction page: https://veildaemon.app/studio/traction/
-- Storefront: https://the-cradlepoint-archives.itch.io/needlepoint
+- Storefront: https://play.veildaemon.app/
 - Platform: https://veildaemon.app/
 - Repository evidence: https://github.com/SigilForge/veildaemon
