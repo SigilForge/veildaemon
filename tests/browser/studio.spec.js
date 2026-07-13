@@ -114,8 +114,8 @@ test.describe("studio subtree routes", () => {
     });
 
     await page.goto("/studio/projects/");
-    await expect(page.locator(".portfolio-card")).toHaveCount(6);
-    await expect(page.locator(".portfolio-card .card-media")).toHaveCount(6);
+    await expect(page.locator(".portfolio-card")).toHaveCount(7);
+    await expect(page.locator(".portfolio-card .card-media")).toHaveCount(7);
     await expect(page.locator(".portfolio-card img.art-zoom")).toHaveCount(2);
     await expect(page.locator('.dual-system-card a[href="/operator/"]')).toHaveCount(1);
     await expect(page.locator('.dual-system-card a[href="/handler/"]')).toHaveCount(1);
@@ -290,6 +290,33 @@ test.describe("studio subtree routes", () => {
     await noHorizontalOverflow(page);
     await page.setViewportSize({ width: 390, height: 844 });
     await noHorizontalOverflow(page);
+  });
+
+  test("VeilForge is consistently public-showcase, private-core, and in development", async ({ page }) => {
+    const showcase = "https://github.com/SigilForge/veilforge-showcase";
+    await page.goto("/studio/projects/");
+    const project = page.locator('.veilforge-card[href="' + showcase + '"]');
+    await expect(project).toHaveCount(1);
+    await expect(project).toContainText("Public showcase · private core · active MVP development");
+    await expect(project).not.toContainText(/shipping product/i);
+    await noHorizontalOverflow(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await noHorizontalOverflow(page);
+
+    await page.goto("/studio/technology/");
+    await expect(page.locator("#veilforge-track")).toContainText(/emotional runtime state/i);
+    await expect(page.locator("#veilforge-track")).toContainText(/implementation core remains private/i);
+    await expect(page.locator('#veilforge-track a[href="' + showcase + '"]')).toHaveCount(1);
+    await noHorizontalOverflow(page);
+
+    await page.goto("/studio/data-room/");
+    const dataRow = page.locator('.doc-row[href="' + showcase + '"]');
+    await expect(dataRow).toContainText("VeilForge public showcase");
+    await expect(dataRow).toContainText("Public repository · Active development");
+
+    await page.goto("/studio/about/");
+    await expect(page.locator("#operating-model")).toContainText(/active AI-daemon development track/i);
+    await expect(page.locator('#operating-model a[href="' + showcase + '"]')).toHaveCount(1);
   });
 
   test("positioning stays mythpunk, publishing-first, and technically bounded", async ({ page }) => {

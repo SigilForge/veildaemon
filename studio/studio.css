@@ -2416,6 +2416,11 @@ footer > p {
 .tech-zone.hyp-zone {
   background: rgba(5,7,9,.55);
 }
+.tech-zone.development-zone {
+  background: linear-gradient(180deg,rgba(24,18,29,.72),rgba(5,7,9,.72));
+}
+.veilforge-evidence { margin-top: 1.25rem; }
+.veilforge-card .card-media { background: #090a0d; }
 .tech-split {
   display: grid;
   grid-template-columns: 1.1fr .9fr;
