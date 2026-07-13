@@ -17,6 +17,7 @@ VeilCorp is a fictional in-universe organization, not a contracting party or rea
 
 STUDIO MARKS
 Use the color horizontal lockup for wide identity placements, the lotus-eye emblem for compact placements, the city-duality seal for editorial or ceremonial use, and the monochrome lockup for light layouts or print preparation.
+The round emblem and seal include transparent PNG/WebP derivatives that remove only exterior canvas darkness. Their enclosed black bands, shadows, and imagery remain intact. Original unmasked PNG sources are retained in Cradlepoint-Studio/Sources/.
 
 CURRENT STATUS
 Cradlepoint Studio has shipping tabletop products and live VeilDaemon browser software. Fiction remains in development. Mobile AR and Ritual Sites remain separately scoped future directions.

@@ -31,7 +31,6 @@ Higher-resolution or exclusive assets
 - Request via J.Donavon.Love@gmail.com with subject “Cradlepoint Studio Press Inquiry”
 
 Still needed for professional brand packs
-- Transparent-background masters
 - SVG / vector masters
 - Formal clear-space and minimum-size guidance
 - Written brand color values for external designers

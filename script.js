@@ -5,7 +5,7 @@ const operatorConsoleStorageKey = "veildaemon.operatorConsole.v1";
 const commandLayerStorageKey = "veildaemon.commandLayer.v1";
 const rewardStorageKey = "veildaemon.artifactCache.v1";
 const archiveUrl = "https://wiki.veildaemon.app/";
-const caseFileUrl = "https://the-cradlepoint-archives.itch.io/needlepoint";
+const caseFileUrl = "https://play.veildaemon.app/";
 const frequencyDiscordRoutes = {
   Dream: "https://discord.gg/3C6nXeWkjs",
   Silence: "https://discord.gg/guB7VRgA8R",
