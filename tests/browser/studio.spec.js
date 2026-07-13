@@ -114,9 +114,11 @@ test.describe("studio subtree routes", () => {
     });
 
     await page.goto("/studio/projects/");
-    await expect(page.locator(".portfolio-card")).toHaveCount(7);
-    await expect(page.locator(".portfolio-card .card-media")).toHaveCount(7);
+    await expect(page.locator(".portfolio-card")).toHaveCount(8);
+    await expect(page.locator(".portfolio-card .card-media")).toHaveCount(8);
     await expect(page.locator(".portfolio-card img.art-zoom")).toHaveCount(2);
+    await expect(page.locator('.physical-core-card[href="/studio/publishing/#physical-core-edition"]')).toContainText("Commercial planning / supplier quoting");
+    await expect(page.locator(".physical-core-card")).toContainText(/production partners, manufacturing, and fulfillment are currently being evaluated/i);
     await expect(page.locator('.dual-system-card a[href="/operator/"]')).toHaveCount(1);
     await expect(page.locator('.dual-system-card a[href="/handler/"]')).toHaveCount(1);
     await expect(page.locator('.narrative-card a[href="https://wiki.veildaemon.app/"]')).toHaveCount(1);
@@ -181,6 +183,9 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator(".publishing-brief")).toContainText("Operator Core · Handler Core · recurring Needlepoints");
     await expect(page.locator(".publishing-brief")).toContainText("Direct digital sales");
     await expect(page.locator(".publishing-brief")).toContainText("Professional production, print, distribution, and audience growth");
+    await expect(page.locator("#physical-core-edition")).toContainText("Physical publishing in development");
+    await expect(page.locator("#physical-core-edition")).toContainText(/Operator Core and Handler Core are already available digitally/i);
+    await expect(page.locator("#physical-core-edition")).toContainText(/professional editing, commissioned art, production design, printing, and fulfillment/i);
     await expect(page.locator(".release-inventory > a")).toHaveCount(4);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/needlepoint"]')).toHaveCount(1);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/cradlepoint-handler-core"]')).toHaveCount(1);
