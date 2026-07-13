@@ -78,6 +78,7 @@
 - Keep hosted stream routes `noindex`, transparent by default, and sized for the intended OBS canvas.
 - Bump cache query strings in stream route HTML after changing referenced CSS, JS, image, or video assets.
 - Keep OBS-facing assets small enough for hosted use; avoid full-canvas video exports when browser scaling or static image layers solve the problem.
+- Do not add one-dimensional barcodes to stream overlays or broadcast backplates. A composition may use at most one deliberate, phone-readable QR code when it has a real destination, a designed placement, and does not cover operational overlay content. QR/barcode replacement rules for print, download, or public conversion assets must otherwise exclude `stream/`.
 - **Ritual Sites / DJ Veil programming:** design ore lives in `Docs/Ritual Sites/` (field notes + v0.9 stream-compositor thesis). Public Studio status stays **future / concept** until a ship decision. First slice is OBS-like composition that *alters how the performance is perceived*, not a co-host AI avatar.
 - **Feed the Daemon programming:** start with `Docs/Feed the Daemon/README.md`. `SHEEP_NODE_MVP_SPEC.md` governs Proof 0 + Proof 1 implementation; `2026_PRODUCT_SPINE.md` governs the broader product thesis and later evolutions. Begins as a public generative node (Resonance/Presence), not a downloadable game that later finds the internet. Cross-links Ritual Sites and Field Node/AR as later membranes of the same continuity.
 
