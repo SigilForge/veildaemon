@@ -312,7 +312,7 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/data-room/");
     const dataRow = page.locator('.doc-row[href="' + showcase + '"]');
     await expect(dataRow).toContainText("VeilForge public showcase");
-    await expect(dataRow).toContainText("Public repository · Active development");
+    await expect(dataRow).toContainText("Public showcase · Private core · Active MVP development");
 
     await page.goto("/studio/about/");
     await expect(page.locator("#operating-model")).toContainText(/active AI-daemon development track/i);
