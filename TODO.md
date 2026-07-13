@@ -1,5 +1,18 @@
 # TODO
 
+## Feed the Daemon (future programming track)
+
+Status: **not started as a public product** · 2026 product spine captured · web-first Sheep Node.
+
+When opening this track:
+
+- Read `Docs/Feed the Daemon/README.md` then `Docs/Feed the Daemon/2026_PRODUCT_SPINE.md`.
+- First body: **public Sheep Node** (Resonance + Presence, visual phases), not “download a game that discovers the internet later.”
+- Reuse existing Frequency vocabulary (Dream, Hunger, Silence, Stillness, Empyrean, Becoming).
+- Next layers: personal feeder → Continuity Trace → stream/Ritual Site intelligence → Field Node → AR membrane.
+- Cross-read Ritual Sites docs for live composition; keep AR capital/status separate until deliberately merged.
+- Public copy: concept / future until a Sheep Node actually ships.
+
 ## Ritual Sites / DJ Veil (future programming track)
 
 Status: **not started as a product** · field notes captured · public label remains future vertical.
@@ -10,6 +23,7 @@ When opening this track:
 - Target **Ritual Site v0.9** as a live-stream compositing coordinator (bounded daemon persona), not venue-scale show control first.
 - Design rule: do not place the daemon beside the performance; make it alter how the performance is perceived.
 - Substrate today: hosted OBS layers under `stream/` (see `stream/README.md`).
+- Optional input bus later: Sheep Node / Feed the Daemon state (`Docs/Feed the Daemon/`).
 - Keep Mobile AR as a separate scoping track (`studio/technology/#mobile-ar`); do not merge capital or status labels casually.
 - Public copy: Studio Projects / Technology only say future / concept until ship.
 
