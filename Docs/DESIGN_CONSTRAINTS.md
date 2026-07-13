@@ -4,6 +4,8 @@ Plain-language guardrails for UI work on `veildaemon.app`. Read this before addi
 
 Canon and rules live in Cradlepoint books. Presentation pressure contracts live in `presentation-pressure.js`. This file is **layout and interaction only**.
 
+**Not this file:** venue / stream ritual composition. For Ritual Sites and DJ Veil field translation (layered planes, silhouette-as-source, stream-first v0.9), see `Docs/Ritual Sites/`. Do not import venue-scale layout into Operator/Handler sheet grids.
+
 ---
 
 ## Site map (where design applies)
