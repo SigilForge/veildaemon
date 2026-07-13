@@ -169,6 +169,9 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#founder h2")).toHaveText("Why this founder can execute");
     await expect(page.locator("#structure")).toContainText(/separate publishing budget covers title-specific editorial production/i);
     await expect(page.locator("#structure")).toContainText(/does not include a full Mobile AR product budget/i);
+    await expect(page.locator("#structure")).toContainText("Illustrative contribution: up to $20K");
+    await expect(page.locator("#structure")).toContainText(/separate from the \$67K studio-growth request/i);
+    await expect(page.locator("#structure")).not.toContainText("Digital Sandbox KC");
     await noHorizontalOverflow(page);
   });
 
