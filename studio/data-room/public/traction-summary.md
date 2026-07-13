@@ -30,7 +30,7 @@ Discovery → free Needlepoint download → paid Operator or Handler core → Ve
 
 ## Disclosure
 
-Public metrics are rounded from audited internal data. Platform periods differ and are not rolled into one audience claim. Exact source tables, assumptions, and traffic detail are available through request-access data-room materials.
+Public metrics are rounded from documented internal snapshots. Platform periods differ and are not rolled into one audience claim. Exact source tables, assumptions, and traffic detail are available through request-access data-room materials.
 
 ## Links
 

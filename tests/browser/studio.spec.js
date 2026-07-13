@@ -217,6 +217,38 @@ test.describe("studio subtree routes", () => {
     await noHorizontalOverflow(page);
   });
 
+  test("data room guides reviewer decisions without exposing private files", async ({ page }) => {
+    await page.goto("/studio/data-room/");
+    await expect(page.locator(".reviewer-path")).toContainText("First read");
+    await expect(page.locator(".reviewer-path")).toContainText("Then verify");
+    await expect(page.locator(".reviewer-path")).toContainText("Then discuss");
+    for (const id of ["understand-studio", "commercial-opportunity", "technology-review", "press-public", "private-diligence"]) {
+      await expect(page.locator("#" + id)).toHaveCount(1);
+    }
+    await expect(page.locator("#commercial-opportunity")).toContainText(/Near-term tabletop publishing/i);
+    await expect(page.locator("#technology-review")).toContainText(/live local-first software/i);
+    await expect(page.locator("#private-diligence")).toContainText(/Access is scoped to the conversation/i);
+    await expect(page.locator("#private-diligence")).toContainText(/In development/i);
+    const accessLinks = page.locator('a[href^="mailto:J.Donavon.Love@gmail.com?subject=Cradlepoint%20Studio%20Data%20Room%20Request"]');
+    await expect(accessLinks).toHaveCount(2);
+    const privateFileLinks = page.locator('main a[href*="/private/"], main a[href$=".xlsx"], main a[href$=".docx"], main a[href$=".zip"]');
+    await expect(privateFileLinks).toHaveCount(0);
+    await expect(page.locator('meta[property="og:image"]')).not.toHaveAttribute("content", /technology-ar|mobile-ar/i);
+    await assertLocalAssets(page, "/studio/data-room/");
+    for (const summary of summaryRoutes) {
+      const response = await page.request.get(summary);
+      expect(response.ok(), summary).toBeTruthy();
+    }
+    const firstPath = page.locator(".reviewer-path a").first();
+    await firstPath.focus();
+    await expect(firstPath).toBeFocused();
+    const outline = await firstPath.evaluate((el) => getComputedStyle(el).outlineStyle);
+    expect(outline).not.toBe("none");
+    await noHorizontalOverflow(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await noHorizontalOverflow(page);
+  });
+
   test("positioning stays mythpunk, publishing-first, and technically bounded", async ({ page }) => {
     await page.goto("/studio/");
     await expect(page.locator(".portal-hero-copy")).toContainText(/mythpunk studio/i);
