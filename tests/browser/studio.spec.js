@@ -117,8 +117,15 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator(".portfolio-card")).toHaveCount(7);
     await expect(page.locator(".portfolio-card .card-media")).toHaveCount(7);
     await expect(page.locator(".portfolio-card img.art-zoom")).toHaveCount(2);
-    await expect(page.locator('.physical-core-card[href="/studio/publishing/#physical-core-edition"]')).toContainText("Digital line shipping · physical edition in planning");
-    await expect(page.locator(".physical-core-card")).toContainText(/physical editions are now in commercial planning and supplier quoting/i);
+    await expect(page.locator(".portfolio-card h3")).toHaveText([
+      "Cradlepoint TTRPG",
+      "VeilDaemon",
+      "Operator + Handler Systems",
+      "Fiction + public archive",
+      "Mobile AR",
+      "Ritual Sites",
+      "VeilForge",
+    ]);
     await expect(page.locator('.dual-system-card a[href="/operator/"]')).toHaveCount(1);
     await expect(page.locator('.dual-system-card a[href="/handler/"]')).toHaveCount(1);
     await expect(page.locator('.narrative-card a[href="https://wiki.veildaemon.app/"]')).toHaveCount(1);
@@ -134,6 +141,11 @@ test.describe("studio subtree routes", () => {
       expect(Math.max(...row.map((item) => item.height)) - Math.min(...row.map((item) => item.height))).toBeLessThanOrEqual(1);
     }
     expect(Math.max(...projectTileMetrics.map((item) => item.mediaHeight)) - Math.min(...projectTileMetrics.map((item) => item.mediaHeight))).toBeLessThanOrEqual(1);
+    const [gridBox, forgeBox] = await Promise.all([
+      page.locator(".portfolio-grid").boundingBox(),
+      page.locator(".veilforge-card").boundingBox(),
+    ]);
+    expect(Math.abs((forgeBox.x + forgeBox.width / 2) - (gridBox.x + gridBox.width / 2))).toBeLessThanOrEqual(1);
 
     await page.goto("/studio/funding/");
     await expect(page.locator("#structure")).toContainText(/Funding instruments/i);
@@ -183,9 +195,6 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator(".publishing-brief")).toContainText("Operator Core · Handler Core · recurring Needlepoints");
     await expect(page.locator(".publishing-brief")).toContainText("Direct digital sales");
     await expect(page.locator(".publishing-brief")).toContainText("Professional production, print, distribution, and audience growth");
-    await expect(page.locator("#physical-core-edition")).toContainText("Physical publishing in development");
-    await expect(page.locator("#physical-core-edition")).toContainText(/Operator Core and Handler Core are already available digitally/i);
-    await expect(page.locator("#physical-core-edition")).toContainText(/professional editing, commissioned art, production design, printing, and fulfillment/i);
     await expect(page.locator(".release-inventory > a")).toHaveCount(4);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/needlepoint"]')).toHaveCount(1);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/cradlepoint-handler-core"]')).toHaveCount(1);
