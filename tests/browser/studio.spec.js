@@ -193,13 +193,14 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/publishing/");
     await expect(page.locator("h1")).toHaveText("A publishing line already in market.");
     await expect(page.locator(".publishing-brief")).toContainText("Operator Core · Handler Core · recurring Needlepoints");
-    await expect(page.locator(".publishing-brief")).toContainText("Direct digital sales");
+    await expect(page.locator(".publishing-brief")).toContainText("Direct digital sales · combined Full Core Set");
     await expect(page.locator(".publishing-brief")).toContainText("Professional production, print, distribution, and audience growth");
     await expect(page.locator(".release-inventory > a")).toHaveCount(4);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/needlepoint"]')).toHaveCount(1);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/cradlepoint-handler-core"]')).toHaveCount(1);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/cradlepoint-operator-core"]')).toHaveCount(1);
     await expect(page.locator('.release-inventory > a[href="https://play.veildaemon.app/"]')).toHaveCount(1);
+    await expect(page.locator('a[href="https://itch.io/s/195935/the-cradlepoint-archive-full-core-set"]')).toHaveCount(1);
     await expect(page.locator("#partner-frame")).toContainText(/rights, exclusivity, marketing obligations/i);
     await expect(page.getByRole("heading", { name: "Choose the route around an existing catalog" })).toBeVisible();
     await noHorizontalOverflow(page);
