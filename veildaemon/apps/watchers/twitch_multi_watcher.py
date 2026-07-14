@@ -22,7 +22,9 @@ LOG_PATH = Path("twitch_multi_chat_log.json")
 
 def connect(channel):
     if not TOKEN:
-        raise RuntimeError("Missing Twitch IRC token; configure twitch.token in the local secrets store.")
+        raise RuntimeError(
+            "Missing Twitch IRC token; configure twitch.token in the local secrets store."
+        )
 
     raw = socket.create_connection((HOST, PORT))
     ctx = ssl.create_default_context()
