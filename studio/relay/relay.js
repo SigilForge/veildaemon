@@ -410,12 +410,12 @@
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || `Character engine returned HTTP ${response.status}.`);
       if (!payload.result) throw new Error("Character engine returned no structured result.");
-      $("#persona-engine-status").textContent = `${payload.engine === "ollama" ? "Local Ollama" : "Hosted fallback"} ready · ${payload.model || "configured model"}.`;
+      $("#persona-engine-status").textContent = `${payload.engine === "ollama" ? "Local Ollama" : "Hosted OpenAI"} ready · ${payload.model || "configured model"}.`;
       return payload.result;
     } catch (error) {
       console.error("Relay character request failed", { stage, endpoint: CHARACTER_ENDPOINT, name: error?.name, message: error?.message, elapsedMs: Math.round(performance.now() - startedAt), error });
       if (error instanceof DOMException && error.name === "AbortError") throw new Error("Character generation exceeded 120 seconds.");
-      if (error?.message === "HOSTED_ENGINE_NOT_CONFIGURED") throw new Error("Hosted character fallback is not configured yet.");
+      if (error?.message === "HOSTED_ENGINE_NOT_CONFIGURED") throw new Error("Hosted OpenAI is not configured yet.");
       if (error?.message === "UNAUTHORIZED") throw new Error("Character generation requires an authorized RelayDaemon session.");
       if (error?.message === "HOSTED_ENGINE_INCOMPLETE") throw new Error("The hosted character response ended before its structured draft was complete. Retry once; shorten the source if it repeats.");
       if (error?.message === "HOSTED_ENGINE_REFUSED") throw new Error("The hosted character engine declined this transformation. Review the source and character constraints.");
@@ -431,7 +431,7 @@
   async function warmCharacterEngine() {
     if (!character.value) return;
     if (!IS_LOCAL_BRIDGE) {
-      $("#persona-engine-status").textContent = "Hosted character fallback selected. Source text is sent only when Generate is pressed.";
+      $("#persona-engine-status").textContent = "Hosted OpenAI mode selected. Source text is sent only when Generate is pressed.";
       return;
     }
     $("#persona-engine-status").textContent = "Checking the local Relay bridge…";
@@ -461,8 +461,8 @@
     if (copiedRatio > 0.55) warnings.push("Draft repeats too many complete source sentences.");
     if (!markers.length) warnings.push("No character-specific perspective marker was detected.");
     if (splitSentences(master).length < 3) warnings.push("Draft has no visible emotional or structural movement.");
-    if (modelValidation.canonSafe === false) warnings.push("Local model marked a canon-safety concern.");
-    if (modelValidation.knowledgeBoundarySafe === false) warnings.push("Local model marked a knowledge-boundary concern.");
+    if (modelValidation.canonSafe === false) warnings.push("Character engine marked a canon-safety concern.");
+    if (modelValidation.knowledgeBoundarySafe === false) warnings.push("Character engine marked a knowledge-boundary concern.");
     if (Object.entries(state.personaDrafts).some(([key, draft]) => key !== character.value && normalizeWhitespace(draft).toLowerCase() === normalizeWhitespace(master).toLowerCase())) warnings.push("Draft duplicates a different character voice.");
     return { voiceMatch: Number(modelValidation.voiceMatch || (markers.length >= 2 ? 0.82 : markers.length ? 0.62 : 0.3)), sourceFidelity: Number(modelValidation.sourceFidelity || 0.85), canonSafe: modelValidation.canonSafe !== false, knowledgeBoundarySafe: modelValidation.knowledgeBoundarySafe !== false, copiedTooClosely: copiedRatio > 0.55, copiedSentenceRatio: copiedRatio, characterMarkers: [...new Set([...(modelValidation.characterMarkers || []), ...markers])], warnings };
   }
@@ -935,7 +935,7 @@
     $("#regenerate").disabled = true;
     try {
       if (state.analysis.voice.key === "character") {
-        $("#form-message").textContent = `Connecting to the ${IS_LOCAL_BRIDGE ? "local bridge" : "hosted fallback"} for ${state.analysis.voice.value}.`;
+        $("#form-message").textContent = `Connecting to ${IS_LOCAL_BRIDGE ? "local Ollama" : "hosted OpenAI"} for ${state.analysis.voice.value}.`;
         if (state.warmPromise) await state.warmPromise;
         else await warmCharacterEngine();
         state.persona = await createPersonaPackage(text, state.analysis, (message) => { $("#form-message").textContent = message; });
