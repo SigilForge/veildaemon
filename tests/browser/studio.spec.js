@@ -4,13 +4,13 @@ const fs = require("fs");
 
 const reviewDir = "/tmp/studio-review";
 const studioRoutes = [
-  { path: "/studio/", name: "portal", title: /Cradlepoint Studio/, h1: /One universe/ },
-  { path: "/studio/about/", name: "about", title: /About/, h1: /Translation before mythology/ },
+  { path: "/studio/", name: "portal", title: /Cradlepoint Studio.*TTRPG|TTRPG.*Cradlepoint Studio|Cradlepoint Studio/, h1: /One universe/ },
+  { path: "/studio/about/", name: "about", title: /About Cradlepoint Studio/, h1: /Translation before mythology/ },
   { path: "/studio/web-design/", name: "web-design", title: /Small Business Web Design/, h1: /Websites Built/ },
   { path: "/studio/projects/", name: "projects", title: /Projects/, h1: /One system/ },
   { path: "/studio/publishing/", name: "publishing", title: /Publishing/, h1: /publishing line already in market/ },
   { path: "/studio/technology/", name: "technology", title: /Technology/, h1: /Shipping infrastructure first/ },
-  { path: "/studio/funding/", name: "funding", title: /Funding and Partnerships/, h1: /funding and partnership case/i },
+  { path: "/studio/funding/", name: "funding", title: /Funding/, h1: /funding and partnership case/i },
   { path: "/studio/traction/", name: "traction", title: /Traction/, h1: /Built before permission/ },
   { path: "/studio/press/", name: "press", title: /Press/, h1: /Approved materials/ },
   { path: "/studio/data-room/", name: "data-room", title: /Data Room/, h1: /Summaries open/ },
@@ -113,6 +113,13 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator('footer.site-footer a[href="/studio/web-design/"]')).toHaveCount(1);
     await expect(page.locator('script[src="/_vercel/insights/script.js"]')).toHaveCount(1);
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      "content",
+      /web design|tabletop|VeilDaemon/i
+    );
+    const portalLd = await page.locator('script[type="application/ld+json"]').first().innerHTML();
+    expect(portalLd).toMatch(/small business web design/i);
+    expect(portalLd).toMatch(/VeilDaemon/);
     await page.screenshot({
       path: path.join(reviewDir, "cradlepoint-studio-desktop.png"),
       fullPage: true,
@@ -198,10 +205,19 @@ test.describe("studio subtree routes", () => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/studio/web-design/");
     await expect(page).toHaveTitle(/Small Business Web Design/);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+      "content",
+      /mobile-first|small business/i
+    );
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /index,\s*follow/i);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
       "https://veildaemon.app/studio/web-design/"
     );
+    await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
+    const webDesignLd = await page.locator('script[type="application/ld+json"]').first().innerHTML();
+    expect(webDesignLd).toMatch(/FAQPage/);
+    expect(webDesignLd).toMatch(/OfferCatalog/);
     await expect(page.locator("h1")).toContainText(/Websites Built/);
     await expect(page.locator("main")).toContainText(/introductory portfolio-building rates/i);
     await expect(page.locator("main")).toContainText(/internally developed Cradlepoint properties/i);
