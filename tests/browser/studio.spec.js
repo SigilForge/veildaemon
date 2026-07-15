@@ -6,6 +6,7 @@ const reviewDir = "/tmp/studio-review";
 const studioRoutes = [
   { path: "/studio/", name: "portal", title: /Cradlepoint Studio/, h1: /One universe/ },
   { path: "/studio/about/", name: "about", title: /About/, h1: /Translation before mythology/ },
+  { path: "/studio/web-design/", name: "web-design", title: /Small Business Web Design/, h1: /Websites Built/ },
   { path: "/studio/projects/", name: "projects", title: /Projects/, h1: /One system/ },
   { path: "/studio/publishing/", name: "publishing", title: /Publishing/, h1: /publishing line already in market/ },
   { path: "/studio/technology/", name: "technology", title: /Technology/, h1: /Shipping infrastructure first/ },
@@ -106,6 +107,8 @@ test.describe("studio subtree routes", () => {
       "href",
       "/studio/technology/"
     );
+    await expect(page.locator('a.service-callout[href="/studio/web-design/"]')).toBeVisible();
+    await expect(page.locator('footer.site-footer a[href="/studio/web-design/"]')).toHaveCount(1);
     await expect(page.locator('script[src="/_vercel/insights/script.js"]')).toHaveCount(1);
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
     await page.screenshot({
@@ -187,6 +190,37 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#structure")).toContainText(/separate from the \$67K studio-growth request/i);
     await expect(page.locator("#structure")).not.toContainText("Digital Sandbox KC");
     await noHorizontalOverflow(page);
+  });
+
+  test("web design service page scope, pricing, and inquiry form", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto("/studio/web-design/");
+    await expect(page).toHaveTitle(/Small Business Web Design/);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://veildaemon.app/studio/web-design/"
+    );
+    await expect(page.locator("h1")).toContainText(/Websites Built/);
+    await expect(page.locator("main")).toContainText(/introductory portfolio-building rates/i);
+    await expect(page.locator("main")).toContainText(/internally developed Cradlepoint properties/i);
+    await expect(page.locator("main")).toContainText(/Guaranteed rankings are not offered/i);
+    await expect(page.locator("main")).not.toContainText(/client testimonial/i);
+    await expect(page.locator("main")).not.toContainText(/500% increase/i);
+    await expect(page.locator(".wd-price-card")).toHaveCount(3);
+    await expect(page.locator(".wd-price-card.featured")).toContainText("Most common");
+    await expect(page.locator(".wd-price-card.featured")).toContainText("Starting at $500");
+    await expect(page.locator("#existing-work a[href='https://veildaemon.app']")).toHaveCount(1);
+    await expect(page.locator("#existing-work a[href='/studio/']")).toHaveCount(1);
+    await expect(page.locator("#project-review-form")).toBeVisible();
+    await expect(page.locator('#project-review-form [name="budget"] option')).toHaveCount(7);
+    await expect(page.getByRole("button", { name: /Request a Project Review/i })).toBeVisible();
+    await expect(page.locator(".wd-faq details")).toHaveCount(10);
+    await noHorizontalOverflow(page);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/studio/web-design/");
+    await noHorizontalOverflow(page);
+    await expect(page.locator("#project-review-form")).toBeVisible();
   });
 
   test("publishing page leads with the existing commercial opportunity", async ({ page }) => {
