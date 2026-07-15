@@ -712,7 +712,7 @@ test.describe("studio subtree routes", () => {
     expect(fs.readFileSync(path.join(process.cwd(), "scripts/prepare-pages-site.sh"), "utf8")).toContain("--exclude 'studio/relay/'");
   });
 
-  test("RelayDaemon standalone Vercel project serves private hosted functions without loopback policy", async () => {
+  test("RelayDaemon standalone Vercel project permits only its local-first loopback bridge", async () => {
     const config = JSON.parse(fs.readFileSync(path.join(process.cwd(), "deploy/relay-vercel/vercel.json"), "utf8"));
     const rootRewrite = config.rewrites.find((entry) => entry.source === "/");
     const scannerFunction = config.functions["api/scan-code.js"];
@@ -724,8 +724,14 @@ test.describe("studio subtree routes", () => {
     expect(rootRewrite?.destination).toBe("/studio/relay/index.html");
     expect(scannerFunction?.includeFiles).toBe("node_modules/zxing-wasm/dist/reader/zxing_reader.wasm");
     expect(characterFunction?.maxDuration).toBe(60);
-    expect(policy).toBeUndefined();
+    expect(policy).toBe("loopback-network=(self)");
     expect(robots).toBe("noindex, nofollow");
+    const relaySource = fs.readFileSync(path.join(process.cwd(), "studio/relay/relay.js"), "utf8");
+    const bridgeSource = fs.readFileSync(path.join(process.cwd(), "scripts/relay-local-bridge.mjs"), "utf8");
+    expect(relaySource).toContain('targetAddressSpace: "loopback"');
+    expect(relaySource).toContain("LOCAL_CHARACTER_ENDPOINT");
+    expect(bridgeSource).toContain("https://veildaemon-relay-knoxmortis-knoxmortis-projects.vercel.app");
+    expect(bridgeSource).toContain('Access-Control-Allow-Private-Network", "true"');
   });
 
   test("hosted character endpoint rejects unauthenticated requests before model access", async () => {

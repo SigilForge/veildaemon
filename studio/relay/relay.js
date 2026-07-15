@@ -5,6 +5,7 @@
   const MAX_SOURCE = 40000;
   const GENERATION_TIMEOUT_MS = 120000;
   const CHARACTER_ENDPOINT = "/api/character";
+  const LOCAL_CHARACTER_ENDPOINT = "http://127.0.0.1:4174/api/character";
   const IS_LOCAL_BRIDGE = ["127.0.0.1", "localhost"].includes(window.location.hostname);
   const state = {
     analysis: null,
@@ -15,6 +16,7 @@
     personaDrafts: {},
     generating: false,
     warmPromise: null,
+    localEngineReady: false,
     codeScan: { status: "not-run", formats: [], codes: [], engine: "none", detail: "No media has been inspected." },
   };
 
@@ -396,25 +398,59 @@
     return splitSentences(text).slice(0, 12).map((sentence) => `- ${sentence}`).join("\n");
   }
 
-  async function characterEngineRequest(messages, stage = "generation") {
+  function localEndpoint(path = "") {
+    return `${IS_LOCAL_BRIDGE ? CHARACTER_ENDPOINT : LOCAL_CHARACTER_ENDPOINT}${path}`;
+  }
+
+  function localFetchOptions(options = {}) {
+    if (IS_LOCAL_BRIDGE) return options;
+    return { ...options, mode: "cors", targetAddressSpace: "loopback" };
+  }
+
+  async function requestCharacterEngine(endpoint, messages, local) {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
-    const startedAt = performance.now();
     try {
-      const response = await fetch(CHARACTER_ENDPOINT, {
+      const options = {
         method: "POST",
         signal: controller.signal,
         headers: { "Content-Type": "application/json", "X-Relay-Request": "character-v1" },
         body: JSON.stringify({ messages }),
-      });
+      };
+      const response = await fetch(endpoint, local ? localFetchOptions(options) : options);
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || `Character engine returned HTTP ${response.status}.`);
+      if (!response.ok) {
+        const error = new Error(payload.error || `Character engine returned HTTP ${response.status}.`);
+        error.engine = local ? "local" : "hosted";
+        throw error;
+      }
       if (!payload.result) throw new Error("Character engine returned no structured result.");
       $("#persona-engine-status").textContent = `${payload.engine === "ollama" ? "Local Ollama" : "Hosted OpenAI"} ready · ${payload.model || "configured model"}.`;
       return payload.result;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+  }
+
+  async function characterEngineRequest(messages, stage = "generation") {
+    const startedAt = performance.now();
+    try {
+      if (state.localEngineReady) {
+        try {
+          return await requestCharacterEngine(localEndpoint(), messages, true);
+        } catch (localError) {
+          const unavailable = localError instanceof TypeError || (localError instanceof DOMException && localError.name === "AbortError") || ["OLLAMA_UNAVAILABLE", "OLLAMA_TIMEOUT", "OLLAMA_FAILED"].includes(localError.message);
+          if (IS_LOCAL_BRIDGE || !unavailable) throw localError;
+          state.localEngineReady = false;
+          console.warn("Relay local engine became unavailable; using hosted OpenAI", { name: localError?.name, message: localError?.message });
+          $("#persona-engine-status").textContent = "Local Ollama became unavailable. Using hosted OpenAI for this draft.";
+        }
+      }
+      return await requestCharacterEngine(CHARACTER_ENDPOINT, messages, false);
     } catch (error) {
-      console.error("Relay character request failed", { stage, endpoint: CHARACTER_ENDPOINT, name: error?.name, message: error?.message, elapsedMs: Math.round(performance.now() - startedAt), error });
+      console.error("Relay character request failed", { stage, name: error?.name, message: error?.message, elapsedMs: Math.round(performance.now() - startedAt), error });
       if (error instanceof DOMException && error.name === "AbortError") throw new Error("Character generation exceeded 120 seconds.");
+      if (error?.message === "OLLAMA_INVALID_OUTPUT") throw new Error("Local Ollama returned an unreadable structured draft. Hosted OpenAI was not used automatically.");
       if (error?.message === "HOSTED_ENGINE_NOT_CONFIGURED") throw new Error("Hosted OpenAI is not configured yet.");
       if (error?.message === "UNAUTHORIZED") throw new Error("Character generation requires an authorized RelayDaemon session.");
       if (error?.message === "HOSTED_ENGINE_INCOMPLETE") throw new Error("The hosted character response ended before its structured draft was complete. Retry once; shorten the source if it repeats.");
@@ -423,26 +459,29 @@
       if (["MALFORMED_REQUEST", "INVALID_REQUEST"].includes(error?.message)) throw new Error("RelayDaemon sent an invalid character request. Reload the page before retrying.");
       if (error?.message === "INPUT_TOO_LARGE") throw new Error("The character request exceeded the hosted input limit. Shorten the source before retrying.");
       throw error;
-    } finally {
-      window.clearTimeout(timeoutId);
     }
   }
 
   async function warmCharacterEngine() {
     if (!character.value) return;
-    if (!IS_LOCAL_BRIDGE) {
-      $("#persona-engine-status").textContent = "Hosted OpenAI mode selected. Source text is sent only when Generate is pressed.";
-      return;
-    }
-    $("#persona-engine-status").textContent = "Checking the local Relay bridge…";
+    state.localEngineReady = false;
+    $("#persona-engine-status").textContent = "Warming local Ollama before generation…";
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
     try {
-      const response = await fetch(CHARACTER_ENDPOINT, { cache: "no-store" });
+      const options = localFetchOptions({ cache: "no-store", signal: controller.signal, headers: { "X-Relay-Request": "character-v1" } });
+      const response = await fetch(localEndpoint("?warm=1"), options);
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
-      $("#persona-engine-status").textContent = `Local bridge ready · ${payload.model || "Ollama model"}.`;
+      state.localEngineReady = true;
+      $("#persona-engine-status").textContent = `Local Ollama warmed and ready · ${payload.model || "configured model"}.`;
     } catch (error) {
-      console.error("Relay local bridge health check failed", { endpoint: CHARACTER_ENDPOINT, name: error?.name, message: error?.message, error });
-      $("#persona-engine-status").textContent = "Local bridge could not reach Ollama. Start it with npm run relay:local, then retry.";
+      console.warn("Relay local bridge warm-up failed", { endpoint: localEndpoint(), name: error?.name, message: error?.message });
+      $("#persona-engine-status").textContent = IS_LOCAL_BRIDGE
+        ? "Local bridge could not warm Ollama. Check Ollama, then retry."
+        : "Local Ollama unavailable. Hosted OpenAI will be used only when Generate is pressed.";
+    } finally {
+      window.clearTimeout(timeoutId);
     }
   }
 

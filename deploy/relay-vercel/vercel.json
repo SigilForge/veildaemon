@@ -30,6 +30,10 @@
         {
           "key": "X-Robots-Tag",
           "value": "noindex, nofollow"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "loopback-network=(self)"
         }
       ]
     }
