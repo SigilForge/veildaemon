@@ -1,0 +1,38 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/scan-code.js": {
+      "maxDuration": 10,
+      "includeFiles": "node_modules/zxing-wasm/dist/reader/zxing_reader.wasm"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/studio/relay/index.html"
+    },
+    {
+      "source": "/studio/relay",
+      "destination": "/studio/relay/index.html"
+    },
+    {
+      "source": "/studio/relay/",
+      "destination": "/studio/relay/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Permissions-Policy",
+          "value": "loopback-network=(self), local-network=(self)"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    }
+  ]
+}

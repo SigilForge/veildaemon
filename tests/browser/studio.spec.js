@@ -719,6 +719,20 @@ test.describe("studio subtree routes", () => {
     expect(policy).toBe("loopback-network=(self), local-network=(self)");
   });
 
+  test("RelayDaemon standalone Vercel project serves the app and loopback policy", async () => {
+    const config = JSON.parse(fs.readFileSync(path.join(process.cwd(), "deploy/relay-vercel/vercel.json"), "utf8"));
+    const rootRewrite = config.rewrites.find((entry) => entry.source === "/");
+    const scannerFunction = config.functions["api/scan-code.js"];
+    const globalHeaders = config.headers.find((entry) => entry.source === "/(.*)")?.headers || [];
+    const policy = globalHeaders.find((header) => header.key.toLowerCase() === "permissions-policy")?.value;
+    const robots = globalHeaders.find((header) => header.key.toLowerCase() === "x-robots-tag")?.value;
+
+    expect(rootRewrite?.destination).toBe("/studio/relay/index.html");
+    expect(scannerFunction?.includeFiles).toBe("node_modules/zxing-wasm/dist/reader/zxing_reader.wasm");
+    expect(policy).toBe("loopback-network=(self), local-network=(self)");
+    expect(robots).toBe("noindex, nofollow");
+  });
+
   test("studio subtree crawler for local href and src", async ({ page }) => {
     const queue = new Set(["/studio/"]);
     const seen = new Set();

@@ -17,6 +17,7 @@
     "webp": "node scripts/ensure-webp.mjs",
     "webp:check": "node scripts/ensure-webp.mjs --check",
     "relay:vendor": "node scripts/vendor-zxing-reader.mjs",
+    "relay:vercel:prepare": "bash scripts/prepare-relay-vercel.sh",
     "relay:publish-news": "node scripts/relay-publish-news.mjs"
   },
   "engines": {
