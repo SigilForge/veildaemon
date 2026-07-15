@@ -6,7 +6,7 @@ const reviewDir = "/tmp/studio-review";
 const studioRoutes = [
   { path: "/studio/", name: "portal", title: /Cradlepoint Studio.*TTRPG|TTRPG.*Cradlepoint Studio|Cradlepoint Studio/, h1: /One universe/ },
   { path: "/studio/about/", name: "about", title: /About Cradlepoint Studio/, h1: /Translation before mythology/ },
-  { path: "/studio/web-design/", name: "web-design", title: /Small Business Web Design/, h1: /Websites Built/ },
+  { path: "/studio/web-design/", name: "web-design", title: /Small Business Web Design/, h1: /Get Online Without|Websites Built/ },
   { path: "/studio/projects/", name: "projects", title: /Projects/, h1: /One system/ },
   { path: "/studio/publishing/", name: "publishing", title: /Publishing/, h1: /publishing line already in market/ },
   { path: "/studio/technology/", name: "technology", title: /Technology/, h1: /Shipping infrastructure first/ },
@@ -218,15 +218,20 @@ test.describe("studio subtree routes", () => {
     const webDesignLd = await page.locator('script[type="application/ld+json"]').first().innerHTML();
     expect(webDesignLd).toMatch(/FAQPage/);
     expect(webDesignLd).toMatch(/OfferCatalog/);
-    await expect(page.locator("h1")).toContainText(/Websites Built/);
-    await expect(page.locator("main")).toContainText(/introductory portfolio-building rates/i);
+    await expect(page.locator("h1")).toContainText(/Get Online Without/);
+    await expect(page.locator("h1")).toContainText(/Headache/i);
+    await expect(page.locator("main")).toContainText(/phone to ring/i);
+    await expect(page.locator("main")).toContainText(/Portfolio-building rates/i);
     await expect(page.locator("main")).toContainText(/internally developed Cradlepoint properties/i);
-    await expect(page.locator("main")).toContainText(/Guaranteed rankings are not offered/i);
+    await expect(page.locator("main")).toContainText(/Guarantees are not offered/i);
+    await expect(page.locator("main")).toContainText(/ten websites that genuinely help/i);
     await expect(page.locator("main")).not.toContainText(/client testimonial/i);
     await expect(page.locator("main")).not.toContainText(/500% increase/i);
     await expect(page.locator(".wd-price-card")).toHaveCount(3);
-    await expect(page.locator(".wd-price-card.featured")).toContainText("Most common");
+    await expect(page.locator(".wd-price-card.featured")).toContainText("Most Popular");
+    await expect(page.locator(".wd-price-card.featured")).toContainText("Business");
     await expect(page.locator(".wd-price-card.featured")).toContainText("Starting at $500");
+    await expect(page.locator("#why-affordable")).toContainText(/work directly with the person designing/i);
     await expect(page.locator("#existing-work a[href='https://veildaemon.app']")).toHaveCount(1);
     await expect(page.locator("#existing-work a[href='/studio/']")).toHaveCount(1);
     await expect(page.locator("#existing-work .wd-work-media")).toHaveCount(2);
