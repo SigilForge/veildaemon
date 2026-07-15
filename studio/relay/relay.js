@@ -391,7 +391,7 @@
     return {
       method: "POST",
       mode: "cors",
-      targetAddressSpace: "loopback",
+      targetAddressSpace: "local",
       signal,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ model, stream: false, format: "json", keep_alive: "30m", ...body }),
@@ -438,7 +438,7 @@
     const healthTimeout = window.setTimeout(() => healthController.abort(), HEALTH_TIMEOUT_MS);
     const healthStartedAt = performance.now();
     try {
-      const health = await fetch(healthUrl, { mode: "cors", targetAddressSpace: "loopback", cache: "no-store", signal: healthController.signal });
+      const health = await fetch(healthUrl, { mode: "cors", targetAddressSpace: "local", cache: "no-store", signal: healthController.signal });
       if (!health.ok) throw new Error(`HTTP ${health.status}`);
     } catch (error) {
       console.error("Relay Ollama request failed", { stage: "health", endpoint: healthUrl, name: error?.name, message: error?.message, elapsedMs: Math.round(performance.now() - healthStartedAt), error });
@@ -454,7 +454,7 @@
       const response = await fetch(warmUrl, {
         method: "POST",
         mode: "cors",
-        targetAddressSpace: "loopback",
+        targetAddressSpace: "local",
         signal: controller.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model, stream: false, keep_alive: "30m" }),
