@@ -2196,9 +2196,9 @@ footer > p {
   border-color: rgba(181,117,104,.35);
 }
 .portfolio-grid > .veilforge-card {
-  grid-column: 1 / -1;
-  width: calc((100% - .9rem) / 2);
-  justify-self: center;
+  grid-column: auto;
+  width: auto;
+  justify-self: stretch;
 }
 .portfolio-card .card-media {
   width: 100%;
