@@ -1,45 +1,196 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Public product / Operator surface -->
   <url>
     <loc>https://veildaemon.app/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
   </url>
+  <url>
+    <loc>https://veildaemon.app/updates/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/privacy/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/terms/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Cradlepoint Studio (business surface) -->
   <url>
     <loc>https://veildaemon.app/studio/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
   </url>
-  <url><loc>https://veildaemon.app/studio/about/</loc></url>
-  <url><loc>https://veildaemon.app/studio/web-design/</loc></url>
-  <url><loc>https://veildaemon.app/studio/projects/</loc></url>
-  <url><loc>https://veildaemon.app/studio/publishing/</loc></url>
-  <url><loc>https://veildaemon.app/studio/technology/</loc></url>
-  <url><loc>https://veildaemon.app/privacy/</loc></url>
-  <url><loc>https://veildaemon.app/terms/</loc></url>
-  <url><loc>https://veildaemon.app/studio/funding/</loc></url>
-  <url><loc>https://veildaemon.app/studio/traction/</loc></url>
-  <url><loc>https://veildaemon.app/studio/press/</loc></url>
-  <url><loc>https://veildaemon.app/studio/data-room/</loc></url>
-  <url><loc>https://veildaemon.app/studio/privacy/</loc></url>
-  <url><loc>https://veildaemon.app/studio/media-usage/</loc></url>
-  <url><loc>https://veildaemon.app/studio/version.json</loc></url>
-  <url><loc>https://veildaemon.app/studio/copyright/</loc></url>
-  <url><loc>https://veildaemon.app/studio/data-room/public/executive-overview.html</loc></url>
-  <url><loc>https://veildaemon.app/studio/data-room/public/traction-summary.html</loc></url>
-  <url><loc>https://veildaemon.app/studio/data-room/public/product-catalog.html</loc></url>
-  <url><loc>https://veildaemon.app/studio/data-room/public/roadmap-public.html</loc></url>
-  <url><loc>https://veildaemon.app/studio/data-room/public/publishing-prospectus-summary.html</loc></url>
-  <url><loc>https://veildaemon.app/studio/data-room/public/mobile-ar-prospectus-summary.html</loc></url>
+  <url>
+    <loc>https://veildaemon.app/studio/web-design/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/projects/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/publishing/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/technology/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/funding/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/about/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/traction/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/press/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/data-room/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/data-room/public/executive-overview.html</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.55</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/data-room/public/traction-summary.html</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.55</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/data-room/public/product-catalog.html</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.55</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/data-room/public/roadmap-public.html</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.55</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/data-room/public/publishing-prospectus-summary.html</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.55</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/data-room/public/mobile-ar-prospectus-summary.html</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.55</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/privacy/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/copyright/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/media-usage/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Live tabletop software surfaces -->
   <url>
     <loc>https://veildaemon.app/handler/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://veildaemon.app/handler/live/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.45</priority>
   </url>
   <url>
+    <loc>https://veildaemon.app/operator/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/debrief/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/recovered-operator-reports/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.45</priority>
+  </url>
+
+  <!-- Related public hosts -->
+  <url>
     <loc>https://play.veildaemon.app/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
   </url>
   <url>
     <loc>https://support.veildaemon.app/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
   <url>
     <loc>https://relic.veildaemon.app/</loc>
+    <lastmod>2026-07-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
 </urlset>
