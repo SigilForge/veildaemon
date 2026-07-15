@@ -3,6 +3,8 @@
 
   const STORAGE_KEY = "relaydaemon.draft.v1";
   const MAX_SOURCE = 40000;
+  const HEALTH_TIMEOUT_MS = 5000;
+  const GENERATION_TIMEOUT_MS = 120000;
   const state = {
     analysis: null,
     variants: [],
@@ -10,6 +12,8 @@
     objectUrl: null,
     persona: null,
     personaDrafts: {},
+    generating: false,
+    warmPromise: null,
     codeScan: { status: "not-run", formats: [], codes: [], engine: "none", detail: "No media has been inspected." },
   };
 
@@ -383,20 +387,76 @@
     return JSON.parse(clean);
   }
 
+  function localModelOptions(model, body, signal) {
+    return {
+      method: "POST",
+      mode: "cors",
+      targetAddressSpace: "loopback",
+      signal,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model, stream: false, format: "json", keep_alive: "30m", ...body }),
+    };
+  }
+
   async function localModelRequest(messages) {
     const endpoint = cleanUrl(localModelUrl.value);
     const model = localModel.value.trim();
     if (!endpoint || !model) throw new Error("Set a local Ollama endpoint and installed model before using character voice.");
-    const response = await fetch(endpoint, {
-      method: "POST",
-      mode: "cors",
-      targetAddressSpace: "loopback",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model, stream: false, format: "json", messages, options: { temperature: 0.72 } }),
-    });
-    if (!response.ok) throw new Error(`Local model did not respond (${response.status}).`);
-    const payload = await response.json();
-    return parseModelJson(payload.message?.content);
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
+    try {
+      const response = await fetch(endpoint, localModelOptions(model, { messages, options: { temperature: 0.72 } }, controller.signal));
+      if (!response.ok) throw new Error(`Ollama returned HTTP ${response.status}.`);
+      const payload = await response.json();
+      return parseModelJson(payload.message?.content);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") throw new Error("Ollama was reached, but model loading or generation exceeded 120 seconds.");
+      if (error instanceof TypeError && /fetch/i.test(error.message)) throw new Error("The browser could not connect to local Ollama. Check Chrome Local network access permission.");
+      throw error;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+  }
+
+  async function warmLocalModel() {
+    if (!character.value) return;
+    const endpoint = cleanUrl(localModelUrl.value);
+    const model = localModel.value.trim();
+    if (!endpoint || !model) return;
+    $("#persona-engine-status").textContent = `Warming ${model}…`;
+    const healthUrl = new URL(endpoint);
+    healthUrl.pathname = healthUrl.pathname.replace(/\/chat\/?$/, "/tags");
+    const healthController = new AbortController();
+    const healthTimeout = window.setTimeout(() => healthController.abort(), HEALTH_TIMEOUT_MS);
+    try {
+      const health = await fetch(healthUrl, { mode: "cors", targetAddressSpace: "loopback", signal: healthController.signal });
+      if (!health.ok) throw new Error(`HTTP ${health.status}`);
+    } catch (_error) {
+      $("#persona-engine-status").textContent = "Local model health check did not return within five seconds; attempting warm-up anyway…";
+    } finally {
+      window.clearTimeout(healthTimeout);
+    }
+    const warmUrl = new URL(endpoint);
+    warmUrl.pathname = warmUrl.pathname.replace(/\/chat\/?$/, "/generate");
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
+    try {
+      const response = await fetch(warmUrl, {
+        method: "POST",
+        mode: "cors",
+        targetAddressSpace: "loopback",
+        signal: controller.signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model, stream: false, keep_alive: "30m" }),
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      $("#persona-engine-status").textContent = `Local character engine ready · ${model} stays warm for 30 minutes.`;
+    } catch (error) {
+      const timedOut = error instanceof DOMException && error.name === "AbortError";
+      $("#persona-engine-status").textContent = timedOut ? "Model warm-up exceeded 120 seconds; generation remains available to retry." : "Warm-up could not complete; generation will test the local connection again.";
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
   }
 
   function copiedSentenceRatio(source, draft) {
@@ -420,7 +480,7 @@
     return { voiceMatch: Number(modelValidation.voiceMatch || (markers.length >= 2 ? 0.82 : markers.length ? 0.62 : 0.3)), sourceFidelity: Number(modelValidation.sourceFidelity || 0.85), canonSafe: modelValidation.canonSafe !== false, knowledgeBoundarySafe: modelValidation.knowledgeBoundarySafe !== false, copiedTooClosely: copiedRatio > 0.55, copiedSentenceRatio: copiedRatio, characterMarkers: [...new Set([...(modelValidation.characterMarkers || []), ...markers])], warnings };
   }
 
-  async function createPersonaPackage(text, analysis) {
+  async function createPersonaPackage(text, analysis, onStage = () => {}) {
     const profile = analysis.voice.profile;
     const master = await localModelRequest([
       { role: "system", content: "You are a local editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes." },
@@ -431,6 +491,7 @@
     const validation = validatePersonaMaster(text, masterDraft, profile, master.validation || {});
     if (validation.warnings.length) throw new Error(`Character draft rejected: ${validation.warnings.join(" ")}`);
     state.personaDrafts[character.value] = masterDraft;
+    onStage("Character master accepted. Adapting complete platform drafts on the local model…");
     const destinations = platformConfig.filter((item) => item.id !== "site-news").map((item) => ({ id: item.id, name: item.name, limit: item.limit, mediaOnly: Boolean(item.mediaOnly) }));
     const adaptations = await localModelRequest([
       { role: "system", content: "You adapt one approved character-authored master draft to platforms. Return JSON only. Never truncate mid-sentence and never add facts, calls to action, links, hashtags, marketing language, or author labels." },
@@ -732,6 +793,8 @@
 
   function updatePersonaEngine() {
     $("#persona-engine").hidden = !character.value;
+    if (!character.value) return;
+    state.warmPromise = warmLocalModel();
   }
 
   function updateSourceCount() {
@@ -870,6 +933,10 @@
   }
 
   async function generate() {
+    if (state.generating) {
+      $("#form-message").textContent = "The local character engine is still working. The first cold start can take a few minutes.";
+      return;
+    }
     const text = normalizeWhitespace(sourceText.value);
     if (!text) {
       $("#form-message").textContent = "Relay requires an original post or draft.";
@@ -883,24 +950,32 @@
     saveDraft();
     state.analysis = analyze(text);
     state.persona = null;
-    if (state.analysis.voice.key === "character") {
-      $("#form-message").textContent = `Authoring a ${state.analysis.voice.value} master draft on your local model…`;
-      try {
-        state.persona = await createPersonaPackage(text, state.analysis);
-      } catch (error) {
+    state.generating = true;
+    form.setAttribute("aria-busy", "true");
+    $("#regenerate").disabled = true;
+    try {
+      if (state.analysis.voice.key === "character") {
+        $("#form-message").textContent = `Connecting to the local model for ${state.analysis.voice.value}. A cold start can take a few minutes; Relay is waiting.`;
+        if (state.warmPromise) await state.warmPromise;
+        else await warmLocalModel();
+        state.persona = await createPersonaPackage(text, state.analysis, (message) => { $("#form-message").textContent = message; });
+      }
+      state.variants = makeVariants(text, state.analysis, state.persona);
+      renderAnalysis();
+      renderVariants();
+      $("#form-message").textContent = `${state.variants.length} destination drafts generated. Review and edit before export.`;
+      $("#analysis-panel").scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+    } catch (error) {
         const isConnectionError = error instanceof TypeError && /fetch/i.test(error.message);
         const origin = window.location.origin;
         $("#form-message").textContent = isConnectionError
           ? `Relay could not reach the local Ollama endpoint. Confirm Ollama is running on the Windows host and permits ${origin} through OLLAMA_ORIGINS. Character drafts were not generated.`
           : `${error.message} Character drafts were not generated.`;
-        return;
-      }
+    } finally {
+      state.generating = false;
+      form.removeAttribute("aria-busy");
+      $("#regenerate").disabled = false;
     }
-    state.variants = makeVariants(text, state.analysis, state.persona);
-    renderAnalysis();
-    renderVariants();
-    $("#form-message").textContent = `${state.variants.length} destination drafts generated. Review and edit before export.`;
-    $("#analysis-panel").scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
   }
 
   function packageData() {
@@ -1105,9 +1180,16 @@
   $("#variant-grid").addEventListener("click", handleVariantClick);
   $("#regenerate").addEventListener("click", generate);
   sourceText.addEventListener("input", updateSourceCount);
+  sourceText.addEventListener("focus", () => {
+    if (character.value && !state.warmPromise) state.warmPromise = warmLocalModel();
+  });
   mediaFile.addEventListener("change", handleMediaFile);
   imageUrl.addEventListener("change", updateImageUrlPreview);
   character.addEventListener("change", updatePersonaEngine);
+  [localModelUrl, localModel].forEach((input) => input.addEventListener("change", () => {
+    state.warmPromise = null;
+    updatePersonaEngine();
+  }));
   $("#restore-draft").addEventListener("click", restoreDraft);
   $("#clear-draft").addEventListener("click", clearDraft);
   $("#select-all").addEventListener("click", () => {
