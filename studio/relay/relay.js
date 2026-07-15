@@ -417,6 +417,11 @@
       if (error instanceof DOMException && error.name === "AbortError") throw new Error("Character generation exceeded 120 seconds.");
       if (error?.message === "HOSTED_ENGINE_NOT_CONFIGURED") throw new Error("Hosted character fallback is not configured yet.");
       if (error?.message === "UNAUTHORIZED") throw new Error("Character generation requires an authorized RelayDaemon session.");
+      if (error?.message === "HOSTED_ENGINE_INCOMPLETE") throw new Error("The hosted character response ended before its structured draft was complete. Retry once; shorten the source if it repeats.");
+      if (error?.message === "HOSTED_ENGINE_REFUSED") throw new Error("The hosted character engine declined this transformation. Review the source and character constraints.");
+      if (error?.message === "INVALID_MODEL_OUTPUT") throw new Error("The character engine returned an unreadable structured draft. No drafts were generated.");
+      if (["MALFORMED_REQUEST", "INVALID_REQUEST"].includes(error?.message)) throw new Error("RelayDaemon sent an invalid character request. Reload the page before retrying.");
+      if (error?.message === "INPUT_TOO_LARGE") throw new Error("The character request exceeded the hosted input limit. Shorten the source before retrying.");
       throw error;
     } finally {
       window.clearTimeout(timeoutId);
