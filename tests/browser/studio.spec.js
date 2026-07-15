@@ -709,7 +709,7 @@ test.describe("studio subtree routes", () => {
     expect(requestNumber).toBe(4);
     const requestOptions = await page.evaluate(() => window.__relayOllamaOptions);
     expect(requestOptions).toHaveLength(4);
-    expect(requestOptions.every((options) => options.mode === "cors" && options.targetAddressSpace === "local")).toBe(true);
+    expect(requestOptions.every((options) => options.mode === "cors" && options.targetAddressSpace === "loopback")).toBe(true);
   });
 
   test("studio subtree crawler for local href and src", async ({ page }) => {
