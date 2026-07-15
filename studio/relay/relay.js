@@ -8,7 +8,7 @@
     variants: [],
     media: null,
     objectUrl: null,
-    codeScan: { status: "not-run", formats: [], detail: "No media has been inspected." },
+    codeScan: { status: "not-run", formats: [], codes: [], engine: "none", detail: "No media has been inspected." },
   };
 
   const $ = (selector, root = document) => root.querySelector(selector);
@@ -26,6 +26,7 @@
   const contentWarning = $("#content-warning");
   const campaign = $("#campaign");
   const codeVerified = $("#code-verified");
+  const siteApproval = $("#site-approval");
 
   const brandTags = {
     personal: "",
@@ -255,16 +256,16 @@
     const combined = `${text || ""} ${filename}`;
     const formats = state.codeScan.formats || [];
     return {
-      qr: formats.includes("qr_code") || /\bqr(?: code)?|scan code|scan this\b/i.test(combined),
-      barcode: formats.some((format) => format !== "qr_code") || /\bbar[ -]?code\b/i.test(combined),
+      qr: formats.some((format) => /qr/i.test(format)) || /\bqr(?: code)?|scan code|scan this\b/i.test(combined),
+      barcode: formats.some((format) => !/qr/i.test(format)) || /\bbar[ -]?code\b/i.test(combined),
     };
   }
 
   function codeRemediation(analysis) {
-    const destination = cleanUrl(destinationUrl.value) || cleanUrl(sourceUrl.value);
+    const qrEligible = analysis.codeKinds.qr && state.codeScan.codes.length > 0 && state.codeScan.codes.every((code) => code.isQr && /^https?:\/\//i.test(code.value));
     if (analysis.codeKinds.barcode) return "Barcode requires manual encoded-data review; no automatic replacement.";
-    if (analysis.codeKinds.qr && destination) return "QR replacement eligible through the local direct-URL SVG generator; scan-test the final asset.";
-    if (analysis.codeKinds.qr) return "Confirm a direct destination URL before generating a replacement QR; scan-test the final asset.";
+    if (qrEligible) return "Decoded URL QR is eligible for the local direct-URL SVG generator; scan-test the final asset.";
+    if (analysis.codeKinds.qr) return "QR detected, but replacement remains blocked until a scanner decodes a direct http(s) URL.";
     if (["unavailable", "inconclusive"].includes(state.codeScan.status)) return "Automatic inspection inconclusive; manual code review required.";
     if (state.codeScan.status === "clear") return "No supported machine-readable code detected; visual review still applies.";
     return "No media code inspection recorded.";
@@ -617,7 +618,7 @@
     const url = cleanUrl(imageUrl.value);
     if (!url) {
       $("#media-preview").hidden = true;
-      state.codeScan = { status: "not-run", formats: [], detail: "No media has been inspected." };
+      state.codeScan = { status: "not-run", formats: [], codes: [], engine: "none", detail: "No media has been inspected." };
       renderCodeScan();
       return;
     }
@@ -631,41 +632,75 @@
       const blob = await response.blob();
       await inspectMediaForCodes(blob);
     } catch (_error) {
-      state.codeScan = { status: "inconclusive", formats: [], detail: "The remote host did not permit local inspection. Inspect the final asset manually." };
+      const serverResult = await scanRemoteWithServer(url);
+      if (serverResult && serverResult.codes && serverResult.codes.length) {
+        applyLocalScan(serverResult.codes, "allowlisted server verification");
+        return;
+      }
+      state.codeScan = { status: "inconclusive", formats: [], codes: [], engine: "remote-cors", detail: "The remote host did not permit local inspection or allowlisted server verification. Upload the image for local scanning." };
       renderCodeScan();
     }
   }
 
+  async function scanRemoteWithServer(url) {
+    try {
+      const response = await fetch("/api/scan-code", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ imageUrl: url }) });
+      if (!response.ok) return null;
+      const result = await response.json();
+      return { ...result, codes: (result.codes || []).map((code) => ({ format: code.format || code.symbology || "unknown", value: code.value || "", isQr: Boolean(code.isQr) })) };
+    } catch (_error) { return null; }
+  }
+
   async function inspectMediaForCodes(source) {
     if (String(source.type || "").startsWith("video/")) {
-      state.codeScan = { status: "inconclusive", formats: [], detail: "Video frames are not scanned in this MVP. Inspect the final cut manually." };
+      state.codeScan = { status: "inconclusive", formats: [], codes: [], engine: "video", detail: "Video frames are not scanned in this MVP. Inspect the final cut manually." };
       renderCodeScan();
       return;
     }
-    state.codeScan = { status: "scanning", formats: [], detail: "Checking QR codes and common one- and two-dimensional barcode formats on this device." };
+    state.codeScan = { status: "scanning", formats: [], codes: [], engine: "local", detail: "Checking QR codes and common one- and two-dimensional barcode formats on this device." };
     renderCodeScan();
-    if (!("BarcodeDetector" in window) || typeof createImageBitmap !== "function") {
-      state.codeScan = { status: "unavailable", formats: [], detail: "This browser cannot inspect machine-readable codes automatically. Manual confirmation is required." };
-      renderCodeScan();
+    const nativeCodes = await scanWithNativeDetector(source);
+    if (nativeCodes.length) {
+      applyLocalScan(nativeCodes, "native BarcodeDetector");
       return;
     }
     try {
-      const requested = ["qr_code", "aztec", "code_128", "code_39", "code_93", "codabar", "data_matrix", "ean_13", "ean_8", "itf", "pdf417", "upc_a", "upc_e"];
-      const supported = typeof BarcodeDetector.getSupportedFormats === "function"
-        ? await BarcodeDetector.getSupportedFormats()
-        : requested;
-      const formats = requested.filter((format) => supported.includes(format));
-      if (!formats.length) throw new Error("No supported code formats");
-      const bitmap = await createImageBitmap(source);
-      const detections = await new BarcodeDetector({ formats }).detect(bitmap);
-      bitmap.close();
-      const foundFormats = [...new Set(detections.map((item) => item.format || "unknown"))];
-      state.codeScan = detections.length
-        ? { status: "detected", formats: foundFormats, detail: `${detections.length} machine-readable code${detections.length === 1 ? "" : "s"} detected. Confirm the final rendered asset scans before export.` }
-        : { status: "clear", formats: [], detail: `No code was detected across ${formats.length} supported formats. Continue visual review; detection is not a guarantee.` };
+      const zxingCodes = await scanWithLocalZXing(source);
+      if (zxingCodes.length) {
+        applyLocalScan(zxingCodes, "local ZXing WASM");
+        return;
+      }
+      state.codeScan = { status: "inconclusive", formats: [], codes: [], engine: "native+zxing", detail: "Neither local scanner decoded a code. Treat this as inconclusive, not as proof that no code exists." };
     } catch (_error) {
-      state.codeScan = { status: "inconclusive", formats: [], detail: "The attached image could not be conclusively inspected. Manual confirmation is required." };
+      state.codeScan = { status: "inconclusive", formats: [], codes: [], engine: "native+zxing", detail: "The attached image could not be conclusively inspected. Manual confirmation is required." };
     }
+    renderCodeScan();
+  }
+
+  async function scanWithNativeDetector(source) {
+    if (!("BarcodeDetector" in window) || typeof createImageBitmap !== "function") return [];
+    try {
+      const requested = ["qr_code", "aztec", "code_128", "code_39", "code_93", "codabar", "data_matrix", "ean_13", "ean_8", "itf", "pdf417", "upc_a", "upc_e"];
+      const supported = typeof BarcodeDetector.getSupportedFormats === "function" ? await BarcodeDetector.getSupportedFormats() : requested;
+      const formats = requested.filter((format) => supported.includes(format));
+      if (!formats.length) return [];
+      const bitmap = await createImageBitmap(source);
+      const results = await new BarcodeDetector({ formats }).detect(bitmap);
+      bitmap.close();
+      return results.map((item) => ({ format: item.format || "unknown", value: item.rawValue || "", isQr: item.format === "qr_code" }));
+    } catch (_error) { return []; }
+  }
+
+  async function scanWithLocalZXing(source) {
+    if (!window.ZXingWASM) throw new Error("ZXing reader unavailable");
+    window.ZXingWASM.prepareZXingModule({ overrides: { locateFile: (path, prefix) => path.endsWith(".wasm") ? "/studio/relay/vendor/zxing_reader.wasm" : prefix + path } });
+    const results = await window.ZXingWASM.readBarcodes(source, { tryHarder: true, maxNumberOfSymbols: 8 });
+    return results.map((item) => ({ format: item.format || item.symbology || "unknown", value: item.text || "", isQr: item.symbology === "QRCode" || /qr/i.test(item.format || "") }));
+  }
+
+  function applyLocalScan(codes, engine) {
+    const formats = [...new Set(codes.map((code) => code.format))];
+    state.codeScan = { status: "detected", formats, codes, engine, detail: `${codes.length} machine-readable code${codes.length === 1 ? "" : "s"} decoded by ${engine}. Confirm the final rendered asset scans before export.` };
     renderCodeScan();
   }
 
@@ -697,6 +732,10 @@
 
   function packageData() {
     const selected = state.variants.filter((variant) => variant.selected && !variant.disabled);
+    const siteVariant = state.variants.find((variant) => variant.id === "site-news");
+    const siteTitle = titleFrom(sourceText.value);
+    const siteSlug = siteTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "studio-entry";
+    const contentId = `relay_${new Date().toISOString().slice(0, 10).replace(/-/g, "_")}_${siteSlug.slice(0, 32).replace(/-/g, "_")}`;
     return {
       relayVersion: "1.0.0-mvp",
       generatedAt: new Date().toISOString(),
@@ -724,11 +763,28 @@
       machineReadableRemediation: {
         qrDetectedOrInferred: state.analysis.codeKinds.qr,
         barcodeDetectedOrInferred: state.analysis.codeKinds.barcode,
-        qrReplacementEligible: state.analysis.codeKinds.qr && Boolean(cleanUrl(destinationUrl.value) || cleanUrl(sourceUrl.value)),
+        qrReplacementEligible: state.analysis.codeKinds.qr && state.codeScan.codes.length > 0 && state.codeScan.codes.every((code) => code.isQr && /^https?:\/\//i.test(code.value)),
         qrGenerator: state.analysis.codeKinds.qr ? "scripts/generate-veilcorp-qr.mjs" : null,
         qrDestination: state.analysis.codeKinds.qr ? (cleanUrl(destinationUrl.value) || cleanUrl(sourceUrl.value) || null) : null,
         barcodeRequiresManualReview: state.analysis.codeKinds.barcode,
         guidance: codeRemediation(state.analysis),
+      },
+      siteNewsDraft: {
+        contentId,
+        sourceType: "relay",
+        title: siteTitle,
+        slug: siteSlug,
+        canonicalUrl: `/studio/news/${siteSlug}/`,
+        summary: hookFrom(sourceText.value),
+        body: stripSocialNoise(sourceText.value),
+        realityLayer: state.analysis.layer.key,
+        voice: state.analysis.voice.key,
+        canonStatus: state.analysis.layer.key === "studio" || state.analysis.layer.key === "personal" ? "non-canon" : "review-required",
+        argSensitivity: "public",
+        approvalStatus: siteApproval.value,
+        publishedAt: null,
+        destinations: { site: { status: "draft", url: `/studio/news/${siteSlug}/` } },
+        sourceVariant: siteVariant ? siteVariant.copy : "",
       },
       media: {
         altText: state.analysis.alt,

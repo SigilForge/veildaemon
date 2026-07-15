@@ -662,7 +662,7 @@ test.describe("studio subtree routes", () => {
     const remediationDownload = await remediationDownloadPromise;
     const remediationPath = await remediationDownload.path();
     const remediation = JSON.parse(fs.readFileSync(remediationPath, "utf8"));
-    expect(remediation.machineReadableRemediation.qrReplacementEligible).toBe(true);
+    expect(remediation.machineReadableRemediation.qrReplacementEligible).toBe(false);
     expect(remediation.machineReadableRemediation.qrGenerator).toBe("scripts/generate-veilcorp-qr.mjs");
     expect(remediation.machineReadableRemediation.barcodeRequiresManualReview).toBe(true);
     await noHorizontalOverflow(page);
