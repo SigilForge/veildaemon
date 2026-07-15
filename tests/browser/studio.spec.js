@@ -617,12 +617,9 @@ test.describe("studio subtree routes", () => {
     );
     await page.locator("#destination-url").fill("https://veildaemon.app/studio/relay/");
     await page.locator("#objective").selectOption("announcement");
-    await page.locator("#character").selectOption("alex-shade");
     await page.getByRole("button", { name: "Generate social package" }).click();
 
     await expect(page.locator("#analysis-panel")).toBeVisible();
-    await expect(page.locator("#detected-voice")).toHaveText("Alex Shade");
-    await expect(page.locator("#approval-flags")).toContainText("Character attribution selected: Alex Shade");
     await expect(page.locator("#review-panel")).toBeVisible();
     await expect(page.locator(".variant-card")).toHaveCount(15);
     await expect(page.locator('[data-platform="tiktok"] .destination-check')).toBeDisabled();
@@ -665,13 +662,33 @@ test.describe("studio subtree routes", () => {
     const remediationDownload = await remediationDownloadPromise;
     const remediationPath = await remediationDownload.path();
     const remediation = JSON.parse(fs.readFileSync(remediationPath, "utf8"));
-    expect(remediation.interpretation.character.name).toBe("Alex Shade");
-    expect(remediation.siteNewsDraft.voice).toBe("studio");
-    expect(remediation.siteNewsDraft.socialVoice).toBe("Alex Shade");
     expect(remediation.machineReadableRemediation.qrReplacementEligible).toBe(false);
     expect(remediation.machineReadableRemediation.qrGenerator).toBe("scripts/generate-veilcorp-qr.mjs");
     expect(remediation.machineReadableRemediation.barcodeRequiresManualReview).toBe(true);
     await noHorizontalOverflow(page);
+  });
+
+  test("RelayDaemon requires and validates a local character-performance pass before adapting platforms", async ({ page }) => {
+    const platformIds = ["x", "facebook-personal", "facebook-cradlepoint", "instagram", "threads", "bluesky", "mastodon", "linkedin", "discord", "patreon", "reddit", "itch", "tiktok", "youtube"];
+    const variants = Object.fromEntries(platformIds.map((id) => [id, id === "tiktok" || id === "youtube" ? "" : `A distinct Cathy adaptation for ${id}. Hunger is honest. Sorry. The joke did not work.`]));
+    let requestNumber = 0;
+    await page.route("http://127.0.0.1:11434/api/chat", async (route) => {
+      requestNumber += 1;
+      const content = requestNumber === 1
+        ? JSON.stringify({ masterDraft: "Everybody wants the clean answer. Cute. Hunger is honest; it does not hide behind a tidy form. Sorry. That was supposed to be funny. The room can help people and still leave teeth marks.", validation: { voiceMatch: 0.9, sourceFidelity: 0.92, canonSafe: true, knowledgeBoundarySafe: true, characterMarkers: ["personal hunger framing", "humor-to-sincerity pivot"], warnings: [] } })
+        : JSON.stringify({ variants, validation: { warnings: [] } });
+      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ message: { content } }) });
+    });
+    await page.goto("/studio/relay/");
+    await page.locator("#source-text").fill("The room helps people and stays morally compromised because every need overlaps.");
+    await page.locator("#character").selectOption("cathy-holloway");
+    await expect(page.locator("#persona-engine")).toBeVisible();
+    await page.getByRole("button", { name: "Generate social package" }).click();
+    await expect(page.locator("#persona-validation")).toBeVisible();
+    await expect(page.locator("#persona-validation-score")).toHaveText("Strong");
+    await expect(page.locator('[data-platform="instagram"] .variant-copy')).toContainText("distinct Cathy adaptation");
+    await expect(page.locator('[data-platform="instagram"] .variant-copy')).not.toContainText("The room helps people and stays morally compromised because every need overlaps.");
+    expect(requestNumber).toBe(2);
   });
 
   test("studio subtree crawler for local href and src", async ({ page }) => {
