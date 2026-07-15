@@ -106,15 +106,6 @@
           "value": "noindex"
         }
       ]
-    },
-    {
-      "source": "/studio/relay/(.*)",
-      "headers": [
-        {
-          "key": "Permissions-Policy",
-          "value": "loopback-network=(self), local-network=(self)"
-        }
-      ]
     }
   ]
 }

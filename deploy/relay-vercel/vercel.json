@@ -4,6 +4,9 @@
     "api/scan-code.js": {
       "maxDuration": 10,
       "includeFiles": "node_modules/zxing-wasm/dist/reader/zxing_reader.wasm"
+    },
+    "api/character.js": {
+      "maxDuration": 60
     }
   },
   "rewrites": [
@@ -24,10 +27,6 @@
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "Permissions-Policy",
-          "value": "loopback-network=(self), local-network=(self)"
-        },
         {
           "key": "X-Robots-Tag",
           "value": "noindex, nofollow"

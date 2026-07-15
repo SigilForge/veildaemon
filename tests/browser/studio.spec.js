@@ -1,6 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const path = require("path");
 const fs = require("fs");
+const { Readable } = require("stream");
 
 const reviewDir = "/tmp/studio-review";
 const studioRoutes = [
@@ -78,16 +79,17 @@ test.describe("studio subtree routes", () => {
       await expect(page.locator('a[href="/studio/media-usage/"], a[href="https://veildaemon.app/studio/media-usage/"]').first()).toBeVisible();
       // Unified chrome: primary Contact CTA + explore footer links
       await expect(page.locator("header.site-header a.nav-cta")).toHaveCount(1);
-      await expect(page.locator('header.site-header a[href="/studio/projects/"]')).toHaveCount(1);
-      await expect(page.locator('header.site-header a[href="/studio/web-design/"]')).toHaveCount(1);
-      await expect(page.locator('header.site-header a[href="/studio/data-room/"]')).toHaveCount(1);
+      await expect(page.locator('header.site-header a[href="/studio/projects/"], header.site-header a[href="https://veildaemon.app/studio/projects/"]')).toHaveCount(1);
+      await expect(page.locator('header.site-header a[href="/studio/web-design/"], header.site-header a[href="https://veildaemon.app/studio/web-design/"]')).toHaveCount(1);
+      await expect(page.locator('header.site-header a[href="/studio/data-room/"], header.site-header a[href="https://veildaemon.app/studio/data-room/"]')).toHaveCount(1);
       await expect(page.locator("footer.site-footer")).toHaveCount(1);
-      await expect(page.locator('footer.site-footer a[href="/studio/projects/"]')).toHaveCount(1);
-      await expect(page.locator('footer.site-footer a[href="/studio/web-design/"]')).toHaveCount(1);
-      await expect(page.locator('footer.site-footer a[href="/studio/about/"]')).toHaveCount(1);
-      await expect(page.locator('footer.site-footer a[href="/studio/press/"]')).toHaveCount(1);
-      await expect(page.locator('footer.site-footer a[href="/studio/traction/"]')).toHaveCount(1);
-      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(route.path.replace(/\/$/, "") + "/?$"));
+      await expect(page.locator('footer.site-footer a[href="/studio/projects/"], footer.site-footer a[href="https://veildaemon.app/studio/projects/"]')).toHaveCount(1);
+      await expect(page.locator('footer.site-footer a[href="/studio/web-design/"], footer.site-footer a[href="https://veildaemon.app/studio/web-design/"]')).toHaveCount(1);
+      await expect(page.locator('footer.site-footer a[href="/studio/about/"], footer.site-footer a[href="https://veildaemon.app/studio/about/"]')).toHaveCount(1);
+      await expect(page.locator('footer.site-footer a[href="/studio/press/"], footer.site-footer a[href="https://veildaemon.app/studio/press/"]')).toHaveCount(1);
+      await expect(page.locator('footer.site-footer a[href="/studio/traction/"], footer.site-footer a[href="https://veildaemon.app/studio/traction/"]')).toHaveCount(1);
+      if (route.name === "relay") await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+      else await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(route.path.replace(/\/$/, "") + "/?$"));
       await noHorizontalOverflow(page);
       await assertLocalAssets(page, route.path);
       await page.screenshot({
@@ -155,10 +157,10 @@ test.describe("studio subtree routes", () => {
       expect(Math.max(...row.map((item) => item.height)) - Math.min(...row.map((item) => item.height))).toBeLessThanOrEqual(1);
     }
     expect(Math.max(...projectTileMetrics.map((item) => item.mediaHeight)) - Math.min(...projectTileMetrics.map((item) => item.mediaHeight))).toBeLessThanOrEqual(1);
-    const relayCard = page.locator('a.portfolio-card[href="https://relay.veildaemon.app/"]');
+    const relayCard = page.locator("article.portfolio-card").filter({ hasText: "RelayDaemon" });
     await expect(relayCard).toContainText("local-first MVP");
-    await expect(relayCard).toHaveAttribute("target", "_blank");
-    await expect(relayCard).toHaveAttribute("rel", "noopener noreferrer");
+    await expect(relayCard).toContainText("Private founder operations tool");
+    await expect(page.locator('a[href*="relay.veildaemon.app"]')).toHaveCount(0);
 
     await page.goto("/studio/funding/");
     await expect(page.locator("#structure")).toContainText(/Funding instruments/i);
@@ -671,34 +673,25 @@ test.describe("studio subtree routes", () => {
     await noHorizontalOverflow(page);
   });
 
-  test("RelayDaemon requires and validates a local character-performance pass before adapting platforms", async ({ page }) => {
-    const platformIds = ["x", "facebook-personal", "facebook-cradlepoint", "instagram", "threads", "bluesky", "mastodon", "linkedin", "discord", "patreon", "reddit", "itch", "tiktok", "youtube"];
-    const variants = Object.fromEntries(platformIds.map((id) => [id, id === "tiktok" || id === "youtube" ? "" : `A distinct Cathy adaptation for ${id}. Hunger is honest. Sorry. The joke did not work.`]));
+  test("RelayDaemon requests one character master and adapts platforms deterministically", async ({ page }) => {
     let requestNumber = 0;
     await page.addInitScript(() => {
       const originalFetch = window.fetch.bind(window);
-      window.__relayOllamaOptions = [];
+      window.__relayLoopbackRequests = [];
       window.fetch = (input, init) => {
-        if (String(input).includes("127.0.0.1:11434")) window.__relayOllamaOptions.push(init);
+        if (String(input).includes("127.0.0.1:11434")) window.__relayLoopbackRequests.push({ input: String(input), init });
         return originalFetch(input, init);
       };
     });
-    await page.route("http://127.0.0.1:11434/api/generate", async (route) => {
-      requestNumber += 1;
-      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ response: "", done: true }) });
-    });
-    await page.route("http://127.0.0.1:11434/api/tags", async (route) => {
-      requestNumber += 1;
-      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ models: [{ name: "llama3.1:8b" }] }) });
-    });
-    await page.route("http://127.0.0.1:11434/api/chat", async (route) => {
+    await page.route("**/api/character", async (route) => {
+      if (route.request().method() === "GET") {
+        await route.fulfill({ contentType: "application/json", body: JSON.stringify({ status: "ok", engine: "ollama", model: "llama3.1:8b" }) });
+        return;
+      }
       requestNumber += 1;
       const request = route.request().postDataJSON();
-      const isMaster = request.messages.some((message) => String(message.content).includes("local editorial performance engine"));
-      const content = isMaster
-        ? JSON.stringify({ masterDraft: "Everybody wants the clean answer. Cute. Hunger is honest; it does not hide behind a tidy form. Sorry. That was supposed to be funny. The room can help people and still leave teeth marks.", validation: { voiceMatch: 0.9, sourceFidelity: 0.92, canonSafe: true, knowledgeBoundarySafe: true, characterMarkers: ["personal hunger framing", "humor-to-sincerity pivot"], warnings: [] } })
-        : JSON.stringify({ variants, validation: { warnings: [] } });
-      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ message: { content } }) });
+      expect(request.messages.some((message) => String(message.content).includes("bounded editorial performance engine"))).toBe(true);
+      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ status: "ok", engine: "ollama", model: "llama3.1:8b", result: { masterDraft: "Everybody wants the clean answer. Cute. Hunger is honest; it does not hide behind a tidy form. Sorry. That was supposed to be funny. The room can help people and still leave teeth marks.", validation: { voiceMatch: 0.9, sourceFidelity: 0.92, canonSafe: true, knowledgeBoundarySafe: true, characterMarkers: ["personal hunger framing", "humor-to-sincerity pivot"], warnings: [] } } }) });
     });
     await page.goto("/studio/relay/");
     await page.locator("#source-text").fill("The room helps people and stays morally compromised because every need overlaps.");
@@ -707,33 +700,69 @@ test.describe("studio subtree routes", () => {
     await page.getByRole("button", { name: "Generate social package" }).click();
     await expect(page.locator("#persona-validation")).toBeVisible();
     await expect(page.locator("#persona-validation-score")).toHaveText("Strong");
-    await expect(page.locator('[data-platform="instagram"] .variant-copy')).toContainText("distinct Cathy adaptation");
+    await expect(page.locator('[data-platform="instagram"] .variant-copy')).toContainText("Hunger is honest");
     await expect(page.locator('[data-platform="instagram"] .variant-copy')).not.toContainText("The room helps people and stays morally compromised because every need overlaps.");
-    expect(requestNumber).toBe(4);
-    const requestOptions = await page.evaluate(() => window.__relayOllamaOptions);
-    expect(requestOptions).toHaveLength(4);
-    expect(requestOptions.every((options) => options.mode === "cors" && options.targetAddressSpace === "loopback")).toBe(true);
+    expect(requestNumber).toBe(1);
+    expect(await page.evaluate(() => window.__relayLoopbackRequests)).toEqual([]);
   });
 
-  test("RelayDaemon route permits Chrome split local-network features", async () => {
+  test("public Vercel configuration has no RelayDaemon loopback policy", async () => {
     const config = JSON.parse(fs.readFileSync(path.join(process.cwd(), "vercel.json"), "utf8"));
-    const relayHeaders = config.headers.find((entry) => entry.source === "/studio/relay/(.*)")?.headers || [];
-    const policy = relayHeaders.find((header) => header.key.toLowerCase() === "permissions-policy")?.value;
-    expect(policy).toBe("loopback-network=(self), local-network=(self)");
+    expect(config.headers.some((entry) => entry.source === "/studio/relay/(.*)")).toBe(false);
+    expect(fs.readFileSync(path.join(process.cwd(), "scripts/prepare-pages-site.sh"), "utf8")).toContain("--exclude 'studio/relay/'");
   });
 
-  test("RelayDaemon standalone Vercel project serves the app and loopback policy", async () => {
+  test("RelayDaemon standalone Vercel project serves private hosted functions without loopback policy", async () => {
     const config = JSON.parse(fs.readFileSync(path.join(process.cwd(), "deploy/relay-vercel/vercel.json"), "utf8"));
     const rootRewrite = config.rewrites.find((entry) => entry.source === "/");
     const scannerFunction = config.functions["api/scan-code.js"];
+    const characterFunction = config.functions["api/character.js"];
     const globalHeaders = config.headers.find((entry) => entry.source === "/(.*)")?.headers || [];
     const policy = globalHeaders.find((header) => header.key.toLowerCase() === "permissions-policy")?.value;
     const robots = globalHeaders.find((header) => header.key.toLowerCase() === "x-robots-tag")?.value;
 
     expect(rootRewrite?.destination).toBe("/studio/relay/index.html");
     expect(scannerFunction?.includeFiles).toBe("node_modules/zxing-wasm/dist/reader/zxing_reader.wasm");
-    expect(policy).toBe("loopback-network=(self), local-network=(self)");
+    expect(characterFunction?.maxDuration).toBe(60);
+    expect(policy).toBeUndefined();
     expect(robots).toBe("noindex, nofollow");
+  });
+
+  test("hosted character endpoint rejects unauthenticated requests before model access", async () => {
+    const handler = require(path.join(process.cwd(), "api/character.js"));
+    const response = { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(body) { this.body = body; } };
+    await handler({ method: "POST", headers: {}, socket: { remoteAddress: "127.0.0.1" } }, response);
+    expect(response.statusCode).toBe(401);
+    expect(JSON.parse(response.body)).toEqual({ status: "error", error: "UNAUTHORIZED" });
+  });
+
+  test("hosted character endpoint makes one bounded server-side Responses API call", async () => {
+    const handler = require(path.join(process.cwd(), "api/character.js"));
+    const originalFetch = global.fetch;
+    const originalKey = process.env.OPENAI_API_KEY;
+    let requestBody;
+    global.fetch = async (url, options) => {
+      expect(url).toBe("https://api.openai.com/v1/responses");
+      requestBody = JSON.parse(options.body);
+      return new Response(JSON.stringify({ model: "gpt-5-mini", output_text: JSON.stringify({ masterDraft: "Hunger is honest, which is inconvenient. The room helps people, and the teeth marks still count. Sorry. That was meant to be funny.", validation: { voiceMatch: 0.9, sourceFidelity: 0.91, canonSafe: true, knowledgeBoundarySafe: true, characterMarkers: ["hunger", "sincerity pivot"], warnings: [] } }) }), { status: 200, headers: { "Content-Type": "application/json" } });
+    };
+    process.env.OPENAI_API_KEY = "test-only-key";
+    try {
+      const request = Readable.from([Buffer.from(JSON.stringify({ messages: [{ role: "system", content: "Return JSON." }, { role: "user", content: "Write one bounded character master." }] }))]);
+      Object.assign(request, { method: "POST", headers: { host: "relay.example", origin: "https://relay.example", "sec-fetch-site": "same-origin", "x-relay-request": "character-v1", "x-forwarded-for": "192.0.2.1" }, socket: { remoteAddress: "192.0.2.1" } });
+      const response = { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(body) { this.body = body; } };
+      await handler(request, response);
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body).result.masterDraft).toContain("Hunger is honest");
+      expect(requestBody.model).toBe("gpt-5-mini");
+      expect(requestBody.max_output_tokens).toBe(1200);
+      expect(requestBody.store).toBe(false);
+      expect(requestBody.text.format.type).toBe("json_schema");
+    } finally {
+      global.fetch = originalFetch;
+      if (originalKey === undefined) delete process.env.OPENAI_API_KEY;
+      else process.env.OPENAI_API_KEY = originalKey;
+    }
   });
 
   test("studio subtree crawler for local href and src", async ({ page }) => {

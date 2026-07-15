@@ -16,6 +16,7 @@ rsync -a \
   --exclude 'playwright-report/' \
   --exclude 'veildaemon/' \
   --exclude 'tests/' \
+  --exclude 'studio/relay/' \
   --exclude 'tools/' \
   --exclude 'Graveyard/' \
   --exclude 'migration/' \

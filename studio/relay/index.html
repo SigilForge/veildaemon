@@ -7,12 +7,11 @@
   <meta name="description" content="Transform one source post into reviewed, platform-specific social drafts without handing a machine permission to publish them.">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#070a0b">
-  <link rel="canonical" href="https://relay.veildaemon.app/">
   <link rel="icon" href="/studio/assets/brand/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/studio/studio.css?v=20260715-relay1">
   <link rel="stylesheet" href="/studio/relay/relay.css?v=20260715-relay3">
   <script defer src="/studio/relay/vendor/zxing-reader.js?v=20260715-relay2"></script>
-  <script defer src="/studio/relay/relay.js?v=20260715-relay11"></script>
+  <script defer src="/studio/relay/relay.js?v=20260715-relay12"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body class="subpage relay-page">
@@ -27,12 +26,12 @@
       <div>
         <p class="eyebrow">Studio publishing utility · local-first MVP</p>
         <h1>One post enters. A coordinated swarm crawls out.</h1>
-        <p>RelayDaemon preserves the thought, then adapts its shape. Character work uses your local language model; nothing is posted, and source text stays on this device.</p>
+        <p>RelayDaemon preserves the thought, then adapts its shape. Drafts, approvals, and exports stay in this browser. Character generation uses the local bridge when you run Relay locally, with an authenticated hosted fallback when needed.</p>
       </div>
       <aside class="relay-status" aria-label="RelayDaemon operating status">
         <span>RELAY STATUS</span>
         <strong>REVIEW AUTHORITY: HUMAN</strong>
-        <p>Classification and safety checks are deterministic. Character performance is local-model only. Social connectors remain offline.</p>
+        <p>Classification and safety checks are deterministic. One character master feeds deterministic platform adaptations. Generation never authorizes publication.</p>
       </aside>
     </section>
 
@@ -102,7 +101,7 @@
               <option value="cathy-holloway">Cathy Holloway</option>
               <option value="shade">Shade</option>
             </select>
-            <span>Uses a local model to author a new master draft inside a bounded profile. Every character attribution requires human review.</span>
+            <span>Uses the local bridge first or the authenticated hosted fallback to author one bounded master draft. Every character attribution requires human review.</span>
           </label>
           <label class="field">Character style
             <select id="persona-style" name="personaStyle">
@@ -127,9 +126,7 @@
         </div>
 
         <div id="persona-engine" class="persona-engine" hidden>
-          <div><strong>Local character engine</strong><p>Relay contacts this endpoint directly from your browser. It never sends source text through the deployed site.</p><p id="persona-engine-status" role="status">Select a character to warm the local model.</p></div>
-          <label class="field">Ollama endpoint<input id="local-model-url" type="url" value="http://127.0.0.1:11434/api/chat" inputmode="url"></label>
-          <label class="field">Installed model<input id="local-model" type="text" value="llama3.1:8b" maxlength="120"></label>
+          <div><strong>Character engine</strong><p>Local mode is served by the Relay bridge and reaches Ollama server-side. Hosted mode sends only the bounded character request through the authenticated Vercel function.</p><p id="persona-engine-status" role="status">Select a character to check the configured engine.</p></div>
         </div>
 
         <div id="code-confirmation" class="code-confirmation" hidden>
