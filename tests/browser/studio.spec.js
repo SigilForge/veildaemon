@@ -680,9 +680,19 @@ test.describe("studio subtree routes", () => {
         return originalFetch(input, init);
       };
     });
+    await page.route("http://127.0.0.1:11434/api/generate", async (route) => {
+      requestNumber += 1;
+      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ response: "", done: true }) });
+    });
+    await page.route("http://127.0.0.1:11434/api/tags", async (route) => {
+      requestNumber += 1;
+      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ models: [{ name: "llama3.1:8b" }] }) });
+    });
     await page.route("http://127.0.0.1:11434/api/chat", async (route) => {
       requestNumber += 1;
-      const content = requestNumber === 1
+      const request = route.request().postDataJSON();
+      const isMaster = request.messages.some((message) => String(message.content).includes("local editorial performance engine"));
+      const content = isMaster
         ? JSON.stringify({ masterDraft: "Everybody wants the clean answer. Cute. Hunger is honest; it does not hide behind a tidy form. Sorry. That was supposed to be funny. The room can help people and still leave teeth marks.", validation: { voiceMatch: 0.9, sourceFidelity: 0.92, canonSafe: true, knowledgeBoundarySafe: true, characterMarkers: ["personal hunger framing", "humor-to-sincerity pivot"], warnings: [] } })
         : JSON.stringify({ variants, validation: { warnings: [] } });
       await route.fulfill({ contentType: "application/json", body: JSON.stringify({ message: { content } }) });
@@ -696,9 +706,9 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#persona-validation-score")).toHaveText("Strong");
     await expect(page.locator('[data-platform="instagram"] .variant-copy')).toContainText("distinct Cathy adaptation");
     await expect(page.locator('[data-platform="instagram"] .variant-copy')).not.toContainText("The room helps people and stays morally compromised because every need overlaps.");
-    expect(requestNumber).toBe(2);
+    expect(requestNumber).toBe(4);
     const requestOptions = await page.evaluate(() => window.__relayOllamaOptions);
-    expect(requestOptions).toHaveLength(2);
+    expect(requestOptions).toHaveLength(4);
     expect(requestOptions.every((options) => options.mode === "cors" && options.targetAddressSpace === "loopback")).toBe(true);
   });
 
