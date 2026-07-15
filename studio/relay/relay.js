@@ -398,20 +398,29 @@
     };
   }
 
-  async function localModelRequest(messages) {
+  function ollamaUrl(chatEndpoint, path) {
+    const base = new URL(chatEndpoint);
+    base.pathname = "";
+    base.search = "";
+    base.hash = "";
+    return new URL(path, base).href;
+  }
+
+  async function localModelRequest(messages, stage = "generation") {
     const endpoint = cleanUrl(localModelUrl.value);
     const model = localModel.value.trim();
     if (!endpoint || !model) throw new Error("Set a local Ollama endpoint and installed model before using character voice.");
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
+    const startedAt = performance.now();
     try {
       const response = await fetch(endpoint, localModelOptions(model, { messages, options: { temperature: 0.72 } }, controller.signal));
       if (!response.ok) throw new Error(`Ollama returned HTTP ${response.status}.`);
       const payload = await response.json();
       return parseModelJson(payload.message?.content);
     } catch (error) {
+      console.error("Relay Ollama request failed", { stage, endpoint, name: error?.name, message: error?.message, elapsedMs: Math.round(performance.now() - startedAt), error });
       if (error instanceof DOMException && error.name === "AbortError") throw new Error("Ollama was reached, but model loading or generation exceeded 120 seconds.");
-      if (error instanceof TypeError && /fetch/i.test(error.message)) throw new Error("The browser could not connect to local Ollama. Check Chrome Local network access permission.");
       throw error;
     } finally {
       window.clearTimeout(timeoutId);
@@ -424,22 +433,23 @@
     const model = localModel.value.trim();
     if (!endpoint || !model) return;
     $("#persona-engine-status").textContent = `Warming ${model}…`;
-    const healthUrl = new URL(endpoint);
-    healthUrl.pathname = healthUrl.pathname.replace(/\/chat\/?$/, "/tags");
+    const healthUrl = ollamaUrl(endpoint, "/api/tags");
     const healthController = new AbortController();
     const healthTimeout = window.setTimeout(() => healthController.abort(), HEALTH_TIMEOUT_MS);
+    const healthStartedAt = performance.now();
     try {
-      const health = await fetch(healthUrl, { mode: "cors", targetAddressSpace: "loopback", signal: healthController.signal });
+      const health = await fetch(healthUrl, { mode: "cors", targetAddressSpace: "loopback", cache: "no-store", signal: healthController.signal });
       if (!health.ok) throw new Error(`HTTP ${health.status}`);
-    } catch (_error) {
-      $("#persona-engine-status").textContent = "Local model health check did not return within five seconds; attempting warm-up anyway…";
+    } catch (error) {
+      console.error("Relay Ollama request failed", { stage: "health", endpoint: healthUrl, name: error?.name, message: error?.message, elapsedMs: Math.round(performance.now() - healthStartedAt), error });
+      $("#persona-engine-status").textContent = error instanceof DOMException && error.name === "AbortError" ? "Local model health check exceeded five seconds; attempting warm-up anyway…" : "Local model health check failed; see DevTools for the exact browser error. Attempting warm-up anyway…";
     } finally {
       window.clearTimeout(healthTimeout);
     }
-    const warmUrl = new URL(endpoint);
-    warmUrl.pathname = warmUrl.pathname.replace(/\/chat\/?$/, "/generate");
+    const warmUrl = ollamaUrl(endpoint, "/api/generate");
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
+    const warmStartedAt = performance.now();
     try {
       const response = await fetch(warmUrl, {
         method: "POST",
@@ -452,6 +462,7 @@
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       $("#persona-engine-status").textContent = `Local character engine ready · ${model} stays warm for 30 minutes.`;
     } catch (error) {
+      console.error("Relay Ollama request failed", { stage: "warm", endpoint: warmUrl, name: error?.name, message: error?.message, elapsedMs: Math.round(performance.now() - warmStartedAt), error });
       const timedOut = error instanceof DOMException && error.name === "AbortError";
       $("#persona-engine-status").textContent = timedOut ? "Model warm-up exceeded 120 seconds; generation remains available to retry." : "Warm-up could not complete; generation will test the local connection again.";
     } finally {
@@ -485,7 +496,7 @@
     const master = await localModelRequest([
       { role: "system", content: "You are a local editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes." },
       { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write a complete first-person master post that reacts to the argument instead of summarizing it.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nReturn {"masterDraft":"...","validation":{"voiceMatch":0.0,"sourceFidelity":0.0,"canonSafe":true,"knowledgeBoundarySafe":true,"characterMarkers":["..."],"warnings":[]}}.` },
-    ]);
+    ], "character master");
     const masterDraft = normalizeWhitespace(master.masterDraft);
     if (!masterDraft) throw new Error("Local model returned no character master draft.");
     const validation = validatePersonaMaster(text, masterDraft, profile, master.validation || {});
@@ -496,7 +507,7 @@
     const adaptations = await localModelRequest([
       { role: "system", content: "You adapt one approved character-authored master draft to platforms. Return JSON only. Never truncate mid-sentence and never add facts, calls to action, links, hashtags, marketing language, or author labels." },
       { role: "user", content: `PERSONA\n${profile.name}\n\nAPPROVED MASTER DRAFT\n${masterDraft}\n\nDESTINATIONS\n${JSON.stringify(destinations)}\n\nWrite a distinct, complete adaptation for every listed id. Keep the persona's rhythm and emotional movement. For TikTok and YouTube, return structured spoken-hook/overlay/caption or description text when media exists; otherwise return an empty string. Return {"variants":{"x":"..."},"validation":{"warnings":[]}}.` },
-    ]);
+    ], "platform adaptations");
     const variants = adaptations.variants || {};
     const invalid = destinations.filter((item) => {
       const draft = normalizeWhitespace(variants[item.id]);
@@ -966,11 +977,7 @@
       $("#form-message").textContent = `${state.variants.length} destination drafts generated. Review and edit before export.`;
       $("#analysis-panel").scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
     } catch (error) {
-        const isConnectionError = error instanceof TypeError && /fetch/i.test(error.message);
-        const origin = window.location.origin;
-        $("#form-message").textContent = isConnectionError
-          ? `Relay could not reach the local Ollama endpoint. Confirm Ollama is running on the Windows host and permits ${origin} through OLLAMA_ORIGINS. Character drafts were not generated.`
-          : `${error.message} Character drafts were not generated.`;
+        $("#form-message").textContent = `${error.message || "The local model request failed."} Character drafts were not generated; DevTools contains the request stage and endpoint.`;
     } finally {
       state.generating = false;
       form.removeAttribute("aria-busy");
