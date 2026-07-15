@@ -706,7 +706,7 @@
       personaStyle.value = draft.personaStyle || "commentary";
       transformationStrength.value = draft.transformationStrength || "adapt";
       localModelUrl.value = draft.localModelUrl || "http://127.0.0.1:11434/api/chat";
-      localModel.value = draft.localModel || "mistral-7b-custom";
+      localModel.value = draft.localModel || "llama3.1:8b";
       updatePersonaEngine();
       contentWarning.value = draft.contentWarning || "";
       campaign.value = draft.campaign || "relaydaemon";
@@ -882,7 +882,11 @@
       try {
         state.persona = await createPersonaPackage(text, state.analysis);
       } catch (error) {
-        $("#form-message").textContent = `${error.message} Character drafts were not generated.`;
+        const isConnectionError = error instanceof TypeError && /fetch/i.test(error.message);
+        const origin = window.location.origin;
+        $("#form-message").textContent = isConnectionError
+          ? `Relay could not reach the local Ollama endpoint. Confirm Ollama is running on the Windows host and permits ${origin} through OLLAMA_ORIGINS. Character drafts were not generated.`
+          : `${error.message} Character drafts were not generated.`;
         return;
       }
     }

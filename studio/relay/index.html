@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/studio/studio.css?v=20260715-relay1">
   <link rel="stylesheet" href="/studio/relay/relay.css?v=20260715-relay3">
   <script defer src="/studio/relay/vendor/zxing-reader.js?v=20260715-relay2"></script>
-  <script defer src="/studio/relay/relay.js?v=20260715-relay3"></script>
+  <script defer src="/studio/relay/relay.js?v=20260715-relay4"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body class="subpage relay-page">
@@ -129,7 +129,7 @@
         <div id="persona-engine" class="persona-engine" hidden>
           <div><strong>Local character engine</strong><p>Relay contacts this endpoint directly from your browser. It never sends source text through the deployed site.</p></div>
           <label class="field">Ollama endpoint<input id="local-model-url" type="url" value="http://127.0.0.1:11434/api/chat" inputmode="url"></label>
-          <label class="field">Installed model<input id="local-model" type="text" value="mistral-7b-custom" maxlength="120"></label>
+          <label class="field">Installed model<input id="local-model" type="text" value="llama3.1:8b" maxlength="120"></label>
         </div>
 
         <div id="code-confirmation" class="code-confirmation" hidden>
