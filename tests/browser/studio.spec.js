@@ -712,6 +712,13 @@ test.describe("studio subtree routes", () => {
     expect(requestOptions.every((options) => options.mode === "cors" && options.targetAddressSpace === "loopback")).toBe(true);
   });
 
+  test("RelayDaemon route permits Chrome split local-network features", async () => {
+    const config = JSON.parse(fs.readFileSync(path.join(process.cwd(), "vercel.json"), "utf8"));
+    const relayHeaders = config.headers.find((entry) => entry.source === "/studio/relay/(.*)")?.headers || [];
+    const policy = relayHeaders.find((header) => header.key.toLowerCase() === "permissions-policy")?.value;
+    expect(policy).toBe("loopback-network=(self), local-network=(self)");
+  });
+
   test("studio subtree crawler for local href and src", async ({ page }) => {
     const queue = new Set(["/studio/"]);
     const seen = new Set();
