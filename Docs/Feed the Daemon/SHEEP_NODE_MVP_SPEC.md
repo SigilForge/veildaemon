@@ -1,6 +1,6 @@
 # FEED THE DAEMON — SHEEP NODE MVP SPEC
 
-**Version:** 0.1  
+**Version:** 0.2
 **Target:** Web-first public prototype  
 **Status:** Build specification  
 **Primary objective:** Prove that strangers will collectively sustain a bounded musical organism long enough to create a successful ritual track.
@@ -13,6 +13,7 @@ This file is the implementation authority for **Proof 0 — Dormant Node** and *
 
 - Start at the [Feed the Daemon README](./README.md) for the current read order, code map, and status guardrails.
 - Use the [2026 Product Spine](./2026_PRODUCT_SPINE.md) for the broader product thesis, later evolutions, and continuity across personal feeder, stream, Ritual Site, Field Node, and AR surfaces.
+- Track sound-role × Frequency mutation grammar in the [Frequency Phrase Bible](./FREQUENCY_PHRASE_BIBLE.md). The stub exists now so Proof 2 cannot inherit an imaginary content dependency.
 - Use the [Ritual Sites design shelf](../Ritual%20Sites/) only for the later live-performance membrane; it is not part of this MVP.
 
 When this specification and the older Product Spine differ on Proof 0 or Proof 1 mechanics, technical architecture, delivery phases, or build order, **this MVP specification governs until deliberately revised**. The Product Spine remains authoritative for the larger product direction.
@@ -29,6 +30,8 @@ Each performer occupies a musical role and a rhythmic slot.
 
 Multiple visitors may choose the same sound family without stacking identical audio events. Additional contributors receive different positions in the phrase, deepen an existing pattern, introduce variation, or reinforce a performer already active.
 
+Contributions are submitted during a visible input window, held as pending, and resolved together on a bar-quantized propagation boundary. The apparent polling delay is the composition cycle: the node collates the crowd, lands valid layers on the beat, evaluates their collision, and gives the crowd a bounded interval to stabilize the result before decay strips it apart.
+
 Every performer decays.
 
 The crowd must sustain enough simultaneous parts, in a valid composition, long enough to cross a manifestation threshold. A successful ritual saves the completed track and later allows contributors to choose which mutation survives into the future node pool.
@@ -44,6 +47,7 @@ The intended emotional progression is:
 > I found a strange page.  
 > I touched the signal.  
 > Other people changed it too.  
+> Our layers landed together.
 > We built a track together.  
 > The track nearly collapsed.  
 > It survived.  
@@ -104,6 +108,9 @@ Includes:
 - approximate Presence state
 - two visual phases
 - one persistent motif
+- one server-authoritative cycle clock
+- full cycle snapshot on join
+- client-build and asset-pack compatibility fields
 - minimal diegetic text
 - event analytics
 
@@ -125,6 +132,8 @@ Purpose: validate collective composition and decay-driven ritual behavior.
 Includes:
 
 - 4–6 base sound families
+- bar-quantized contribution and propagation cycles
+- pending, collating, propagated, and held-for-next-cycle states
 - performer roster
 - rhythmic-slot assignment
 - duplicate performer handling
@@ -233,6 +242,8 @@ Every mechanic must belong to one of three layers.
 
 Contains:
 
+- bar-quantized propagation cycles
+- pending contributions
 - active performers
 - rhythmic slots
 - participant input
@@ -300,7 +311,7 @@ Each active performer contains:
 - `rhythmic_slot`
 - `phrase_variant`
 - `intensity`
-- `contributor_id`
+- `contributor_token_id`
 - `activated_at`
 - `expires_at`
 - `decay_state`
@@ -349,6 +360,7 @@ When every valid rhythmic position for a sound family is occupied, the next cont
 - increase phrase complexity
 - alter articulation
 - queue for the next decayed slot
+- hold for the next propagation cycle
 
 The system must never silently absorb a valid interaction.
 
@@ -433,16 +445,123 @@ Recommended approach:
 
 - client heartbeat every 15–30 seconds
 - active-session rolling window
-- state polling every 5–15 seconds
+- full canonical snapshot immediately on join or recovery
+- delta polling every 5–15 seconds between pulses
+- tighter polling near the propagation boundary when load permits
 - local interpolation between global updates
 - threshold-driven phase changes
 - server-authoritative aggregate state
 
 The poll interval should be tuned against dwell-time data. Visitors must see a meaningful shared response before typical first-session abandonment.
 
+## 9.4 Propagation Cycle
+
+The delayed poll is a visible composition cadence, not hidden latency.
+
+Each cycle is quantized by musical bars. The server stores `tempo`, `beats_per_bar`, and `bars_per_cycle`, then derives cycle duration and `next_propagation_at`. Do not schedule canonical musical changes from arbitrary wall-clock intervals that can drift away from the phrase grid.
+
+Cycle phases:
+
+1. **INPUT OPEN** — clients accept candidate layers and provide immediate local residue feedback.
+2. **SIGNAL COLLATING** — the current window closes; accepted contributions become immutable for that cycle.
+3. **PROPAGATION** — the server evaluates compatibility, assigns rhythmic roles, resolves suppression or mutation, advances decay, and publishes one canonical result.
+4. **STABILIZATION** — every client renders the same result locally while the next input window opens.
+
+Preferred status language:
+
+```text
+INPUT WINDOW OPEN
+SIGNAL COLLATING
+NEXT PROPAGATION IN 12s
+```
+
+### Join and recovery snapshot
+
+A client joining mid-cycle receives a full `CycleSnapshot` immediately. It includes:
+
+- current cycle ID and phase
+- tempo, beats per bar, and bars per cycle
+- cycle start and next propagation timestamps
+- active layers and rhythmic assignments
+- performer decay state
+- pending count for the next cycle, without exposing private contributor data
+- canonical seed
+- Resonance and Presence state
+- client-build version
+- asset-pack version
+- latest delta sequence number
+
+The client may interpolate visuals and countdown motion locally, but it must not invent canonical performers, decay outcomes, eligibility, or cycle results.
+
+### Submission and late-arrival behavior
+
+- A valid submission received during **INPUT OPEN** becomes a `PendingContribution` for the current cycle.
+- A submission received after collation begins is queued for the next cycle and receives the visible response **HELD FOR NEXT PROPAGATION**.
+- Retries use an idempotency key so network repetition cannot create duplicate performers or votes.
+- No valid contribution disappears without a durable status response.
+
+### Snapshot and delta contract
+
+- A full snapshot is authoritative.
+- Deltas are ordered, versioned, idempotent, and tied to a snapshot/cycle ID.
+- A client that detects a missing delta, impossible sequence, clock skew beyond tolerance, or unknown cycle requests a fresh snapshot.
+- The server publishes one compact `PropagationResult`; each compatible client renders audio and visuals locally from the same result and seed.
+
+Example payload:
+
+```json
+{
+  "cycleId": 184,
+  "clientBuild": "0.1.7",
+  "assetPack": "sheep-audio-03",
+  "tempo": 96,
+  "beatsPerBar": 4,
+  "barsPerCycle": 8,
+  "cycleStartedAt": "2026-07-14T03:17:40Z",
+  "nextPropagationAt": "2026-07-14T03:18:00Z",
+  "phase": "COLLATING",
+  "activeLayers": [],
+  "decayState": {},
+  "pendingForNextCycle": 3,
+  "seed": "7f1c..."
+}
+```
+
+### Client compatibility
+
+Every snapshot, delta, and propagation result carries `client_build` and `asset_pack` versions.
+
+- Compatible stale clients may receive a deterministic replay payload.
+- Incompatible clients must refresh before contributing.
+- A missing local asset must degrade to an authored fallback, not silently alter the canonical composition.
+- Server and client clocks are reconciled from server timestamps; the browser countdown is presentation, not authority.
+
+Architectural rule:
+
+> The server owns continuity, eligibility, timing, and canonical outcomes.
+> The client owns rendering, interpolation, and immediate residue feedback.
+
 ---
 
 # 10. RITUAL SUCCESS
+
+## 10.1 Tuning Gate
+
+Do not lock manifestation thresholds until live Proof 0/early Proof 1 data validates:
+
+- heartbeat interval and active-session window
+- cold-start behavior at one, two, and several simultaneous visitors
+- minimum performer count
+- minimum represented sound-family count
+- sustain duration
+- bars per cycle and tempo assumptions
+- ordinary and near-propagation poll cadence
+- late-submission rate
+- decay timing under low and high Presence
+
+The gate produces an explicit tuning record. Manifestation values remain configuration until that record is accepted.
+
+## 10.2 Provisional Success Rule
 
 A ritual succeeds when:
 
@@ -461,7 +580,7 @@ Sustain duration: 45 seconds
 
 These values are tuning parameters, not canon.
 
-## 10.1 Cold-Start Support
+## 10.3 Cold-Start Support
 
 Proof 1 should support both:
 
@@ -480,7 +599,7 @@ A scheduled gathering period with:
 
 Scheduled windows are an operational tool, not a dependency for every ritual.
 
-## 10.2 Manifestation
+## 10.4 Manifestation
 
 A successful ritual produces:
 
@@ -510,6 +629,9 @@ Required fields:
 - `manifestation_type`
 - `dominant_frequency`
 - `contributor_count`
+- `contributor_token_ids`
+- `first_cycle_id`
+- `manifestation_cycle_id`
 - `performer_events`
 - `sound_nodes_used`
 - `top_used_sound_families`
@@ -518,6 +640,8 @@ Required fields:
 - `presence_peak`
 - `render_status`
 - `archive_status`
+- `client_build`
+- `asset_pack`
 
 The Track is the unit of cultural memory.
 
@@ -531,9 +655,9 @@ A successful ritual may open a 24-hour Flux Window.
 
 ## 12.1 Eligibility
 
-Only contributors recorded during the successful ritual may vote.
+Only contributor tokens recorded during the successful ritual may vote.
 
-One contributor identity receives one vote.
+One contributor token receives one vote. An optional claim code can recover that token across devices without requiring an account.
 
 Contribution intensity does not create additional votes.
 
@@ -578,9 +702,9 @@ A mutation cannot reproduce merely because it exists.
 
 # 13. FREQUENCY PHRASE GRAMMAR
 
-The transformation system requires a separate content artifact:
+The transformation system requires a separate content artifact: [FREQUENCY_PHRASE_BIBLE.md](./FREQUENCY_PHRASE_BIBLE.md).
 
-# FREQUENCY PHRASE BIBLE
+## 13.1 Bible Contract
 
 This is not a filter list.
 
@@ -618,7 +742,7 @@ Each pairing must define:
 - mutation boundaries
 - audible identity test
 
-## 13.1 Example: Rain / Noise + Stillness
+## 13.2 Example: Rain / Noise + Stillness
 
 Phrase grammar:
 
@@ -641,7 +765,7 @@ Possible return forms:
 - sub-bass impact appears under the returning texture
 - stereo field collapses, then tears wide
 
-## 13.2 Example: Rain / Noise + Silence
+## 13.3 Example: Rain / Noise + Silence
 
 Phrase grammar:
 
@@ -655,7 +779,7 @@ Behavior:
 - missing material returns later
 - displaced sound enters another rhythmic slot or channel
 
-## 13.3 Audible Distinction Rule
+## 13.4 Audible Distinction Rule
 
 Two Frequency mutations are not considered complete merely because their descriptions differ.
 
@@ -766,6 +890,10 @@ No percentages should be shown in the initial implementation. The community crea
 - duplicate-role participation
 - average active performer count
 - average composition lifetime
+- contribution acceptance and held-for-next-cycle rates
+- snapshot recovery rate
+- propagation-result latency
+- client-build and asset-pack mismatch rate
 - ritual attempts
 - manifestation success rate
 - contributor return rate
@@ -798,6 +926,9 @@ Recommended capabilities:
 - WebGL or WebGPU visuals
 - Web Audio API or equivalent audio engine
 - deterministic phrase scheduler
+- bar-quantized cycle clock synchronized from server timestamps
+- full-snapshot hydration and ordered delta application
+- explicit client-build and asset-pack compatibility handling
 - local anonymous identity
 - local interpolation
 - event telemetry
@@ -812,6 +943,10 @@ Required services:
 - Presence aggregation
 - Resonance persistence
 - performer activation API
+- pending-contribution queue
+- bar-quantized propagation scheduler
+- canonical snapshot and ordered delta service
+- client-build and asset-pack compatibility policy
 - server-authoritative decay
 - ritual state machine
 - track event storage
@@ -821,7 +956,14 @@ Required services:
 
 - Node
 - VisitorTrace
+- ContributorToken
+- ClaimCode
 - Session
+- ClientBuildVersion
+- AssetPackVersion
+- CycleSnapshot
+- PendingContribution
+- PropagationResult
 - Performer
 - Ritual
 - Track
@@ -836,9 +978,16 @@ Proof 0 needs only:
 - VisitorTrace
 - Session
 - NodeStateEvent
+- ClientBuildVersion
+- AssetPackVersion
+- CycleSnapshot
 
 Proof 1 adds:
 
+- ContributorToken
+- ClaimCode
+- PendingContribution
+- PropagationResult
 - Performer
 - Ritual
 - Track
@@ -849,6 +998,19 @@ Proof 2 adds:
 - VoteEligibility
 - MutationCandidate
 - LineageEdge
+
+## 17.4 Identity and Eligibility
+
+Proof 1 does not depend solely on browser-local storage for future Flux eligibility.
+
+- `VisitorTrace` provides anonymous browser continuity and analytics.
+- After a valid contribution is accepted, the server issues a `ContributorToken`.
+- The visitor may receive an optional recovery/claim code tied to that token.
+- No account is required.
+- Proof 2 allows one vote per eligible contributor token.
+- A claim code can recover the token on another device without granting additional votes.
+- Store only a secure verifier or hash for claim codes; do not persist a plaintext recovery secret.
+- Token recovery, rotation, and revocation events are auditable without exposing public identity.
 
 ---
 
@@ -865,6 +1027,9 @@ Use:
 - interaction diversity
 - contribution caps
 - duplicate-role arrangement limits
+- idempotency keys for contribution submission
+- one active vote per eligible contributor token
+- claim-code rate limits and secure verification
 
 Down-weight:
 
@@ -885,6 +1050,8 @@ Bot behavior may later become canonized as corruption. It should not control the
 - the node loads reliably on desktop and mobile
 - local interaction responds within 100 ms where practical
 - global Presence changes are visible within the configured polling window
+- a joining client immediately receives a complete versioned cycle snapshot
+- a missed or invalid delta recovers through a fresh snapshot
 - Resonance persists across sessions
 - at least two visual states are clearly distinguishable
 - anonymous traces survive a browser return
@@ -896,10 +1063,14 @@ Bot behavior may later become canonized as corruption. It should not control the
 - at least four sound families can coexist musically
 - duplicate performers receive distinct valid parts
 - no valid contribution disappears without feedback
+- valid layers land together on a bar-quantized propagation boundary
+- late submissions visibly enter the next propagation cycle
+- stale or incompatible clients refresh or receive a deterministic fallback
 - decay produces intentional musical degradation
 - a ritual can succeed and fail
 - one successful track is saved with provenance
 - contributor identities are recorded for later Flux eligibility
+- contributor tokens can be recovered with a claim code without creating an account
 - the system remains understandable without a conventional tutorial
 
 ---
@@ -919,6 +1090,9 @@ Bot behavior may later become canonized as corruption. It should not control the
 - heartbeat
 - global Presence
 - Resonance
+- canonical cycle clock
+- snapshot and delta contract
+- client-build and asset-pack enforcement
 - shared phase transitions
 - persistent motif
 
@@ -926,6 +1100,8 @@ Bot behavior may later become canonized as corruption. It should not control the
 
 - base sound engine
 - phrase scheduler
+- pending-contribution queue
+- bar-quantized propagation worker
 - performer roster
 - rhythmic-slot assignment
 
@@ -935,9 +1111,12 @@ Bot behavior may later become canonized as corruption. It should not control the
 - decay
 - fallback grammar
 - composition state
+- ContributorToken and claim-code recovery
+- tuning-gate instrumentation
 
 ## Sprint 5
 
+- tuning-gate review and configuration lock
 - manifestation threshold
 - ritual success/failure
 - track event capture
@@ -965,6 +1144,8 @@ The MVP will not include:
 - DJ Veil live set control
 - user-uploaded sounds
 - unconstrained generative audio
+- peer-to-peer state authority
+- server-side streaming or distributed rendering as an MVP dependency
 - accounts
 - open-ended mutation trees
 - Ascension
@@ -989,3 +1170,5 @@ These remain part of the product spine, not the first engineering burden.
 > The crowd fills roles in a temporary living ensemble.
 
 That distinction is the system.
+
+> The server does not render every dream. It decides which dream survived.

@@ -9,9 +9,10 @@
 1. This README — current authority map, code breadcrumbs, and status guardrails
 2. **[SHEEP_NODE_MVP_SPEC.md](./SHEEP_NODE_MVP_SPEC.md)** — Proof 0 + Proof 1 implementation authority, acceptance criteria, data objects, and six-sprint build order
 3. **[2026_PRODUCT_SPINE.md](./2026_PRODUCT_SPINE.md)** — broader product thesis and later evolution across personal feeder, stream, Ritual Site, Field Node, and AR
-4. **[../Ritual Sites/](../Ritual%20Sites/)** — how the same presence alters live performance after the Sheep Node MVP (not a co-host avatar)
-5. **`stream/`** — existing OBS browser-source substrate
-6. VeilDaemon intake Frequency vocabulary (Dream, Hunger, Silence, Stillness, Empyrean, Becoming) in live `script.js` / operator surfaces — **reuse, do not fork**
+4. **[FREQUENCY_PHRASE_BIBLE.md](./FREQUENCY_PHRASE_BIBLE.md)** — required sound-role × Frequency grammar artifact; tracked now, authored before Proof 2
+5. **[../Ritual Sites/](../Ritual%20Sites/)** — how the same presence alters live performance after the Sheep Node MVP (not a co-host avatar)
+6. **`stream/`** — existing OBS browser-source substrate
+7. VeilDaemon intake Frequency vocabulary (Dream, Hunger, Silence, Stillness, Empyrean, Becoming) in live `script.js` / operator surfaces — **reuse, do not fork**
 
 ### Authority rule
 
@@ -24,6 +25,10 @@ The Product Spine preserves the full product direction. The Sheep Node MVP Spec 
 Secondary rule (shared with Ritual Sites):
 
 > Do not place the daemon beside the performance. Make it alter how the performance is perceived.
+
+Propagation rule:
+
+> The delay is the ritual clock. Contributions land together on a server-authoritative bar boundary.
 
 ## Continuity chain
 
@@ -66,6 +71,7 @@ See [SHEEP_NODE_MVP_SPEC.md](./SHEEP_NODE_MVP_SPEC.md). The build target is Proo
 | `Docs/Feed the Daemon/README.md` | Start map and authority rule |
 | `Docs/Feed the Daemon/SHEEP_NODE_MVP_SPEC.md` | Proof 0 + Proof 1 build authority |
 | `Docs/Feed the Daemon/2026_PRODUCT_SPINE.md` | Long-horizon product and continuity thesis |
+| `Docs/Feed the Daemon/FREQUENCY_PHRASE_BIBLE.md` | Required mutation-grammar matrix; stub until authored |
 | `Docs/Ritual Sites/` | Live composition / DJ Veil translation |
 | `stream/` | Hosted OBS layers (authority / apparition / kinetic planes later) |
 | VeilDaemon intake / Frequency drift (`script.js`, operator) | Existing Frequency taxonomy |
@@ -79,10 +85,10 @@ See [SHEEP_NODE_MVP_SPEC.md](./SHEEP_NODE_MVP_SPEC.md). The build target is Proo
 ```
 /feed/   or   /sheep/   (public Sheep Node SPA)
   index.html
-  app.js / shaders /
+  app.js / cycle-clock.js / shaders /
   noindex until intentional launch
 api/feed/  or  edge functions for:
-  events, presence, resonance, phase, motifs
+  events, presence, resonance, snapshots, contributions, propagation, motifs
 ```
 
 Anonymous session first. Accounts later for Continuity Trace depth.
@@ -103,5 +109,8 @@ Anonymous session first. Accounts later for Continuity Trace depth.
 - [ ] Confirm Frequency names match live VeilDaemon  
 - [ ] Define event schema (weight, cooldown, trust, category)  
 - [ ] Define motif persistence format  
+- [ ] Define bar-quantized propagation timing and late-submission behavior
+- [ ] Define client-build / asset-pack compatibility contract
+- [ ] Define ContributorToken recovery and claim-code handling
 - [ ] Decide public route + `noindex` policy until launch  
 - [ ] Keep Studio status pills accurate  
