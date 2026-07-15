@@ -617,9 +617,12 @@ test.describe("studio subtree routes", () => {
     );
     await page.locator("#destination-url").fill("https://veildaemon.app/studio/relay/");
     await page.locator("#objective").selectOption("announcement");
+    await page.locator("#character").selectOption("alex-shade");
     await page.getByRole("button", { name: "Generate social package" }).click();
 
     await expect(page.locator("#analysis-panel")).toBeVisible();
+    await expect(page.locator("#detected-voice")).toHaveText("Alex Shade");
+    await expect(page.locator("#approval-flags")).toContainText("Character attribution selected: Alex Shade");
     await expect(page.locator("#review-panel")).toBeVisible();
     await expect(page.locator(".variant-card")).toHaveCount(15);
     await expect(page.locator('[data-platform="tiktok"] .destination-check')).toBeDisabled();
@@ -662,6 +665,9 @@ test.describe("studio subtree routes", () => {
     const remediationDownload = await remediationDownloadPromise;
     const remediationPath = await remediationDownload.path();
     const remediation = JSON.parse(fs.readFileSync(remediationPath, "utf8"));
+    expect(remediation.interpretation.character.name).toBe("Alex Shade");
+    expect(remediation.siteNewsDraft.voice).toBe("studio");
+    expect(remediation.siteNewsDraft.socialVoice).toBe("Alex Shade");
     expect(remediation.machineReadableRemediation.qrReplacementEligible).toBe(false);
     expect(remediation.machineReadableRemediation.qrGenerator).toBe("scripts/generate-veilcorp-qr.mjs");
     expect(remediation.machineReadableRemediation.barcodeRequiresManualReview).toBe(true);

@@ -23,6 +23,7 @@
   const altText = $("#alt-text");
   const objective = $("#objective");
   const voice = $("#voice");
+  const character = $("#character");
   const contentWarning = $("#content-warning");
   const campaign = $("#campaign");
   const codeVerified = $("#code-verified");
@@ -34,6 +35,39 @@
     studio: "#CradlepointStudios",
     platform: "#VeilDaemon",
     cradlepoint: "#Cradlepoint",
+  };
+
+  // These are editorial constraints distilled from the current Character Bible's
+  // Spine Edition. They constrain presentation only: source facts stay intact.
+  const characterProfiles = {
+    "kira-silverwood": {
+      name: "Kira Silverwood",
+      era: "Book One · active / recursively unindexed",
+      style: "Literal, clipped, recursive, and self-correcting; understatement rather than spectacle.",
+      knowledgeBoundary: "Do not claim stable identity, total system authority, or facts outside the source draft.",
+      lead: (hook) => `Status check: ${hook}`,
+    },
+    "alex-shade": {
+      name: "Alex Shade",
+      era: "Book One · active / controlled",
+      style: "Controlled quiet, consequence-first logic, and restrained emotional language.",
+      knowledgeBoundary: "Do not invent operational access, certainty, or motives beyond the supplied source.",
+      lead: (hook) => `Record: ${hook.replace(/[!]+/g, ".")}`,
+    },
+    "cathy-holloway": {
+      name: "Cathy Holloway",
+      era: "Book One · active / emotionally volatile",
+      style: "Warm, impulsive, playful, and sincerely direct; brightness must not erase risk or consent.",
+      knowledgeBoundary: "Do not glamorize harm, feeding, coercion, or claims about another person’s feelings.",
+      lead: (hook) => `Okay. This matters: ${hook}`,
+    },
+    shade: {
+      name: "Shade",
+      era: "Operational / anomalous · bound to A.Shade",
+      style: "Perfect grammar, clipped phrasing, flat affect, and procedural prioritization.",
+      knowledgeBoundary: "Do not give Shade knowledge Alex did not experience, independent goals, or autonomous publication authority.",
+      lead: (hook) => `ANALYSIS // ${hook}`,
+    },
   };
 
   const discoveryRules = [
@@ -189,6 +223,16 @@
   }
 
   function detectVoice(layer) {
+    const profile = characterProfiles[character.value];
+    if (profile) {
+      return {
+        value: profile.name,
+        key: "character",
+        characterKey: character.value,
+        profile,
+        reason: `Selected character profile. ${profile.style} Knowledge boundary: ${profile.knowledgeBoundary}`,
+      };
+    }
     if (voice.value !== "auto") {
       return { value: voice.options[voice.selectedIndex].text, key: voice.value, reason: "Selected manually for this package." };
     }
@@ -236,6 +280,8 @@
     if (/(mobile ar|ritual sites).{0,55}(live|available|launched|shipping|released)/i.test(lower)) canon.push("Mobile AR and Ritual Sites remain proposed or developing until a ship decision is verified.");
     if (/\b(players?|game master|\bgm\b)\b/i.test(lower)) canon.push("Legacy role terminology detected. Public Cradlepoint copy normally uses Operator and Handler.");
     if (layer.key === "archive" && /cradlepoint studios/i.test(lower)) canon.push("Archive voice and Studio identity appear together. Confirm that the blur is deliberate.");
+    const profile = characterProfiles[character.value];
+    if (profile) approval.push(`Character attribution selected: ${profile.name}. Review every draft against its knowledge boundary before export.`);
     const codeKinds = machineCodeKinds(text);
     if (codeKinds.qr) approval.push("QR code detected or inferred. A replacement may use the repository’s direct-URL SVG generator after the destination is confirmed; the final asset still requires a human scan test.");
     if (codeKinds.barcode) approval.push("One-dimensional or non-QR barcode detected or inferred. Do not auto-replace it; encoded data and remediation require manual review.");
@@ -301,6 +347,7 @@
   }
 
   function voiceLead(analysis, hook) {
+    if (analysis.voice.key === "character") return analysis.voice.profile.lead(hook);
     if (analysis.voice.key === "archive") return `OBSERVATION LOG // ${hook}`;
     if (analysis.voice.key === "studio") return hook;
     return hook;
@@ -530,6 +577,7 @@
       altText: altText.value,
       objective: objective.value,
       voice: voice.value,
+      character: character.value,
       contentWarning: contentWarning.value,
       campaign: campaign.value,
       savedAt: new Date().toISOString(),
@@ -559,6 +607,7 @@
       altText.value = draft.altText || "";
       objective.value = draft.objective || "discussion";
       voice.value = draft.voice || "auto";
+      character.value = draft.character || "";
       contentWarning.value = draft.contentWarning || "";
       campaign.value = draft.campaign || "relaydaemon";
       updateSourceCount();
@@ -751,6 +800,14 @@
         contentClass: state.analysis.contentClass.value,
         realityLayer: state.analysis.layer.value,
         voice: state.analysis.voice.value,
+        character: state.analysis.voice.key === "character" ? {
+          key: state.analysis.voice.characterKey,
+          name: state.analysis.voice.profile.name,
+          era: state.analysis.voice.profile.era,
+          style: state.analysis.voice.profile.style,
+          knowledgeBoundary: state.analysis.voice.profile.knowledgeBoundary,
+          reviewRequired: true,
+        } : null,
         objective: objective.value,
         cta: state.analysis.cta,
         approvalFlags: state.analysis.flags.approval,
@@ -778,7 +835,8 @@
         summary: hookFrom(sourceText.value),
         body: stripSocialNoise(sourceText.value),
         realityLayer: state.analysis.layer.key,
-        voice: state.analysis.voice.key,
+        voice: "studio",
+        socialVoice: state.analysis.voice.value,
         canonStatus: state.analysis.layer.key === "studio" || state.analysis.layer.key === "personal" ? "non-canon" : "review-required",
         argSensitivity: "public",
         approvalStatus: siteApproval.value,
