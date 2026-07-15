@@ -10,9 +10,9 @@
   <link rel="canonical" href="https://veildaemon.app/studio/relay/">
   <link rel="icon" href="/studio/assets/brand/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/studio/studio.css?v=20260715-relay1">
-  <link rel="stylesheet" href="/studio/relay/relay.css?v=20260715-relay1">
+  <link rel="stylesheet" href="/studio/relay/relay.css?v=20260715-relay3">
   <script defer src="/studio/relay/vendor/zxing-reader.js?v=20260715-relay2"></script>
-  <script defer src="/studio/relay/relay.js?v=20260715-relay2"></script>
+  <script defer src="/studio/relay/relay.js?v=20260715-relay3"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body class="subpage relay-page">
@@ -27,12 +27,12 @@
       <div>
         <p class="eyebrow">Studio publishing utility · local-first MVP</p>
         <h1>One post enters. A coordinated swarm crawls out.</h1>
-        <p>RelayDaemon preserves the thought, then adapts its shape. Nothing is posted. Nothing leaves this browser. You choose which drafts survive review.</p>
+        <p>RelayDaemon preserves the thought, then adapts its shape. Character work uses your local language model; nothing is posted, and source text stays on this device.</p>
       </div>
       <aside class="relay-status" aria-label="RelayDaemon operating status">
         <span>RELAY STATUS</span>
         <strong>REVIEW AUTHORITY: HUMAN</strong>
-        <p>Generation is deterministic and runs on this device. Social connectors remain offline.</p>
+        <p>Classification and safety checks are deterministic. Character performance is local-model only. Social connectors remain offline.</p>
       </aside>
     </section>
 
@@ -102,7 +102,21 @@
               <option value="cathy-holloway">Cathy Holloway</option>
               <option value="shade">Shade</option>
             </select>
-            <span>Applies a bounded profile to social drafts. Every character attribution requires human review.</span>
+            <span>Uses a local model to author a new master draft inside a bounded profile. Every character attribution requires human review.</span>
+          </label>
+          <label class="field">Character style
+            <select id="persona-style" name="personaStyle">
+              <option value="commentary">Character commentary</option>
+              <option value="scene-note">Scene-note reflection</option>
+              <option value="archive-fragment">Archive fragment</option>
+            </select>
+          </label>
+          <label class="field">Transformation
+            <select id="transformation-strength" name="transformationStrength">
+              <option value="preserve">Preserve</option>
+              <option value="adapt" selected>Adapt</option>
+              <option value="reimagine">Reimagine</option>
+            </select>
           </label>
           <label class="field">Content warning
             <input id="content-warning" name="contentWarning" type="text" placeholder="Optional: blood, violence, flashing imagery…">
@@ -110,6 +124,12 @@
           <label class="field">Campaign name
             <input id="campaign" name="campaign" type="text" value="relaydaemon" maxlength="80">
           </label>
+        </div>
+
+        <div id="persona-engine" class="persona-engine" hidden>
+          <div><strong>Local character engine</strong><p>Relay contacts this endpoint directly from your browser. It never sends source text through the deployed site.</p></div>
+          <label class="field">Ollama endpoint<input id="local-model-url" type="url" value="http://127.0.0.1:11434/api/chat" inputmode="url"></label>
+          <label class="field">Installed model<input id="local-model" type="text" value="mistral-7b-custom" maxlength="120"></label>
         </div>
 
         <div id="code-confirmation" class="code-confirmation" hidden>
@@ -136,6 +156,7 @@
           <article><span>Reality layer</span><strong id="detected-layer">—</strong><small id="layer-reason">—</small></article>
           <article><span>Applied voice</span><strong id="detected-voice">—</strong><small id="voice-reason">—</small></article>
           <article><span>Primary action</span><strong id="detected-cta">—</strong><small id="destination-summary">—</small></article>
+          <article id="persona-validation" hidden><span id="persona-validation-label">Character voice confidence</span><strong id="persona-validation-score">—</strong><small id="persona-validation-detail">—</small></article>
         </div>
         <div class="review-notes">
           <div><h3>Approval flags</h3><ul id="approval-flags"></ul></div>

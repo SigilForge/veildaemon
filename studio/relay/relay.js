@@ -8,6 +8,8 @@
     variants: [],
     media: null,
     objectUrl: null,
+    persona: null,
+    personaDrafts: {},
     codeScan: { status: "not-run", formats: [], codes: [], engine: "none", detail: "No media has been inspected." },
   };
 
@@ -24,6 +26,10 @@
   const objective = $("#objective");
   const voice = $("#voice");
   const character = $("#character");
+  const personaStyle = $("#persona-style");
+  const transformationStrength = $("#transformation-strength");
+  const localModelUrl = $("#local-model-url");
+  const localModel = $("#local-model");
   const contentWarning = $("#content-warning");
   const campaign = $("#campaign");
   const codeVerified = $("#code-verified");
@@ -37,36 +43,40 @@
     cradlepoint: "#Cradlepoint",
   };
 
-  // These are editorial constraints distilled from the current Character Bible's
-  // Spine Edition. They constrain presentation only: source facts stay intact.
+  // Editorial constraints distilled from the current Character Bible Spine Edition.
+  // The local model may transform language, never add facts or bypass these limits.
   const characterProfiles = {
     "kira-silverwood": {
       name: "Kira Silverwood",
       era: "Book One · active / recursively unindexed",
       style: "Literal, clipped, recursive, and self-correcting; understatement rather than spectacle.",
       knowledgeBoundary: "Do not claim stable identity, total system authority, or facts outside the source draft.",
-      lead: (hook) => `Status check: ${hook}`,
+      emotionalArc: "guarded observation → overload pressure → precise self-definition",
+      markers: [[/\b(system|debug|static|quiet|absence|look)\b/i, "system-first framing"], [/\b(but|wait|actually|sorry)\b/i, "self-correction or pressure pivot"]],
     },
     "alex-shade": {
       name: "Alex Shade",
       era: "Book One · active / controlled",
       style: "Controlled quiet, consequence-first logic, and restrained emotional language.",
       knowledgeBoundary: "Do not invent operational access, certainty, or motives beyond the supplied source.",
-      lead: (hook) => `Record: ${hook.replace(/[!]+/g, ".")}`,
+      emotionalArc: "contained assessment → moral pressure → restrained consequence",
+      markers: [[/\b(quiet|silence|noise|duty|consequence|room)\b/i, "silence or consequence framing"], [/\b(but|still|doesn't|does not)\b/i, "restrained moral pivot"]],
     },
     "cathy-holloway": {
       name: "Cathy Holloway",
       era: "Book One · active / emotionally volatile",
       style: "Warm, impulsive, playful, and sincerely direct; brightness must not erase risk or consent.",
       knowledgeBoundary: "Do not glamorize harm, feeding, coercion, or claims about another person’s feelings.",
-      lead: (hook) => `Okay. This matters: ${hook}`,
+      emotionalArc: "playful deflection → hunger-recognition → exposed sincerity",
+      markers: [[/\b(hunger|cold|warmth|laugh|joke|sorry|need)\b/i, "personal hunger or warmth framing"], [/\b(sorry|but|except|still|doesn't|does not)\b/i, "humor-to-sincerity pivot"]],
     },
     shade: {
       name: "Shade",
       era: "Operational / anomalous · bound to A.Shade",
       style: "Perfect grammar, clipped phrasing, flat affect, and procedural prioritization.",
       knowledgeBoundary: "Do not give Shade knowledge Alex did not experience, independent goals, or autonomous publication authority.",
-      lead: (hook) => `ANALYSIS // ${hook}`,
+      emotionalArc: "classification → compressed risk assessment → unresolved procedural conclusion",
+      markers: [[/\b(analysis|risk|baseline|signal|noise|priority|status)\b/i, "procedural framing"], [/\b(therefore|however|but|unless)\b/i, "analytical turn"]],
     },
   };
 
@@ -336,7 +346,7 @@
       contentClass,
       layer,
       voice: appliedVoice,
-      cta: ctaFor(objective.value),
+      cta: character.value && personaStyle.value === "commentary" ? "" : ctaFor(objective.value),
       flags,
       possibleCode: inferredCode,
       codeKinds,
@@ -347,7 +357,6 @@
   }
 
   function voiceLead(analysis, hook) {
-    if (analysis.voice.key === "character") return analysis.voice.profile.lead(hook);
     if (analysis.voice.key === "archive") return `OBSERVATION LOG // ${hook}`;
     if (analysis.voice.key === "studio") return hook;
     return hook;
@@ -363,6 +372,71 @@
     if (platform === "bluesky") return analysis.hashtags.slice(0, 2).join(" ");
     if (platform === "x") return analysis.hashtags.slice(0, 3).join(" ");
     return analysis.hashtags.slice(0, count).join(" ");
+  }
+
+  function sourceFacts(text) {
+    return splitSentences(text).slice(0, 12).map((sentence) => `- ${sentence}`).join("\n");
+  }
+
+  function parseModelJson(content) {
+    const clean = String(content || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+    return JSON.parse(clean);
+  }
+
+  async function localModelRequest(messages) {
+    const endpoint = cleanUrl(localModelUrl.value);
+    const model = localModel.value.trim();
+    if (!endpoint || !model) throw new Error("Set a local Ollama endpoint and installed model before using character voice.");
+    const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model, stream: false, format: "json", messages, options: { temperature: 0.72 } }) });
+    if (!response.ok) throw new Error(`Local model did not respond (${response.status}).`);
+    const payload = await response.json();
+    return parseModelJson(payload.message?.content);
+  }
+
+  function copiedSentenceRatio(source, draft) {
+    const normalize = (value) => value.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+    const sourceSentences = splitSentences(source).map(normalize).filter((item) => item.split(/\s+/).length >= 4);
+    const draftSentences = splitSentences(draft).map(normalize).filter((item) => item.split(/\s+/).length >= 4);
+    if (!draftSentences.length) return 1;
+    return draftSentences.filter((sentence) => sourceSentences.includes(sentence)).length / draftSentences.length;
+  }
+
+  function validatePersonaMaster(source, master, profile, modelValidation = {}) {
+    const markers = profile.markers.filter(([pattern]) => pattern.test(master)).map(([, label]) => label);
+    const copiedRatio = copiedSentenceRatio(source, master);
+    const warnings = [...new Set((modelValidation.warnings || []).filter(Boolean))];
+    if (copiedRatio > 0.55) warnings.push("Draft repeats too many complete source sentences.");
+    if (!markers.length) warnings.push("No character-specific perspective marker was detected.");
+    if (splitSentences(master).length < 3) warnings.push("Draft has no visible emotional or structural movement.");
+    if (modelValidation.canonSafe === false) warnings.push("Local model marked a canon-safety concern.");
+    if (modelValidation.knowledgeBoundarySafe === false) warnings.push("Local model marked a knowledge-boundary concern.");
+    if (Object.entries(state.personaDrafts).some(([key, draft]) => key !== character.value && normalizeWhitespace(draft).toLowerCase() === normalizeWhitespace(master).toLowerCase())) warnings.push("Draft duplicates a different character voice.");
+    return { voiceMatch: Number(modelValidation.voiceMatch || (markers.length >= 2 ? 0.82 : markers.length ? 0.62 : 0.3)), sourceFidelity: Number(modelValidation.sourceFidelity || 0.85), canonSafe: modelValidation.canonSafe !== false, knowledgeBoundarySafe: modelValidation.knowledgeBoundarySafe !== false, copiedTooClosely: copiedRatio > 0.55, copiedSentenceRatio: copiedRatio, characterMarkers: [...new Set([...(modelValidation.characterMarkers || []), ...markers])], warnings };
+  }
+
+  async function createPersonaPackage(text, analysis) {
+    const profile = analysis.voice.profile;
+    const master = await localModelRequest([
+      { role: "system", content: "You are a local editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes." },
+      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write a complete first-person master post that reacts to the argument instead of summarizing it.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nReturn {"masterDraft":"...","validation":{"voiceMatch":0.0,"sourceFidelity":0.0,"canonSafe":true,"knowledgeBoundarySafe":true,"characterMarkers":["..."],"warnings":[]}}.` },
+    ]);
+    const masterDraft = normalizeWhitespace(master.masterDraft);
+    if (!masterDraft) throw new Error("Local model returned no character master draft.");
+    const validation = validatePersonaMaster(text, masterDraft, profile, master.validation || {});
+    if (validation.warnings.length) throw new Error(`Character draft rejected: ${validation.warnings.join(" ")}`);
+    state.personaDrafts[character.value] = masterDraft;
+    const destinations = platformConfig.filter((item) => item.id !== "site-news").map((item) => ({ id: item.id, name: item.name, limit: item.limit, mediaOnly: Boolean(item.mediaOnly) }));
+    const adaptations = await localModelRequest([
+      { role: "system", content: "You adapt one approved character-authored master draft to platforms. Return JSON only. Never truncate mid-sentence and never add facts, calls to action, links, hashtags, marketing language, or author labels." },
+      { role: "user", content: `PERSONA\n${profile.name}\n\nAPPROVED MASTER DRAFT\n${masterDraft}\n\nDESTINATIONS\n${JSON.stringify(destinations)}\n\nWrite a distinct, complete adaptation for every listed id. Keep the persona's rhythm and emotional movement. For TikTok and YouTube, return structured spoken-hook/overlay/caption or description text when media exists; otherwise return an empty string. Return {"variants":{"x":"..."},"validation":{"warnings":[]}}.` },
+    ]);
+    const variants = adaptations.variants || {};
+    const invalid = destinations.filter((item) => {
+      const draft = normalizeWhitespace(variants[item.id]);
+      return (!item.mediaOnly && (!draft || countText(draft, item.graphemes) > item.limit || /…$/.test(draft))) || (draft && /…$/.test(draft));
+    });
+    if (invalid.length || (adaptations.validation?.warnings || []).length) throw new Error(`Platform adaptation rejected${invalid.length ? ` for ${invalid.map((item) => item.name).join(", ")}` : `: ${adaptations.validation.warnings.join(" ")}`}.`);
+    return { masterDraft, variants, validation };
   }
 
   function generateCopy(config, text, analysis) {
@@ -425,10 +499,10 @@
     return "Editable draft · approval required";
   }
 
-  function makeVariants(text, analysis) {
+  function makeVariants(text, analysis, personaPackage = null) {
     return platformConfig.map((config) => ({
       ...config,
-      copy: generateCopy(config, text, analysis),
+      copy: personaPackage && config.id !== "site-news" ? personaPackage.variants[config.id] : generateCopy(config, text, analysis),
       selected: config.defaultOn && !(config.mediaOnly && !(state.media || imageUrl.value.trim())),
       disabled: config.mediaOnly && !(state.media || imageUrl.value.trim()),
       utm: buildTrackedUrl(config.id),
@@ -447,12 +521,29 @@
     $("#layer-reason").textContent = analysis.layer.reason;
     $("#detected-voice").textContent = analysis.voice.value;
     $("#voice-reason").textContent = analysis.voice.reason;
-    $("#detected-cta").textContent = analysis.cta;
+    $("#detected-cta").textContent = analysis.cta || "No CTA — let the character ending land";
     $("#destination-summary").textContent = cleanUrl(destinationUrl.value) || "No destination assigned; generated CTAs remain text-only.";
     renderFlagList($("#approval-flags"), analysis.flags.approval);
     renderFlagList($("#canon-flags"), analysis.flags.canon);
+    renderPersonaValidation();
     renderCodeScan();
     $("#analysis-panel").hidden = false;
+  }
+
+  function renderPersonaValidation() {
+    const panel = $("#persona-validation");
+    if (!state.persona) {
+      panel.hidden = true;
+      return;
+    }
+    const validation = state.persona.validation;
+    const strong = validation.voiceMatch >= 0.75 && validation.sourceFidelity >= 0.7 && !validation.warnings.length;
+    $("#persona-validation-label").textContent = `${state.analysis.voice.value} voice confidence`;
+    $("#persona-validation-score").textContent = strong ? "Strong" : "Weak";
+    $("#persona-validation-detail").textContent = strong
+      ? `${validation.characterMarkers.join(", ") || "Distinct character movement"}. Source fidelity ${(validation.sourceFidelity * 100).toFixed(0)}%.`
+      : validation.warnings.join(" ") || "Regeneration required before export.";
+    panel.hidden = false;
   }
 
   function renderFlagList(list, items) {
@@ -578,6 +669,10 @@
       objective: objective.value,
       voice: voice.value,
       character: character.value,
+      personaStyle: personaStyle.value,
+      transformationStrength: transformationStrength.value,
+      localModelUrl: localModelUrl.value,
+      localModel: localModel.value,
       contentWarning: contentWarning.value,
       campaign: campaign.value,
       savedAt: new Date().toISOString(),
@@ -608,6 +703,11 @@
       objective.value = draft.objective || "discussion";
       voice.value = draft.voice || "auto";
       character.value = draft.character || "";
+      personaStyle.value = draft.personaStyle || "commentary";
+      transformationStrength.value = draft.transformationStrength || "adapt";
+      localModelUrl.value = draft.localModelUrl || "http://127.0.0.1:11434/api/chat";
+      localModel.value = draft.localModel || "mistral-7b-custom";
+      updatePersonaEngine();
       contentWarning.value = draft.contentWarning || "";
       campaign.value = draft.campaign || "relaydaemon";
       updateSourceCount();
@@ -622,6 +722,10 @@
     localStorage.removeItem(STORAGE_KEY);
     $("#save-state").textContent = "Not saved";
     $("#form-message").textContent = "Saved device draft cleared. Current form left intact.";
+  }
+
+  function updatePersonaEngine() {
+    $("#persona-engine").hidden = !character.value;
   }
 
   function updateSourceCount() {
@@ -759,7 +863,7 @@
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
-  function generate() {
+  async function generate() {
     const text = normalizeWhitespace(sourceText.value);
     if (!text) {
       $("#form-message").textContent = "Relay requires an original post or draft.";
@@ -772,7 +876,17 @@
     }
     saveDraft();
     state.analysis = analyze(text);
-    state.variants = makeVariants(text, state.analysis);
+    state.persona = null;
+    if (state.analysis.voice.key === "character") {
+      $("#form-message").textContent = `Authoring a ${state.analysis.voice.value} master draft on your local model…`;
+      try {
+        state.persona = await createPersonaPackage(text, state.analysis);
+      } catch (error) {
+        $("#form-message").textContent = `${error.message} Character drafts were not generated.`;
+        return;
+      }
+    }
+    state.variants = makeVariants(text, state.analysis, state.persona);
     renderAnalysis();
     renderVariants();
     $("#form-message").textContent = `${state.variants.length} destination drafts generated. Review and edit before export.`;
@@ -807,6 +921,10 @@
           style: state.analysis.voice.profile.style,
           knowledgeBoundary: state.analysis.voice.profile.knowledgeBoundary,
           reviewRequired: true,
+          style: personaStyle.value,
+          transformationStrength: transformationStrength.value,
+          masterDraft: state.persona?.masterDraft || null,
+          validation: state.persona?.validation || null,
         } : null,
         objective: objective.value,
         cta: state.analysis.cta,
@@ -881,6 +999,13 @@
       `- Content class: ${data.interpretation.contentClass}`,
       `- Reality layer: ${data.interpretation.realityLayer}`,
       `- Voice: ${data.interpretation.voice}`,
+      ...(data.interpretation.character ? [
+        `- Character profile: ${data.interpretation.character.name}`,
+        `- Character transformation: ${data.interpretation.character.transformationStrength} / ${data.interpretation.character.style}`,
+        `- Character voice confidence: ${(data.interpretation.character.validation.voiceMatch * 100).toFixed(0)}%`,
+        `- Character source fidelity: ${(data.interpretation.character.validation.sourceFidelity * 100).toFixed(0)}%`,
+        `- Character markers: ${data.interpretation.character.validation.characterMarkers.join(", ") || "None"}`,
+      ] : []),
       `- Objective: ${data.interpretation.objective}`,
       `- CTA: ${data.interpretation.cta}`,
       `- Code scan verified: ${data.interpretation.machineReadableCodeVerified === null ? "Not applicable" : data.interpretation.machineReadableCodeVerified ? "Yes" : "No"}`,
@@ -972,6 +1097,7 @@
   sourceText.addEventListener("input", updateSourceCount);
   mediaFile.addEventListener("change", handleMediaFile);
   imageUrl.addEventListener("change", updateImageUrlPreview);
+  character.addEventListener("change", updatePersonaEngine);
   $("#restore-draft").addEventListener("click", restoreDraft);
   $("#clear-draft").addEventListener("click", clearDraft);
   $("#select-all").addEventListener("click", () => {
@@ -1000,5 +1126,6 @@
   window.addEventListener("beforeunload", revokeObjectUrl);
 
   updateSourceCount();
+  updatePersonaEngine();
   if (localStorage.getItem(STORAGE_KEY)) $("#save-state").textContent = "Saved draft available";
 })();
