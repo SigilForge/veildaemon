@@ -3606,6 +3606,125 @@ footer.site-footer {
   margin: 0.35rem 0;
 }
 
+.wd-per {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+  margin-left: 0.15rem;
+}
+
+.wd-care-pricing .wd-price-card h3 {
+  font-variant-numeric: tabular-nums;
+}
+
+.wd-support-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+.wd-support-split article {
+  padding: 1.25rem 1.2rem 1.35rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: rgba(17, 19, 20, 0.9);
+}
+
+.wd-support-split h3 {
+  margin: 0.35rem 0 0.9rem;
+  font-size: 1.35rem;
+}
+
+.wd-check,
+.wd-x {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wd-check li,
+.wd-x li {
+  position: relative;
+  margin: 0.4rem 0;
+  padding-left: 1.55rem;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.wd-check li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--sage);
+  font-weight: 700;
+}
+
+.wd-x li::before {
+  content: "×";
+  position: absolute;
+  left: 0.1rem;
+  color: var(--rust-soft);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.wd-support-note {
+  margin: 1rem 0 0;
+  color: var(--text-faint);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.wd-ai-assist {
+  margin-top: clamp(1.75rem, 4vw, 2.5rem);
+  max-width: 52rem;
+  padding: clamp(1.4rem, 3vw, 1.85rem);
+  border-radius: var(--radius);
+  border: 1px solid rgba(126, 184, 168, 0.28);
+  background:
+    radial-gradient(ellipse 70% 80% at 100% 0%, rgba(126, 184, 168, 0.1), transparent 55%),
+    rgba(17, 19, 20, 0.92);
+}
+
+.wd-ai-assist h2 {
+  margin: 0.4rem 0 0.85rem;
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+}
+
+.wd-ai-assist > p {
+  margin: 0 0 0.85rem;
+  color: var(--text-soft);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.wd-ai-examples {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 1rem;
+  margin: 0 0 1rem;
+  padding: 0 0 0 1.1rem;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.wd-ai-examples li {
+  margin: 0.25rem 0;
+}
+
+.wd-ai-horizon {
+  margin-top: 1rem !important;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--text-faint) !important;
+  font-size: 0.92rem !important;
+}
+
 .wd-price-fit {
   margin: 1rem 0 0;
   padding-top: 0.9rem;
@@ -4062,6 +4181,11 @@ footer.site-footer {
 
   .wd-price-card.featured {
     order: -1;
+  }
+
+  .wd-support-split,
+  .wd-ai-examples {
+    grid-template-columns: 1fr;
   }
 
   .wd-work-grid,

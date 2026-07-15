@@ -207,7 +207,7 @@ test.describe("studio subtree routes", () => {
     await expect(page).toHaveTitle(/Small Business Web Design/);
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
-      /mobile-first|small business/i
+      /without the headache|Website Care|Business Care/i
     );
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /index,\s*follow/i);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
@@ -227,10 +227,17 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("main")).toContainText(/ten websites that genuinely help/i);
     await expect(page.locator("main")).not.toContainText(/client testimonial/i);
     await expect(page.locator("main")).not.toContainText(/500% increase/i);
-    await expect(page.locator(".wd-price-card")).toHaveCount(3);
-    await expect(page.locator(".wd-price-card.featured")).toContainText("Most Popular");
-    await expect(page.locator(".wd-price-card.featured")).toContainText("Business");
-    await expect(page.locator(".wd-price-card.featured")).toContainText("Starting at $500");
+    await expect(page.locator("#pricing .wd-price-card")).toHaveCount(3);
+    await expect(page.locator("#pricing .wd-price-card.featured")).toContainText("Most Popular");
+    await expect(page.locator("#pricing .wd-price-card.featured")).toContainText("Business");
+    await expect(page.locator("#pricing .wd-price-card.featured")).toContainText("Starting at $500");
+    await expect(page.locator("#care-plans .wd-price-card")).toHaveCount(3);
+    await expect(page.locator("#care-plans .wd-price-card.featured")).toContainText("Business Care");
+    await expect(page.locator("#care-plans .wd-price-card.featured")).toContainText("$75");
+    await expect(page.locator("#care-plans")).toContainText(/Month-to-month/i);
+    await expect(page.locator("#care-plans")).toContainText(/AI Business Assistant/i);
+    await expect(page.locator("#care-plans .wd-check li")).toHaveCount(8);
+    await expect(page.locator("#care-plans .wd-x li")).toHaveCount(6);
     await expect(page.locator("#why-affordable")).toContainText(/work directly with the person designing/i);
     await expect(page.locator("#existing-work a[href='https://veildaemon.app']")).toHaveCount(1);
     await expect(page.locator("#existing-work a[href='/studio/']")).toHaveCount(1);
@@ -257,7 +264,7 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#project-review-form")).toBeVisible();
     await expect(page.locator('#project-review-form [name="budget"] option')).toHaveCount(7);
     await expect(page.getByRole("button", { name: /Request a Project Review/i })).toBeVisible();
-    await expect(page.locator(".wd-faq details")).toHaveCount(10);
+    await expect(page.locator(".wd-faq details")).toHaveCount(11);
     await noHorizontalOverflow(page);
 
     await page.setViewportSize({ width: 390, height: 844 });
