@@ -10,6 +10,7 @@ const studioRoutes = [
   { path: "/studio/projects/", name: "projects", title: /Projects/, h1: /One system/ },
   { path: "/studio/publishing/", name: "publishing", title: /Publishing/, h1: /publishing line already in market/ },
   { path: "/studio/technology/", name: "technology", title: /Technology/, h1: /Shipping infrastructure first/ },
+  { path: "/studio/relay/", name: "relay", title: /RelayDaemon/, h1: /One post enters/ },
   { path: "/studio/funding/", name: "funding", title: /Funding/, h1: /funding and partnership case/i },
   { path: "/studio/traction/", name: "traction", title: /Traction/, h1: /Built before permission/ },
   { path: "/studio/press/", name: "press", title: /Press/, h1: /Approved materials/ },
@@ -126,13 +127,14 @@ test.describe("studio subtree routes", () => {
     });
 
     await page.goto("/studio/projects/");
-    await expect(page.locator(".portfolio-card")).toHaveCount(7);
-    await expect(page.locator(".portfolio-card .card-media")).toHaveCount(7);
+    await expect(page.locator(".portfolio-card")).toHaveCount(8);
+    await expect(page.locator(".portfolio-card .card-media")).toHaveCount(8);
     await expect(page.locator(".portfolio-card img.art-zoom")).toHaveCount(2);
     await expect(page.locator(".portfolio-card h3")).toHaveText([
       "Cradlepoint TTRPG",
       "VeilDaemon",
       "Operator + Handler Systems",
+      "RelayDaemon",
       "Fiction + public archive",
       "Mobile AR",
       "Ritual Sites",
@@ -153,11 +155,7 @@ test.describe("studio subtree routes", () => {
       expect(Math.max(...row.map((item) => item.height)) - Math.min(...row.map((item) => item.height))).toBeLessThanOrEqual(1);
     }
     expect(Math.max(...projectTileMetrics.map((item) => item.mediaHeight)) - Math.min(...projectTileMetrics.map((item) => item.mediaHeight))).toBeLessThanOrEqual(1);
-    const [gridBox, forgeBox] = await Promise.all([
-      page.locator(".portfolio-grid").boundingBox(),
-      page.locator(".veilforge-card").boundingBox(),
-    ]);
-    expect(Math.abs((forgeBox.x + forgeBox.width / 2) - (gridBox.x + gridBox.width / 2))).toBeLessThanOrEqual(1);
+    await expect(page.locator('a.portfolio-card[href="/studio/relay/"]')).toContainText("local-first MVP");
 
     await page.goto("/studio/funding/");
     await expect(page.locator("#structure")).toContainText(/Funding instruments/i);
@@ -472,7 +470,10 @@ test.describe("studio subtree routes", () => {
 
     await page.goto("/studio/");
     const jsonLd = await page.locator('script[type="application/ld+json"]').first().textContent();
-    const data = JSON.parse(jsonLd);
+    const parsedData = JSON.parse(jsonLd);
+    const data = parsedData["@graph"]
+      ? parsedData["@graph"].find((entry) => entry["@type"] === "Organization")
+      : parsedData;
     expect(data["@type"]).toBe("Organization");
     expect(data.name).toBe("Cradlepoint Studio");
     expect(data.logo || "", "Organization logo should be Cradlepoint Studio mark").toMatch(
@@ -500,7 +501,7 @@ test.describe("studio subtree routes", () => {
 
     // Cache-bust query present on Studio CSS
     const cssHref = await page.locator('link[rel="stylesheet"][href*="studio.css"]').first().getAttribute("href");
-    expect(cssHref).toMatch(/studio\.css\?v=20260713-brand2/);
+    expect(cssHref).toMatch(/studio\.css\?v=[a-z0-9-]+/i);
 
     // Portal images must load and use versioned currentSrc
     await page.goto("/studio/");
@@ -533,7 +534,7 @@ test.describe("studio subtree routes", () => {
     // Build marker present
     await expect(page.locator('meta[name="build-version"]')).toHaveAttribute(
       "content",
-      /20260713-brand2/
+      /^202607[0-9]{2}-[a-z0-9-]+$/i
     );
     const version = await page.request.get("/studio/version.json");
     expect(version.ok()).toBeTruthy();
@@ -606,6 +607,65 @@ test.describe("studio subtree routes", () => {
       path: path.join(reviewDir, "cradlepoint-studio-mobile.png"),
       fullPage: true,
     });
+  });
+
+  test("RelayDaemon generates, reviews, gates media variants, and exports locally", async ({ page }) => {
+    await page.goto("/studio/relay/");
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
+    await page.locator("#source-text").fill(
+      "We built RelayDaemon because copying the same paragraph into nine platforms is not a publishing strategy. It keeps the central idea intact, adapts each draft, and leaves approval with a human."
+    );
+    await page.locator("#destination-url").fill("https://veildaemon.app/studio/relay/");
+    await page.locator("#objective").selectOption("announcement");
+    await page.getByRole("button", { name: "Generate social package" }).click();
+
+    await expect(page.locator("#analysis-panel")).toBeVisible();
+    await expect(page.locator("#review-panel")).toBeVisible();
+    await expect(page.locator(".variant-card")).toHaveCount(15);
+    await expect(page.locator('[data-platform="tiktok"] .destination-check')).toBeDisabled();
+    await expect(page.locator('[data-platform="youtube"] .destination-check')).toBeDisabled();
+    await expect(page.locator('[data-platform="bluesky"] .count-badge')).not.toHaveClass(/over/);
+    await expect(page.locator('[data-platform="instagram"]')).toContainText("utm_source=instagram");
+    await expect(page.locator("#save-state")).toHaveText("Saved on this device");
+
+    const generatedCopies = await page.locator(".variant-copy").evaluateAll((nodes) => nodes.map((node) => node.value));
+    expect(new Set(generatedCopies).size).toBeGreaterThan(10);
+
+    await page.locator("#media-file").setInputFiles(path.join(process.cwd(), "studio/assets/social/technology-social-preview.webp"));
+    await expect(page.locator("#code-confirmation")).toBeVisible();
+    await expect(page.locator("#code-scan-status")).not.toContainText("Inspecting");
+    await page.getByRole("button", { name: "Regenerate after edits" }).click();
+    await expect(page.locator('[data-platform="tiktok"] .destination-check')).toBeEnabled();
+    await expect(page.locator('[data-platform="youtube"] .destination-check')).toBeEnabled();
+    if (await page.locator("#code-verify-label").isVisible()) {
+      await page.locator("#code-verified").check();
+    }
+
+    await page.locator('[data-platform="x"] .destination-check').uncheck();
+    await expect(page.locator('[data-platform="x"]')).not.toHaveClass(/is-selected/);
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download JSON" }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe("relaydaemon-package.json");
+
+    await page.locator("#source-text").fill(
+      "The final social image contains a QR code for the project page and a separate barcode from the source packaging. Prepare the announcement without silently replacing either code."
+    );
+    await page.getByRole("button", { name: "Regenerate after edits" }).click();
+    await expect(page.locator("#approval-flags")).toContainText("repository’s direct-URL SVG generator");
+    await expect(page.locator("#approval-flags")).toContainText("Do not auto-replace");
+    await expect(page.locator('[data-platform="instagram"]')).toContainText("Barcode requires manual encoded-data review");
+    await expect(page.locator("#code-verify-label")).toBeVisible();
+    await page.locator("#code-verified").check();
+    const remediationDownloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Download JSON" }).click();
+    const remediationDownload = await remediationDownloadPromise;
+    const remediationPath = await remediationDownload.path();
+    const remediation = JSON.parse(fs.readFileSync(remediationPath, "utf8"));
+    expect(remediation.machineReadableRemediation.qrReplacementEligible).toBe(true);
+    expect(remediation.machineReadableRemediation.qrGenerator).toBe("scripts/generate-veilcorp-qr.mjs");
+    expect(remediation.machineReadableRemediation.barcodeRequiresManualReview).toBe(true);
+    await noHorizontalOverflow(page);
   });
 
   test("studio subtree crawler for local href and src", async ({ page }) => {

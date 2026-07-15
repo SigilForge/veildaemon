@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RelayDaemon | Social Publishing Review | Cradlepoint Studio</title>
+  <meta name="description" content="Transform one source post into reviewed, platform-specific social drafts without handing a machine permission to publish them.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#070a0b">
+  <link rel="canonical" href="https://veildaemon.app/studio/relay/">
+  <link rel="icon" href="/studio/assets/brand/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="/studio/studio.css?v=20260715-relay1">
+  <link rel="stylesheet" href="/studio/relay/relay.css?v=20260715-relay1">
+  <script defer src="/studio/relay/relay.js?v=20260715-relay1"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body class="subpage relay-page">
+  <a class="skip-link" href="#main">Skip to RelayDaemon</a>
+  <header class="site-header">
+    <a class="brand" href="/studio/"><img src="/studio/assets/brand/cradlepoint-studio-emblem-256.webp?v=20260713-brand2" alt="Cradlepoint Studio"><span><strong>CRADLEPOINT</strong><small>STUDIO</small></span></a>
+    <nav aria-label="Primary navigation"><a href="/studio/projects/">Projects</a><a href="/studio/web-design/">Web design</a><a href="/studio/publishing/">Publishing</a><a href="/studio/technology/">Technology</a><a href="/studio/funding/">Funding</a><a href="/studio/data-room/">Data Room</a><a class="nav-cta" href="mailto:J.Donavon.Love@gmail.com?subject=Cradlepoint%20Studio%20Inquiry">Contact</a></nav>
+  </header>
+
+  <main id="main">
+    <section class="relay-hero">
+      <div>
+        <p class="eyebrow">Studio publishing utility · local-first MVP</p>
+        <h1>One post enters. A coordinated swarm crawls out.</h1>
+        <p>RelayDaemon preserves the thought, then adapts its shape. Nothing is posted. Nothing leaves this browser. You choose which drafts survive review.</p>
+      </div>
+      <aside class="relay-status" aria-label="RelayDaemon operating status">
+        <span>RELAY STATUS</span>
+        <strong>REVIEW AUTHORITY: HUMAN</strong>
+        <p>Generation is deterministic and runs on this device. Social connectors remain offline.</p>
+      </aside>
+    </section>
+
+    <form id="relay-form" class="relay-workspace">
+      <section class="relay-panel source-panel" aria-labelledby="source-heading">
+        <div class="panel-heading">
+          <div><p class="step-label">01 · Source</p><h2 id="source-heading">Give it the original thought.</h2></div>
+          <p>The source is preserved. Generated drafts never overwrite it.</p>
+        </div>
+
+        <label class="field field-wide">Original post or draft
+          <textarea id="source-text" name="source" rows="9" required placeholder="Paste the post exactly as it currently exists…"></textarea>
+          <span class="field-meta"><span id="source-count">0 characters</span><span id="save-state">Not saved</span></span>
+        </label>
+
+        <div class="field-grid">
+          <label class="field">Source or reference URL
+            <input id="source-url" name="sourceUrl" type="url" inputmode="url" placeholder="https://…">
+          </label>
+          <label class="field">Primary destination link
+            <input id="destination-url" name="destinationUrl" type="url" inputmode="url" placeholder="https://veildaemon.app/…">
+          </label>
+          <label class="field">Image URL
+            <input id="image-url" name="imageUrl" type="url" inputmode="url" placeholder="Optional existing image URL">
+          </label>
+          <label class="field file-field">Upload image or media
+            <input id="media-file" name="media" type="file" accept="image/*,video/*">
+          </label>
+        </div>
+
+        <div id="media-preview" class="media-preview" hidden>
+          <div id="preview-frame" class="preview-frame"></div>
+          <div>
+            <strong id="media-name">Attached media</strong>
+            <span id="media-meta"></span>
+            <label class="field compact">Alt-text source
+              <textarea id="alt-text" rows="3" placeholder="Describe the subject, visible text, atmosphere, and relevant action."></textarea>
+            </label>
+          </div>
+        </div>
+
+        <div class="field-grid decisions-grid">
+          <label class="field">Objective
+            <select id="objective" name="objective">
+              <option value="discussion">Discussion</option>
+              <option value="traffic">Traffic</option>
+              <option value="sale">Sale</option>
+              <option value="announcement">Announcement</option>
+              <option value="lore">Lore</option>
+              <option value="funding">Funding</option>
+              <option value="personal">Personal</option>
+            </select>
+          </label>
+          <label class="field">Lead voice
+            <select id="voice" name="voice">
+              <option value="auto">Auto-detect</option>
+              <option value="personal">Personal</option>
+              <option value="archive">Archive</option>
+              <option value="studio">Studio</option>
+            </select>
+          </label>
+          <label class="field">Content warning
+            <input id="content-warning" name="contentWarning" type="text" placeholder="Optional: blood, violence, flashing imagery…">
+          </label>
+          <label class="field">Campaign name
+            <input id="campaign" name="campaign" type="text" value="relaydaemon" maxlength="80">
+          </label>
+        </div>
+
+        <div id="code-confirmation" class="code-confirmation" hidden>
+          <strong id="code-scan-status">Machine-readable code scan not run</strong>
+          <p id="code-scan-detail">Attach an image to inspect it for QR codes and common barcode formats.</p>
+          <label id="code-verify-label" hidden><input id="code-verified" type="checkbox"> I manually confirmed the QR code or barcode scans from the final asset.</label>
+        </div>
+
+        <div class="form-actions">
+          <button class="primary-action" type="submit">Generate social package</button>
+          <button id="restore-draft" class="quiet-action" type="button">Restore saved draft</button>
+          <button id="clear-draft" class="quiet-action" type="button">Clear saved draft</button>
+        </div>
+        <p id="form-message" class="form-message" role="status" aria-live="polite"></p>
+      </section>
+
+      <section id="analysis-panel" class="relay-panel analysis-panel" aria-labelledby="analysis-heading" hidden>
+        <div class="panel-heading">
+          <div><p class="step-label">02 · Interpretation</p><h2 id="analysis-heading">Confirm what the machine thinks it saw.</h2></div>
+          <button id="regenerate" class="quiet-action" type="button">Regenerate after edits</button>
+        </div>
+        <div class="analysis-grid">
+          <article><span>Content class</span><strong id="detected-class">—</strong><small id="class-reason">—</small></article>
+          <article><span>Reality layer</span><strong id="detected-layer">—</strong><small id="layer-reason">—</small></article>
+          <article><span>Applied voice</span><strong id="detected-voice">—</strong><small id="voice-reason">—</small></article>
+          <article><span>Primary action</span><strong id="detected-cta">—</strong><small id="destination-summary">—</small></article>
+        </div>
+        <div class="review-notes">
+          <div><h3>Approval flags</h3><ul id="approval-flags"></ul></div>
+          <div><h3>Canon and disclosure checks</h3><ul id="canon-flags"></ul></div>
+        </div>
+      </section>
+
+      <section id="review-panel" class="relay-panel review-panel" aria-labelledby="review-heading" hidden>
+        <div class="panel-heading review-heading-row">
+          <div><p class="step-label">03 · Review board</p><h2 id="review-heading">Approve the versions that may leave.</h2></div>
+          <div class="selection-actions">
+            <button id="select-all" class="quiet-action" type="button">Select eligible</button>
+            <button id="select-none" class="quiet-action" type="button">Clear selection</button>
+          </div>
+        </div>
+        <div class="board-summary">
+          <p><strong id="selected-count">0</strong> destinations approved</p>
+          <p>Every draft is editable. Counts and export data update as you type.</p>
+        </div>
+        <div id="variant-grid" class="variant-grid"></div>
+      </section>
+    </form>
+
+    <section id="export-panel" class="relay-panel export-panel" aria-labelledby="export-heading" hidden>
+      <div class="panel-heading">
+        <div><p class="step-label">04 · Export</p><h2 id="export-heading">Release the approved package.</h2></div>
+        <p>Exports include source preservation, interpretation, warnings, media guidance, UTM links, and only the checked variants.</p>
+      </div>
+      <div class="export-actions">
+        <button id="copy-package" class="primary-action" type="button">Copy approved package</button>
+        <button id="download-markdown" class="quiet-action" type="button">Download Markdown</button>
+        <button id="download-json" class="quiet-action" type="button">Download JSON</button>
+      </div>
+      <p id="export-message" class="form-message" role="status" aria-live="polite"></p>
+      <p class="connector-note"><strong>Publishing connectors are intentionally offline.</strong> Bluesky, Mastodon, and Discord are the first planned doors. Approval remains a separate action from generation.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div class="footer-brand"><img src="/studio/assets/brand/cradlepoint-studio-emblem-256.webp?v=20260713-brand2" alt="Cradlepoint Studio"><span><strong>CRADLEPOINT STUDIO</strong><small>Source preserved. Human authorization required.</small></span></div>
+      <div class="footer-cols">
+        <nav aria-label="Studio tools"><strong>Studio</strong><a href="/studio/">Studio home</a><a href="/studio/web-design/">Web design</a><a href="/studio/projects/">Projects</a><a href="/studio/technology/">Technology</a><a href="/studio/relay/" aria-current="page">RelayDaemon</a><a href="/studio/traction/">Traction</a><a href="/studio/press/">Press</a><a href="/studio/about/">About</a></nav>
+        <nav aria-label="Relay destinations"><strong>Destinations</strong><a href="https://play.veildaemon.app/" target="_blank" rel="noopener noreferrer">Storefront</a><a href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer">Public archive</a><a href="/">VeilDaemon</a></nav>
+        <nav aria-label="Trust and legal"><strong>Trust</strong><a href="/studio/privacy/">Privacy</a><a href="/studio/copyright/">Copyright</a><a href="/studio/media-usage/">Media usage</a></nav>
+      </div>
+    </div>
+    <p class="footer-copy">© 2024–2026 J. Donavon Love, under the Cradlepoint Studio name</p>
+  </footer>
+</body>
+</html>
