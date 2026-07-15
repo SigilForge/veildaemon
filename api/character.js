@@ -1,6 +1,6 @@
 const MAX_BODY_BYTES = 60_000;
 const MAX_MESSAGE_CHARS = 48_000;
-const MAX_OUTPUT_TOKENS = 1_200;
+const MAX_OUTPUT_TOKENS = 2_400;
 const REQUEST_TIMEOUT_MS = 45_000;
 const RATE_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT = 8;
@@ -106,6 +106,13 @@ function responseText(payload) {
   return "";
 }
 
+function responseFailure(payload, text) {
+  const parts = (payload.output || []).flatMap((item) => item.content || []);
+  if (parts.some((part) => part.type === "refusal")) return "HOSTED_ENGINE_REFUSED";
+  if (payload.status === "incomplete" || payload.incomplete_details || (text && !text.trim().endsWith("}"))) return "HOSTED_ENGINE_INCOMPLETE";
+  return "INVALID_MODEL_OUTPUT";
+}
+
 function validateResult(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("INVALID_MODEL_OUTPUT");
   if (typeof value.masterDraft !== "string" || value.masterDraft.trim().length < 40 || value.masterDraft.length > 8_000) throw new Error("INVALID_MODEL_OUTPUT");
@@ -129,7 +136,12 @@ module.exports = async function handler(req, res) {
   if (!process.env.OPENAI_API_KEY) return send(res, 503, { status: "error", error: "HOSTED_ENGINE_NOT_CONFIGURED" }, rateHeaders);
 
   try {
-    const parsed = JSON.parse((await readBody(req)) || "{}");
+    let parsed;
+    try {
+      parsed = JSON.parse((await readBody(req)) || "{}");
+    } catch (_error) {
+      return send(res, 400, { status: "error", error: "MALFORMED_REQUEST" }, rateHeaders);
+    }
     const messages = validateMessages(parsed.messages);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -155,12 +167,34 @@ module.exports = async function handler(req, res) {
       return send(res, 502, { status: "error", error: "HOSTED_ENGINE_FAILED" }, rateHeaders);
     }
     const payload = await response.json();
-    const result = validateResult(JSON.parse(responseText(payload)));
+    const text = responseText(payload);
+    let structured;
+    try {
+      structured = JSON.parse(text);
+    } catch (_error) {
+      const code = responseFailure(payload, text);
+      console.error("Relay hosted character output was not complete structured JSON", {
+        code,
+        status: payload.status || null,
+        incompleteReason: payload.incomplete_details?.reason || null,
+        requestId: response.headers.get("x-request-id") || null,
+      });
+      return send(res, 502, { status: "error", error: code }, rateHeaders);
+    }
+    let result;
+    try {
+      result = validateResult(structured);
+    } catch (_error) {
+      console.error("Relay hosted character output failed schema validation", {
+        requestId: response.headers.get("x-request-id") || null,
+      });
+      return send(res, 502, { status: "error", error: "INVALID_MODEL_OUTPUT" }, rateHeaders);
+    }
     return send(res, 200, { status: "ok", engine: "openai", model: payload.model || process.env.OPENAI_MODEL || "gpt-5-mini", result }, rateHeaders);
   } catch (error) {
     if (error?.name === "AbortError") return send(res, 504, { status: "error", error: "HOSTED_ENGINE_TIMEOUT" }, rateHeaders);
-    const status = error?.statusCode || (error instanceof SyntaxError ? 400 : 502);
-    const code = error?.message === "BODY_TOO_LARGE" ? "INPUT_TOO_LARGE" : error?.message === "INVALID_MESSAGES" ? "INVALID_REQUEST" : status === 400 ? "INVALID_REQUEST" : "INVALID_MODEL_OUTPUT";
+    const status = error?.statusCode || 502;
+    const code = error?.message === "BODY_TOO_LARGE" || error?.message === "INPUT_TOO_LARGE" ? "INPUT_TOO_LARGE" : error?.message === "INVALID_MESSAGES" ? "INVALID_REQUEST" : "HOSTED_ENGINE_FAILED";
     return send(res, status, { status: "error", error: code }, rateHeaders);
   }
 };

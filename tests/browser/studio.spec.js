@@ -755,9 +755,33 @@ test.describe("studio subtree routes", () => {
       expect(response.statusCode).toBe(200);
       expect(JSON.parse(response.body).result.masterDraft).toContain("Hunger is honest");
       expect(requestBody.model).toBe("gpt-5-mini");
-      expect(requestBody.max_output_tokens).toBe(1200);
+      expect(requestBody.max_output_tokens).toBe(2400);
       expect(requestBody.store).toBe(false);
       expect(requestBody.text.format.type).toBe("json_schema");
+    } finally {
+      global.fetch = originalFetch;
+      if (originalKey === undefined) delete process.env.OPENAI_API_KEY;
+      else process.env.OPENAI_API_KEY = originalKey;
+    }
+  });
+
+  test("hosted character endpoint distinguishes incomplete model output from an invalid browser request", async () => {
+    const handler = require(path.join(process.cwd(), "api/character.js"));
+    const originalFetch = global.fetch;
+    const originalKey = process.env.OPENAI_API_KEY;
+    global.fetch = async () => new Response(JSON.stringify({
+      status: "incomplete",
+      incomplete_details: { reason: "max_output_tokens" },
+      output: [{ content: [{ type: "output_text", text: '{"masterDraft":"This response was cut off' }] }],
+    }), { status: 200, headers: { "Content-Type": "application/json", "x-request-id": "req_test_incomplete" } });
+    process.env.OPENAI_API_KEY = "test-only-key";
+    try {
+      const request = Readable.from([Buffer.from(JSON.stringify({ messages: [{ role: "system", content: "Return JSON." }, { role: "user", content: "Write one bounded character master." }] }))]);
+      Object.assign(request, { method: "POST", headers: { host: "relay.example", origin: "https://relay.example", "sec-fetch-site": "same-origin", "x-relay-request": "character-v1", "x-forwarded-for": "192.0.2.2" }, socket: { remoteAddress: "192.0.2.2" } });
+      const response = { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(body) { this.body = body; } };
+      await handler(request, response);
+      expect(response.statusCode).toBe(502);
+      expect(JSON.parse(response.body)).toEqual({ status: "error", error: "HOSTED_ENGINE_INCOMPLETE" });
     } finally {
       global.fetch = originalFetch;
       if (originalKey === undefined) delete process.env.OPENAI_API_KEY;
