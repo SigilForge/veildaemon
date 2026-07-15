@@ -672,6 +672,14 @@ test.describe("studio subtree routes", () => {
     const platformIds = ["x", "facebook-personal", "facebook-cradlepoint", "instagram", "threads", "bluesky", "mastodon", "linkedin", "discord", "patreon", "reddit", "itch", "tiktok", "youtube"];
     const variants = Object.fromEntries(platformIds.map((id) => [id, id === "tiktok" || id === "youtube" ? "" : `A distinct Cathy adaptation for ${id}. Hunger is honest. Sorry. The joke did not work.`]));
     let requestNumber = 0;
+    await page.addInitScript(() => {
+      const originalFetch = window.fetch.bind(window);
+      window.__relayOllamaOptions = [];
+      window.fetch = (input, init) => {
+        if (String(input).includes("127.0.0.1:11434")) window.__relayOllamaOptions.push(init);
+        return originalFetch(input, init);
+      };
+    });
     await page.route("http://127.0.0.1:11434/api/chat", async (route) => {
       requestNumber += 1;
       const content = requestNumber === 1
@@ -689,6 +697,9 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator('[data-platform="instagram"] .variant-copy')).toContainText("distinct Cathy adaptation");
     await expect(page.locator('[data-platform="instagram"] .variant-copy')).not.toContainText("The room helps people and stays morally compromised because every need overlaps.");
     expect(requestNumber).toBe(2);
+    const requestOptions = await page.evaluate(() => window.__relayOllamaOptions);
+    expect(requestOptions).toHaveLength(2);
+    expect(requestOptions.every((options) => options.mode === "cors" && options.targetAddressSpace === "loopback")).toBe(true);
   });
 
   test("studio subtree crawler for local href and src", async ({ page }) => {

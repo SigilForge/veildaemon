@@ -387,7 +387,13 @@
     const endpoint = cleanUrl(localModelUrl.value);
     const model = localModel.value.trim();
     if (!endpoint || !model) throw new Error("Set a local Ollama endpoint and installed model before using character voice.");
-    const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model, stream: false, format: "json", messages, options: { temperature: 0.72 } }) });
+    const response = await fetch(endpoint, {
+      method: "POST",
+      mode: "cors",
+      targetAddressSpace: "loopback",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model, stream: false, format: "json", messages, options: { temperature: 0.72 } }),
+    });
     if (!response.ok) throw new Error(`Local model did not respond (${response.status}).`);
     const payload = await response.json();
     return parseModelJson(payload.message?.content);
