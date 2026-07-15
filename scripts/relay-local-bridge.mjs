@@ -9,6 +9,13 @@ const HOST = "127.0.0.1";
 const PORT = Number.parseInt(process.env.RELAY_PORT || "4174", 10);
 const OLLAMA_CHAT_URL = process.env.RELAY_OLLAMA_URL || "http://127.0.0.1:11434/api/chat";
 const OLLAMA_MODEL = process.env.RELAY_OLLAMA_MODEL || "llama3.1:8b";
+const ALLOWED_ORIGINS = new Set([
+  `http://${HOST}:${PORT}`,
+  `http://localhost:${PORT}`,
+  "https://veildaemon-relay-knoxmortis-knoxmortis-projects.vercel.app",
+  "https://relay.veildaemon.app",
+  ...(process.env.RELAY_ALLOWED_ORIGINS || "").split(",").map((value) => value.trim()).filter(Boolean),
+]);
 const MAX_BODY_BYTES = 60_000;
 const CHARACTER_SCHEMA = {
   type: "object",
@@ -76,27 +83,50 @@ function validateResult(value) {
   return { masterDraft: value.masterDraft.trim(), validation };
 }
 
-function sameOrigin(req) {
+function authorizedOrigin(req) {
   if (req.headers["x-relay-request"] !== "character-v1") return false;
   const origin = String(req.headers.origin || "");
-  return origin === `http://${HOST}:${PORT}` || origin === `http://localhost:${PORT}`;
+  return ALLOWED_ORIGINS.has(origin);
 }
 
-async function ollamaStatus(res) {
+function applyCors(req, res) {
+  const origin = String(req.headers.origin || "");
+  if (!ALLOWED_ORIGINS.has(origin)) return false;
+  res.setHeader("Access-Control-Allow-Origin", origin);
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Relay-Request");
+  res.setHeader("Access-Control-Allow-Private-Network", "true");
+  res.setHeader("Vary", "Origin");
+  return true;
+}
+
+async function ollamaStatus(res, warm = false) {
   try {
-    const base = new URL(OLLAMA_CHAT_URL);
-    const response = await fetch(new URL("/api/tags", base), { signal: AbortSignal.timeout(5_000) });
+    const response = warm
+      ? await fetch(OLLAMA_CHAT_URL, {
+          method: "POST",
+          signal: AbortSignal.timeout(120_000),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: OLLAMA_MODEL, stream: false, keep_alive: "30m" }),
+        })
+      : await fetch(new URL("/api/tags", new URL(OLLAMA_CHAT_URL)), { signal: AbortSignal.timeout(5_000) });
     if (!response.ok) throw new Error("OLLAMA_UNAVAILABLE");
-    return json(res, 200, { status: "ok", engine: "ollama", model: OLLAMA_MODEL });
+    return json(res, 200, { status: "ok", engine: "ollama", model: OLLAMA_MODEL, warmed: warm });
   } catch (_error) {
     return json(res, 503, { status: "error", error: "OLLAMA_UNAVAILABLE", model: OLLAMA_MODEL });
   }
 }
 
-async function character(req, res) {
-  if (req.method === "GET") return ollamaStatus(res);
+async function character(req, res, warm = false) {
+  if (req.method === "OPTIONS") {
+    if (!applyCors(req, res)) return json(res, 403, { status: "error", error: "ORIGIN_NOT_ALLOWED" });
+    res.writeHead(204, { "Cache-Control": "no-store" });
+    return res.end();
+  }
+  applyCors(req, res);
+  if (req.method === "GET") return ollamaStatus(res, warm);
   if (req.method !== "POST") return json(res, 405, { status: "error", error: "METHOD_NOT_ALLOWED" });
-  if (!sameOrigin(req)) return json(res, 401, { status: "error", error: "UNAUTHORIZED" });
+  if (!authorizedOrigin(req)) return json(res, 401, { status: "error", error: "UNAUTHORIZED" });
   try {
     const body = JSON.parse((await readBody(req)) || "{}");
     const messages = validateMessages(body.messages);
@@ -138,7 +168,7 @@ async function serveStatic(pathname, res) {
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url || "/", `http://${HOST}:${PORT}`);
-  if (url.pathname === "/api/character") return character(req, res);
+  if (url.pathname === "/api/character") return character(req, res, url.searchParams.get("warm") === "1");
   return serveStatic(url.pathname, res);
 });
 
