@@ -142,6 +142,10 @@
     <priority>0.3</priority>
   </url>
 
+  <!-- relay-news:start -->
+  <url><loc>https://veildaemon.app/studio/news/</loc><lastmod>2026-07-15</lastmod><changefreq>weekly</changefreq><priority>0.65</priority></url>
+  <!-- relay-news:end -->
+
   <!-- Live tabletop software surfaces -->
   <url>
     <loc>https://veildaemon.app/handler/</loc>

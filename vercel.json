@@ -1,4 +1,7 @@
 {
+  "functions": {
+    "api/scan-code.js": { "maxDuration": 10 }
+  },
   "redirects": [
     {
       "source": "/play-report",

@@ -566,6 +566,19 @@ button:disabled {
   font-size: 0.86rem;
 }
 
+.export-permission {
+  max-width: 28rem;
+  margin-top: 1rem;
+}
+
+.export-permission span {
+  color: var(--text-faint);
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .connector-note strong {
   color: var(--text-soft);
 }

@@ -11,7 +11,8 @@
   <link rel="icon" href="/studio/assets/brand/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/studio/studio.css?v=20260715-relay1">
   <link rel="stylesheet" href="/studio/relay/relay.css?v=20260715-relay1">
-  <script defer src="/studio/relay/relay.js?v=20260715-relay1"></script>
+  <script defer src="/studio/relay/vendor/zxing-reader.js?v=20260715-relay2"></script>
+  <script defer src="/studio/relay/relay.js?v=20260715-relay2"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body class="subpage relay-page">
@@ -158,6 +159,10 @@
         <button id="download-markdown" class="quiet-action" type="button">Download Markdown</button>
         <button id="download-json" class="quiet-action" type="button">Download JSON</button>
       </div>
+      <label class="field export-permission">Site-news permission
+        <select id="site-approval"><option value="approved-for-export">Approved for export</option><option value="approved-for-scheduling">Approved for scheduling</option><option value="approved-for-publication">Approved for automatic publication</option></select>
+        <span>Only the final state permits the local site-news writer to create a permanent entry.</span>
+      </label>
       <p id="export-message" class="form-message" role="status" aria-live="polite"></p>
       <p class="connector-note"><strong>Publishing connectors are intentionally offline.</strong> Bluesky, Mastodon, and Discord are the first planned doors. Approval remains a separate action from generation.</p>
     </section>
