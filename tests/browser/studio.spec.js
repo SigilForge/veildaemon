@@ -74,8 +74,8 @@ test.describe("studio subtree routes", () => {
       await expect(page).toHaveTitle(route.title);
       await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
       await expect(page.locator("h1").first()).toContainText(route.h1);
-      await expect(page.locator('a[href="/studio/privacy/"]').first()).toBeVisible();
-      await expect(page.locator('a[href="/studio/media-usage/"]').first()).toBeVisible();
+      await expect(page.locator('a[href="/studio/privacy/"], a[href="https://veildaemon.app/studio/privacy/"]').first()).toBeVisible();
+      await expect(page.locator('a[href="/studio/media-usage/"], a[href="https://veildaemon.app/studio/media-usage/"]').first()).toBeVisible();
       // Unified chrome: primary Contact CTA + explore footer links
       await expect(page.locator("header.site-header a.nav-cta")).toHaveCount(1);
       await expect(page.locator('header.site-header a[href="/studio/projects/"]')).toHaveCount(1);
@@ -155,7 +155,10 @@ test.describe("studio subtree routes", () => {
       expect(Math.max(...row.map((item) => item.height)) - Math.min(...row.map((item) => item.height))).toBeLessThanOrEqual(1);
     }
     expect(Math.max(...projectTileMetrics.map((item) => item.mediaHeight)) - Math.min(...projectTileMetrics.map((item) => item.mediaHeight))).toBeLessThanOrEqual(1);
-    await expect(page.locator('a.portfolio-card[href="/studio/relay/"]')).toContainText("local-first MVP");
+    const relayCard = page.locator('a.portfolio-card[href="https://relay.veildaemon.app/"]');
+    await expect(relayCard).toContainText("local-first MVP");
+    await expect(relayCard).toHaveAttribute("target", "_blank");
+    await expect(relayCard).toHaveAttribute("rel", "noopener noreferrer");
 
     await page.goto("/studio/funding/");
     await expect(page.locator("#structure")).toContainText(/Funding instruments/i);
