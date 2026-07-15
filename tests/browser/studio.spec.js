@@ -78,9 +78,11 @@ test.describe("studio subtree routes", () => {
       // Unified chrome: primary Contact CTA + explore footer links
       await expect(page.locator("header.site-header a.nav-cta")).toHaveCount(1);
       await expect(page.locator('header.site-header a[href="/studio/projects/"]')).toHaveCount(1);
+      await expect(page.locator('header.site-header a[href="/studio/web-design/"]')).toHaveCount(1);
       await expect(page.locator('header.site-header a[href="/studio/data-room/"]')).toHaveCount(1);
       await expect(page.locator("footer.site-footer")).toHaveCount(1);
       await expect(page.locator('footer.site-footer a[href="/studio/projects/"]')).toHaveCount(1);
+      await expect(page.locator('footer.site-footer a[href="/studio/web-design/"]')).toHaveCount(1);
       await expect(page.locator('footer.site-footer a[href="/studio/about/"]')).toHaveCount(1);
       await expect(page.locator('footer.site-footer a[href="/studio/press/"]')).toHaveCount(1);
       await expect(page.locator('footer.site-footer a[href="/studio/traction/"]')).toHaveCount(1);
@@ -211,6 +213,26 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator(".wd-price-card.featured")).toContainText("Starting at $500");
     await expect(page.locator("#existing-work a[href='https://veildaemon.app']")).toHaveCount(1);
     await expect(page.locator("#existing-work a[href='/studio/']")).toHaveCount(1);
+    await expect(page.locator("#existing-work .wd-work-media")).toHaveCount(2);
+    await expect(page.locator("#existing-work .wd-work-body")).toHaveCount(2);
+    const workMetrics = await page.locator("#existing-work .wd-work-card").evaluateAll((cards) =>
+      cards.map((card) => {
+        const media = card.querySelector(".wd-work-media").getBoundingClientRect();
+        const body = card.querySelector(".wd-work-body").getBoundingClientRect();
+        const cardBox = card.getBoundingClientRect();
+        return {
+          cardH: cardBox.height,
+          mediaH: media.height,
+          mediaW: media.width,
+          bodyH: body.height,
+          ratio: media.width / media.height,
+        };
+      })
+    );
+    expect(Math.abs(workMetrics[0].mediaH - workMetrics[1].mediaH)).toBeLessThanOrEqual(1);
+    expect(Math.abs(workMetrics[0].cardH - workMetrics[1].cardH)).toBeLessThanOrEqual(1);
+    expect(Math.abs(workMetrics[0].ratio - 16 / 9)).toBeLessThan(0.05);
+    expect(Math.abs(workMetrics[1].ratio - 16 / 9)).toBeLessThan(0.05);
     await expect(page.locator("#project-review-form")).toBeVisible();
     await expect(page.locator('#project-review-form [name="budget"] option')).toHaveCount(7);
     await expect(page.getByRole("button", { name: /Request a Project Review/i })).toBeVisible();
