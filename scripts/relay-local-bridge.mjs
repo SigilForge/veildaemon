@@ -101,9 +101,63 @@ function splitSentences(value) {
     .filter(Boolean);
 }
 
+function sentenceKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s']/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Strip mid-stream model loops: repeated sentences and restated long runs. */
+function collapseSelfLoops(value) {
+  const sentences = splitSentences(value);
+  const kept = [];
+  const seen = new Set();
+  for (const sentence of sentences) {
+    const key = sentenceKey(sentence);
+    if (!key || key.split(" ").length < 3) {
+      kept.push(sentence);
+      continue;
+    }
+    if (seen.has(key)) continue;
+    const tokens = new Set(key.split(" "));
+    const near = [...seen].some((prior) => {
+      const priorTokens = prior.split(" ");
+      if (Math.abs(priorTokens.length - tokens.size) > 4) return false;
+      const overlap = priorTokens.filter((token) => tokens.has(token)).length;
+      return overlap / Math.max(priorTokens.length, tokens.size) >= 0.85;
+    });
+    if (near) continue;
+    seen.add(key);
+    kept.push(sentence);
+  }
+  let text = kept.join(" ").replace(/\s{2,}/g, " ").trim();
+  const words = text.toLowerCase().replace(/[^a-z0-9\s']/g, " ").split(/\s+/).filter(Boolean);
+  if (words.length >= 36) {
+    const drop = new Set();
+    const firstAt = new Map();
+    const windowSize = 12;
+    for (let i = 0; i + windowSize <= words.length; i += 1) {
+      if ([...Array(windowSize)].some((_, offset) => drop.has(i + offset))) continue;
+      const key = words.slice(i, i + windowSize).join(" ");
+      if (!firstAt.has(key)) {
+        firstAt.set(key, i);
+        continue;
+      }
+      for (let j = 0; j < windowSize; j += 1) drop.add(i + j);
+    }
+    if (drop.size) {
+      const original = text.split(/\s+/);
+      text = original.filter((_, index) => !drop.has(index)).join(" ").replace(/\s{2,}/g, " ").trim();
+    }
+  }
+  return text;
+}
+
 /** Prefer complete sentences under the hard ceiling; never invent text. */
 function clampDraft(value, limit) {
-  const clean = String(value || "").replace(/\s+/g, " ").trim().replace(/…+$/g, "").trim();
+  const clean = collapseSelfLoops(String(value || "").replace(/\s+/g, " ").trim().replace(/…+$/g, "").trim());
   if (!clean) return "";
   if (countGraphemes(clean) <= limit) return clean;
   const accepted = [];
@@ -158,7 +212,14 @@ function validateResult(value) {
     normalizedValidation[key] = score > 1 ? score / 100 : score;
   }
   for (const key of ["canonSafe", "knowledgeBoundarySafe"]) if (typeof validation[key] !== "boolean") throw invalidOutput(`validation_boolean_${key}`);
-  for (const key of ["characterMarkers", "warnings"]) if (!Array.isArray(validation[key]) || validation[key].length > 12 || validation[key].some((item) => typeof item !== "string")) throw invalidOutput(`validation_array_${key}`);
+  for (const key of ["characterMarkers", "warnings"]) {
+    let list = validation[key];
+    // Local models sometimes emit a string or object here; coerce rather than fail a good draft.
+    if (!Array.isArray(list)) list = typeof list === "string" && list.trim() ? [list.trim()] : [];
+    list = list.filter((item) => typeof item === "string").slice(0, 12);
+    if (list.some((item) => typeof item !== "string")) throw invalidOutput(`validation_array_${key}`);
+    normalizedValidation[key] = list;
+  }
   return { masterDraft, platformDrafts: normalizedPlatforms, validation: normalizedValidation };
 }
 
