@@ -168,9 +168,23 @@
     return text;
   }
 
+  /**
+   * Models often hard-wrap at ~80 columns with single newlines.
+   * Keep true paragraph breaks (\n\n); turn soft wraps into spaces.
+   */
+  function unwrapSoftLineBreaks(value) {
+    return String(value || "").replace(/([^\n])\n(?!\n)/g, "$1 ");
+  }
+
   /** Final surface cleanse — always last so loop/sentence tools cannot re-break versions. */
   function formatCleanse(value) {
-    return repairVersionNumbers(normalizeWhitespace(repairBrokenQuotes(repairVersionNumbers(value))));
+    return repairVersionNumbers(
+      normalizeWhitespace(
+        repairBrokenQuotes(
+          repairVersionNumbers(unwrapSoftLineBreaks(value))
+        )
+      )
+    );
   }
 
   /**
@@ -300,40 +314,42 @@
    * Models often loop mid-stream with the same full sentence twice.
    * Only remove whole-sentence duplicates — never delete mid-sentence n-grams
    * (that amputates endings like "Codex rebuilt the hallway. Ten times. Codex?").
+   * Process paragraph-by-paragraph so a single \n\n never becomes "one sentence per line".
    */
   function collapseSelfLoops(value) {
-    let text = collapseDuplicateParagraphs(value);
+    let text = collapseDuplicateParagraphs(unwrapSoftLineBreaks(value));
     if (!text) return "";
 
-    const sentences = splitSentences(text);
-    const keptSentences = [];
     const seen = new Set();
-    for (const sentence of sentences) {
-      const key = sentenceKey(sentence);
-      if (!key || key.split(" ").length < 3) {
+    const keptParas = [];
+    for (const para of text.split(/\n\n+/).map((part) => part.trim()).filter(Boolean)) {
+      const keptSentences = [];
+      for (const sentence of splitSentences(para)) {
+        const key = sentenceKey(sentence);
+        if (!key || key.split(" ").length < 3) {
+          keptSentences.push(sentence);
+          continue;
+        }
+        if (seen.has(key)) continue;
+        // Near-duplicate of a *long* prior sentence only (avoid nuking short closers).
+        const tokens = key.split(" ");
+        if (tokens.length >= 8) {
+          const tokenSet = new Set(tokens);
+          const near = [...seen].some((prior) => {
+            const priorTokens = prior.split(" ");
+            if (priorTokens.length < 8) return false;
+            if (Math.abs(priorTokens.length - tokens.length) > 3) return false;
+            const overlap = priorTokens.filter((token) => tokenSet.has(token)).length;
+            return overlap / Math.max(priorTokens.length, tokens.length) >= 0.9;
+          });
+          if (near) continue;
+        }
+        seen.add(key);
         keptSentences.push(sentence);
-        continue;
       }
-      if (seen.has(key)) continue;
-      // Near-duplicate of a *long* prior sentence only (avoid nuking short closers).
-      const tokens = key.split(" ");
-      if (tokens.length >= 8) {
-        const tokenSet = new Set(tokens);
-        const near = [...seen].some((prior) => {
-          const priorTokens = prior.split(" ");
-          if (priorTokens.length < 8) return false;
-          if (Math.abs(priorTokens.length - tokens.length) > 3) return false;
-          const overlap = priorTokens.filter((token) => tokenSet.has(token)).length;
-          return overlap / Math.max(priorTokens.length, tokens.length) >= 0.9;
-        });
-        if (near) continue;
-      }
-      seen.add(key);
-      keptSentences.push(sentence);
+      if (keptSentences.length) keptParas.push(keptSentences.join(" "));
     }
-    // Preserve paragraph breaks when the source had them; otherwise join with spaces.
-    text = keptSentences.join(text.includes("\n\n") ? "\n\n" : " ");
-    return normalizeWhitespace(text);
+    return normalizeWhitespace(keptParas.join("\n\n"));
   }
 
   function selfLoopScore(value) {
@@ -382,13 +398,21 @@
 
   /** Drop a trailing incomplete fragment; keep prior complete sentences only. */
   function ensureCompleteEnding(value) {
-    const clean = normalizeWhitespace(value);
+    const clean = normalizeWhitespace(unwrapSoftLineBreaks(value));
     if (isCompleteThought(clean)) return clean;
-    const sentences = splitSentences(clean);
-    while (sentences.length > 1) {
-      sentences.pop();
-      const candidate = normalizeWhitespace(sentences.join(" "));
-      if (isCompleteThought(candidate)) return candidate;
+    // Trim from the end without flattening real paragraphs into one-sentence lines.
+    const paragraphs = clean.split(/\n\n+/).map((part) => part.trim()).filter(Boolean);
+    while (paragraphs.length) {
+      const sentences = splitSentences(paragraphs[paragraphs.length - 1]);
+      while (sentences.length > 1) {
+        sentences.pop();
+        paragraphs[paragraphs.length - 1] = sentences.join(" ");
+        const candidate = normalizeWhitespace(paragraphs.join("\n\n"));
+        if (isCompleteThought(candidate)) return candidate;
+      }
+      paragraphs.pop();
+      const candidate = normalizeWhitespace(paragraphs.join("\n\n"));
+      if (candidate && isCompleteThought(candidate)) return candidate;
     }
     return clean;
   }
