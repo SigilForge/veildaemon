@@ -1,7 +1,11 @@
 const MAX_BODY_BYTES = 60_000;
 const MAX_MESSAGE_CHARS = 48_000;
-const MAX_OUTPUT_TOKENS = 2_400;
-const REQUEST_TIMEOUT_MS = 45_000;
+// gpt-5-mini counts reasoning + visible JSON against max_output_tokens. 2400 routinely
+// cuts off before platformDrafts close (status incomplete / reason max_output_tokens).
+const MAX_OUTPUT_TOKENS = Number.parseInt(process.env.OPENAI_MAX_OUTPUT_TOKENS || "8192", 10);
+const RETRY_OUTPUT_TOKENS = Number.parseInt(process.env.OPENAI_RETRY_OUTPUT_TOKENS || "12288", 10);
+const REQUEST_TIMEOUT_MS = Number.parseInt(process.env.OPENAI_REQUEST_TIMEOUT_MS || "55000", 10);
+const REASONING_EFFORT = process.env.OPENAI_REASONING_EFFORT || "low";
 const RATE_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT = 8;
 const rateBuckets = new Map();
@@ -124,6 +128,59 @@ function responseFailure(payload, text) {
   return "INVALID_MODEL_OUTPUT";
 }
 
+function isTokenBudgetIncomplete(payload, text) {
+  if (payload?.incomplete_details?.reason === "max_output_tokens") return true;
+  if (payload?.status === "incomplete" && !text?.trim()) return true;
+  return false;
+}
+
+function buildOpenAiBody(messages, maxOutputTokens) {
+  const body = {
+    model: process.env.OPENAI_MODEL || "gpt-5-mini",
+    input: messages,
+    max_output_tokens: maxOutputTokens,
+    store: false,
+    text: { format: { type: "json_schema", name: "relay_character_master", strict: true, schema: CHARACTER_SCHEMA } },
+  };
+  // Keep reasoning cheap for structured JSON; full effort burns the token budget before drafts finish.
+  if (REASONING_EFFORT && REASONING_EFFORT !== "default") body.reasoning = { effort: REASONING_EFFORT };
+  return body;
+}
+
+async function requestOpenAiCharacter(messages, maxOutputTokens, signal) {
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    signal,
+    headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify(buildOpenAiBody(messages, maxOutputTokens)),
+  });
+  return response;
+}
+
+function parseStructuredResult(payload, response) {
+  const text = responseText(payload);
+  let structured;
+  try {
+    structured = JSON.parse(text);
+  } catch (_error) {
+    const code = responseFailure(payload, text);
+    const error = new Error(code);
+    error.code = code;
+    error.payload = payload;
+    error.requestId = response.headers.get("x-request-id") || null;
+    error.textLength = text.length;
+    throw error;
+  }
+  try {
+    return { result: validateResult(structured), model: payload.model || process.env.OPENAI_MODEL || "gpt-5-mini", textLength: text.length };
+  } catch (_error) {
+    const error = new Error("INVALID_MODEL_OUTPUT");
+    error.code = "INVALID_MODEL_OUTPUT";
+    error.requestId = response.headers.get("x-request-id") || null;
+    throw error;
+  }
+}
+
 function validateResult(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("INVALID_MODEL_OUTPUT");
   if (typeof value.masterDraft !== "string" || value.masterDraft.trim().length < 40 || value.masterDraft.length > 8_000) throw new Error("INVALID_MODEL_OUTPUT");
@@ -166,54 +223,52 @@ module.exports = async function handler(req, res) {
       return send(res, 400, { status: "error", error: "MALFORMED_REQUEST" }, rateHeaders);
     }
     const messages = validateMessages(parsed.messages);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-    let response;
-    try {
-      response = await fetch("https://api.openai.com/v1/responses", {
-        method: "POST",
-        signal: controller.signal,
-        headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: process.env.OPENAI_MODEL || "gpt-5-mini",
-          input: messages,
-          max_output_tokens: MAX_OUTPUT_TOKENS,
-          store: false,
-          text: { format: { type: "json_schema", name: "relay_character_master", strict: true, schema: CHARACTER_SCHEMA } },
-        }),
-      });
-    } finally {
-      clearTimeout(timeout);
+    const budgets = [MAX_OUTPUT_TOKENS];
+    if (RETRY_OUTPUT_TOKENS > MAX_OUTPUT_TOKENS) budgets.push(RETRY_OUTPUT_TOKENS);
+
+    let lastError = null;
+    for (let attempt = 0; attempt < budgets.length; attempt += 1) {
+      const maxOutputTokens = budgets[attempt];
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      let response;
+      try {
+        response = await requestOpenAiCharacter(messages, maxOutputTokens, controller.signal);
+      } finally {
+        clearTimeout(timeout);
+      }
+      if (!response.ok) {
+        console.error("Relay hosted character request failed", { status: response.status, requestId: response.headers.get("x-request-id") || null, attempt, maxOutputTokens });
+        return send(res, 502, { status: "error", error: "HOSTED_ENGINE_FAILED" }, rateHeaders);
+      }
+      const payload = await response.json();
+      try {
+        const parsedResult = parseStructuredResult(payload, response);
+        return send(res, 200, {
+          status: "ok",
+          engine: "openai",
+          model: parsedResult.model,
+          result: parsedResult.result,
+        }, rateHeaders);
+      } catch (error) {
+        lastError = error;
+        const canRetry = attempt < budgets.length - 1 && error?.code === "HOSTED_ENGINE_INCOMPLETE" && isTokenBudgetIncomplete(payload, responseText(payload));
+        console.error("Relay hosted character output was not complete structured JSON", {
+          code: error?.code || error?.message || "HOSTED_ENGINE_FAILED",
+          status: payload.status || null,
+          incompleteReason: payload.incomplete_details?.reason || null,
+          requestId: error?.requestId || response.headers.get("x-request-id") || null,
+          attempt,
+          maxOutputTokens,
+          retrying: canRetry,
+          textLength: error?.textLength || 0,
+        });
+        if (!canRetry) {
+          return send(res, 502, { status: "error", error: error?.code || error?.message || "HOSTED_ENGINE_FAILED" }, rateHeaders);
+        }
+      }
     }
-    if (!response.ok) {
-      console.error("Relay hosted character request failed", { status: response.status, requestId: response.headers.get("x-request-id") || null });
-      return send(res, 502, { status: "error", error: "HOSTED_ENGINE_FAILED" }, rateHeaders);
-    }
-    const payload = await response.json();
-    const text = responseText(payload);
-    let structured;
-    try {
-      structured = JSON.parse(text);
-    } catch (_error) {
-      const code = responseFailure(payload, text);
-      console.error("Relay hosted character output was not complete structured JSON", {
-        code,
-        status: payload.status || null,
-        incompleteReason: payload.incomplete_details?.reason || null,
-        requestId: response.headers.get("x-request-id") || null,
-      });
-      return send(res, 502, { status: "error", error: code }, rateHeaders);
-    }
-    let result;
-    try {
-      result = validateResult(structured);
-    } catch (_error) {
-      console.error("Relay hosted character output failed schema validation", {
-        requestId: response.headers.get("x-request-id") || null,
-      });
-      return send(res, 502, { status: "error", error: "INVALID_MODEL_OUTPUT" }, rateHeaders);
-    }
-    return send(res, 200, { status: "ok", engine: "openai", model: payload.model || process.env.OPENAI_MODEL || "gpt-5-mini", result }, rateHeaders);
+    return send(res, 502, { status: "error", error: lastError?.code || "HOSTED_ENGINE_INCOMPLETE" }, rateHeaders);
   } catch (error) {
     if (error?.name === "AbortError") return send(res, 504, { status: "error", error: "HOSTED_ENGINE_TIMEOUT" }, rateHeaders);
     const status = error?.statusCode || 502;
