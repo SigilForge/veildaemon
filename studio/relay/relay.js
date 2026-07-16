@@ -309,7 +309,16 @@
   function fitSentencesToLimit(value, max) {
     const sentences = splitSentences(value);
     const accepted = [];
-    for (const sentence of sentences) {
+    for (let i = 0; i < sentences.length; i += 1) {
+      const sentence = sentences[i];
+      // Setup cliffhangers only land if the next beat also fits ("And what did X do?" + answer).
+      if (isSetupStubSentence(sentence) && i + 1 < sentences.length) {
+        const withAnswer = normalizeWhitespace([...accepted, sentence, sentences[i + 1]].join(" "));
+        if (countText(withAnswer) > max) break;
+        accepted.push(sentence, sentences[i + 1]);
+        i += 1;
+        continue;
+      }
       const candidate = normalizeWhitespace([...accepted, sentence].join(" "));
       if (countText(candidate) > max) break;
       accepted.push(sentence);
