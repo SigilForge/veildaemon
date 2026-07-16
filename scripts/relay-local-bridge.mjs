@@ -109,7 +109,7 @@ function sentenceKey(value) {
     .trim();
 }
 
-/** Strip mid-stream model loops: repeated sentences and restated long runs. */
+/** Strip mid-stream sentence loops only — never delete mid-sentence n-grams (that amputates endings). */
 function collapseSelfLoops(value) {
   const sentences = splitSentences(value);
   const kept = [];
@@ -121,43 +121,55 @@ function collapseSelfLoops(value) {
       continue;
     }
     if (seen.has(key)) continue;
-    const tokens = new Set(key.split(" "));
-    const near = [...seen].some((prior) => {
-      const priorTokens = prior.split(" ");
-      if (Math.abs(priorTokens.length - tokens.size) > 4) return false;
-      const overlap = priorTokens.filter((token) => tokens.has(token)).length;
-      return overlap / Math.max(priorTokens.length, tokens.size) >= 0.85;
-    });
-    if (near) continue;
+    const tokens = key.split(" ");
+    if (tokens.length >= 8) {
+      const tokenSet = new Set(tokens);
+      const near = [...seen].some((prior) => {
+        const priorTokens = prior.split(" ");
+        if (priorTokens.length < 8) return false;
+        if (Math.abs(priorTokens.length - tokens.length) > 3) return false;
+        const overlap = priorTokens.filter((token) => tokenSet.has(token)).length;
+        return overlap / Math.max(priorTokens.length, tokens.length) >= 0.9;
+      });
+      if (near) continue;
+    }
     seen.add(key);
     kept.push(sentence);
   }
-  let text = kept.join(" ").replace(/\s{2,}/g, " ").trim();
-  const words = text.toLowerCase().replace(/[^a-z0-9\s']/g, " ").split(/\s+/).filter(Boolean);
-  if (words.length >= 36) {
-    const drop = new Set();
-    const firstAt = new Map();
-    const windowSize = 12;
-    for (let i = 0; i + windowSize <= words.length; i += 1) {
-      if ([...Array(windowSize)].some((_, offset) => drop.has(i + offset))) continue;
-      const key = words.slice(i, i + windowSize).join(" ");
-      if (!firstAt.has(key)) {
-        firstAt.set(key, i);
-        continue;
-      }
-      for (let j = 0; j < windowSize; j += 1) drop.add(i + j);
-    }
-    if (drop.size) {
-      const original = text.split(/\s+/);
-      text = original.filter((_, index) => !drop.has(index)).join(" ").replace(/\s{2,}/g, " ").trim();
-    }
+  return kept.join(" ").replace(/\s{2,}/g, " ").trim();
+}
+
+function isCompleteThought(value) {
+  const clean = String(value || "").replace(/\s+/g, " ").trim();
+  if (clean.length < 40) return false;
+  if (/…$|\.\.\.$|—$|-$/.test(clean)) return false;
+  if (!/[.!?…"”']["'”']?$/.test(clean)) return false;
+  const sentences = splitSentences(clean);
+  if (sentences.length < 2) return false;
+  const last = sentences[sentences.length - 1];
+  const lastCore = last.replace(/[.!?…"”']+/g, "").trim();
+  const lastWords = lastCore.split(/\s+/).filter(Boolean);
+  if (lastWords.length <= 2 && /\?$/.test(last) && clean.length > 280) return false;
+  if (/\b(and|but|or|the|a|an|to|of|with|for|that|which|who|when|while|because|so|then|codex)\s*$/i.test(lastCore)) return false;
+  if (lastWords.length < 3 && !/^(end|status|done|verified|failed|terminated|complete|closed)\b/i.test(lastCore)) return false;
+  return true;
+}
+
+function ensureCompleteEnding(value) {
+  const clean = String(value || "").replace(/\s+/g, " ").trim();
+  if (isCompleteThought(clean)) return clean;
+  const sentences = splitSentences(clean);
+  while (sentences.length > 1) {
+    sentences.pop();
+    const candidate = sentences.join(" ").replace(/\s{2,}/g, " ").trim();
+    if (isCompleteThought(candidate)) return candidate;
   }
-  return text;
+  return clean;
 }
 
 /** Prefer complete sentences under the hard ceiling; never invent text. */
 function clampDraft(value, limit) {
-  const clean = collapseSelfLoops(String(value || "").replace(/\s+/g, " ").trim().replace(/…+$/g, "").trim());
+  let clean = ensureCompleteEnding(collapseSelfLoops(String(value || "").replace(/\s+/g, " ").trim().replace(/…+$/g, "").trim()));
   if (!clean) return "";
   if (countGraphemes(clean) <= limit) return clean;
   const accepted = [];
@@ -166,9 +178,10 @@ function clampDraft(value, limit) {
     if (countGraphemes(candidate) > limit) break;
     accepted.push(sentence);
   }
-  if (accepted.length) return accepted.join(" ");
-  const hard = [...clean].slice(0, Math.max(1, limit - 1)).join("").replace(/[,;:\s]+$/g, "");
-  return hard ? `${hard}.` : "";
+  clean = ensureCompleteEnding(accepted.join(" "));
+  if (clean && countGraphemes(clean) <= limit) return clean;
+  // Prefer a shorter complete thought over a hard mid-sentence cut.
+  return clean || "";
 }
 
 function extractJsonObject(text) {
