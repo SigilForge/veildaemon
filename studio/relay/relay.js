@@ -336,7 +336,12 @@
       len += countText(sentence) + 1;
       const atEnd = i === items.length - 1;
       const nextPivot = Boolean(next && pivot.test(next.trim()));
-      const full = bucket.length >= 2 && (len >= softTarget || bucket.length >= maxSent || (nextPivot && len >= 220));
+      // Don't end a paragraph on a short setup stub ("The task?", "And what did Codex do?").
+      const lastCore = sentence.replace(/[.!?…"”']+/g, "").trim();
+      const lastIsStub = lastCore.split(/\s+/).filter(Boolean).length <= 6;
+      const full = bucket.length >= 2
+        && !lastIsStub
+        && (len >= softTarget || bucket.length >= maxSent || (nextPivot && len >= 220));
       if (!atEnd && full) {
         paras.push(bucket.join(" "));
         bucket = [];
