@@ -9,9 +9,20 @@ const rateBuckets = new Map();
 const CHARACTER_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["masterDraft", "validation"],
+  required: ["masterDraft", "platformDrafts", "validation"],
   properties: {
     masterDraft: { type: "string", minLength: 40, maxLength: 8_000 },
+    platformDrafts: {
+      type: "object",
+      additionalProperties: false,
+      required: ["x", "threads", "bluesky", "mastodon"],
+      properties: {
+        x: { type: "string", minLength: 40, maxLength: 1_500 },
+        threads: { type: "string", minLength: 40, maxLength: 1_500 },
+        bluesky: { type: "string", minLength: 40, maxLength: 1_500 },
+        mastodon: { type: "string", minLength: 40, maxLength: 1_500 },
+      },
+    },
     validation: {
       type: "object",
       additionalProperties: false,
@@ -116,12 +127,24 @@ function responseFailure(payload, text) {
 function validateResult(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("INVALID_MODEL_OUTPUT");
   if (typeof value.masterDraft !== "string" || value.masterDraft.trim().length < 40 || value.masterDraft.length > 8_000) throw new Error("INVALID_MODEL_OUTPUT");
+  const limits = { x: 1_500, threads: 1_500, bluesky: 1_500, mastodon: 1_500 };
+  const platformDrafts = value.platformDrafts;
+  if (!platformDrafts || typeof platformDrafts !== "object" || Array.isArray(platformDrafts)) throw new Error("INVALID_MODEL_OUTPUT");
+  for (const [key, limit] of Object.entries(limits)) {
+    const draft = platformDrafts[key];
+    if (typeof draft !== "string" || draft.trim().length < 40 || [...draft.trim()].length > limit || /…$/.test(draft.trim())) throw new Error("INVALID_MODEL_OUTPUT");
+  }
   const validation = value.validation;
   if (!validation || typeof validation !== "object") throw new Error("INVALID_MODEL_OUTPUT");
-  for (const key of ["voiceMatch", "sourceFidelity"]) if (!Number.isFinite(validation[key]) || validation[key] < 0 || validation[key] > 1) throw new Error("INVALID_MODEL_OUTPUT");
+  const normalizedValidation = { ...validation };
+  for (const key of ["voiceMatch", "sourceFidelity"]) {
+    const score = validation[key];
+    if (!Number.isFinite(score) || score < 0 || score > 100) throw new Error("INVALID_MODEL_OUTPUT");
+    normalizedValidation[key] = score > 1 ? score / 100 : score;
+  }
   for (const key of ["canonSafe", "knowledgeBoundarySafe"]) if (typeof validation[key] !== "boolean") throw new Error("INVALID_MODEL_OUTPUT");
   for (const key of ["characterMarkers", "warnings"]) if (!Array.isArray(validation[key]) || validation[key].length > 12 || validation[key].some((item) => typeof item !== "string")) throw new Error("INVALID_MODEL_OUTPUT");
-  return { masterDraft: value.masterDraft.trim(), validation };
+  return { masterDraft: value.masterDraft.trim(), platformDrafts: Object.fromEntries(Object.entries(platformDrafts).map(([key, draft]) => [key, draft.trim()])), validation: normalizedValidation };
 }
 
 module.exports = async function handler(req, res) {

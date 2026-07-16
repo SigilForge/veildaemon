@@ -3,7 +3,7 @@
 
   const STORAGE_KEY = "relaydaemon.draft.v1";
   const MAX_SOURCE = 40000;
-  const GENERATION_TIMEOUT_MS = 120000;
+  const GENERATION_TIMEOUT_MS = 240000;
   const CHARACTER_ENDPOINT = "/api/character";
   const LOCAL_CHARACTER_ENDPOINT = "http://127.0.0.1:4174/api/character";
   const IS_LOCAL_BRIDGE = ["127.0.0.1", "localhost"].includes(window.location.hostname);
@@ -169,6 +169,11 @@
     if (accepted.length) return accepted.join(" ");
     const fragment = clip(sentences[0] || clean, Math.max(1, max - 1), "").replace(/[,;:\s]+$/, "");
     return `${fragment}.`;
+  }
+
+  function fitCharacterSummary(value, max) {
+    const clean = normalizeWhitespace(value);
+    return clean && countText(clean) <= max && !clean.endsWith("…") ? clean : "";
   }
 
   function countText(value, graphemes = false) {
@@ -510,17 +515,22 @@
     const profile = analysis.voice.profile;
     const master = await characterEngineRequest([
       { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes." },
-      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write a complete first-person master post that reacts to the argument instead of summarizing it.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nReturn {"masterDraft":"...","validation":{"voiceMatch":0.0,"sourceFidelity":0.0,"canonSafe":true,"knowledgeBoundarySafe":true,"characterMarkers":["..."],"warnings":[]}}.` },
+      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write a complete first-person master post between 600 and 1,200 characters that reacts to the argument instead of summarizing it.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Write final in-character outputs for X (maximum 500 characters or 70 words), Threads (maximum 420 characters or 60 words), Bluesky (maximum 240 characters or 35 words), and Mastodon (maximum 440 characters or 65 words).\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully summarizes the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fits its stated character and word limits.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn {"masterDraft":"...","platformDrafts":{"x":"...","threads":"...","bluesky":"...","mastodon":"..."},"validation":{"voiceMatch":0.0,"sourceFidelity":0.0,"canonSafe":true,"knowledgeBoundarySafe":true,"characterMarkers":["..."],"warnings":[]}}.` },
     ], "character master");
     const masterDraft = normalizeWhitespace(master.masterDraft);
     if (!masterDraft) throw new Error("Character engine returned no master draft.");
     const validation = validatePersonaMaster(text, masterDraft, profile, master.validation || {});
     if (validation.warnings.length) throw new Error(`Character draft rejected: ${validation.warnings.join(" ")}`);
     state.personaDrafts[character.value] = masterDraft;
-    onStage("Character master accepted. Applying deterministic platform adaptations…");
+    onStage("Character package passed the internal completeness rubric. Applying platform drafts…");
     const destinations = platformConfig.filter((item) => item.id !== "site-news").map((item) => ({ id: item.id, name: item.name, limit: item.limit, mediaOnly: Boolean(item.mediaOnly) }));
     const personaAnalysis = { ...analysis, cta: "", hashtags: [] };
-    const variants = Object.fromEntries(destinations.map((item) => [item.id, item.mediaOnly && !(state.media || imageUrl.value.trim()) ? "" : fitComplete(generateCopy(item, masterDraft, personaAnalysis), item.limit)]));
+    const platformDrafts = master.platformDrafts || {};
+    const variants = Object.fromEntries(destinations.map((item) => {
+      if (item.mediaOnly && !(state.media || imageUrl.value.trim())) return [item.id, ""];
+      if (platformDrafts[item.id]) return [item.id, fitCharacterSummary(platformDrafts[item.id], item.limit)];
+      return [item.id, fitComplete(generateCopy(item, masterDraft, personaAnalysis), item.limit)];
+    }));
     const invalid = destinations.filter((item) => {
       const draft = normalizeWhitespace(variants[item.id]);
       return (!item.mediaOnly && (!draft || countText(draft, item.graphemes) > item.limit || /…$/.test(draft))) || (draft && /…$/.test(draft));

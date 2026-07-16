@@ -8,7 +8,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const HOST = "127.0.0.1";
 const PORT = Number.parseInt(process.env.RELAY_PORT || "4174", 10);
 const OLLAMA_CHAT_URL = process.env.RELAY_OLLAMA_URL || "http://127.0.0.1:11434/api/chat";
-const OLLAMA_MODEL = process.env.RELAY_OLLAMA_MODEL || "llama3.1:8b";
+const OLLAMA_MODEL = process.env.RELAY_OLLAMA_MODEL || "hermes4:14b";
 const ALLOWED_ORIGINS = new Set([
   `http://${HOST}:${PORT}`,
   `http://localhost:${PORT}`,
@@ -20,16 +20,27 @@ const MAX_BODY_BYTES = 60_000;
 const CHARACTER_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["masterDraft", "validation"],
+  required: ["masterDraft", "platformDrafts", "validation"],
   properties: {
     masterDraft: { type: "string" },
+    platformDrafts: {
+      type: "object",
+      additionalProperties: false,
+      required: ["x", "threads", "bluesky", "mastodon"],
+      properties: {
+        x: { type: "string" },
+        threads: { type: "string" },
+        bluesky: { type: "string" },
+        mastodon: { type: "string" },
+      },
+    },
     validation: {
       type: "object",
       additionalProperties: false,
       required: ["voiceMatch", "sourceFidelity", "canonSafe", "knowledgeBoundarySafe", "characterMarkers", "warnings"],
       properties: {
-        voiceMatch: { type: "number" },
-        sourceFidelity: { type: "number" },
+        voiceMatch: { type: "number", minimum: 0, maximum: 1 },
+        sourceFidelity: { type: "number", minimum: 0, maximum: 1 },
         canonSafe: { type: "boolean" },
         knowledgeBoundarySafe: { type: "boolean" },
         characterMarkers: { type: "array", items: { type: "string" } },
@@ -73,14 +84,51 @@ function validateMessages(value) {
   return messages;
 }
 
+function invalidOutput(detail) {
+  return Object.assign(new Error("OLLAMA_INVALID_OUTPUT"), { detail });
+}
+
 function validateResult(value) {
-  if (!value || typeof value !== "object" || typeof value.masterDraft !== "string" || value.masterDraft.trim().length < 40 || value.masterDraft.length > 8_000) throw new Error("OLLAMA_INVALID_OUTPUT");
+  if (!value || typeof value !== "object") throw invalidOutput("result_not_object");
+  if (typeof value.masterDraft !== "string" || value.masterDraft.trim().length < 40 || value.masterDraft.length > 8_000) throw invalidOutput("master_draft_length");
+  const limits = { x: 1_500, threads: 1_500, bluesky: 1_500, mastodon: 1_500 };
+  const platformDrafts = value.platformDrafts;
+  if (!platformDrafts || typeof platformDrafts !== "object") throw invalidOutput("platform_drafts_missing");
+  for (const [key, limit] of Object.entries(limits)) {
+    const draft = platformDrafts[key];
+    if (typeof draft !== "string" || draft.trim().length < 40 || [...draft.trim()].length > limit || /…$/.test(draft.trim())) throw invalidOutput(`platform_draft_${key}`);
+  }
   const validation = value.validation;
-  if (!validation || typeof validation !== "object") throw new Error("OLLAMA_INVALID_OUTPUT");
-  for (const key of ["voiceMatch", "sourceFidelity"]) if (!Number.isFinite(validation[key]) || validation[key] < 0 || validation[key] > 1) throw new Error("OLLAMA_INVALID_OUTPUT");
-  for (const key of ["canonSafe", "knowledgeBoundarySafe"]) if (typeof validation[key] !== "boolean") throw new Error("OLLAMA_INVALID_OUTPUT");
-  for (const key of ["characterMarkers", "warnings"]) if (!Array.isArray(validation[key]) || validation[key].length > 12 || validation[key].some((item) => typeof item !== "string")) throw new Error("OLLAMA_INVALID_OUTPUT");
-  return { masterDraft: value.masterDraft.trim(), validation };
+  if (!validation || typeof validation !== "object") throw invalidOutput("validation_missing");
+  const normalizedValidation = { ...validation };
+  for (const key of ["voiceMatch", "sourceFidelity"]) {
+    const score = typeof validation[key] === "string" ? Number.parseFloat(validation[key]) : validation[key];
+    if (!Number.isFinite(score) || score < 0 || score > 100) throw invalidOutput(`validation_score_${key}`);
+    normalizedValidation[key] = score > 1 ? score / 100 : score;
+  }
+  for (const key of ["canonSafe", "knowledgeBoundarySafe"]) if (typeof validation[key] !== "boolean") throw invalidOutput(`validation_boolean_${key}`);
+  for (const key of ["characterMarkers", "warnings"]) if (!Array.isArray(validation[key]) || validation[key].length > 12 || validation[key].some((item) => typeof item !== "string")) throw invalidOutput(`validation_array_${key}`);
+  return { masterDraft: value.masterDraft.trim(), platformDrafts: Object.fromEntries(Object.entries(platformDrafts).map(([key, draft]) => [key, draft.trim()])), validation: normalizedValidation };
+}
+
+async function requestOllamaCharacter(messages, options) {
+  const response = await fetch(OLLAMA_CHAT_URL, {
+    method: "POST",
+    signal: AbortSignal.timeout(240_000),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ model: OLLAMA_MODEL, stream: false, think: true, format: CHARACTER_SCHEMA, keep_alive: "30m", messages, options }),
+  });
+  if (!response.ok) throw Object.assign(new Error("OLLAMA_FAILED"), { status: response.status });
+  const payload = await response.json();
+  const content = String(payload.message?.content || "");
+  if (!content) throw Object.assign(invalidOutput("empty_content"), { doneReason: payload.done_reason || null, hasThinking: Boolean(payload.message?.thinking) });
+  let parsed;
+  try {
+    parsed = JSON.parse(content);
+  } catch (_error) {
+    throw Object.assign(invalidOutput("invalid_json"), { contentLength: content.length, doneReason: payload.done_reason || null });
+  }
+  return validateResult(parsed);
 }
 
 function authorizedOrigin(req) {
@@ -103,11 +151,11 @@ function applyCors(req, res) {
 async function ollamaStatus(res, warm = false) {
   try {
     const response = warm
-      ? await fetch(OLLAMA_CHAT_URL, {
+      ? await fetch(new URL("/api/generate", new URL(OLLAMA_CHAT_URL)), {
           method: "POST",
-          signal: AbortSignal.timeout(120_000),
+          signal: AbortSignal.timeout(240_000),
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ model: OLLAMA_MODEL, stream: false, keep_alive: "30m" }),
+          body: JSON.stringify({ model: OLLAMA_MODEL, prompt: "", stream: false, keep_alive: "30m", options: { num_ctx: 16_384 } }),
         })
       : await fetch(new URL("/api/tags", new URL(OLLAMA_CHAT_URL)), { signal: AbortSignal.timeout(5_000) });
     if (!response.ok) throw new Error("OLLAMA_UNAVAILABLE");
@@ -130,18 +178,11 @@ async function character(req, res, warm = false) {
   try {
     const body = JSON.parse((await readBody(req)) || "{}");
     const messages = validateMessages(body.messages);
-    const response = await fetch(OLLAMA_CHAT_URL, {
-      method: "POST",
-      signal: AbortSignal.timeout(120_000),
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: OLLAMA_MODEL, stream: false, format: CHARACTER_SCHEMA, keep_alive: "30m", messages, options: { temperature: 0.72, num_predict: 800 } }),
-    });
-    if (!response.ok) return json(res, 502, { status: "error", error: "OLLAMA_FAILED" });
-    const payload = await response.json();
-    const result = validateResult(JSON.parse(String(payload.message?.content || "")));
+    const result = await requestOllamaCharacter(messages, { temperature: 0.3, num_ctx: 16_384, num_predict: 8_192 });
     return json(res, 200, { status: "ok", engine: "ollama", model: OLLAMA_MODEL, result });
   } catch (error) {
-    const code = error?.name === "TimeoutError" ? "OLLAMA_TIMEOUT" : ["INPUT_TOO_LARGE", "INVALID_REQUEST"].includes(error?.message) ? error.message : "OLLAMA_INVALID_OUTPUT";
+    const code = error?.name === "TimeoutError" ? "OLLAMA_TIMEOUT" : ["INPUT_TOO_LARGE", "INVALID_REQUEST", "OLLAMA_FAILED"].includes(error?.message) ? error.message : "OLLAMA_INVALID_OUTPUT";
+    console.warn("RelayDaemon Ollama character request failed", { code, detail: error?.detail || null, status: error?.status || null, contentLength: error?.contentLength || null, doneReason: error?.doneReason || null, hasThinking: error?.hasThinking || false });
     return json(res, code === "INPUT_TOO_LARGE" ? 413 : code === "INVALID_REQUEST" ? 400 : 502, { status: "error", error: code });
   }
 }
