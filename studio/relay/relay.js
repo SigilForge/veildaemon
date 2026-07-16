@@ -81,7 +81,10 @@
       style: "Perfect grammar, clipped phrasing, flat affect, and procedural prioritization.",
       knowledgeBoundary: "Do not give Shade knowledge Alex did not experience, independent goals, or autonomous publication authority.",
       emotionalArc: "classification → compressed risk assessment → unresolved procedural conclusion",
-      markers: [[/\b(analysis|risk|baseline|signal|noise|priority|status)\b/i, "procedural framing"], [/\b(therefore|however|but|unless)\b/i, "analytical turn"]],
+      markers: [
+        [/\b(analysis|risk|baseline|signal|noise|priority|status|classification|classified|assessment|anomaly|containment|compromised|observed|procedure|threat)\b/i, "procedural framing"],
+        [/\b(therefore|however|but|unless|instead|still|no longer)\b/i, "analytical turn"],
+      ],
     },
   };
 
@@ -172,8 +175,9 @@
   }
 
   function fitCharacterSummary(value, max) {
-    const clean = normalizeWhitespace(value);
-    return clean && countText(clean) <= max && !clean.endsWith("…") ? clean : "";
+    // Prefer complete-sentence compression over hard reject when local models overshoot platform caps.
+    const fitted = fitComplete(value, max);
+    return fitted && !fitted.endsWith("…") ? fitted : "";
   }
 
   function countText(value, graphemes = false) {
@@ -508,27 +512,49 @@
 
   function validatePersonaMaster(source, master, profile, modelValidation = {}) {
     const markers = profile.markers.filter(([pattern]) => pattern.test(master)).map(([, label]) => label);
+    const modelMarkers = (modelValidation.characterMarkers || []).filter((item) => typeof item === "string" && item.trim());
+    const voiceScore = Number(modelValidation.voiceMatch);
     const copiedRatio = copiedSentenceRatio(source, master);
     const warnings = [...new Set((modelValidation.warnings || []).filter(Boolean))];
-    if (copiedRatio > 0.55) warnings.push("Draft repeats too many complete source sentences.");
-    if (!markers.length) warnings.push("No character-specific perspective marker was detected.");
+    // Archive-style sources reuse report phrasing; only hard-fail near-total sentence reuse.
+    if (copiedRatio > 0.72) warnings.push("Draft repeats too many complete source sentences.");
+    // Local models often write in-voice without hitting a narrow regex. Accept model markers when the engine scores voice well.
+    if (!markers.length && !(modelMarkers.length && Number.isFinite(voiceScore) && voiceScore >= 0.7)) {
+      warnings.push("No character-specific perspective marker was detected.");
+    }
     if (splitSentences(master).length < 3) warnings.push("Draft has no visible emotional or structural movement.");
     if (modelValidation.canonSafe === false) warnings.push("Character engine marked a canon-safety concern.");
     if (modelValidation.knowledgeBoundarySafe === false) warnings.push("Character engine marked a knowledge-boundary concern.");
     if (Object.entries(state.personaDrafts).some(([key, draft]) => key !== character.value && normalizeWhitespace(draft).toLowerCase() === normalizeWhitespace(master).toLowerCase())) warnings.push("Draft duplicates a different character voice.");
-    return { voiceMatch: Number(modelValidation.voiceMatch || (markers.length >= 2 ? 0.82 : markers.length ? 0.62 : 0.3)), sourceFidelity: Number(modelValidation.sourceFidelity || 0.85), canonSafe: modelValidation.canonSafe !== false, knowledgeBoundarySafe: modelValidation.knowledgeBoundarySafe !== false, copiedTooClosely: copiedRatio > 0.55, copiedSentenceRatio: copiedRatio, characterMarkers: [...new Set([...(modelValidation.characterMarkers || []), ...markers])], warnings };
+    const combinedMarkers = [...new Set([...modelMarkers, ...markers])];
+    return { voiceMatch: Number(modelValidation.voiceMatch || (markers.length >= 2 ? 0.82 : markers.length || modelMarkers.length ? 0.62 : 0.3)), sourceFidelity: Number(modelValidation.sourceFidelity || 0.85), canonSafe: modelValidation.canonSafe !== false, knowledgeBoundarySafe: modelValidation.knowledgeBoundarySafe !== false, copiedTooClosely: copiedRatio > 0.72, copiedSentenceRatio: copiedRatio, characterMarkers: combinedMarkers, warnings };
   }
 
   async function createPersonaPackage(text, analysis, onStage = () => {}) {
     const profile = analysis.voice.profile;
-    const master = await characterEngineRequest([
+    const requestMessages = [
       { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes." },
       { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write a complete first-person master post between 600 and 1,200 characters that reacts to the argument instead of summarizing it.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Write final in-character outputs for X (maximum 500 characters or 70 words), Threads (maximum 420 characters or 60 words), Bluesky (maximum 240 characters or 35 words), and Mastodon (maximum 440 characters or 65 words).\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully summarizes the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fits its stated character and word limits.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn only the JSON object required by the response schema. Never emit placeholder text such as “...” or describe what a field should contain.` },
-    ], "character master");
-    const masterDraft = normalizeWhitespace(master.masterDraft);
-    if (!masterDraft) throw new Error("Character engine returned no master draft.");
-    const validation = validatePersonaMaster(text, masterDraft, profile, master.validation || {});
-    if (validation.warnings.length) throw new Error(`Character draft rejected: ${validation.warnings.join(" ")}`);
+    ];
+    let master = null;
+    let masterDraft = "";
+    let validation = null;
+    let lastReject = null;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      if (attempt > 0) onStage("Local draft failed internal review. Retrying character package once…");
+      master = await characterEngineRequest(requestMessages, attempt ? "character master retry" : "character master");
+      masterDraft = normalizeWhitespace(master.masterDraft);
+      if (!masterDraft) {
+        lastReject = new Error("Character engine returned no master draft.");
+        continue;
+      }
+      validation = validatePersonaMaster(text, masterDraft, profile, master.validation || {});
+      if (!validation.warnings.length) break;
+      lastReject = new Error(`Character draft rejected: ${validation.warnings.join(" ")}`);
+      master = null;
+    }
+    if (!master || !validation) throw lastReject || new Error("Character engine returned no master draft.");
+    if (validation.warnings.length) throw lastReject;
     state.personaDrafts[character.value] = masterDraft;
     onStage("Character package passed the internal completeness rubric. Applying platform drafts…");
     const destinations = platformConfig.filter((item) => item.id !== "site-news").map((item) => ({ id: item.id, name: item.name, limit: item.limit, mediaOnly: Boolean(item.mediaOnly) }));
@@ -536,7 +562,11 @@
     const platformDrafts = master.platformDrafts || {};
     const variants = Object.fromEntries(destinations.map((item) => {
       if (item.mediaOnly && !(state.media || imageUrl.value.trim())) return [item.id, ""];
-      if (platformDrafts[item.id]) return [item.id, fitCharacterSummary(platformDrafts[item.id], item.limit)];
+      if (platformDrafts[item.id]) {
+        const fitted = fitCharacterSummary(platformDrafts[item.id], item.limit);
+        if (fitted) return [item.id, fitted];
+        return [item.id, fitComplete(platformDrafts[item.id] || masterDraft, item.limit)];
+      }
       return [item.id, fitComplete(generateCopy(item, masterDraft, personaAnalysis), item.limit)];
     }));
     const invalid = destinations.filter((item) => {

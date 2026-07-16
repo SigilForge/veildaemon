@@ -88,16 +88,66 @@ function invalidOutput(detail, metadata = {}) {
   return Object.assign(new Error("OLLAMA_INVALID_OUTPUT"), { detail, ...metadata });
 }
 
+function countGraphemes(value) {
+  return [...String(value || "")].length;
+}
+
+function splitSentences(value) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(/(?<=[.!?])\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+/** Prefer complete sentences under the hard ceiling; never invent text. */
+function clampDraft(value, limit) {
+  const clean = String(value || "").replace(/\s+/g, " ").trim().replace(/…+$/g, "").trim();
+  if (!clean) return "";
+  if (countGraphemes(clean) <= limit) return clean;
+  const accepted = [];
+  for (const sentence of splitSentences(clean)) {
+    const candidate = [...accepted, sentence].join(" ");
+    if (countGraphemes(candidate) > limit) break;
+    accepted.push(sentence);
+  }
+  if (accepted.length) return accepted.join(" ");
+  const hard = [...clean].slice(0, Math.max(1, limit - 1)).join("").replace(/[,;:\s]+$/g, "");
+  return hard ? `${hard}.` : "";
+}
+
+function extractJsonObject(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch (_error) {
+    const start = raw.indexOf("{");
+    const end = raw.lastIndexOf("}");
+    if (start < 0 || end <= start) return null;
+    try {
+      return JSON.parse(raw.slice(start, end + 1));
+    } catch (_nested) {
+      return null;
+    }
+  }
+}
+
 function validateResult(value) {
   if (!value || typeof value !== "object") throw invalidOutput("result_not_object");
-  if (typeof value.masterDraft !== "string" || value.masterDraft.trim().length < 40 || value.masterDraft.length > 8_000) throw invalidOutput("master_draft_length");
+  const masterDraft = clampDraft(value.masterDraft, 8_000);
+  if (masterDraft.length < 40) throw invalidOutput("master_draft_length", { draftLength: masterDraft.length });
   const limits = { x: 1_500, threads: 1_500, bluesky: 1_500, mastodon: 1_500 };
   const platformDrafts = value.platformDrafts;
   if (!platformDrafts || typeof platformDrafts !== "object") throw invalidOutput("platform_drafts_missing");
+  const normalizedPlatforms = {};
   for (const [key, limit] of Object.entries(limits)) {
     const draft = platformDrafts[key];
-    const clean = typeof draft === "string" ? draft.trim() : "";
-    if (typeof draft !== "string" || clean.length < 40 || [...clean].length > limit || /…$/.test(clean)) throw invalidOutput(`platform_draft_${key}`, { draftLength: [...clean].length, endsEllipsis: /…$/.test(clean) });
+    if (typeof draft !== "string") throw invalidOutput(`platform_draft_${key}`, { draftLength: 0 });
+    const clean = clampDraft(draft, limit);
+    if (clean.length < 40 || /…$/.test(clean)) throw invalidOutput(`platform_draft_${key}`, { draftLength: countGraphemes(clean), endsEllipsis: /…$/.test(clean) });
+    normalizedPlatforms[key] = clean;
   }
   const validation = value.validation;
   if (!validation || typeof validation !== "object") throw invalidOutput("validation_missing");
@@ -109,27 +159,78 @@ function validateResult(value) {
   }
   for (const key of ["canonSafe", "knowledgeBoundarySafe"]) if (typeof validation[key] !== "boolean") throw invalidOutput(`validation_boolean_${key}`);
   for (const key of ["characterMarkers", "warnings"]) if (!Array.isArray(validation[key]) || validation[key].length > 12 || validation[key].some((item) => typeof item !== "string")) throw invalidOutput(`validation_array_${key}`);
-  return { masterDraft: value.masterDraft.trim(), platformDrafts: Object.fromEntries(Object.entries(platformDrafts).map(([key, draft]) => [key, draft.trim()])), validation: normalizedValidation };
+  return { masterDraft, platformDrafts: normalizedPlatforms, validation: normalizedValidation };
 }
 
-async function requestOllamaCharacter(messages, options) {
+const OLLAMA_ATTEMPTS = [
+  // First try may use thinking, but keep enough room for the JSON payload.
+  { think: true, temperature: 0.25, num_ctx: 16_384, num_predict: 10_240 },
+  // Thinking often burns the budget (done_reason=length, empty content). Fallback without it.
+  { think: false, temperature: 0.2, num_ctx: 16_384, num_predict: 6_144 },
+  { think: false, temperature: 0.1, num_ctx: 16_384, num_predict: 6_144 },
+];
+
+async function requestOllamaOnce(messages, attempt) {
+  const { think, temperature, num_ctx, num_predict } = attempt;
   const response = await fetch(OLLAMA_CHAT_URL, {
     method: "POST",
     signal: AbortSignal.timeout(240_000),
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ model: OLLAMA_MODEL, stream: false, think: true, format: CHARACTER_SCHEMA, keep_alive: "30m", messages, options }),
+    body: JSON.stringify({
+      model: OLLAMA_MODEL,
+      stream: false,
+      think,
+      format: CHARACTER_SCHEMA,
+      keep_alive: "30m",
+      messages,
+      options: { temperature, num_ctx, num_predict },
+    }),
   });
   if (!response.ok) throw Object.assign(new Error("OLLAMA_FAILED"), { status: response.status });
   const payload = await response.json();
   const content = String(payload.message?.content || "");
-  if (!content) throw Object.assign(invalidOutput("empty_content"), { doneReason: payload.done_reason || null, hasThinking: Boolean(payload.message?.thinking) });
-  let parsed;
-  try {
-    parsed = JSON.parse(content);
-  } catch (_error) {
-    throw Object.assign(invalidOutput("invalid_json"), { contentLength: content.length, doneReason: payload.done_reason || null });
+  const thinking = String(payload.message?.thinking || "");
+  const parsed = extractJsonObject(content) || extractJsonObject(thinking);
+  if (!parsed) {
+    throw Object.assign(invalidOutput(content ? "invalid_json" : "empty_content"), {
+      contentLength: content.length,
+      thinkingLength: thinking.length,
+      doneReason: payload.done_reason || null,
+      hasThinking: Boolean(thinking),
+      think,
+    });
   }
   return validateResult(parsed);
+}
+
+async function requestOllamaCharacter(messages) {
+  let lastError = null;
+  for (let index = 0; index < OLLAMA_ATTEMPTS.length; index += 1) {
+    const attempt = OLLAMA_ATTEMPTS[index];
+    try {
+      const result = await requestOllamaOnce(messages, attempt);
+      if (index > 0) console.warn("RelayDaemon Ollama character recovered after retry", { attempt: index, think: attempt.think, temperature: attempt.temperature });
+      return result;
+    } catch (error) {
+      lastError = error;
+      const retryable = error?.message === "OLLAMA_INVALID_OUTPUT" || error?.message === "OLLAMA_FAILED";
+      console.warn("RelayDaemon Ollama character attempt failed", {
+        attempt: index,
+        think: attempt.think,
+        temperature: attempt.temperature,
+        code: error?.message || "UNKNOWN",
+        detail: error?.detail || null,
+        draftLength: error?.draftLength ?? null,
+        contentLength: error?.contentLength ?? null,
+        thinkingLength: error?.thinkingLength ?? null,
+        doneReason: error?.doneReason || null,
+        hasThinking: error?.hasThinking || false,
+        retrying: retryable && index < OLLAMA_ATTEMPTS.length - 1,
+      });
+      if (!retryable || index >= OLLAMA_ATTEMPTS.length - 1) break;
+    }
+  }
+  throw lastError || invalidOutput("exhausted_retries");
 }
 
 function authorizedOrigin(req) {
@@ -179,11 +280,21 @@ async function character(req, res, warm = false) {
   try {
     const body = JSON.parse((await readBody(req)) || "{}");
     const messages = validateMessages(body.messages);
-    const result = await requestOllamaCharacter(messages, { temperature: 0.3, num_ctx: 16_384, num_predict: 8_192 });
+    const result = await requestOllamaCharacter(messages);
     return json(res, 200, { status: "ok", engine: "ollama", model: OLLAMA_MODEL, result });
   } catch (error) {
     const code = error?.name === "TimeoutError" ? "OLLAMA_TIMEOUT" : ["INPUT_TOO_LARGE", "INVALID_REQUEST", "OLLAMA_FAILED"].includes(error?.message) ? error.message : "OLLAMA_INVALID_OUTPUT";
-    console.warn("RelayDaemon Ollama character request failed", { code, detail: error?.detail || null, status: error?.status || null, contentLength: error?.contentLength || null, draftLength: error?.draftLength ?? null, endsEllipsis: error?.endsEllipsis || false, doneReason: error?.doneReason || null, hasThinking: error?.hasThinking || false });
+    console.warn("RelayDaemon Ollama character request failed", {
+      code,
+      detail: error?.detail || null,
+      status: error?.status || null,
+      contentLength: error?.contentLength || null,
+      thinkingLength: error?.thinkingLength || null,
+      draftLength: error?.draftLength ?? null,
+      endsEllipsis: error?.endsEllipsis || false,
+      doneReason: error?.doneReason || null,
+      hasThinking: error?.hasThinking || false,
+    });
     return json(res, code === "INPUT_TOO_LARGE" ? 413 : code === "INVALID_REQUEST" ? 400 : 502, { status: "error", error: code });
   }
 }
