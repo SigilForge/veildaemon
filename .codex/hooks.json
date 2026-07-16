@@ -1,0 +1,9 @@
+{
+  "hooks": {
+    "SessionStart": [{ "matcher": "startup|resume|compact", "hooks": [{ "type": "command", "command": "node .codex/hooks/relay-hook.mjs SessionStart" }] }],
+    "PreCompact": [{ "hooks": [{ "type": "command", "command": "node .codex/hooks/relay-hook.mjs PreCompact" }] }],
+    "PostCompact": [{ "hooks": [{ "type": "command", "command": "node .codex/hooks/relay-hook.mjs PostCompact" }] }],
+    "Stop": [{ "hooks": [{ "type": "command", "command": "node .codex/hooks/relay-hook.mjs Stop" }] }],
+    "PreToolUse": [{ "matcher": "apply_patch|Bash", "hooks": [{ "type": "command", "command": "node .codex/hooks/relay-hook.mjs PreToolUse" }] }]
+  }
+}

@@ -12,6 +12,9 @@ venv/
 # Node
 node_modules/
 _relay-vercel/
+artifacts/relay-acceptance/*.json
+.codex/state/relay-incident.json
+.codex/state/relay-precompact.json
 
 # Private pack guard
 packs/**

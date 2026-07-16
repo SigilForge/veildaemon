@@ -1,0 +1,12 @@
+{
+  "active": true,
+  "reproduction": "Paste CA-001 unchanged, select Shade, generate through the local UI.",
+  "expected": "Every platform output resolves ownership/control and trust/extraction in character within its limit.",
+  "responsibleLayer": "unassigned until reproduced",
+  "hypothesis": "unassigned until reproduced",
+  "falsifier": "Evidence that the suspected layer receives and emits a complete valid value.",
+  "allowedPaths": ["studio/relay/", "scripts/relay-local-bridge.mjs", "api/character.js", "tests/fixtures/relay/", "scripts/run-relay-acceptance.mjs"],
+  "lastEvidence": "",
+  "editTestCycles": 0
+}
+

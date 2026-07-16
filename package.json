@@ -18,6 +18,7 @@
     "webp:check": "node scripts/ensure-webp.mjs --check",
     "relay:vendor": "node scripts/vendor-zxing-reader.mjs",
     "relay:local": "node scripts/relay-local-bridge.mjs",
+    "relay:acceptance": "node scripts/run-relay-acceptance.mjs",
     "relay:vercel:prepare": "bash scripts/prepare-relay-vercel.sh",
     "relay:publish-news": "node scripts/relay-publish-news.mjs"
   },

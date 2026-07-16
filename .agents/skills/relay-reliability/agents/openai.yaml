@@ -1,0 +1,4 @@
+interface:
+  display_name: "Relay Reliability"
+  short_description: "Enforce Relay debugging and acceptance gates"
+  default_prompt: "Use $relay-reliability to fix the reported RelayDaemon defect without changing unrelated layers."
