@@ -737,7 +737,8 @@ test.describe("studio subtree routes", () => {
     expect(relaySource).toContain('targetAddressSpace: "loopback"');
     expect(relaySource).toContain("LOCAL_CHARACTER_ENDPOINT");
     expect(relaySource).toContain('message === "OLLAMA_INVALID_OUTPUT"');
-    expect(relaySource).toContain("Falling back to hosted OpenAI for this draft.");
+    expect(relaySource).toContain("Switching to hosted OpenAI backup for this draft only.");
+    expect(relaySource).toContain("trying local Ollama first (default)");
     expect(bridgeSource).toContain("https://veildaemon-relay-knoxmortis-knoxmortis-projects.vercel.app");
     expect(bridgeSource).toContain('Access-Control-Allow-Private-Network", "true"');
   });

@@ -430,7 +430,9 @@
         throw error;
       }
       if (!payload.result) throw new Error("Character engine returned no structured result.");
-      $("#persona-engine-status").textContent = `${payload.engine === "ollama" ? "Local Ollama" : "Hosted OpenAI"} ready · ${payload.model || "configured model"}.`;
+      $("#persona-engine-status").textContent = payload.engine === "ollama"
+        ? `Using local Ollama (default) · ${payload.model || "configured model"}.`
+        : `Using hosted OpenAI (backup) · ${payload.model || "configured model"}.`;
       return payload.result;
     } finally {
       window.clearTimeout(timeoutId);
@@ -451,10 +453,10 @@
           // Hosted pages may recover via OpenAI. Local bridge pages stay local so Ollama failures remain inspectable.
           if (IS_LOCAL_BRIDGE || (!unavailable && !invalidOutput)) throw localError;
           if (unavailable) state.localEngineReady = false;
-          console.warn(invalidOutput ? "Relay local engine returned unreadable structured output; using hosted OpenAI" : "Relay local engine became unavailable; using hosted OpenAI", { name: localError?.name, message });
+          console.warn(invalidOutput ? "Relay local engine returned unreadable structured output; using hosted OpenAI backup" : "Relay local engine became unavailable; using hosted OpenAI backup", { name: localError?.name, message });
           $("#persona-engine-status").textContent = invalidOutput
-            ? "Local Ollama returned an unreadable structured draft. Falling back to hosted OpenAI for this draft."
-            : "Local Ollama became unavailable. Using hosted OpenAI for this draft.";
+            ? "Local Ollama draft unreadable. Switching to hosted OpenAI backup for this draft only."
+            : "Local Ollama offline. Switching to hosted OpenAI backup for this draft only.";
         }
       }
       return await requestCharacterEngine(CHARACTER_ENDPOINT, messages, false);
@@ -476,7 +478,7 @@
   async function warmCharacterEngine() {
     if (!character.value) return;
     state.localEngineReady = false;
-    $("#persona-engine-status").textContent = "Warming local Ollama before generation…";
+    $("#persona-engine-status").textContent = "Checking local Ollama (default engine)…";
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
     try {
@@ -485,12 +487,12 @@
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
       state.localEngineReady = true;
-      $("#persona-engine-status").textContent = `Local Ollama warmed and ready · ${payload.model || "configured model"}.`;
+      $("#persona-engine-status").textContent = `Local Ollama ready (default) · ${payload.model || "configured model"}. Hosted OpenAI stays unused while local works.`;
     } catch (error) {
       console.warn("Relay local bridge warm-up failed", { endpoint: localEndpoint(), name: error?.name, message: error?.message });
       $("#persona-engine-status").textContent = IS_LOCAL_BRIDGE
-        ? "Local bridge could not warm Ollama. Check Ollama, then retry."
-        : "Local Ollama unavailable. Hosted OpenAI will be used only when Generate is pressed.";
+        ? "Local Ollama (default) could not warm. Fix Ollama or the local bridge, then retry."
+        : "Local Ollama (default) is offline. Generate will use hosted OpenAI backup only if you proceed.";
     } finally {
       window.clearTimeout(timeoutId);
     }
@@ -990,9 +992,12 @@
     $("#regenerate").disabled = true;
     try {
       if (state.analysis.voice.key === "character") {
-        $("#form-message").textContent = `Connecting to ${IS_LOCAL_BRIDGE ? "local Ollama" : "hosted OpenAI"} for ${state.analysis.voice.value}.`;
+        $("#form-message").textContent = `Character draft for ${state.analysis.voice.value}: trying local Ollama first (default).`;
         if (state.warmPromise) await state.warmPromise;
         else await warmCharacterEngine();
+        $("#form-message").textContent = state.localEngineReady
+          ? `Generating with local Ollama (default) for ${state.analysis.voice.value}…`
+          : `Local Ollama offline. Generating with hosted OpenAI backup for ${state.analysis.voice.value}…`;
         state.persona = await createPersonaPackage(text, state.analysis, (message) => { $("#form-message").textContent = message; });
       }
       state.variants = makeVariants(text, state.analysis, state.persona);
