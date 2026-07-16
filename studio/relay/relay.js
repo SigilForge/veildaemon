@@ -180,6 +180,42 @@
     return fitted && !fitted.endsWith("…") ? fitted : "";
   }
 
+  /** Drop consecutive / nested duplicate paragraphs so templates never paste the same body twice. */
+  function collapseDuplicateParagraphs(value) {
+    const paras = normalizeWhitespace(value).split(/\n\n+/).map((part) => part.trim()).filter(Boolean);
+    const kept = [];
+    for (const para of paras) {
+      const norm = para.toLowerCase().replace(/\s+/g, " ").trim();
+      const duplicate = kept.some((prev) => {
+        const prior = prev.toLowerCase().replace(/\s+/g, " ").trim();
+        if (prior === norm) return true;
+        if (norm.length < 48 || prior.length < 48) return false;
+        return norm.includes(prior) || prior.includes(norm);
+      });
+      if (!duplicate) kept.push(para);
+    }
+    return kept.join("\n\n");
+  }
+
+  /** Use as much of the source as the platform allows; do not pre-compress to a fixed short clip. */
+  function bodyForLimit(clean, limit, framingReserve = 160) {
+    const budget = Math.max(80, limit - framingReserve);
+    if (countText(clean) <= budget) return clean;
+    return fitComplete(clean, budget);
+  }
+
+  const LONG_FORM_PLATFORM_IDS = new Set([
+    "patreon",
+    "reddit",
+    "itch",
+    "linkedin",
+    "discord",
+    "facebook-personal",
+    "facebook-cradlepoint",
+    "instagram",
+    "site-news",
+  ]);
+
   function countText(value, graphemes = false) {
     if (graphemes && typeof Intl !== "undefined" && Intl.Segmenter) {
       return [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(value)].length;
@@ -532,9 +568,13 @@
 
   async function createPersonaPackage(text, analysis, onStage = () => {}) {
     const profile = analysis.voice.profile;
+    const sourceLen = countText(text);
+    const masterTarget = sourceLen <= 3500
+      ? `about ${Math.max(600, Math.min(sourceLen, 3200))} characters (rewrite the full post in voice; stay within roughly 85–110% of SOURCE length; never pad)`
+      : "1,200 to 2,400 characters as a faithful full-argument rewrite (not a teaser summary)";
     const requestMessages = [
-      { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes." },
-      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write a complete first-person master post between 600 and 1,200 characters that reacts to the argument instead of summarizing it.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Write final in-character outputs for X (maximum 500 characters or 70 words), Threads (maximum 420 characters or 60 words), Bluesky (maximum 240 characters or 35 words), and Mastodon (maximum 440 characters or 65 words).\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully summarizes the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fits its stated character and word limits.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn only the JSON object required by the response schema. Never emit placeholder text such as “...” or describe what a field should contain.` },
+      { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes. Never repeat the same paragraph, claim, or section twice in one field." },
+      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft in character voice: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Never duplicate paragraphs or restate the same block under a second heading.\n- Write final in-character outputs for X (maximum 500 characters or 70 words), Threads (maximum 420 characters or 60 words), Bluesky (maximum 240 characters or 35 words), and Mastodon (maximum 440 characters or 65 words). Those short fields must be distinct compressions, not pasted copies of the master.\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully carries the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fits its stated character and word limits.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\n6. No field repeats itself or pastes the same body twice.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn only the JSON object required by the response schema. Never emit placeholder text such as “...” or describe what a field should contain.` },
     ];
     let master = null;
     let masterDraft = "";
@@ -564,10 +604,15 @@
       if (item.mediaOnly && !(state.media || imageUrl.value.trim())) return [item.id, ""];
       if (platformDrafts[item.id]) {
         const fitted = fitCharacterSummary(platformDrafts[item.id], item.limit);
-        if (fitted) return [item.id, fitted];
-        return [item.id, fitComplete(platformDrafts[item.id] || masterDraft, item.limit)];
+        if (fitted) return [item.id, collapseDuplicateParagraphs(fitted)];
+        return [item.id, collapseDuplicateParagraphs(fitComplete(platformDrafts[item.id] || masterDraft, item.limit))];
       }
-      return [item.id, fitComplete(generateCopy(item, masterDraft, personaAnalysis), item.limit)];
+      // Long destinations that can hold the source: adapt the full post, not the short master teaser.
+      // Prefer a full-length master rewrite when the model actually produced one; otherwise keep SOURCE.
+      const longForm = LONG_FORM_PLATFORM_IDS.has(item.id);
+      const masterCoversSource = countText(masterDraft) >= Math.min(countText(text) * 0.75, item.limit * 0.55);
+      const seed = longForm ? (masterCoversSource ? masterDraft : text) : masterDraft;
+      return [item.id, collapseDuplicateParagraphs(fitComplete(generateCopy(item, seed, personaAnalysis), item.limit))];
     }));
     const invalid = destinations.filter((item) => {
       const draft = normalizeWhitespace(variants[item.id]);
@@ -584,9 +629,9 @@
     const link = buildTrackedUrl(config.id);
     const ctaLine = link ? `${analysis.cta}: ${link}` : analysis.cta;
     const voicedHook = voiceLead(analysis, hook);
-    const shortBody = clip(rest, 420);
-    const fullerBody = clip(rest || clean, 950);
-    const contextBody = clip(clean, 1800);
+    const shortBody = bodyForLimit(rest || clean, Math.min(420, config.limit), 40);
+    const fullerBody = bodyForLimit(rest || clean, Math.min(config.limit, 1600), 80);
+    const contextBody = bodyForLimit(clean, config.limit, 200);
     const cw = contentWarning.value.trim();
     const mediaExists = Boolean(state.media || imageUrl.value.trim());
 
@@ -594,11 +639,11 @@
       case "x":
         return clip(joinParts([voicedHook, clip(shortBody, 240), ctaLine, tagsFor("x", analysis, 3)]), config.limit);
       case "facebook-personal":
-        return clip(joinParts([hook, fullerBody, ctaLine, tagsFor(config.id, { ...analysis, hashtags: analysis.hashtags.filter((tag) => tag !== "#VeilCorpArchives") }, 3)]), config.limit);
+        return collapseDuplicateParagraphs(clip(joinParts([hook, fullerBody, ctaLine, tagsFor(config.id, { ...analysis, hashtags: analysis.hashtags.filter((tag) => tag !== "#VeilCorpArchives") }, 3)]), config.limit));
       case "facebook-cradlepoint":
-        return clip(joinParts([voicedHook, fullerBody, ctaLine, tagsFor(config.id, analysis, 4)]), config.limit);
+        return collapseDuplicateParagraphs(clip(joinParts([voicedHook, fullerBody, ctaLine, tagsFor(config.id, analysis, 4)]), config.limit));
       case "instagram":
-        return clip(joinParts([voicedHook, clip(fullerBody, 850), link ? `${analysis.cta} through the named route.` : analysis.cta, tagsFor(config.id, analysis, 5)]), config.limit);
+        return collapseDuplicateParagraphs(clip(joinParts([voicedHook, bodyForLimit(fullerBody || clean, config.limit, 220), link ? `${analysis.cta} through the named route.` : analysis.cta, tagsFor(config.id, analysis, 5)]), config.limit));
       case "threads":
         return clip(joinParts([hook, clip(shortBody, 220), link, tagsFor(config.id, analysis, 1)]), config.limit);
       case "bluesky": {
@@ -608,21 +653,27 @@
       case "mastodon":
         return clip(joinParts([cw ? `CW: ${cw}` : "", voicedHook, clip(shortBody, 220), ctaLine, tagsFor(config.id, analysis, 4)]), config.limit);
       case "linkedin":
-        return clip(joinParts([hook, `The working decision: ${fullerBody}`, "The useful part is not identical distribution. It is preserving the claim while translating context, format, and audience expectations.", ctaLine, tagsFor(config.id, { ...analysis, hashtags: ["#CradlepointStudios", "#CreativeTechnology", "#IndieGameDev"] }, 4)]), config.limit);
+        return collapseDuplicateParagraphs(clip(joinParts([hook, bodyForLimit(clean, config.limit, 180), ctaLine, tagsFor(config.id, { ...analysis, hashtags: ["#CradlepointStudios", "#CreativeTechnology", "#IndieGameDev"] }, 4)]), config.limit));
       case "discord":
-        return clip(joinParts([`**${titleFrom(text)}**`, clip(contextBody, 1100), link ? `**${analysis.cta}:** ${link}` : `**Next action:** ${analysis.cta}`]), config.limit);
+        return collapseDuplicateParagraphs(clip(joinParts([`**${titleFrom(text)}**`, bodyForLimit(clean, config.limit, 120), link ? `**${analysis.cta}:** ${link}` : (analysis.cta ? `**Next action:** ${analysis.cta}` : "")]), config.limit));
       case "patreon":
-        return joinParts([`# Archive log: ${titleFrom(text)}`, contextBody, `## Why this matters\n${clip(rest || clean, 1200)}`, link ? `Continue through the primary door: ${link}` : "No external destination assigned.", `Classification: ${analysis.contentClass.value} · ${analysis.layer.value}`]);
+        // One body only — never paste the post under a second "why this matters" restatement.
+        return collapseDuplicateParagraphs(joinParts([
+          `# Archive log: ${titleFrom(text)}`,
+          bodyForLimit(clean, config.limit, 220),
+          link ? `Continue through the primary door: ${link}` : "",
+          `Classification: ${analysis.contentClass.value} · ${analysis.layer.value}`,
+        ]));
       case "reddit":
-        return joinParts([`Title: ${clip(titleFrom(text), 120, "")}`, `Body:\n${clip(contextBody, 2400)}`, "Disclosure: I created or am directly involved with this work.", link ? `Relevant link: ${link}` : ""]);
+        return collapseDuplicateParagraphs(joinParts([`Title: ${clip(titleFrom(text), 120, "")}`, `Body:\n${bodyForLimit(clean, Math.min(config.limit - 200, 12000), 80)}`, "Disclosure: I created or am directly involved with this work.", link ? `Relevant link: ${link}` : ""]));
       case "itch":
-        return joinParts([`Title: ${clip(titleFrom(text), 90, "")}`, `What changed:\n${clip(contextBody, 1800)}`, `Who this is for:\nOperators, Handlers, and readers following Cradlepoint releases.`, link ? `Review or download: ${link}` : ""]);
+        return collapseDuplicateParagraphs(joinParts([`Title: ${clip(titleFrom(text), 90, "")}`, `What changed:\n${bodyForLimit(clean, config.limit, 280)}`, link ? `Review or download: ${link}` : ""]));
       case "tiktok":
         return mediaExists ? joinParts([`Spoken hook: ${clip(hook, 120)}`, `Overlay text: ${clip(titleFrom(text), 55, "")}`, `Caption: ${clip(shortBody || hook, 280)}`, `CTA: ${analysis.cta}`, `Tags: ${tagsFor(config.id, analysis, 5)}`]) : "Media required before TikTok output is generated.";
       case "youtube":
-        return mediaExists ? joinParts([`Title: ${clip(titleFrom(text), 75, "")}`, `Spoken hook: ${clip(hook, 120)}`, `Overlay text: ${clip(titleFrom(text), 55, "")}`, `Description:\n${clip(contextBody, 900)}${link ? `\n\n${analysis.cta}: ${link}` : ""}`, `Hashtags: ${tagsFor(config.id, analysis, 3)}`, `Metadata tags: ${analysis.hashtags.map((tag) => tag.slice(1)).join(", ")}`]) : "Video required before YouTube Shorts output is generated.";
+        return mediaExists ? joinParts([`Title: ${clip(titleFrom(text), 75, "")}`, `Spoken hook: ${clip(hook, 120)}`, `Overlay text: ${clip(titleFrom(text), 55, "")}`, `Description:\n${bodyForLimit(clean, 1200, 40)}${link ? `\n\n${analysis.cta}: ${link}` : ""}`, `Hashtags: ${tagsFor(config.id, analysis, 3)}`, `Metadata tags: ${analysis.hashtags.map((tag) => tag.slice(1)).join(", ")}`]) : "Video required before YouTube Shorts output is generated.";
       case "site-news":
-        return joinParts([`Title: ${titleFrom(text)}`, `Summary: ${clip(hook, 180)}`, `Body:\n${contextBody}`, `Author / voice: ${analysis.voice.value}`, `Category: ${analysis.contentClass.value}`, `Reality layer: ${analysis.layer.value}`, `Canon status: Review required`, `Primary link: ${cleanUrl(destinationUrl.value) || "Not assigned"}`, `Tags: ${analysis.hashtags.map((tag) => tag.slice(1)).join(", ") || "None"}`, `Content warning: ${cw || "None"}`, `Publication status: Draft`]);
+        return collapseDuplicateParagraphs(joinParts([`Title: ${titleFrom(text)}`, `Summary: ${clip(hook, 180)}`, `Body:\n${bodyForLimit(clean, config.limit, 400)}`, `Author / voice: ${analysis.voice.value}`, `Category: ${analysis.contentClass.value}`, `Reality layer: ${analysis.layer.value}`, `Canon status: Review required`, `Primary link: ${cleanUrl(destinationUrl.value) || "Not assigned"}`, `Tags: ${analysis.hashtags.map((tag) => tag.slice(1)).join(", ") || "None"}`, `Content warning: ${cw || "None"}`, `Publication status: Draft`]));
       default:
         return clean;
     }
