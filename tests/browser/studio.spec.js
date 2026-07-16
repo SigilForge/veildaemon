@@ -614,6 +614,33 @@ test.describe("studio subtree routes", () => {
     });
   });
 
+  test("RelayDaemon Patreon keeps one full body without restating the post", async ({ page }) => {
+    const longSource = [
+      "VEILCORP ARCHIVES // CORPORATE ANOMALY REPORT // CA-001",
+      "Classification: False Steward. Threat Level: Escalating.",
+      "The host once distributed quality games and respected physical ownership.",
+      "Ownership became revocable licenses. Physical media is ending. Loyalty is recurring revenue.",
+      "July 1 ended physical media for future PlayStation releases. July 3 the CEO sold a majority stake.",
+      "No unlawful activity is established. Legal decisions still erode ownership reality.",
+      "Indifference is more dangerous than hostility. Containment integrity has collapsed.",
+      "Subjects compare the host to personal computers: upgradeable, repairable, unbound storefronts.",
+      "It is competing against ownership itself. Support developers, not gatekeepers. Archive what you can.",
+      "HOST COMPROMISED. STEWARDSHIP TERMINATED. CONTAINMENT FAILED.",
+      "End of Report.",
+    ].join(" ");
+    await page.goto("/studio/relay/");
+    await page.locator("#source-text").fill(longSource);
+    await page.getByRole("button", { name: "Generate social package" }).click();
+    await expect(page.locator('[data-platform="patreon"] .variant-copy')).toBeVisible();
+    const patreon = await page.locator('[data-platform="patreon"] .variant-copy').inputValue();
+    expect(patreon).not.toContain("Why this matters");
+    expect(patreon.toLowerCase().split("ownership").length - 1).toBeLessThan(6);
+    // Full-context destination should keep most of a ~source-length post, not collapse to a teaser.
+    expect(patreon.length).toBeGreaterThan(Math.min(longSource.length - 80, 900));
+    expect(patreon).toContain("False Steward");
+    expect(patreon).toContain("HOST COMPROMISED");
+  });
+
   test("RelayDaemon generates, reviews, gates media variants, and exports locally", async ({ page }) => {
     await page.goto("/studio/relay/");
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
