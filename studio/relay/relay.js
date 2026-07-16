@@ -275,24 +275,44 @@
   }
 
   /**
-   * Rhetorical setup that promises a following beat ("And what did Codex do?").
-   * Never a valid final line for a fitted platform body.
+   * Audience-facing closer — fine at the end of a post.
+   * "What do you think?" is engagement. "And what did Codex do?" is a cliffhanger.
+   */
+  function isEngagementCloser(value) {
+    const s = String(value || "").trim();
+    if (!/\?["'”']?$/.test(s)) return false;
+    const core = s.replace(/[.!?…"”'’]+/g, "").trim();
+    if (!core) return false;
+    // Direct reader invite / reaction pull
+    if (/^(what do you think|what do y'?all think|what do we think|thoughts|agree|sound familiar|relatable|am i (?:the )?only one|am i wrong|anyone else|who else|who'?s with me|ever notice|make sense|fair|right|you know|why not|why bother|who cares|what now|seen this|notice that|tell me i'?m wrong|be honest)\b/i.test(core)) {
+      return true;
+    }
+    // Ultra-short reaction tags
+    if (/^(thoughts|agree|relatable|right|fair|same|mood)\b/i.test(core) && core.split(/\s+/).length <= 3) return true;
+    return false;
+  }
+
+  /**
+   * Narrative cliffhanger that promises a following beat and leaves the reader hanging.
+   * Engagement questions are allowed; setup without payoff is not.
    */
   function isSetupStubSentence(value) {
     const s = String(value || "").trim();
     if (!s) return true;
     if (!/\?["'”']?$/.test(s)) return false;
+    if (isEngagementCloser(s)) return false;
     const core = s.replace(/[.!?…"”'’]+/g, "").trim();
     const words = core.split(/\s+/).filter(Boolean);
     if (!words.length) return true;
-    if (/^(and what|what did|what does|what do|so what|now what|the task|but then|but oh|and then|guess what|the result|the catch|the problem)\b/i.test(core)) {
+    // Classic "story beat next" openers — not reader engagement.
+    if (/^(and what|what did|what does|what do(?! you)|what happens|what happened|so what happened|the task|but then|but oh|and then|guess what|the result|the catch|the problem|the kicker)\b/i.test(core)) {
       return true;
     }
-    // Short open questions that are leads, not closers.
+    // Short plot questions about the subject that demand the next sentence.
     if (
-      words.length <= 7
-      && /^(and|but|so|then|what|who|where|when|why|how|the)\b/i.test(core)
-      && !/^(why not|why bother|who cares|what now|verdict)\b/i.test(core)
+      words.length <= 8
+      && /^(and|but|so|then)\b/i.test(core)
+      && /\b(codex|the unit|it|they|the host|the model|the daemon)\b/i.test(core)
     ) {
       return true;
     }
