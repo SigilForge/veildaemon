@@ -100,7 +100,7 @@
     shade: {
       name: "Shade",
       era: "Operational / anomalous · bound to A.Shade",
-      style: "Perfect grammar, clipped phrasing, flat affect, and procedural prioritization.",
+      style: "Perfect grammar, clipped phrasing, flat affect, and procedural prioritization. Format as an operational report: short graphs (1–3 sentences), status/classification lines, blank lines between beats, pull-quote one-liners alone — never melt a field report into essay walls.",
       knowledgeBoundary: "Do not give Shade knowledge Alex did not experience, independent goals, or autonomous publication authority. Classify and assess the source subjects — never become the host, unit, or product under classification.",
       emotionalArc: "classification → compressed risk assessment → unresolved procedural conclusion",
       markers: [
@@ -194,10 +194,32 @@
 
   /**
    * Models often hard-wrap at ~80 columns with single newlines.
-   * Keep true paragraph breaks (\n\n); turn soft wraps into spaces.
+   * Keep true paragraph breaks and short status/label lines; only join mid-sentence wraps.
    */
   function unwrapSoftLineBreaks(value) {
-    return String(value || "").replace(/([^\n])\n(?!\n)/g, "$1 ");
+    const parts = String(value || "").split("\n");
+    if (parts.length <= 1) return String(value || "");
+    const out = [parts[0]];
+    for (let i = 1; i < parts.length; i += 1) {
+      const prev = out[out.length - 1];
+      const curr = parts[i];
+      if (prev === "" || curr === "") {
+        out.push(curr);
+        continue;
+      }
+      const prevTrim = prev.trim();
+      const currTrim = curr.trim();
+      // Soft wrap only: long unfinished prose line continues onto next lowercase start.
+      const soft = !isStructuralDraftLine(prevTrim)
+        && !isStructuralDraftLine(currTrim)
+        && countText(prevTrim) >= 100
+        && countText(currTrim) >= 40
+        && !/[.!?…:]$/.test(prevTrim)
+        && /^[a-z(]/.test(currTrim);
+      if (soft) out[out.length - 1] = `${prev.replace(/\s+$/, "")} ${curr.trimStart()}`;
+      else out.push(curr);
+    }
+    return out.join("\n");
   }
 
   /** Final surface cleanse — always last so loop/sentence tools cannot re-break versions. */
@@ -266,7 +288,8 @@
         shapeCharacterParagraphs(
           collapseSelfLoops(
             restoreSourceJargon(source, repairBrokenQuotes(repairVersionNumbers(draft)))
-          )
+          ),
+          source
         )
       )
     );
@@ -411,25 +434,38 @@
   }
 
   function isStructuralDraftLine(value) {
-    return /^(Title:|Body:|What changed:|Description:|Spoken hook:|Overlay text:|Caption:|CTA:|Tags:|Hashtags:|Metadata tags:|CW:|Classification:|Disclosure:|Continue through|Relevant link:|Primary link:|Author \/ voice:|Category:|Reality layer:|Canon status:|Content warning:|Publication status:|# |\*\*)/i.test(String(value || "").trim());
+    return /^(Title:|Body:|What changed:|Description:|Spoken hook:|Overlay text:|Caption:|CTA:|Tags:|Hashtags:|Metadata tags:|CW:|Classification:|Status:|Rating:|Verdict:|Unit |Operational warning|Disclosure:|Continue through|Relevant link:|Primary link:|Author \/ voice:|Category:|Reality layer:|Canon status:|Content warning:|Publication status:|# |\*\*[A-Za-z])/i.test(String(value || "").trim());
+  }
+
+  /** Field reports / status logs: short graphs, labels, pull-quote beats — not essay walls. */
+  function looksLikeStructuredReport(value) {
+    const text = normalizeWhitespace(value);
+    if (!text) return false;
+    const paras = text.split(/\n\n+/).map((part) => part.trim()).filter(Boolean);
+    if (/^(# |\*\*[A-Z]|\s*CLASSIFICATION:|\s*STATUS:|\s*UNIT |\s*OPERATIONAL WARNING|\s*RATING:|\s*VERDICT:)/im.test(text)) return true;
+    if (paras.length >= 6) {
+      const shortish = paras.filter((p) => countText(p) <= 280).length;
+      if (shortish / paras.length >= 0.55) return true;
+    }
+    return false;
   }
 
   /**
-   * Group sentences into readable multi-paragraph prose.
-   * Fixes walls of text and "one sentence per line" spam without inventing content.
+   * Group sentences into short multi-paragraph prose (report rhythm, not essay walls).
+   * Fixes one-sentence-per-line spam and unbroken walls without inventing content.
    */
   function groupSentencesIntoParagraphs(sentences) {
     const items = (sentences || []).map((item) => String(item || "").trim()).filter(Boolean);
     if (!items.length) return "";
-    if (items.length <= 3) return items.join(" ");
+    if (items.length <= 2) return items.join(" ");
 
-    // Stronger pivots only — avoid chopping on every "But then" mid-thought.
-    const pivot = /^(Now[, ]|Here'?s the kicker\b|Here is the kicker\b|Earlier versions\b|The repository\b|But Codex\b|Meanwhile\b)/i;
+    // Break on contrast / comparison / status pivots common to field reports.
+    const pivot = /^(In contrast\b|However\b|The difference\b|The problem\b|The unit\b|Codex\b|Operators\b|Now[, ]|Here'?s the kicker\b|Earlier\b|Meanwhile\b|Do not\b)/i;
     const paras = [];
     let bucket = [];
     let len = 0;
-    const softTarget = 420;
-    const maxSent = 5;
+    const softTarget = 260;
+    const maxSent = 3;
 
     for (let i = 0; i < items.length; i += 1) {
       const sentence = items[i];
@@ -441,9 +477,14 @@
       // Don't end a paragraph on a short setup stub ("The task?", "And what did Codex do?").
       const lastCore = sentence.replace(/[.!?…"”']+/g, "").trim();
       const lastIsStub = lastCore.split(/\s+/).filter(Boolean).length <= 6;
-      const full = bucket.length >= 2
+      // Keep one-line pull quotes alone when the next beat is a pivot or long claim.
+      const lastIsPunch = countText(sentence) <= 140 && /[.!]$/.test(sentence) && bucket.length === 1;
+      const full = bucket.length >= 1
         && !lastIsStub
-        && (len >= softTarget || bucket.length >= maxSent || (nextPivot && len >= 220));
+        && (
+          (lastIsPunch && next && countText(next) > 80)
+          || (bucket.length >= 2 && (len >= softTarget || bucket.length >= maxSent || (nextPivot && len >= 120)))
+        );
       if (!atEnd && full) {
         paras.push(bucket.join(" "));
         bucket = [];
@@ -452,11 +493,15 @@
     }
     if (bucket.length) paras.push(bucket.join(" "));
 
-    // Fold short punch fragments into the previous paragraph (keep ~3–6 fuller graphs).
+    // Only fold true fragments (lowercase / emdash continuations), never intentional short beats.
     for (let i = 1; i < paras.length; ) {
-      const short = countText(paras[i]) < 120 && splitSentences(paras[i]).length <= 2;
-      if (short) {
-        paras[i - 1] = `${paras[i - 1]} ${paras[i]}`;
+      const curr = paras[i].trim();
+      const foldable = !isStructuralDraftLine(curr)
+        && !/^\*\*[^*].+\*\*$/.test(curr)
+        && countText(curr) < 90
+        && (/^[a-z—–-]/.test(curr) || isSetupStubSentence(curr));
+      if (foldable) {
+        paras[i - 1] = `${paras[i - 1]} ${curr.replace(/^[—–-]+\s*/, "")}`;
         paras.splice(i, 1);
       } else {
         i += 1;
@@ -466,10 +511,10 @@
   }
 
   /**
-   * Light surface formatting for character prose: keep real paragraphs, reflow
-   * single-sentence spam and unbroken walls into 3–6 short graphs when needed.
+   * Preserve field-report structure when present; only aggressively reflow true walls
+   * or one-sentence-per-line spam.
    */
-  function shapeCharacterParagraphs(value) {
+  function shapeCharacterParagraphs(value, source = "") {
     const clean = normalizeWhitespace(unwrapSoftLineBreaks(value));
     if (!clean) return "";
     const blocks = clean.split(/\n\n+/).map((part) => part.trim()).filter(Boolean);
@@ -479,36 +524,51 @@
     const singleSentenceRatio = freeform.length
       ? freeform.filter((block) => splitSentences(block).length <= 1).length / freeform.length
       : 0;
+    const structured = looksLikeStructuredReport(source) || looksLikeStructuredReport(clean);
 
-    // One-sentence-per-line (or nearly): reflow freeform sentences into real paragraphs.
-    if (freeform.length >= 3 && singleSentenceRatio >= 0.6) {
+    // True one-sentence-per-line spam only (many tiny lines) — not intentional short report beats.
+    const tinyLineSpam = freeform.length >= 6
+      && singleSentenceRatio >= 0.75
+      && freeform.filter((block) => countText(block) < 100).length / freeform.length >= 0.7;
+
+    if (tinyLineSpam && !structured) {
       const structural = [];
       const sentences = [];
       for (const block of blocks) {
-        if (isStructuralDraftLine(block)) structural.push({ type: "struct", text: block });
+        if (isStructuralDraftLine(block)) structural.push(block);
         else {
           for (const sentence of splitSentences(block)) sentences.push(sentence);
         }
       }
       const shaped = groupSentencesIntoParagraphs(sentences);
       if (!structural.length) return shaped;
-      // Structural headers first, then shaped body (typical Patreon/Discord shells).
-      return normalizeWhitespace([...structural.map((item) => item.text), shaped].join("\n\n"));
+      return normalizeWhitespace([...structural, shaped].join("\n\n"));
     }
 
+    // Structured reports / already multi-graph drafts: keep beats, only split essay-length walls.
     const shapedBlocks = blocks.map((block) => {
       if (isStructuralDraftLine(block)) return block;
+      // Stacked short label lines kept with single \n — promote to separate graphs.
+      const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+      if (
+        lines.length >= 2
+        && lines.every((line) => isStructuralDraftLine(line) || countText(line) <= 120)
+      ) {
+        return lines.join("\n\n");
+      }
       const sentences = splitSentences(block);
-      if (sentences.length <= 3 || countText(block) < 380) return sentences.join(" ");
+      // Short report beats stay short (1–3 sentences).
+      if (sentences.length <= 3 || countText(block) < 320) return sentences.join(" ");
       return groupSentencesIntoParagraphs(sentences);
     });
-    // Glue orphan continuations ("—but these are…", lowercase leftovers) back to prior graph.
+    // Glue orphan continuations only — never absorb intentional short pull-quotes.
     const merged = [];
     for (const block of shapedBlocks) {
       if (
         merged.length
         && !isStructuralDraftLine(block)
-        && (/^[—–-]+/.test(block) || /^[a-z(]/.test(block))
+        && !/^\*\*[^*].+\*\*$/.test(block.trim())
+        && (/^[—–-]+/.test(block) || (/^[a-z(]/.test(block) && countText(block) < 100))
       ) {
         const cont = block.replace(/^[—–-]+\s*/, "");
         merged[merged.length - 1] = `${merged[merged.length - 1]} ${cont}`;
@@ -1107,8 +1167,8 @@
       ? `about ${Math.max(600, Math.min(sourceLen, 3200))} characters (rewrite the full post in voice; stay within roughly 85–110% of SOURCE length; never pad)`
       : "1,200 to 2,400 characters as a faithful full-argument rewrite (not a teaser summary)";
     const requestMessages = [
-      { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes. Advance the argument once. Never loop. Always finish every field on a complete sentence with terminal punctuation. Preserve dotted version numbers exactly (write 5.6, never 5. 6). CRITICAL: first-person voice is always the named PERSONA reacting to SOURCE. Never become the unit, product, host, model, agent, or subject under review in the source." },
-      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nOBSERVER STANCE (non-negotiable)\n- ${profile.name} is the speaker. The people, products, hosts, units, models, or software described in SOURCE are subjects she talks about — not identities she becomes.\n- If SOURCE is a review of Codex / a coding agent / "the unit" / a host, write as ${profile.name} commenting on that unit. Wrong: "I ate the ration / Version 5.6 of me / I strapped the filing cabinet." Right: "That unit ate the ration / Codex rebuilt the hallway / I watched it invoice by weight."\n- Do not roleplay as a coding agent unless the persona literally is one (none of these personas are).\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft as ${profile.name} reacting to the source argument: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in her voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Format masterDraft as readable multi-paragraph prose: blank line between paragraphs. Long sources: about 3–6 short paragraphs that move the argument (setup → theatrics → what it actually did → the kicker → close). Never one sentence per line. Never one unbroken wall of text.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Linear progress only; finish on a complete sentence.\n- Version numbers stay tight: 5.6 not “5. 6”.\n- Preserve distinctive SOURCE jargon when stronger and present (prefer “canonical reproductions” over “canonical copies” if SOURCE uses the stronger phrase).\n- Short platform fields: fill each lane as full as possible without going over. Leave a soft ~100-character buffer for hashtags (body only, no hashtags in JSON).\n  - X body: ~480–500 (hard max 500)\n  - Threads body: ~380–400 (hard max 400)\n  - Bluesky body: ~180–200 (hard max 200)\n  - Mastodon body: ~380–400 (hard max 400)\n- A long source is not a 200-character teaser on a 500-character lane.\n- Do not invent facts. No hashtags, CTA, links, or author labels.\n- Leave validation.warnings empty unless there is a real safety or knowledge-boundary problem.\n\nINTERNAL ACCEPTANCE RUBRIC\n1. Central argument carried in ${profile.name}'s voice as an outside reactor/observer.\n2. Never self-identifies as the rated unit/product/host in SOURCE.\n3. Complete thought; lane filled near target without going over.\n4. No loops; version numbers intact; facts preserved.\nIf any item fails, rewrite before replying.\n\nReturn only the JSON object required by the response schema.` },
+      { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes. Advance the argument once. Never loop. Always finish every field on a complete sentence with terminal punctuation. Preserve dotted version numbers exactly (write 5.6, never 5. 6). Preserve intentional short paragraphs and report structure when the source uses them. CRITICAL: first-person voice is always the named PERSONA reacting to SOURCE. Never become the unit, product, host, model, agent, or subject under review in the source." },
+      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nOBSERVER STANCE (non-negotiable)\n- ${profile.name} is the speaker. The people, products, hosts, units, models, or software described in SOURCE are subjects she talks about — not identities she becomes.\n- If SOURCE is a review of Codex / a coding agent / "the unit" / a host, write as ${profile.name} commenting on that unit. Wrong: "I ate the ration / Version 5.6 of me / I strapped the filing cabinet." Right: "That unit ate the ration / Codex rebuilt the hallway / I watched it invoice by weight."\n- Do not roleplay as a coding agent unless the persona literally is one (none of these personas are).\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft as ${profile.name} reacting to the source argument: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in her voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- STRUCTURE: Prefer short paragraphs (1–3 sentences) with a blank line between beats. Never one unbroken essay wall. Never one sentence per line.\n- If SOURCE is a field report / status log (headers, CLASSIFICATION/STATUS lines, short graphs, pull-quote one-liners), preserve that report rhythm in voice: keep short graphs, status/label lines, section breaks, and one-line pull quotes alone. Do not melt multi-beat reports into 2–4 dense paragraphs.\n- Informal commentary sources may use about 4–8 short paragraphs that move the argument.\n- Change perspective and ending in persona voice; do not invent facts. Do not prepend a catchphrase.\n- Linear progress only; finish on a complete sentence.\n- Version numbers stay tight: 5.6 not “5. 6”.\n- Preserve distinctive SOURCE jargon when stronger and present (prefer “canonical reproductions” over “canonical copies” if SOURCE uses the stronger phrase).\n- Short platform fields: fill each lane as full as possible without going over. Leave a soft ~100-character buffer for hashtags (body only, no hashtags in JSON).\n  - X body: ~480–500 (hard max 500)\n  - Threads body: ~380–400 (hard max 400)\n  - Bluesky body: ~180–200 (hard max 200)\n  - Mastodon body: ~380–400 (hard max 400)\n- A long source is not a 200-character teaser on a 500-character lane.\n- Do not invent facts. No hashtags, CTA, links, or author labels.\n- Leave validation.warnings empty unless there is a real safety or knowledge-boundary problem.\n\nINTERNAL ACCEPTANCE RUBRIC\n1. Central argument carried in ${profile.name}'s voice as an outside reactor/observer.\n2. Never self-identifies as the rated unit/product/host in SOURCE.\n3. Complete thought; lane filled near target without going over.\n4. No loops; version numbers intact; facts preserved.\nIf any item fails, rewrite before replying.\n\nReturn only the JSON object required by the response schema.` },
     ];
     let master = null;
     let masterDraft = "";
