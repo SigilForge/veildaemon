@@ -109,7 +109,7 @@ function sentenceKey(value) {
     .trim();
 }
 
-/** Models often emit "5. 6" when they mean "5.6". */
+/** Models often emit "5. 6" / "5. 6?" when they mean "5.6". */
 function repairVersionNumbers(value) {
   let text = String(value || "");
   for (let i = 0; i < 4; i += 1) {
@@ -117,12 +117,24 @@ function repairVersionNumbers(value) {
     if (next === text) break;
     text = next;
   }
+  text = text.replace(/\b([Vv])\s+(\d+\.\d+)/g, "$1$2");
+  text = text.replace(/\b([Vv])(\d)\s+\.\s+(\d)/g, "$1$2.$3");
+  return text;
+}
+
+function repairBrokenQuotes(value) {
+  let text = String(value || "");
+  text = text.replace(/(["“])([^"“”\n]{1,220}[.!?…])\s*\n\n+([A-Z“"][^"“”\n]{1,220}[.!?…])(["”])?/g, (match, open, first, second, close) => {
+    const end = close || (open === "“" ? "”" : '"');
+    return `${open}${first} ${second}${end}`;
+  });
+  text = text.replace(/(["“])([^"“”\n]{1,220}[.!?…])\s*\n\n+(["“])([^"“”\n]{1,220}[.!?…])(["”])/g, "$1$2 $4$5");
   return text;
 }
 
 /** Strip mid-stream sentence loops only — never delete mid-sentence n-grams (that amputates endings). */
 function collapseSelfLoops(value) {
-  const sentences = splitSentences(repairVersionNumbers(value));
+  const sentences = splitSentences(repairBrokenQuotes(repairVersionNumbers(value)));
   const kept = [];
   const seen = new Set();
   for (const sentence of sentences) {
