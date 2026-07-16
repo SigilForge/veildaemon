@@ -465,7 +465,7 @@
   }
 
   function titleFrom(text) {
-    const sentence = splitSentences(text)[0] || "Studio update";
+    const sentence = splitSentences(text)[0] || "Update";
     return clip(sentence.replace(/[.!?]+$/, ""), 78, "");
   }
 
@@ -481,11 +481,14 @@
   function classify(text) {
     const lower = text.toLowerCase();
     const scores = {
-      "Release announcement": (lower.match(/\brelease|released|available now|launched|shipped|version\b/g) || []).length * 3,
+      "Release announcement": (lower.match(/\brelease|released|available now|launched|shipped\b/g) || []).length * 3,
       "Product promotion": (lower.match(/\bbuy|download|store|sale|product|core set|itch\.io\b/g) || []).length * 2,
       "Cradlepoint lore": (lower.match(/\bveilcorp|entity|needlepoint|archive|operator|handler|sanguine|transmission\b/g) || []).length * 2,
-      "Studio / business news": (lower.match(/\bstudio|funding|partner|development|publishing|business|founder\b/g) || []).length * 2,
+      // Require real studio-business signals — bare "development" / "web development" must not win.
+      "Studio / business news": (lower.match(/\bcradlepoint studio|studio funding|publishing partner|investor|founder|crowdfunding|kickstarter\b/g) || []).length * 3
+        + (lower.match(/\bfunding|partner|publishing|business\b/g) || []).length,
       "Meme / cultural commentary": (lower.match(/\bmeme|lol|lmao|apparently|bureaucracy|because humanity\b/g) || []).length * 2,
+      "Field / procurement review": (lower.match(/\bfield review|one star|supervised use|classification:|rating:|the unit|operational ration\b/g) || []).length * 3,
       "Personal commentary": (lower.match(/\bi\b|\bmy\b|\bme\b|\bwe\b|\bthink|\bfeel|\bnoticed\b/g) || []).length,
     };
     if (objective.value === "personal") scores["Personal commentary"] += 8;
@@ -493,6 +496,12 @@
     if (objective.value === "funding") scores["Studio / business news"] += 8;
     if (objective.value === "sale") scores["Product promotion"] += 8;
     if (objective.value === "announcement") scores["Release announcement"] += 5;
+    // Character commentary is never auto-classified as Studio business copy.
+    if (characterProfiles[character.value]) {
+      scores["Studio / business news"] = 0;
+      scores["Personal commentary"] += 4;
+      if (scores["Field / procurement review"] > 0) scores["Field / procurement review"] += 2;
+    }
     const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
     return {
       value: sorted[0][1] > 0 ? sorted[0][0] : "Personal commentary",
@@ -501,13 +510,22 @@
   }
 
   function detectLayer(text, contentClass) {
+    // Character attribution is not Cradlepoint Studio marketing. Keep layer personal unless archive is explicit.
+    if (characterProfiles[character.value]) {
+      if (/veilcorp|archive transmission|entity file|operator notice/i.test(text)) {
+        return { value: "Archive / character commentary", key: "archive", reason: "Character is reacting to Archive/VeilCorp material — not a Studio business post." };
+      }
+      return { value: "Personal / character commentary", key: "personal", reason: "Character attribution is active; characters are not Studio spokespeople by default." };
+    }
     if (/veilcorp|archive transmission|entity file|operator notice/i.test(text)) {
       return { value: "Archive / in-universe", key: "archive", reason: "VeilCorp or Archive terminology is carrying the post." };
     }
     if (/veildaemon|veilforge|operator tool|handler tool/i.test(text)) {
       return { value: "Product / platform", key: "platform", reason: "The post concerns a connected product or application." };
     }
-    if (/studio|funding|partner|publishing|development/i.test(text) || /Studio|Product|Release/.test(contentClass)) {
+    // Require real studio-business language — not generic "development" (as in web development).
+    if (/\b(cradlepoint studio|studio funding|publishing partner|founder|investor|crowdfunding)\b/i.test(text)
+      || (contentClass === "Studio / business news" && /\b(funding|partner|founder|investor|publishing)\b/i.test(text))) {
       return { value: "Cradlepoint Studio", key: "studio", reason: "Real-world studio or commercial language is primary." };
     }
     if (/cradlepoint|needlepoint|sanguine|entity/i.test(text)) {
@@ -530,7 +548,8 @@
     if (voice.value !== "auto") {
       return { value: voice.options[voice.selectedIndex].text, key: voice.value, reason: "Selected manually for this package." };
     }
-    const key = layer.key === "archive" ? "archive" : layer.key === "personal" ? "personal" : "studio";
+    // Auto lead voice: only archive/personal stay; platform & cradlepoint are not "studio" spokesvoice.
+    const key = layer.key === "archive" ? "archive" : layer.key === "personal" || layer.key === "cradlepoint" || layer.key === "platform" ? "personal" : "studio";
     return { value: key[0].toUpperCase() + key.slice(1), key, reason: `Selected from the detected ${layer.value} reality layer.` };
   }
 
@@ -1422,9 +1441,9 @@
         summary: hookFrom(sourceText.value),
         body: stripSocialNoise(sourceText.value),
         realityLayer: state.analysis.layer.key,
-        voice: "studio",
+        voice: state.analysis.voice.key === "character" ? "character" : state.analysis.layer.key === "archive" ? "archive" : state.analysis.layer.key === "personal" ? "personal" : "studio",
         socialVoice: state.analysis.voice.value,
-        canonStatus: state.analysis.layer.key === "studio" || state.analysis.layer.key === "personal" ? "non-canon" : "review-required",
+        canonStatus: state.analysis.layer.key === "studio" || state.analysis.layer.key === "personal" || state.analysis.voice.key === "character" ? "non-canon" : "review-required",
         argSensitivity: "public",
         approvalStatus: siteApproval.value,
         publishedAt: null,
