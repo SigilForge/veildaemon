@@ -673,7 +673,7 @@ test.describe("studio subtree routes", () => {
     await noHorizontalOverflow(page);
   });
 
-  test("RelayDaemon requests one character master and adapts platforms deterministically", async ({ page }) => {
+  test("RelayDaemon requests one character package and uses complete platform summaries", async ({ page }) => {
     let requestNumber = 0;
     await page.addInitScript(() => {
       const originalFetch = window.fetch.bind(window);
@@ -685,13 +685,14 @@ test.describe("studio subtree routes", () => {
     });
     await page.route("**/api/character", async (route) => {
       if (route.request().method() === "GET") {
-        await route.fulfill({ contentType: "application/json", body: JSON.stringify({ status: "ok", engine: "ollama", model: "llama3.1:8b" }) });
+        await route.fulfill({ contentType: "application/json", body: JSON.stringify({ status: "ok", engine: "ollama", model: "hermes4:14b" }) });
         return;
       }
       requestNumber += 1;
       const request = route.request().postDataJSON();
       expect(request.messages.some((message) => String(message.content).includes("bounded editorial performance engine"))).toBe(true);
-      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ status: "ok", engine: "ollama", model: "llama3.1:8b", result: { masterDraft: "Everybody wants the clean answer. Cute. Hunger is honest; it does not hide behind a tidy form. Sorry. That was supposed to be funny. The room can help people and still leave teeth marks.", validation: { voiceMatch: 0.9, sourceFidelity: 0.92, canonSafe: true, knowledgeBoundarySafe: true, characterMarkers: ["personal hunger framing", "humor-to-sincerity pivot"], warnings: [] } } }) });
+      expect(request.messages.some((message) => String(message.content).includes("INTERNAL ACCEPTANCE RUBRIC"))).toBe(true);
+      await route.fulfill({ contentType: "application/json", body: JSON.stringify({ status: "ok", engine: "ollama", model: "hermes4:14b", result: { masterDraft: "Everybody wants the clean answer. Cute. Hunger is honest; it does not hide behind a tidy form. Sorry. That was supposed to be funny. The room can help people and still leave teeth marks.", platformDrafts: { x: "Everybody wants the room to be either helpful or dangerous. Cute. It helps people, and the teeth marks still count; both truths belong in the same answer.", threads: "Everybody wants the room to be either helpful or dangerous. Cute. It helps people, and the teeth marks still count; both truths belong in the same answer.", bluesky: requestNumber === 2 ? "The room helps people, but the hunger feels like." : "The room helps people, but the teeth marks still count. Hunger does not become harmless just because it is honest. Sorry. That was meant to be reassuring.", mastodon: "Everybody wants a clean answer about the room: helpful or dangerous, refuge or appetite. Cute. It helps people, and the teeth marks still count. Hunger is honest, but honesty does not make it harmless. Sorry. That was supposed to make the contradiction easier to hold." }, platformReviews: { x: { completeThought: true, characterCount: 148 }, threads: { completeThought: true, characterCount: 148 }, bluesky: { completeThought: requestNumber !== 2, characterCount: requestNumber === 2 ? 48 : 148 }, mastodon: { completeThought: true, characterCount: 259 } }, validation: { voiceMatch: 0.9, sourceFidelity: 0.92, canonSafe: true, knowledgeBoundarySafe: true, characterMarkers: ["personal hunger framing", "humor-to-sincerity pivot"], warnings: [] } } }) });
     });
     await page.goto("/studio/relay/");
     await page.locator("#source-text").fill("The room helps people and stays morally compromised because every need overlaps.");
@@ -702,6 +703,10 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#persona-validation-score")).toHaveText("Strong");
     await expect(page.locator('[data-platform="instagram"] .variant-copy')).toContainText("Hunger is honest");
     await expect(page.locator('[data-platform="instagram"] .variant-copy')).not.toContainText("The room helps people and stays morally compromised because every need overlaps.");
+    await expect(page.locator('[data-platform="x"] .variant-copy')).toHaveValue(/both truths belong in the same answer\.$/);
+    await expect(page.locator('[data-platform="threads"] .variant-copy')).toHaveValue(/both truths belong in the same answer\.$/);
+    await expect(page.locator('[data-platform="bluesky"] .variant-copy')).toHaveValue(/meant to be reassuring\.$/);
+    await expect(page.locator('[data-platform="mastodon"] .variant-copy')).toHaveValue(/easier to hold\.$/);
     expect(requestNumber).toBe(1);
     expect(await page.evaluate(() => window.__relayLoopbackRequests)).toEqual([]);
   });
@@ -750,7 +755,7 @@ test.describe("studio subtree routes", () => {
     global.fetch = async (url, options) => {
       expect(url).toBe("https://api.openai.com/v1/responses");
       requestBody = JSON.parse(options.body);
-      return new Response(JSON.stringify({ model: "gpt-5-mini", output_text: JSON.stringify({ masterDraft: "Hunger is honest, which is inconvenient. The room helps people, and the teeth marks still count. Sorry. That was meant to be funny.", validation: { voiceMatch: 0.9, sourceFidelity: 0.91, canonSafe: true, knowledgeBoundarySafe: true, characterMarkers: ["hunger", "sincerity pivot"], warnings: [] } }) }), { status: 200, headers: { "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ model: "gpt-5-mini", output_text: JSON.stringify({ masterDraft: "Hunger is honest, which is inconvenient. The room helps people, and the teeth marks still count. Sorry. That was meant to be funny.", platformDrafts: { x: "The room helps people, and the teeth marks still count. Hunger being honest does not make it harmless; it only makes the contradiction harder to ignore.", threads: "The room helps people, and the teeth marks still count. Hunger being honest does not make it harmless; it only makes the contradiction harder to ignore.", bluesky: "The room helps people, but the teeth marks still count. Honest hunger is not harmless hunger. Sorry. That was meant to make the contradiction easier.", mastodon: "The room helps people, which would be comforting if the teeth marks did not still count. Hunger is honest here, but honesty is not the same thing as harmlessness. Sorry. That was meant to be funny. The contradiction remains even when everyone survives it." }, platformReviews: { x: { completeThought: true, characterCount: 143 }, threads: { completeThought: true, characterCount: 143 }, bluesky: { completeThought: true, characterCount: 142 }, mastodon: { completeThought: true, characterCount: 241 } }, validation: { voiceMatch: 0.9, sourceFidelity: 0.91, canonSafe: true, knowledgeBoundarySafe: true, characterMarkers: ["hunger", "sincerity pivot"], warnings: [] } }) }), { status: 200, headers: { "Content-Type": "application/json" } });
     };
     process.env.OPENAI_API_KEY = "test-only-key";
     try {
@@ -760,6 +765,7 @@ test.describe("studio subtree routes", () => {
       await handler(request, response);
       expect(response.statusCode).toBe(200);
       expect(JSON.parse(response.body).result.masterDraft).toContain("Hunger is honest");
+      expect(JSON.parse(response.body).result.platformDrafts.bluesky).toContain("Honest hunger");
       expect(requestBody.model).toBe("gpt-5-mini");
       expect(requestBody.max_output_tokens).toBe(2400);
       expect(requestBody.store).toBe(false);
