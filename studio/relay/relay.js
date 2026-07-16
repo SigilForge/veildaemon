@@ -136,19 +136,41 @@
       .trim();
   }
 
-  /** Models often emit "5. 6" / "5. 6?" when they mean "5.6". Keep dotted version tokens intact. */
+  const VERSION_DOT = "\uE000"; // private-use placeholder so "5.6" is not treated as a sentence end
+
+  function protectVersionDots(value) {
+    return String(value || "").replace(/(\d)\.(\d)/g, `$1${VERSION_DOT}$2`);
+  }
+
+  function unprotectVersionDots(value) {
+    return String(value || "").split(VERSION_DOT).join(".");
+  }
+
+  /**
+   * Formatting cleanse for drafts:
+   * - "5. 6" / "5.\n6" / "5. 6?" → "5.6" / "5.6?"
+   * - never leave a lone version fragment after sentence reassembly
+   */
   function repairVersionNumbers(value) {
     let text = String(value || "");
-    // Repeat to collapse "1. 2. 3" → "1.2.3" (digit. digit only — not "report. 2 more")
-    for (let i = 0; i < 4; i += 1) {
-      const next = text.replace(/(\d)\.\s+(\d)/g, "$1.$2");
+    // digit + period + any whitespace/newlines + digit (version fragments only)
+    for (let i = 0; i < 6; i += 1) {
+      const next = text
+        .replace(/(\d)\.\s*[\r\n]+\s*(\d)/g, "$1.$2")
+        .replace(/(\d)\.\s+(\d)/g, "$1.$2");
       if (next === text) break;
       text = next;
     }
-    // "Codex 5 . 6" / "v 5. 6"
-    text = text.replace(/\b([Vv])\s+(\d+\.\d+)/g, "$1$2");
-    text = text.replace(/\b([Vv])(\d)\s+\.\s+(\d)/g, "$1$2.$3");
+    text = text.replace(/\b([Vv])\s+(\d+\.\d+(?:\.\d+)*)\b/g, "$1$2");
+    text = text.replace(/\b([Vv])(\d)\s*\.\s*(\d)/g, "$1$2.$3");
+    // "Codex 5." + newline + "6?" after a bad split
+    text = text.replace(/\b(\d)\.\s*(?:\n\s*)+(\d)([?!,;:]?)/g, "$1.$2$3");
     return text;
+  }
+
+  /** Final surface cleanse — always last so loop/sentence tools cannot re-break versions. */
+  function formatCleanse(value) {
+    return repairVersionNumbers(normalizeWhitespace(repairBrokenQuotes(repairVersionNumbers(value))));
   }
 
   /**
@@ -194,9 +216,12 @@
   }
 
   function polishCharacterDraft(source, draft) {
-    return ensureCompleteEnding(
-      collapseSelfLoops(
-        restoreSourceJargon(source, repairBrokenQuotes(repairVersionNumbers(draft)))
+    // formatCleanse is last so split/join cannot reintroduce "5. 6"
+    return formatCleanse(
+      ensureCompleteEnding(
+        collapseSelfLoops(
+          restoreSourceJargon(source, repairBrokenQuotes(repairVersionNumbers(draft)))
+        )
       )
     );
   }
@@ -211,9 +236,10 @@
   }
 
   function splitSentences(value) {
-    const clean = stripSocialNoise(value);
+    // Protect 5.6 so the period is not treated as a sentence boundary (that creates "5." + "6?").
+    const clean = protectVersionDots(stripSocialNoise(value));
     const matches = clean.match(/[^.!?\n]+(?:[.!?]+|$)/g);
-    return (matches || [clean]).map((item) => item.trim()).filter(Boolean);
+    return (matches || [clean]).map((item) => unprotectVersionDots(item.trim())).filter(Boolean);
   }
 
   function clip(value, max, suffix = "…") {
@@ -865,7 +891,7 @@
   function makeVariants(text, analysis, personaPackage = null) {
     return platformConfig.map((config) => ({
       ...config,
-      copy: personaPackage && config.id !== "site-news" ? personaPackage.variants[config.id] : generateCopy(config, text, analysis),
+      copy: formatCleanse(personaPackage && config.id !== "site-news" ? personaPackage.variants[config.id] : generateCopy(config, text, analysis)),
       selected: config.defaultOn && !(config.mediaOnly && !(state.media || imageUrl.value.trim())),
       disabled: config.mediaOnly && !(state.media || imageUrl.value.trim()),
       utm: buildTrackedUrl(config.id),
@@ -993,6 +1019,20 @@
     }
     updateVariantCard(card);
     updateSelectedCount();
+  }
+
+  function handleVariantBlur(event) {
+    if (!event.target.matches(".variant-copy")) return;
+    const card = event.target.closest(".variant-card");
+    if (!card) return;
+    const variant = state.variants.find((item) => item.id === card.dataset.platform);
+    if (!variant) return;
+    const cleaned = formatCleanse(event.target.value);
+    if (cleaned !== event.target.value) {
+      event.target.value = cleaned;
+      variant.copy = cleaned;
+      updateVariantCard(card);
+    }
   }
 
   async function handleVariantClick(event) {
@@ -1468,6 +1508,7 @@
 
   form.addEventListener("submit", (event) => { event.preventDefault(); generate(); });
   $("#variant-grid").addEventListener("input", handleVariantInput);
+  $("#variant-grid").addEventListener("focusout", handleVariantBlur);
   $("#variant-grid").addEventListener("click", handleVariantClick);
   $("#regenerate").addEventListener("click", generate);
   sourceText.addEventListener("input", updateSourceCount);
