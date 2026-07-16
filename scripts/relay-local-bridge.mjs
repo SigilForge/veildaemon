@@ -92,12 +92,22 @@ function countGraphemes(value) {
   return [...String(value || "")].length;
 }
 
+const VERSION_DOT = "\uE000";
+
+function protectVersionDots(value) {
+  return String(value || "").replace(/(\d)\.(\d)/g, `$1${VERSION_DOT}$2`);
+}
+
+function unprotectVersionDots(value) {
+  return String(value || "").split(VERSION_DOT).join(".");
+}
+
 function splitSentences(value) {
-  return String(value || "")
-    .replace(/\s+/g, " ")
-    .trim()
+  // Protect 5.6 so "5." is not treated as a sentence end (creates "5." + "6?").
+  const protectedText = protectVersionDots(String(value || "").replace(/\s+/g, " ").trim());
+  return protectedText
     .split(/(?<=[.!?])\s+/)
-    .map((part) => part.trim())
+    .map((part) => unprotectVersionDots(part.trim()))
     .filter(Boolean);
 }
 
@@ -109,16 +119,19 @@ function sentenceKey(value) {
     .trim();
 }
 
-/** Models often emit "5. 6" / "5. 6?" when they mean "5.6". */
+/** Models often emit "5. 6" / "5.\n6" / "5. 6?" when they mean "5.6". */
 function repairVersionNumbers(value) {
   let text = String(value || "");
-  for (let i = 0; i < 4; i += 1) {
-    const next = text.replace(/(\d)\.\s+(\d)/g, "$1.$2");
+  for (let i = 0; i < 6; i += 1) {
+    const next = text
+      .replace(/(\d)\.\s*[\r\n]+\s*(\d)/g, "$1.$2")
+      .replace(/(\d)\.\s+(\d)/g, "$1.$2")
+      .replace(/\b(\d)\.\s*(?:\n\s*)+(\d)([?!,;:]?)/g, "$1.$2$3");
     if (next === text) break;
     text = next;
   }
-  text = text.replace(/\b([Vv])\s+(\d+\.\d+)/g, "$1$2");
-  text = text.replace(/\b([Vv])(\d)\s+\.\s+(\d)/g, "$1$2.$3");
+  text = text.replace(/\b([Vv])\s+(\d+\.\d+(?:\.\d+)*)\b/g, "$1$2");
+  text = text.replace(/\b([Vv])(\d)\s*\.\s*(\d)/g, "$1$2.$3");
   return text;
 }
 
@@ -130,6 +143,10 @@ function repairBrokenQuotes(value) {
   });
   text = text.replace(/(["“])([^"“”\n]{1,220}[.!?…])\s*\n\n+(["“])([^"“”\n]{1,220}[.!?…])(["”])/g, "$1$2 $4$5");
   return text;
+}
+
+function formatCleanse(value) {
+  return repairVersionNumbers(String(value || "").replace(/\s+/g, " ").trim().replace(/\n{3,}/g, "\n\n"));
 }
 
 /** Strip mid-stream sentence loops only — never delete mid-sentence n-grams (that amputates endings). */
@@ -159,7 +176,7 @@ function collapseSelfLoops(value) {
     seen.add(key);
     kept.push(sentence);
   }
-  return kept.join(" ").replace(/\s{2,}/g, " ").trim();
+  return formatCleanse(kept.join(" "));
 }
 
 function isCompleteThought(value) {
@@ -192,7 +209,7 @@ function ensureCompleteEnding(value) {
 
 /** Prefer complete sentences under the hard ceiling; never invent text. */
 function clampDraft(value, limit) {
-  let clean = ensureCompleteEnding(collapseSelfLoops(String(value || "").replace(/\s+/g, " ").trim().replace(/…+$/g, "").trim()));
+  let clean = formatCleanse(ensureCompleteEnding(collapseSelfLoops(String(value || "").replace(/\s+/g, " ").trim().replace(/…+$/g, "").trim())));
   if (!clean) return "";
   if (countGraphemes(clean) <= limit) return clean;
   const accepted = [];
@@ -201,7 +218,7 @@ function clampDraft(value, limit) {
     if (countGraphemes(candidate) > limit) break;
     accepted.push(sentence);
   }
-  clean = ensureCompleteEnding(accepted.join(" "));
+  clean = formatCleanse(ensureCompleteEnding(accepted.join(" ")));
   if (clean && countGraphemes(clean) <= limit) return clean;
   // Prefer a shorter complete thought over a hard mid-sentence cut.
   return clean || "";
