@@ -165,6 +165,8 @@
     text = text.replace(/\b([Vv])(\d)\s*\.\s*(\d)/g, "$1$2.$3");
     // "Codex 5." + newline + "6?" after a bad split
     text = text.replace(/\b(\d)\.\s*(?:\n\s*)+(\d)([?!,;:]?)/g, "$1.$2$3");
+    // "AGENTS. md" / "relay. js" from sentence tools treating file dots as boundaries
+    text = text.replace(/\b([A-Za-z][\w-]*)\.\s+(md|js|ts|tsx|jsx|json|css|html|mjs|cjs|txt)\b/gi, "$1.$2");
     return text;
   }
 
@@ -206,6 +208,12 @@
       const openCount = (body.match(/["“]/g) || []).length;
       return openCount ? match : `${pre}${space}${body}`;
     });
+    // "go suck an egg. " / "deprecated behavior. " → tight closer
+    text = text.replace(/([.!?…])\s+(["”’])/g, "$1$2");
+    // Quote amputated onto its own paragraph: egg.\n\n' It's → egg.' It's
+    text = text.replace(/([.!?…])\s*\n\n+(["”’])(?=\s|[A-Za-z])/g, "$1$2");
+    // Lone closer paragraph: \n\n'\n\n → absorbed
+    text = text.replace(/\n\n+(["”’])\s*(?=\n|$)/g, "$1");
     return text;
   }
 
@@ -400,7 +408,21 @@
       if (sentences.length <= 3 || countText(block) < 380) return sentences.join(" ");
       return groupSentencesIntoParagraphs(sentences);
     });
-    return normalizeWhitespace(shapedBlocks.join("\n\n"));
+    // Glue orphan continuations ("—but these are…", lowercase leftovers) back to prior graph.
+    const merged = [];
+    for (const block of shapedBlocks) {
+      if (
+        merged.length
+        && !isStructuralDraftLine(block)
+        && (/^[—–-]+/.test(block) || /^[a-z(]/.test(block))
+      ) {
+        const cont = block.replace(/^[—–-]+\s*/, "");
+        merged[merged.length - 1] = `${merged[merged.length - 1]} ${cont}`;
+      } else {
+        merged.push(block);
+      }
+    }
+    return normalizeWhitespace(merged.join("\n\n"));
   }
 
   function fitCharacterSummary(value, max) {
@@ -1018,16 +1040,15 @@
     const platformDrafts = master.platformDrafts || {};
     const variants = Object.fromEntries(destinations.map((item) => {
       if (item.mediaOnly && !(state.media || imageUrl.value.trim())) return [item.id, ""];
-      // Prefer fullest seed: long master when it covers the source, else original source for long lanes.
-      const longForm = LONG_FORM_PLATFORM_IDS.has(item.id);
-      const masterCoversSource = countText(masterDraft) >= Math.min(countText(text) * 0.75, item.limit * 0.55);
-      const fillSource = longForm ? (masterCoversSource ? masterDraft : text) : masterDraft;
+      // Character packages stay in persona voice. Never fall back to raw SOURCE for long lanes
+      // (that dumps archive headers / field-review shells into Patreon, Reddit, etc.).
+      const fillSource = masterDraft;
       if (platformDrafts[item.id]) {
         // Model shorts: fill to limit − hashtag buffer from master when the model underfills.
         return [item.id, fillPlatformBody(platformDrafts[item.id], fillSource, item.limit, item.graphemes, text)];
       }
-      // Deterministic lanes (Discord, Patreon, etc.): pack the body up to the soft budget.
-      return [item.id, fillPlatformBody(generateCopy(item, fillSource, personaAnalysis), fillSource, item.limit, item.graphemes, text)];
+      // Deterministic character lanes: continuous prose (plus light shells for forum/log formats).
+      return [item.id, fillPlatformBody(characterPlatformSeed(item, masterDraft, personaAnalysis), fillSource, item.limit, item.graphemes, text)];
     }));
     const invalid = destinations.filter((item) => {
       const draft = normalizeWhitespace(variants[item.id]);
@@ -1035,6 +1056,45 @@
     });
     if (invalid.length) throw new Error(`Platform adaptation rejected for ${invalid.map((item) => item.name).join(", ")}.`);
     return { masterDraft, variants, validation };
+  }
+
+  /** Title from character master — not raw archive headers like "RECOMMENDED STATUS:…". */
+  function characterTitle(masterDraft) {
+    const first = (splitSentences(masterDraft)[0] || "Character note").replace(/[.!?]+$/, "").trim();
+    return clip(first, 78, "");
+  }
+
+  /**
+   * Character platform seeds keep continuous persona prose.
+   * Avoid non-character generateCopy hook/body splits (they orphan the first sentence)
+   * and avoid packaging raw SOURCE when the master is shorter than the archive.
+   */
+  function characterPlatformSeed(config, masterDraft, analysis) {
+    const title = characterTitle(masterDraft);
+    const body = bodyForLimit(masterDraft, bodyCharBudget(config.limit), 40);
+    switch (config.id) {
+      case "discord":
+        return collapseDuplicateParagraphs(joinParts([`**${title}**`, body]));
+      case "patreon":
+        return collapseDuplicateParagraphs(joinParts([
+          `# ${title}`,
+          bodyForLimit(masterDraft, bodyCharBudget(config.limit), 40),
+          `Voice: ${analysis.voice.value} · ${analysis.layer.value}`,
+        ]));
+      case "reddit":
+        return collapseDuplicateParagraphs(joinParts([
+          `Title: ${clip(title, 120, "")}`,
+          `Body:\n${bodyForLimit(masterDraft, Math.min(config.limit - 200, 12000), 80)}`,
+        ]));
+      case "itch":
+        return collapseDuplicateParagraphs(joinParts([
+          `Title: ${clip(title, 90, "")}`,
+          `What changed:\n${bodyForLimit(masterDraft, config.limit, 280)}`,
+        ]));
+      default:
+        // Social lanes: pure continuous character prose (fit/fill happens in fillPlatformBody).
+        return masterDraft;
+    }
   }
 
   function generateCopy(config, text, analysis) {
