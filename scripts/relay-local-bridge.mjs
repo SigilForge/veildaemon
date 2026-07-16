@@ -109,9 +109,20 @@ function sentenceKey(value) {
     .trim();
 }
 
+/** Models often emit "5. 6" when they mean "5.6". */
+function repairVersionNumbers(value) {
+  let text = String(value || "");
+  for (let i = 0; i < 4; i += 1) {
+    const next = text.replace(/(\d)\.\s+(\d)/g, "$1.$2");
+    if (next === text) break;
+    text = next;
+  }
+  return text;
+}
+
 /** Strip mid-stream sentence loops only — never delete mid-sentence n-grams (that amputates endings). */
 function collapseSelfLoops(value) {
-  const sentences = splitSentences(value);
+  const sentences = splitSentences(repairVersionNumbers(value));
   const kept = [];
   const seen = new Set();
   for (const sentence of sentences) {
