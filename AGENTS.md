@@ -87,13 +87,16 @@ RelayDaemon is **local-first Studio tooling** with a **standalone Vercel project
 
 ### What **does** ship Relay
 1. Commit/push source under `studio/relay/`, `api/character.js`, `api/scan-code.js`, and related scripts as usual (Git is the source of truth).
-2. **After** any change meant to go live on Relay, run a **separate Vercel production deploy**:
+2. **After** any change meant to go live on Relay, run a **separate Vercel production deploy**. `prepare` wipes `_relay-vercel/` (including any prior `.vercel` link), so **always re-link to the real project** before deploy:
    ```bash
    npm run relay:vercel:prepare
-   cd _relay-vercel && vercel deploy --prod --yes
+   cd _relay-vercel
+   vercel link --yes --project veildaemon-relay --scope knoxmortis-projects
+   vercel deploy --prod --yes
    ```
-3. Confirm the project is **`knoxmortis-projects/veildaemon-relay`** (production alias **`https://relay.veildaemon.app`**; deployment URL pattern `veildaemon-relay-*-knoxmortis-projects.vercel.app`).
-4. `_relay-vercel/` is a **generated deploy package** (copied snapshot). Never edit it as the long-term source; re-run prepare after source changes. Prefer not committing stale `_relay-vercel` content unless the repo explicitly tracks it for a reason.
+3. Confirm the project is **`knoxmortis-projects/veildaemon-relay`** and the deploy output aliases **`https://relay.veildaemon.app`**. Deployment URL pattern: `veildaemon-relay-*-knoxmortis-projects.vercel.app`.
+4. **Do not** accept a deploy that links/creates `_relay-vercel` or `relay-vercel-kappa` as the production app — that is the wrong project (directory-name trap after prepare).
+5. `_relay-vercel/` is a **generated deploy package** (copied snapshot). Never edit it as the long-term source; re-run prepare after source changes. Prefer not committing stale `_relay-vercel` content unless the repo explicitly tracks it for a reason.
 
 ### Cache busting (Relay)
 - After CSS/JS/vendor changes, bump the `?v=` query strings in **`studio/relay/index.html`** (and the root copy is produced by prepare, which copies that HTML to `_relay-vercel/index.html`).
