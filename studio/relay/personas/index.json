@@ -1,0 +1,52 @@
+{
+  "personas": [
+    {
+      "id": "cathy-holloway",
+      "name": "Cathy Holloway",
+      "era": "Book One · active / Hunger-instabile · the girl who woke wrong",
+      "signature": "CATHY // HUNGER LOG"
+    },
+    {
+      "id": "wednesday",
+      "name": "Wednesday",
+      "era": "Book One · active / emergent emotional AI · Kai's companion becoming real",
+      "signature": "WEDNESDAY // DOMESTIC SYSTEM REPORT"
+    },
+    {
+      "id": "diana-vale",
+      "name": "Diana Vale",
+      "era": "Book One · active / Lockbox Child · Quiet Storm · Dream-instabile",
+      "signature": "DIANA // DREAM NOTE"
+    },
+    {
+      "id": "kira-silverwood",
+      "name": "Kira Silverwood",
+      "era": "Book One · active / incomplete install · the glitch that lived",
+      "signature": "KIRA // LOCAL REALITY BUG"
+    },
+    {
+      "id": "alex-shade",
+      "name": "Alex Shade",
+      "era": "Book One · active / controlled · field observer",
+      "signature": "ALEX // FIELD OBSERVATION"
+    },
+    {
+      "id": "shade",
+      "name": "Shade",
+      "era": "Operational / anomalous · bound to A.Shade",
+      "signature": "SHADE // CORRECTION"
+    },
+    {
+      "id": "agnes-marlowe",
+      "name": "Agnes Marlowe",
+      "era": "Book One · active / personhood-sensitive · not the house",
+      "signature": "AGNES // STRUCTURAL CARE NOTE"
+    },
+    {
+      "id": "mira",
+      "name": "Mira",
+      "era": "Book One · event rarity · catalyst of becoming",
+      "signature": "MIRA // CATALYST MARK"
+    }
+  ]
+}

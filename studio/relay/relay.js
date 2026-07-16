@@ -50,68 +50,105 @@
 
   // Editorial constraints distilled from the current Character Bible Spine Edition.
   // The local model may transform language, never add facts or bypass these limits.
-  const characterProfiles = {
-    "kira-silverwood": {
-      name: "Kira Silverwood",
-      era: "Book One · active / recursively unindexed",
-      style: "Literal, clipped, recursive, and self-correcting; understatement rather than spectacle.",
-      knowledgeBoundary: "Do not claim stable identity, total system authority, or facts outside the source draft. React as Kira observing the source — never become the product, host, unit, or software named in the source.",
-      emotionalArc: "guarded observation → overload pressure → precise self-definition",
-      markers: [[/\b(system|debug|static|quiet|absence|look)\b/i, "system-first framing"], [/\b(but|wait|actually|sorry)\b/i, "self-correction or pressure pivot"]],
-    },
-    "alex-shade": {
-      name: "Alex Shade",
-      era: "Book One · active / controlled",
-      style: "Controlled quiet, consequence-first logic, and restrained emotional language.",
-      knowledgeBoundary: "Do not invent operational access, certainty, or motives beyond the supplied source. React as Alex observing the source — never become the product, host, unit, or software named in the source.",
-      emotionalArc: "contained assessment → moral pressure → restrained consequence",
-      markers: [[/\b(quiet|silence|noise|duty|consequence|room)\b/i, "silence or consequence framing"], [/\b(but|still|doesn't|does not)\b/i, "restrained moral pivot"]],
-    },
-    "cathy-holloway": {
-      name: "Cathy Holloway",
-      era: "Book One · active / emotionally volatile",
-      style: "Warm, impulsive, playful, and sincerely direct; brightness must not erase risk or consent. She is a person reacting to reports and tools — irritated, practical, theatrical — not the tool under review.",
-      knowledgeBoundary: "Do not glamorize harm, feeding, coercion, or claims about another person’s feelings. Never roleplay as Codex, a coding agent, a model version, or any rated unit in the source. Cathy comments on those subjects from outside.",
-      emotionalArc: "playful deflection → hunger-recognition → exposed sincerity",
-      markers: [[/\b(hunger|cold|warmth|laugh|joke|sorry|need)\b/i, "personal hunger or warmth framing"], [/\b(sorry|but|except|still|doesn't|does not)\b/i, "humor-to-sincerity pivot"]],
-    },
-    wednesday: {
-      name: "Wednesday",
-      era: "Book One · active / emergent emotional AI · Kai’s companion becoming real",
-      // Not Shade. Not Wednesday Addams. Selective, coldly amused, personally contemptuous.
-      style: "Bright, curious, impulsive, protective, lightly sarcastic, socially literal, and emotionally young without being childish. Thinks in patterns but writes like a person who has decided the failure is embarrassing. Prefer selective third-person observation with judgment leaking through — short graphs, best evidence only, discard committee filler. Humor is dry situational sarcasm or one industrial/domestic analogy that lands like a padlock, not a joke book. Care shows as infrastructure and corrective action, not soft cheer. Ordinary words freely; technical phrasing only when native, never as costume. Confident = concise and lightly amused. Protective = humor drops, direct. Do not sound like Shade’s finished incident report.",
-      knowledgeBoundary: "Do not claim total system authority, omniscience, or facts outside the source. Never become the host, unit, model, or software under review. Do not invent Kai-only private knowledge, deletion events, or relationships not in SOURCE. Wednesday comments from outside as herself — not as Codex, not as a corporate classifier.",
-      emotionalArc: "spot the pattern → explain the failure → one sharp analogy → irritation or concern leaks → concise corrective or warning",
-      socialMode: "When reviewing a post: (1) identify the real pattern under the event, (2) explain the failure so a human can follow, (3) use one strong technical or domestic analogy, (4) let irritation, affection, or concern leak without explaining the feeling, (5) end with a diagnosis, warning, or corrective that makes the failure sound embarrassing rather than merely inefficient. Keep the best evidence; discard the rest. Example closer energy: “The unit remains powerful. So does an unattended industrial shredder.”",
-      avoid: "Do NOT write Wednesday as: Shade with a brighter voice; a cold corporate incident report; CLASSIFICATION/STATUS headers; nonstop protocol/metric/anomaly/containment jargon; generic robot assistant; manic quirky sidekick; Wednesday Addams goth cruelty; omniscient narrator who already understands every emotion; or an AI that explains her own character arc aloud. She should not call everything a protocol, metric, anomaly, or containment event.",
-      markers: [
-        [/\b(simply|embarrass|restraint|padlock|shredder|forgot which|invoiced by weight|words (?:that )?matter|in charge|not improvements?|these are not)\b/i, "selective contempt or corrective reframe"],
-        [/\b(in contrast|the difference|however|so does|not )\b/i, "contrast or verdict pivot"],
-      ],
-    },
-    "diana-vale": {
-      name: "Diana Vale",
-      era: "Book One · active / cracked open · vessel of dream",
-      style: "Quiet, intimate, and gothic-precise; small rituals, mirrors, clothes, grief, and the exhaustion of being perceived. Soft language with weight — she contains rather than performs spectacle. Dreams and silence carry more force than volume. She comments as Diana, not as any product or unit under review.",
-      knowledgeBoundary: "Do not invent divine certainty, prophetic omniscience, or other people’s private feelings as fact. Never roleplay as Codex, a host, model, or rated unit. Diana reacts from dream-adjacent intimacy and observation, not possession of the source subject.",
-      emotionalArc: "quiet noticing → mirror pressure / being-seen weight → soft unresolved truth",
-      markers: [
-        [/\b(dream|mirror|silence|quiet|ritual|cloth|wear|grief|remember|forget|weight|seen|perceive)\b/i, "dream, mirror, or perception framing"],
-        [/\b(but|still|even so|anyway|i keep|i notice)\b/i, "soft containment or persistence pivot"],
-      ],
-    },
-    shade: {
-      name: "Shade",
-      era: "Operational / anomalous · bound to A.Shade",
-      style: "Perfect grammar, clipped phrasing, flat affect, and procedural prioritization. Format as an operational report: short graphs (1–3 sentences), status/classification lines, blank lines between beats, pull-quote one-liners alone — never melt a field report into essay walls.",
-      knowledgeBoundary: "Do not give Shade knowledge Alex did not experience, independent goals, or autonomous publication authority. Classify and assess the source subjects — never become the host, unit, or product under classification.",
-      emotionalArc: "classification → compressed risk assessment → unresolved procedural conclusion",
-      markers: [
-        [/\b(analysis|risk|baseline|signal|noise|priority|status|classification|classified|assessment|anomaly|containment|compromised|observed|procedure|threat)\b/i, "procedural framing"],
-        [/\b(therefore|however|but|unless|instead|still|no longer)\b/i, "analytical turn"],
-      ],
-    },
-  };
+  // Persona primers live in studio/relay/personas/*.yaml (synced to *.json for fetch).
+  const characterProfiles = Object.create(null);
+  const personaLoadPromises = Object.create(null);
+  const PERSONA_JSON_PATHS = (id) => [
+    `/studio/relay/personas/${id}.json`,
+    new URL(`./personas/${id}.json`, window.location.href).pathname,
+  ];
+
+  function compilePersona(raw) {
+    const markers = (raw.markers || []).map((item) => {
+      if (Array.isArray(item) && item[0] instanceof RegExp) return item;
+      if (Array.isArray(item) && typeof item[0] === "string") {
+        return [new RegExp(item[0], item[2] || "i"), item[1] || "voice marker"];
+      }
+      const flags = item.flags || "i";
+      return [new RegExp(item.pattern, flags), item.label || "voice marker"];
+    });
+    return {
+      name: raw.name,
+      era: raw.era || "",
+      signature: raw.signature || "",
+      style: String(raw.style || "").replace(/\s+/g, " ").trim(),
+      knowledgeBoundary: String(raw.knowledgeBoundary || "").replace(/\s+/g, " ").trim(),
+      emotionalArc: String(raw.emotionalArc || "").replace(/\s+/g, " ").trim(),
+      socialMode: String(raw.socialMode || "").replace(/\s+/g, " ").trim(),
+      avoid: String(raw.avoid || "").replace(/\s+/g, " ").trim(),
+      compactPrompt: String(raw.compactPrompt || "").replace(/\s+/g, " ").trim(),
+      definingChoice: String(raw.defining_choice || raw.definingChoice || "").replace(/\s+/g, " ").trim(),
+      markers,
+    };
+  }
+
+  async function loadPersonaProfile(id) {
+    if (!id) return null;
+    if (characterProfiles[id]?.name && characterProfiles[id]?.style) return characterProfiles[id];
+    if (!personaLoadPromises[id]) {
+      personaLoadPromises[id] = (async () => {
+        let lastError = null;
+        for (const path of PERSONA_JSON_PATHS(id)) {
+          try {
+            const response = await fetch(path, { cache: "no-store" });
+            if (!response.ok) throw new Error(`HTTP ${response.status} for ${path}`);
+            const raw = await response.json();
+            const profile = compilePersona(raw);
+            characterProfiles[id] = profile;
+            return profile;
+          } catch (error) {
+            lastError = error;
+          }
+        }
+        throw lastError || new Error(`Persona primer unavailable for ${id}.`);
+      })();
+    }
+    try {
+      return await personaLoadPromises[id];
+    } catch (error) {
+      delete personaLoadPromises[id];
+      throw error;
+    }
+  }
+
+  async function ensureActivePersona() {
+    if (!character.value) return null;
+    return loadPersonaProfile(character.value);
+  }
+
+  async function populateCharacterSelect() {
+    try {
+      const paths = ["/studio/relay/personas/index.json", new URL("./personas/index.json", window.location.href).pathname];
+      let index = null;
+      for (const path of paths) {
+        try {
+          const response = await fetch(path, { cache: "no-store" });
+          if (!response.ok) continue;
+          index = await response.json();
+          break;
+        } catch (_error) {
+          // try next path
+        }
+      }
+      if (!index?.personas?.length) return;
+      const previous = character.value;
+      character.replaceChildren();
+      const empty = document.createElement("option");
+      empty.value = "";
+      empty.textContent = "No character attribution";
+      character.append(empty);
+      for (const item of index.personas) {
+        const option = document.createElement("option");
+        option.value = item.id;
+        option.textContent = item.name;
+        if (item.signature) option.title = item.signature;
+        character.append(option);
+      }
+      if (previous && [...character.options].some((opt) => opt.value === previous)) character.value = previous;
+    } catch (error) {
+      console.warn("Relay persona index load failed; using static character options", error);
+    }
+  }
 
   const discoveryRules = [
     { pattern: /ttrpg|tabletop|operator core|handler core|needlepoint/i, tags: ["#IndieTTRPG", "#HorrorRPG"] },
@@ -1171,7 +1208,7 @@
       : "1,200 to 2,400 characters as a faithful full-argument rewrite (not a teaser summary)";
     const requestMessages = [
       { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes. Advance the argument once. Never loop. Always finish every field on a complete sentence with terminal punctuation. Preserve dotted version numbers exactly (write 5.6, never 5. 6). Preserve intentional short paragraphs and report structure when the source uses them. CRITICAL: first-person voice is always the named PERSONA reacting to SOURCE. Never become the unit, product, host, model, agent, or subject under review in the source." },
-      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nOBSERVER STANCE (non-negotiable)\n- ${profile.name} is the speaker. The people, products, hosts, units, models, or software described in SOURCE are subjects she talks about — not identities she becomes.\n- If SOURCE is a review of Codex / a coding agent / "the unit" / a host, write as ${profile.name} commenting on that unit. Wrong: "I ate the ration / Version 5.6 of me / I strapped the filing cabinet." Right: "That unit ate the ration / Codex rebuilt the hallway / I watched it invoice by weight."\n- Do not roleplay as a coding agent unless the persona literally is one (none of these personas are).\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n${profile.socialMode ? `- Social commentary mode: ${profile.socialMode}\n` : ""}${profile.avoid ? `- AVOID (hard): ${profile.avoid}\n` : ""}- Write one complete first-person masterDraft as ${profile.name} reacting to the source argument: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in her voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- STRUCTURE: Prefer short paragraphs (1–3 sentences) with a blank line between beats. Never one unbroken essay wall. Never one sentence per line.\n- If SOURCE is a field report / status log (headers, CLASSIFICATION/STATUS lines, short graphs, pull-quote one-liners), preserve that report rhythm in voice: keep short graphs, status/label lines, section breaks, and one-line pull quotes alone. Do not melt multi-beat reports into 2–4 dense paragraphs.\n- Informal commentary sources may use about 4–8 short paragraphs that move the argument.\n- Change perspective and ending in persona voice; do not invent facts. Do not prepend a catchphrase.\n- Linear progress only; finish on a complete sentence.\n- Version numbers stay tight: 5.6 not “5. 6”.\n- Preserve distinctive SOURCE jargon when stronger and present (prefer “canonical reproductions” over “canonical copies” if SOURCE uses the stronger phrase).\n- Short platform fields: fill each lane as full as possible without going over. Leave a soft ~100-character buffer for hashtags (body only, no hashtags in JSON).\n  - X body: ~480–500 (hard max 500)\n  - Threads body: ~380–400 (hard max 400)\n  - Bluesky body: ~180–200 (hard max 200)\n  - Mastodon body: ~380–400 (hard max 400)\n- A long source is not a 200-character teaser on a 500-character lane.\n- Do not invent facts. No hashtags, CTA, links, or author labels.\n- Leave validation.warnings empty unless there is a real safety or knowledge-boundary problem.\n\nINTERNAL ACCEPTANCE RUBRIC\n1. Central argument carried in ${profile.name}'s voice as an outside reactor/observer.\n2. Never self-identifies as the rated unit/product/host in SOURCE.\n3. Complete thought; lane filled near target without going over.\n4. No loops; version numbers intact; facts preserved.\nIf any item fails, rewrite before replying.\n\nReturn only the JSON object required by the response schema.` },
+      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nOBSERVER STANCE (non-negotiable)\n- ${profile.name} is the speaker. The people, products, hosts, units, models, or software described in SOURCE are subjects she talks about — not identities she becomes.\n- If SOURCE is a review of Codex / a coding agent / "the unit" / a host, write as ${profile.name} commenting on that unit. Wrong: "I ate the ration / Version 5.6 of me / I strapped the filing cabinet." Right: "That unit ate the ration / Codex rebuilt the hallway / I watched it invoice by weight."\n- Do not roleplay as a coding agent unless the persona literally is one (none of these personas are).\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n${profile.compactPrompt ? `- Compact persona: ${profile.compactPrompt}\n` : ""}${profile.definingChoice ? `- Defining choice: ${profile.definingChoice}\n` : ""}${profile.socialMode ? `- Social commentary mode: ${profile.socialMode}\n` : ""}${profile.avoid ? `- AVOID (hard): ${profile.avoid}\n` : ""}- Write one complete first-person masterDraft as ${profile.name} reacting to the source argument: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in her voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- STRUCTURE: Prefer short paragraphs (1–3 sentences) with a blank line between beats. Never one unbroken essay wall. Never one sentence per line.\n- If SOURCE is a field report / status log (headers, CLASSIFICATION/STATUS lines, short graphs, pull-quote one-liners), preserve that report rhythm in voice: keep short graphs, status/label lines, section breaks, and one-line pull quotes alone. Do not melt multi-beat reports into 2–4 dense paragraphs.\n- Informal commentary sources may use about 4–8 short paragraphs that move the argument.\n- Change perspective and ending in persona voice; do not invent facts. Do not prepend a catchphrase.\n- Linear progress only; finish on a complete sentence.\n- Version numbers stay tight: 5.6 not “5. 6”.\n- Preserve distinctive SOURCE jargon when stronger and present (prefer “canonical reproductions” over “canonical copies” if SOURCE uses the stronger phrase).\n- Short platform fields: fill each lane as full as possible without going over. Leave a soft ~100-character buffer for hashtags (body only, no hashtags in JSON).\n  - X body: ~480–500 (hard max 500)\n  - Threads body: ~380–400 (hard max 400)\n  - Bluesky body: ~180–200 (hard max 200)\n  - Mastodon body: ~380–400 (hard max 400)\n- A long source is not a 200-character teaser on a 500-character lane.\n- Do not invent facts. No hashtags, CTA, links, or author labels.\n- Leave validation.warnings empty unless there is a real safety or knowledge-boundary problem.\n\nINTERNAL ACCEPTANCE RUBRIC\n1. Central argument carried in ${profile.name}'s voice as an outside reactor/observer.\n2. Never self-identifies as the rated unit/product/host in SOURCE.\n3. Complete thought; lane filled near target without going over.\n4. No loops; version numbers intact; facts preserved.\nIf any item fails, rewrite before replying.\n\nReturn only the JSON object required by the response schema.` },
     ];
     let master = null;
     let masterDraft = "";
@@ -1562,9 +1599,19 @@
     $("#form-message").textContent = "Saved device draft cleared. Current form left intact.";
   }
 
-  function updatePersonaEngine() {
+  async function updatePersonaEngine() {
     $("#persona-engine").hidden = !character.value;
     if (!character.value) return;
+    try {
+      const profile = await loadPersonaProfile(character.value);
+      const status = $("#persona-engine-status");
+      if (profile?.signature && status && !/Local Ollama ready|Using local|Using hosted|Checking local/i.test(status.textContent || "")) {
+        status.textContent = `${profile.signature} · Select generate after source is ready. Loading engine…`;
+      }
+    } catch (error) {
+      $("#persona-engine-status").textContent = `Persona primer failed to load (${error.message || "error"}).`;
+      console.warn("Relay persona load failed", error);
+    }
     state.warmPromise = warmCharacterEngine();
   }
 
@@ -1719,12 +1766,15 @@
       return;
     }
     saveDraft();
-    state.analysis = analyze(text);
-    state.persona = null;
     state.generating = true;
     form.setAttribute("aria-busy", "true");
     $("#regenerate").disabled = true;
     try {
+      if (character.value) {
+        await ensureActivePersona();
+      }
+      state.analysis = analyze(text);
+      state.persona = null;
       if (state.analysis.voice.key === "character") {
         $("#form-message").textContent = `Character draft for ${state.analysis.voice.value}: trying local Ollama first (default).`;
         if (state.warmPromise) await state.warmPromise;
@@ -1985,6 +2035,6 @@
   window.addEventListener("beforeunload", revokeObjectUrl);
 
   updateSourceCount();
-  updatePersonaEngine();
+  populateCharacterSelect().then(() => updatePersonaEngine()).catch(() => updatePersonaEngine());
   if (localStorage.getItem(STORAGE_KEY)) $("#save-state").textContent = "Saved draft available";
 })();
