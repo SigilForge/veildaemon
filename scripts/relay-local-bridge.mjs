@@ -111,23 +111,105 @@ function splitSentences(value) {
     .filter(Boolean);
 }
 
-/** Light post-process only — version glue + whitespace. Does not rewrite voice. */
-function formatCleanse(value) {
+function sentenceKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s']/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Models often emit "5. 6" / "5.\n6" / "5. 6?" when they mean "5.6". */
+function repairVersionNumbers(value) {
   let text = String(value || "");
   for (let i = 0; i < 6; i += 1) {
     const next = text
       .replace(/(\d)\.\s*[\r\n]+\s*(\d)/g, "$1.$2")
-      .replace(/(\d)\.\s+(\d)/g, "$1.$2");
+      .replace(/(\d)\.\s+(\d)/g, "$1.$2")
+      .replace(/\b(\d)\.\s*(?:\n\s*)+(\d)([?!,;:]?)/g, "$1.$2$3");
     if (next === text) break;
     text = next;
   }
   text = text.replace(/\b([Vv])\s+(\d+\.\d+(?:\.\d+)*)\b/g, "$1$2");
-  return text.replace(/\s+/g, " ").trim().replace(/\n{3,}/g, "\n\n");
+  text = text.replace(/\b([Vv])(\d)\s*\.\s*(\d)/g, "$1$2.$3");
+  return text;
+}
+
+function repairBrokenQuotes(value) {
+  let text = String(value || "");
+  text = text.replace(/(["“])([^"“”\n]{1,220}[.!?…])\s*\n\n+([A-Z“"][^"“”\n]{1,220}[.!?…])(["”])?/g, (match, open, first, second, close) => {
+    const end = close || (open === "“" ? "”" : '"');
+    return `${open}${first} ${second}${end}`;
+  });
+  text = text.replace(/(["“])([^"“”\n]{1,220}[.!?…])\s*\n\n+(["“])([^"“”\n]{1,220}[.!?…])(["”])/g, "$1$2 $4$5");
+  return text;
+}
+
+function formatCleanse(value) {
+  return repairVersionNumbers(String(value || "").replace(/\s+/g, " ").trim().replace(/\n{3,}/g, "\n\n"));
+}
+
+/** Strip mid-stream sentence loops only — never delete mid-sentence n-grams (that amputates endings). */
+function collapseSelfLoops(value) {
+  const sentences = splitSentences(repairBrokenQuotes(repairVersionNumbers(value)));
+  const kept = [];
+  const seen = new Set();
+  for (const sentence of sentences) {
+    const key = sentenceKey(sentence);
+    if (!key || key.split(" ").length < 3) {
+      kept.push(sentence);
+      continue;
+    }
+    if (seen.has(key)) continue;
+    const tokens = key.split(" ");
+    if (tokens.length >= 8) {
+      const tokenSet = new Set(tokens);
+      const near = [...seen].some((prior) => {
+        const priorTokens = prior.split(" ");
+        if (priorTokens.length < 8) return false;
+        if (Math.abs(priorTokens.length - tokens.length) > 3) return false;
+        const overlap = priorTokens.filter((token) => tokenSet.has(token)).length;
+        return overlap / Math.max(priorTokens.length, tokens.length) >= 0.9;
+      });
+      if (near) continue;
+    }
+    seen.add(key);
+    kept.push(sentence);
+  }
+  return formatCleanse(kept.join(" "));
+}
+
+function isCompleteThought(value) {
+  const clean = String(value || "").replace(/\s+/g, " ").trim();
+  if (clean.length < 40) return false;
+  if (/…$|\.\.\.$|—$|-$/.test(clean)) return false;
+  if (!/[.!?…"”']["'”']?$/.test(clean)) return false;
+  const sentences = splitSentences(clean);
+  if (sentences.length < 2) return false;
+  const last = sentences[sentences.length - 1];
+  const lastCore = last.replace(/[.!?…"”']+/g, "").trim();
+  const lastWords = lastCore.split(/\s+/).filter(Boolean);
+  if (lastWords.length <= 2 && /\?$/.test(last) && clean.length > 280) return false;
+  if (/\b(and|but|or|the|a|an|to|of|with|for|that|which|who|when|while|because|so|then|codex)\s*$/i.test(lastCore)) return false;
+  if (lastWords.length < 3 && !/^(end|status|done|verified|failed|terminated|complete|closed)\b/i.test(lastCore)) return false;
+  return true;
+}
+
+function ensureCompleteEnding(value) {
+  const clean = String(value || "").replace(/\s+/g, " ").trim();
+  if (isCompleteThought(clean)) return clean;
+  const sentences = splitSentences(clean);
+  while (sentences.length > 1) {
+    sentences.pop();
+    const candidate = sentences.join(" ").replace(/\s{2,}/g, " ").trim();
+    if (isCompleteThought(candidate)) return candidate;
+  }
+  return clean;
 }
 
 /** Prefer complete sentences under the hard ceiling; never invent text. */
 function clampDraft(value, limit) {
-  let clean = formatCleanse(String(value || "").replace(/…+$/g, "").trim());
+  let clean = formatCleanse(ensureCompleteEnding(collapseSelfLoops(String(value || "").replace(/\s+/g, " ").trim().replace(/…+$/g, "").trim())));
   if (!clean) return "";
   if (countGraphemes(clean) <= limit) return clean;
   const accepted = [];
@@ -136,7 +218,10 @@ function clampDraft(value, limit) {
     if (countGraphemes(candidate) > limit) break;
     accepted.push(sentence);
   }
-  return formatCleanse(accepted.join(" ")) || "";
+  clean = formatCleanse(ensureCompleteEnding(accepted.join(" ")));
+  if (clean && countGraphemes(clean) <= limit) return clean;
+  // Prefer a shorter complete thought over a hard mid-sentence cut.
+  return clean || "";
 }
 
 function extractJsonObject(text) {
