@@ -75,8 +75,12 @@ Live hosts:
 
 ```bash
 npm run relay:vercel:prepare
-cd _relay-vercel && vercel deploy --prod --yes
+cd _relay-vercel
+vercel link --yes --project veildaemon-relay --scope knoxmortis-projects
+vercel deploy --prod --yes
 ```
+
+`prepare` rebuilds `_relay-vercel/` from scratch, so re-link every time. Confirm the deploy aliases `https://relay.veildaemon.app` (project **`veildaemon-relay`**), not a directory-named project like `_relay-vercel`.
 
 Source of truth remains the repo (`studio/relay/*`, `api/character.js`, `api/scan-code.js`). `_relay-vercel/` is a generated snapshot only.
 
