@@ -180,14 +180,22 @@
     return fitted && !fitted.endsWith("…") ? fitted : "";
   }
 
+  function sentenceKey(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   /** Drop consecutive / nested duplicate paragraphs so templates never paste the same body twice. */
   function collapseDuplicateParagraphs(value) {
     const paras = normalizeWhitespace(value).split(/\n\n+/).map((part) => part.trim()).filter(Boolean);
     const kept = [];
     for (const para of paras) {
-      const norm = para.toLowerCase().replace(/\s+/g, " ").trim();
+      const norm = sentenceKey(para);
       const duplicate = kept.some((prev) => {
-        const prior = prev.toLowerCase().replace(/\s+/g, " ").trim();
+        const prior = sentenceKey(prev);
         if (prior === norm) return true;
         if (norm.length < 48 || prior.length < 48) return false;
         return norm.includes(prior) || prior.includes(norm);
@@ -195,6 +203,100 @@
       if (!duplicate) kept.push(para);
     }
     return kept.join("\n\n");
+  }
+
+  /**
+   * Models often loop mid-stream: same sentence twice, or a 12–20 word run restated later.
+   * Collapse those without inventing new prose.
+   */
+  function collapseSelfLoops(value) {
+    let text = collapseDuplicateParagraphs(value);
+    if (!text) return "";
+
+    // 1) Unique sentences in order (exact or near-exact).
+    const sentences = splitSentences(text);
+    const keptSentences = [];
+    const seen = new Set();
+    for (const sentence of sentences) {
+      const key = sentenceKey(sentence);
+      if (!key || key.split(" ").length < 3) {
+        keptSentences.push(sentence);
+        continue;
+      }
+      if (seen.has(key)) continue;
+      // Near-duplicate: >= 85% token overlap with a kept sentence of similar length.
+      const tokens = new Set(key.split(" "));
+      const near = [...seen].some((prior) => {
+        const priorTokens = prior.split(" ");
+        if (Math.abs(priorTokens.length - tokens.size) > 4) return false;
+        const overlap = priorTokens.filter((token) => tokens.has(token)).length;
+        return overlap / Math.max(priorTokens.length, tokens.size) >= 0.85;
+      });
+      if (near) continue;
+      seen.add(key);
+      keptSentences.push(sentence);
+    }
+    text = keptSentences.join(" ");
+
+    // 2) Remove later repeats of long word n-grams (true loop signature).
+    const words = text.split(/(\s+)/);
+    const plain = [];
+    const plainIndex = [];
+    words.forEach((part, index) => {
+      if (/^\s+$/.test(part) || !part) return;
+      plain.push(part.toLowerCase().replace(/[^a-z0-9']/g, ""));
+      plainIndex.push(index);
+    });
+    const dropPlain = new Set();
+    const windowSize = 12;
+    const firstAt = new Map();
+    for (let i = 0; i + windowSize <= plain.length; i += 1) {
+      if ([...Array(windowSize)].some((_, offset) => dropPlain.has(i + offset))) continue;
+      const key = plain.slice(i, i + windowSize).join(" ");
+      if (key.replace(/\s+/g, "").length < 40) continue;
+      if (!firstAt.has(key)) {
+        firstAt.set(key, i);
+        continue;
+      }
+      // Drop this later window (loop body).
+      for (let j = 0; j < windowSize; j += 1) dropPlain.add(i + j);
+    }
+    if (dropPlain.size) {
+      const keepWordIndex = new Set(plainIndex.filter((_, plainPos) => !dropPlain.has(plainPos)));
+      text = words
+        .filter((part, index) => /^\s+$/.test(part) || keepWordIndex.has(index) || !plainIndex.includes(index))
+        .join("")
+        .replace(/\s{2,}/g, " ")
+        .replace(/\s+([,.;:!?])/g, "$1")
+        .trim();
+      text = collapseDuplicateParagraphs(text);
+    }
+
+    return normalizeWhitespace(text);
+  }
+
+  function selfLoopScore(value) {
+    const text = normalizeWhitespace(value);
+    if (countText(text) < 120) return 0;
+    const sentences = splitSentences(text).map(sentenceKey).filter((item) => item.split(" ").length >= 5);
+    if (sentences.length >= 2) {
+      const unique = new Set(sentences);
+      const dupRatio = 1 - unique.size / sentences.length;
+      if (dupRatio >= 0.2) return dupRatio;
+    }
+    const words = text.toLowerCase().replace(/[^a-z0-9\s']/g, " ").split(/\s+/).filter(Boolean);
+    if (words.length < 40) return 0;
+    const counts = new Map();
+    let worst = 0;
+    for (let i = 0; i + 12 <= words.length; i += 1) {
+      const key = words.slice(i, i + 12).join(" ");
+      const next = (counts.get(key) || 0) + 1;
+      counts.set(key, next);
+      if (next > worst) worst = next;
+    }
+    if (worst >= 3) return Math.min(1, worst / 4);
+    if (worst >= 2 && words.length > 80) return 0.35;
+    return 0;
   }
 
   /** Use as much of the source as the platform allows; do not pre-compress to a fixed short clip. */
@@ -551,9 +653,11 @@
     const modelMarkers = (modelValidation.characterMarkers || []).filter((item) => typeof item === "string" && item.trim());
     const voiceScore = Number(modelValidation.voiceMatch);
     const copiedRatio = copiedSentenceRatio(source, master);
+    const loopScore = selfLoopScore(master);
     const warnings = [...new Set((modelValidation.warnings || []).filter(Boolean))];
     // Archive-style sources reuse report phrasing; only hard-fail near-total sentence reuse.
     if (copiedRatio > 0.72) warnings.push("Draft repeats too many complete source sentences.");
+    if (loopScore >= 0.25) warnings.push("Draft loops on itself — the same claim or sentence run is restated instead of advancing.");
     // Local models often write in-voice without hitting a narrow regex. Accept model markers when the engine scores voice well.
     if (!markers.length && !(modelMarkers.length && Number.isFinite(voiceScore) && voiceScore >= 0.7)) {
       warnings.push("No character-specific perspective marker was detected.");
@@ -563,7 +667,7 @@
     if (modelValidation.knowledgeBoundarySafe === false) warnings.push("Character engine marked a knowledge-boundary concern.");
     if (Object.entries(state.personaDrafts).some(([key, draft]) => key !== character.value && normalizeWhitespace(draft).toLowerCase() === normalizeWhitespace(master).toLowerCase())) warnings.push("Draft duplicates a different character voice.");
     const combinedMarkers = [...new Set([...modelMarkers, ...markers])];
-    return { voiceMatch: Number(modelValidation.voiceMatch || (markers.length >= 2 ? 0.82 : markers.length || modelMarkers.length ? 0.62 : 0.3)), sourceFidelity: Number(modelValidation.sourceFidelity || 0.85), canonSafe: modelValidation.canonSafe !== false, knowledgeBoundarySafe: modelValidation.knowledgeBoundarySafe !== false, copiedTooClosely: copiedRatio > 0.72, copiedSentenceRatio: copiedRatio, characterMarkers: combinedMarkers, warnings };
+    return { voiceMatch: Number(modelValidation.voiceMatch || (markers.length >= 2 ? 0.82 : markers.length || modelMarkers.length ? 0.62 : 0.3)), sourceFidelity: Number(modelValidation.sourceFidelity || 0.85), canonSafe: modelValidation.canonSafe !== false, knowledgeBoundarySafe: modelValidation.knowledgeBoundarySafe !== false, copiedTooClosely: copiedRatio > 0.72, copiedSentenceRatio: copiedRatio, selfLoopScore: loopScore, characterMarkers: combinedMarkers, warnings };
   }
 
   async function createPersonaPackage(text, analysis, onStage = () => {}) {
@@ -573,17 +677,17 @@
       ? `about ${Math.max(600, Math.min(sourceLen, 3200))} characters (rewrite the full post in voice; stay within roughly 85–110% of SOURCE length; never pad)`
       : "1,200 to 2,400 characters as a faithful full-argument rewrite (not a teaser summary)";
     const requestMessages = [
-      { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes. Never repeat the same paragraph, claim, or section twice in one field." },
-      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft in character voice: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Never duplicate paragraphs or restate the same block under a second heading.\n- Write final in-character outputs for X (maximum 500 characters or 70 words), Threads (maximum 420 characters or 60 words), Bluesky (maximum 240 characters or 35 words), and Mastodon (maximum 440 characters or 65 words). Those short fields must be distinct compressions, not pasted copies of the master.\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully carries the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fits its stated character and word limits.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\n6. No field repeats itself or pastes the same body twice.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn only the JSON object required by the response schema. Never emit placeholder text such as “...” or describe what a field should contain.` },
+      { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes. Advance the argument once. Never loop, never restate a finished claim, never paste the same sentence or 12+ word run twice in any field." },
+      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft in character voice: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Linear progress only: each sentence must add new information or a new reaction. If you catch yourself repeating, stop and end the piece.\n- Write final in-character outputs for X (maximum 500 characters or 70 words), Threads (maximum 420 characters or 60 words), Bluesky (maximum 240 characters or 35 words), and Mastodon (maximum 440 characters or 65 words). Those short fields must be distinct compressions, not pasted copies of the master.\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully carries the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fits its stated character and word limits.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\n6. No field loops, repeats a sentence, or restates a finished claim.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn only the JSON object required by the response schema. Never emit placeholder text such as “...” or describe what a field should contain.` },
     ];
     let master = null;
     let masterDraft = "";
     let validation = null;
     let lastReject = null;
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      if (attempt > 0) onStage("Local draft failed internal review. Retrying character package once…");
+      if (attempt > 0) onStage("Draft looped or failed review. Retrying character package once…");
       master = await characterEngineRequest(requestMessages, attempt ? "character master retry" : "character master");
-      masterDraft = normalizeWhitespace(master.masterDraft);
+      masterDraft = collapseSelfLoops(master.masterDraft);
       if (!masterDraft) {
         lastReject = new Error("Character engine returned no master draft.");
         continue;
@@ -603,16 +707,17 @@
     const variants = Object.fromEntries(destinations.map((item) => {
       if (item.mediaOnly && !(state.media || imageUrl.value.trim())) return [item.id, ""];
       if (platformDrafts[item.id]) {
-        const fitted = fitCharacterSummary(platformDrafts[item.id], item.limit);
-        if (fitted) return [item.id, collapseDuplicateParagraphs(fitted)];
-        return [item.id, collapseDuplicateParagraphs(fitComplete(platformDrafts[item.id] || masterDraft, item.limit))];
+        const fitted = fitCharacterSummary(collapseSelfLoops(platformDrafts[item.id]), item.limit);
+        if (fitted && selfLoopScore(fitted) < 0.25) return [item.id, fitted];
+        const fallback = collapseSelfLoops(fitComplete(platformDrafts[item.id] || masterDraft, item.limit));
+        return [item.id, fallback];
       }
       // Long destinations that can hold the source: adapt the full post, not the short master teaser.
       // Prefer a full-length master rewrite when the model actually produced one; otherwise keep SOURCE.
       const longForm = LONG_FORM_PLATFORM_IDS.has(item.id);
       const masterCoversSource = countText(masterDraft) >= Math.min(countText(text) * 0.75, item.limit * 0.55);
       const seed = longForm ? (masterCoversSource ? masterDraft : text) : masterDraft;
-      return [item.id, collapseDuplicateParagraphs(fitComplete(generateCopy(item, seed, personaAnalysis), item.limit))];
+      return [item.id, collapseSelfLoops(fitComplete(generateCopy(item, seed, personaAnalysis), item.limit))];
     }));
     const invalid = destinations.filter((item) => {
       const draft = normalizeWhitespace(variants[item.id]);
