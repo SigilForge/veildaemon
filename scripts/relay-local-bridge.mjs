@@ -84,8 +84,8 @@ function validateMessages(value) {
   return messages;
 }
 
-function invalidOutput(detail) {
-  return Object.assign(new Error("OLLAMA_INVALID_OUTPUT"), { detail });
+function invalidOutput(detail, metadata = {}) {
+  return Object.assign(new Error("OLLAMA_INVALID_OUTPUT"), { detail, ...metadata });
 }
 
 function validateResult(value) {
@@ -96,7 +96,8 @@ function validateResult(value) {
   if (!platformDrafts || typeof platformDrafts !== "object") throw invalidOutput("platform_drafts_missing");
   for (const [key, limit] of Object.entries(limits)) {
     const draft = platformDrafts[key];
-    if (typeof draft !== "string" || draft.trim().length < 40 || [...draft.trim()].length > limit || /…$/.test(draft.trim())) throw invalidOutput(`platform_draft_${key}`);
+    const clean = typeof draft === "string" ? draft.trim() : "";
+    if (typeof draft !== "string" || clean.length < 40 || [...clean].length > limit || /…$/.test(clean)) throw invalidOutput(`platform_draft_${key}`, { draftLength: [...clean].length, endsEllipsis: /…$/.test(clean) });
   }
   const validation = value.validation;
   if (!validation || typeof validation !== "object") throw invalidOutput("validation_missing");
@@ -182,7 +183,7 @@ async function character(req, res, warm = false) {
     return json(res, 200, { status: "ok", engine: "ollama", model: OLLAMA_MODEL, result });
   } catch (error) {
     const code = error?.name === "TimeoutError" ? "OLLAMA_TIMEOUT" : ["INPUT_TOO_LARGE", "INVALID_REQUEST", "OLLAMA_FAILED"].includes(error?.message) ? error.message : "OLLAMA_INVALID_OUTPUT";
-    console.warn("RelayDaemon Ollama character request failed", { code, detail: error?.detail || null, status: error?.status || null, contentLength: error?.contentLength || null, doneReason: error?.doneReason || null, hasThinking: error?.hasThinking || false });
+    console.warn("RelayDaemon Ollama character request failed", { code, detail: error?.detail || null, status: error?.status || null, contentLength: error?.contentLength || null, draftLength: error?.draftLength ?? null, endsEllipsis: error?.endsEllipsis || false, doneReason: error?.doneReason || null, hasThinking: error?.hasThinking || false });
     return json(res, code === "INPUT_TOO_LARGE" ? 413 : code === "INVALID_REQUEST" ? 400 : 502, { status: "error", error: code });
   }
 }

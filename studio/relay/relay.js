@@ -444,18 +444,24 @@
         try {
           return await requestCharacterEngine(localEndpoint(), messages, true);
         } catch (localError) {
-          const unavailable = localError instanceof TypeError || (localError instanceof DOMException && localError.name === "AbortError") || ["OLLAMA_UNAVAILABLE", "OLLAMA_TIMEOUT", "OLLAMA_FAILED"].includes(localError.message);
-          if (IS_LOCAL_BRIDGE || !unavailable) throw localError;
-          state.localEngineReady = false;
-          console.warn("Relay local engine became unavailable; using hosted OpenAI", { name: localError?.name, message: localError?.message });
-          $("#persona-engine-status").textContent = "Local Ollama became unavailable. Using hosted OpenAI for this draft.";
+          const message = localError?.message || "";
+          const networkFailure = localError instanceof TypeError || (localError instanceof DOMException && localError.name === "AbortError");
+          const unavailable = networkFailure || ["OLLAMA_UNAVAILABLE", "OLLAMA_TIMEOUT", "OLLAMA_FAILED"].includes(message);
+          const invalidOutput = message === "OLLAMA_INVALID_OUTPUT";
+          // Hosted pages may recover via OpenAI. Local bridge pages stay local so Ollama failures remain inspectable.
+          if (IS_LOCAL_BRIDGE || (!unavailable && !invalidOutput)) throw localError;
+          if (unavailable) state.localEngineReady = false;
+          console.warn(invalidOutput ? "Relay local engine returned unreadable structured output; using hosted OpenAI" : "Relay local engine became unavailable; using hosted OpenAI", { name: localError?.name, message });
+          $("#persona-engine-status").textContent = invalidOutput
+            ? "Local Ollama returned an unreadable structured draft. Falling back to hosted OpenAI for this draft."
+            : "Local Ollama became unavailable. Using hosted OpenAI for this draft.";
         }
       }
       return await requestCharacterEngine(CHARACTER_ENDPOINT, messages, false);
     } catch (error) {
       console.error("Relay character request failed", { stage, name: error?.name, message: error?.message, elapsedMs: Math.round(performance.now() - startedAt), error });
       if (error instanceof DOMException && error.name === "AbortError") throw new Error("Character generation exceeded 120 seconds.");
-      if (error?.message === "OLLAMA_INVALID_OUTPUT") throw new Error("Local Ollama returned an unreadable structured draft. Hosted OpenAI was not used automatically.");
+      if (error?.message === "OLLAMA_INVALID_OUTPUT") throw new Error("Local Ollama returned an unreadable structured draft. Hosted OpenAI was not available as a recovery path.");
       if (error?.message === "HOSTED_ENGINE_NOT_CONFIGURED") throw new Error("Hosted OpenAI is not configured yet.");
       if (error?.message === "UNAUTHORIZED") throw new Error("Character generation requires an authorized RelayDaemon session.");
       if (error?.message === "HOSTED_ENGINE_INCOMPLETE") throw new Error("The hosted character response ended before its structured draft was complete. Retry once; shorten the source if it repeats.");
@@ -515,7 +521,7 @@
     const profile = analysis.voice.profile;
     const master = await characterEngineRequest([
       { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes." },
-      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write a complete first-person master post between 600 and 1,200 characters that reacts to the argument instead of summarizing it.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Write final in-character outputs for X (maximum 500 characters or 70 words), Threads (maximum 420 characters or 60 words), Bluesky (maximum 240 characters or 35 words), and Mastodon (maximum 440 characters or 65 words).\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully summarizes the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fits its stated character and word limits.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn {"masterDraft":"...","platformDrafts":{"x":"...","threads":"...","bluesky":"...","mastodon":"..."},"validation":{"voiceMatch":0.0,"sourceFidelity":0.0,"canonSafe":true,"knowledgeBoundarySafe":true,"characterMarkers":["..."],"warnings":[]}}.` },
+      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write a complete first-person master post between 600 and 1,200 characters that reacts to the argument instead of summarizing it.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Write final in-character outputs for X (maximum 500 characters or 70 words), Threads (maximum 420 characters or 60 words), Bluesky (maximum 240 characters or 35 words), and Mastodon (maximum 440 characters or 65 words).\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully summarizes the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fits its stated character and word limits.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn only the JSON object required by the response schema. Never emit placeholder text such as “...” or describe what a field should contain.` },
     ], "character master");
     const masterDraft = normalizeWhitespace(master.masterDraft);
     if (!masterDraft) throw new Error("Character engine returned no master draft.");

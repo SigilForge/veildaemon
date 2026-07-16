@@ -692,6 +692,7 @@ test.describe("studio subtree routes", () => {
       const request = route.request().postDataJSON();
       expect(request.messages.some((message) => String(message.content).includes("bounded editorial performance engine"))).toBe(true);
       expect(request.messages.some((message) => String(message.content).includes("INTERNAL ACCEPTANCE RUBRIC"))).toBe(true);
+      expect(JSON.stringify(request.messages)).not.toContain('"x":"..."');
       await route.fulfill({ contentType: "application/json", body: JSON.stringify({ status: "ok", engine: "ollama", model: "hermes4:14b", result: { masterDraft: "Everybody wants the clean answer. Cute. Hunger is honest; it does not hide behind a tidy form. Sorry. That was supposed to be funny. The room can help people and still leave teeth marks.", platformDrafts: { x: "Everybody wants the room to be either helpful or dangerous. Cute. It helps people, and the teeth marks still count; both truths belong in the same answer.", threads: "Everybody wants the room to be either helpful or dangerous. Cute. It helps people, and the teeth marks still count; both truths belong in the same answer.", bluesky: requestNumber === 2 ? "The room helps people, but the hunger feels like." : "The room helps people, but the teeth marks still count. Hunger does not become harmless just because it is honest. Sorry. That was meant to be reassuring.", mastodon: "Everybody wants a clean answer about the room: helpful or dangerous, refuge or appetite. Cute. It helps people, and the teeth marks still count. Hunger is honest, but honesty does not make it harmless. Sorry. That was supposed to make the contradiction easier to hold." }, platformReviews: { x: { completeThought: true, characterCount: 148 }, threads: { completeThought: true, characterCount: 148 }, bluesky: { completeThought: requestNumber !== 2, characterCount: requestNumber === 2 ? 48 : 148 }, mastodon: { completeThought: true, characterCount: 259 } }, validation: { voiceMatch: 0.9, sourceFidelity: 0.92, canonSafe: true, knowledgeBoundarySafe: true, characterMarkers: ["personal hunger framing", "humor-to-sincerity pivot"], warnings: [] } } }) });
     });
     await page.goto("/studio/relay/");
@@ -735,6 +736,8 @@ test.describe("studio subtree routes", () => {
     const bridgeSource = fs.readFileSync(path.join(process.cwd(), "scripts/relay-local-bridge.mjs"), "utf8");
     expect(relaySource).toContain('targetAddressSpace: "loopback"');
     expect(relaySource).toContain("LOCAL_CHARACTER_ENDPOINT");
+    expect(relaySource).toContain('message === "OLLAMA_INVALID_OUTPUT"');
+    expect(relaySource).toContain("Falling back to hosted OpenAI for this draft.");
     expect(bridgeSource).toContain("https://veildaemon-relay-knoxmortis-knoxmortis-projects.vercel.app");
     expect(bridgeSource).toContain('Access-Control-Allow-Private-Network", "true"');
   });
