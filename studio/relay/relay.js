@@ -136,16 +136,69 @@
       .trim();
   }
 
-  /** Models often emit "5. 6" when they mean "5.6". Keep dotted version tokens intact. */
+  /** Models often emit "5. 6" / "5. 6?" when they mean "5.6". Keep dotted version tokens intact. */
   function repairVersionNumbers(value) {
     let text = String(value || "");
-    // Repeat to collapse "1. 2. 3" → "1.2.3"
+    // Repeat to collapse "1. 2. 3" → "1.2.3" (digit. digit only — not "report. 2 more")
     for (let i = 0; i < 4; i += 1) {
       const next = text.replace(/(\d)\.\s+(\d)/g, "$1.$2");
       if (next === text) break;
       text = next;
     }
+    // "Codex 5 . 6" / "v 5. 6"
+    text = text.replace(/\b([Vv])\s+(\d+\.\d+)/g, "$1$2");
+    text = text.replace(/\b([Vv])(\d)\s+\.\s+(\d)/g, "$1$2.$3");
     return text;
+  }
+
+  /**
+   * Models break quotation spans across paragraphs after short punches like
+   * "I'm done!" / "Containment achieved!" / "the shortest path."
+   * Rejoin continued quoted speech and balance obvious orphan closers.
+   */
+  function repairBrokenQuotes(value) {
+    let text = String(value || "");
+    // "…done!\n\nContainment…path." → one quoted span (straight or curly open)
+    text = text.replace(/(["“])([^"“”\n]{1,220}[.!?…])\s*\n\n+([A-Z“"][^"“”\n]{1,220}[.!?…])(["”])?/g, (match, open, first, second, close) => {
+      const end = close || (open === "“" ? "”" : '"');
+      return `${open}${first} ${second}${end}`;
+    });
+    // Same when the second graph already opens with a quote: "…!\n\n"…path."
+    text = text.replace(/(["“])([^"“”\n]{1,220}[.!?…])\s*\n\n+(["“])([^"“”\n]{1,220}[.!?…])(["”])/g, "$1$2 $4$5");
+    // Orphan closer after a short punch line that never opened: done!"\n\n → done!
+    text = text.replace(/(^|[\n.])(\s*)([^"“\n]{2,80}[.!?])(["”])(?=\s*(?:\n|$))/g, (match, pre, space, body, close) => {
+      const openCount = (body.match(/["“]/g) || []).length;
+      return openCount ? match : `${pre}${space}${body}`;
+    });
+    return text;
+  }
+
+  /**
+   * Prefer distinctive SOURCE jargon when Cathy softens it (e.g. "canonical copies"
+   * for "canonical reproductions") unless the strong form is absent from source.
+   */
+  function restoreSourceJargon(source, draft) {
+    const pairs = [
+      { strong: /canonical\s+reproductions/i, weak: /canonical\s+copies/gi, value: "canonical reproductions" },
+      { strong: /hypothesis\s+ledgers/i, weak: /hypothesis\s+lists/gi, value: "hypothesis ledgers" },
+      { strong: /containment\s+procedures/i, weak: /containment\s+steps/gi, value: "containment procedures" },
+      { strong: /semantic\s+verification/i, weak: /semantic\s+checks?/gi, value: "semantic verification" },
+      { strong: /strategy\s+resets/i, weak: /strategy\s+restarts/gi, value: "strategy resets" },
+    ];
+    let text = String(draft || "");
+    const src = String(source || "");
+    for (const pair of pairs) {
+      if (pair.strong.test(src) && pair.weak.test(text)) text = text.replace(pair.weak, pair.value);
+    }
+    return text;
+  }
+
+  function polishCharacterDraft(source, draft) {
+    return ensureCompleteEnding(
+      collapseSelfLoops(
+        restoreSourceJargon(source, repairBrokenQuotes(repairVersionNumbers(draft)))
+      )
+    );
   }
 
   function stripSocialNoise(value) {
@@ -223,7 +276,7 @@
    * (that amputates endings like "Codex rebuilt the hallway. Ten times. Codex?").
    */
   function collapseSelfLoops(value) {
-    let text = collapseDuplicateParagraphs(repairVersionNumbers(value));
+    let text = collapseDuplicateParagraphs(value);
     if (!text) return "";
 
     const sentences = splitSentences(text);
@@ -694,7 +747,7 @@
       : "1,200 to 2,400 characters as a faithful full-argument rewrite (not a teaser summary)";
     const requestMessages = [
       { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes. Advance the argument once. Never loop. Always finish every field on a complete sentence with terminal punctuation. Never amputate the ending mid-thought. Preserve dotted version numbers exactly (write 5.6, never 5. 6)." },
-      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft in character voice: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Linear progress only: each sentence must add new information or a new reaction. If you catch yourself repeating, stop and close with a finished final sentence.\n- Every field must end on a complete sentence (. ! or ? as a full clause with at least three words). Never end on a hanging name, conjunction, or cut-off fragment such as “Codex?” after an unfinished thought.\n- Version numbers stay tight: 5.6, 1.2.3, v0.9 — never insert a space after the dots (not “5. 6”).\n- Write final in-character outputs for X (maximum 500 characters or 70 words), Threads (maximum 420 characters or 60 words), Bluesky (maximum 240 characters or 35 words), and Mastodon (maximum 440 characters or 65 words). Those short fields must be distinct compressions, not pasted copies of the master.\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully carries the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fits its stated character and word limits.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\n6. No field loops, repeats a sentence, or restates a finished claim.\n7. Every field ends complete — no amputated endings.\n8. Version numbers are intact (5.6 not 5. 6).\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn only the JSON object required by the response schema. Never emit placeholder text such as “...” or describe what a field should contain.` },
+      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft in character voice: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Linear progress only: each sentence must add new information or a new reaction. If you catch yourself repeating, stop and close with a finished final sentence.\n- Every field must end on a complete sentence (. ! or ? as a full clause with at least three words). Never end on a hanging name, conjunction, or cut-off fragment such as “Codex?” after an unfinished thought.\n- Version numbers stay tight: 5.6, 1.2.3, v0.9 — never insert a space after the dots (not “5. 6” or “5. 6?”).\n- Keep quotation marks on a single continuous thought. Do not break a quoted line across paragraphs after short punches like “I'm done!”, “Containment achieved!”, or “the shortest path.”\n- Preserve distinctive SOURCE jargon when it is stronger and present (prefer “canonical reproductions” over a softened “canonical copies” if SOURCE uses the stronger phrase).\n- Write final in-character outputs for X (maximum 500 characters or 70 words), Threads (maximum 420 characters or 60 words), Bluesky (maximum 240 characters or 35 words), and Mastodon (maximum 440 characters or 65 words). Those short fields must be distinct compressions, not pasted copies of the master.\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully carries the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fits its stated character and word limits.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\n6. No field loops, repeats a sentence, or restates a finished claim.\n7. Every field ends complete — no amputated endings.\n8. Version numbers are intact (5.6 not 5. 6).\n9. Quotes do not break across paragraphs mid-speech.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn only the JSON object required by the response schema. Never emit placeholder text such as “...” or describe what a field should contain.` },
     ];
     let master = null;
     let masterDraft = "";
@@ -703,7 +756,7 @@
     for (let attempt = 0; attempt < 2; attempt += 1) {
       if (attempt > 0) onStage("Draft looped or failed review. Retrying character package once…");
       master = await characterEngineRequest(requestMessages, attempt ? "character master retry" : "character master");
-      masterDraft = ensureCompleteEnding(collapseSelfLoops(master.masterDraft));
+      masterDraft = polishCharacterDraft(text, master.masterDraft);
       if (!masterDraft) {
         lastReject = new Error("Character engine returned no master draft.");
         continue;
@@ -723,9 +776,9 @@
     const variants = Object.fromEntries(destinations.map((item) => {
       if (item.mediaOnly && !(state.media || imageUrl.value.trim())) return [item.id, ""];
       if (platformDrafts[item.id]) {
-        const fitted = fitCharacterSummary(ensureCompleteEnding(collapseSelfLoops(platformDrafts[item.id])), item.limit);
+        const fitted = fitCharacterSummary(polishCharacterDraft(text, platformDrafts[item.id]), item.limit);
         if (fitted && selfLoopScore(fitted) < 0.25 && isCompleteThought(fitted)) return [item.id, fitted];
-        const fallback = ensureCompleteEnding(collapseSelfLoops(fitComplete(platformDrafts[item.id] || masterDraft, item.limit)));
+        const fallback = polishCharacterDraft(text, fitComplete(platformDrafts[item.id] || masterDraft, item.limit));
         return [item.id, fallback];
       }
       // Long destinations that can hold the source: adapt the full post, not the short master teaser.
@@ -733,7 +786,7 @@
       const longForm = LONG_FORM_PLATFORM_IDS.has(item.id);
       const masterCoversSource = countText(masterDraft) >= Math.min(countText(text) * 0.75, item.limit * 0.55);
       const seed = longForm ? (masterCoversSource ? masterDraft : text) : masterDraft;
-      return [item.id, ensureCompleteEnding(collapseSelfLoops(fitComplete(generateCopy(item, seed, personaAnalysis), item.limit)))];
+      return [item.id, polishCharacterDraft(text, fitComplete(generateCopy(item, seed, personaAnalysis), item.limit))];
     }));
     const invalid = destinations.filter((item) => {
       const draft = normalizeWhitespace(variants[item.id]);
