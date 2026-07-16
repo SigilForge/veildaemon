@@ -119,18 +119,52 @@
 
 .persona-engine {
   display: grid;
-  grid-template-columns: minmax(16rem, 1.25fr) repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.55rem;
   margin-top: 1rem;
   padding: 1rem;
   border: 1px solid rgba(126, 184, 168, 0.35);
   border-radius: var(--radius-sm);
   background: rgba(126, 184, 168, 0.06);
+  min-width: 0;
 }
 
-.persona-engine strong { color: var(--paper); }
-.persona-engine p { margin: 0.3rem 0 0; color: var(--text-faint); font-size: 0.82rem; }
+.persona-engine-title {
+  margin: 0;
+  color: var(--paper);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.persona-engine-path {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.persona-engine-path + .persona-engine-path {
+  margin-top: 0.15rem;
+}
+
+.persona-engine-path strong {
+  color: var(--paper);
+  font-weight: 700;
+}
+
+.persona-engine-status {
+  margin: 0.35rem 0 0;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(126, 184, 168, 0.22);
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
 
 .field {
   display: grid;
