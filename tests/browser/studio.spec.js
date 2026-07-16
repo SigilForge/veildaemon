@@ -771,7 +771,8 @@ test.describe("studio subtree routes", () => {
       expect(JSON.parse(response.body).result.masterDraft).toContain("Hunger is honest");
       expect(JSON.parse(response.body).result.platformDrafts.bluesky).toContain("Honest hunger");
       expect(requestBody.model).toBe("gpt-5-mini");
-      expect(requestBody.max_output_tokens).toBe(2400);
+      expect(requestBody.max_output_tokens).toBe(8192);
+      expect(requestBody.reasoning).toEqual({ effort: "low" });
       expect(requestBody.store).toBe(false);
       expect(requestBody.text.format.type).toBe("json_schema");
     } finally {
@@ -785,11 +786,15 @@ test.describe("studio subtree routes", () => {
     const handler = require(path.join(process.cwd(), "api/character.js"));
     const originalFetch = global.fetch;
     const originalKey = process.env.OPENAI_API_KEY;
-    global.fetch = async () => new Response(JSON.stringify({
-      status: "incomplete",
-      incomplete_details: { reason: "max_output_tokens" },
-      output: [{ content: [{ type: "output_text", text: '{"masterDraft":"This response was cut off' }] }],
-    }), { status: 200, headers: { "Content-Type": "application/json", "x-request-id": "req_test_incomplete" } });
+    let calls = 0;
+    global.fetch = async () => {
+      calls += 1;
+      return new Response(JSON.stringify({
+        status: "incomplete",
+        incomplete_details: { reason: "max_output_tokens" },
+        output: [{ content: [{ type: "output_text", text: '{"masterDraft":"This response was cut off' }] }],
+      }), { status: 200, headers: { "Content-Type": "application/json", "x-request-id": "req_test_incomplete" } });
+    };
     process.env.OPENAI_API_KEY = "test-only-key";
     try {
       const request = Readable.from([Buffer.from(JSON.stringify({ messages: [{ role: "system", content: "Return JSON." }, { role: "user", content: "Write one bounded character master." }] }))]);
@@ -798,6 +803,52 @@ test.describe("studio subtree routes", () => {
       await handler(request, response);
       expect(response.statusCode).toBe(502);
       expect(JSON.parse(response.body)).toEqual({ status: "error", error: "HOSTED_ENGINE_INCOMPLETE" });
+      expect(calls).toBe(2);
+    } finally {
+      global.fetch = originalFetch;
+      if (originalKey === undefined) delete process.env.OPENAI_API_KEY;
+      else process.env.OPENAI_API_KEY = originalKey;
+    }
+  });
+
+  test("hosted character endpoint retries once with a higher token budget after max_output_tokens incomplete", async () => {
+    const handler = require(path.join(process.cwd(), "api/character.js"));
+    const originalFetch = global.fetch;
+    const originalKey = process.env.OPENAI_API_KEY;
+    const budgets = [];
+    global.fetch = async (_url, options) => {
+      const body = JSON.parse(options.body);
+      budgets.push(body.max_output_tokens);
+      if (budgets.length === 1) {
+        return new Response(JSON.stringify({
+          status: "incomplete",
+          incomplete_details: { reason: "max_output_tokens" },
+          output: [{ content: [{ type: "output_text", text: '{"masterDraft":"cut off' }] }],
+        }), { status: 200, headers: { "Content-Type": "application/json", "x-request-id": "req_retry_1" } });
+      }
+      return new Response(JSON.stringify({
+        model: "gpt-5-mini",
+        output_text: JSON.stringify({
+          masterDraft: "Hunger is honest, which is inconvenient. The room helps people, and the teeth marks still count. Sorry. That was meant to be funny.",
+          platformDrafts: {
+            x: "The room helps people, and the teeth marks still count. Hunger being honest does not make it harmless; it only makes the contradiction harder to ignore.",
+            threads: "The room helps people, and the teeth marks still count. Hunger being honest does not make it harmless; it only makes the contradiction harder to ignore.",
+            bluesky: "The room helps people, but the teeth marks still count. Honest hunger is not harmless hunger. Sorry. That was meant to make the contradiction easier.",
+            mastodon: "The room helps people, which would be comforting if the teeth marks did not still count. Hunger is honest here, but honesty is not the same thing as harmlessness. Sorry. That was meant to be funny. The contradiction remains even when everyone survives it.",
+          },
+          validation: { voiceMatch: 0.9, sourceFidelity: 0.91, canonSafe: true, knowledgeBoundarySafe: true, characterMarkers: ["hunger"], warnings: [] },
+        }),
+      }), { status: 200, headers: { "Content-Type": "application/json", "x-request-id": "req_retry_2" } });
+    };
+    process.env.OPENAI_API_KEY = "test-only-key";
+    try {
+      const request = Readable.from([Buffer.from(JSON.stringify({ messages: [{ role: "system", content: "Return JSON." }, { role: "user", content: "Write one bounded character master." }] }))]);
+      Object.assign(request, { method: "POST", headers: { host: "relay.example", origin: "https://relay.example", "sec-fetch-site": "same-origin", "x-relay-request": "character-v1", "x-forwarded-for": "192.0.2.3" }, socket: { remoteAddress: "192.0.2.3" } });
+      const response = { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(body) { this.body = body; } };
+      await handler(request, response);
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.body).result.masterDraft).toContain("Hunger is honest");
+      expect(budgets).toEqual([8192, 12288]);
     } finally {
       global.fetch = originalFetch;
       if (originalKey === undefined) delete process.env.OPENAI_API_KEY;
