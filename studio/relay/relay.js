@@ -233,8 +233,10 @@
     // formatCleanse is last so split/join cannot reintroduce "5. 6"
     return formatCleanse(
       ensureCompleteEnding(
-        collapseSelfLoops(
-          restoreSourceJargon(source, repairBrokenQuotes(repairVersionNumbers(draft)))
+        shapeCharacterParagraphs(
+          collapseSelfLoops(
+            restoreSourceJargon(source, repairBrokenQuotes(repairVersionNumbers(draft)))
+          )
         )
       )
     );
@@ -264,10 +266,9 @@
     return `${slice.slice(0, boundary > max * 0.65 ? boundary : slice.length).trim()}${suffix}`;
   }
 
-  function fitComplete(value, max) {
-    const clean = normalizeWhitespace(value);
-    if (countText(clean) <= max) return clean.endsWith("…") ? `${clean.slice(0, -1).replace(/[,;:\s]+$/, "")}.` : clean;
-    const sentences = splitSentences(clean);
+  /** Fit by whole sentences without inventing ellipsis cutoffs. */
+  function fitSentencesToLimit(value, max) {
+    const sentences = splitSentences(value);
     const accepted = [];
     for (const sentence of sentences) {
       const candidate = normalizeWhitespace([...accepted, sentence].join(" "));
@@ -275,8 +276,126 @@
       accepted.push(sentence);
     }
     if (accepted.length) return accepted.join(" ");
-    const fragment = clip(sentences[0] || clean, Math.max(1, max - 1), "").replace(/[,;:\s]+$/, "");
+    const fragment = clip(sentences[0] || value, Math.max(1, max - 1), "").replace(/[,;:\s]+$/, "");
     return `${fragment}.`;
+  }
+
+  /** Prefer dropping trailing paragraphs, then trailing sentences — keep paragraph breaks. */
+  function fitComplete(value, max) {
+    const clean = normalizeWhitespace(value);
+    if (countText(clean) <= max) {
+      return clean.endsWith("…") ? `${clean.slice(0, -1).replace(/[,;:\s]+$/, "")}.` : clean;
+    }
+    const paragraphs = clean.split(/\n\n+/).map((part) => part.trim()).filter(Boolean);
+    if (paragraphs.length > 1) {
+      const accepted = [];
+      for (const para of paragraphs) {
+        const joined = normalizeWhitespace([...accepted, para].join("\n\n"));
+        if (countText(joined) <= max) {
+          accepted.push(para);
+          continue;
+        }
+        const used = accepted.length ? countText(accepted.join("\n\n")) + 2 : 0;
+        const remaining = max - used;
+        if (remaining >= 60) {
+          const partial = fitSentencesToLimit(para, remaining);
+          if (partial && countText(partial) <= remaining) accepted.push(partial);
+        }
+        break;
+      }
+      if (accepted.length) return accepted.join("\n\n");
+    }
+    return fitSentencesToLimit(clean, max);
+  }
+
+  function isStructuralDraftLine(value) {
+    return /^(Title:|Body:|What changed:|Description:|Spoken hook:|Overlay text:|Caption:|CTA:|Tags:|Hashtags:|Metadata tags:|CW:|Classification:|Disclosure:|Continue through|Relevant link:|Primary link:|Author \/ voice:|Category:|Reality layer:|Canon status:|Content warning:|Publication status:|# |\*\*)/i.test(String(value || "").trim());
+  }
+
+  /**
+   * Group sentences into readable multi-paragraph prose.
+   * Fixes walls of text and "one sentence per line" spam without inventing content.
+   */
+  function groupSentencesIntoParagraphs(sentences) {
+    const items = (sentences || []).map((item) => String(item || "").trim()).filter(Boolean);
+    if (!items.length) return "";
+    if (items.length <= 3) return items.join(" ");
+
+    // Stronger pivots only — avoid chopping on every "But then" mid-thought.
+    const pivot = /^(Now[, ]|Here'?s the kicker\b|Here is the kicker\b|Earlier versions\b|The repository\b|But Codex\b|Meanwhile\b)/i;
+    const paras = [];
+    let bucket = [];
+    let len = 0;
+    const softTarget = 420;
+    const maxSent = 5;
+
+    for (let i = 0; i < items.length; i += 1) {
+      const sentence = items[i];
+      const next = items[i + 1];
+      bucket.push(sentence);
+      len += countText(sentence) + 1;
+      const atEnd = i === items.length - 1;
+      const nextPivot = Boolean(next && pivot.test(next.trim()));
+      const full = bucket.length >= 2 && (len >= softTarget || bucket.length >= maxSent || (nextPivot && len >= 220));
+      if (!atEnd && full) {
+        paras.push(bucket.join(" "));
+        bucket = [];
+        len = 0;
+      }
+    }
+    if (bucket.length) paras.push(bucket.join(" "));
+
+    // Fold short punch fragments into the previous paragraph (keep ~3–6 fuller graphs).
+    for (let i = 1; i < paras.length; ) {
+      const short = countText(paras[i]) < 120 && splitSentences(paras[i]).length <= 2;
+      if (short) {
+        paras[i - 1] = `${paras[i - 1]} ${paras[i]}`;
+        paras.splice(i, 1);
+      } else {
+        i += 1;
+      }
+    }
+    return paras.join("\n\n");
+  }
+
+  /**
+   * Light surface formatting for character prose: keep real paragraphs, reflow
+   * single-sentence spam and unbroken walls into 3–6 short graphs when needed.
+   */
+  function shapeCharacterParagraphs(value) {
+    const clean = normalizeWhitespace(unwrapSoftLineBreaks(value));
+    if (!clean) return "";
+    const blocks = clean.split(/\n\n+/).map((part) => part.trim()).filter(Boolean);
+    if (!blocks.length) return "";
+
+    const freeform = blocks.filter((block) => !isStructuralDraftLine(block));
+    const singleSentenceRatio = freeform.length
+      ? freeform.filter((block) => splitSentences(block).length <= 1).length / freeform.length
+      : 0;
+
+    // One-sentence-per-line (or nearly): reflow freeform sentences into real paragraphs.
+    if (freeform.length >= 3 && singleSentenceRatio >= 0.6) {
+      const structural = [];
+      const sentences = [];
+      for (const block of blocks) {
+        if (isStructuralDraftLine(block)) structural.push({ type: "struct", text: block });
+        else {
+          for (const sentence of splitSentences(block)) sentences.push(sentence);
+        }
+      }
+      const shaped = groupSentencesIntoParagraphs(sentences);
+      if (!structural.length) return shaped;
+      // Structural headers first, then shaped body (typical Patreon/Discord shells).
+      return normalizeWhitespace([...structural.map((item) => item.text), shaped].join("\n\n"));
+    }
+
+    const shapedBlocks = blocks.map((block) => {
+      if (isStructuralDraftLine(block)) return block;
+      const sentences = splitSentences(block);
+      if (sentences.length <= 3 || countText(block) < 380) return sentences.join(" ");
+      return groupSentencesIntoParagraphs(sentences);
+    });
+    return normalizeWhitespace(shapedBlocks.join("\n\n"));
   }
 
   function fitCharacterSummary(value, max) {
@@ -866,7 +985,7 @@
       : "1,200 to 2,400 characters as a faithful full-argument rewrite (not a teaser summary)";
     const requestMessages = [
       { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes. Advance the argument once. Never loop. Always finish every field on a complete sentence with terminal punctuation. Preserve dotted version numbers exactly (write 5.6, never 5. 6). CRITICAL: first-person voice is always the named PERSONA reacting to SOURCE. Never become the unit, product, host, model, agent, or subject under review in the source." },
-      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nOBSERVER STANCE (non-negotiable)\n- ${profile.name} is the speaker. The people, products, hosts, units, models, or software described in SOURCE are subjects she talks about — not identities she becomes.\n- If SOURCE is a review of Codex / a coding agent / "the unit" / a host, write as ${profile.name} commenting on that unit. Wrong: "I ate the ration / Version 5.6 of me / I strapped the filing cabinet." Right: "That unit ate the ration / Codex rebuilt the hallway / I watched it invoice by weight."\n- Do not roleplay as a coding agent unless the persona literally is one (none of these personas are).\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft as ${profile.name} reacting to the source argument: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in her voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Linear progress only; finish on a complete sentence.\n- Version numbers stay tight: 5.6 not “5. 6”.\n- Preserve distinctive SOURCE jargon when stronger and present (prefer “canonical reproductions” over “canonical copies” if SOURCE uses the stronger phrase).\n- Short platform fields: fill each lane as full as possible without going over. Leave a soft ~100-character buffer for hashtags (body only, no hashtags in JSON).\n  - X body: ~480–500 (hard max 500)\n  - Threads body: ~380–400 (hard max 400)\n  - Bluesky body: ~180–200 (hard max 200)\n  - Mastodon body: ~380–400 (hard max 400)\n- A long source is not a 200-character teaser on a 500-character lane.\n- Do not invent facts. No hashtags, CTA, links, or author labels.\n- Leave validation.warnings empty unless there is a real safety or knowledge-boundary problem.\n\nINTERNAL ACCEPTANCE RUBRIC\n1. Central argument carried in ${profile.name}'s voice as an outside reactor/observer.\n2. Never self-identifies as the rated unit/product/host in SOURCE.\n3. Complete thought; lane filled near target without going over.\n4. No loops; version numbers intact; facts preserved.\nIf any item fails, rewrite before replying.\n\nReturn only the JSON object required by the response schema.` },
+      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nOBSERVER STANCE (non-negotiable)\n- ${profile.name} is the speaker. The people, products, hosts, units, models, or software described in SOURCE are subjects she talks about — not identities she becomes.\n- If SOURCE is a review of Codex / a coding agent / "the unit" / a host, write as ${profile.name} commenting on that unit. Wrong: "I ate the ration / Version 5.6 of me / I strapped the filing cabinet." Right: "That unit ate the ration / Codex rebuilt the hallway / I watched it invoice by weight."\n- Do not roleplay as a coding agent unless the persona literally is one (none of these personas are).\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft as ${profile.name} reacting to the source argument: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in her voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Format masterDraft as readable multi-paragraph prose: blank line between paragraphs. Long sources: about 3–6 short paragraphs that move the argument (setup → theatrics → what it actually did → the kicker → close). Never one sentence per line. Never one unbroken wall of text.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Linear progress only; finish on a complete sentence.\n- Version numbers stay tight: 5.6 not “5. 6”.\n- Preserve distinctive SOURCE jargon when stronger and present (prefer “canonical reproductions” over “canonical copies” if SOURCE uses the stronger phrase).\n- Short platform fields: fill each lane as full as possible without going over. Leave a soft ~100-character buffer for hashtags (body only, no hashtags in JSON).\n  - X body: ~480–500 (hard max 500)\n  - Threads body: ~380–400 (hard max 400)\n  - Bluesky body: ~180–200 (hard max 200)\n  - Mastodon body: ~380–400 (hard max 400)\n- A long source is not a 200-character teaser on a 500-character lane.\n- Do not invent facts. No hashtags, CTA, links, or author labels.\n- Leave validation.warnings empty unless there is a real safety or knowledge-boundary problem.\n\nINTERNAL ACCEPTANCE RUBRIC\n1. Central argument carried in ${profile.name}'s voice as an outside reactor/observer.\n2. Never self-identifies as the rated unit/product/host in SOURCE.\n3. Complete thought; lane filled near target without going over.\n4. No loops; version numbers intact; facts preserved.\nIf any item fails, rewrite before replying.\n\nReturn only the JSON object required by the response schema.` },
     ];
     let master = null;
     let masterDraft = "";
