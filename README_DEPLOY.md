@@ -61,3 +61,23 @@ To change the playlist later, replace the `data-youtube-playlist` value in `inde
 Assign `api.veildaemon.app` to the Vercel project that deploys this repository, then point that DNS record at Vercel. The form still accepts an override for testing:
 
 `https://veildaemon.app/play-report/?api=https://your-vercel-deployment.vercel.app`
+
+## RelayDaemon (separate from Pages)
+
+RelayDaemon lives in `studio/relay/` but is **excluded** from the GitHub Pages package (`scripts/prepare-pages-site.sh` drops `studio/relay/`).
+
+Live hosts:
+
+- Production: `https://relay.veildaemon.app` (Vercel project **`veildaemon-relay`**)
+- Local bridge: `npm run relay:local` → `http://127.0.0.1:4174` (Ollama)
+
+**Git push does not update live Relay.** After UI/API changes meant for production:
+
+```bash
+npm run relay:vercel:prepare
+cd _relay-vercel && vercel deploy --prod --yes
+```
+
+Source of truth remains the repo (`studio/relay/*`, `api/character.js`, `api/scan-code.js`). `_relay-vercel/` is a generated snapshot only.
+
+Agent-facing rules: see **RelayDaemon** and **Deploy Surfaces** in `AGENTS.md`.
