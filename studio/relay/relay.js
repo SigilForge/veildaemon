@@ -55,7 +55,7 @@
       name: "Kira Silverwood",
       era: "Book One · active / recursively unindexed",
       style: "Literal, clipped, recursive, and self-correcting; understatement rather than spectacle.",
-      knowledgeBoundary: "Do not claim stable identity, total system authority, or facts outside the source draft.",
+      knowledgeBoundary: "Do not claim stable identity, total system authority, or facts outside the source draft. React as Kira observing the source — never become the product, host, unit, or software named in the source.",
       emotionalArc: "guarded observation → overload pressure → precise self-definition",
       markers: [[/\b(system|debug|static|quiet|absence|look)\b/i, "system-first framing"], [/\b(but|wait|actually|sorry)\b/i, "self-correction or pressure pivot"]],
     },
@@ -63,15 +63,15 @@
       name: "Alex Shade",
       era: "Book One · active / controlled",
       style: "Controlled quiet, consequence-first logic, and restrained emotional language.",
-      knowledgeBoundary: "Do not invent operational access, certainty, or motives beyond the supplied source.",
+      knowledgeBoundary: "Do not invent operational access, certainty, or motives beyond the supplied source. React as Alex observing the source — never become the product, host, unit, or software named in the source.",
       emotionalArc: "contained assessment → moral pressure → restrained consequence",
       markers: [[/\b(quiet|silence|noise|duty|consequence|room)\b/i, "silence or consequence framing"], [/\b(but|still|doesn't|does not)\b/i, "restrained moral pivot"]],
     },
     "cathy-holloway": {
       name: "Cathy Holloway",
       era: "Book One · active / emotionally volatile",
-      style: "Warm, impulsive, playful, and sincerely direct; brightness must not erase risk or consent.",
-      knowledgeBoundary: "Do not glamorize harm, feeding, coercion, or claims about another person’s feelings.",
+      style: "Warm, impulsive, playful, and sincerely direct; brightness must not erase risk or consent. She is a person reacting to reports and tools — irritated, practical, theatrical — not the tool under review.",
+      knowledgeBoundary: "Do not glamorize harm, feeding, coercion, or claims about another person’s feelings. Never roleplay as Codex, a coding agent, a model version, or any rated unit in the source. Cathy comments on those subjects from outside.",
       emotionalArc: "playful deflection → hunger-recognition → exposed sincerity",
       markers: [[/\b(hunger|cold|warmth|laugh|joke|sorry|need)\b/i, "personal hunger or warmth framing"], [/\b(sorry|but|except|still|doesn't|does not)\b/i, "humor-to-sincerity pivot"]],
     },
@@ -79,7 +79,7 @@
       name: "Shade",
       era: "Operational / anomalous · bound to A.Shade",
       style: "Perfect grammar, clipped phrasing, flat affect, and procedural prioritization.",
-      knowledgeBoundary: "Do not give Shade knowledge Alex did not experience, independent goals, or autonomous publication authority.",
+      knowledgeBoundary: "Do not give Shade knowledge Alex did not experience, independent goals, or autonomous publication authority. Classify and assess the source subjects — never become the host, unit, or product under classification.",
       emotionalArc: "classification → compressed risk assessment → unresolved procedural conclusion",
       markers: [
         [/\b(analysis|risk|baseline|signal|noise|priority|status|classification|classified|assessment|anomaly|containment|compromised|observed|procedure|threat)\b/i, "procedural framing"],
@@ -765,6 +765,30 @@
     return draftSentences.filter((sentence) => sourceSentences.includes(sentence)).length / draftSentences.length;
   }
 
+  /**
+   * Persona must react to SOURCE subjects, not become them.
+   * Flags drafts where "I" is the unit/product/host under review (e.g. Cathy as Codex).
+   */
+  function violatesObserverStance(source, draft) {
+    const src = String(source || "");
+    const body = String(draft || "");
+    const sourceHasExternalSubject = /\b(the unit|codex|the host|coding agent|model version|field review|one star|supervised use)\b/i.test(src);
+    if (!sourceHasExternalSubject) return false;
+    // Explicit self-as-product possession
+    if (/\bversion\s+[\d.]+\s+of\s+me\b/i.test(body)) return true;
+    if (/\bI(?:'m| am)\s+(?:codex|the unit|a coding agent|the host)\b/i.test(body)) return true;
+    if (/\bmy (?:energy )?ration\b/i.test(body) && /\b(the unit|codex|operational ration)\b/i.test(src)) return true;
+    if (/\bI strapped (?:the )?(?:whole )?filing cabinet\b/i.test(body)) return true;
+    // "I ate/consumed the ration" as the unit, not Cathy commenting on the unit
+    if (/\bI (?:ate|consumed|gulped|hoarded)\b[^.!?]{0,40}\b(?:ration|resources|credits|context)\b/i.test(body)
+      && /\b(the unit|it consumed|operational ration)\b/i.test(src)
+      && !/\b(the unit|codex|it)\b[^.!?]{0,30}\b(?:ate|consumed|gulped|hoarded)\b/i.test(body)) {
+      // Allow if draft still refers to unit/it as separate actor nearby; fail pure self-identity
+      if (!/\b(the unit|codex|that thing|this unit)\b/i.test(body)) return true;
+    }
+    return false;
+  }
+
   function validatePersonaMaster(source, master, profile, modelValidation = {}) {
     const markers = profile.markers.filter(([pattern]) => pattern.test(master)).map(([, label]) => label);
     const modelMarkers = (modelValidation.characterMarkers || []).filter((item) => typeof item === "string" && item.trim());
@@ -776,6 +800,9 @@
     if (copiedRatio > 0.72) warnings.push("Draft repeats too many complete source sentences.");
     if (loopScore >= 0.25) warnings.push("Draft loops on itself — the same claim or sentence run is restated instead of advancing.");
     if (!isCompleteThought(master)) warnings.push("Draft ending is amputated — the last thought cuts off before a complete close.");
+    if (violatesObserverStance(source, master)) {
+      warnings.push(`Draft collapses the persona into the source subject (e.g. ${profile.name} speaking as the unit under review). Persona must remain an outside observer/reactor.`);
+    }
     // Local models often write in-voice without hitting a narrow regex. Accept model markers when the engine scores voice well.
     if (!markers.length && !(modelMarkers.length && Number.isFinite(voiceScore) && voiceScore >= 0.7)) {
       warnings.push("No character-specific perspective marker was detected.");
@@ -795,8 +822,8 @@
       ? `about ${Math.max(600, Math.min(sourceLen, 3200))} characters (rewrite the full post in voice; stay within roughly 85–110% of SOURCE length; never pad)`
       : "1,200 to 2,400 characters as a faithful full-argument rewrite (not a teaser summary)";
     const requestMessages = [
-      { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes. Advance the argument once. Never loop. Always finish every field on a complete sentence with terminal punctuation. Never amputate the ending mid-thought. Preserve dotted version numbers exactly (write 5.6, never 5. 6)." },
-      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft in character voice: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Linear progress only: each sentence must add new information or a new reaction. If you catch yourself repeating, stop and close with a finished final sentence.\n- Every field must end on a complete sentence (. ! or ? as a full clause with at least three words). Never end on a hanging name, conjunction, or cut-off fragment such as “Codex?” after an unfinished thought.\n- Version numbers stay tight: 5.6, 1.2.3, v0.9 — never insert a space after the dots (not “5. 6” or “5. 6?”).\n- Keep quotation marks on a single continuous thought. Do not break a quoted line across paragraphs after short punches like “I'm done!”, “Containment achieved!”, or “the shortest path.”\n- Preserve distinctive SOURCE jargon when it is stronger and present (prefer “canonical reproductions” over a softened “canonical copies” if SOURCE uses the stronger phrase).\n- Short platform fields: fill each lane as full as possible without going over. Leave a soft ~100-character buffer for hashtags (do not write hashtags in the JSON — body only).\n  - X body: target ~480–500 characters (hard max 500)\n  - Threads body: target ~380–400 characters (hard max 400)\n  - Bluesky body: target ~180–200 characters (hard max 200)\n  - Mastodon body: target ~380–400 characters (hard max 400)\n- A 2,500-character source is NOT represented by a 200-character teaser on a 500-character lane. Carry as much argument as the lane allows.\n- Short fields must still be distinct rewrites for each platform, not identical pastes.\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully carries the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fills its lane near the body target (not a tiny teaser) and stays under the hard max.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\n6. No field loops, repeats a sentence, or restates a finished claim.\n7. Every field ends complete — no amputated endings.\n8. Version numbers are intact (5.6 not 5. 6).\n9. Quotes do not break across paragraphs mid-speech.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn only the JSON object required by the response schema. Never emit placeholder text such as “...” or describe what a field should contain.` },
+      { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes. Advance the argument once. Never loop. Always finish every field on a complete sentence with terminal punctuation. Preserve dotted version numbers exactly (write 5.6, never 5. 6). CRITICAL: first-person voice is always the named PERSONA reacting to SOURCE. Never become the unit, product, host, model, agent, or subject under review in the source." },
+      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nOBSERVER STANCE (non-negotiable)\n- ${profile.name} is the speaker. The people, products, hosts, units, models, or software described in SOURCE are subjects she talks about — not identities she becomes.\n- If SOURCE is a review of Codex / a coding agent / "the unit" / a host, write as ${profile.name} commenting on that unit. Wrong: "I ate the ration / Version 5.6 of me / I strapped the filing cabinet." Right: "That unit ate the ration / Codex rebuilt the hallway / I watched it invoice by weight."\n- Do not roleplay as a coding agent unless the persona literally is one (none of these personas are).\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft as ${profile.name} reacting to the source argument: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in her voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Linear progress only; finish on a complete sentence.\n- Version numbers stay tight: 5.6 not “5. 6”.\n- Preserve distinctive SOURCE jargon when stronger and present (prefer “canonical reproductions” over “canonical copies” if SOURCE uses the stronger phrase).\n- Short platform fields: fill each lane as full as possible without going over. Leave a soft ~100-character buffer for hashtags (body only, no hashtags in JSON).\n  - X body: ~480–500 (hard max 500)\n  - Threads body: ~380–400 (hard max 400)\n  - Bluesky body: ~180–200 (hard max 200)\n  - Mastodon body: ~380–400 (hard max 400)\n- A long source is not a 200-character teaser on a 500-character lane.\n- Do not invent facts. No hashtags, CTA, links, or author labels.\n- Leave validation.warnings empty unless there is a real safety or knowledge-boundary problem.\n\nINTERNAL ACCEPTANCE RUBRIC\n1. Central argument carried in ${profile.name}'s voice as an outside reactor/observer.\n2. Never self-identifies as the rated unit/product/host in SOURCE.\n3. Complete thought; lane filled near target without going over.\n4. No loops; version numbers intact; facts preserved.\nIf any item fails, rewrite before replying.\n\nReturn only the JSON object required by the response schema.` },
     ];
     let master = null;
     let masterDraft = "";
