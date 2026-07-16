@@ -412,6 +412,29 @@
     "site-news",
   ]);
 
+  /** Soft reserve for hashtags / UTM noise so body never eats the full hard limit. */
+  const HASHTAG_SOFT_BUFFER = 100;
+
+  function bodyCharBudget(limit) {
+    return Math.max(120, Number(limit) - HASHTAG_SOFT_BUFFER);
+  }
+
+  /**
+   * Prefer model copy when it already fills the lane; otherwise expand from master/source
+   * up to limit − hashtag buffer. Never go over budget.
+   */
+  function fillPlatformBody(draft, fillSource, limit, graphemes = false, sourceText = fillSource) {
+    const budget = bodyCharBudget(limit);
+    const polished = polishCharacterDraft(sourceText, draft || "");
+    const polishedLen = countText(polished, graphemes);
+    if (polishedLen >= budget * 0.85) {
+      return polishCharacterDraft(sourceText, fitComplete(polished, budget));
+    }
+    // Too short for the lane — use the fullest available seed (master/source), not a teaser.
+    const seed = countText(fillSource) >= countText(polished) ? fillSource : polished;
+    return polishCharacterDraft(sourceText, fitComplete(seed, budget));
+  }
+
   function countText(value, graphemes = false) {
     if (graphemes && typeof Intl !== "undefined" && Intl.Segmenter) {
       return [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(value)].length;
@@ -773,7 +796,7 @@
       : "1,200 to 2,400 characters as a faithful full-argument rewrite (not a teaser summary)";
     const requestMessages = [
       { role: "system", content: "You are a bounded editorial performance engine. Return JSON only. Preserve source facts and never invent organizations, events, access, relationships, or outcomes. Advance the argument once. Never loop. Always finish every field on a complete sentence with terminal punctuation. Never amputate the ending mid-thought. Preserve dotted version numbers exactly (write 5.6, never 5. 6)." },
-      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft in character voice: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Linear progress only: each sentence must add new information or a new reaction. If you catch yourself repeating, stop and close with a finished final sentence.\n- Every field must end on a complete sentence (. ! or ? as a full clause with at least three words). Never end on a hanging name, conjunction, or cut-off fragment such as “Codex?” after an unfinished thought.\n- Version numbers stay tight: 5.6, 1.2.3, v0.9 — never insert a space after the dots (not “5. 6” or “5. 6?”).\n- Keep quotation marks on a single continuous thought. Do not break a quoted line across paragraphs after short punches like “I'm done!”, “Containment achieved!”, or “the shortest path.”\n- Preserve distinctive SOURCE jargon when it is stronger and present (prefer “canonical reproductions” over a softened “canonical copies” if SOURCE uses the stronger phrase).\n- Write final in-character outputs for X (maximum 500 characters or 70 words), Threads (maximum 420 characters or 60 words), Bluesky (maximum 240 characters or 35 words), and Mastodon (maximum 440 characters or 65 words). Those short fields must be distinct compressions, not pasted copies of the master.\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully carries the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fits its stated character and word limits.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\n6. No field loops, repeats a sentence, or restates a finished claim.\n7. Every field ends complete — no amputated endings.\n8. Version numbers are intact (5.6 not 5. 6).\n9. Quotes do not break across paragraphs mid-speech.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn only the JSON object required by the response schema. Never emit placeholder text such as “...” or describe what a field should contain.` },
+      { role: "user", content: `SOURCE FACTS\n${sourceFacts(text)}\n\nSOURCE\n${text}\n\nPERSONA\n${profile.name}\n\nVOICE REQUIREMENTS\n- ${profile.style}\n- Emotional arc: ${profile.emotionalArc}\n- Knowledge boundary: ${profile.knowledgeBoundary}\n- Style: ${personaStyle.value}\n- Transformation strength: ${transformationStrength.value}\n- Write one complete first-person masterDraft in character voice: ${masterTarget}.\n- When SOURCE already fits a long destination, rewrite the whole post in voice—do not collapse a 2,000+ character source into a 1,000 character summary unless SOURCE itself is longer than 3,500 characters.\n- Change structure, rhythm, perspective, and ending; do not prepend a catchphrase.\n- Linear progress only: each sentence must add new information or a new reaction. If you catch yourself repeating, stop and close with a finished final sentence.\n- Every field must end on a complete sentence (. ! or ? as a full clause with at least three words). Never end on a hanging name, conjunction, or cut-off fragment such as “Codex?” after an unfinished thought.\n- Version numbers stay tight: 5.6, 1.2.3, v0.9 — never insert a space after the dots (not “5. 6” or “5. 6?”).\n- Keep quotation marks on a single continuous thought. Do not break a quoted line across paragraphs after short punches like “I'm done!”, “Containment achieved!”, or “the shortest path.”\n- Preserve distinctive SOURCE jargon when it is stronger and present (prefer “canonical reproductions” over a softened “canonical copies” if SOURCE uses the stronger phrase).\n- Short platform fields: fill each lane as full as possible without going over. Leave a soft ~100-character buffer for hashtags (do not write hashtags in the JSON — body only).\n  - X body: target ~480–500 characters (hard max 500)\n  - Threads body: target ~380–400 characters (hard max 400)\n  - Bluesky body: target ~180–200 characters (hard max 200)\n  - Mastodon body: target ~380–400 characters (hard max 400)\n- A 2,500-character source is NOT represented by a 200-character teaser on a 500-character lane. Carry as much argument as the lane allows.\n- Short fields must still be distinct rewrites for each platform, not identical pastes.\n- Do not add examples, products, events, or consequences that are absent from SOURCE FACTS.\n- Return validation scores as decimals from 0 to 1. Leave warnings empty unless the draft introduces a factual, safety, or knowledge-boundary problem.\n- Do not use marketing language, hashtags, CTA, links, or an author label.\n- Do not glamorize harm, coercion, or feeding.\n\nINTERNAL ACCEPTANCE RUBRIC\nBefore emitting the final JSON, think through and revise every platform output until all of these are true:\n1. It fully carries the original central thought in the selected character voice.\n2. It stands alone as a complete thought; the claim and reaction are resolved.\n3. It fills its lane near the body target (not a tiny teaser) and stays under the hard max.\n4. It was rewritten to fit, never sliced, clipped, or ended by replacing a cutoff with punctuation.\n5. It preserves SOURCE FACTS without invention.\n6. No field loops, repeats a sentence, or restates a finished claim.\n7. Every field ends complete — no amputated endings.\n8. Version numbers are intact (5.6 not 5. 6).\n9. Quotes do not break across paragraphs mid-speech.\nIf any output fails even one item, it does not pass. Rewrite it from the master thought and run the rubric again before replying.\n\nReturn only the JSON object required by the response schema. Never emit placeholder text such as “...” or describe what a field should contain.` },
     ];
     let master = null;
     let masterDraft = "";
@@ -801,18 +824,16 @@
     const platformDrafts = master.platformDrafts || {};
     const variants = Object.fromEntries(destinations.map((item) => {
       if (item.mediaOnly && !(state.media || imageUrl.value.trim())) return [item.id, ""];
-      if (platformDrafts[item.id]) {
-        const fitted = fitCharacterSummary(polishCharacterDraft(text, platformDrafts[item.id]), item.limit);
-        if (fitted && selfLoopScore(fitted) < 0.25 && isCompleteThought(fitted)) return [item.id, fitted];
-        const fallback = polishCharacterDraft(text, fitComplete(platformDrafts[item.id] || masterDraft, item.limit));
-        return [item.id, fallback];
-      }
-      // Long destinations that can hold the source: adapt the full post, not the short master teaser.
-      // Prefer a full-length master rewrite when the model actually produced one; otherwise keep SOURCE.
+      // Prefer fullest seed: long master when it covers the source, else original source for long lanes.
       const longForm = LONG_FORM_PLATFORM_IDS.has(item.id);
       const masterCoversSource = countText(masterDraft) >= Math.min(countText(text) * 0.75, item.limit * 0.55);
-      const seed = longForm ? (masterCoversSource ? masterDraft : text) : masterDraft;
-      return [item.id, polishCharacterDraft(text, fitComplete(generateCopy(item, seed, personaAnalysis), item.limit))];
+      const fillSource = longForm ? (masterCoversSource ? masterDraft : text) : masterDraft;
+      if (platformDrafts[item.id]) {
+        // Model shorts: fill to limit − hashtag buffer from master when the model underfills.
+        return [item.id, fillPlatformBody(platformDrafts[item.id], fillSource, item.limit, item.graphemes, text)];
+      }
+      // Deterministic lanes (Discord, Patreon, etc.): pack the body up to the soft budget.
+      return [item.id, fillPlatformBody(generateCopy(item, fillSource, personaAnalysis), fillSource, item.limit, item.graphemes, text)];
     }));
     const invalid = destinations.filter((item) => {
       const draft = normalizeWhitespace(variants[item.id]);
@@ -855,12 +876,17 @@
       case "linkedin":
         return collapseDuplicateParagraphs(clip(joinParts([hook, bodyForLimit(clean, config.limit, 180), ctaLine, tagsFor(config.id, { ...analysis, hashtags: ["#CradlepointStudios", "#CreativeTechnology", "#IndieGameDev"] }, 4)]), config.limit));
       case "discord":
-        return collapseDuplicateParagraphs(clip(joinParts([`**${titleFrom(text)}**`, bodyForLimit(clean, config.limit, 120), link ? `**${analysis.cta}:** ${link}` : (analysis.cta ? `**Next action:** ${analysis.cta}` : "")]), config.limit));
+        // Character mode fills via fillPlatformBody; keep structure light so the body can use the lane.
+        return collapseDuplicateParagraphs(joinParts([
+          `**${titleFrom(text)}**`,
+          bodyForLimit(clean, bodyCharBudget(config.limit), 40),
+          link ? `**${analysis.cta}:** ${link}` : (analysis.cta ? `**Next action:** ${analysis.cta}` : ""),
+        ]));
       case "patreon":
         // One body only — never paste the post under a second "why this matters" restatement.
         return collapseDuplicateParagraphs(joinParts([
           `# Archive log: ${titleFrom(text)}`,
-          bodyForLimit(clean, config.limit, 220),
+          bodyForLimit(clean, bodyCharBudget(config.limit), 40),
           link ? `Continue through the primary door: ${link}` : "",
           `Classification: ${analysis.contentClass.value} · ${analysis.layer.value}`,
         ]));
