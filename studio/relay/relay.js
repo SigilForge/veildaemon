@@ -274,6 +274,37 @@
     return `${slice.slice(0, boundary > max * 0.65 ? boundary : slice.length).trim()}${suffix}`;
   }
 
+  /**
+   * Rhetorical setup that promises a following beat ("And what did Codex do?").
+   * Never a valid final line for a fitted platform body.
+   */
+  function isSetupStubSentence(value) {
+    const s = String(value || "").trim();
+    if (!s) return true;
+    if (!/\?["'”']?$/.test(s)) return false;
+    const core = s.replace(/[.!?…"”'’]+/g, "").trim();
+    const words = core.split(/\s+/).filter(Boolean);
+    if (!words.length) return true;
+    if (/^(and what|what did|what does|what do|so what|now what|the task|but then|but oh|and then|guess what|the result|the catch|the problem)\b/i.test(core)) {
+      return true;
+    }
+    // Short open questions that are leads, not closers.
+    if (
+      words.length <= 7
+      && /^(and|but|so|then|what|who|where|when|why|how|the)\b/i.test(core)
+      && !/^(why not|why bother|who cares|what now|verdict)\b/i.test(core)
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  function dropTrailingSetupStubs(sentences) {
+    const items = [...(sentences || [])];
+    while (items.length > 1 && isSetupStubSentence(items[items.length - 1])) items.pop();
+    return items;
+  }
+
   /** Fit by whole sentences without inventing ellipsis cutoffs. */
   function fitSentencesToLimit(value, max) {
     const sentences = splitSentences(value);
@@ -283,7 +314,8 @@
       if (countText(candidate) > max) break;
       accepted.push(sentence);
     }
-    if (accepted.length) return accepted.join(" ");
+    const kept = dropTrailingSetupStubs(accepted);
+    if (kept.length) return kept.join(" ");
     const fragment = clip(sentences[0] || value, Math.max(1, max - 1), "").replace(/[,;:\s]+$/, "");
     return `${fragment}.`;
   }
@@ -292,7 +324,10 @@
   function fitComplete(value, max) {
     const clean = normalizeWhitespace(value);
     if (countText(clean) <= max) {
-      return clean.endsWith("…") ? `${clean.slice(0, -1).replace(/[,;:\s]+$/, "")}.` : clean;
+      const base = clean.endsWith("…") ? `${clean.slice(0, -1).replace(/[,;:\s]+$/, "")}.` : clean;
+      // Still refuse cliffhanger endings even when under budget (model shorts do this a lot).
+      const closed = ensureCompleteEnding(base);
+      return countText(closed) <= max ? closed : fitSentencesToLimit(closed, max);
     }
     const paragraphs = clean.split(/\n\n+/).map((part) => part.trim()).filter(Boolean);
     if (paragraphs.length > 1) {
@@ -311,9 +346,17 @@
         }
         break;
       }
-      if (accepted.length) return accepted.join("\n\n");
+      if (accepted.length) {
+        // Drop a trailing paragraph that is only a setup stub.
+        while (accepted.length > 1 && isSetupStubSentence(accepted[accepted.length - 1])) accepted.pop();
+        const joined = accepted.join("\n\n");
+        const closed = ensureCompleteEnding(joined);
+        return countText(closed) <= max ? closed : fitSentencesToLimit(closed, max);
+      }
     }
-    return fitSentencesToLimit(clean, max);
+    const fitted = fitSentencesToLimit(clean, max);
+    const closed = ensureCompleteEnding(fitted);
+    return countText(closed) <= max ? closed : fitted;
   }
 
   function isStructuralDraftLine(value) {
@@ -533,6 +576,8 @@
     const last = sentences[sentences.length - 1];
     const lastCore = last.replace(/[.!?…"”']+/g, "").trim();
     const lastWords = lastCore.split(/\s+/).filter(Boolean);
+    // Setup cliffhangers are not endings ("And what did Codex do?").
+    if (isSetupStubSentence(last)) return false;
     // One-word hanging question after a long piece is an amputation, not a closer.
     if (lastWords.length <= 2 && /\?$/.test(last) && countText(clean) > 280) return false;
     // Trailing conjunction / determiner means the model was cut off.
