@@ -1,0 +1,9 @@
+prefix_rule(pattern = ["git", "commit"], decision = "prompt", justification = "Committing requires explicit user approval.", match = ["git commit -m relay"])
+prefix_rule(pattern = ["git", "push"], decision = "prompt", justification = "Pushing requires explicit user approval.", match = ["git push", "git push origin main"])
+prefix_rule(pattern = ["vercel", "deploy"], decision = "prompt", justification = "Deployment requires explicit user approval.", match = ["vercel deploy", "vercel deploy --prod --yes"])
+prefix_rule(pattern = ["vercel", "link"], decision = "prompt", justification = "Changing the linked Vercel project requires explicit user approval.", match = ["vercel link --yes"])
+prefix_rule(pattern = ["systemctl", "--user"], decision = "prompt", justification = "Changing a user service requires explicit user approval.", match = ["systemctl --user restart relaydaemon-local"])
+prefix_rule(pattern = ["sudo"], decision = "prompt", justification = "Elevated changes require explicit user approval.", match = ["sudo systemctl restart ollama"])
+prefix_rule(pattern = ["npm", "install"], decision = "prompt", justification = "Dependency installation requires explicit user approval.", match = ["npm install", "npm install example"])
+prefix_rule(pattern = ["ollama", "pull"], decision = "prompt", justification = "Model downloads require explicit user approval.", match = ["ollama pull hermes4:14b"])
+
