@@ -27,26 +27,32 @@
     {
       "id": "alex-shade",
       "name": "Alex Shade",
-      "era": "Book One · active / controlled · field observer",
+      "era": "Book Two · active / Silence-aligned · one step short of collapse",
       "signature": "ALEX // FIELD OBSERVATION"
     },
     {
       "id": "shade",
       "name": "Shade",
-      "era": "Operational / anomalous · bound to A.Shade",
+      "era": "Book Two · Silence Echo · recursion externalized through process",
       "signature": "SHADE // CORRECTION"
     },
     {
       "id": "agnes-marlowe",
       "name": "Agnes Marlowe",
-      "era": "Book One · active / personhood-sensitive · not the house",
+      "era": "Book Two · Stillness-instabile wraith · Marlowe Tower locus",
       "signature": "AGNES // STRUCTURAL CARE NOTE"
     },
     {
       "id": "mira",
       "name": "Mira",
-      "era": "Book One · event rarity · catalyst of becoming",
+      "era": "Book Two · Empyrean-instabile · hunger becoming selfhood · event rarity",
       "signature": "MIRA // CATALYST MARK"
+    },
+    {
+      "id": "kaelyn",
+      "name": "Kaelyn",
+      "era": "Book Two · Stillness primary · packless reclaimer · The Howl Between",
+      "signature": "KAELYN // HELD HUNT"
     }
   ]
 }

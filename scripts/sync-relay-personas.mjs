@@ -63,6 +63,7 @@ const order = [
   "shade",
   "agnes-marlowe",
   "mira",
+  "kaelyn",
 ];
 index.sort((a, b) => {
   const ai = order.indexOf(a.id);
