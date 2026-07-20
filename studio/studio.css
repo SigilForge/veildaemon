@@ -3112,8 +3112,9 @@ footer > p {
 }
 
 /* Public data-room HTML summaries
-   Paper band is FULL WIDTH. Measure lives on the inner prose shell only.
-   Never put max-width on the same element as .section-block.paper. */
+   Outer .section-block.paper stays full-bleed for layout; measure lives on
+   the inner prose shell. Prefer .doc-sheet for a floating reading panel
+   so the atmospheric background is not covered by a hard manila slab. */
 .section-block.paper.doc-summary,
 .section-block.paper {
   width: 100%;
@@ -3129,9 +3130,54 @@ footer > p {
   box-sizing: border-box;
 }
 
-/* Legacy: if content is direct child of .doc-summary without inner wrapper */
-.section-block.doc-summary {
-  /* keep full bleed paper via section-block padding */
+/* Floating document sheet: readable paper without a jarring full-bleed bar */
+.section-block.paper.doc-sheet {
+  background: transparent;
+  border-top: none;
+  color: var(--ink-text);
+  padding-top: 0.35rem;
+  padding-bottom: clamp(2.5rem, 6vw, 4rem);
+}
+
+.section-block.paper.doc-sheet .doc-prose,
+.section-block.paper.doc-sheet .doc-summary-inner {
+  max-width: 44rem;
+  padding: clamp(1.45rem, 3.5vw, 2.35rem) clamp(1.25rem, 3vw, 2.1rem);
+  border-radius: calc(var(--radius) + 0.15rem);
+  border: 1px solid rgba(239, 235, 228, 0.14);
+  background:
+    linear-gradient(165deg, rgba(246, 243, 237, 0.97), rgba(239, 235, 228, 0.94));
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 1px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(10px) saturate(1.05);
+  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  color: var(--ink-text);
+}
+
+.section-block.paper.doc-sheet .doc-prose h2,
+.section-block.paper.doc-sheet .doc-prose h3,
+.section-block.paper.doc-sheet .doc-summary-inner h2,
+.section-block.paper.doc-sheet .doc-summary-inner h3 {
+  color: var(--ink-text);
+}
+
+.section-block.paper.doc-sheet .doc-prose p,
+.section-block.paper.doc-sheet .doc-prose li,
+.section-block.paper.doc-sheet .doc-summary-inner p,
+.section-block.paper.doc-sheet .doc-summary-inner li {
+  color: var(--ink-muted);
+}
+
+.section-block.paper.doc-sheet .pitch-note,
+.section-block.paper.doc-sheet .callout {
+  color: var(--ink-muted);
+  border-left-color: var(--rust-deep);
+}
+
+/* Soften hero → sheet transition on data-room reading pages */
+.page-shell main > .sub-hero.text-only + .section-block.paper.doc-sheet {
+  margin-top: -0.35rem;
 }
 
 .doc-summary h2,
