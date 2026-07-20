@@ -3180,6 +3180,119 @@ footer > p {
   margin-top: -0.35rem;
 }
 
+/* Doc-sheet tables: no forced min-width / no sideways scroll for normal viewports */
+.section-block.paper.doc-sheet .pitch-table-wrap {
+  overflow-x: visible;
+  border-color: rgba(22, 24, 23, 0.1);
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.section-block.paper.doc-sheet .pitch-table,
+.section-block.paper.doc-sheet .doc-prose .pitch-table,
+.section-block.paper.doc-sheet .doc-summary-inner .pitch-table {
+  min-width: 0;
+  table-layout: fixed;
+  width: 100%;
+  font-size: 0.88rem;
+}
+
+.section-block.paper.doc-sheet .pitch-table th,
+.section-block.paper.doc-sheet .pitch-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  padding: 0.75rem 0.65rem;
+}
+
+.section-block.paper.doc-sheet .pitch-table td:nth-child(2),
+.section-block.paper.doc-sheet .pitch-table td:nth-child(3) {
+  white-space: normal;
+  color: var(--ink-text);
+}
+
+.section-block.paper.doc-sheet .pitch-table thead th {
+  background: rgba(22, 24, 23, 0.06);
+  color: var(--rust-deep);
+}
+
+.section-block.paper.doc-sheet .pitch-table tbody th {
+  width: auto;
+  color: var(--ink-text);
+}
+
+/* Stacked inventory (product catalog) — no table scroll */
+.doc-inventory {
+  list-style: none;
+  margin: 0.75rem 0 1.25rem;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.doc-inventory > li {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(22, 24, 23, 0.1);
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.doc-inventory-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.doc-inventory-head strong {
+  color: var(--ink-text);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.doc-inventory .status-pill {
+  border-color: rgba(22, 24, 23, 0.14);
+}
+
+.doc-inventory .status-pill.shipping {
+  color: var(--rust-deep);
+  border-color: rgba(138, 74, 66, 0.35);
+}
+
+.doc-inventory .status-pill.live {
+  color: var(--sage-deep);
+  border-color: rgba(61, 122, 108, 0.4);
+}
+
+.doc-inventory .status-pill.planning,
+.doc-inventory .status-pill.future {
+  color: var(--ink-muted);
+}
+
+.doc-inventory p {
+  margin: 0 0 0.45rem;
+  color: var(--ink-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.doc-inventory a {
+  color: var(--rust-deep);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  text-underline-offset: 0.18rem;
+}
+
+.doc-inventory a:hover {
+  text-decoration: underline;
+}
+
 .doc-summary h2,
 .doc-prose h2 {
   font-family: var(--font-display);
@@ -3228,7 +3341,13 @@ footer > p {
 .doc-summary .pitch-table,
 .doc-prose .pitch-table {
   width: 100%;
-  min-width: 28rem;
+  min-width: 0;
+}
+
+/* Wide tables only when not inside a constrained floating sheet */
+.section-block.paper:not(.doc-sheet) .doc-prose .pitch-table,
+.section-block.paper:not(.doc-sheet) .doc-summary .pitch-table {
+  min-width: min(100%, 28rem);
 }
 .doc-summary .callout,
 .doc-prose .callout {
