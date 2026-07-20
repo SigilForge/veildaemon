@@ -2852,22 +2852,27 @@ body.operator-record-sealed .authorization-import-handoff {
 
 .authorization-import-surface {
   display: grid;
-  grid-template-columns: minmax(min(100%, 16rem), max-content) minmax(min(100%, 22rem), 1fr);
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
   gap: .85rem;
   align-items: stretch;
   margin-bottom: 1rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .authorization-current-grid,
 .authorization-unlock-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
   gap: .85rem;
+  width: 100%;
+  min-width: 0;
 }
 
 .authorization-current-grid div,
 .authorization-unlock-grid > section {
   min-width: 0;
+  max-width: 100%;
   padding: .85rem;
   border: 1px solid rgba(137,255,218,.16);
   background: rgba(0,0,0,.22);
@@ -3325,6 +3330,13 @@ body.has-reports-drawer-open .surface-tabs {
 @media (max-width: 760px) {
   body {
     padding-bottom: calc(4.2rem + env(safe-area-inset-bottom));
+  }
+  .authorization-import-surface {
+    grid-template-columns: 1fr;
+  }
+  .authorization-current-grid,
+  .authorization-unlock-grid {
+    grid-template-columns: 1fr;
   }
   .surface-tabs {
     left: 0;
