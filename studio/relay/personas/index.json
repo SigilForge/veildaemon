@@ -50,9 +50,21 @@
     },
     {
       "id": "kaelyn",
-      "name": "Kaelyn",
-      "era": "Book Two · Stillness primary · Howl Between · packless reclaimer",
+      "name": "Kaelyn Mercer",
+      "era": "Book Two–Three · Stillness · Howl Between · Kansas City reclaimer",
       "signature": "KAELYN // HELD HUNT"
+    },
+    {
+      "id": "maslow",
+      "name": "Maslow",
+      "era": "Cross-book supporting · Rank 9 illegal composite · hunted by jurisdictions",
+      "signature": "MASLOW // NEED INVOICE"
+    },
+    {
+      "id": "father-samiel",
+      "name": "Father Samiel",
+      "era": "Cross-book supporting · Pulse-marked · Vatican special consultant · Archivist of Pain",
+      "signature": "SAMIEL // WITNESS MARGIN"
     }
   ]
 }
