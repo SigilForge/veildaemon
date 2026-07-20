@@ -3180,9 +3180,11 @@ footer > p {
   margin-top: -0.35rem;
 }
 
-/* Doc-sheet tables: no forced min-width / no sideways scroll for normal viewports */
+/* Doc-sheet tables: never crush cells into letter-by-letter stacks.
+   Prefer auto layout; on narrow viewports, stack rows as cards. */
 .section-block.paper.doc-sheet .pitch-table-wrap {
   overflow-x: visible;
+  max-width: 100%;
   border-color: rgba(22, 24, 23, 0.1);
   background: rgba(255, 255, 255, 0.42);
 }
@@ -3191,23 +3193,26 @@ footer > p {
 .section-block.paper.doc-sheet .doc-prose .pitch-table,
 .section-block.paper.doc-sheet .doc-summary-inner .pitch-table {
   min-width: 0;
-  table-layout: fixed;
   width: 100%;
-  font-size: 0.88rem;
+  table-layout: auto;
+  font-size: 0.9rem;
 }
 
 .section-block.paper.doc-sheet .pitch-table th,
 .section-block.paper.doc-sheet .pitch-table td {
   white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  padding: 0.75rem 0.65rem;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: manual;
+  padding: 0.8rem 0.75rem;
+  vertical-align: top;
 }
 
 .section-block.paper.doc-sheet .pitch-table td:nth-child(2),
 .section-block.paper.doc-sheet .pitch-table td:nth-child(3) {
   white-space: normal;
   color: var(--ink-text);
+  font-weight: 600;
 }
 
 .section-block.paper.doc-sheet .pitch-table thead th {
@@ -3216,8 +3221,123 @@ footer > p {
 }
 
 .section-block.paper.doc-sheet .pitch-table tbody th {
-  width: auto;
+  width: 42%;
+  min-width: 8rem;
   color: var(--ink-text);
+}
+
+.section-block.paper.doc-sheet .doc-prose a,
+.section-block.paper.doc-sheet .doc-summary-inner a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Narrow screens: stack table rows like inventory cards (no horizontal scroll, no glyph towers) */
+@media (max-width: 720px) {
+  .section-block.paper.doc-sheet {
+    padding-left: max(0.85rem, calc((100vw - 100%) / 2 + 0.85rem));
+    padding-right: max(0.85rem, calc((100vw - 100%) / 2 + 0.85rem));
+  }
+
+  .section-block.paper.doc-sheet .doc-prose,
+  .section-block.paper.doc-sheet .doc-summary-inner {
+    max-width: 100%;
+    padding: 1.15rem 1rem 1.35rem;
+    border-radius: var(--radius);
+  }
+
+  .section-block.paper.doc-sheet .pitch-table-wrap {
+    overflow: visible;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+  }
+
+  .section-block.paper.doc-sheet .pitch-table,
+  .section-block.paper.doc-sheet .pitch-table thead,
+  .section-block.paper.doc-sheet .pitch-table tbody,
+  .section-block.paper.doc-sheet .pitch-table tr,
+  .section-block.paper.doc-sheet .pitch-table th,
+  .section-block.paper.doc-sheet .pitch-table td {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .section-block.paper.doc-sheet .pitch-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .section-block.paper.doc-sheet .pitch-table tbody tr {
+    margin: 0 0 0.55rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(22, 24, 23, 0.1);
+    background: rgba(255, 255, 255, 0.48);
+  }
+
+  .section-block.paper.doc-sheet .pitch-table tbody th,
+  .section-block.paper.doc-sheet .pitch-table tbody td {
+    border-bottom: none;
+    padding: 0.15rem 0;
+  }
+
+  .section-block.paper.doc-sheet .pitch-table tbody th {
+    width: 100%;
+    margin: 0 0 0.2rem;
+    font-size: 1.05rem;
+    line-height: 1.25;
+  }
+
+  .section-block.paper.doc-sheet .pitch-table tbody td {
+    color: var(--ink-muted);
+    font-weight: 500;
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .page-shell .sub-hero h1 {
+    font-size: clamp(2.2rem, 11vw, 3.1rem);
+    line-height: 1.02;
+  }
+
+  .page-shell .sub-hero p:not(.eyebrow) {
+    font-size: 0.98rem;
+  }
+
+  .page-shell .link-row {
+    gap: 0.45rem;
+  }
+
+  .page-shell .link-row a {
+    font-size: 0.74rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .doc-inventory > li {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .doc-inventory-head strong {
+    font-size: 1.05rem;
+    min-width: 0;
+    flex: 1 1 10rem;
+  }
+
+  .doc-inventory .status-pill {
+    max-width: 100%;
+    white-space: normal;
+    text-align: right;
+    line-height: 1.25;
+  }
 }
 
 /* Stacked inventory (product catalog) — no table scroll */
@@ -3291,6 +3411,24 @@ footer > p {
 
 .doc-inventory a:hover {
   text-decoration: underline;
+}
+
+.doc-inventory .doc-metric {
+  flex-shrink: 0;
+  color: var(--rust-deep);
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.doc-metrics .doc-inventory-head {
+  margin-bottom: 0;
+}
+
+.doc-metrics li:has(.doc-metric) p {
+  display: none;
 }
 
 .doc-summary h2,

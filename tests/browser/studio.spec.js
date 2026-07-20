@@ -204,6 +204,43 @@ test.describe("studio subtree routes", () => {
     await noHorizontalOverflow(page);
   });
 
+  test("data room public summaries render on mobile without layout curse", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const summaries = [
+      "/studio/data-room/public/executive-overview.html",
+      "/studio/data-room/public/traction-summary.html",
+      "/studio/data-room/public/product-catalog.html",
+      "/studio/data-room/public/roadmap-public.html",
+      "/studio/data-room/public/publishing-prospectus-summary.html",
+      "/studio/data-room/public/mobile-ar-prospectus-summary.html",
+    ];
+    for (const route of summaries) {
+      const response = await page.goto(route);
+      expect(response && response.ok(), route).toBeTruthy();
+      await expect(page.locator("h1").first()).toBeVisible();
+      await expect(page.locator(".doc-sheet .doc-prose")).toBeVisible();
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+      );
+      expect(overflow, `${route} horizontal overflow`).toBeLessThanOrEqual(1);
+      // No crushed table cells turning into tall letter towers
+      const towers = await page.evaluate(() => {
+        return [...document.querySelectorAll("th, td")].filter((el) => {
+          const r = el.getBoundingClientRect();
+          return r.width > 0 && r.height > 80 && r.height / r.width > 4;
+        }).length;
+      });
+      expect(towers, `${route} letter-tower cells`).toBe(0);
+    }
+    await page.goto("/studio/data-room/public/traction-summary.html");
+    await expect(page.locator(".doc-metric").first()).toHaveText("350K+");
+    await expect(page.locator("main")).toContainText("Internally audited core rules words");
+    await page.goto("/studio/data-room/public/mobile-ar-prospectus-summary.html");
+    await expect(page.locator(".status-pill.live").first()).toHaveText("Live");
+    await page.goto("/studio/data-room/public/product-catalog.html");
+    await expect(page.locator(".doc-inventory")).toHaveCount(2);
+  });
+
   test("web design service page scope, pricing, and inquiry form", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/studio/web-design/");
