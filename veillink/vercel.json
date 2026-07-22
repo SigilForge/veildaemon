@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "app/api/billing/webhook/route.ts": {
+      "maxDuration": 10
+    },
+    "app/api/resolve/[slug]/route.ts": {
+      "maxDuration": 10
+    }
+  }
+}
