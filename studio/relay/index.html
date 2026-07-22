@@ -9,9 +9,9 @@
   <meta name="theme-color" content="#070a0b">
   <link rel="icon" href="/studio/assets/brand/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/studio/studio.css?v=20260715-relay1">
-  <link rel="stylesheet" href="/studio/relay/relay.css?v=20260716-relay5">
+  <link rel="stylesheet" href="/studio/relay/relay.css?v=20260721-relay6">
   <script defer src="/studio/relay/vendor/zxing-reader.js?v=20260715-relay2"></script>
-  <script defer src="/studio/relay/relay.js?v=20260717-relay54"></script>
+  <script defer src="/studio/relay/relay.js?v=20260721-relay55"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body class="subpage relay-page">
@@ -143,6 +143,37 @@
           <p class="persona-engine-path"><strong>1 · Local Ollama (default)</strong> — Relay bridge on this machine runs the model.</p>
           <p class="persona-engine-path"><strong>2 · Hosted OpenAI (backup)</strong> — only when local cannot finish a valid draft.</p>
           <p id="persona-engine-status" class="persona-engine-status" role="status">Select a character to check local Ollama first.</p>
+          <div id="persona-primer" class="persona-primer" hidden>
+            <div class="persona-primer-head">
+              <div>
+                <p class="persona-primer-kicker">Persona primer</p>
+                <p id="persona-primer-name" class="persona-primer-name">—</p>
+                <p id="persona-primer-era" class="persona-primer-era">—</p>
+              </div>
+              <button type="button" id="persona-primer-toggle" class="persona-primer-toggle" aria-expanded="false" aria-controls="persona-primer-body">
+                Show more
+              </button>
+            </div>
+            <div id="persona-primer-body" class="persona-primer-body" data-expanded="false">
+              <div class="persona-primer-clip">
+                <p id="persona-primer-choice" class="persona-primer-block" hidden></p>
+                <p id="persona-primer-summary" class="persona-primer-block"></p>
+                <div id="persona-primer-details" class="persona-primer-details">
+                  <p class="persona-primer-label">Voice</p>
+                  <p id="persona-primer-style" class="persona-primer-block"></p>
+                  <p class="persona-primer-label">Knowledge boundary</p>
+                  <p id="persona-primer-boundary" class="persona-primer-block"></p>
+                  <p class="persona-primer-label">Emotional arc</p>
+                  <p id="persona-primer-arc" class="persona-primer-block"></p>
+                  <p class="persona-primer-label">Social mode</p>
+                  <p id="persona-primer-social" class="persona-primer-block"></p>
+                  <p class="persona-primer-label">Avoid</p>
+                  <p id="persona-primer-avoid" class="persona-primer-block"></p>
+                </div>
+              </div>
+              <div class="persona-primer-fade" aria-hidden="true"></div>
+            </div>
+          </div>
         </div>
 
         <div id="code-confirmation" class="code-confirmation" hidden>

@@ -908,7 +908,7 @@
         key: "character",
         characterKey: character.value,
         profile,
-        reason: `Selected character profile. ${profile.style} Knowledge boundary: ${profile.knowledgeBoundary}`,
+        reason: `Selected character primer · ${profile.name}. Full voice and knowledge boundary stay in the primer panel (expand Show more). Every draft still needs human review.`,
       };
     }
     if (voice.value !== "auto") {
@@ -1599,16 +1599,60 @@
     $("#form-message").textContent = "Saved device draft cleared. Current form left intact.";
   }
 
+  function setPersonaPrimerExpanded(expanded) {
+    const body = $("#persona-primer-body");
+    const toggle = $("#persona-primer-toggle");
+    const primer = $("#persona-primer");
+    if (!body || !toggle || !primer) return;
+    body.dataset.expanded = expanded ? "true" : "false";
+    primer.classList.toggle("is-expanded", expanded);
+    toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    toggle.textContent = expanded ? "Show less" : "Show more";
+  }
+
+  function fillPersonaPrimer(profile) {
+    const primer = $("#persona-primer");
+    if (!primer) return;
+    if (!profile) {
+      primer.hidden = true;
+      setPersonaPrimerExpanded(false);
+      return;
+    }
+    $("#persona-primer-name").textContent = profile.name || "—";
+    $("#persona-primer-era").textContent = profile.era || profile.signature || "Character primer loaded";
+    const choice = $("#persona-primer-choice");
+    if (profile.definingChoice) {
+      choice.hidden = false;
+      choice.textContent = profile.definingChoice;
+    } else {
+      choice.hidden = true;
+      choice.textContent = "";
+    }
+    $("#persona-primer-summary").textContent = profile.compactPrompt || profile.style || "No compact primer available.";
+    $("#persona-primer-style").textContent = profile.style || "—";
+    $("#persona-primer-boundary").textContent = profile.knowledgeBoundary || "—";
+    $("#persona-primer-arc").textContent = profile.emotionalArc || "—";
+    $("#persona-primer-social").textContent = profile.socialMode || "—";
+    $("#persona-primer-avoid").textContent = profile.avoid || "—";
+    setPersonaPrimerExpanded(false);
+    primer.hidden = false;
+  }
+
   async function updatePersonaEngine() {
     $("#persona-engine").hidden = !character.value;
-    if (!character.value) return;
+    if (!character.value) {
+      fillPersonaPrimer(null);
+      return;
+    }
     try {
       const profile = await loadPersonaProfile(character.value);
+      fillPersonaPrimer(profile);
       const status = $("#persona-engine-status");
       if (profile?.signature && status && !/Local Ollama ready|Using local|Using hosted|Checking local/i.test(status.textContent || "")) {
         status.textContent = `${profile.signature} · Select generate after source is ready. Loading engine…`;
       }
     } catch (error) {
+      fillPersonaPrimer(null);
       $("#persona-engine-status").textContent = `Persona primer failed to load (${error.message || "error"}).`;
       console.warn("Relay persona load failed", error);
     }
@@ -2007,6 +2051,10 @@
   mediaFile.addEventListener("change", handleMediaFile);
   imageUrl.addEventListener("change", updateImageUrlPreview);
   character.addEventListener("change", updatePersonaEngine);
+  $("#persona-primer-toggle")?.addEventListener("click", () => {
+    const expanded = $("#persona-primer-body")?.dataset.expanded === "true";
+    setPersonaPrimerExpanded(!expanded);
+  });
   $("#restore-draft").addEventListener("click", restoreDraft);
   $("#clear-draft").addEventListener("click", clearDraft);
   $("#select-all").addEventListener("click", () => {
