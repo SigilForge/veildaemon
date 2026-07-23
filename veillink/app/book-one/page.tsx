@@ -26,7 +26,7 @@ export default async function BookOnePage() {
       <h1 className="page-title">Book One direct digital edition</h1>
       <p className="lede">
         Account required. Purchase records attach to this VeilLink identity before private files are issued: the verified
-        PDF plus the Book One wallpaper pack.
+        PDF, reflowable EPUB & MOBI ebook editions, plus the Book One wallpaper pack.
       </p>
 
       <section className="book-one-layout" aria-label="Book One purchase">
@@ -48,10 +48,11 @@ export default async function BookOnePage() {
           <p className="muted">Signed in as {user.email}</p>
           <p>
             Checkout runs through Stripe. After payment, the claim route verifies the completed session, records the
-            entitlement on your account, then issues short-lived private download links for the PDF and wallpaper pack.
+            entitlement on your account, then issues short-lived private download links for the PDF, EPUB, MOBI, and wallpaper pack.
           </p>
           <ul className="book-one-includes">
             <li>Verified print-edition PDF · DRM-free</li>
+            <li>Reflowable EPUB & MOBI ebook editions</li>
             <li>Wallpaper pack · desktop clean/title + phone plates</li>
             <li>Direct buyers keep access when shelf files update</li>
           </ul>

@@ -1,6 +1,8 @@
 const EXPECTED_PRICE_ID = process.env.BOOK_ONE_STRIPE_PRICE_ID || "price_1TwE0oFht6uPr4mz4thEHLpN";
 const DEFAULT_BUCKET = "paid-downloads";
 const DEFAULT_PDF_PATH = "book-one/the-cradlepoint-archive-book-one-v47-2a-print-edition-verified.pdf";
+const DEFAULT_EPUB_PATH = "book-one/the-cradlepoint-archive-book-one-current.epub";
+const DEFAULT_MOBI_PATH = "book-one/the-cradlepoint-archive-book-one-current.mobi";
 const DEFAULT_WALLPAPER_PATH = "book-one/book-one-wallpaper-pack.zip";
 const DEFAULT_TTL_SECONDS = 900;
 
@@ -132,6 +134,14 @@ function storageBucket() {
 
 function pdfObjectPath() {
   return (process.env.BOOK_ONE_SUPABASE_PATH || DEFAULT_PDF_PATH).replace(/^\/+/, "");
+}
+
+function epubObjectPath() {
+  return (process.env.BOOK_ONE_EPUB_PATH || DEFAULT_EPUB_PATH).replace(/^\/+/, "");
+}
+
+function mobiObjectPath() {
+  return (process.env.BOOK_ONE_MOBI_PATH || DEFAULT_MOBI_PATH).replace(/^\/+/, "");
 }
 
 function wallpaperObjectPath() {
@@ -332,22 +342,40 @@ module.exports = async function handler(req, res) {
     const purchaseId = await upsertPurchaseEntitlement(session);
 
     const pdfPath = pdfObjectPath();
+    const epubPath = epubObjectPath();
+    const mobiPath = mobiObjectPath();
     const wallpaperPath = wallpaperObjectPath();
 
-    // PDF is required. Wallpaper pack is included when present in private storage.
+    // PDF is primary. EPUB, MOBI, and Wallpaper pack are included when present in private storage.
     const pdfUrl = await createSupabaseSignedUrl(pdfPath);
+
+    let epubUrl = "";
+    let epubNote = "Reflowable digital ebook edition";
+    try {
+      epubUrl = await createSupabaseSignedUrl(epubPath);
+    } catch {
+      epubNote = "EPUB edition rebuild pending staging.";
+    }
+
+    let mobiUrl = "";
+    let mobiNote = "Kindle digital ebook edition";
+    try {
+      mobiUrl = await createSupabaseSignedUrl(mobiPath);
+    } catch {
+      mobiNote = "MOBI edition rebuild pending staging.";
+    }
 
     let wallpaperUrl = "";
     let wallpaperNote = "10 plates · clean + title · PNG pack";
     try {
       wallpaperUrl = await createSupabaseSignedUrl(wallpaperPath);
-    } catch (wallpaperError) {
+    } catch {
       wallpaperNote = "Wallpaper pack is not staged in private storage yet. PDF is still available.";
     }
 
     await recordPurchaseClaim(purchaseId);
 
-    return sendClaimPage(res, [
+    const downloads = [
       {
         label: "PDF",
         filename: filenameFromPath(pdfPath),
@@ -355,12 +383,26 @@ module.exports = async function handler(req, res) {
         note: "Verified print edition · DRM-free",
       },
       {
+        label: "EPUB",
+        filename: filenameFromPath(epubPath),
+        url: epubUrl,
+        note: epubNote,
+      },
+      {
+        label: "MOBI",
+        filename: filenameFromPath(mobiPath),
+        url: mobiUrl,
+        note: mobiNote,
+      },
+      {
         label: "Wallpapers",
         filename: filenameFromPath(wallpaperPath),
         url: wallpaperUrl,
         note: wallpaperNote,
       },
-    ]);
+    ];
+
+    return sendClaimPage(res, downloads);
   } catch (error) {
     const statusCode = error.statusCode && error.statusCode >= 400 && error.statusCode < 600 ? error.statusCode : 500;
     return sendHtml(res, statusCode, "Download claim unavailable", "The private download could not be issued yet. Purchase records remain with Stripe.");

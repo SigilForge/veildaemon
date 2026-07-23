@@ -1,22 +1,22 @@
 # Book One Private Download Shelf
 
-Paid Book One files do not live in the public site tree. The current PDF belongs
-in the private Supabase Storage bucket used by the Vercel claim endpoint.
+Paid Book One files do not live in the public site tree. The current release files belong
+in the private Supabase Storage bucket (`paid-downloads`) used by the Vercel claim endpoint.
 
-Current private object:
+Active private objects in delivery bucket:
 
-- `the-cradlepoint-archive-book-one-v47-2a-print-edition-verified.pdf`
+- `book-one/the-cradlepoint-archive-book-one-v47-2a-print-edition-verified.pdf` (Verified print PDF)
+- `book-one/the-cradlepoint-archive-book-one-current.epub` (Refreshed reflowable EPUB ebook)
+- `book-one/the-cradlepoint-archive-book-one-current.mobi` (Kindle MOBI ebook)
+- `book-one/book-one-wallpaper-pack.zip` (10 clean/title wallpaper plates)
 
 Default private storage route:
 
 - bucket: `paid-downloads`
-- path: `book-one/the-cradlepoint-archive-book-one-v47-2a-print-edition-verified.pdf`
+- base path: `book-one/`
 
 Reserved future slots:
 
-- `the-cradlepoint-archive-book-one-current.epub`
-- `the-cradlepoint-archive-book-one-current.mobi`
 - `book-one-studio-edition-digital-extras.zip`
 
-Only route files after the corresponding release artifact is current. The stale
-EPUB from the editing folder must be rebuilt before it is posted.
+Only route files after the corresponding release artifact is current. Direct buyers receive signed URLs for all staged files upon checkout claim.

@@ -22,7 +22,7 @@
 
 | Product | Status | Role |
 |---------|--------|------|
-| Fiction Book One | Direct digital live · $9.99 sale | Flagship narrative · verified PDF + wallpaper pack after claim |
+| Fiction Book One | Direct digital live · $9.99 sale | Flagship narrative · verified PDF + EPUB + MOBI + wallpaper pack after claim |
 
 ## In development / planning
 
