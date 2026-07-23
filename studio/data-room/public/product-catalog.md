@@ -17,12 +17,18 @@
 | VeilLink | Live SaaS MVP | Dynamic QR and editable short-link product | https://app.veildaemon.app/ |
 | Public wiki archive | Live | Public lore and archive reference | https://wiki.veildaemon.app/ |
 
+## On the Published Shelf
+
+| Product | Status | Role |
+|---------|--------|------|
+| Fiction Book One | Direct digital live · $9.99 sale | Flagship narrative surface |
+
 ## In development / planning
 
 | Product | Status | Role |
 |---------|--------|------|
 | Flagship professional TTRPG line | In development | Publishing professionalization |
-| Fiction Book One | Manuscript complete · editing | Narrative surface |
+| Book Two | In development | Continuing narrative surface |
 | Mobile AR | Commercial planning | Location encounters |
 | Ritual Sites / DJ Veil | Future vertical | Venue-scale events |
 
