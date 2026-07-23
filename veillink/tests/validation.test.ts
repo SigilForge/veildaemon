@@ -83,6 +83,7 @@ describe("redirect resolution", () => {
   it("parses production path and wildcard subdomain slugs safely", () => {
     expect(parseRedirectRequest("go.veildaemon.app", "/menu")).toEqual({ type: "path", slug: "menu" });
     expect(parseRedirectRequest("menu.veildaemon.app", "/anything")).toEqual({ type: "subdomain", slug: "menu" });
+    expect(parseRedirectRequest("app.veildaemon.app", "/pricing")).toEqual({ type: "none" });
     expect(parseRedirectRequest("deep.menu.veildaemon.app", "/")).toEqual({ type: "none" });
     expect(parseRedirectRequest("localhost:3000", "/dashboard")).toEqual({ type: "none" });
     expect(parseRedirectRequest("localhost:3000", "/r/menu")).toEqual({ type: "path", slug: "menu" });
