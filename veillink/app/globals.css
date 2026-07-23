@@ -170,10 +170,27 @@ h3 {
 
 .brand {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.45rem;
+  align-items: center;
+  gap: 0.7rem;
   text-decoration: none;
   letter-spacing: 0.08em;
+  min-width: 0;
+}
+
+.brand-emblem {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+  border-radius: 0.55rem;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(243, 240, 234, 0.08);
+}
+
+.brand-text {
+  display: grid;
+  gap: 0.18rem;
+  line-height: 1;
+  min-width: 0;
 }
 
 .brand-mark {
@@ -387,26 +404,28 @@ button:disabled {
   border-radius: calc(var(--radius) + 0.2rem);
   border: 1px solid var(--line-strong);
   background:
-    radial-gradient(ellipse 70% 60% at 80% 20%, rgba(181, 117, 104, 0.16), transparent 55%),
-    radial-gradient(ellipse 50% 50% at 15% 80%, rgba(126, 184, 168, 0.12), transparent 50%),
-    linear-gradient(160deg, rgba(23, 26, 27, 0.95), rgba(12, 14, 15, 0.98));
+    linear-gradient(165deg, rgba(5, 7, 9, 0.42), rgba(5, 7, 9, 0.78)),
+    url("/brand/hero-cathedral.webp") center / cover no-repeat;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+  isolation: isolate;
 }
 
 .demo-plate::before {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 0;
   background:
+    radial-gradient(ellipse 70% 60% at 80% 20%, rgba(181, 117, 104, 0.18), transparent 55%),
     repeating-linear-gradient(
       to bottom,
-      rgba(255, 255, 255, 0.02) 0,
-      rgba(255, 255, 255, 0.02) 1px,
+      rgba(255, 255, 255, 0.025) 0,
+      rgba(255, 255, 255, 0.025) 1px,
       transparent 1px,
       transparent 4px
     );
-  opacity: 0.45;
+  opacity: 0.9;
   pointer-events: none;
 }
 
@@ -417,28 +436,23 @@ button:disabled {
   aspect-ratio: 1;
   margin: 0 auto 1rem;
   border-radius: 0.85rem;
-  border: 1px solid rgba(243, 240, 234, 0.14);
+  border: 1px solid rgba(243, 240, 234, 0.18);
   background:
-    linear-gradient(135deg, #f6f3ed 0 25%, #111314 0 50%, #f6f3ed 0 75%, #111314 0),
-    #efebe4;
-  background-size: 18px 18px;
+    linear-gradient(160deg, rgba(9, 11, 12, 0.35), rgba(9, 11, 12, 0.72)),
+    url("/brand/cradlepoint-studio-seal-city-duality.webp") center / cover no-repeat;
   box-shadow: var(--shadow-md);
+  overflow: hidden;
 }
 
 .demo-qr::after {
-  content: "VL";
+  content: "";
   position: absolute;
-  inset: 34%;
-  display: grid;
-  place-items: center;
-  border-radius: 0.35rem;
-  background: var(--paper);
-  color: var(--ink-text);
-  font-family: var(--font-sans);
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  box-shadow: 0 0 0 3px #111314;
+  inset: 30%;
+  border-radius: 0.4rem;
+  background:
+    url("/brand/cradlepoint-studio-emblem-256.webp") center / contain no-repeat,
+    rgba(239, 235, 228, 0.94);
+  box-shadow: 0 0 0 3px rgba(9, 11, 12, 0.9);
 }
 
 .demo-meta {

@@ -67,7 +67,7 @@ export function buildMetadata({
   const url = absoluteUrl(path);
   const fullTitle = title.includes(siteConfig.name) ? title : `${title} · ${siteConfig.name}`;
   const keywordList = [...new Set([...siteConfig.keywords, ...keywords])];
-  const ogImage = absoluteUrl("/opengraph-image");
+  const ogImage = absoluteUrl("/og.png");
 
   return {
     title,

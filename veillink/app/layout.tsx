@@ -45,6 +45,14 @@ export const metadata: Metadata = {
   alternates: {
     canonical: absoluteUrl("/"),
   },
+  icons: {
+    icon: [
+      { url: "/brand/favicon.ico", sizes: "any" },
+      { url: "/brand/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [{ url: "/brand/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   robots: {
     index: true,
     follow: true,
@@ -63,11 +71,20 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title: `${siteConfig.name} · Dynamic QR Codes & Short Links`,
     description: siteConfig.description,
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: `${siteConfig.name} — ${siteConfig.tagline}`,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: `${siteConfig.name} · Dynamic QR Codes & Short Links`,
     description: siteConfig.description,
+    images: ["/twitter-image.png"],
   },
   other: {
     "theme-color": "#07090a",
@@ -96,8 +113,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="shell">
           <header className="nav">
             <Link className="brand" href="/">
-              <span className="brand-mark">{product.name}</span>
-              <span className="brand-sub">go.veildaemon.app</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="brand-emblem"
+                src="/brand/cradlepoint-studio-emblem-256.webp"
+                alt=""
+                width={40}
+                height={40}
+              />
+              <span className="brand-text">
+                <span className="brand-mark">{product.name}</span>
+                <span className="brand-sub">go.veildaemon.app</span>
+              </span>
             </Link>
             <nav className="nav-links" aria-label="Primary">
               <Link href="/pricing">Pricing</Link>
