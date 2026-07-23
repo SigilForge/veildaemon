@@ -5076,18 +5076,14 @@ footer.site-footer {
   color: var(--text-muted);
   white-space: pre;
 }
-.section-block.paper .news-article-body p,
-.section-block.paper .news-article-body li {
-  color: var(--ink-muted);
+/* News articles: never full-bleed manila paper slabs — body sits on the atmospheric shell. */
+.news-article-body h2,
+.news-article-body h3 {
+  color: var(--text);
 }
-.section-block.paper .news-article-body h2,
-.section-block.paper .news-article-body h3 {
-  color: var(--ink-text);
-}
-.section-block.paper .news-article-body .flow-path {
-  background: var(--paper-3);
-  border-color: rgba(22, 24, 23, 0.12);
-  color: var(--ink-muted);
+.news-article-body p,
+.news-article-body li {
+  color: var(--text-muted);
 }
 @media (max-width: 860px) {
   .news-split {
