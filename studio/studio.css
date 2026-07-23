@@ -2282,6 +2282,22 @@ footer > p {
   object-fit: cover;
   display: block;
 }
+/* Portrait Book One cover letterboxed in the shared 16:9 media well */
+.portfolio-card .card-media-book {
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, rgba(10,12,13,.4), rgba(10,12,13,.65)),
+    #0a0c0d;
+}
+.portfolio-card .card-media-book img {
+  width: auto;
+  max-width: 42%;
+  height: 92%;
+  object-fit: contain;
+  object-position: center center;
+  box-shadow: 0 10px 28px rgba(0,0,0,.45);
+}
 .portfolio-card .card-media img.art-zoom {
   transform: scale(1.08);
   transform-origin: center;
