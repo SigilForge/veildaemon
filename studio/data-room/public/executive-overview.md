@@ -11,7 +11,9 @@ A tech-enabled mythpunk studio using one governed story-and-rules framework to p
 ## What already exists
 
 - Shipping free and paid tabletop products
-- Live VeilDaemon companion software
+- Book One direct digital on the Published Shelf (PDF + wallpaper pack)
+- Live Operator/Handler session software with VeilLink logins and Cell sync
+- Digital shelf previews (dossiers, wallpapers)
 - Internally audited rules corpus and multi-book manuscripts
 - Public wiki and marketing library
 - Governed production pipeline with human release authority

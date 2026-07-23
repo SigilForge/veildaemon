@@ -16,7 +16,7 @@ Cradlepoint Handler Core, a paid facilitator-facing tabletop product from Cradle
 Viridian House, a free-entry Needlepoint case from Cradlepoint Studio.
 
 VEILDAEMON
-VeilDaemon live browser platform showing Operator and Handler companion tools.
+VeilDaemon live browser platform showing Operator and Handler session tools.
 Cradlepoint Studio Technology overview featuring VeilDaemon, Operator, and Handler interfaces.
 
 PLANNED TECHNOLOGY

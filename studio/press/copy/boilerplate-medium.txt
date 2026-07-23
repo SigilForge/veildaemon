@@ -1,5 +1,5 @@
-Cradlepoint Studio is an independent creative technology studio building connected fiction, tabletop systems, companion software, and location-based interactive experiences.
+Cradlepoint Studio is an independent creative technology studio building connected fiction, tabletop systems, live table software, and location-based interactive experiences.
 
-Its work centers on one emotional-physics framework expressed as playable procedure (Cradlepoint TTRPG and Needlepoints), software identity and Handler tools (VeilDaemon), fiction, and a longer-horizon Mobile AR direction.
+Its work centers on one emotional-physics framework expressed as playable procedure (Cradlepoint TTRPG and Needlepoints), Operator and Handler session tools with VeilLink logins and Cell sync, Book One on the Published Shelf, and a longer-horizon Mobile AR direction.
 
 The studio is solo-founded by J. Donavon Love, with a governed production pipeline and public evidence of shipping products, live software, and a substantial internally reviewed rules corpus—without paid acquisition.

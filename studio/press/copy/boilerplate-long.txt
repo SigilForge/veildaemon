@@ -1,6 +1,6 @@
 Cradlepoint Studio is an independent creative technology studio built around original transmedia horror-fantasy IP.
 
-The studio develops tabletop publishing (Operator and Handler products, free and paid Needlepoint case modules), VeilDaemon companion software for Operators and Handlers, fiction, marketing and archive media, and a longer-horizon Mobile AR / Ritual Sites direction.
+The studio develops tabletop publishing (Operator and Handler products, free and paid Needlepoint case modules), live Operator and Handler session software (deliberate Cell sync during play; multi-device via VeilLink logins and table live-link), Book One and digital shelf assets, fiction, marketing and archive media, and a longer-horizon Mobile AR / Ritual Sites direction.
 
 Cradlepoint Studio’s commercial thesis is that tabletop, fiction, software identity, and physical-world participation are usually sold as disconnected products. Cradlepoint Studio connects them through one persistent emotional-physics system so each surface can reinforce the others.
 

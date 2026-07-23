@@ -16,7 +16,9 @@ Already shipping or live:
 
 - Operator Core and Handler Core (paid)
 - Free Needlepoint onboarding funnel
-- VeilDaemon companion tools
+- Operator/Handler session tools (Cell sync; multi-device via VeilLink table live-link)
+- Book One direct digital + wallpaper pack
+- Digital shelf previews
 - Public archive / wiki
 - Fiction line and canon library
 

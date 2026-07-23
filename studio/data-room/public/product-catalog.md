@@ -13,15 +13,16 @@
 | Free Needlepoints | Shipping | Onboarding funnel | https://the-cradlepoint-archives.itch.io/needlepoint |
 | Operator Core | Shipping | Paid Operator core | itch storefront |
 | Handler Core | Shipping | Paid Handler core | itch storefront |
-| VeilDaemon | Live | Operator/Handler software | https://veildaemon.app/ |
-| VeilLink | Live SaaS MVP | Dynamic QR and editable short-link product | https://app.veildaemon.app/ |
+| Operator + Handler systems | Live sessions | Browser consoles + deliberate Cell sync during play | /operator/ · /handler/ |
+| VeilLink | Live SaaS MVP | Accounts, Book One checkout, table live-link, dynamic QR / short links | https://app.veildaemon.app/ |
 | Public wiki archive | Live | Public lore and archive reference | https://wiki.veildaemon.app/ |
+| Digital shelf previews | Live portfolio | Character dossiers + Book One wallpaper previews (masters gated) | /studio/shelf/digital/ |
 
 ## On the Published Shelf
 
 | Product | Status | Role |
 |---------|--------|------|
-| Fiction Book One | Direct digital live · $9.99 sale | Flagship narrative surface |
+| Fiction Book One | Direct digital live · $9.99 sale | Flagship narrative · verified PDF + wallpaper pack after claim |
 
 ## In development / planning
 
