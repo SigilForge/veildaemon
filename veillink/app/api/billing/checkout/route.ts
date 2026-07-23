@@ -10,24 +10,34 @@ const prices: Record<string, string | undefined> = {
   "business-yearly": process.env.STRIPE_BUSINESS_YEARLY_PRICE_ID,
 };
 
+function jsonError(error: unknown) {
+  const status = typeof error === "object" && error && "status" in error ? Number(error.status) : 500;
+  const message = error instanceof Error ? error.message : "Unexpected error.";
+  return NextResponse.json({ ok: false, error: message }, { status: Number.isFinite(status) ? status : 500 });
+}
+
 export async function POST(request: NextRequest) {
-  const { user } = await requireUser();
-  const form = await request.formData();
-  const requestedPlan = String(form.get("plan") || "pro-monthly");
-  const priceId = prices[requestedPlan];
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key || !priceId) {
-    return NextResponse.json({ ok: false, error: "Stripe checkout is not configured." }, { status: 503 });
+  try {
+    const { user } = await requireUser();
+    const form = await request.formData();
+    const requestedPlan = String(form.get("plan") || "pro-monthly");
+    const priceId = prices[requestedPlan];
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key || !priceId) {
+      return NextResponse.json({ ok: false, error: "Stripe checkout is not configured." }, { status: 503 });
+    }
+    const stripe = getStripeClient();
+    const session = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      customer_email: user.email || undefined,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${product.appUrl}/billing?checkout=success`,
+      cancel_url: `${product.appUrl}/pricing?checkout=cancelled`,
+      metadata: { user_id: user.id, requested_plan: requestedPlan },
+      integration_identifier: veillinkIntegrationIdentifier(),
+    });
+    return NextResponse.redirect(session.url || `${product.appUrl}/billing`, 303);
+  } catch (error) {
+    return jsonError(error);
   }
-  const stripe = getStripeClient();
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer_email: user.email || undefined,
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${product.appUrl}/billing?checkout=success`,
-    cancel_url: `${product.appUrl}/pricing?checkout=cancelled`,
-    metadata: { user_id: user.id, requested_plan: requestedPlan },
-    integration_identifier: veillinkIntegrationIdentifier(),
-  });
-  return NextResponse.redirect(session.url || `${product.appUrl}/billing`, 303);
 }

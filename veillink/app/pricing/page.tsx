@@ -33,7 +33,7 @@ export default function PricingPage() {
           <thead><tr><th>Feature</th><th>Free</th><th>Pro</th><th>Business</th></tr></thead>
           <tbody>{rows.map((row) => <tr key={row[0]}>{row.map((cell) => <td key={cell}>{cell}</td>)}</tr>)}</tbody>
         </table>
-        <p className="muted">Exported static QR files are yours. Dynamic redirects depend on the service remaining active. If paid billing ends, paid-only redirects should enter a grace period before pausing; that behavior is represented in the schema and billing plan but not live until Stripe is configured.</p>
+        <p className="muted">Exported static QR files are yours. Dynamic redirects depend on the service remaining active. Paid checkout and subscription management are handled through Stripe; webhook-driven billing state supplies the signal for plan changes and cancellation.</p>
       </section>
     </main>
   );
