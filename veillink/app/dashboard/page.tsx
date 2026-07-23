@@ -5,6 +5,9 @@ import { analyticsForUser } from "@/lib/analytics-store";
 import { buildMetadata } from "@/lib/seo";
 import { getUsage, listUserRedirects, requireUser } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = buildMetadata({
   title: "Dashboard",
   description: "Manage VeilLink short links, download QR codes, and review scan counts.",
