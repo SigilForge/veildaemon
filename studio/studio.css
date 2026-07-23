@@ -2362,7 +2362,7 @@ footer > p {
 /* Publishing */
 .release-inventory {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr));
+  grid-template-columns: repeat(4, minmax(0,1fr));
   gap: .75rem;
 }
 .release-inventory figure {
@@ -2371,35 +2371,22 @@ footer > p {
   overflow: hidden;
   border: 1px solid var(--line);
   background: #0a0c0d;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
 }
 .release-inventory img {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   display: block;
-  flex: 0 0 auto;
-}
-/* Portrait Book One plate letterboxed in inventory tiles */
-.release-inventory .inventory-book img {
-  object-fit: contain;
-  object-position: center center;
-  background:
-    linear-gradient(180deg, rgba(10,12,13,.4), rgba(10,12,13,.65)),
-    #0a0c0d;
 }
 .release-inventory figcaption {
   padding: .65rem .75rem;
   font-size: .75rem;
   color: var(--text-soft);
   background: rgba(17,19,20,.95);
-  flex: 1;
 }
 .lifecycle {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr));
+  grid-template-columns: repeat(5, minmax(0,1fr));
   gap: .5rem;
   counter-reset: life;
 }
@@ -2420,12 +2407,12 @@ footer > p {
   font-weight: 400;
   color: var(--text);
 }
-/* Lifecycle lives on cream paper sections — do not inherit ink-on-dark from paper li */
+/* Lifecycle on cream paper: readable ink, not dark-on-dark from paper li inheritance */
 .section-block.paper .lifecycle li {
-  background: rgba(255,255,255,.55);
-  border-color: rgba(22,24,23,.12);
+  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(22, 24, 23, 0.12);
   color: var(--ink-muted);
-  box-shadow: 0 1px 0 rgba(255,255,255,.35) inset;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
 }
 .section-block.paper .lifecycle strong {
   color: var(--ink-text);
