@@ -64,7 +64,7 @@ export default function HomePage() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/brand/demo-qr-play.webp?v=20260723-hc1"
+              src="/brand/demo-qr-play.webp?v=20260723-neon1"
               alt="Colorful QR code linking to play.veildaemon.app"
               width={688}
               height={688}
@@ -74,8 +74,15 @@ export default function HomePage() {
           <div className="demo-meta">
             <strong>One code. Moving target.</strong>
             <span>
-              Live demo QR → <a href="https://play.veildaemon.app/" target="_blank" rel="noopener noreferrer">play.veildaemon.app</a>.
-              Same idea as a VeilLink: stable print target, editable destination.
+              This is an <em>example</em> plate — neon styling and center mark to show how custom a QR can look while still scanning.
+              Live target:{" "}
+              <a href="https://play.veildaemon.app/" target="_blank" rel="noopener noreferrer">
+                play.veildaemon.app
+              </a>
+              .
+            </span>
+            <span className="demo-note">
+              Your VeilLink exports can use your own colors and branding; the printed code stays fixed while the destination behind it changes.
             </span>
           </div>
           <div className="demo-flow" aria-hidden="true">

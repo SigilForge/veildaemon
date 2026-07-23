@@ -521,6 +521,19 @@ button:disabled {
   color: var(--paper);
 }
 
+.demo-meta em {
+  color: var(--rust-soft);
+  font-style: italic;
+}
+
+.demo-note {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--text-faint) !important;
+  font-size: 0.78rem !important;
+  line-height: 1.45;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     background-attachment: scroll;
