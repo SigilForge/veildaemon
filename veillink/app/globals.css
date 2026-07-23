@@ -1143,6 +1143,7 @@ textarea {
 .book-one-panel .toolbar {
   margin-top: 1.25rem;
 }
+}
 @media (max-width: 720px) {
   .book-one-layout {
     grid-template-columns: 1fr;
@@ -1154,4 +1155,100 @@ textarea {
   .book-one-panel {
     width: 100%;
   }
+}
+
+/* QR Maker Enhancements */
+
+.qr-maker-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 260px);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .qr-maker-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.preset-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+
+.preset-chip {
+  min-height: 2.2rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.76rem;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line-strong);
+  color: var(--text-soft);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 0.2s var(--ease);
+}
+
+.preset-chip:hover,
+.preset-chip.active {
+  border-color: var(--rust-soft);
+  background: rgba(181, 117, 104, 0.12);
+  color: var(--text);
+}
+
+.swatch {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+.qr-preview-box {
+  background: rgba(9, 11, 12, 0.95);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  text-align: center;
+  position: sticky;
+  top: 5.5rem;
+}
+
+.qr-preview-frame {
+  width: 100%;
+  max-width: 14rem;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.25s var(--ease);
+  overflow: hidden;
+}
+
+.qr-preview-frame svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.qr-preview-box label {
+  font-size: 0.75rem;
+  color: var(--rust-soft);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
 }
