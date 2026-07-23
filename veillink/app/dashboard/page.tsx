@@ -1,7 +1,16 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { DashboardClient } from "@/components/DashboardClient";
 import { analyticsForUser } from "@/lib/analytics-store";
+import { buildMetadata } from "@/lib/seo";
 import { getUsage, listUserRedirects, requireUser } from "@/lib/store";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Dashboard",
+  description: "Manage VeilLink short links, download QR codes, and review scan counts.",
+  path: "/dashboard",
+  noIndex: true,
+});
 
 export default async function DashboardPage() {
   const { user, profile } = await requireUser().catch(() => redirect("/login"));

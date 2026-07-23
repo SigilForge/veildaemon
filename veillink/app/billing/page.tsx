@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { getUsage, requireUser } from "@/lib/store";
 import { plans } from "@/lib/config";
+import { buildMetadata } from "@/lib/seo";
+import { getUsage, requireUser } from "@/lib/store";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Billing",
+  description: "Manage your VeilLink subscription and plan limits.",
+  path: "/billing",
+  noIndex: true,
+});
 
 export default async function BillingPage() {
   const { profile, user } = await requireUser().catch(() => redirect("/login"));

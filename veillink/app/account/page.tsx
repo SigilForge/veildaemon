@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { logout } from "@/app/(auth)/actions";
+import { buildMetadata } from "@/lib/seo";
 import { getUsage, listUserRedirects, requireUser } from "@/lib/store";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Account",
+  description: "VeilLink account settings, plan usage, and data export.",
+  path: "/account",
+  noIndex: true,
+});
 
 function toCsv(rows: Awaited<ReturnType<typeof listUserRedirects>>) {
   const header = ["id", "name", "slug", "routing_mode", "destination_url", "active", "total_scans", "created_at"];

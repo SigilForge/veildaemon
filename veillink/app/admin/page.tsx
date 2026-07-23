@@ -1,6 +1,15 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { buildMetadata } from "@/lib/seo";
 import { getSupabaseAdminClient } from "@/lib/supabase";
 import { requireAdmin } from "@/lib/store";
+
+export const metadata: Metadata = buildMetadata({
+  title: "Admin",
+  description: "VeilLink admin console.",
+  path: "/admin",
+  noIndex: true,
+});
 
 export default async function AdminPage() {
   await requireAdmin().catch(() => redirect("/dashboard"));
