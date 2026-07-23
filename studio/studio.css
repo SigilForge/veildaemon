@@ -2404,6 +2404,16 @@ footer > p {
   object-position: center center;
   display: block;
 }
+/* Fallback if a tile forgets .media (e.g. bare book-cover img) */
+.release-inventory figure > img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  object-fit: cover;
+  object-position: center center;
+  background: #0a0c0d;
+}
 .release-inventory figcaption {
   padding: .65rem .75rem;
   font-size: .75rem;
