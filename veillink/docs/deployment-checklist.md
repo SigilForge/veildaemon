@@ -2,6 +2,13 @@
 
 This checklist is for the isolated VeilLink Vercel project whose root directory is `veillink`.
 
+Current Vercel project:
+
+- Team: `knoxmortis-projects`
+- Project: `veillink`
+- Project ID: `prj_yIporTovuVLyKTbvfPtxGi6uwuiQ`
+- Production alias: `https://veillink-alpha.vercel.app`
+
 ## 1. Supabase
 
 - Confirm the hosted Supabase project is the intended VeilLink project.
@@ -67,6 +74,18 @@ VeilLink verifies Stripe signatures before processing events. Processed event ID
 - Point `go.veildaemon.app` at the same Vercel project for path redirects.
 - Add `*.veildaemon.app` only if wildcard subdomain redirects are enabled for launch.
 - Keep the root `veildaemon.app` GitHub Pages site separate from VeilLink.
+
+Vercel domain attachment status on 2026-07-22:
+
+- `app.veildaemon.app` is attached to the `veillink` project, but DNS still needs to change at Porkbun.
+- `go.veildaemon.app` is attached to the `veillink` project, but DNS still needs to change at Porkbun.
+
+Recommended DNS records from Vercel:
+
+| Type | Name | Value |
+| --- | --- | --- |
+| CNAME | `app` | `1ae0b94dbd121cf0.vercel-dns-017.com.` |
+| CNAME | `go` | `1ae0b94dbd121cf0.vercel-dns-017.com.` |
 
 For v1, Vercel resolves redirects. Cloudflare Workers can later take over the high-volume public redirect path without changing the dashboard/auth/billing app.
 
