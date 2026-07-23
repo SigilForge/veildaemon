@@ -1,6 +1,7 @@
 const EXPECTED_PRICE_ID = process.env.BOOK_ONE_STRIPE_PRICE_ID || "price_1TwE0oFht6uPr4mz4thEHLpN";
 const DEFAULT_BUCKET = "paid-downloads";
-const DEFAULT_OBJECT_PATH = "book-one/the-cradlepoint-archive-book-one-v47-2a-print-edition-verified.pdf";
+const DEFAULT_PDF_PATH = "book-one/the-cradlepoint-archive-book-one-v47-2a-print-edition-verified.pdf";
+const DEFAULT_WALLPAPER_PATH = "book-one/book-one-wallpaper-pack.zip";
 const DEFAULT_TTL_SECONDS = 900;
 
 function sendHtml(res, statusCode, title, message) {
@@ -32,6 +33,81 @@ function sendHtml(res, statusCode, title, message) {
 </html>`);
 }
 
+function sendClaimPage(res, downloads) {
+  const items = downloads.map((item) => {
+    const note = item.note ? `<small>${escapeHtml(item.note)}</small>` : "";
+    if (item.url) {
+      return `<li class="ready">
+        <div>
+          <strong>${escapeHtml(item.label)}</strong>
+          <span>${escapeHtml(item.filename)}</span>
+          ${note}
+        </div>
+        <a class="dl" href="${escapeHtml(item.url)}">Download</a>
+      </li>`;
+    }
+    return `<li class="pending">
+      <div>
+        <strong>${escapeHtml(item.label)}</strong>
+        <span>${escapeHtml(item.filename)}</span>
+        <small>${escapeHtml(item.note || "Not available yet.")}</small>
+      </div>
+    </li>`;
+  }).join("\n");
+
+  res.statusCode = 200;
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.end(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Book One downloads | Cradlepoint Studio</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #070a0b; color: #f3eee5; }
+    body { min-height: 100vh; display: grid; place-items: center; margin: 0; padding: 24px; }
+    main { width: min(640px, 100%); border: 1px solid rgba(243,238,229,.22); padding: 28px; background: rgba(17,24,23,.92); }
+    h1 { margin: 0 0 10px; font-size: 1.55rem; line-height: 1.15; }
+    p { margin: 0 0 18px; color: rgba(243,238,229,.78); line-height: 1.55; }
+    ul { list-style: none; margin: 0 0 22px; padding: 0; display: grid; gap: 12px; }
+    li { display: flex; gap: 14px; justify-content: space-between; align-items: center; border: 1px solid rgba(243,238,229,.16); padding: 14px 16px; background: rgba(8,12,12,.55); }
+    li strong { display: block; margin-bottom: 4px; }
+    li span, li small { display: block; color: rgba(243,238,229,.68); font-size: .9rem; line-height: 1.4; }
+    li small { margin-top: 4px; color: rgba(243,238,229,.5); }
+    li.pending { opacity: .72; }
+    a { color: #f4c56f; }
+    a.dl {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 14px;
+      border: 1px solid rgba(244,197,111,.55);
+      background: rgba(244,197,111,.12);
+      color: #f4c56f;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: .92rem;
+    }
+    a.dl:hover { background: rgba(244,197,111,.2); }
+    .foot { margin: 0; font-size: .92rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Book One files ready</h1>
+    <p>Payment verified. Private links expire shortly — download both files now. Direct buyers keep access when the shelf receives updated editions.</p>
+    <ul aria-label="Book One download files">
+      ${items}
+    </ul>
+    <p class="foot"><a href="https://veildaemon.app/studio/shelf/book-one/">Return to Book One</a> · <a href="https://veildaemon.app/studio/shelf/digital/#wallpapers">Wallpaper previews</a></p>
+  </main>
+</body>
+</html>`);
+}
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -50,12 +126,16 @@ function cleanCheckoutSessionId(value) {
   return /^cs_(test|live)_[A-Za-z0-9_]+$/.test(sessionId) ? sessionId : "";
 }
 
-function storageObjectPath() {
-  return (process.env.BOOK_ONE_SUPABASE_PATH || DEFAULT_OBJECT_PATH).replace(/^\/+/, "");
-}
-
 function storageBucket() {
   return process.env.BOOK_ONE_SUPABASE_BUCKET || DEFAULT_BUCKET;
+}
+
+function pdfObjectPath() {
+  return (process.env.BOOK_ONE_SUPABASE_PATH || DEFAULT_PDF_PATH).replace(/^\/+/, "");
+}
+
+function wallpaperObjectPath() {
+  return (process.env.BOOK_ONE_WALLPAPER_PATH || DEFAULT_WALLPAPER_PATH).replace(/^\/+/, "");
 }
 
 function signedUrlTtlSeconds() {
@@ -71,6 +151,11 @@ function cleanUuid(value) {
 
 function encodedObjectPath(path) {
   return path.split("/").map(encodeURIComponent).join("/");
+}
+
+function filenameFromPath(path) {
+  const parts = String(path || "").split("/").filter(Boolean);
+  return parts[parts.length - 1] || path;
 }
 
 async function stripeGet(path) {
@@ -105,11 +190,11 @@ async function checkoutHasExpectedPrice(sessionId) {
   });
 }
 
-async function createSupabaseSignedUrl() {
+async function createSupabaseSignedUrl(objectPath) {
   const supabaseUrl = (process.env.SUPABASE_URL || "").replace(/\/+$/, "");
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
   const bucket = storageBucket();
-  const objectPath = storageObjectPath();
+  const path = String(objectPath || "").replace(/^\/+/, "");
 
   if (!supabaseUrl || !serviceRoleKey) {
     const error = new Error("Private download storage is not configured.");
@@ -117,7 +202,13 @@ async function createSupabaseSignedUrl() {
     throw error;
   }
 
-  const response = await fetch(`${supabaseUrl}/storage/v1/object/sign/${encodeURIComponent(bucket)}/${encodedObjectPath(objectPath)}`, {
+  if (!path) {
+    const error = new Error("Private download path is not configured.");
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const response = await fetch(`${supabaseUrl}/storage/v1/object/sign/${encodeURIComponent(bucket)}/${encodedObjectPath(path)}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${serviceRoleKey}`,
@@ -194,7 +285,7 @@ async function upsertPurchaseEntitlement(session) {
     price_id_input: EXPECTED_PRICE_ID,
     purchased_at_input: session.created ? new Date(session.created * 1000).toISOString() : null,
     storage_bucket_input: storageBucket(),
-    storage_path_input: storageObjectPath(),
+    storage_path_input: pdfObjectPath(),
     auth_user_id_input: cleanUuid(session.metadata && session.metadata.user_id),
   };
 
@@ -239,11 +330,37 @@ module.exports = async function handler(req, res) {
     }
 
     const purchaseId = await upsertPurchaseEntitlement(session);
-    const signedUrl = await createSupabaseSignedUrl();
+
+    const pdfPath = pdfObjectPath();
+    const wallpaperPath = wallpaperObjectPath();
+
+    // PDF is required. Wallpaper pack is included when present in private storage.
+    const pdfUrl = await createSupabaseSignedUrl(pdfPath);
+
+    let wallpaperUrl = "";
+    let wallpaperNote = "10 plates · clean + title · PNG pack";
+    try {
+      wallpaperUrl = await createSupabaseSignedUrl(wallpaperPath);
+    } catch (wallpaperError) {
+      wallpaperNote = "Wallpaper pack is not staged in private storage yet. PDF is still available.";
+    }
+
     await recordPurchaseClaim(purchaseId);
-    res.statusCode = 303;
-    res.setHeader("Location", signedUrl);
-    return res.end();
+
+    return sendClaimPage(res, [
+      {
+        label: "PDF",
+        filename: filenameFromPath(pdfPath),
+        url: pdfUrl,
+        note: "Verified print edition · DRM-free",
+      },
+      {
+        label: "Wallpapers",
+        filename: filenameFromPath(wallpaperPath),
+        url: wallpaperUrl,
+        note: wallpaperNote,
+      },
+    ]);
   } catch (error) {
     const statusCode = error.statusCode && error.statusCode >= 400 && error.statusCode < 600 ? error.statusCode : 500;
     return sendHtml(res, statusCode, "Download claim unavailable", "The private download could not be issued yet. Purchase records remain with Stripe.");
