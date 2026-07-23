@@ -64,7 +64,7 @@ export default function HomePage() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/brand/demo-qr-play.webp?v=20260723-color2"
+              src="/brand/demo-qr-play.webp?v=20260723-hc1"
               alt="Colorful QR code linking to play.veildaemon.app"
               width={688}
               height={688}
