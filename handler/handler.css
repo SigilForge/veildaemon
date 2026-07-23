@@ -1383,6 +1383,53 @@ select:focus {
   line-height: 1.45;
 }
 
+.cell-sync-dock {
+  margin-top: .75rem;
+  padding-top: .7rem;
+  border-top: 1px solid rgba(137, 255, 218, .16);
+  display: grid;
+  gap: .45rem;
+}
+
+.cell-sync-dock .kicker {
+  margin: 0;
+}
+
+.cell-sync-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.cell-sync-actions .button {
+  flex: 1 1 auto;
+  min-width: min(100%, 8.5rem);
+}
+
+.cell-sync-status {
+  margin: 0;
+  font-size: .62rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.cell-sync-output {
+  display: block;
+  margin: 0;
+  min-height: 0;
+  padding: .45rem .55rem;
+  border: 1px solid rgba(137, 255, 218, .14);
+  background: rgba(0, 0, 0, .22);
+  color: var(--text);
+  font-size: .62rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+.cell-sync-output:empty {
+  display: none;
+}
+
 .live-surface .aftermath-roll .roll-row {
   grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(7.5rem, .85fr) minmax(6.5rem, .7fr);
   gap: .5rem;

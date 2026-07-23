@@ -944,6 +944,23 @@
     if (window.HandlerClueIntegrity) window.HandlerClueIntegrity.render();
   }
 
+  function bindCellSync() {
+    if (!window.HandlerCellSync?.bind) return;
+    window.HandlerCellSync.bind({
+      onAfter: (result) => {
+        if (result?.state) state = result.state;
+        syncForm();
+        renderDynamic();
+        renderPlayers();
+        renderRiskStrip();
+        renderTrackPromptQueue();
+        notifyPendingAlerts({ forceAlert: true });
+        if (window.HandlerTriggers) window.HandlerTriggers.render(state);
+        if (result?.summary) setStatus(result.summary.split("\n")[0] || result.summary);
+      }
+    });
+  }
+
   async function init() {
     await api.loadTemplates();
     bindForm();
@@ -953,6 +970,7 @@
     bindWindDownBridge();
     bindCollapseBridge();
     bindClueBridge();
+    bindCellSync();
     renderAll();
     await hydrateClues(false);
   }

@@ -11,6 +11,8 @@ export async function PATCH(request: Request, { params }: Params) {
       sessionId: id,
       sessionOperatorStateId: body.sessionOperatorStateId || body.session_operator_state_id,
       patch: body.patch || body.state || {},
+      // Client must declare deliberate sync kind. Server re-filters the payload.
+      syncKind: body.syncKind || body.sync_kind || body.kind || "pressure_round",
     });
     return NextResponse.json(result);
   } catch (error) {

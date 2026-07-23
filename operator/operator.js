@@ -630,8 +630,64 @@
       }),
       anomalies: normalizeArray(state.anomalies),
       relationships: normalizeArray(state.relationships),
-      residue: normalizeArray(state.residue)
+      residue: normalizeArray(state.residue),
+      lastCellPullAt: safeString(state.lastCellPullAt, 40),
+      cellSync: normalizeCellSyncMeta(state.cellSync || {
+        lastAppliedRevision: 0,
+        lastAppliedPublishedAt: safeString(state.lastCellPullAt, 40),
+        localRevisedAt: "",
+        sendPending: false,
+        lastSentAt: "",
+        lastSendError: ""
+      })
     };
+  }
+
+  function normalizeCellSyncMeta(value) {
+    const raw = value && typeof value === "object" ? value : {};
+    return {
+      lastAppliedRevision: Math.max(0, Math.floor(Number(raw.lastAppliedRevision) || 0)),
+      lastAppliedPublishedAt: safeString(raw.lastAppliedPublishedAt, 40),
+      localRevisedAt: safeString(raw.localRevisedAt, 40),
+      sendPending: Boolean(raw.sendPending),
+      lastSentAt: safeString(raw.lastSentAt, 40),
+      lastSendError: safeString(raw.lastSendError, 200)
+    };
+  }
+
+  function cellSyncMeta() {
+    if (!consoleState.cellSync || typeof consoleState.cellSync !== "object") {
+      consoleState.cellSync = normalizeCellSyncMeta(null);
+    }
+    return consoleState.cellSync;
+  }
+
+  function markLocalSheetRevised() {
+    const meta = cellSyncMeta();
+    meta.localRevisedAt = nowStamp();
+    consoleState.cellSync = meta;
+  }
+
+  function markCellSendPending(errorMessage) {
+    const meta = cellSyncMeta();
+    meta.sendPending = true;
+    meta.lastSendError = safeString(errorMessage || "Cell send failed", 200);
+    consoleState.cellSync = meta;
+    try {
+      writeConsoleState();
+    } catch (_error) {
+      // Local pending flag is best-effort.
+    }
+    renderSceneTimerStrip();
+    setStorageStatus(`CELL SEND PENDING — ${meta.lastSendError}. Local sheet is fine. Use Send to Cell to retry.`, true);
+  }
+
+  function clearCellSendPending() {
+    const meta = cellSyncMeta();
+    meta.sendPending = false;
+    meta.lastSendError = "";
+    meta.lastSentAt = nowStamp();
+    consoleState.cellSync = meta;
   }
 
   function normalizeEquipment(value) {
@@ -725,6 +781,189 @@
     renderStatusSummary();
   }
 
+  function declaredRecoveryKey() {
+    if (consoleState.operatorStatus.recoveryGround) return "ground";
+    if (consoleState.operatorStatus.recoveryBreathe) return "breathe";
+    if (consoleState.operatorStatus.recoveryConnect) return "connect";
+    if (consoleState.operatorStatus.recoveryLeave) return "leave";
+    if (consoleState.operatorStatus.recoveryNameIt) return "name_it";
+    return "";
+  }
+
+  function operatorCellKey() {
+    const status = consoleState.operatorStatus || {};
+    const record = operatorRecord || {};
+    return safeString(
+      record.id || status.operatorId || status.designation || status.operatorName || record.designation || "operator-local",
+      120
+    ) || "operator-local";
+  }
+
+  function operatorDisplayName() {
+    const status = consoleState.operatorStatus || {};
+    const record = operatorRecord || {};
+    return safeString(status.operatorName || record.designation || status.designation || "Operator", 80) || "Operator";
+  }
+
+  function buildOperatorCellSend(extra) {
+    const status = consoleState.operatorStatus || {};
+    return {
+      operatorKey: operatorCellKey(),
+      sourceId: operatorCellKey(),
+      name: operatorDisplayName(),
+      harmBoxes: Number(normalizeBoxValue(status.harmBoxes, 5)),
+      stability: Number(normalizeStabilityValue(status.stability)),
+      recoveryDeclared: declaredRecoveryKey(),
+      voidMarks: Number(normalizeNonNegative(status.voidMarks)),
+      breachPoints: Number(normalizeNonNegative(status.breachPoints)),
+      voidBreach: [status.voidMarks ? `Void ${status.voidMarks}` : "", status.breachPoints ? `Breach ${status.breachPoints}` : ""]
+        .filter(Boolean)
+        .join(" // "),
+      misfire: safeString(status.activeMisfire || status.misfires, 180),
+      round: Number(status.sceneTimer?.round) || 1,
+      pressureRound: Number(status.sceneTimer?.round) || 1,
+      sceneLogLine: safeString((status.sceneTimer?.log || [])[0], 200),
+      sentAt: nowStamp(),
+      ...(extra && typeof extra === "object" ? extra : {})
+    };
+  }
+
+  /**
+   * Publish Operator Harm/Stability to the Cell bus.
+   * Never throws into rules flow — failures set CELL SEND PENDING and return false.
+   */
+  function sendOperatorToCell(options = {}) {
+    const cell = window.VeilDaemonCellSync;
+    try {
+      if (!cell?.publishOperatorSend) {
+        markCellSendPending("Cell sync bus unavailable");
+        return false;
+      }
+      if (!options.skipAutosave) autosaveStatus();
+      const send = buildOperatorCellSend(options.extra);
+      cell.publishOperatorSend(send);
+      clearCellSendPending();
+      writeConsoleState();
+      renderSceneTimerStrip();
+      const recovery = send.recoveryDeclared ? ` · recovery ${send.recoveryDeclared}` : "";
+      setStorageStatus(
+        options.afterRound
+          ? `Round advanced. Sent to Cell (Harm ${send.harmBoxes} / Stability ${send.stability}${recovery}).`
+          : `Sent to Cell (Harm ${send.harmBoxes} / Stability ${send.stability}${recovery}). Waiting on Handler sync.`
+      );
+      return true;
+    } catch (error) {
+      markCellSendPending(error?.message || "Cell send failed");
+      return false;
+    }
+  }
+
+  function applyHandlerCellProjection(projection, publishMeta) {
+    if (!projection) return false;
+    const status = consoleState.operatorStatus;
+    let changed = false;
+    // Mid-round projections: Harm, Stability, notes only. No Lotus.
+    if (projection.harmBoxes !== undefined) {
+      const next = normalizeBoxValue(projection.harmBoxes, 5);
+      if (String(status.harmBoxes) !== String(next)) {
+        status.harmBoxes = next;
+        changed = true;
+      }
+    }
+    if (projection.stability !== undefined) {
+      const next = normalizeStabilityValue(projection.stability);
+      if (String(status.stability) !== String(next)) {
+        status.stability = next;
+        status.stabilityBand = bandFromLegacyStability(next);
+        changed = true;
+      }
+    }
+    // Archive packs may carry banks; never invent mid-round Lotus purchases.
+    if (publishMeta?.kind === "archive") {
+      if (projection.voidMarks !== undefined) {
+        status.voidMarks = String(normalizeNonNegative(projection.voidMarks));
+        changed = true;
+      }
+      if (projection.breachPoints !== undefined) {
+        status.breachPoints = String(normalizeNonNegative(projection.breachPoints));
+        changed = true;
+      }
+    }
+    const meta = cellSyncMeta();
+    meta.lastAppliedRevision = Number(publishMeta?.syncRevision) || meta.lastAppliedRevision;
+    meta.lastAppliedPublishedAt = safeString(publishMeta?.publishedAt, 40) || meta.lastAppliedPublishedAt;
+    // Applied projection becomes current baseline; do not treat as "local newer".
+    meta.localRevisedAt = meta.lastAppliedPublishedAt || nowStamp();
+    consoleState.cellSync = meta;
+    consoleState.lastCellPullAt = meta.lastAppliedPublishedAt;
+
+    if (!changed) {
+      writeConsoleState();
+      return false;
+    }
+    consoleState.operatorStatus = migrateOperatorStatus(status);
+    writeConsoleState();
+    renderTrackers();
+    renderStatusSummary();
+    const lines = Array.isArray(projection.trackLines) ? projection.trackLines.filter(Boolean) : [];
+    setStorageStatus(
+      lines.length
+        ? `Handler Cell sync applied (rev ${meta.lastAppliedRevision}). ${lines.slice(0, 3).join(" · ")}`
+        : `Handler Cell sync applied (rev ${meta.lastAppliedRevision}) — Harm ${status.harmBoxes} / Stability ${status.stability}.`
+    );
+    return true;
+  }
+
+  /**
+   * Pull Handler projection only when fresher than local sheet edits.
+   * Never blindly overwrites newer Operator Harm/Stability.
+   */
+  function pullHandlerCellIfAvailable(options = {}) {
+    const cell = window.VeilDaemonCellSync;
+    if (!cell?.read) return false;
+    const bus = cell.read();
+    const handler = bus.handler || {};
+    const projections = handler.projections || [];
+    if (!projections.length) {
+      if (options.force) setStorageStatus("No Handler Cell projection available.");
+      return false;
+    }
+    const me = {
+      sourceId: operatorCellKey(),
+      id: operatorCellKey(),
+      name: operatorDisplayName()
+    };
+    const match = cell.matchKey(me, projections);
+    if (!match) {
+      if (options.force) setStorageStatus("No Handler projection for this Operator seat.");
+      return false;
+    }
+
+    const meta = cellSyncMeta();
+    const fresh = typeof cell.isHandlerProjectionFresh === "function"
+      ? cell.isHandlerProjectionFresh(handler, meta)
+      : { ok: true, revision: handler.syncRevision, publishedAt: handler.publishedAt || handler.pushedAt };
+
+    if (!fresh.ok) {
+      if (options.force) {
+        if (fresh.reason === "local_newer") {
+          setStorageStatus("Pull skipped — local sheet is newer than Handler projection. Send to Cell first if Handler needs your state.", true);
+        } else if (fresh.reason === "already_applied") {
+          setStorageStatus(`Pull skipped — already applied rev ${fresh.revision || "—"}.`);
+        } else {
+          setStorageStatus("No newer Handler Cell projection for this Operator.");
+        }
+      }
+      return false;
+    }
+
+    return applyHandlerCellProjection(match, {
+      syncRevision: fresh.revision || handler.syncRevision,
+      publishedAt: fresh.publishedAt || handler.publishedAt || handler.pushedAt,
+      kind: handler.kind
+    });
+  }
+
   function dispatchSceneTimerAction(action, payload) {
     const api = presentationAbilitiesApi();
     if (!api?.applySceneTimerAction) return;
@@ -744,6 +983,15 @@
         setNamedChecked("recoveryConnect", Boolean(status.recoveryConnect));
         setNamedChecked("recoveryLeave", Boolean(status.recoveryLeave));
         setNamedChecked("recoveryNameIt", Boolean(status.recoveryNameIt));
+        // Recovery already resolved on this page. Local sheet always advances.
+        // Cell send is best-effort — failure marks CELL SEND PENDING, never blocks round.
+        markLocalSheetRevised();
+        writeConsoleState();
+        renderTrackers();
+        renderRollSelectors();
+        renderStatusSummary();
+        sendOperatorToCell({ afterRound: true, skipAutosave: true });
+        return;
       }
     }
     if (action === "end_scene") {
@@ -2703,6 +2951,18 @@
     const roundLabel = document.createElement("p");
     roundLabel.className = "scene-timer-round";
     roundLabel.textContent = `ROUND ${round}`;
+    const pending = Boolean(cellSyncMeta().sendPending);
+    const roundMeta = document.createElement("div");
+    roundMeta.className = "scene-timer-round-meta";
+    roundMeta.append(roundLabel);
+    if (pending) {
+      const badge = document.createElement("p");
+      badge.className = "cell-send-pending";
+      badge.setAttribute("role", "status");
+      badge.textContent = "CELL SEND PENDING";
+      badge.title = cellSyncMeta().lastSendError || "Local sheet advanced. Retry Send to Cell.";
+      roundMeta.append(badge);
+    }
     const actions = document.createElement("div");
     actions.className = "scene-timer-actions";
     const nextRound = document.createElement("button");
@@ -2712,6 +2972,24 @@
     nextRound.addEventListener("click", () => {
       autosaveStatus();
       dispatchSceneTimerAction("next_round", { catalogKey: currentPresentationKey() });
+    });
+    const sendCell = document.createElement("button");
+    sendCell.type = "button";
+    sendCell.className = pending ? "scene-timer-btn" : "scene-timer-btn subtle";
+    sendCell.textContent = pending ? "Retry Send to Cell" : "Send to Cell";
+    sendCell.title = pending
+      ? `CELL SEND PENDING — ${cellSyncMeta().lastSendError || "retry upload"}. Local sheet is already advanced.`
+      : "Upload local Harm/Stability (and declared recovery) for Handler End Pressure Round / Sync Cell.";
+    sendCell.addEventListener("click", () => {
+      sendOperatorToCell();
+    });
+    const pullCell = document.createElement("button");
+    pullCell.type = "button";
+    pullCell.className = "scene-timer-btn ghost";
+    pullCell.textContent = "Pull Handler";
+    pullCell.title = "Apply Handler Harm/Stability only when the projection is newer than local edits.";
+    pullCell.addEventListener("click", () => {
+      pullHandlerCellIfAvailable({ force: true });
     });
     const endScene = document.createElement("button");
     endScene.type = "button";
@@ -2751,8 +3029,8 @@
       confirm.append(prompt, confirmActions);
       strip.append(confirm);
     });
-    actions.append(nextRound, endScene);
-    header.append(roundLabel, actions);
+    actions.append(nextRound, sendCell, pullCell, endScene);
+    header.append(roundMeta, actions);
     strip.append(header);
 
     const abilityView = api.presentationAbilityView
@@ -3335,6 +3613,10 @@
     if (key === "stability") {
       consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(consoleState.operatorStatus.stability);
       renderStatusSummary();
+    }
+    // Harm / Stability / load edits are local authority until the next Cell send.
+    if (key === "stability" || key === "harmBoxes" || (track?.kind || "").endsWith("_load")) {
+      markLocalSheetRevised();
     }
     writeConsoleState();
     renderTrackers();
@@ -4539,6 +4821,13 @@
   bindForms();
   bindDataControls();
   renderAll();
+  if (window.VeilDaemonCellSync?.onUpdate) {
+    window.VeilDaemonCellSync.onUpdate(() => {
+      // Auto-apply Handler projections when they push End Pressure Round / Sync Cell
+      // (same browser profile / BroadcastChannel). Multi-device uses VeilLink.
+      pullHandlerCellIfAvailable();
+    });
+  }
   window.addEventListener("veildaemon:operator-record-updated", () => {
     operatorRecord = readOperatorRecord();
     renderAll();

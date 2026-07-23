@@ -849,6 +849,25 @@ select.is-locked {
   justify-content: space-between;
   gap: .35rem .55rem;
 }
+.scene-timer-round-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem .65rem;
+  min-width: 0;
+}
+
+.cell-send-pending {
+  margin: 0;
+  padding: .18rem .42rem;
+  border: 1px solid rgba(255, 92, 138, .45);
+  background: rgba(255, 92, 138, .12);
+  color: #ffc4d4;
+  font-size: .58rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
 .scene-timer-round {
   margin: 0;
   color: var(--cyan);

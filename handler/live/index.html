@@ -10,9 +10,9 @@
   <link rel="icon" href="../../favicon.ico?v=20260711-cradlepoint1" sizes="any" />
   <link rel="icon" type="image/png" href="../../cradlepoint-studio-mark-512.png?v=20260711-cradlepoint1" />
   <link rel="preload" href="../../assets/background.webp" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260701-pending1" />
+  <link rel="stylesheet" href="../handler.css?v=20260701-cellsync2" />
   <link rel="stylesheet" href="../handler-clue-integrity.css?v=20260630-cluereveal2" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260701-secondarylive1" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260701-cellsync2" />
 </head>
 <body class="handler-surface live-surface">
   <div class="noise" aria-hidden="true"></div>
@@ -176,6 +176,16 @@
               </fieldset>
             </div>
             <output class="roll-output" id="roll-output">Awaiting Operator test.</output>
+            <div class="cell-sync-dock" id="cell-sync-dock" data-live-control-zone aria-label="Cell sync">
+              <p class="kicker">CELL SYNC</p>
+              <div class="cell-sync-actions" role="group" aria-label="Deliberate sync moments">
+                <button class="button primary" id="cell-sync-pressure-round" type="button">End Pressure Round</button>
+                <button class="button" id="cell-sync-cell" type="button">Sync Cell</button>
+                <button class="button ghost" id="cell-sync-archive" type="button">Archive Session</button>
+              </div>
+              <p class="panel-note cell-sync-status" id="cell-sync-status">Operator send is authority when present. Mid-round: Harm, Stability, notes. Lotus between sessions. Void &amp; Breach on Archive (once).</p>
+              <output class="cell-sync-output" id="cell-sync-output" aria-live="polite"></output>
+            </div>
           </section>
 
           <section class="panel clock-panel" aria-label="Primary clock" data-mode-panel="live">
@@ -348,6 +358,7 @@
   </main>
   <script src="../../catalogs.js?v=20260625-live-catalog1"></script>
   <script src="../../presentation-pressure.js?v=20260701-universalload1"></script>
+  <script src="../../cell-sync.js?v=20260723-cellsync2"></script>
   <script src="../handler-state.js?v=20260701-ppressure1"></script>
   <script src="../handler-nav.js?v=20260629-templatepicker1"></script>
   <script src="../handler-pressure-controls.js?v=20260701-pressureunify1"></script>
@@ -359,6 +370,7 @@
   <script src="../handler-wind-down.js?v=20260627-pressuregrid19"></script>
   <script src="../handler-collapse.js?v=20260628-collapse4"></script>
   <script src="../handler-clue-integrity.js?v=20260630-cluereveal2"></script>
-  <script src="../handler.js?v=20260701-ppressure1"></script>
+  <script src="../handler-cell-sync.js?v=20260723-cellsync2"></script>
+  <script src="../handler.js?v=20260701-cellsync2"></script>
 </body>
 </html>

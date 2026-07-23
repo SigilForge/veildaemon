@@ -3,10 +3,12 @@ import { publicError, requireUser } from "@/lib/store";
 import {
   defaultLiveState,
   diffLiveState,
+  filterPatchForSyncKind,
   generateJoinCode,
   isFrequency,
   mergeLiveState,
   normalizeBlindPetal,
+  normalizeSyncKind,
   type LiveState,
 } from "@/lib/table/state";
 import type { Json } from "@/lib/database.types";
@@ -211,6 +213,8 @@ export async function patchSessionState(input: {
   sessionId: string;
   sessionOperatorStateId: string;
   patch: Partial<LiveState>;
+  /** Deliberate sync kind — server enforces field whitelist. Defaults to pressure_round (strictest mid-round). */
+  syncKind?: string;
 }) {
   const { user, supabase } = await requireUser();
   const { data: session, error: sessionError } = await supabase
@@ -235,10 +239,13 @@ export async function patchSessionState(input: {
   if (!isHandler && !isOwner) throw publicError("Not authorized.", 403);
 
   const before = defaultLiveState((row.live_state || {}) as Partial<LiveState>);
-  // Operators can spend/self-adjust; handlers can award. Both may patch allowed fields for V1 demo.
-  const after = mergeLiveState(before, input.patch || {});
+  // Structural boundary: only fields allowed for this sync kind may change.
+  // Lotus never enters via live PATCH (mergeLiveState also ignores lotus).
+  const kind = normalizeSyncKind(input.syncKind || (isHandler ? "cell" : "operator_send"));
+  const filtered = filterPatchForSyncKind(kind, input.patch || {});
+  const after = mergeLiveState(before, filtered);
   const diffs = diffLiveState(before, after);
-  if (!diffs.length) return { row, session, diffs: [] };
+  if (!diffs.length) return { row, session, diffs: [], syncKind: kind, filtered };
 
   const role: "handler" | "operator" = isHandler ? "handler" : "operator";
   const { data: updated, error: updateError } = await supabase
@@ -265,7 +272,7 @@ export async function patchSessionState(input: {
   const { error: mutError } = await supabase.from("session_mutations").insert(mutationRows);
   if (mutError) throw publicError(mutError.message, 500);
 
-  return { row: updated, session, diffs, role };
+  return { row: updated, session, diffs, role, syncKind: kind, filtered };
 }
 
 export async function leaveSession(sessionId: string, sessionOperatorStateId: string) {
@@ -318,11 +325,11 @@ export async function closeSession(sessionId: string) {
       .single();
     if (!profile) continue;
     const persistent = defaultLiveState((profile.persistent_state || {}) as Partial<LiveState>);
+    // Archive reconcile: Harm/Stability + Void/Breach + unlocks.
+    // Lotus is between-sessions — do not overwrite persistent petals from live session.
     const next = mergeLiveState(persistent, {
       harm: live.harm,
       stability: live.stability,
-      lotus: live.lotus,
-      frequencyPips: live.frequencyPips,
       breach: live.breach,
       voidMarks: live.voidMarks,
       conditions: live.conditions,

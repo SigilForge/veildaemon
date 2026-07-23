@@ -993,7 +993,10 @@ textarea {
 }
 .stat.big { border-color: rgba(181,117,104,0.45); }
 .stat span { color: var(--text-faint); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.stat-hint { font-style: normal; letter-spacing: 0.04em; text-transform: none; opacity: 0.75; }
 .stat strong { font-size: 1.55rem; line-height: 1; }
+.lotus-readonly .freq-cell { opacity: 0.9; }
+.lotus-readonly .eyebrow { margin-bottom: 0.35rem; }
 .mini-actions { display: flex; gap: 0.3rem; }
 .mini-actions button {
   min-width: 2rem;
