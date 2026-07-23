@@ -1,0 +1,2 @@
+-- Intentionally empty.
+-- The local Supabase config loads this file after migrations during db reset.

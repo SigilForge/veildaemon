@@ -138,7 +138,8 @@ async function createSupabaseSignedUrl() {
     throw error;
   }
 
-  const absoluteSignedUrl = signedUrl.startsWith("http") ? signedUrl : `${supabaseUrl}${signedUrl}`;
+  const signedPath = signedUrl.startsWith("/object/") ? `/storage/v1${signedUrl}` : signedUrl;
+  const absoluteSignedUrl = signedPath.startsWith("http") ? signedPath : `${supabaseUrl}${signedPath}`;
   const downloadUrl = new URL(absoluteSignedUrl);
   downloadUrl.searchParams.set("download", "");
   return downloadUrl.toString();
