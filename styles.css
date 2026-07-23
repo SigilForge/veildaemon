@@ -2220,3 +2220,47 @@ body.surface-subpage .operator-preview-panel {
     padding: .55rem .68rem;
   }
 }
+
+/* Play release index — hero-led storefront route */
+body.play-surface {
+  background:
+    linear-gradient(180deg, rgba(5, 7, 9, 0.72), rgba(5, 7, 9, 0.88)),
+    url("assets/play-cradlepoint-banner.webp") center top / cover no-repeat fixed;
+}
+.play-shell {
+  max-width: 920px;
+}
+.play-terminal {
+  padding-bottom: 1.4rem;
+}
+.play-hero {
+  margin: 0.85rem 0 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.55rem;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+.play-hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.play-hero figcaption {
+  margin: 0;
+  padding: 0.55rem 0.75rem 0.7rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  border-top: 1px solid rgba(138, 255, 219, 0.12);
+  background: rgba(0, 0, 0, 0.35);
+}
+.play-actions {
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  .play-hero figcaption {
+    font-size: 0.68rem;
+  }
+}
