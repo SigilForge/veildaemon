@@ -38,11 +38,19 @@
   box-sizing: border-box;
 }
 
+/*
+  Scene lives on html so body tints never wipe the photo plate.
+  Same approach as Cradlepoint Studio public surfaces.
+*/
 html {
   scroll-behavior: smooth;
   min-height: 100%;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  background:
+    linear-gradient(90deg, rgba(5, 7, 9, 0.62), rgba(5, 7, 9, 0.22), rgba(5, 7, 9, 0.62)),
+    url("/brand/site-background.webp") center top / cover no-repeat fixed,
+    #050709;
 }
 
 body {
@@ -54,9 +62,32 @@ body {
   line-height: 1.65;
   overflow-x: hidden;
   background:
-    radial-gradient(ellipse 80% 50% at 70% 0%, rgba(181, 117, 104, 0.1), transparent 55%),
-    radial-gradient(ellipse 55% 40% at 10% 25%, rgba(126, 184, 168, 0.07), transparent 50%),
-    linear-gradient(180deg, #0a0c0d 0%, #07090a 45%, #050709 100%);
+    radial-gradient(ellipse 80% 50% at 70% 0%, rgba(181, 117, 104, 0.08), transparent 55%),
+    radial-gradient(ellipse 55% 40% at 10% 25%, rgba(126, 184, 168, 0.05), transparent 50%),
+    linear-gradient(180deg, rgba(5, 7, 9, 0.28), rgba(5, 7, 9, 0.55) 45%, rgba(5, 7, 9, 0.72));
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.42)),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.025) 0,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  opacity: 0.45;
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
 }
 
 a {
@@ -404,7 +435,7 @@ button:disabled {
   border-radius: calc(var(--radius) + 0.2rem);
   border: 1px solid var(--line-strong);
   background:
-    linear-gradient(165deg, rgba(5, 7, 9, 0.42), rgba(5, 7, 9, 0.78)),
+    linear-gradient(165deg, rgba(5, 7, 9, 0.55), rgba(5, 7, 9, 0.82)),
     url("/brand/hero-cathedral.webp") center / cover no-repeat;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
@@ -417,42 +448,47 @@ button:disabled {
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(ellipse 70% 60% at 80% 20%, rgba(181, 117, 104, 0.18), transparent 55%),
+    radial-gradient(ellipse 70% 60% at 80% 20%, rgba(181, 117, 104, 0.16), transparent 55%),
     repeating-linear-gradient(
       to bottom,
-      rgba(255, 255, 255, 0.025) 0,
-      rgba(255, 255, 255, 0.025) 1px,
+      rgba(255, 255, 255, 0.02) 0,
+      rgba(255, 255, 255, 0.02) 1px,
       transparent 1px,
       transparent 4px
     );
-  opacity: 0.9;
+  opacity: 0.85;
   pointer-events: none;
 }
 
 .demo-qr {
   position: relative;
   z-index: 1;
-  width: min(100%, 11.5rem);
+  display: block;
+  width: min(100%, 12.5rem);
   aspect-ratio: 1;
   margin: 0 auto 1rem;
-  border-radius: 0.85rem;
-  border: 1px solid rgba(243, 240, 234, 0.18);
-  background:
-    linear-gradient(160deg, rgba(9, 11, 12, 0.35), rgba(9, 11, 12, 0.72)),
-    url("/brand/cradlepoint-studio-seal-city-duality.webp") center / cover no-repeat;
+  border-radius: 0.9rem;
+  border: 1px solid rgba(243, 240, 234, 0.2);
+  background: var(--paper-3);
   box-shadow: var(--shadow-md);
   overflow: hidden;
+  text-decoration: none;
 }
 
-.demo-qr::after {
-  content: "";
-  position: absolute;
-  inset: 30%;
-  border-radius: 0.4rem;
-  background:
-    url("/brand/cradlepoint-studio-emblem-256.webp") center / contain no-repeat,
-    rgba(239, 235, 228, 0.94);
-  box-shadow: 0 0 0 3px rgba(9, 11, 12, 0.9);
+.demo-qr img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.demo-qr:hover {
+  border-color: rgba(181, 117, 104, 0.45);
+  box-shadow: var(--shadow-lg);
+}
+
+.demo-qr:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 3px;
 }
 
 .demo-meta {
@@ -473,6 +509,22 @@ button:disabled {
 .demo-meta span {
   color: var(--text-faint);
   font-size: 0.82rem;
+}
+
+.demo-meta a {
+  color: var(--rust-soft);
+  text-decoration: underline;
+  text-underline-offset: 0.18rem;
+}
+
+.demo-meta a:hover {
+  color: var(--paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    background-attachment: scroll;
+  }
 }
 
 .demo-flow {

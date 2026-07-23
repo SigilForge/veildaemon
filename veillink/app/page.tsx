@@ -55,15 +55,33 @@ export default function HomePage() {
         </div>
 
         <aside className="demo-plate" aria-label="How a VeilLink redirect works">
-          <div className="demo-qr" aria-hidden="true" />
+          <a
+            className="demo-qr"
+            href="https://play.veildaemon.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Scan or open play.veildaemon.app"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/brand/demo-qr-play.webp"
+              alt="QR code linking to play.veildaemon.app"
+              width={720}
+              height={720}
+              decoding="async"
+            />
+          </a>
           <div className="demo-meta">
             <strong>One code. Moving target.</strong>
-            <span>The printed QR never needs a reprint when the menu, booking link, or form changes.</span>
+            <span>
+              Live demo QR → <a href="https://play.veildaemon.app/" target="_blank" rel="noopener noreferrer">play.veildaemon.app</a>.
+              Same idea as a VeilLink: stable print target, editable destination.
+            </span>
           </div>
           <div className="demo-flow" aria-hidden="true">
-            <b>QR file</b>
+            <b>Printed QR</b>
             <em>→</em>
-            <b>{product.pathHost}/you</b>
+            <b>play.veildaemon.app</b>
           </div>
           <div className="demo-flow" aria-hidden="true">
             <b>{product.pathHost}/you</b>
