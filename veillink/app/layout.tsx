@@ -131,6 +131,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {email ? (
                 <>
                   <Link href="/dashboard">Dashboard</Link>
+                  <Link href="/table">Table</Link>
                   <Link href="/billing">Billing</Link>
                   <Link href="/account">Account</Link>
                 </>

@@ -116,6 +116,83 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["stripe_webhook_events"]["Row"]>;
         Relationships: [];
       };
+      operator_profiles: {
+        Row: {
+          id: string;
+          owner_user_id: string;
+          display_name: string;
+          designation: string;
+          persistent_state: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["operator_profiles"]["Row"]> & {
+          owner_user_id: string;
+          display_name: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["operator_profiles"]["Row"]>;
+        Relationships: [];
+      };
+      handler_sessions: {
+        Row: {
+          id: string;
+          handler_user_id: string;
+          join_code: string;
+          status: "open" | "closed";
+          needlepoint: string;
+          mission: string;
+          created_at: string;
+          closed_at: string | null;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["handler_sessions"]["Row"]> & {
+          handler_user_id: string;
+          join_code: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["handler_sessions"]["Row"]>;
+        Relationships: [];
+      };
+      session_operator_state: {
+        Row: {
+          id: string;
+          session_id: string;
+          operator_profile_id: string;
+          owner_user_id: string;
+          live_state: Json;
+          joined_at: string;
+          left_at: string | null;
+          last_mutated_by: string | null;
+          last_mutated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["session_operator_state"]["Row"]> & {
+          session_id: string;
+          operator_profile_id: string;
+          owner_user_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["session_operator_state"]["Row"]>;
+        Relationships: [];
+      };
+      session_mutations: {
+        Row: {
+          id: string;
+          session_id: string;
+          session_operator_state_id: string;
+          actor_user_id: string | null;
+          actor_role: "handler" | "operator";
+          field_path: string;
+          old_value: Json | null;
+          new_value: Json | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["session_mutations"]["Row"]> & {
+          session_id: string;
+          session_operator_state_id: string;
+          actor_role: "handler" | "operator";
+          field_path: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["session_mutations"]["Row"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -129,6 +206,8 @@ export type Database = {
       veillink_role: "user" | "admin";
       veillink_routing_mode: "path" | "subdomain";
       veillink_abuse_status: "open" | "reviewing" | "closed";
+      table_session_status: "open" | "closed";
+      table_actor_role: "handler" | "operator";
     };
     CompositeTypes: Record<string, never>;
   };
