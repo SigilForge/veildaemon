@@ -21,8 +21,13 @@ describe("table live state", () => {
   });
 
   it("never cultivates the Blind Petal", () => {
-    const base = defaultLiveState({ blindPetal: "Silence", lotus: { Dream: 2, Hunger: 0, Silence: 0, Stillness: 1, Empyrean: 0, Becoming: 0 } });
-    const next = mergeLiveState(base, { lotus: { Silence: 4, Dream: 3 } });
+    const base = defaultLiveState({
+      blindPetal: "Silence",
+      lotus: { Dream: 2, Hunger: 0, Silence: 0, Stillness: 1, Empyrean: 0, Becoming: 0 },
+    });
+    const next = mergeLiveState(base, {
+      lotus: { Dream: 3, Hunger: 0, Silence: 4, Stillness: 1, Empyrean: 0, Becoming: 0 },
+    });
     expect(next.lotus.Silence).toBe(0);
     expect(next.lotus.Dream).toBe(3);
     expect(next.blindPetal).toBe("Silence");
