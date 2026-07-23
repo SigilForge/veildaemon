@@ -11,12 +11,21 @@ describe("table live state", () => {
     expect(next.harm).toBe(5); // Harm stages 0–5
   });
 
-  it("starts with one Void Mark and a single Lotus pip track", () => {
-    const fresh = defaultLiveState();
+  it("starts with one Void Mark, six petals, one Blind locked at 0", () => {
+    const fresh = defaultLiveState({ blindPetal: "Hunger" });
     expect(fresh.voidMarks).toBe(1);
     expect(fresh.stability).toBe(10);
+    expect(fresh.blindPetal).toBe("Hunger");
+    expect(fresh.lotus.Hunger).toBe(0);
     expect(fresh.frequencyPips).toBeUndefined();
-    expect(fresh.lotus.Dream).toBe(0);
+  });
+
+  it("never cultivates the Blind Petal", () => {
+    const base = defaultLiveState({ blindPetal: "Silence", lotus: { Dream: 2, Hunger: 0, Silence: 0, Stillness: 1, Empyrean: 0, Becoming: 0 } });
+    const next = mergeLiveState(base, { lotus: { Silence: 4, Dream: 3 } });
+    expect(next.lotus.Silence).toBe(0);
+    expect(next.lotus.Dream).toBe(3);
+    expect(next.blindPetal).toBe("Silence");
   });
 
   it("records field diffs for mutations", () => {

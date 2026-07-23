@@ -205,26 +205,36 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
                 </div>
 
                 <section className="lotus-block">
-                  <p className="eyebrow">Lotus Frequency pips (0–6)</p>
-                  <p className="muted small">
-                    Sheet edit only — does not spend Breach or check Void gates. Advancement still follows Operator Guide
-                    (Void opens gates; Breach fills pips).
-                  </p>
+                  <p className="eyebrow">Lotus pips · 5 cultivable · Blind: {state.blindPetal}</p>
                   <div className="freq-grid">
-                    {FREQUENCIES.map((f) => (
-                      <div key={f} className="freq-cell">
-                        <span>{f}</span>
-                        <strong>{state.lotus[f]}</strong>
-                        <div className="mini-actions">
-                          <button type="button" disabled={busy} onClick={() => patch(seat.id, { lotus: { ...state.lotus, [f]: state.lotus[f] + 1 } }, `${f} pip +1`)}>
-                            +
-                          </button>
-                          <button type="button" disabled={busy} onClick={() => patch(seat.id, { lotus: { ...state.lotus, [f]: state.lotus[f] - 1 } }, `${f} pip −1`)}>
-                            −
-                          </button>
+                    {FREQUENCIES.map((f) => {
+                      const blind = f === state.blindPetal;
+                      return (
+                        <div key={f} className={blind ? "freq-cell blind" : "freq-cell"}>
+                          <span>
+                            {f}
+                            {blind ? " · Blind" : ""}
+                          </span>
+                          <strong>{blind ? 0 : state.lotus[f]}</strong>
+                          <div className="mini-actions">
+                            <button
+                              type="button"
+                              disabled={busy || blind}
+                              onClick={() => patch(seat.id, { lotus: { ...state.lotus, [f]: state.lotus[f] + 1 } }, `${f} pip +1`)}
+                            >
+                              +
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busy || blind}
+                              onClick={() => patch(seat.id, { lotus: { ...state.lotus, [f]: state.lotus[f] - 1 } }, `${f} pip −1`)}
+                            >
+                              −
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </section>
 

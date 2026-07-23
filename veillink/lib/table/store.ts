@@ -4,7 +4,9 @@ import {
   defaultLiveState,
   diffLiveState,
   generateJoinCode,
+  isFrequency,
   mergeLiveState,
+  normalizeBlindPetal,
   type LiveState,
 } from "@/lib/table/state";
 import type { Json } from "@/lib/database.types";
@@ -20,11 +22,20 @@ export async function listMyOperators() {
   return data || [];
 }
 
-export async function createOperator(input: { displayName: string; designation?: string }) {
+export async function createOperator(input: {
+  displayName: string;
+  designation?: string;
+  blindPetal?: string;
+}) {
   const { user, supabase } = await requireUser();
   const name = String(input.displayName || "").trim().slice(0, 80);
   if (!name) throw publicError("Display name is required.");
-  const state = defaultLiveState();
+  // Operator Guide §2.2 / §9.4: six Lotus petals; choose one permanent Blind Petal; cultivate five.
+  if (input.blindPetal != null && input.blindPetal !== "" && !isFrequency(input.blindPetal)) {
+    throw publicError("Blind Petal must be one of the six Frequencies.");
+  }
+  const blindPetal = normalizeBlindPetal(input.blindPetal);
+  const state = defaultLiveState({ blindPetal });
   const { data, error } = await supabase
     .from("operator_profiles")
     .insert({

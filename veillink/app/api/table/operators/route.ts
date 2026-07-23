@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     const operator = await createOperator({
       displayName: body.displayName || body.display_name,
       designation: body.designation,
+      blindPetal: body.blindPetal || body.blind_petal,
     });
     return NextResponse.json({ operator }, { status: 201 });
   } catch (error) {

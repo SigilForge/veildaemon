@@ -1020,3 +1020,16 @@ textarea {
 .unlock-actions { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.55rem; }
 .unlock-list { margin: 0; padding-left: 1.1rem; color: var(--text-soft); font-size: 0.9rem; }
 .note-field { display: grid; gap: 0.35rem; font-size: 0.85rem; color: var(--text-soft); }
+.freq-cell.blind {
+  opacity: 0.55;
+  border-style: dashed;
+}
+.stack-form select {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: rgba(0,0,0,0.28);
+  color: var(--text);
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+}

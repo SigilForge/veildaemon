@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { FREQUENCIES, type Frequency } from "@/lib/table/state";
 
 type Operator = {
   id: string;
@@ -16,6 +17,7 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
   const [operators, setOperators] = useState<Operator[]>([]);
   const [name, setName] = useState("");
   const [designation, setDesignation] = useState("");
+  const [blindPetal, setBlindPetal] = useState<Frequency>("Silence");
   const [joinCode, setJoinCode] = useState((initialJoinCode || "").toUpperCase());
   const [selectedOp, setSelectedOp] = useState("");
   const [needlepoint, setNeedlepoint] = useState("Needlepoint 001");
@@ -49,7 +51,7 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
       const res = await fetch("/api/table/operators", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ displayName: name, designation }),
+        body: JSON.stringify({ displayName: name, designation, blindPetal }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Create failed");
@@ -133,6 +135,17 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
             Designation
             <input value={designation} onChange={(e) => setDesignation(e.target.value)} maxLength={40} placeholder="Knox-07" />
           </label>
+          <label>
+            Blind Petal (permanent)
+            <select value={blindPetal} onChange={(e) => setBlindPetal(e.target.value as Frequency)} required>
+              {FREQUENCIES.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="muted small">Six Lotus petals; you cultivate five. Blind Petal stays at 0 forever.</p>
           <button className="button primary" type="submit" disabled={busy}>
             Create Operator file
           </button>

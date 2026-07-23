@@ -26,13 +26,16 @@ export type LiveState = {
   /** Operational coherence 0–10; base cap 10 (Operator Guide §3.9 / §5.3). */
   stability: number;
   /**
-   * Lotus Frequency pips per petal (0–6). This IS the Frequency pip track.
-   * Do not invent a second parallel pip map.
+   * Lotus Frequency pips: six petals, 0–6 each.
+   * Humans cultivate five; one permanent Blind Petal stays at 0 (Operator Guide §2.2 / §9.4).
    */
   lotus: FrequencyMap;
   /**
+   * Permanent Blind Petal — the sixth Frequency not cultivated. Locked at 0.
+   */
+  blindPetal: Frequency;
+  /**
    * @deprecated Alias of lotus for older session snapshots only.
-   * Rules have one pip track on the Lotus, not two.
    */
   frequencyPips?: FrequencyMap;
   /** Breach Points bank — growth currency; fills pips after Void gates. Never converts to Void. */
@@ -61,13 +64,23 @@ export function emptyFrequencyMap(value = 0): FrequencyMap {
   };
 }
 
+export function isFrequency(value: unknown): value is Frequency {
+  return typeof value === "string" && (FREQUENCIES as readonly string[]).includes(value);
+}
+
+export function normalizeBlindPetal(value: unknown, fallback: Frequency = "Silence"): Frequency {
+  return isFrequency(value) ? value : fallback;
+}
+
 export function defaultLiveState(partial?: Partial<LiveState>): LiveState {
   const base: LiveState = {
     harm: 0,
     stability: 10,
     lotus: emptyFrequencyMap(0),
+    // Must be set at Operator creation; fallback only for incomplete snapshots.
+    blindPetal: "Silence",
     breach: 0,
-    // Operator Guide §2.3: starting Void Mark at creation is 1 (Session Zero Rank 1 default).
+    // Operator Guide §2.3: starting Void Mark at creation is 1.
     voidMarks: 1,
     conditions: [],
     unlocks: {
@@ -80,30 +93,46 @@ export function defaultLiveState(partial?: Partial<LiveState>): LiveState {
     mission: "",
     handlerNote: "",
   };
-  if (!partial) return base;
-  // Prefer lotus; fold legacy frequencyPips into lotus if lotus absent on old snapshots.
+  if (!partial) {
+    return applyBlindPetal(base);
+  }
   const lotus = {
     ...base.lotus,
     ...(partial.frequencyPips || {}),
     ...(partial.lotus || {}),
-  };
-  return {
+  } as FrequencyMap;
+  const next: LiveState = {
     ...base,
     ...partial,
     lotus,
+    blindPetal: normalizeBlindPetal(partial.blindPetal, base.blindPetal),
     unlocks: {
       ...base.unlocks,
       ...(partial.unlocks || {}),
     },
     conditions: partial.conditions ? [...partial.conditions] : base.conditions,
   };
+  return applyBlindPetal(next);
+}
+
+function applyBlindPetal(state: LiveState): LiveState {
+  const blind = normalizeBlindPetal(state.blindPetal);
+  const lotus = emptyFrequencyMap(0);
+  for (const f of FREQUENCIES) {
+    lotus[f] = f === blind ? 0 : clampInt(state.lotus[f], 0, 6);
+  }
+  return { ...state, blindPetal: blind, lotus };
 }
 
 /** Clamp and normalize a partial patch into a full LiveState. */
 export function mergeLiveState(base: LiveState, patch: Partial<LiveState>): LiveState {
-  const next = defaultLiveState({
+  // Blind petal is permanent — ignore attempts to change it mid-session unless base had none.
+  const blindPetal = normalizeBlindPetal(base.blindPetal || patch.blindPetal);
+
+  let next = defaultLiveState({
     ...base,
     ...patch,
+    blindPetal,
     lotus: { ...base.lotus, ...(patch.lotus || {}) } as FrequencyMap,
     unlocks: {
       ...base.unlocks,
@@ -111,28 +140,19 @@ export function mergeLiveState(base: LiveState, patch: Partial<LiveState>): Live
     },
   });
 
-  next.harm = clampInt(next.harm, 0, 5); // stages: fine…dying
-  next.stability = clampInt(next.stability, 0, 10); // base cap 10
-  // Banked Breach is uncapped in core play; soft upper bound only for storage sanity (operator console uses high ceiling).
+  next.harm = clampInt(next.harm, 0, 5);
+  next.stability = clampInt(next.stability, 0, 10);
   next.breach = clampInt(next.breach, 0, 99);
-  // Void architecture discussed through ~13 in core; 14+ is DLC pressure (Guide §2.3).
   next.voidMarks = clampInt(next.voidMarks, 0, 13);
-  const lotus = emptyFrequencyMap(0);
-  for (const f of FREQUENCIES) {
-    lotus[f] = clampInt(next.lotus[f], 0, 6); // Operator ceiling pip 6
-  }
-  next.lotus = lotus;
-  // Drop parallel frequencyPips so we do not ship a second invented track.
+  next = applyBlindPetal({ ...next, blindPetal });
   delete next.frequencyPips;
   next.conditions = (next.conditions || []).map(String).slice(0, 20);
   next.needlepoint = String(next.needlepoint || "").slice(0, 120);
   next.mission = String(next.mission || "").slice(0, 200);
   next.handlerNote = String(next.handlerNote || "").slice(0, 500);
 
-  // Cradlepoint law (Operator Guide §2.3 / §9.1–9.3):
-  // Void = capacity (opens gates). Breach = growth (fills opened pip slots).
-  // Separate currencies. Breach never becomes Void. Void never buys pips.
-  // Live-link tracks banked totals + Lotus pips; gate checks and Breach spends stay table procedure.
+  // Operator Guide §2.2 / §9.4: six petals on the Lotus; humans cultivate five;
+  // one Blind Petal permanent at 0. Void/Breach remain separate currencies.
 
   return next;
 }
@@ -144,7 +164,6 @@ function clampInt(value: unknown, min: number, max: number): number {
 }
 
 export function generateJoinCode(): string {
-  // Avoid ambiguous 0/O, 1/I
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
   for (let i = 0; i < 6; i += 1) {
@@ -164,6 +183,7 @@ export function diffLiveState(
     "stability",
     "breach",
     "voidMarks",
+    "blindPetal",
     "conditions",
     "needlepoint",
     "mission",
