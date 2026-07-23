@@ -27,7 +27,7 @@ on close → reconcile allowed fields back into persistent_state
 ## Sync surface (V1)
 
 - Harm, Stability, Lotus, Frequency pips
-- Breach, Void (Breach ≥ 6 converts +1 Void for demo satisfaction)
+- Breach, Void (separate currencies per Operator Guide: Void = capacity/gates, Breach = growth/pips; no auto-conversion)
 - Unlocks: frequencies, myth-tech, traits, flags
 - Needlepoint / mission / Handler note
 

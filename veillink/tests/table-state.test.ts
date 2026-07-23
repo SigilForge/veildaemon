@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { defaultLiveState, diffLiveState, mergeLiveState } from "@/lib/table/state";
 
 describe("table live state", () => {
-  it("clamps harm and converts breach to void", () => {
-    const base = defaultLiveState({ breach: 5, voidMarks: 1 });
-    const next = mergeLiveState(base, { breach: 7 });
-    // 5+7 would be wrong; patch replaces breach then merge converts while >= 6
-    expect(next.breach).toBe(1); // 7 -> convert once -> 1 breach, void 2
-    expect(next.voidMarks).toBe(2);
-    expect(next.harm).toBe(0);
+  it("clamps tracks without converting Breach into Void", () => {
+    // Operator Guide: Void opens gates; Breach fills pips. Separate currencies.
+    const base = defaultLiveState({ breach: 5, voidMarks: 1, harm: 0 });
+    const next = mergeLiveState(base, { breach: 7, harm: 9 });
+    expect(next.breach).toBe(7);
+    expect(next.voidMarks).toBe(1);
+    expect(next.harm).toBe(5); // clamp 0–5
   });
 
   it("records field diffs for mutations", () => {

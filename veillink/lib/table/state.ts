@@ -104,11 +104,9 @@ export function mergeLiveState(base: LiveState, patch: Partial<LiveState>): Live
   next.mission = String(next.mission || "").slice(0, 200);
   next.handlerNote = String(next.handlerNote || "").slice(0, 500);
 
-  // Breach → Void conversion (demo-satisfying, rule-light): every 6 Breach → +1 Void, leave remainder
-  while (next.breach >= 6 && next.voidMarks < 13) {
-    next.breach -= 6;
-    next.voidMarks += 1;
-  }
+  // Cradlepoint law (Operator Guide): Void = capacity/gates; Breach = growth/pips.
+  // They are separate currencies. Breach never becomes Void. Void never buys pips.
+  // Live-link only tracks banked totals; pip spends remain a table procedure.
 
   return next;
 }
