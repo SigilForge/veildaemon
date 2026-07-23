@@ -104,8 +104,7 @@ export function mergeLiveState(base: LiveState, patch: Partial<LiveState>): Live
   const next = defaultLiveState({
     ...base,
     ...patch,
-    lotus: { ...base.lotus, ...(patch.lotus || {}) },
-    frequencyPips: { ...base.frequencyPips, ...(patch.frequencyPips || {}) },
+    lotus: { ...base.lotus, ...(patch.lotus || {}) } as FrequencyMap,
     unlocks: {
       ...base.unlocks,
       ...(patch.unlocks || {}),
@@ -118,9 +117,11 @@ export function mergeLiveState(base: LiveState, patch: Partial<LiveState>): Live
   next.breach = clampInt(next.breach, 0, 99);
   // Void architecture discussed through ~13 in core; 14+ is DLC pressure (Guide §2.3).
   next.voidMarks = clampInt(next.voidMarks, 0, 13);
+  const lotus = emptyFrequencyMap(0);
   for (const f of FREQUENCIES) {
-    next.lotus[f] = clampInt(next.lotus[f], 0, 6); // Operator ceiling pip 6
+    lotus[f] = clampInt(next.lotus[f], 0, 6); // Operator ceiling pip 6
   }
+  next.lotus = lotus;
   // Drop parallel frequencyPips so we do not ship a second invented track.
   delete next.frequencyPips;
   next.conditions = (next.conditions || []).map(String).slice(0, 20);
