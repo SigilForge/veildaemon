@@ -31,7 +31,7 @@ Workflow `Deploy Pages` exists for manual recovery, but GitHub currently caps `a
 Open `index.html` and search for these button labels:
 
 - Access VeilCorp Archives -> https://wiki.veildaemon.app/
-- Open Case Files -> https://play.veildaemon.app/
+- Open Case Files -> https://play.veildaemon.app/ (point DNS/URL forward at `https://veildaemon.app/play/` — hosted release index with OG art; itch remains purchase destination)
 - Begin Operator Intake -> https://relic.veildaemon.app/
 - Archive Index -> https://wiki.veildaemon.app/wiki/Main_Page
 
