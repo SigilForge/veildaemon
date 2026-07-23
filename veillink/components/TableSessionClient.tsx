@@ -55,7 +55,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
   /** Local tactical counter — End Pressure Round advances; Sync Cell does not. */
   const [pressureRound, setPressureRound] = useState(0);
 
-  const load = useCallback(async () => {
+  const loadSession = useCallback(async () => {
     const res = await fetch(`/api/table/sessions/${sessionId}`);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to load session");
@@ -69,8 +69,29 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
   }, [sessionId]);
 
   useEffect(() => {
-    load().catch((e) => setError(e.message));
-  }, [load]);
+    let active = true;
+    async function fetchInitial() {
+      try {
+        const res = await fetch(`/api/table/sessions/${sessionId}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to load session");
+        if (!active) return;
+        setBundle(data as Bundle);
+        const nextDrafts: Record<string, LiveState> = {};
+        for (const seat of (data as Bundle).states || []) {
+          nextDrafts[seat.id] = defaultLiveState(seat.live_state as Partial<LiveState>);
+        }
+        setDrafts(nextDrafts);
+        setDirty({});
+      } catch (e) {
+        if (active && e instanceof Error) setError(e.message);
+      }
+    }
+    fetchInitial();
+    return () => {
+      active = false;
+    };
+  }, [sessionId]);
 
   function seatLabel(seat: Seat): string {
     return (
@@ -154,7 +175,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
       await pushDrafts([seatId], "operator_send");
       setFlash("Sent to Cell — Harm, Stability, recovery notes. Lotus not transmitted.");
       setTimeout(() => setFlash(""), 2400);
-      await load();
+      await loadSession();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -183,13 +204,13 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
             ? `Archive Session complete. Reconciled ${count} Operator file(s). Void/Breach once. Lotus unchanged (between sessions).`
             : "Archive already complete — no additional bank reconciliation.",
         );
-        await load();
+        await loadSession();
         return;
       }
 
       const dirtyIds = Object.keys(dirty).filter((id) => dirty[id]);
       await pushDrafts(dirtyIds, kind);
-      await load();
+      await loadSession();
 
       if (kind === "pressure_round") {
         const nextRound = pressureRound + 1;

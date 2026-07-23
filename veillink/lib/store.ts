@@ -85,6 +85,9 @@ export function normalizeRedirectInput(input: unknown) {
     throw publicError("QR foreground and background need stronger contrast.");
   }
 
+  const qrAccent = parsed.qrAccent ? validateHexColor(parsed.qrAccent, "") : "";
+  const qrEyeColor = parsed.qrEyeColor ? validateHexColor(parsed.qrEyeColor, "") : "";
+
   return {
     name: parsed.name,
     slug: slugResult.slug,
@@ -96,6 +99,17 @@ export function normalizeRedirectInput(input: unknown) {
     qr_foreground: qrForeground,
     qr_background: qrBackground,
     qr_ecc: parsed.qrEcc,
+    qr_art: parsed.qrArt,
+    qr_custom_art_url: parsed.qrCustomArtUrl || "",
+    qr_accent: qrAccent,
+    qr_accent_rate: parsed.qrAccentRate ?? 0.025,
+    qr_eye_color: qrEyeColor,
+    qr_frame_style: parsed.qrFrameStyle,
+    qr_frame_title: parsed.qrFrameTitle || "",
+    qr_frame_subtitle: parsed.qrFrameSubtitle || "",
+    qr_node: parsed.qrNode || "",
+    qr_clearance: parsed.qrClearance || "",
+    qr_footer: parsed.qrFooter || "",
   };
 }
 

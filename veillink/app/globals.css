@@ -1143,7 +1143,6 @@ textarea {
 .book-one-panel .toolbar {
   margin-top: 1.25rem;
 }
-}
 @media (max-width: 720px) {
   .book-one-layout {
     grid-template-columns: 1fr;

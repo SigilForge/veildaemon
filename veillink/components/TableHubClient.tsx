@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FREQUENCIES, type Frequency } from "@/lib/table/state";
@@ -27,21 +27,33 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
   const [busy, setBusy] = useState(false);
   const [createdJoin, setCreatedJoin] = useState<{ code: string; url: string; id: string } | null>(null);
 
-  async function load() {
+  const loadOperators = useCallback(async () => {
     const res = await fetch("/api/table/operators");
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Failed to load operators");
     setOperators(data.operators || []);
-    if (!selectedOp && data.operators?.[0]?.id) setSelectedOp(data.operators[0].id);
-  }
-
-  useEffect(() => {
-    load().catch((e) => setError(e.message));
+    if (data.operators?.[0]?.id) setSelectedOp((curr) => curr || data.operators[0].id);
   }, []);
 
   useEffect(() => {
-    if (initialJoinCode) setJoinCode(initialJoinCode.toUpperCase());
-  }, [initialJoinCode]);
+    let active = true;
+    async function init() {
+      try {
+        const res = await fetch("/api/table/operators");
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to load operators");
+        if (!active) return;
+        setOperators(data.operators || []);
+        if (data.operators?.[0]?.id) setSelectedOp((curr) => curr || data.operators[0].id);
+      } catch (e) {
+        if (active && e instanceof Error) setError(e.message);
+      }
+    }
+    init();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function createOperator(e: React.FormEvent) {
     e.preventDefault();
@@ -57,7 +69,7 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
       if (!res.ok) throw new Error(data.error || "Create failed");
       setName("");
       setDesignation("");
-      await load();
+      await loadOperators();
       setSelectedOp(data.operator.id);
     } catch (err) {
       setError((err as Error).message);

@@ -3,6 +3,8 @@ import Link from "next/link";
 import { product } from "@/lib/config";
 import { buildMetadata, faqJsonLd, siteConfig, websiteJsonLd } from "@/lib/seo";
 
+import { QrStudioPreview } from "@/components/QrStudioPreview";
+
 export const metadata: Metadata = buildMetadata({
   title: `${siteConfig.name} · Dynamic QR Codes & Short Links`,
   description: siteConfig.description,
@@ -96,6 +98,10 @@ export default function HomePage() {
             <b>your live URL</b>
           </div>
         </aside>
+      </section>
+
+      <section className="section" aria-label="Interactive QR Studio Sandbox">
+        <QrStudioPreview />
       </section>
 
       <section className="section" aria-labelledby="how-heading">

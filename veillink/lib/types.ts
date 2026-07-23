@@ -10,6 +10,9 @@ export type Profile = {
   suspended_at: string | null;
 };
 
+export type QrArtOption = "none" | "emblem" | "seal" | "mark" | "book-one" | "studio-seal" | "custom";
+export type QrFrameStyleOption = "badge" | "poster" | "tech-card" | "neon";
+
 export type RedirectRecord = {
   id: string;
   user_id: string;
@@ -23,6 +26,17 @@ export type RedirectRecord = {
   qr_foreground: string;
   qr_background: string;
   qr_ecc: "L" | "M" | "Q" | "H";
+  qr_art: QrArtOption;
+  qr_custom_art_url: string;
+  qr_accent: string;
+  qr_accent_rate: number;
+  qr_eye_color: string;
+  qr_frame_style: QrFrameStyleOption;
+  qr_frame_title: string;
+  qr_frame_subtitle: string;
+  qr_node: string;
+  qr_clearance: string;
+  qr_footer: string;
   total_scans: number;
   suspended_at: string | null;
   suspension_reason: string | null;
@@ -41,4 +55,15 @@ export type RedirectInput = {
   qrForeground?: string;
   qrBackground?: string;
   qrEcc?: "L" | "M" | "Q" | "H";
+  qrArt?: QrArtOption;
+  qrCustomArtUrl?: string;
+  qrAccent?: string;
+  qrAccentRate?: number;
+  qrEyeColor?: string;
+  qrFrameStyle?: QrFrameStyleOption;
+  qrFrameTitle?: string;
+  qrFrameSubtitle?: string;
+  qrNode?: string;
+  qrClearance?: string;
+  qrFooter?: string;
 };

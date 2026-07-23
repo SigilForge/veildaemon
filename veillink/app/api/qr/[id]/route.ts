@@ -1,53 +1,12 @@
 import sharp from "sharp";
-import QRCode from "qrcode";
 import { NextRequest, NextResponse } from "next/server";
 import { publicPathUrl, publicSubdomainUrl } from "@/lib/config";
 import { getOwnedRedirect, requireUser } from "@/lib/store";
-import { contrastRatio } from "@/lib/validation";
+import { generateArtisticQrSvg } from "@/lib/qr-generator";
+import type { QrArtOption, QrFrameStyleOption } from "@/lib/types";
 
 function filename(slug: string, extension: string) {
   return `veillink-${slug}.${extension}`;
-}
-
-const EMBLEM_SVG = `<path d="M50 14 L82 50 L50 86 L18 50 Z" fill="none" stroke="CURRENT_FG" stroke-width="6" stroke-linejoin="round"/><circle cx="50" cy="50" r="10" fill="CURRENT_FG"/><path d="M50 28 V72 M28 50 H72" stroke="CURRENT_BG" stroke-width="4"/>`;
-
-const SEAL_SVG = `<circle cx="50" cy="50" r="44" fill="none" stroke="CURRENT_FG" stroke-width="5"/><circle cx="50" cy="50" r="35" fill="none" stroke="CURRENT_FG" stroke-width="2.5" stroke-dasharray="5 3"/><polygon points="50,20 57,36 74,36 60,47 65,64 50,53 35,64 40,47 26,36 43,36" fill="CURRENT_FG"/>`;
-
-const MARK_SVG = `<path d="M20 25 L50 82 L80 25 H64 L50 56 L36 25 Z" fill="CURRENT_FG"/>`;
-
-function embedCenterArt(svgString: string, artType: string, foreground: string, background: string) {
-  if (!artType || artType === "none") return svgString;
-
-  const viewBoxMatch = svgString.match(/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/i);
-  const width = viewBoxMatch ? parseFloat(viewBoxMatch[1]) : 100;
-
-  const badgeSize = Math.round(width * 0.22);
-  const x = (width - badgeSize) / 2;
-  const y = (width - badgeSize) / 2;
-  const rx = Math.round(badgeSize * 0.22);
-  const strokeWidth = Math.max(1.5, Math.round(width / 120));
-
-  let artPath = "";
-  if (artType === "emblem") {
-    artPath = EMBLEM_SVG.replaceAll("CURRENT_FG", foreground).replaceAll("CURRENT_BG", background);
-  } else if (artType === "seal") {
-    artPath = SEAL_SVG.replaceAll("CURRENT_FG", foreground).replaceAll("CURRENT_BG", background);
-  } else if (artType === "mark") {
-    artPath = MARK_SVG.replaceAll("CURRENT_FG", foreground).replaceAll("CURRENT_BG", background);
-  } else {
-    return svgString;
-  }
-
-  const artGroup = `
-  <g id="qr-center-art">
-    <rect x="${x}" y="${y}" width="${badgeSize}" height="${badgeSize}" rx="${rx}" fill="${background}" stroke="${foreground}" stroke-width="${strokeWidth}"/>
-    <g transform="translate(${x} ${y}) scale(${badgeSize / 100})">
-      ${artPath}
-    </g>
-  </g>
-</svg>`;
-
-  return svgString.replace("</svg>", artGroup);
 }
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -57,32 +16,42 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   const searchParams = request.nextUrl.searchParams;
 
   const format = searchParams.get("format") === "png" ? "png" : "svg";
-  const art = (searchParams.get("art") || "none").toLowerCase();
+  const art = (searchParams.get("art") || redirect.qr_art || "emblem") as QrArtOption;
+  const frameStyle = (searchParams.get("frame") || redirect.qr_frame_style || "badge") as QrFrameStyleOption;
 
-  const customFg = searchParams.get("fg");
-  const customBg = searchParams.get("bg");
+  const foreground = searchParams.get("fg") || redirect.qr_foreground;
+  const background = searchParams.get("bg") || redirect.qr_background;
+  const accent = searchParams.get("accent") || redirect.qr_accent || "";
+  const eyeColor = searchParams.get("eye") || redirect.qr_eye_color || "";
+  const customArtUrl = searchParams.get("customArt") || redirect.qr_custom_art_url || "";
 
-  const foreground = customFg && /^#[0-9a-f]{6}$/i.test(customFg) ? customFg : redirect.qr_foreground;
-  const background = customBg && /^#[0-9a-f]{6}$/i.test(customBg) ? customBg : redirect.qr_background;
-
-  const safeForeground = contrastRatio(foreground, background) >= 4.5 ? foreground : "#111827";
-  const safeBackground = contrastRatio(foreground, background) >= 4.5 ? background : "#ffffff";
-  const ecc = art !== "none" ? "H" : redirect.qr_ecc;
+  const frameTitle = searchParams.get("title") || redirect.qr_frame_title || redirect.name || "VEILCORP ARCHIVES";
+  const frameSubtitle = searchParams.get("subtitle") || redirect.qr_frame_subtitle || "ACCESS NODE // VERIFIED";
+  const node = searchParams.get("node") || redirect.qr_node || "PUBLIC INTAKE";
+  const clearance = searchParams.get("clearance") || redirect.qr_clearance || "OBSERVER";
+  const footer = searchParams.get("footer") || redirect.qr_footer || "HUMAN AUTHORIZATION PARTIAL. SURVIVAL AUTHORIZATION ACTIVE.";
 
   const stableUrl = redirect.routing_mode === "subdomain" ? publicSubdomainUrl(redirect.slug) : publicPathUrl(redirect.slug);
 
-  const rawSvg = await QRCode.toString(stableUrl, {
-    type: "svg",
-    errorCorrectionLevel: ecc,
-    margin: 4,
-    color: { dark: safeForeground, light: safeBackground },
+  const finalSvg = await generateArtisticQrSvg({
+    url: stableUrl,
+    foreground,
+    background,
+    accent,
+    eyeColor,
+    art,
+    customArtUrl,
+    frameStyle,
+    frameTitle,
+    frameSubtitle,
+    node,
+    clearance,
+    footer,
+    ecc: redirect.qr_ecc,
   });
-
-  const finalSvg = embedCenterArt(rawSvg, art, safeForeground, safeBackground);
 
   if (format === "png") {
     const pngBuffer = await sharp(Buffer.from(finalSvg))
-      .resize(1200, 1200, { kernel: "nearest" })
       .png()
       .toBuffer();
 

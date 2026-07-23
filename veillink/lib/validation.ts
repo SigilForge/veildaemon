@@ -80,6 +80,9 @@ export function contrastRatio(foreground: string, background: string) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
+export const artOptions = ["none", "emblem", "seal", "mark", "book-one", "studio-seal", "custom"] as const;
+export const frameStyleOptions = ["badge", "poster", "tech-card", "neon"] as const;
+
 export const redirectInputSchema = z.object({
   name: z.string().trim().min(1).max(120),
   slug: z.string().trim().min(1).max(80),
@@ -91,4 +94,15 @@ export const redirectInputSchema = z.object({
   qrForeground: z.string().trim().optional().default("#111827"),
   qrBackground: z.string().trim().optional().default("#ffffff"),
   qrEcc: z.enum(errorCorrectionLevels).optional().default("H"),
+  qrArt: z.enum(artOptions).optional().default("emblem"),
+  qrCustomArtUrl: z.string().trim().max(200000).optional().default(""),
+  qrAccent: z.string().trim().optional().default(""),
+  qrAccentRate: z.number().min(0).max(0.15).optional().default(0.025),
+  qrEyeColor: z.string().trim().optional().default(""),
+  qrFrameStyle: z.enum(frameStyleOptions).optional().default("badge"),
+  qrFrameTitle: z.string().trim().max(120).optional().default(""),
+  qrFrameSubtitle: z.string().trim().max(120).optional().default(""),
+  qrNode: z.string().trim().max(120).optional().default(""),
+  qrClearance: z.string().trim().max(120).optional().default(""),
+  qrFooter: z.string().trim().max(200).optional().default(""),
 });

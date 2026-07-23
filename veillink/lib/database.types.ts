@@ -37,6 +37,17 @@ export type Database = {
           qr_foreground: string;
           qr_background: string;
           qr_ecc: "L" | "M" | "Q" | "H";
+          qr_art: "none" | "emblem" | "seal" | "mark" | "book-one" | "studio-seal" | "custom";
+          qr_custom_art_url: string;
+          qr_accent: string;
+          qr_accent_rate: number;
+          qr_eye_color: string;
+          qr_frame_style: "badge" | "poster" | "tech-card" | "neon";
+          qr_frame_title: string;
+          qr_frame_subtitle: string;
+          qr_node: string;
+          qr_clearance: string;
+          qr_footer: string;
           total_scans: number;
           suspended_at: string | null;
           suspension_reason: string | null;
