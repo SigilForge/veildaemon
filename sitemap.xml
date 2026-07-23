@@ -9,7 +9,7 @@
   </url>
   <url>
     <loc>https://veildaemon.app/updates/</loc>
-    <lastmod>2026-07-15</lastmod>
+    <lastmod>2026-07-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
@@ -155,9 +155,8 @@
   </url>
 
   <!-- relay-news:start -->
-  <url><loc>https://veildaemon.app/studio/news/</loc><lastmod>2026-07-23</lastmod><changefreq>weekly</changefreq><priority>0.65</priority></url>
-  <url><loc>https://veildaemon.app/studio/news/archive-lattice-revision-2026-07-23/</loc><lastmod>2026-07-23</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>
-<!-- relay-news:end -->
+  <url><loc>https://veildaemon.app/studio/news/</loc><lastmod>2026-07-15</lastmod><changefreq>weekly</changefreq><priority>0.65</priority></url>
+  <!-- relay-news:end -->
 
   <!-- Live tabletop software surfaces -->
   <url>
