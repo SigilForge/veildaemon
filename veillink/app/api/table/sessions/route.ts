@@ -8,6 +8,7 @@ export async function POST(request: Request) {
     const session = await createHandlerSession({
       needlepoint: body.needlepoint,
       mission: body.mission,
+      maxOperators: body.maxOperators ?? body.max_operators ?? null,
     });
     const joinUrl = `${product.appUrl}/table/join?code=${session.join_code}`;
     return NextResponse.json({ session, joinUrl }, { status: 201 });

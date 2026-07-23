@@ -141,6 +141,7 @@ export type Database = {
           status: "open" | "closed";
           needlepoint: string;
           mission: string;
+          max_operators: number | null;
           created_at: string;
           closed_at: string | null;
           updated_at: string;

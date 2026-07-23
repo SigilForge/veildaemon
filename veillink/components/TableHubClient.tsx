@@ -20,6 +20,7 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
   const [selectedOp, setSelectedOp] = useState("");
   const [needlepoint, setNeedlepoint] = useState("Needlepoint 001");
   const [mission, setMission] = useState("");
+  const [maxOperators, setMaxOperators] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [createdJoin, setCreatedJoin] = useState<{ code: string; url: string; id: string } | null>(null);
@@ -71,7 +72,11 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
       const res = await fetch("/api/table/sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ needlepoint, mission }),
+        body: JSON.stringify({
+          needlepoint,
+          mission,
+          maxOperators: maxOperators.trim() === "" ? null : Number(maxOperators),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Session create failed");
@@ -165,6 +170,18 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
             Mission note
             <input value={mission} onChange={(e) => setMission(e.target.value)} maxLength={200} placeholder="First contact intake" />
           </label>
+          <label>
+            Lobby seat cap (optional)
+            <input
+              type="number"
+              min={1}
+              max={32}
+              value={maxOperators}
+              onChange={(e) => setMaxOperators(e.target.value)}
+              placeholder="Leave empty for no cap"
+            />
+          </label>
+          <p className="muted small">Only set if you want a fixed table size (e.g. 4 or 6). Empty = uncapped.</p>
           <button className="button primary" type="submit" disabled={busy}>
             Create Handler session
           </button>

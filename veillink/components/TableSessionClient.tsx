@@ -22,6 +22,7 @@ type Bundle = {
     needlepoint: string;
     mission: string;
     handler_user_id: string;
+    max_operators?: number | null;
   };
   states: Seat[];
   role: "handler" | "operator";
@@ -168,7 +169,8 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
       {flash ? <p className="flash-ok">{flash}</p> : null}
 
       <p className="muted small">
-        Seats: {bundle.states.length} / 6 active Operators
+        Seats: {bundle.states.length} active
+        {bundle.session.max_operators != null ? ` · lobby cap ${bundle.session.max_operators}` : " · no lobby cap"}
       </p>
 
       {!bundle.states.length ? (

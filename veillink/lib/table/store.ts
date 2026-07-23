@@ -39,8 +39,13 @@ export async function createOperator(input: { displayName: string; designation?:
   return data;
 }
 
-export async function createHandlerSession(input?: { needlepoint?: string; mission?: string }) {
+export async function createHandlerSession(input?: {
+  needlepoint?: string;
+  mission?: string;
+  maxOperators?: number | null;
+}) {
   const { user, supabase } = await requireUser();
+  const maxOperators = normalizeSeatCap(input?.maxOperators);
   let code = generateJoinCode();
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const { data, error } = await supabase
@@ -50,6 +55,7 @@ export async function createHandlerSession(input?: { needlepoint?: string; missi
         join_code: code,
         needlepoint: String(input?.needlepoint || "").slice(0, 120),
         mission: String(input?.mission || "").slice(0, 200),
+        max_operators: maxOperators,
       })
       .select("*")
       .single();
@@ -60,8 +66,31 @@ export async function createHandlerSession(input?: { needlepoint?: string; missi
   throw publicError("Could not allocate join code.", 500);
 }
 
-/** Soft table size for live-link V1 (hobby table, not MMO). */
-export const MAX_SESSION_OPERATORS = 6;
+/** Optional lobby ceiling only — null means uncapped. Absolute safety bound for abuse, not product design. */
+export const ABSOLUTE_MAX_SESSION_OPERATORS = 32;
+
+function normalizeSeatCap(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n) || n < 1) return null;
+  return Math.min(n, ABSOLUTE_MAX_SESSION_OPERATORS);
+}
+
+async function assertSeatAvailable(
+  admin: ReturnType<typeof getSupabaseAdminClient>,
+  sessionId: string,
+  maxOperators: number | null,
+) {
+  if (maxOperators == null) return;
+  const { count: activeCount } = await admin
+    .from("session_operator_state")
+    .select("id", { count: "exact", head: true })
+    .eq("session_id", sessionId)
+    .is("left_at", null);
+  if ((activeCount || 0) >= maxOperators) {
+    throw publicError(`Session is full (Handler set a ${maxOperators}-Operator lobby cap).`, 409);
+  }
+}
 
 export async function joinSession(input: { joinCode: string; operatorProfileId: string }) {
   const { user, supabase } = await requireUser();
@@ -90,6 +119,8 @@ export async function joinSession(input: { joinCode: string; operatorProfileId: 
     .single();
   if (sessionError || !session) throw publicError("No open session for that code.", 404);
 
+  const seatCap = normalizeSeatCap((session as { max_operators?: number | null }).max_operators);
+
   const snapshot = defaultLiveState(
     (profile.persistent_state || {}) as Partial<LiveState>,
   );
@@ -105,15 +136,7 @@ export async function joinSession(input: { joinCode: string; operatorProfileId: 
 
   if (existing) {
     if (existing.left_at) {
-      // Re-seat counts as a seat again — enforce cap among currently active seats.
-      const { count: activeCount } = await admin
-        .from("session_operator_state")
-        .select("id", { count: "exact", head: true })
-        .eq("session_id", session.id)
-        .is("left_at", null);
-      if ((activeCount || 0) >= MAX_SESSION_OPERATORS) {
-        throw publicError(`Session is full (${MAX_SESSION_OPERATORS} Operators max).`, 409);
-      }
+      await assertSeatAvailable(admin, session.id, seatCap);
       const { data: reopened, error } = await supabase
         .from("session_operator_state")
         .update({
@@ -131,14 +154,7 @@ export async function joinSession(input: { joinCode: string; operatorProfileId: 
     return { session, state: existing, profile };
   }
 
-  const { count: activeCount } = await admin
-    .from("session_operator_state")
-    .select("id", { count: "exact", head: true })
-    .eq("session_id", session.id)
-    .is("left_at", null);
-  if ((activeCount || 0) >= MAX_SESSION_OPERATORS) {
-    throw publicError(`Session is full (${MAX_SESSION_OPERATORS} Operators max).`, 409);
-  }
+  await assertSeatAvailable(admin, session.id, seatCap);
 
   const { data: state, error } = await supabase
     .from("session_operator_state")

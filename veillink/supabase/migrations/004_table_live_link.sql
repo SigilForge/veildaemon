@@ -22,6 +22,8 @@ create table public.handler_sessions (
   status public.table_session_status not null default 'open',
   needlepoint text not null default '' check (char_length(needlepoint) <= 120),
   mission text not null default '' check (char_length(mission) <= 200),
+  -- null = no lobby cap; Handler may set when opening the session
+  max_operators integer check (max_operators is null or (max_operators >= 1 and max_operators <= 32)),
   created_at timestamptz not null default now(),
   closed_at timestamptz,
   updated_at timestamptz not null default now()
