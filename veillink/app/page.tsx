@@ -7,7 +7,7 @@ export default function HomePage() {
       <section className="hero">
         <h1>Editable QR codes without the ransom note.</h1>
         <p className="lede">
-          Create branded QR codes and short links you control. Change the destination anytime without reprinting anything.
+          Print once. Change the destination forever. Your QR code stays the same, even when your business changes.
         </p>
         <div className="toolbar">
           <Link className="button" href="/signup">Create a free link</Link>

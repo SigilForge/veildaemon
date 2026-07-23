@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Technology | VeilDaemon &amp; Tools | Cradlepoint Studio</title>
-  <meta name="description" content="Live VeilDaemon Operator and Handler tools, local-first infrastructure, VeilForge development, platform work, and separately scoped Mobile AR planning.">
+  <meta name="description" content="Live VeilDaemon Operator and Handler tools, VeilLink dynamic QR links, local-first infrastructure, VeilForge development, platform work, and separately scoped Mobile AR planning.">
   <meta name="robots" content="index, follow, max-snippet:160, max-image-preview:large">
   <link rel="canonical" href="https://veildaemon.app/studio/technology/">
   <meta property="og:type" content="website">
@@ -45,7 +45,7 @@
     </section>
 
     <section class="technology-brief" aria-label="Technology at a glance">
-      <div><span>Live now</span><strong>VeilDaemon + Operator and Handler browser tools</strong></div>
+      <div><span>Live now</span><strong>VeilDaemon + VeilLink + Operator and Handler browser tools</strong></div>
       <div><span>Technical model</span><strong>Local-first tools · open core · protected creative layer</strong></div>
       <div><span>Next platform work</span><strong>Reliability, refinement, accessibility, and connected content</strong></div>
       <div><span>Separately scoped</span><strong>Mobile AR proof of concept and MVP</strong></div>
@@ -71,6 +71,17 @@
         <div class="media-frame">
           <img src="/studio/press/media/software-veildaemon.webp" alt="VeilDaemon software hero interface" width="1200" height="675" loading="eager">
         </div>
+      </div>
+    </section>
+
+    <section class="tech-zone live-zone" id="veillink">
+      <div class="section-kicker"><p class="eyebrow">Live · SaaS MVP</p><h2>VeilLink</h2></div>
+      <p class="tech-intro">VeilLink is the Studio’s dynamic QR and editable short-link product: printed QR codes keep a stable public URL while the destination can change later. The live app uses Supabase Auth/Postgres, live Stripe subscription billing configuration, redirect ownership enforcement, QR downloads, scan storage, and server-side free-plan limits.</p>
+      <div class="capability-grid">
+        <article><h3>Stable QR targets</h3><p>Printed QR codes point to <code>go.veildaemon.app</code> links that can resolve to updated destinations without reprinting.</p></article>
+        <article><h3>Editable redirects</h3><p>Authenticated users can create, update, pause, and manage their own path or subdomain redirects.</p></article>
+        <article><h3>Live Stripe billing</h3><p>Live Stripe catalog, subscription checkout routes, customer portal routing, webhook idempotency, and deployment checklist are in place.</p></article>
+        <article><h3>Operational status</h3><p><span class="status-pill live">Live MVP</span> deployed at <a href="https://app.veildaemon.app/" target="_blank" rel="noopener noreferrer">app.veildaemon.app ↗</a>.</p></article>
       </div>
     </section>
 

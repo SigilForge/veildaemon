@@ -2,8 +2,8 @@
 
 > **Open-web summary only.** Not the private Cradlepoint archive. Full diligence materials are shared by request, not linked here.
 
-**Studio:** Cradlepoint Studio  
-**As-of:** July 2026  
+**Studio:** Cradlepoint Studio<br>
+**As-of:** July 2026<br>
 **Access:** Public
 
 ## Shipping / live
@@ -14,6 +14,7 @@
 | Operator Core | Shipping | Paid Operator core | itch storefront |
 | Handler Core | Shipping | Paid Handler core | itch storefront |
 | VeilDaemon | Live | Operator/Handler software | https://veildaemon.app/ |
+| VeilLink | Live SaaS MVP | Dynamic QR and editable short-link product | https://app.veildaemon.app/ |
 | Public wiki archive | Live | Public lore and archive reference | https://wiki.veildaemon.app/ |
 
 ## In development / planning
