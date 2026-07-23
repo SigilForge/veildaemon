@@ -1,8 +1,8 @@
 const EXPECTED_PRICE_ID = process.env.BOOK_ONE_STRIPE_PRICE_ID || "price_1TwE0oFht6uPr4mz4thEHLpN";
 const DEFAULT_BUCKET = "paid-downloads";
-const DEFAULT_PDF_PATH = "book-one/the-cradlepoint-archive-book-one-v47-2a-print-edition-verified.pdf";
-const DEFAULT_EPUB_PATH = "book-one/the-cradlepoint-archive-book-one-current.epub";
-const DEFAULT_MOBI_PATH = "book-one/the-cradlepoint-archive-book-one-current.mobi";
+const DEFAULT_PDF_PATH = "book-one/the-cradlepoint-archive-book-one-v47-2b-print-edition-verified.pdf";
+const DEFAULT_EPUB_PATH = "book-one/the-cradlepoint-archive-book-one-v47-2b.epub";
+const DEFAULT_MOBI_PATH = "book-one/the-cradlepoint-archive-book-one-v47-2b.mobi";
 const DEFAULT_WALLPAPER_PATH = "book-one/book-one-wallpaper-pack.zip";
 const DEFAULT_TTL_SECONDS = 900;
 

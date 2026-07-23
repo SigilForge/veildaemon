@@ -5,9 +5,9 @@ in the private Supabase Storage bucket (`paid-downloads`) used by the Vercel cla
 
 Active private objects in delivery bucket:
 
-- `book-one/the-cradlepoint-archive-book-one-v47-2a-print-edition-verified.pdf` (Verified print PDF)
-- `book-one/the-cradlepoint-archive-book-one-current.epub` (Refreshed reflowable EPUB ebook)
-- `book-one/the-cradlepoint-archive-book-one-current.mobi` (Kindle MOBI ebook)
+- `book-one/the-cradlepoint-archive-book-one-v47-2b-print-edition-verified.pdf` (Verified print PDF)
+- `book-one/the-cradlepoint-archive-book-one-v47-2b.epub` (Refreshed reflowable EPUB ebook)
+- `book-one/the-cradlepoint-archive-book-one-v47-2b.mobi` (Kindle MOBI ebook)
 - `book-one/book-one-wallpaper-pack.zip` (10 clean/title wallpaper plates)
 
 Default private storage route:

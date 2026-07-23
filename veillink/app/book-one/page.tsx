@@ -51,7 +51,7 @@ export default async function BookOnePage() {
             entitlement on your account, then issues short-lived private download links for the PDF, EPUB, MOBI, and wallpaper pack.
           </p>
           <ul className="book-one-includes">
-            <li>Verified print-edition PDF · DRM-free</li>
+            <li>Verified print-edition PDF (v47-2b) · DRM-free</li>
             <li>Reflowable EPUB & MOBI ebook editions</li>
             <li>Wallpaper pack · desktop clean/title + phone plates</li>
             <li>Direct buyers keep access when shelf files update</li>
