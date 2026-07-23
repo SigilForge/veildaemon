@@ -13,7 +13,17 @@ type Props = {
 export function AuthForm({ title, action, submit, error, reset, signup, updatePassword }: Props) {
   return (
     <main className="page">
+      <p className="eyebrow">Account</p>
       <h1 className="page-title">{title}</h1>
+      <p className="lede">
+        {signup
+          ? "Create a free account to issue short links and editable QR codes."
+          : reset
+            ? "We will email a reset link if the address is on file."
+            : updatePassword
+              ? "Choose a new password for this account."
+              : "Sign in to manage redirects, downloads, and billing."}
+      </p>
       {error ? <p className="error" role="alert">{error === "terms" ? "Accept the terms to create an account." : error}</p> : null}
       <form className="form panel" action={action}>
         {!updatePassword ? (
@@ -30,7 +40,10 @@ export function AuthForm({ title, action, submit, error, reset, signup, updatePa
         ) : null}
         {signup ? (
           <label>
-            <span><input name="terms" type="checkbox" required /> I agree not to use VeilLink for phishing, malware, impersonation, spam, or illegal content.</span>
+            <span>
+              <input name="terms" type="checkbox" required /> I agree not to use VeilLink for phishing, malware,
+              impersonation, spam, or illegal content.
+            </span>
           </label>
         ) : null}
         <button type="submit">{submit}</button>

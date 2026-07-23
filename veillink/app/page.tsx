@@ -4,22 +4,139 @@ import { product } from "@/lib/config";
 export default function HomePage() {
   return (
     <main className="page">
-      <section className="hero">
-        <h1>Editable QR codes without the ransom note.</h1>
-        <p className="lede">
-          Print once. Change the destination forever. Your QR code stays the same, even when your business changes.
-        </p>
-        <div className="toolbar">
-          <Link className="button" href="/signup">Create a free link</Link>
-          <Link className="button secondary" href="/pricing">See pricing</Link>
+      <section className="hero hero-grid">
+        <div>
+          <p className="eyebrow">Short links · dynamic QR</p>
+          <h1>
+            Editable QR codes
+            <br />
+            without the <em>ransom note</em>.
+          </h1>
+          <p className="lede">
+            Print once. Change the destination whenever the business moves. Your QR stays the same file; the redirect
+            behind it updates when you do.
+          </p>
+          <div className="toolbar">
+            <Link className="button" href="/signup">
+              Create a free link
+            </Link>
+            <Link className="button secondary" href="/pricing">
+              See pricing
+            </Link>
+          </div>
+          <div className="proof-row" aria-label="Product traits">
+            <span className="proof-chip">PNG + SVG downloads</span>
+            <span className="proof-chip">Scan counts</span>
+            <span className="proof-chip">Pause + expire</span>
+            <span className="proof-chip">No fake metrics</span>
+          </div>
+        </div>
+
+        <aside className="demo-plate" aria-label="How a VeilLink redirect works">
+          <div className="demo-qr" aria-hidden="true" />
+          <div className="demo-meta">
+            <strong>One code. Moving target.</strong>
+            <span>The printed QR never needs a reprint when the menu, booking link, or form changes.</span>
+          </div>
+          <div className="demo-flow" aria-hidden="true">
+            <b>QR file</b>
+            <em>→</em>
+            <b>{product.pathHost}/you</b>
+          </div>
+          <div className="demo-flow" aria-hidden="true">
+            <b>{product.pathHost}/you</b>
+            <em>→</em>
+            <b>your live URL</b>
+          </div>
+        </aside>
+      </section>
+
+      <section className="section" aria-labelledby="how-heading">
+        <div className="section-head">
+          <p className="eyebrow">How it works</p>
+          <h2 id="how-heading">A stable front door for destinations that change.</h2>
+        </div>
+        <div className="steps">
+          <article>
+            <div>
+              <h3>Create a short link</h3>
+              <p className="muted">
+                Pick a slug on {product.pathHost}. That URL is what the QR encodes—not your current booking page.
+              </p>
+            </div>
+          </article>
+          <article>
+            <div>
+              <h3>Print or share the QR</h3>
+              <p className="muted">
+                Download PNG or SVG. Stickers, flyers, menus, and tables can use a code that does not age out with the
+                first redesign.
+              </p>
+            </div>
+          </article>
+          <article>
+            <div>
+              <h3>Edit the destination later</h3>
+              <p className="muted">
+                Swap the landing page, pause traffic, or set an expiration—without regenerating every physical print.
+              </p>
+            </div>
+          </article>
         </div>
       </section>
 
-      <section className="grid" aria-label={`${product.name} features`}>
-        <div className="panel"><h2>How it works</h2><p className="muted">Your QR points to a stable VeilLink URL. You edit the destination behind it whenever you need.</p></div>
-        <div className="panel"><h2>Static vs dynamic</h2><p className="muted">Static QR files keep working as files. Dynamic redirects depend on this service staying active.</p></div>
-        <div className="panel"><h2>Useful by default</h2><p className="muted">Short links, PNG/SVG QR downloads, scan counts, expiration dates, and pause controls.</p></div>
-        <div className="panel"><h2>Built for sanity</h2><p className="muted">No fake customer counts, no mystery lock-in, no pretending a QR is more magical than a redirect.</p></div>
+      <section className="section" aria-label={`${product.name} features`}>
+        <div className="section-head">
+          <p className="eyebrow">What you get</p>
+          <h2>Useful by default. Honest about tradeoffs.</h2>
+        </div>
+        <div className="grid">
+          <div className="panel">
+            <p className="panel-kicker">Dynamic redirects</p>
+            <h2>Change the target, keep the code</h2>
+            <p className="muted">
+              The QR points at a VeilLink URL you control. Update the destination when the business does.
+            </p>
+          </div>
+          <div className="panel">
+            <p className="panel-kicker">Static truth</p>
+            <h2>Static vs dynamic, plain English</h2>
+            <p className="muted">
+              Static QR files keep working as files. Dynamic redirects depend on this service staying active—we say that
+              out loud.
+            </p>
+          </div>
+          <div className="panel">
+            <p className="panel-kicker">Operator tools</p>
+            <h2>Counts, pause, and expiry</h2>
+            <p className="muted">
+              Scan totals, pause controls, expiration dates, and short-path or subdomain routing when your plan allows.
+            </p>
+          </div>
+          <div className="panel">
+            <p className="panel-kicker">Built for sanity</p>
+            <h2>No theatrical SaaS fog</h2>
+            <p className="muted">
+              No fake customer counts, no mystery lock-in, no pretending a redirect is more magical than it is.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="closing" aria-labelledby="closing-heading">
+        <p className="eyebrow">Start small</p>
+        <h2 id="closing-heading">Three free active redirects. Upgrade when the wall of stickers gets real.</h2>
+        <p className="lede">
+          Free is enough to prove the workflow. Pro and Business add capacity when you are past the experiment stage.
+        </p>
+        <div className="toolbar">
+          <Link className="button" href="/signup">
+            Start free
+          </Link>
+          <Link className="button secondary" href="/pricing">
+            Compare plans
+          </Link>
+        </div>
       </section>
     </main>
   );
