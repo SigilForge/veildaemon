@@ -2642,9 +2642,76 @@ footer > p {
 body.digital-shelf-page .digital-hero .shelf-hero-art img {
   object-position: top center;
 }
+.wallpaper-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .85rem;
+  margin-top: 1.25rem;
+}
+.wallpaper-card {
+  display: grid;
+  gap: .7rem;
+  padding: .7rem;
+  border: 1px solid rgba(22,24,23,.12);
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,.48);
+  min-width: 0;
+}
+.wallpaper-card img {
+  width: 100%;
+  border-radius: calc(var(--radius-sm) - 2px);
+  background: #111314;
+  object-fit: cover;
+}
+.wallpaper-card.desktop img {
+  aspect-ratio: 16 / 9;
+  object-position: center;
+}
+.wallpaper-card.mobile img {
+  aspect-ratio: 9 / 16;
+  max-height: 22rem;
+  justify-self: center;
+  width: auto;
+  max-width: 100%;
+  object-position: center top;
+}
+.wallpaper-card span {
+  color: var(--rust-soft);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.wallpaper-card h3 {
+  margin: .2rem 0 .35rem;
+  font-size: 1.1rem;
+}
+.wallpaper-card p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: .82rem;
+  line-height: 1.4;
+}
+.wallpaper-card b {
+  display: inline-block;
+  margin-top: .45rem;
+  color: var(--rust-soft);
+  font-size: .72rem;
+}
+@media (max-width: 980px) {
+  .wallpaper-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 @media (max-width: 720px) {
   .dossier-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .wallpaper-grid {
+    grid-template-columns: 1fr;
+  }
+  .wallpaper-card.mobile img {
+    max-height: 18rem;
   }
 }
 @media (max-width: 480px) {
