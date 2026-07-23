@@ -2500,7 +2500,12 @@ footer > p {
 }
 .book-cover {
   border-radius: .45rem;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 2 / 3;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, rgba(10,12,13,.4), rgba(10,12,13,.15)),
+    #0a0c0d;
 }
 .shelf-hero-art img,
 .book-cover img {
@@ -2510,8 +2515,9 @@ footer > p {
   display: block;
 }
 .book-cover img {
-  transform: scale(1.28);
-  transform-origin: center;
+  object-fit: contain;
+  object-position: center center;
+  transform: none;
 }
 .shelf-hero-art::after,
 .book-cover::after {
@@ -2520,6 +2526,10 @@ footer > p {
   inset: 0;
   pointer-events: none;
   background: linear-gradient(0deg, rgba(9,11,12,.72), rgba(9,11,12,.05) 55%);
+}
+/* Full cover plate: light gradient only so title art stays readable */
+.book-cover::after {
+  background: linear-gradient(0deg, rgba(9,11,12,.42), rgba(9,11,12,0) 42%);
 }
 .shelf-hero-art figcaption,
 .book-cover figcaption {
