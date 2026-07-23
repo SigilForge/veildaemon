@@ -464,11 +464,11 @@ button:disabled {
   position: relative;
   z-index: 1;
   display: block;
-  width: min(100%, 12.5rem);
+  width: min(100%, 14.5rem);
   aspect-ratio: 1;
   margin: 0 auto 1rem;
-  border-radius: 0.9rem;
-  border: 1px solid rgba(243, 240, 234, 0.2);
+  border-radius: 1rem;
+  border: 1px solid rgba(243, 240, 234, 0.22);
   background: var(--paper-3);
   box-shadow: var(--shadow-md);
   overflow: hidden;

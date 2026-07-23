@@ -64,10 +64,10 @@ export default function HomePage() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/brand/demo-qr-play.webp"
-              alt="QR code linking to play.veildaemon.app"
-              width={720}
-              height={720}
+              src="/brand/demo-qr-play.webp?v=20260723-color2"
+              alt="Colorful QR code linking to play.veildaemon.app"
+              width={688}
+              height={688}
               decoding="async"
             />
           </a>
