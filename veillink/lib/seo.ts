@@ -53,6 +53,10 @@ type BuildMetaInput = {
   noIndex?: boolean;
   type?: "website" | "article";
   imageAlt?: string;
+  /** Absolute path on this app (e.g. /brand/book-one-og.webp) or full URL. */
+  image?: string;
+  imageWidth?: number;
+  imageHeight?: number;
 };
 
 export function buildMetadata({
@@ -63,11 +67,18 @@ export function buildMetadata({
   noIndex = false,
   type = "website",
   imageAlt,
+  image,
+  imageWidth = 1200,
+  imageHeight = 630,
 }: BuildMetaInput): Metadata {
   const url = absoluteUrl(path);
   const fullTitle = title.includes(siteConfig.name) ? title : `${title} · ${siteConfig.name}`;
   const keywordList = [...new Set([...siteConfig.keywords, ...keywords])];
-  const ogImage = absoluteUrl("/og.png");
+  const ogImage = image
+    ? image.startsWith("http")
+      ? image
+      : absoluteUrl(image)
+    : absoluteUrl("/og.png");
 
   return {
     title,
@@ -108,8 +119,8 @@ export function buildMetadata({
       images: [
         {
           url: ogImage,
-          width: 1200,
-          height: 630,
+          width: imageWidth,
+          height: imageHeight,
           alt: imageAlt || `${siteConfig.name} — ${siteConfig.tagline}`,
         },
       ],

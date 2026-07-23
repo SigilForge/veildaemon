@@ -1066,3 +1066,69 @@ textarea {
   margin: 0.75rem 0 0.5rem;
 }
 .seat-head-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+/* Book One purchase */
+.book-one-page .lede {
+  max-width: 42rem;
+}
+.book-one-layout {
+  display: grid;
+  grid-template-columns: minmax(11rem, 16rem) minmax(0, 1fr);
+  gap: 1.5rem 1.75rem;
+  align-items: start;
+  margin-top: 0.35rem;
+}
+.book-one-cover {
+  margin: 0;
+  padding: 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: rgba(10, 12, 13, 0.92);
+  box-shadow: var(--shadow-md);
+  display: grid;
+  gap: 0.65rem;
+  justify-items: center;
+}
+.book-one-cover img {
+  width: 100%;
+  height: auto;
+  max-width: 16rem;
+  border-radius: 0.35rem;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+  display: block;
+}
+.book-one-cover figcaption {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  text-align: center;
+  line-height: 1.4;
+}
+.book-one-panel {
+  min-height: 100%;
+}
+.book-one-includes {
+  margin: 1rem 0 0;
+  padding-left: 1.15rem;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.book-one-includes li {
+  margin: 0.25rem 0;
+}
+.book-one-panel .toolbar {
+  margin-top: 1.25rem;
+}
+@media (max-width: 720px) {
+  .book-one-layout {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .book-one-cover {
+    width: min(100%, 18rem);
+  }
+  .book-one-panel {
+    width: 100%;
+  }
+}
