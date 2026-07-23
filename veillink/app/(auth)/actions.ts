@@ -8,31 +8,38 @@ function field(formData: FormData, name: string) {
   return String(formData.get(name) || "").trim();
 }
 
+function safeNextPath(value: string) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/dashboard";
+  return value;
+}
+
 export async function signUp(formData: FormData) {
   const supabase = await getSupabaseServerClient();
   const email = field(formData, "email");
   const password = field(formData, "password");
+  const next = safeNextPath(field(formData, "next"));
   const accepted = formData.get("terms") === "on";
-  if (!accepted) redirect("/signup?error=terms");
+  if (!accepted) redirect(`/signup?error=terms&next=${encodeURIComponent(next)}`);
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${product.appUrl}/dashboard`,
+      emailRedirectTo: `${product.appUrl}${next}`,
     },
   });
-  if (error) redirect(`/signup?error=${encodeURIComponent(error.message)}`);
-  redirect("/dashboard");
+  if (error) redirect(`/signup?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+  redirect(next);
 }
 
 export async function login(formData: FormData) {
   const supabase = await getSupabaseServerClient();
+  const next = safeNextPath(field(formData, "next"));
   const { error } = await supabase.auth.signInWithPassword({
     email: field(formData, "email"),
     password: field(formData, "password"),
   });
-  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
-  redirect("/dashboard");
+  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+  redirect(next);
 }
 
 export async function logout() {

@@ -64,6 +64,11 @@ function signedUrlTtlSeconds() {
   return Math.min(Math.max(Math.trunc(ttl), 60), 3600);
 }
 
+function cleanUuid(value) {
+  const uuid = String(value || "").trim();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid) ? uuid : null;
+}
+
 function encodedObjectPath(path) {
   return path.split("/").map(encodeURIComponent).join("/");
 }
@@ -190,6 +195,7 @@ async function upsertPurchaseEntitlement(session) {
     purchased_at_input: session.created ? new Date(session.created * 1000).toISOString() : null,
     storage_bucket_input: storageBucket(),
     storage_path_input: storageObjectPath(),
+    auth_user_id_input: cleanUuid(session.metadata && session.metadata.user_id),
   };
 
   return callSupabaseRpc("upsert_book_one_purchase_entitlement", payload);

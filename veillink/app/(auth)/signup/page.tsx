@@ -16,7 +16,7 @@ export const metadata: Metadata = buildMetadata({
   ],
 });
 
-export default async function SignupPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function SignupPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
   const params = await searchParams;
-  return <AuthForm title="Start free" action={signUp} submit="Create account" error={params.error} signup />;
+  return <AuthForm title="Start free" action={signUp} submit="Create account" error={params.error} signup next={params.next} />;
 }

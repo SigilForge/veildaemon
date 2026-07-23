@@ -8,9 +8,10 @@ type Props = {
   reset?: boolean;
   signup?: boolean;
   updatePassword?: boolean;
+  next?: string;
 };
 
-export function AuthForm({ title, action, submit, error, reset, signup, updatePassword }: Props) {
+export function AuthForm({ title, action, submit, error, reset, signup, updatePassword, next }: Props) {
   return (
     <main className="page">
       <p className="eyebrow">Account</p>
@@ -26,6 +27,7 @@ export function AuthForm({ title, action, submit, error, reset, signup, updatePa
       </p>
       {error ? <p className="error" role="alert">{error === "terms" ? "Accept the terms to create an account." : error}</p> : null}
       <form className="form panel" action={action}>
+        {next ? <input name="next" type="hidden" value={next} /> : null}
         {!updatePassword ? (
           <label>
             Email
@@ -48,7 +50,11 @@ export function AuthForm({ title, action, submit, error, reset, signup, updatePa
         ) : null}
         <button type="submit">{submit}</button>
         <p className="muted">
-          {signup ? <Link href="/login">Already have an account?</Link> : <Link href="/reset">Reset password</Link>}
+          {signup ? (
+            <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}>Already have an account?</Link>
+          ) : (
+            <Link href="/reset">Reset password</Link>
+          )}
         </p>
       </form>
     </main>

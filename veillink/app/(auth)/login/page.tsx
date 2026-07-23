@@ -10,7 +10,7 @@ export const metadata: Metadata = buildMetadata({
   keywords: ["VeilLink login", "QR code dashboard login"],
 });
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
   const params = await searchParams;
-  return <AuthForm title="Log in" action={login} submit="Log in" error={params.error} />;
+  return <AuthForm title="Log in" action={login} submit="Log in" error={params.error} next={params.next} />;
 }
