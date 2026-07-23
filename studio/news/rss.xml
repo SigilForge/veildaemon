@@ -1,1 +1,50 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Cradlepoint Studio News</title><link>https://veildaemon.app/studio/news/</link><description>Permanent Studio publication record.</description></channel></rss>
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Cradlepoint Studio News</title>
+    <link>https://veildaemon.app/studio/news/</link>
+    <description>Development logs, release notices, recovered transmissions, and changes to the Archive.</description>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 23 Jul 2026 18:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Archive Lattice Revision</title>
+      <link>https://veildaemon.app/studio/news/archive-lattice-revision-2026-07-23/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/archive-lattice-revision-2026-07-23/</guid>
+      <pubDate>Thu, 23 Jul 2026 18:00:00 GMT</pubDate>
+      <description>Shade transmission: sealed recovery vault, VeilLink identity binding, ownership imprint, and expandable publishing lattice. STATUS: STABLE. For now.</description>
+      <category>Archive Transmission</category>
+    </item>
+    <item>
+      <title>Book One Digital Release Infrastructure Complete</title>
+      <link>https://veildaemon.app/studio/news/book-one-digital-release-infrastructure/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/book-one-digital-release-infrastructure/</guid>
+      <pubDate>Thu, 23 Jul 2026 17:30:00 GMT</pubDate>
+      <description>First full version of Cradlepoint Studio digital publishing infrastructure for Book One and future Archive recoveries. One live acquisition cycle remains.</description>
+      <category>Studio Dispatch</category>
+    </item>
+    <item>
+      <title>Why VeilLink Exists</title>
+      <link>https://veildaemon.app/studio/news/why-veillink-exists/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/why-veillink-exists/</guid>
+      <pubDate>Thu, 23 Jul 2026 17:00:00 GMT</pubDate>
+      <description>VeilLink is the identity tether that lets the Archive remember ownership across books, Needlepoints, audio, and future recoveries.</description>
+      <category>Studio Dispatch</category>
+    </item>
+    <item>
+      <title>From One Book to VeilBorn Publishing</title>
+      <link>https://veildaemon.app/studio/news/from-one-book-to-veilborn-publishing/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/from-one-book-to-veilborn-publishing/</guid>
+      <pubDate>Thu, 23 Jul 2026 16:30:00 GMT</pubDate>
+      <description>How an ISBN pricing complaint escalated into private vaults, ownership imprints, and VeilBorn Publishing.</description>
+      <category>Studio Dispatch</category>
+    </item>
+    <item>
+      <title>Current Cradlepoint Studio Roadmap</title>
+      <link>https://veildaemon.app/studio/news/current-cradlepoint-studio-roadmap/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/current-cradlepoint-studio-roadmap/</guid>
+      <pubDate>Thu, 23 Jul 2026 16:00:00 GMT</pubDate>
+      <description>Books, TTRPG, VeilDaemon, VeilLink, print, audio, and the Archive client — one connected universe.</description>
+      <category>Studio Dispatch</category>
+    </item>
+  </channel>
+</rss>
