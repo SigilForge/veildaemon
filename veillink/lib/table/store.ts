@@ -60,6 +60,9 @@ export async function createHandlerSession(input?: { needlepoint?: string; missi
   throw publicError("Could not allocate join code.", 500);
 }
 
+/** Soft table size for live-link V1 (hobby table, not MMO). */
+export const MAX_SESSION_OPERATORS = 6;
+
 export async function joinSession(input: { joinCode: string; operatorProfileId: string }) {
   const { user, supabase } = await requireUser();
   const code = String(input.joinCode || "")
@@ -102,6 +105,15 @@ export async function joinSession(input: { joinCode: string; operatorProfileId: 
 
   if (existing) {
     if (existing.left_at) {
+      // Re-seat counts as a seat again — enforce cap among currently active seats.
+      const { count: activeCount } = await admin
+        .from("session_operator_state")
+        .select("id", { count: "exact", head: true })
+        .eq("session_id", session.id)
+        .is("left_at", null);
+      if ((activeCount || 0) >= MAX_SESSION_OPERATORS) {
+        throw publicError(`Session is full (${MAX_SESSION_OPERATORS} Operators max).`, 409);
+      }
       const { data: reopened, error } = await supabase
         .from("session_operator_state")
         .update({
@@ -117,6 +129,15 @@ export async function joinSession(input: { joinCode: string; operatorProfileId: 
       return { session, state: reopened, profile };
     }
     return { session, state: existing, profile };
+  }
+
+  const { count: activeCount } = await admin
+    .from("session_operator_state")
+    .select("id", { count: "exact", head: true })
+    .eq("session_id", session.id)
+    .is("left_at", null);
+  if ((activeCount || 0) >= MAX_SESSION_OPERATORS) {
+    throw publicError(`Session is full (${MAX_SESSION_OPERATORS} Operators max).`, 409);
   }
 
   const { data: state, error } = await supabase

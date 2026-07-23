@@ -17,6 +17,12 @@ handler_sessions (join code)
 on close → reconcile allowed fields back into persistent_state
 ```
 
+## Capacity (V1)
+
+- **Up to 6 active Operators** per Handler session (`MAX_SESSION_OPERATORS`).
+- Hobby-table scale: one or two groups, not concurrent strangers.
+- Join returns HTTP 409 when the session is full.
+
 ## Sync surface (V1)
 
 - Harm, Stability, Lotus, Frequency pips

@@ -167,6 +167,10 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
       {error ? <p className="form-error">{error}</p> : null}
       {flash ? <p className="flash-ok">{flash}</p> : null}
 
+      <p className="muted small">
+        Seats: {bundle.states.length} / 6 active Operators
+      </p>
+
       {!bundle.states.length ? (
         <p className="muted">Waiting for Operators to join…</p>
       ) : (

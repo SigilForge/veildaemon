@@ -19,7 +19,7 @@ export default async function TablePage() {
       <h1 className="page-title">Table live-link</h1>
       <p className="lede">
         Persistent Operator files on your account. Temporary Handler sessions. Explicit join. Live Harm, Stability,
-        Lotus, Breach, Void, and unlocks — then clean reconcile on close.
+        Lotus, Breach, Void, and unlocks — then clean reconcile on close. Up to six Operators per session.
       </p>
       <TableHubClient />
     </main>
