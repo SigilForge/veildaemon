@@ -2699,6 +2699,48 @@ footer > p {
   font-size: 1.02rem;
   line-height: 1.7;
 }
+.release-slots {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .65rem;
+  margin-top: 1rem;
+}
+.release-slots article {
+  padding: .9rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(22,24,23,.14);
+  background: rgba(255,255,255,.45);
+}
+.release-slots article.ready {
+  border-color: rgba(61,122,108,.38);
+  background: rgba(126,184,168,.16);
+}
+.release-slots span,
+.release-slots strong,
+.release-slots small {
+  display: block;
+}
+.release-slots span {
+  color: var(--rust-deep);
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.release-slots strong {
+  margin-top: .28rem;
+  color: var(--ink-text);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+.release-slots small {
+  margin-top: .35rem;
+  color: var(--ink-muted);
+  font-size: .72rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
 .gate-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3310,7 +3352,8 @@ footer > p {
   .book-status,
   .shelf-loop,
   .book-universe,
-  .edition-grid { grid-template-columns: 1fr 1fr; }
+  .edition-grid,
+  .release-slots { grid-template-columns: 1fr 1fr; }
   .release-inventory,
   .lifecycle,
   .stack-flow { grid-template-columns: 1fr 1fr; }
@@ -3349,7 +3392,8 @@ footer > p {
   .book-status,
   .shelf-loop,
   .book-universe,
-  .edition-grid { grid-template-columns: 1fr; }
+  .edition-grid,
+  .release-slots { grid-template-columns: 1fr; }
   .shelf-category.flagship {
     grid-column: auto;
   }
