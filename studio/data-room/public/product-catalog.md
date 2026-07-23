@@ -13,8 +13,8 @@
 | Free Needlepoints | Shipping | Onboarding funnel | https://the-cradlepoint-archives.itch.io/needlepoint |
 | Operator Core | Shipping | Paid Operator core | itch storefront |
 | Handler Core | Shipping | Paid Handler core | itch storefront |
-| Operator + Handler systems | Live sessions | Browser consoles + deliberate Cell sync during play | /operator/ · /handler/ |
-| VeilLink | Live SaaS MVP | Accounts, Book One checkout, table live-link, dynamic QR / short links | https://app.veildaemon.app/ |
+| Operator + Handler systems | Live · table | VeilDaemon play surfaces; deliberate Cell sync (Send to Cell, End Pressure Round, Sync Cell, Archive Session) | /operator/ · /handler/ |
+| VeilLink | Live · identity | Accounts, ownership, Book One delivery, Table Live-Link, dynamic QR / short links | https://app.veildaemon.app/ |
 | Public wiki archive | Live | Public lore and archive reference | https://wiki.veildaemon.app/ |
 | Digital shelf previews | Live portfolio | Character dossiers + Book One wallpaper previews (masters gated) | /studio/shelf/digital/ |
 

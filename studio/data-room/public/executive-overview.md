@@ -12,7 +12,8 @@ A tech-enabled mythpunk studio using one governed story-and-rules framework to p
 
 - Shipping free and paid tabletop products
 - Book One direct digital on the Published Shelf (PDF + wallpaper pack)
-- Live Operator/Handler session software with VeilLink logins and Cell sync
+- Operator/Handler play surfaces with deliberate Cell sync
+- VeilLink identity, ownership, Table Live-Link, and dynamic links
 - Digital shelf previews (dossiers, wallpapers)
 - Internally audited rules corpus and multi-book manuscripts
 - Public wiki and marketing library

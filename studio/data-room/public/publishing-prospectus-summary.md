@@ -11,7 +11,7 @@ Professional publishing converts an existing rules system, content library, soft
 
 ## Beachhead lifecycle
 
-Free Needlepoint → Operator or Handler Pack → Core / campaign material → VeilLink account (table live-link + ownership) → continuing experiences.
+Free Needlepoint → Operator or Handler Pack → Core / campaign material → VeilLink account (ownership + Table Live-Link) → continuing experiences.
 
 ## Routes
 

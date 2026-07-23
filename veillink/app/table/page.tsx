@@ -6,7 +6,8 @@ import { requireUser } from "@/lib/store";
 
 export const metadata: Metadata = buildMetadata({
   title: "Table Live-Link",
-  description: "One Operator, one Handler, one session — live state for Cradlepoint table demos.",
+  description:
+    "VeilLink Table Live-Link connects Operators and a Handler across devices without background polling. Deliberate sync only: Send to Cell, End Pressure Round, Sync Cell, Archive Session.",
   path: "/table",
   noIndex: true,
 });
@@ -15,11 +16,12 @@ export default async function TablePage() {
   await requireUser().catch(() => redirect("/login?next=/table"));
   return (
     <main className="page table-page">
-      <p className="eyebrow">Cradlepoint · demo vertical slice</p>
-      <h1 className="page-title">Table live-link</h1>
+      <p className="eyebrow">VeilLink · multi-device connection</p>
+      <h1 className="page-title">Table Live-Link</h1>
       <p className="lede">
-        Accounts, lobby code, sheet diffs, and deliberate sync buttons — not background machinery. Operators edit
-        locally and Send to Cell; Handler ends a Pressure Round, Syncs the Cell, or Archives the session.
+        VeilLink Table Live-Link connects Operators and a Handler across devices without background polling or continuous
+        state transfer. Each participant edits locally; selected state moves only when someone deliberately uses Send to
+        Cell, End Pressure Round, Sync Cell, or Archive Session.
       </p>
       <TableHubClient />
     </main>

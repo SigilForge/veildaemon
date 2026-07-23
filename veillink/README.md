@@ -1,8 +1,64 @@
 # VeilLink
 
-VeilLink is an isolated SaaS application inside the VeilDaemon repository. It creates editable short links and QR codes whose printed QR target stays stable while the destination can change later.
+VeilLink is Cradlepoint Studio’s authenticated identity and utility application.
 
-The existing static VeilDaemon site remains unchanged. Deploy VeilLink as its own Vercel project with the root directory set to `veillink`.
+It provides account-backed ownership and delivery for Studio releases, multi-device Operator/Handler Table Live-Link sessions, and editable short links with stable downloadable QR targets.
+
+Table Live-Link uses deliberate synchronization rather than polling or WebSockets. Operators edit local drafts and use **Send to Cell**; Handlers move shared state through **End Pressure Round**, **Sync Cell**, and **Archive Session**. Live synchronization is field-whitelisted, while Lotus cultivation and advancement remain between-session profile actions.
+
+**VeilDaemon provides the Operator and Handler play surfaces. VeilLink provides the authenticated identity, ownership, lobby, and multi-device connection layer.**
+
+VeilLink is deployed as an isolated Vercel application from the `veillink` directory while the public VeilDaemon site remains separately hosted.
+
+## Product shape
+
+```text
+VEILLINK
+Identity and utility layer
+
+├── Accounts and ownership
+│   ├── Authentication
+│   ├── Purchased recoveries
+│   ├── Book One delivery
+│   └── Future identity-linked releases
+│
+├── Table Live-Link
+│   ├── Operator profiles
+│   ├── Handler lobbies
+│   ├── Send to Cell
+│   ├── End Pressure Round
+│   ├── Sync Cell
+│   └── Archive Session
+│
+└── Dynamic Links
+    ├── Editable destinations
+    ├── Stable printed QR targets
+    ├── QR downloads
+    └── Scan records
+```
+
+### Accounts and Ownership
+
+Authenticated accounts hold purchased recoveries and Studio delivery claims. Book One checkout verifies payment server-side, records entitlement, and issues short-lived private download links. The same identity can attach later revisions and related recoveries without email scavenger hunts.
+
+### Table Live-Link
+
+Multi-device sessions connect Operators and a Handler without background polling or continuous state transfer. Each participant edits locally; selected state moves only at deliberate boundaries:
+
+| Action | Who | Typical payload |
+|--------|-----|-----------------|
+| **Send to Cell** | Operator | Harm, Stability, conditions (Operator authority when present) |
+| **End Pressure Round** | Handler | Closes the round; reconciles pressure-round fields |
+| **Sync Cell** | Handler | Adds Handler notes; publishes projection |
+| **Archive Session** | Handler | Final Harm, Stability, Breach, Void, unlocks, notes, conditions |
+
+Pressure-round synchronization moves temporary session state. **Archive Session** reconciles mission outcomes. Lotus cultivation and advancement remain between sessions.
+
+Same-origin Operator/Handler consoles may also use the local Cell bus; VeilLink enables authenticated multi-device lobbies and shared session identity.
+
+### Dynamic Links and QR Codes
+
+Editable short links and downloadable QR codes whose printed target stays stable while the destination can change later. Ownership enforcement, scan storage, free-plan limits, and Stripe subscription billing support the public utility product.
 
 ## Local Development
 
@@ -27,6 +83,8 @@ The service role key is server-only. Never expose it to browser code.
 - `go.veildaemon.app/<slug>` is the production path redirect host.
 - `<slug>.veildaemon.app` is the production wildcard subdomain redirect form.
 - Local fallback is `localhost:3000/r/<slug>` or `<slug>.localhost:3000` if your browser/dev setup resolves it.
+- Table hub: `/table` (authenticated).
+- Book One: `/book-one` (authenticated checkout entry).
 
 Production DNS/TLS must be configured outside this repository:
 
@@ -61,6 +119,8 @@ Billing is Stripe-ready but not live until configured. The live Stripe catalog w
 - `VeilLink Business` (`prod_UvzVwnCXE3JaT8`)
   - Monthly: `$19/month` (`price_1Tw7X6Fht6uPr4mzA6QzzNmW`)
   - Yearly: `$180/year` (`price_1Tw7XEFht6uPr4mzSYwqM4RY`)
+
+Book One uses a separate price/product configuration on the root API claim path (`BOOK_ONE_STRIPE_PRICE_ID` and related env on the VeilDaemon Vercel project).
 
 1. Create Stripe products for Pro and Business.
 2. Create monthly and yearly recurring prices.

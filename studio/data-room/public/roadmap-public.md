@@ -16,7 +16,8 @@ Already shipping or live:
 
 - Operator Core and Handler Core (paid)
 - Free Needlepoint onboarding funnel
-- Operator/Handler session tools (Cell sync; multi-device via VeilLink table live-link)
+- Operator/Handler play surfaces (deliberate Cell sync)
+- VeilLink identity, ownership, and Table Live-Link
 - Book One direct digital + wallpaper pack
 - Digital shelf previews
 - Public archive / wiki
