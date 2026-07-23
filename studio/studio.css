@@ -773,6 +773,16 @@ footer nav a:hover {
   filter: brightness(1.12) contrast(1.06) saturate(1.05);
 }
 
+/* Portrait Book One cover letterboxed in the shared 16:9 work tile */
+.work-row > a.work-book img {
+  object-fit: contain;
+  object-position: center center;
+  background:
+    linear-gradient(180deg, rgba(10,12,13,.35), rgba(10,12,13,.55)),
+    #0a0c0d;
+  filter: brightness(1.05) contrast(1.04) saturate(1.04);
+}
+
 .work-row h3 {
   margin: 0.45rem 0 0;
   color: var(--ink-text);
