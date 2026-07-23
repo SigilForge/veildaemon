@@ -12,7 +12,12 @@ export const metadata: Metadata = buildMetadata({
   noIndex: true,
 });
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ verified?: string }>;
+}) {
+  const params = await searchParams;
   const { user, profile } = await requireUser().catch(() => redirect("/login"));
   const [redirects, usage, analytics] = await Promise.all([
     listUserRedirects(user.id),
@@ -23,6 +28,11 @@ export default async function DashboardPage() {
     <main className="page">
       <h1 className="page-title">Dashboard</h1>
       <p className="lede">Create editable links, download QR codes, and watch the boring useful numbers move.</p>
+      {params?.verified === "1" ? (
+        <p className="success" style={{ marginBottom: "1.5rem" }} role="status">
+          ✓ Email address confirmed successfully. Welcome to VeilLink!
+        </p>
+      ) : null}
       <DashboardClient initialRedirects={redirects} usage={usage} analytics={analytics} />
     </main>
   );

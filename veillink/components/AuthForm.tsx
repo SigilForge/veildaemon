@@ -5,13 +5,16 @@ type Props = {
   action: (formData: FormData) => Promise<void>;
   submit: string;
   error?: string;
+  sent?: boolean;
+  verified?: boolean;
+  email?: string;
   reset?: boolean;
   signup?: boolean;
   updatePassword?: boolean;
   next?: string;
 };
 
-export function AuthForm({ title, action, submit, error, reset, signup, updatePassword, next }: Props) {
+export function AuthForm({ title, action, submit, error, sent, verified, email, reset, signup, updatePassword, next }: Props) {
   return (
     <main className="page">
       <p className="eyebrow">Account</p>
@@ -25,6 +28,16 @@ export function AuthForm({ title, action, submit, error, reset, signup, updatePa
               ? "Choose a new password for this account."
               : "Sign in to manage redirects, downloads, and billing."}
       </p>
+      {verified ? (
+        <p className="success" role="status">
+          ✓ Email address confirmed successfully! Sign in below to continue.
+        </p>
+      ) : null}
+      {sent ? (
+        <p className="notice" role="status">
+          ✓ Account created! We sent a confirmation link to <strong>{email || "your email address"}</strong>. Please check your inbox and click the link to activate your account.
+        </p>
+      ) : null}
       {error ? <p className="error" role="alert">{error === "terms" ? "Accept the terms to create an account." : error}</p> : null}
       <form className="form panel" action={action}>
         {next ? <input name="next" type="hidden" value={next} /> : null}

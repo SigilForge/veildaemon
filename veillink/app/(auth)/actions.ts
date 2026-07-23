@@ -20,14 +20,17 @@ export async function signUp(formData: FormData) {
   const next = safeNextPath(field(formData, "next"));
   const accepted = formData.get("terms") === "on";
   if (!accepted) redirect(`/signup?error=terms&next=${encodeURIComponent(next)}`);
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${product.appUrl}${next}`,
+      emailRedirectTo: `${product.appUrl}/auth/confirm?next=${encodeURIComponent(next)}`,
     },
   });
   if (error) redirect(`/signup?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+  if (!data.session) {
+    redirect(`/login?sent=1&email=${encodeURIComponent(email)}&next=${encodeURIComponent(next)}`);
+  }
   redirect(next);
 }
 
