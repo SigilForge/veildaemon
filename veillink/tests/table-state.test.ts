@@ -8,7 +8,15 @@ describe("table live state", () => {
     const next = mergeLiveState(base, { breach: 7, harm: 9 });
     expect(next.breach).toBe(7);
     expect(next.voidMarks).toBe(1);
-    expect(next.harm).toBe(5); // clamp 0–5
+    expect(next.harm).toBe(5); // Harm stages 0–5
+  });
+
+  it("starts with one Void Mark and a single Lotus pip track", () => {
+    const fresh = defaultLiveState();
+    expect(fresh.voidMarks).toBe(1);
+    expect(fresh.stability).toBe(10);
+    expect(fresh.frequencyPips).toBeUndefined();
+    expect(fresh.lotus.Dream).toBe(0);
   });
 
   it("records field diffs for mutations", () => {

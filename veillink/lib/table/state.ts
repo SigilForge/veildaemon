@@ -21,12 +21,28 @@ export type LiveUnlocks = {
 };
 
 export type LiveState = {
+  /** Harm stages 0–5: fine → dying (Operator Guide §3.9). */
   harm: number;
+  /** Operational coherence 0–10; base cap 10 (Operator Guide §3.9 / §5.3). */
   stability: number;
+  /**
+   * Lotus Frequency pips per petal (0–6). This IS the Frequency pip track.
+   * Do not invent a second parallel pip map.
+   */
   lotus: FrequencyMap;
-  frequencyPips: FrequencyMap;
+  /**
+   * @deprecated Alias of lotus for older session snapshots only.
+   * Rules have one pip track on the Lotus, not two.
+   */
+  frequencyPips?: FrequencyMap;
+  /** Breach Points bank — growth currency; fills pips after Void gates. Never converts to Void. */
   breach: number;
+  /** Void Marks bank — capacity currency; opens gates. Starts at 1. Never buys pips alone. */
   voidMarks: number;
+  /**
+   * Free-text active pressure notes (Misfires, temporary fallout, etc.).
+   * Not a full Misfire / Presentation Load rules engine.
+   */
   conditions: string[];
   unlocks: LiveUnlocks;
   needlepoint: string;
@@ -50,9 +66,9 @@ export function defaultLiveState(partial?: Partial<LiveState>): LiveState {
     harm: 0,
     stability: 10,
     lotus: emptyFrequencyMap(0),
-    frequencyPips: emptyFrequencyMap(0),
     breach: 0,
-    voidMarks: 0,
+    // Operator Guide §2.3: starting Void Mark at creation is 1 (Session Zero Rank 1 default).
+    voidMarks: 1,
     conditions: [],
     unlocks: {
       frequencies: [],
@@ -65,11 +81,16 @@ export function defaultLiveState(partial?: Partial<LiveState>): LiveState {
     handlerNote: "",
   };
   if (!partial) return base;
+  // Prefer lotus; fold legacy frequencyPips into lotus if lotus absent on old snapshots.
+  const lotus = {
+    ...base.lotus,
+    ...(partial.frequencyPips || {}),
+    ...(partial.lotus || {}),
+  };
   return {
     ...base,
     ...partial,
-    lotus: { ...base.lotus, ...(partial.lotus || {}) },
-    frequencyPips: { ...base.frequencyPips, ...(partial.frequencyPips || {}) },
+    lotus,
     unlocks: {
       ...base.unlocks,
       ...(partial.unlocks || {}),
@@ -91,22 +112,26 @@ export function mergeLiveState(base: LiveState, patch: Partial<LiveState>): Live
     },
   });
 
-  next.harm = clampInt(next.harm, 0, 5);
-  next.stability = clampInt(next.stability, 0, 10);
-  next.breach = clampInt(next.breach, 0, 20);
+  next.harm = clampInt(next.harm, 0, 5); // stages: fine…dying
+  next.stability = clampInt(next.stability, 0, 10); // base cap 10
+  // Banked Breach is uncapped in core play; soft upper bound only for storage sanity (operator console uses high ceiling).
+  next.breach = clampInt(next.breach, 0, 99);
+  // Void architecture discussed through ~13 in core; 14+ is DLC pressure (Guide §2.3).
   next.voidMarks = clampInt(next.voidMarks, 0, 13);
   for (const f of FREQUENCIES) {
-    next.lotus[f] = clampInt(next.lotus[f], 0, 6);
-    next.frequencyPips[f] = clampInt(next.frequencyPips[f], 0, 6);
+    next.lotus[f] = clampInt(next.lotus[f], 0, 6); // Operator ceiling pip 6
   }
+  // Drop parallel frequencyPips so we do not ship a second invented track.
+  delete next.frequencyPips;
   next.conditions = (next.conditions || []).map(String).slice(0, 20);
   next.needlepoint = String(next.needlepoint || "").slice(0, 120);
   next.mission = String(next.mission || "").slice(0, 200);
   next.handlerNote = String(next.handlerNote || "").slice(0, 500);
 
-  // Cradlepoint law (Operator Guide): Void = capacity/gates; Breach = growth/pips.
-  // They are separate currencies. Breach never becomes Void. Void never buys pips.
-  // Live-link only tracks banked totals; pip spends remain a table procedure.
+  // Cradlepoint law (Operator Guide §2.3 / §9.1–9.3):
+  // Void = capacity (opens gates). Breach = growth (fills opened pip slots).
+  // Separate currencies. Breach never becomes Void. Void never buys pips.
+  // Live-link tracks banked totals + Lotus pips; gate checks and Breach spends stay table procedure.
 
   return next;
 }
@@ -151,13 +176,6 @@ export function diffLiveState(
   for (const f of FREQUENCIES) {
     if (before.lotus[f] !== after.lotus[f]) {
       out.push({ field_path: `lotus.${f}`, old_value: before.lotus[f], new_value: after.lotus[f] });
-    }
-    if (before.frequencyPips[f] !== after.frequencyPips[f]) {
-      out.push({
-        field_path: `frequencyPips.${f}`,
-        old_value: before.frequencyPips[f],
-        new_value: after.frequencyPips[f],
-      });
     }
   }
   for (const key of ["frequencies", "mythtech", "traits", "flags"] as const) {

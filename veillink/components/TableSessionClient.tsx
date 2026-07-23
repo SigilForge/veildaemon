@@ -205,17 +205,21 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
                 </div>
 
                 <section className="lotus-block">
-                  <p className="eyebrow">Lotus / Frequency pips</p>
+                  <p className="eyebrow">Lotus Frequency pips (0–6)</p>
+                  <p className="muted small">
+                    Sheet edit only — does not spend Breach or check Void gates. Advancement still follows Operator Guide
+                    (Void opens gates; Breach fills pips).
+                  </p>
                   <div className="freq-grid">
                     {FREQUENCIES.map((f) => (
                       <div key={f} className="freq-cell">
                         <span>{f}</span>
                         <strong>{state.lotus[f]}</strong>
                         <div className="mini-actions">
-                          <button type="button" disabled={busy} onClick={() => patch(seat.id, { lotus: { ...state.lotus, [f]: state.lotus[f] + 1 } }, `${f} +1`)}>
+                          <button type="button" disabled={busy} onClick={() => patch(seat.id, { lotus: { ...state.lotus, [f]: state.lotus[f] + 1 } }, `${f} pip +1`)}>
                             +
                           </button>
-                          <button type="button" disabled={busy} onClick={() => patch(seat.id, { lotus: { ...state.lotus, [f]: state.lotus[f] - 1 } }, `${f} −1`)}>
+                          <button type="button" disabled={busy} onClick={() => patch(seat.id, { lotus: { ...state.lotus, [f]: state.lotus[f] - 1 } }, `${f} pip −1`)}>
                             −
                           </button>
                         </div>
@@ -225,7 +229,10 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
                 </section>
 
                 <section className="unlock-block">
-                  <p className="eyebrow">Handler unlocks</p>
+                  <p className="eyebrow">Handler-awarded flags (log only)</p>
+                  <p className="muted small">
+                    Free-text authorizations for the demo — not a full Frequency gate or Myth-Tech rules engine.
+                  </p>
                   <div className="unlock-actions">
                     <button
                       type="button"
@@ -234,61 +241,28 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
                       onClick={() =>
                         patch(
                           seat.id,
-                          { unlocks: { ...state.unlocks, flags: [...state.unlocks.flags, `FLAG:${Date.now()}`] } },
-                          "Unlock flag awarded",
-                        )
-                      }
-                    >
-                      Award unlock flag
-                    </button>
-                    <button
-                      type="button"
-                      className="button secondary"
-                      disabled={busy}
-                      onClick={() =>
-                        patch(
-                          seat.id,
                           {
                             unlocks: {
                               ...state.unlocks,
-                              frequencies: [...new Set([...state.unlocks.frequencies, "Silence"])],
+                              flags: [...state.unlocks.flags, `Handler flag ${new Date().toISOString().slice(0, 16)}`],
                             },
                           },
-                          "Frequency authorization: Silence",
+                          "Handler flag recorded",
                         )
                       }
                     >
-                      Unlock Silence
-                    </button>
-                    <button
-                      type="button"
-                      className="button secondary"
-                      disabled={busy}
-                      onClick={() =>
-                        patch(
-                          seat.id,
-                          {
-                            unlocks: {
-                              ...state.unlocks,
-                              mythtech: [...new Set([...state.unlocks.mythtech, "Vault Interface II"])],
-                            },
-                          },
-                          "Myth-Tech: Vault Interface II",
-                        )
-                      }
-                    >
-                      Myth-Tech cert
+                      Record Handler flag
                     </button>
                   </div>
                   <ul className="unlock-list">
                     {state.unlocks.frequencies.map((x) => (
-                      <li key={`f-${x}`}>Frequency · {x}</li>
+                      <li key={`f-${x}`}>Frequency note · {x}</li>
                     ))}
                     {state.unlocks.mythtech.map((x) => (
-                      <li key={`m-${x}`}>Myth-Tech · {x}</li>
+                      <li key={`m-${x}`}>Myth-Tech note · {x}</li>
                     ))}
                     {state.unlocks.traits.map((x) => (
-                      <li key={`t-${x}`}>Trait · {x}</li>
+                      <li key={`t-${x}`}>Trait note · {x}</li>
                     ))}
                     {state.unlocks.flags.map((x) => (
                       <li key={`g-${x}`}>Flag · {x}</li>

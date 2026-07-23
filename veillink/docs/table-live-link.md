@@ -26,10 +26,13 @@ on close → reconcile allowed fields back into persistent_state
 
 ## Sync surface (V1)
 
-- Harm, Stability, Lotus, Frequency pips
-- Breach, Void (separate currencies per Operator Guide: Void = capacity/gates, Breach = growth/pips; no auto-conversion)
-- Unlocks: frequencies, myth-tech, traits, flags
+- Harm stages 0–5, Stability 0–10 (base cap 10)
+- Lotus Frequency pips 0–6 (single track — not a second “frequencyPips” map)
+- Breach bank and Void bank (separate; Void starts at 1; no auto-conversion)
+- Free-text conditions / Handler flags (log only — not full Misfire/Presentation engines)
 - Needlepoint / mission / Handler note
+
+Not enforced in V1 (table procedure stays at table): Void-per-Frequency gates, Breach spend into pips, Collapse ladders.
 
 ## Routes
 
