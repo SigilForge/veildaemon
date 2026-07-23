@@ -2227,11 +2227,55 @@ body.play-surface {
     linear-gradient(180deg, rgba(5, 7, 9, 0.72), rgba(5, 7, 9, 0.88)),
     url("assets/play-cradlepoint-banner.webp") center top / cover no-repeat fixed;
 }
-.play-shell {
-  max-width: 920px;
+/* Shell must be full-width so place-items:center actually centers the terminal */
+body.play-surface .play-shell {
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
+  place-items: center;
+  justify-items: center;
+  padding: clamp(1.25rem, 4vw, 3.5rem) clamp(1rem, 3vw, 2rem);
 }
-.play-terminal {
-  padding-bottom: 1.4rem;
+body.play-surface .play-terminal {
+  width: min(64rem, 100%);
+  max-width: 100%;
+  padding: clamp(1.15rem, 2.8vw, 2.4rem);
+  padding-bottom: 1.6rem;
+  box-sizing: border-box;
+}
+body.play-surface .play-terminal .topline {
+  align-items: center;
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+}
+body.play-surface .play-terminal .topline > div:last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+/* Long title: readable scale, no mid-word crush from overflow-wrap:anywhere */
+body.play-surface .play-terminal h1 {
+  font-size: clamp(1.65rem, 4.2vw, 2.85rem);
+  line-height: 1.08;
+  letter-spacing: 0.05em;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+}
+body.play-surface .play-terminal .subhead,
+body.play-surface .play-terminal .readout p,
+body.play-surface .play-terminal .kicker {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+body.play-surface .play-terminal .subhead {
+  max-width: 42rem;
+  line-height: 1.5;
+  font-size: clamp(0.95rem, 1.8vw, 1.05rem);
+}
+body.play-surface .play-terminal .readout {
+  margin: 1.15rem 0 0.35rem;
+}
+body.play-surface .play-terminal .readout p {
+  line-height: 1.5;
 }
 .play-hero {
   margin: 0.85rem 0 1rem;
@@ -2248,19 +2292,43 @@ body.play-surface {
 }
 .play-hero figcaption {
   margin: 0;
-  padding: 0.55rem 0.75rem 0.7rem;
+  padding: 0.65rem 0.9rem 0.8rem;
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   letter-spacing: 0.04em;
-  line-height: 1.4;
+  line-height: 1.45;
   border-top: 1px solid rgba(138, 255, 219, 0.12);
   background: rgba(0, 0, 0, 0.35);
+  overflow-wrap: normal;
 }
-.play-actions {
-  flex-wrap: wrap;
+body.play-surface .play-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: 0.7rem;
+  margin-top: 1.35rem;
+}
+body.play-surface .play-actions .button {
+  width: 100%;
+  min-height: 3rem;
+  justify-content: center;
+  text-align: center;
+  overflow-wrap: normal;
+  white-space: normal;
+}
+@media (max-width: 760px) {
+  body.play-surface .play-shell {
+    place-items: start center;
+    padding-top: 1.1rem;
+  }
+  body.play-surface .play-actions {
+    grid-template-columns: 1fr;
+  }
 }
 @media (max-width: 640px) {
   .play-hero figcaption {
-    font-size: 0.68rem;
+    font-size: 0.72rem;
+  }
+  body.play-surface .play-terminal h1 {
+    font-size: clamp(1.45rem, 7.5vw, 2rem);
   }
 }
