@@ -1,9 +1,31 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { product } from "@/lib/config";
+import { buildMetadata, faqJsonLd, siteConfig, websiteJsonLd } from "@/lib/seo";
+
+export const metadata: Metadata = buildMetadata({
+  title: `${siteConfig.name} · Dynamic QR Codes & Short Links`,
+  description: siteConfig.description,
+  path: "/",
+  keywords: [
+    "print once change QR destination",
+    "stable QR code for menus",
+    "business QR code short link",
+    "editable destination QR",
+  ],
+});
 
 export default function HomePage() {
   return (
     <main className="page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd()) }}
+      />
       <section className="hero hero-grid">
         <div>
           <p className="eyebrow">Short links · dynamic QR</p>

@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
 import { product } from "@/lib/config";
+import { absoluteUrl, siteConfig, siteOrigin } from "@/lib/seo";
 import { getSupabaseServerClient } from "@/lib/supabase";
 
 const inter = Inter({
@@ -18,25 +19,58 @@ const instrument = Instrument_Serif({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#07090a" },
+    { media: "(prefers-color-scheme: light)", color: "#07090a" },
+  ],
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteOrigin()),
   title: {
-    default: `${product.name} · Editable QR codes`,
-    template: `%s · ${product.name}`,
+    default: `${siteConfig.name} · Dynamic QR Codes & Short Links`,
+    template: `%s · ${siteConfig.name}`,
   },
-  description:
-    "Print once. Change the destination anytime. Branded short links and dynamic QR codes without fake metrics or ransom-note pricing.",
-  metadataBase: new URL(product.appUrl),
+  description: siteConfig.description,
+  keywords: siteConfig.keywords,
+  applicationName: siteConfig.name,
+  authors: [{ name: "Cradlepoint Studio", url: siteConfig.studioUrl }],
+  creator: "Cradlepoint Studio",
+  publisher: "Cradlepoint Studio",
+  category: "technology",
+  alternates: {
+    canonical: absoluteUrl("/"),
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
-    title: `${product.name} · Editable QR codes`,
-    description: "Print once. Change the destination forever. Honest short links and dynamic QR codes.",
-    url: product.appUrl,
-    siteName: product.name,
     type: "website",
+    locale: "en_US",
+    url: absoluteUrl("/"),
+    siteName: siteConfig.name,
+    title: `${siteConfig.name} · Dynamic QR Codes & Short Links`,
+    description: siteConfig.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${product.name} · Editable QR codes`,
-    description: "Print once. Change the destination forever. Honest short links and dynamic QR codes.",
+    title: `${siteConfig.name} · Dynamic QR Codes & Short Links`,
+    description: siteConfig.description,
+  },
+  other: {
+    "theme-color": "#07090a",
   },
 };
 

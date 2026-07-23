@@ -1,11 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { plans, product } from "@/lib/config";
+import { buildMetadata, pricingJsonLd, siteConfig } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Pricing",
-  description: `Simple ${product.name} pricing for dynamic QR codes and short links. Free to start, Pro and Business when you need more active redirects.`,
-};
+export const metadata: Metadata = buildMetadata({
+  title: "Pricing for Dynamic QR Codes & Short Links",
+  description: `${siteConfig.name} pricing: free plan with 3 active redirects, Pro at $7/mo for 100 redirects, Business at $19/mo for 1,000. Editable destinations, scan analytics, PNG/SVG QR downloads.`,
+  path: "/pricing",
+  keywords: [
+    "dynamic QR code pricing",
+    "cheap editable QR codes",
+    "short link subscription",
+    "QR code generator free",
+    "business QR code plan",
+  ],
+});
 
 const rows = [
   ["Dynamic redirects", "3 active", "100 active", "1,000 active"],
@@ -46,6 +55,10 @@ const planCopy = {
 export default function PricingPage() {
   return (
     <main className="page">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingJsonLd()) }}
+      />
       <p className="eyebrow">Pricing</p>
       <h1 className="page-title">Clear plans. No theatrical tiers.</h1>
       <p className="lede">
