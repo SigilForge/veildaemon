@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { FREQUENCIES, defaultLiveState, type LiveState } from "@/lib/table/state";
+
+/** Character sheets, not chat — a turn is usually minutes. */
+const SESSION_SYNC_MS = 3 * 60 * 1000;
 
 type Seat = {
   id: string;
@@ -46,34 +48,13 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
     load().catch((e) => setError(e.message));
   }, [load]);
 
-  // Realtime + light polling fallback
+  // Slow background sync only. Own patches refresh immediately after write.
   useEffect(() => {
-    const supabase = getSupabaseBrowserClient();
-    const channel = supabase
-      .channel(`table-session-${sessionId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "session_operator_state",
-          filter: `session_id=eq.${sessionId}`,
-        },
-        () => {
-          load().catch(() => undefined);
-        },
-      )
-      .subscribe();
-
     const poll = setInterval(() => {
       load().catch(() => undefined);
-    }, 4000);
-
-    return () => {
-      clearInterval(poll);
-      supabase.removeChannel(channel);
-    };
-  }, [sessionId, load]);
+    }, SESSION_SYNC_MS);
+    return () => clearInterval(poll);
+  }, [load]);
 
   async function patch(seatId: string, patch: Partial<LiveState>, label: string) {
     setBusy(true);
@@ -154,6 +135,14 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
           {bundle.role === "handler" ? <p className="mono small">{joinUrl}</p> : null}
         </div>
         <div className="session-actions">
+          <button
+            className="button ghost"
+            type="button"
+            disabled={busy}
+            onClick={() => load().catch((e) => setError(e.message))}
+          >
+            Refresh
+          </button>
           <Link className="button ghost" href="/table">
             Hub
           </Link>

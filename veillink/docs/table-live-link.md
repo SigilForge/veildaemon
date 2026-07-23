@@ -11,7 +11,7 @@ ACCOUNT
 operator_profiles.persistent_state
   ↓ snapshot on join
 session_operator_state.live_state
-  ↕ realtime + API patch
+  ↕ API patch + slow page refresh (minutes, not seconds)
 handler_sessions (join code)
 
 on close → reconcile allowed fields back into persistent_state

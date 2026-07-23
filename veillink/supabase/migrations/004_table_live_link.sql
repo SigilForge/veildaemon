@@ -141,18 +141,7 @@ create policy session_mutations_select on public.session_mutations
 create policy session_mutations_insert on public.session_mutations
   for insert to authenticated with check (actor_user_id = auth.uid());
 
--- Realtime publication for live sync
-do $$
-begin
-  begin
-    alter publication supabase_realtime add table public.session_operator_state;
-  exception when duplicate_object then null;
-  end;
-  begin
-    alter publication supabase_realtime add table public.session_mutations;
-  exception when duplicate_object then null;
-  end;
-end $$;
+-- No Realtime required: session pages poll every few minutes + refresh after own writes.
 
 grant select, insert, update, delete on public.operator_profiles to authenticated;
 grant select, insert, update on public.handler_sessions to authenticated;
