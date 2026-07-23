@@ -100,6 +100,22 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["audit_logs"]["Row"]>;
         Relationships: [];
       };
+      stripe_webhook_events: {
+        Row: {
+          id: string;
+          type: string;
+          livemode: boolean;
+          received_at: string;
+          processed_at: string | null;
+          last_error: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["stripe_webhook_events"]["Row"]> & {
+          id: string;
+          type: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["stripe_webhook_events"]["Row"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

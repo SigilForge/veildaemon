@@ -53,7 +53,14 @@ The migration enables RLS:
 
 ## Stripe Setup
 
-Billing is Stripe-ready but not live until configured.
+Billing is Stripe-ready but not live until configured. The live Stripe catalog was created on 2026-07-22:
+
+- `VeilLink Pro` (`prod_UvzVuwkV4LOkEQ`)
+  - Monthly: `$7/month` (`price_1Tw7WwFht6uPr4mz8XUCExEX`)
+  - Yearly: `$60/year` (`price_1Tw7X1Fht6uPr4mzVswg6DQ9`)
+- `VeilLink Business` (`prod_UvzVwnCXE3JaT8`)
+  - Monthly: `$19/month` (`price_1Tw7X6Fht6uPr4mzA6QzzNmW`)
+  - Yearly: `$180/year` (`price_1Tw7XEFht6uPr4mzSYwqM4RY`)
 
 1. Create Stripe products for Pro and Business.
 2. Create monthly and yearly recurring prices.
@@ -73,7 +80,11 @@ Billing is Stripe-ready but not live until configured.
 
 Without those values, checkout and portal routes fail closed with configuration errors.
 
+Webhook handling records processed Stripe event IDs in `stripe_webhook_events` before changing billing state. Duplicate processed events return early, and subscription state is derived from Stripe webhook events rather than from the browser returning after Checkout.
+
 VeilLink pins Stripe API calls to `2026-06-24.dahlia` and tags Checkout Sessions with a stable integration identifier for Dashboard tracking. Do not enable Stripe Tax until tax registrations are configured in Stripe; enabling tax without registrations can make the integration look tax-ready while collecting nothing.
+
+See `docs/deployment-checklist.md` for the launch checklist and the live-vs-test Price ID split.
 
 ## Validation
 
