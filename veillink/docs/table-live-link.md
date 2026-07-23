@@ -1,6 +1,12 @@
 # Table live-link (vertical slice)
 
-Smallest demo of living Operator state between Operator phone and Handler console.
+Shared Operator sheets for a Handler lobby. **No polling. No WebSockets.** Deliberate sync only.
+
+## Terminology
+
+- **Pressure Round** — full tactical danger cycle (not “Pressure Cycle”).
+- **Turn** — one actor’s activation *inside* a Pressure Round.
+- Sync at mechanical boundaries, not continuously.
 
 ## Model
 
@@ -11,59 +17,61 @@ ACCOUNT
 operator_profiles.persistent_state
   ↓ snapshot on join
 session_operator_state.live_state
-  ↕ API patch + slow page refresh (minutes, not seconds)
-handler_sessions (join code)
+  ↑ local drafts on each phone
+  ↓ deliberate push only
 
-on close → reconcile allowed fields back into persistent_state
+handler_sessions (join code + optional lobby seat cap)
 ```
 
-## Capacity (V1)
+## Deliberate sync moments
 
-- **No product hard cap** on Operators per session.
-- Handler may set optional **lobby seat cap** (`max_operators`) when creating a session.
-- Empty / null = uncapped. Absolute safety bound only: 32 (abuse ceiling, not design intent).
-- Join returns HTTP 409 only when the Handler-set lobby is full.
+| Button | When | What |
+|--------|------|------|
+| **Send to Cell** (Operator) | Before Handler syncs | Uploads that Operator’s local draft to the session row |
+| **End Pressure Round** (Handler) | End of tactical Pressure Round | Pushes Handler drafts, reloads authoritative snapshot; reactions refresh next round |
+| **Sync Cell** (Handler) | Investigation / social | Same push+pull without tactical framing |
+| **Archive Session** (Handler) | Mission end | Push drafts, reconcile into Operator files, close session |
+
+Edits during a round stay **local** until those buttons fire. That is intentional.
 
 ## Sync surface (V1)
 
-- Harm stages 0–5, Stability 0–10 (base cap 10)
-- Lotus Frequency pips 0–6 (single track — not a second “frequencyPips” map)
-- Breach bank and Void bank (separate; Void starts at 1; no auto-conversion)
-- Free-text conditions / Handler flags (log only — not full Misfire/Presentation engines)
-- Needlepoint / mission / Handler note
+Page layer enforces rules (Operator/Handler runtime). Sync only moves values:
 
-Not enforced in V1 (table procedure stays at table): Void-per-Frequency gates, Breach spend into pips, Collapse ladders.
+- Harm stages 0–5, Stability 0–10
+- Lotus pips 0–6 × six Frequencies; **Blind Petal** locked at 0 (five cultivable)
+- Void bank (starts 1) and Breach bank — separate currencies
+- Handler note, Needlepoint / mission labels
+- Optional free-text flags
+
+## Capacity
+
+- No product hard cap.
+- Handler may set optional **lobby seat cap** on create (`max_operators`).
+- Absolute abuse ceiling: 32.
 
 ## Routes
 
 | Path | Role |
 |------|------|
-| `/table` | Hub: create Operator file, open Handler session, join by code |
-| `/table/join?code=XXXXXX` | Prefill join |
-| `/table/session/[id]` | Live dual view |
+| `/table` | Hub |
+| `/table/join?code=XXXXXX` | Operator join |
+| `/table/session/[id]` | Lobby + sheets |
 
 ## API
 
 - `GET/POST /api/table/operators`
 - `POST /api/table/sessions`
 - `POST /api/table/sessions/join`
-- `GET/DELETE /api/table/sessions/[id]`
-- `PATCH /api/table/sessions/[id]/state`
+- `GET/DELETE /api/table/sessions/[id]` — GET lobby; DELETE = Archive Session
+- `PATCH /api/table/sessions/[id]/state` — upload draft (Send to Cell / Handler push)
 - `POST /api/table/sessions/[id]/leave`
-
-## Permissions
-
-- Operator owns the file and must explicitly join.
-- Handler may alter session-authorized gameplay fields while session is open.
-- Every mutation is logged in `session_mutations` (who, field, old, new).
-- Operator can leave / revoke; Handler close reconciles and ends session.
 
 ## Deploy
 
-1. Apply migration `004_table_live_link.sql` (also root `supabase/migrations/20260723120000_table_live_link.sql`).
-2. Ensure Supabase Realtime includes `session_operator_state` (migration attempts to add it).
-3. Deploy VeilLink Vercel project.
+1. Apply migration `004_table_live_link.sql` (or root `20260723120000_table_live_link.sql`).
+2. Redeploy VeilLink Vercel project.
 
 ## Not in V1
 
-NFC, offline mesh, inventory trees, campaign archives, multi-tier RBAC, product ownership.
+Realtime, background poll, NFC, offline mesh, full Operator console merge.

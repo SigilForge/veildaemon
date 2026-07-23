@@ -18,9 +18,8 @@ export default async function TablePage() {
       <p className="eyebrow">Cradlepoint · demo vertical slice</p>
       <h1 className="page-title">Table live-link</h1>
       <p className="lede">
-        Persistent Operator files on your account. Temporary Handler sessions. Explicit join. Live Harm, Stability,
-        Lotus, Breach, Void, and unlocks — then clean reconcile on close. Optional lobby seat cap is a Handler setting,
-        not a platform hard limit.
+        Accounts, lobby code, sheet diffs, and deliberate sync buttons — not background machinery. Operators edit
+        locally and Send to Cell; Handler ends a Pressure Round, Syncs the Cell, or Archives the session.
       </p>
       <TableHubClient />
     </main>

@@ -1033,3 +1033,33 @@ textarea {
   padding: 0.65rem 0.75rem;
   font: inherit;
 }
+
+.lobby-panel { margin-bottom: 1.25rem; }
+.connected-list {
+  list-style: none;
+  margin: 0.5rem 0 0.75rem;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+.connected-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+.connected-list .check { color: var(--sage); font-weight: 700; }
+.pending-tag {
+  font-size: 0.72rem;
+  color: var(--rust-soft);
+  border: 1px solid rgba(181, 117, 104, 0.35);
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+}
+.lobby-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0.5rem;
+}
+.seat-head-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
