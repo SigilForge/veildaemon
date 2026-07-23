@@ -2589,28 +2589,86 @@ footer > p {
   color: var(--text-soft);
   line-height: 1.55;
 }
+/*
+ * Digital shelf art protection (gallery best practice, not DRM theater):
+ * 1. Public files are preview-resolution WebP only — masters never ship here.
+ * 2. Transparent hit-layer over plates so "Save image as" does not target <img>.
+ * 3. No drag / text-select on protected plates.
+ * 4. Do not block page-wide context menus (a11y / normal UI).
+ */
+body.digital-shelf-page .art-protect {
+  position: relative;
+  isolation: isolate;
+}
+body.digital-shelf-page .art-protect::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  /* invisible hit target — not a visual watermark wash */
+  background: transparent;
+}
+body.digital-shelf-page .art-protect img {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+body.digital-shelf-page .art-protect-label {
+  position: absolute;
+  right: .45rem;
+  bottom: .4rem;
+  z-index: 3;
+  margin: 0;
+  padding: .18rem .4rem;
+  border-radius: .2rem;
+  background: rgba(7, 10, 11, .72);
+  color: rgba(244, 240, 232, .78);
+  font-size: .55rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
 .dossier-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr));
-  gap: .85rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16.5rem), 1fr));
+  gap: 1rem;
   margin-top: 1.25rem;
 }
 .dossier-card {
   display: grid;
-  gap: .7rem;
-  padding: .7rem;
+  grid-template-rows: auto 1fr;
+  gap: .75rem;
+  padding: .8rem;
   border: 1px solid rgba(22,24,23,.12);
   border-radius: var(--radius-sm);
   background: rgba(255,255,255,.48);
   min-width: 0;
 }
-.dossier-card img {
-  width: 100%;
+.dossier-card .frame {
+  display: grid;
+  place-items: center;
   aspect-ratio: 3 / 4;
-  object-fit: cover;
-  object-position: top center;
+  padding: .55rem;
   border-radius: calc(var(--radius-sm) - 2px);
-  background: #111314;
+  background:
+    linear-gradient(180deg, rgba(10,12,13,.92), rgba(17,19,20,.98));
+  border: 1px solid rgba(0,0,0,.22);
+  overflow: hidden;
+}
+.dossier-card .frame img {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  border-radius: 2px;
+  background: transparent;
 }
 .dossier-card span {
   color: var(--rust-soft);
@@ -2639,41 +2697,76 @@ footer > p {
 .digital-handling strong {
   color: var(--rust-soft);
 }
+body.digital-shelf-page .digital-hero .shelf-hero-art {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(10,12,13,.55), rgba(17,19,20,.9)),
+    #0c0e0f;
+}
+body.digital-shelf-page .digital-hero .hero-art-frame {
+  display: grid;
+  place-items: center;
+  min-height: min(28rem, 58vh);
+  width: 100%;
+  overflow: hidden;
+}
 body.digital-shelf-page .digital-hero .shelf-hero-art img {
-  object-position: top center;
+  width: 100%;
+  height: 100%;
+  max-height: min(34rem, 70vh);
+  object-fit: contain;
+  object-position: center top;
 }
 .wallpaper-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: .85rem;
+  gap: 1rem;
   margin-top: 1.25rem;
+}
+.wallpaper-grid.desktop-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.wallpaper-grid.mobile-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
 }
 .wallpaper-card {
   display: grid;
-  gap: .7rem;
-  padding: .7rem;
+  gap: .75rem;
+  padding: .8rem;
   border: 1px solid rgba(22,24,23,.12);
   border-radius: var(--radius-sm);
   background: rgba(255,255,255,.48);
   min-width: 0;
 }
-.wallpaper-card img {
+.wallpaper-card .frame {
+  display: grid;
+  place-items: center;
   width: 100%;
   border-radius: calc(var(--radius-sm) - 2px);
-  background: #111314;
-  object-fit: cover;
+  background:
+    linear-gradient(180deg, rgba(10,12,13,.92), rgba(17,19,20,.98));
+  border: 1px solid rgba(0,0,0,.22);
+  overflow: hidden;
 }
-.wallpaper-card.desktop img {
+.wallpaper-card.desktop .frame {
   aspect-ratio: 16 / 9;
-  object-position: center;
+  padding: .5rem;
 }
-.wallpaper-card.mobile img {
+.wallpaper-card.mobile .frame {
   aspect-ratio: 9 / 16;
-  max-height: 22rem;
-  justify-self: center;
-  width: auto;
-  max-width: 100%;
-  object-position: center top;
+  max-width: 12.5rem;
+  margin-inline: auto;
+  padding: .55rem;
+}
+.wallpaper-card .frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  border-radius: 2px;
+  background: transparent;
 }
 .wallpaper-card span {
   color: var(--rust-soft);
@@ -2698,8 +2791,17 @@ body.digital-shelf-page .digital-hero .shelf-hero-art img {
   color: var(--rust-soft);
   font-size: .72rem;
 }
+.wallpaper-split-label {
+  margin: 1.5rem 0 0;
+  color: var(--rust-soft);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
 @media (max-width: 980px) {
-  .wallpaper-grid {
+  .wallpaper-grid.desktop-grid,
+  .wallpaper-grid.mobile-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -2707,16 +2809,25 @@ body.digital-shelf-page .digital-hero .shelf-hero-art img {
   .dossier-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .wallpaper-grid {
+  .wallpaper-grid.desktop-grid {
     grid-template-columns: 1fr;
   }
-  .wallpaper-card.mobile img {
-    max-height: 18rem;
+  .wallpaper-grid.mobile-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .wallpaper-card.mobile .frame {
+    max-width: 100%;
   }
 }
 @media (max-width: 480px) {
   .dossier-grid {
     grid-template-columns: 1fr;
+  }
+  .wallpaper-grid.mobile-grid {
+    grid-template-columns: 1fr;
+  }
+  .wallpaper-card.mobile .frame {
+    max-width: 14rem;
   }
 }
 .shelf-category:hover,
