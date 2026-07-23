@@ -70,6 +70,15 @@
 - **Vercel project `veildaemon`** (`api.veildaemon.app`) serves repo-root API functions (`api/*`, root `vercel.json`) used by reports, alerts, routing, etc.
 - **Do not assume one push updates every host.** If the user still sees old UI after a git push, identify which host they are on before blaming cache alone.
 
+## Paid Digital Delivery
+- Do not place paid digital artifacts in GitHub Pages, `studio/downloads/`, `public/`, or any other browser-addressable static path.
+- Git stores the public source and delivery code only. Paid file bytes belong in a private Supabase Storage bucket.
+- Direct digital purchases should use Stripe for payment, a Vercel API claim endpoint for server-side Checkout Session verification, and Supabase signed URLs for short-lived file delivery.
+- Claim endpoints must verify `payment_status === "paid"` and the expected Stripe price or product, then upsert a durable entitlement in Supabase before issuing a signed URL. Record claim metadata only after the signed URL is created.
+- Purchase records should preserve Stripe Checkout Session id, Stripe customer id when present, customer email when present, expected price id, product key, purchase status, purchase timestamp, claim count, last claim timestamp, and the private storage object. Link to an existing Supabase profile by verified email when available; do not require a full customer library before preserving ownership.
+- Browser state, hidden frontend routes, filenames, query parameters, and public download links are not purchase verification.
+- Keep only ready files routable. Scaffold future EPUB, MOBI, bundle, or Studio Edition slots without posting stale artifacts.
+
 ## RelayDaemon Instructions
 - RelayDaemon has a separate governing contract in `studio/relay/AGENTS.md`; read it before changing Relay UI, generation, Ollama, hosted fallback, fitting, testing, or deployment behavior.
 - Relay is not part of the GitHub Pages package. A Git push alone does not update the live Relay Vercel project.
