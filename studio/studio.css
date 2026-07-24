@@ -1557,18 +1557,18 @@ footer > p {
 .funding-glance {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.9rem;
+  gap: 1rem;
   padding: 0 var(--pad);
   margin: 1.75rem 0 clamp(2.5rem, 5vw, 4rem);
 }
 
 .funding-glance div {
   min-width: 0;
-  padding: 1.2rem 1.25rem;
-  border-radius: var(--radius-sm);
-  background: rgba(18, 20, 22, 0.88);
-  border: 1px solid rgba(181, 117, 104, 0.24);
-  backdrop-filter: blur(10px);
+  padding: 1.35rem 1.4rem;
+  border-radius: var(--radius);
+  background: #16191b;
+  border: 1px solid rgba(232, 168, 124, 0.38);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1577,7 +1577,7 @@ footer > p {
 
 .funding-glance div:hover {
   transform: translateY(-2px);
-  border-color: rgba(181, 117, 104, 0.45);
+  border-color: rgba(232, 168, 124, 0.65);
 }
 
 .funding-glance span,
@@ -1586,20 +1586,21 @@ footer > p {
 }
 
 .funding-glance span {
-  margin-bottom: 0.45rem;
-  color: var(--rust-soft);
-  font-size: 0.68rem;
+  margin-bottom: 0.5rem;
+  color: #e8a87c;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   line-height: 1.25;
 }
 
 .funding-glance strong {
-  color: var(--text);
+  color: #ffffff;
   font-family: var(--font-display);
-  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
-  line-height: 1.3;
+  font-size: clamp(1.1rem, 1.7vw, 1.3rem);
+  line-height: 1.35;
+  font-weight: 500;
   letter-spacing: -0.01em;
 }
 
