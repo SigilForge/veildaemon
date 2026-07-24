@@ -68,7 +68,13 @@
 ## Deploy Surfaces (Git vs Vercel)
 - **GitHub Pages (`veildaemon.app`)** ships most static public/studio surfaces from `main`. That is the default after `git push origin main` (legacy Pages branch build; see `README_DEPLOY.md`).
 - **Vercel project `veildaemon`** (`api.veildaemon.app`) serves repo-root API functions (`api/*`, root `vercel.json`) used by reports, alerts, routing, etc.
+- **Static Host API Resolution**: Client-side JavaScript running on GitHub Pages (`veildaemon.app` or `www.veildaemon.app`) must resolve serverless API endpoints (`/api/*`) via `https://api.veildaemon.app`. Use relative `/api/*` paths only when `window.location.hostname` is `localhost`, `127.0.0.1`, or a non-production preview origin.
+- **CORS Headers**: Serverless API endpoints accessed by static host surfaces must explicitly include `Access-Control-Allow-Origin: *` (and respond to `OPTIONS` preflight requests with `204 No Content`).
 - **Do not assume one push updates every host.** If the user still sees old UI after a git push, identify which host they are on before blaming cache alone.
+
+## Authentication & Local-First Invariants
+- **Session Persistence**: Browser-side Supabase Auth integrations must enable `persistSession: true` and `autoRefreshToken: true` to prevent page reloads or cross-tab navigation from logging the user out.
+- **Local Save Isolation**: Signing in or out must never mutate, wipe, or overwrite local application saves (`localStorage` character sheets, anomaly logs, or Handler campaign states). Local-first applications (Operator and Handler) must remain 100% functional when unauthenticated.
 
 ## Paid Digital Delivery
 - Do not place paid digital artifacts in GitHub Pages, `studio/downloads/`, `public/`, or any other browser-addressable static path.
