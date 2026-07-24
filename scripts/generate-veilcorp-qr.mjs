@@ -4,27 +4,46 @@ import process from "node:process";
 import QRCode from "qrcode";
 import sharp from "sharp";
 
-const palette = {
-  background: "#0F071D",
-  panel: "#1A0B33",
-  module: "#F0EBF8",
-  moduleDim: "#D8CDED",
-  purple: "#9A3CFF",
-  magenta: "#D845FF",
-  cyan: "#00F0FF",
-  red: "#FF3B3B",
-  white: "#FFFFFF",
-  line: "#4D2C77",
-  text: "#F0EBF8",
-  muted: "#B8A8D0",
-};
-
-const accentColors = {
-  purple: palette.purple,
-  magenta: palette.magenta,
-  cyan: palette.cyan,
-  red: palette.red,
-  white: palette.white,
+const presets = {
+  purple: {
+    bgInner: "#260F4D",
+    bgMid: "#120624",
+    bgOuter: "#090312",
+    panel: "#1A0B33",
+    module: "#F0EBF8",
+    moduleDim: "#D8CDED",
+    primary: "#9A3CFF",
+    secondary: "#00F0FF",
+    accent: "#D845FF",
+    text: "#F0EBF8",
+    muted: "#B8A8D0",
+  },
+  crimson: {
+    bgInner: "#4D0F18",
+    bgMid: "#24060C",
+    bgOuter: "#0A0205",
+    panel: "#380A14",
+    module: "#FDEDF0",
+    moduleDim: "#EACCD2",
+    primary: "#FF3B3B",
+    secondary: "#E8A87C",
+    accent: "#FF758F",
+    text: "#FDEDF0",
+    muted: "#D0A8B0",
+  },
+  cyan: {
+    bgInner: "#0F3D4D",
+    bgMid: "#061D24",
+    bgOuter: "#030F12",
+    panel: "#0A2B38",
+    module: "#EDFBFD",
+    moduleDim: "#C5EBF2",
+    primary: "#00F0FF",
+    secondary: "#89FFDA",
+    accent: "#3B9EFF",
+    text: "#EDFBFD",
+    muted: "#A0D8E5",
+  },
 };
 
 const shortenerHosts = new Set([
@@ -49,17 +68,18 @@ function parseArgs(argv) {
   const args = {
     title: "CRADLEPOINT STUDIO",
     subtitle: "CLIENT SERVICES // VERIFIED",
-    node: "WEB DESIGN INTAKE",
+    node: "INTAKE NODE",
     clearance: "PUBLIC",
-    footer: "PRACTICAL STRUCTURE. DISTINCTIVE PRESENCE. MOBILE-FIRST.",
+    footer: "PRACTICAL STRUCTURE. DISTINCTIVE PRESENCE.",
     outDir: "public/assets/qr",
     errorCorrectionLevel: "H",
-    accent: "purple",
+    presetName: "purple",
     accentRate: 0.04,
     logoSvg: null,
     logoPath: null,
     borderless: false,
     fancy: false,
+    square: false,
     pngPreview: false,
     scale: 2,
   };
@@ -71,10 +91,6 @@ function parseArgs(argv) {
     }
 
     const key = token.slice(2);
-    if (key === "no-accent") {
-      args.accent = "none";
-      continue;
-    }
     if (key === "png-preview") {
       args.pngPreview = true;
       continue;
@@ -83,10 +99,15 @@ function parseArgs(argv) {
       args.borderless = true;
       continue;
     }
+    if (key === "square" || key === "bizcard") {
+      args.square = true;
+      args.borderless = true;
+      args.fancy = true;
+      continue;
+    }
     if (key === "fancy") {
       args.fancy = true;
       args.borderless = true;
-      args.accent = "purple";
       continue;
     }
 
@@ -124,8 +145,9 @@ function parseArgs(argv) {
       case "ecc":
         args.errorCorrectionLevel = value.toUpperCase();
         break;
-      case "accent":
-        args.accent = value.toLowerCase();
+      case "preset":
+      case "color":
+        args.presetName = value.toLowerCase();
         break;
       case "accent-rate":
         args.accentRate = Number.parseFloat(value);
@@ -155,19 +177,18 @@ function parseArgs(argv) {
 function usage() {
   return [
     "Usage:",
-    "  npm run qr -- --url https://veildaemon.app/studio/web-design/ --fancy --out studio-web-design --png-preview",
+    "  npm run qr -- --url https://play.veildaemon.app/ --preset crimson --square --out play-veildaemon",
+    "  npm run qr -- --url https://veildaemon.app/ --preset cyan --square --out veildaemon-app",
+    "  npm run qr -- --url https://veildaemon.app/studio/web-design/ --preset purple --square --out studio-web-design",
     "",
     "Options:",
     "  --url            Required direct http(s) URL.",
-    "  --fancy          Generate fancy borderless QR with VeilCorp purple styling and center Cradlepoint emblem.",
-    "  --borderless     Remove outer poster frame and render clean QR badge.",
-    "  --logo           Path to logo image (PNG/WebP) for center embedding.",
-    "  --out            Output basename. Defaults to a slug from --title.",
+    "  --square         Generate a 1:1 1000x1000 square QR badge tailored for business cards.",
+    "  --preset         Color preset: purple, crimson, cyan.",
+    "  --fancy          Generate fancy borderless QR with center emblem.",
+    "  --logo           Path to custom PNG/WebP center logo.",
+    "  --out            Output basename.",
     "  --out-dir        Output directory. Defaults to public/assets/qr.",
-    "  --ecc            QR error correction level. Defaults to H.",
-    "  --accent         Accent module color: purple, magenta, cyan, red, white, or none.",
-    "  --accent-rate    Accent ratio for safe modules. Defaults to 0.04.",
-    "  --png-preview    Also write a PNG preview.",
   ].join("\n");
 }
 
@@ -185,15 +206,6 @@ function validateOptions(args) {
   }
   if (!["L", "M", "Q", "H"].includes(args.errorCorrectionLevel)) {
     throw new Error("--ecc must be one of L, M, Q, or H.");
-  }
-  if (![...Object.keys(accentColors), "none"].includes(args.accent)) {
-    throw new Error("--accent must be one of purple, magenta, cyan, red, white, or none.");
-  }
-  if (!Number.isFinite(args.accentRate) || args.accentRate < 0 || args.accentRate > 0.12) {
-    throw new Error("--accent-rate must be a number from 0 to 0.12.");
-  }
-  if (!Number.isFinite(args.scale) || args.scale < 1 || args.scale > 4) {
-    throw new Error("--scale must be a number from 1 to 4.");
   }
 
   return parsed;
@@ -262,34 +274,30 @@ function isLogoZone(x, y, size, hasLogo) {
   return Math.abs(x - center) <= radius && Math.abs(y - center) <= radius;
 }
 
-function moduleColor(args, seed, x, y, size) {
+function moduleColor(palette, seed, x, y, size) {
   if (isFinderModule(x, y, size)) {
     const part = getFinderPart(x, y, size);
-    if (part === "outer") return palette.purple;
-    if (part === "eye") return (x + y) % 2 === 0 ? palette.cyan : palette.magenta;
+    if (part === "outer") return palette.primary;
+    if (part === "eye") return (x + y) % 2 === 0 ? palette.secondary : palette.accent;
     return palette.panel;
   }
 
-  if (args.accent === "none") {
-    return (x + y) % 3 === 0 ? palette.moduleDim : palette.module;
-  }
-
-  if (safeAccent(seed, x, y, args.accentRate)) {
-    return (x + y) % 2 === 0 ? palette.cyan : palette.magenta;
+  if (safeAccent(seed, x, y, 0.04)) {
+    return (x + y) % 2 === 0 ? palette.secondary : palette.accent;
   }
 
   return (x + y) % 3 === 0 ? palette.moduleDim : palette.module;
 }
 
-function buildQrModules(qr, args, hasLogo) {
+function buildQrModules(qr, args, palette, hasLogo, canvasWidth, canvasHeight) {
   const quietZone = 3;
   const qrSize = qr.modules.size;
   const totalModules = qrSize + quietZone * 2;
-  const targetWidth = args.borderless ? 800 : 900;
+  const targetWidth = args.square ? 760 : (args.borderless ? 800 : 900);
   const moduleSize = Math.max(4, Math.floor(targetWidth / totalModules));
   const qrPixels = totalModules * moduleSize;
-  const qrX = 600 - qrPixels / 2;
-  const qrY = args.borderless ? 280 : 270;
+  const qrX = canvasWidth / 2 - qrPixels / 2;
+  const qrY = args.square ? (canvasHeight / 2 - qrPixels / 2) : (args.borderless ? 280 : 270);
   const seed = hashString(args.url);
   const rects = [];
 
@@ -300,7 +308,7 @@ function buildQrModules(qr, args, hasLogo) {
       }
       const drawX = qrX + (x + quietZone) * moduleSize;
       const drawY = qrY + (y + quietZone) * moduleSize;
-      const fill = moduleColor(args, seed, x, y, qrSize);
+      const fill = moduleColor(palette, seed, x, y, qrSize);
       rects.push(`<rect x="${drawX}" y="${drawY}" width="${moduleSize}" height="${moduleSize}" fill="${fill}" rx="1"/>`);
     }
   }
@@ -329,18 +337,20 @@ async function readLogoSvg(logoSvgPath) {
   return source.replace(/<\?xml[^>]*>\s*/i, "").replace(/<!DOCTYPE[^>]*>\s*/i, "").trim();
 }
 
-function buildLogoInjection(qr, logoDataUri, logoSvg) {
+function buildLogoInjection(qr, palette, logoDataUri, logoSvg, canvasWidth, canvasHeight) {
   if (!logoDataUri && !logoSvg) return "";
 
   const size = Math.round(qr.qrPixels * 0.24);
-  const x = 600 - size / 2;
-  const y = qr.qrY + qr.qrPixels / 2 - size / 2;
+  const centerX = qr.qrX + qr.qrPixels / 2;
+  const centerY = qr.qrY + qr.qrPixels / 2;
+  const x = centerX - size / 2;
+  const y = centerY - size / 2;
 
   if (logoDataUri) {
     return `
     <g id="center-logo">
-      <circle cx="600" cy="${qr.qrY + qr.qrPixels / 2}" r="${size / 2 + 10}" fill="#0F071D" stroke="#9A3CFF" stroke-width="5"/>
-      <circle cx="600" cy="${qr.qrY + qr.qrPixels / 2}" r="${size / 2 + 3}" fill="#1A0B33" stroke="#00F0FF" stroke-width="2" opacity=".7"/>
+      <circle cx="${centerX}" cy="${centerY}" r="${size / 2 + 10}" fill="${palette.bgMid}" stroke="${palette.primary}" stroke-width="5"/>
+      <circle cx="${centerX}" cy="${centerY}" r="${size / 2 + 3}" fill="${palette.panel}" stroke="${palette.secondary}" stroke-width="2" opacity=".8"/>
       <image href="${logoDataUri}" x="${x}" y="${y}" width="${size}" height="${size}"/>
     </g>`;
   }
@@ -352,21 +362,46 @@ function buildLogoInjection(qr, logoDataUri, logoSvg) {
 
   return `
     <g id="center-logo" transform="translate(${x} ${y})">
-      <rect x="0" y="0" width="${size}" height="${size}" rx="12" fill="#0F071D" stroke="#9A3CFF" stroke-width="5"/>
+      <rect x="0" y="0" width="${size}" height="${size}" rx="12" fill="${palette.bgMid}" stroke="${palette.primary}" stroke-width="5"/>
       <g transform="translate(${size * 0.14} ${size * 0.14}) scale(${(size * 0.72) / 100})">
         ${normalizedLogo}
       </g>
     </g>`;
 }
 
-function buildSvg(qr, args, logoDataUri, logoSvg) {
+function buildSvg(qr, args, palette, logoDataUri, logoSvg) {
   const title = escapeXml(args.title.toUpperCase());
   const subtitle = escapeXml(args.subtitle.toUpperCase());
-  const node = escapeXml(args.node.toUpperCase());
-  const clearance = escapeXml(args.clearance.toUpperCase());
-  const footer = escapeXml(args.footer.toUpperCase());
   const destination = escapeXml(args.url);
-  const logo = buildLogoInjection(qr, logoDataUri, logoSvg);
+  const logo = buildLogoInjection(qr, palette, logoDataUri, logoSvg, args.square ? 1000 : 1200, args.square ? 1000 : 1400);
+
+  if (args.square) {
+    const size = 1000;
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-labelledby="title desc">
+  <title id="title">${title} Square QR Badge</title>
+  <desc id="desc">Square QR badge for business card use: ${destination}. Error correction ${args.errorCorrectionLevel}.</desc>
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="${palette.bgInner}"/>
+      <stop offset="65%" stop-color="${palette.bgMid}"/>
+      <stop offset="100%" stop-color="${palette.bgOuter}"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="${size}" height="${size}" rx="40" fill="url(#bgGlow)"/>
+
+  <!-- Square QR Badge Container -->
+  <g id="qr-field">
+    <rect x="${qr.qrX - 22}" y="${qr.qrY - 22}" width="${qr.qrPixels + 44}" height="${qr.qrPixels + 44}" rx="28" fill="${palette.panel}" stroke="${palette.primary}" stroke-width="4"/>
+    <rect x="${qr.qrX - 9}" y="${qr.qrY - 9}" width="${qr.qrPixels + 18}" height="${qr.qrPixels + 18}" rx="18" fill="none" stroke="${palette.secondary}" stroke-width="2" opacity=".7"/>
+    <g id="qr-modules" shape-rendering="crispEdges">
+      ${qr.svg}
+    </g>${logo}
+  </g>
+</svg>
+`;
+  }
 
   if (args.borderless) {
     const viewWidth = 1200;
@@ -374,43 +409,29 @@ function buildSvg(qr, args, logoDataUri, logoSvg) {
     return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${viewWidth}" height="${viewHeight}" viewBox="0 0 ${viewWidth} ${viewHeight}" role="img" aria-labelledby="title desc">
   <title id="title">${title} QR</title>
-  <desc id="desc">Fancy borderless QR code for ${destination}. Error correction ${args.errorCorrectionLevel}. Scan test required before publishing.</desc>
+  <desc id="desc">Fancy borderless QR code for ${destination}. Error correction ${args.errorCorrectionLevel}.</desc>
   <defs>
     <radialGradient id="bgGlow" cx="50%" cy="45%" r="60%">
-      <stop offset="0%" stop-color="#260F4D"/>
-      <stop offset="60%" stop-color="#120624"/>
-      <stop offset="100%" stop-color="#090312"/>
+      <stop offset="0%" stop-color="${palette.bgInner}"/>
+      <stop offset="60%" stop-color="${palette.bgMid}"/>
+      <stop offset="100%" stop-color="${palette.bgOuter}"/>
     </radialGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="6" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
   </defs>
 
   <rect width="${viewWidth}" height="${viewHeight}" rx="32" fill="url(#bgGlow)"/>
 
   <g id="header">
     <text x="600" y="140" fill="${palette.text}" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="800" text-anchor="middle" letter-spacing="4">${title}</text>
-    <text x="600" y="195" fill="${palette.cyan}" font-family="Consolas, monospace" font-size="24" font-weight="600" text-anchor="middle" letter-spacing="5">${subtitle}</text>
-    <path d="M350 225h500" stroke="${palette.purple}" stroke-width="3" stroke-dasharray="24 12"/>
+    <text x="600" y="195" fill="${palette.secondary}" font-family="Consolas, monospace" font-size="24" font-weight="600" text-anchor="middle" letter-spacing="5">${subtitle}</text>
+    <path d="M350 225h500" stroke="${palette.primary}" stroke-width="3" stroke-dasharray="24 12"/>
   </g>
 
   <g id="qr-field">
-    <rect x="${qr.qrX - 24}" y="${qr.qrY - 24}" width="${qr.qrPixels + 48}" height="${qr.qrPixels + 48}" rx="28" fill="${palette.panel}" stroke="${palette.purple}" stroke-width="3"/>
-    <rect x="${qr.qrX - 10}" y="${qr.qrY - 10}" width="${qr.qrPixels + 20}" height="${qr.qrPixels + 20}" rx="18" fill="none" stroke="${palette.cyan}" stroke-width="2" opacity=".6"/>
+    <rect x="${qr.qrX - 24}" y="${qr.qrY - 24}" width="${qr.qrPixels + 48}" height="${qr.qrPixels + 48}" rx="28" fill="${palette.panel}" stroke="${palette.primary}" stroke-width="3"/>
+    <rect x="${qr.qrX - 10}" y="${qr.qrY - 10}" width="${qr.qrPixels + 20}" height="${qr.qrPixels + 20}" rx="18" fill="none" stroke="${palette.secondary}" stroke-width="2" opacity=".6"/>
     <g id="qr-modules" shape-rendering="crispEdges">
       ${qr.svg}
     </g>${logo}
-  </g>
-
-  <g id="metadata">
-    <rect x="200" y="${qr.qrY + qr.qrPixels + 50}" width="800" height="76" rx="16" fill="rgba(26, 11, 51, 0.85)" stroke="${palette.line}" stroke-width="2"/>
-    <text x="320" y="${qr.qrY + qr.qrPixels + 98}" fill="${palette.muted}" font-family="Consolas, monospace" font-size="20" letter-spacing="3" text-anchor="middle">NODE: <tspan fill="${palette.text}" font-weight="700">${node}</tspan></text>
-    <text x="880" y="${qr.qrY + qr.qrPixels + 98}" fill="${palette.muted}" font-family="Consolas, monospace" font-size="20" letter-spacing="3" text-anchor="end">CLEARANCE: <tspan fill="${palette.cyan}" font-weight="700">${clearance}</tspan></text>
-  </g>
-
-  <g id="footer">
-    <text x="600" y="${viewHeight - 50}" fill="${palette.muted}" font-family="Consolas, monospace" font-size="19" text-anchor="middle" letter-spacing="3">${footer}</text>
   </g>
 </svg>
 `;
@@ -419,10 +440,10 @@ function buildSvg(qr, args, logoDataUri, logoSvg) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600" role="img" aria-labelledby="title desc">
   <title id="title">${title} QR</title>
-  <desc id="desc">Static QR code for ${destination}. Error correction ${args.errorCorrectionLevel}. Scan test required before publishing.</desc>
-  <rect width="1200" height="1600" fill="${palette.background}"/>
+  <desc id="desc">Static QR code for ${destination}. Error correction ${args.errorCorrectionLevel}.</desc>
+  <rect width="1200" height="1600" fill="${palette.bgMid}"/>
   <g id="qr-field">
-    <rect x="${qr.qrX - 14}" y="${qr.qrY - 14}" width="${qr.qrPixels + 28}" height="${qr.qrPixels + 28}" fill="${palette.panel}" stroke="${palette.line}" stroke-width="4"/>
+    <rect x="${qr.qrX - 14}" y="${qr.qrY - 14}" width="${qr.qrPixels + 28}" height="${qr.qrPixels + 28}" fill="${palette.panel}" stroke="${palette.primary}" stroke-width="4"/>
     <g id="qr-modules" shape-rendering="crispEdges">
       ${qr.svg}
     </g>${logo}
@@ -435,41 +456,44 @@ async function main() {
   try {
     const args = parseArgs(process.argv.slice(2));
     validateOptions(args);
+
+    const activePalette = presets[args.presetName] || presets.purple;
     const qr = QRCode.create(args.url, {
       errorCorrectionLevel: args.errorCorrectionLevel,
       margin: 3,
       type: "terminal",
     });
+
     const outputBase = slugify(args.out || args.title);
     const outDir = path.resolve(args.outDir);
     const svgPath = path.join(outDir, `${outputBase}.svg`);
+
     const logoDataUri = await readLogoBase64(args.logoPath);
     const logoSvg = await readLogoSvg(args.logoSvg);
     const hasLogo = Boolean(logoDataUri || logoSvg);
-    const qrModules = buildQrModules(qr, args, hasLogo);
-    const svg = buildSvg(qrModules, args, logoDataUri, logoSvg);
+
+    const canvasWidth = args.square ? 1000 : 1200;
+    const canvasHeight = args.square ? 1000 : (args.borderless ? 1400 : 1600);
+
+    const qrModules = buildQrModules(qr, args, activePalette, hasLogo, canvasWidth, canvasHeight);
+    const svg = buildSvg(qrModules, args, activePalette, logoDataUri, logoSvg);
 
     await fs.mkdir(outDir, { recursive: true });
     await fs.writeFile(svgPath, svg, "utf8");
 
     console.log(`Generated ${path.relative(process.cwd(), svgPath)}`);
 
-    if (args.pngPreview || args.fancy) {
-      const pngPath = path.join(outDir, `${outputBase}.png`);
-      const targetHeight = args.borderless ? 1400 : 1600;
-      await sharp(Buffer.from(svg)).resize({
-        width: Math.round(1200 * args.scale),
-        height: Math.round(targetHeight * args.scale),
-        kernel: "nearest",
-      }).png().toFile(pngPath);
-      console.log(`Generated ${path.relative(process.cwd(), pngPath)} preview`);
-    }
+    const pngPath = path.join(outDir, `${outputBase}.png`);
+    await sharp(Buffer.from(svg)).resize({
+      width: Math.round(canvasWidth * args.scale),
+      height: Math.round(canvasHeight * args.scale),
+    }).png().toFile(pngPath);
+    console.log(`Generated ${path.relative(process.cwd(), pngPath)} PNG asset`);
 
     const webpPath = path.join(outDir, `${outputBase}.webp`);
-    const targetHeight = args.borderless ? 1400 : 1600;
     await sharp(Buffer.from(svg)).resize({
-      width: Math.round(1200 * args.scale),
-      height: Math.round(targetHeight * args.scale),
+      width: Math.round(canvasWidth * args.scale),
+      height: Math.round(canvasHeight * args.scale),
     }).webp({ quality: 95 }).toFile(webpPath);
     console.log(`Generated ${path.relative(process.cwd(), webpPath)} WebP asset`);
 
