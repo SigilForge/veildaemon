@@ -2,22 +2,27 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import QRCode from "qrcode";
+import sharp from "sharp";
 
 const palette = {
-  background: "#0A0A0D",
-  panel: "#0F0F15",
-  module: "#C9B8D0",
-  moduleDim: "#B8A2BE",
+  background: "#0F071D",
+  panel: "#1A0B33",
+  module: "#F0EBF8",
+  moduleDim: "#D8CDED",
   purple: "#9A3CFF",
+  magenta: "#D845FF",
+  cyan: "#00F0FF",
   red: "#FF3B3B",
-  white: "#EAEAF2",
-  line: "#6B6C72",
-  text: "#EAEAF2",
-  muted: "#A9AAB2",
+  white: "#FFFFFF",
+  line: "#4D2C77",
+  text: "#F0EBF8",
+  muted: "#B8A8D0",
 };
 
 const accentColors = {
   purple: palette.purple,
+  magenta: palette.magenta,
+  cyan: palette.cyan,
   red: palette.red,
   white: palette.white,
 };
@@ -42,16 +47,19 @@ const shortenerHosts = new Set([
 
 function parseArgs(argv) {
   const args = {
-    title: "VEILCORP ARCHIVES",
-    subtitle: "ACCESS NODE // VERIFIED",
-    node: "PUBLIC INTAKE",
-    clearance: "OBSERVER",
-    footer: "HUMAN AUTHORIZATION PARTIAL. SURVIVAL AUTHORIZATION ACTIVE.",
+    title: "CRADLEPOINT STUDIO",
+    subtitle: "CLIENT SERVICES // VERIFIED",
+    node: "WEB DESIGN INTAKE",
+    clearance: "PUBLIC",
+    footer: "PRACTICAL STRUCTURE. DISTINCTIVE PRESENCE. MOBILE-FIRST.",
     outDir: "public/assets/qr",
     errorCorrectionLevel: "H",
     accent: "purple",
-    accentRate: 0.025,
+    accentRate: 0.04,
     logoSvg: null,
+    logoPath: null,
+    borderless: false,
+    fancy: false,
     pngPreview: false,
     scale: 2,
   };
@@ -69,6 +77,16 @@ function parseArgs(argv) {
     }
     if (key === "png-preview") {
       args.pngPreview = true;
+      continue;
+    }
+    if (key === "borderless") {
+      args.borderless = true;
+      continue;
+    }
+    if (key === "fancy") {
+      args.fancy = true;
+      args.borderless = true;
+      args.accent = "purple";
       continue;
     }
 
@@ -115,6 +133,10 @@ function parseArgs(argv) {
       case "logo-svg":
         args.logoSvg = value;
         break;
+      case "logo":
+      case "logo-img":
+        args.logoPath = value;
+        break;
       case "scale":
         args.scale = Number.parseFloat(value);
         break;
@@ -123,26 +145,29 @@ function parseArgs(argv) {
     }
   }
 
+  if (args.fancy && !args.logoPath && !args.logoSvg) {
+    args.logoPath = "studio/assets/brand/cradlepoint-studio-emblem-transparent.png";
+  }
+
   return args;
 }
 
 function usage() {
   return [
     "Usage:",
-    "  npm run qr -- --url https://veildaemon.app --title \"VEILCORP ARCHIVES\" --subtitle \"ACCESS NODE // VERIFIED\" --node \"OPERATOR INTAKE\" --clearance \"THREADBREAKER\" --out operator-intake",
+    "  npm run qr -- --url https://veildaemon.app/studio/web-design/ --fancy --out studio-web-design --png-preview",
     "",
     "Options:",
     "  --url            Required direct http(s) URL.",
+    "  --fancy          Generate fancy borderless QR with VeilCorp purple styling and center Cradlepoint emblem.",
+    "  --borderless     Remove outer poster frame and render clean QR badge.",
+    "  --logo           Path to logo image (PNG/WebP) for center embedding.",
     "  --out            Output basename. Defaults to a slug from --title.",
     "  --out-dir        Output directory. Defaults to public/assets/qr.",
     "  --ecc            QR error correction level. Defaults to H.",
-    "  --accent         Accent module color: purple, red, white, or none. Defaults to purple.",
-    "  --no-accent      Disable deterministic accent modules.",
-    "  --accent-rate    Accent ratio for safe modules. Defaults to 0.025.",
-    "  --footer         Footer text. Defaults to the VeilCorp authorization line.",
-    "  --logo-svg       Optional center SVG logo path. Disabled by default.",
-    "  --png-preview    Also write a PNG preview. SVG remains the publishing asset.",
-    "  --scale          PNG preview scale multiplier. Defaults to 2.",
+    "  --accent         Accent module color: purple, magenta, cyan, red, white, or none.",
+    "  --accent-rate    Accent ratio for safe modules. Defaults to 0.04.",
+    "  --png-preview    Also write a PNG preview.",
   ].join("\n");
 }
 
@@ -162,7 +187,7 @@ function validateOptions(args) {
     throw new Error("--ecc must be one of L, M, Q, or H.");
   }
   if (![...Object.keys(accentColors), "none"].includes(args.accent)) {
-    throw new Error("--accent must be one of purple, red, white, or none.");
+    throw new Error("--accent must be one of purple, magenta, cyan, red, white, or none.");
   }
   if (!Number.isFinite(args.accentRate) || args.accentRate < 0 || args.accentRate > 0.12) {
     throw new Error("--accent-rate must be a number from 0 to 0.12.");
@@ -205,53 +230,78 @@ function safeAccent(seed, x, y, rate) {
 }
 
 function isFinderModule(x, y, size) {
-  const inTopLeft = x < 9 && y < 9;
-  const inTopRight = x >= size - 8 && y < 9;
-  const inBottomLeft = x < 9 && y >= size - 8;
+  const inTopLeft = x < 7 && y < 7;
+  const inTopRight = x >= size - 7 && y < 7;
+  const inBottomLeft = x < 7 && y >= size - 7;
   return inTopLeft || inTopRight || inBottomLeft;
 }
 
-function isLogoZone(x, y, size, logo) {
-  if (!logo) {
+function getFinderPart(x, y, size) {
+  let relX = x;
+  let relY = y;
+  if (x >= size - 7 && y < 7) {
+    relX = x - (size - 7);
+  } else if (x < 7 && y >= size - 7) {
+    relY = y - (size - 7);
+  }
+
+  const isOuter = relX === 0 || relX === 6 || relY === 0 || relY === 6;
+  const isInnerEye = relX >= 2 && relX <= 4 && relY >= 2 && relY <= 4;
+
+  if (isOuter) return "outer";
+  if (isInnerEye) return "eye";
+  return "space";
+}
+
+function isLogoZone(x, y, size, hasLogo) {
+  if (!hasLogo) {
     return false;
   }
   const center = (size - 1) / 2;
-  const radius = Math.max(4, Math.floor(size * 0.105));
+  const radius = Math.max(3.5, Math.floor(size * 0.125));
   return Math.abs(x - center) <= radius && Math.abs(y - center) <= radius;
 }
 
 function moduleColor(args, seed, x, y, size) {
-  if (args.accent === "none" || isFinderModule(x, y, size) || isLogoZone(x, y, size, args.logoSvg)) {
+  if (isFinderModule(x, y, size)) {
+    const part = getFinderPart(x, y, size);
+    if (part === "outer") return palette.purple;
+    if (part === "eye") return (x + y) % 2 === 0 ? palette.cyan : palette.magenta;
+    return palette.panel;
+  }
+
+  if (args.accent === "none") {
     return (x + y) % 3 === 0 ? palette.moduleDim : palette.module;
   }
 
-  if (!safeAccent(seed, x, y, args.accentRate)) {
-    return (x + y) % 3 === 0 ? palette.moduleDim : palette.module;
+  if (safeAccent(seed, x, y, args.accentRate)) {
+    return (x + y) % 2 === 0 ? palette.cyan : palette.magenta;
   }
 
-  return accentColors[args.accent];
+  return (x + y) % 3 === 0 ? palette.moduleDim : palette.module;
 }
 
-function buildQrModules(qr, args) {
-  const quietZone = 4;
+function buildQrModules(qr, args, hasLogo) {
+  const quietZone = 3;
   const qrSize = qr.modules.size;
   const totalModules = qrSize + quietZone * 2;
-  const moduleSize = Math.max(4, Math.floor(966 / totalModules));
+  const targetWidth = args.borderless ? 800 : 900;
+  const moduleSize = Math.max(4, Math.floor(targetWidth / totalModules));
   const qrPixels = totalModules * moduleSize;
   const qrX = 600 - qrPixels / 2;
-  const qrY = 270;
+  const qrY = args.borderless ? 280 : 270;
   const seed = hashString(args.url);
   const rects = [];
 
   for (let y = 0; y < qrSize; y += 1) {
     for (let x = 0; x < qrSize; x += 1) {
-      if (!qr.modules.data[y * qrSize + x]) {
+      if (!qr.modules.data[y * qrSize + x] || isLogoZone(x, y, qrSize, hasLogo)) {
         continue;
       }
       const drawX = qrX + (x + quietZone) * moduleSize;
       const drawY = qrY + (y + quietZone) * moduleSize;
       const fill = moduleColor(args, seed, x, y, qrSize);
-      rects.push(`<rect x="${drawX}" y="${drawY}" width="${moduleSize}" height="${moduleSize}" fill="${fill}"/>`);
+      rects.push(`<rect x="${drawX}" y="${drawY}" width="${moduleSize}" height="${moduleSize}" fill="${fill}" rx="1"/>`);
     }
   }
 
@@ -266,41 +316,35 @@ function buildQrModules(qr, args) {
   };
 }
 
-function buildFrameMarks() {
-  return [
-    '<path d="M88 92h118v14H102v104H88V92Z" fill="#6B6C72"/>',
-    '<path d="M1112 92h-118v14h104v104h14V92Z" fill="#6B6C72"/>',
-    '<path d="M88 1508h118v-14H102v-104H88v118Z" fill="#6B6C72"/>',
-    '<path d="M1112 1508h-118v-14h104v-104h14v118Z" fill="#6B6C72"/>',
-    '<path d="M126 138h948M126 1462h948" stroke="#6B6C72" stroke-width="2" stroke-dasharray="18 16" opacity=".75"/>',
-    '<path d="M138 180v1240M1062 180v1240" stroke="#6B6C72" stroke-width="2" stroke-dasharray="18 16" opacity=".5"/>',
-  ].join("\n  ");
+async function readLogoBase64(logoPath) {
+  if (!logoPath) return null;
+  const resolved = path.resolve(logoPath);
+  const buf = await sharp(resolved).resize(256, 256, { fit: "contain" }).png().toBuffer();
+  return `data:image/png;base64,${buf.toString("base64")}`;
 }
 
 async function readLogoSvg(logoSvgPath) {
-  if (!logoSvgPath) {
-    return "";
-  }
-
+  if (!logoSvgPath) return "";
   const source = await fs.readFile(path.resolve(logoSvgPath), "utf8");
-  if (!/<svg[\s>]/i.test(source)) {
-    throw new Error("--logo-svg must point to an SVG file.");
-  }
-
-  return source
-    .replace(/<\?xml[^>]*>\s*/i, "")
-    .replace(/<!DOCTYPE[^>]*>\s*/i, "")
-    .trim();
+  return source.replace(/<\?xml[^>]*>\s*/i, "").replace(/<!DOCTYPE[^>]*>\s*/i, "").trim();
 }
 
-function buildLogoInjection(qr, logoSvg) {
-  if (!logoSvg) {
-    return "";
-  }
+function buildLogoInjection(qr, logoDataUri, logoSvg) {
+  if (!logoDataUri && !logoSvg) return "";
 
-  const size = Math.round(qr.qrPixels * 0.16);
+  const size = Math.round(qr.qrPixels * 0.24);
   const x = 600 - size / 2;
   const y = qr.qrY + qr.qrPixels / 2 - size / 2;
+
+  if (logoDataUri) {
+    return `
+    <g id="center-logo">
+      <circle cx="600" cy="${qr.qrY + qr.qrPixels / 2}" r="${size / 2 + 10}" fill="#0F071D" stroke="#9A3CFF" stroke-width="5"/>
+      <circle cx="600" cy="${qr.qrY + qr.qrPixels / 2}" r="${size / 2 + 3}" fill="#1A0B33" stroke="#00F0FF" stroke-width="2" opacity=".7"/>
+      <image href="${logoDataUri}" x="${x}" y="${y}" width="${size}" height="${size}"/>
+    </g>`;
+  }
+
   const normalizedLogo = logoSvg
     .replace(/\s(width|height)="[^"]*"/gi, "")
     .replace(/<svg\b/i, '<svg width="100" height="100"')
@@ -308,62 +352,80 @@ function buildLogoInjection(qr, logoSvg) {
 
   return `
     <g id="center-logo" transform="translate(${x} ${y})">
-      <rect x="0" y="0" width="${size}" height="${size}" fill="#0A0A0D" stroke="#9A3CFF" stroke-width="6"/>
+      <rect x="0" y="0" width="${size}" height="${size}" rx="12" fill="#0F071D" stroke="#9A3CFF" stroke-width="5"/>
       <g transform="translate(${size * 0.14} ${size * 0.14}) scale(${(size * 0.72) / 100})">
         ${normalizedLogo}
       </g>
     </g>`;
 }
 
-function buildSvg(qr, args, logoSvg) {
+function buildSvg(qr, args, logoDataUri, logoSvg) {
   const title = escapeXml(args.title.toUpperCase());
   const subtitle = escapeXml(args.subtitle.toUpperCase());
   const node = escapeXml(args.node.toUpperCase());
   const clearance = escapeXml(args.clearance.toUpperCase());
   const footer = escapeXml(args.footer.toUpperCase());
   const destination = escapeXml(args.url);
-  const generated = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
-  const logo = buildLogoInjection(qr, logoSvg);
+  const logo = buildLogoInjection(qr, logoDataUri, logoSvg);
 
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600" role="img" aria-labelledby="title desc">
+  if (args.borderless) {
+    const viewWidth = 1200;
+    const viewHeight = 1400;
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${viewWidth}" height="${viewHeight}" viewBox="0 0 ${viewWidth} ${viewHeight}" role="img" aria-labelledby="title desc">
   <title id="title">${title} QR</title>
-  <desc id="desc">Static QR code for ${destination}. Error correction ${args.errorCorrectionLevel}. Scan test required before publishing.</desc>
-  <rect width="1200" height="1600" fill="${palette.background}"/>
-  <rect x="70" y="74" width="1060" height="1452" fill="none" stroke="${palette.line}" stroke-width="4"/>
-  <rect x="92" y="96" width="1016" height="1408" fill="none" stroke="${palette.line}" stroke-width="1" opacity=".52"/>
-  <rect x="114" y="118" width="972" height="1364" fill="none" stroke="${palette.purple}" stroke-width="1" opacity=".42"/>
-  ${buildFrameMarks()}
+  <desc id="desc">Fancy borderless QR code for ${destination}. Error correction ${args.errorCorrectionLevel}. Scan test required before publishing.</desc>
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#260F4D"/>
+      <stop offset="60%" stop-color="#120624"/>
+      <stop offset="100%" stop-color="#090312"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect width="${viewWidth}" height="${viewHeight}" rx="32" fill="url(#bgGlow)"/>
 
   <g id="header">
-    <text x="600" y="178" fill="${palette.text}" font-family="Inter, Consolas, monospace" font-size="54" font-weight="700" text-anchor="middle" letter-spacing="3">${title}</text>
-    <text x="600" y="226" fill="${palette.muted}" font-family="Consolas, monospace" font-size="24" text-anchor="middle" letter-spacing="4">${subtitle}</text>
-    <path d="M282 260h636" stroke="${palette.purple}" stroke-width="3" stroke-dasharray="32 14"/>
+    <text x="600" y="140" fill="${palette.text}" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="800" text-anchor="middle" letter-spacing="4">${title}</text>
+    <text x="600" y="195" fill="${palette.cyan}" font-family="Consolas, monospace" font-size="24" font-weight="600" text-anchor="middle" letter-spacing="5">${subtitle}</text>
+    <path d="M350 225h500" stroke="${palette.purple}" stroke-width="3" stroke-dasharray="24 12"/>
   </g>
 
   <g id="qr-field">
-    <rect x="${qr.qrX - 14}" y="${qr.qrY - 14}" width="${qr.qrPixels + 28}" height="${qr.qrPixels + 28}" fill="${palette.panel}" stroke="${palette.line}" stroke-width="4"/>
-    <rect x="${qr.qrX - 2}" y="${qr.qrY - 2}" width="${qr.qrPixels + 4}" height="${qr.qrPixels + 4}" fill="none" stroke="${palette.red}" stroke-width="2" opacity=".48"/>
-    <rect x="${qr.qrX}" y="${qr.qrY}" width="${qr.qrPixels}" height="${qr.qrPixels}" fill="${palette.background}"/>
+    <rect x="${qr.qrX - 24}" y="${qr.qrY - 24}" width="${qr.qrPixels + 48}" height="${qr.qrPixels + 48}" rx="28" fill="${palette.panel}" stroke="${palette.purple}" stroke-width="3"/>
+    <rect x="${qr.qrX - 10}" y="${qr.qrY - 10}" width="${qr.qrPixels + 20}" height="${qr.qrPixels + 20}" rx="18" fill="none" stroke="${palette.cyan}" stroke-width="2" opacity=".6"/>
     <g id="qr-modules" shape-rendering="crispEdges">
       ${qr.svg}
     </g>${logo}
   </g>
 
   <g id="metadata">
-    <rect x="126" y="1254" width="442" height="116" fill="none" stroke="${palette.line}" stroke-width="2"/>
-    <rect x="632" y="1254" width="442" height="116" fill="none" stroke="${palette.line}" stroke-width="2"/>
-    <path d="M126 1240h948M126 1388h948" stroke="${palette.purple}" stroke-width="2" stroke-dasharray="12 12" opacity=".55"/>
-    <text x="154" y="1296" fill="${palette.muted}" font-family="Consolas, monospace" font-size="20" letter-spacing="3">NODE</text>
-    <text x="154" y="1338" fill="${palette.text}" font-family="Consolas, monospace" font-size="28" font-weight="700">${node}</text>
-    <text x="660" y="1296" fill="${palette.muted}" font-family="Consolas, monospace" font-size="20" letter-spacing="3">CLEARANCE</text>
-    <text x="660" y="1338" fill="${palette.text}" font-family="Consolas, monospace" font-size="28" font-weight="700">${clearance}</text>
-    <rect x="126" y="1412" width="948" height="58" fill="none" stroke="${palette.line}" stroke-width="2"/>
-    <text x="154" y="1450" fill="${palette.muted}" font-family="Consolas, monospace" font-size="18">STATIC DIRECT URL // ECC-${args.errorCorrectionLevel} // GENERATED ${generated}</text>
+    <rect x="200" y="${qr.qrY + qr.qrPixels + 50}" width="800" height="76" rx="16" fill="rgba(26, 11, 51, 0.85)" stroke="${palette.line}" stroke-width="2"/>
+    <text x="320" y="${qr.qrY + qr.qrPixels + 98}" fill="${palette.muted}" font-family="Consolas, monospace" font-size="20" letter-spacing="3" text-anchor="middle">NODE: <tspan fill="${palette.text}" font-weight="700">${node}</tspan></text>
+    <text x="880" y="${qr.qrY + qr.qrPixels + 98}" fill="${palette.muted}" font-family="Consolas, monospace" font-size="20" letter-spacing="3" text-anchor="end">CLEARANCE: <tspan fill="${palette.cyan}" font-weight="700">${clearance}</tspan></text>
   </g>
 
   <g id="footer">
-    <text x="600" y="1514" fill="${palette.text}" font-family="Consolas, monospace" font-size="20" text-anchor="middle" letter-spacing="3">${footer}</text>
+    <text x="600" y="${viewHeight - 50}" fill="${palette.muted}" font-family="Consolas, monospace" font-size="19" text-anchor="middle" letter-spacing="3">${footer}</text>
+  </g>
+</svg>
+`;
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1600" viewBox="0 0 1200 1600" role="img" aria-labelledby="title desc">
+  <title id="title">${title} QR</title>
+  <desc id="desc">Static QR code for ${destination}. Error correction ${args.errorCorrectionLevel}. Scan test required before publishing.</desc>
+  <rect width="1200" height="1600" fill="${palette.background}"/>
+  <g id="qr-field">
+    <rect x="${qr.qrX - 14}" y="${qr.qrY - 14}" width="${qr.qrPixels + 28}" height="${qr.qrPixels + 28}" fill="${palette.panel}" stroke="${palette.line}" stroke-width="4"/>
+    <g id="qr-modules" shape-rendering="crispEdges">
+      ${qr.svg}
+    </g>${logo}
   </g>
 </svg>
 `;
@@ -375,30 +437,42 @@ async function main() {
     validateOptions(args);
     const qr = QRCode.create(args.url, {
       errorCorrectionLevel: args.errorCorrectionLevel,
-      margin: 4,
+      margin: 3,
       type: "terminal",
     });
     const outputBase = slugify(args.out || args.title);
     const outDir = path.resolve(args.outDir);
     const svgPath = path.join(outDir, `${outputBase}.svg`);
-    const qrModules = buildQrModules(qr, args);
+    const logoDataUri = await readLogoBase64(args.logoPath);
     const logoSvg = await readLogoSvg(args.logoSvg);
-    const svg = buildSvg(qrModules, args, logoSvg);
+    const hasLogo = Boolean(logoDataUri || logoSvg);
+    const qrModules = buildQrModules(qr, args, hasLogo);
+    const svg = buildSvg(qrModules, args, logoDataUri, logoSvg);
 
     await fs.mkdir(outDir, { recursive: true });
     await fs.writeFile(svgPath, svg, "utf8");
 
     console.log(`Generated ${path.relative(process.cwd(), svgPath)}`);
-    if (args.pngPreview) {
+
+    if (args.pngPreview || args.fancy) {
       const pngPath = path.join(outDir, `${outputBase}.png`);
-      const { default: sharp } = await import("sharp");
+      const targetHeight = args.borderless ? 1400 : 1600;
       await sharp(Buffer.from(svg)).resize({
         width: Math.round(1200 * args.scale),
-        height: Math.round(1600 * args.scale),
+        height: Math.round(targetHeight * args.scale),
         kernel: "nearest",
       }).png().toFile(pngPath);
       console.log(`Generated ${path.relative(process.cwd(), pngPath)} preview`);
     }
+
+    const webpPath = path.join(outDir, `${outputBase}.webp`);
+    const targetHeight = args.borderless ? 1400 : 1600;
+    await sharp(Buffer.from(svg)).resize({
+      width: Math.round(1200 * args.scale),
+      height: Math.round(targetHeight * args.scale),
+    }).webp({ quality: 95 }).toFile(webpPath);
+    console.log(`Generated ${path.relative(process.cwd(), webpPath)} WebP asset`);
+
     console.warn("Scan test required before publishing.");
   } catch (error) {
     console.error(error.message);
