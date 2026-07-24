@@ -1736,61 +1736,85 @@ footer > p {
   margin-top: 0.35rem;
 }
 
-/* Pitch Closing Route Cards */
-.pitch-route-card {
+/* Pitch Closing Route Cards — Normalized 16x9 */
+.pitch-media-card {
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius);
-  border: 1px solid rgba(181, 117, 104, 0.22);
-  background: rgba(14, 16, 17, 0.92);
+  height: 100%;
+  padding: 0 !important;
   overflow: hidden;
-  text-decoration: none;
-  color: inherit;
+  border-radius: var(--radius);
+  border: 1px solid rgba(181, 117, 104, 0.28);
+  background: rgba(17, 19, 20, 0.92);
   transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
 
-.pitch-route-card:hover {
+.pitch-media-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(181, 117, 104, 0.45);
+  border-color: rgba(181, 117, 104, 0.5);
   box-shadow: var(--shadow-md);
 }
 
-.pitch-route-card img {
+.pitch-card-media {
   width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  overflow: hidden;
+  background: #0a0c0d;
+  flex-shrink: 0;
+}
+
+.pitch-card-media img {
+  width: 100%;
+  height: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   object-position: center center;
-  background: #0a0c0d;
+  display: block;
 }
 
-.pitch-route-card > div {
+.pitch-card-body {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  padding: 1.25rem 1.35rem;
+  padding: 1.25rem 1.35rem 1.4rem;
 }
 
-.pitch-route-card span {
+.pitch-card-body span {
   color: var(--rust-soft);
   font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   margin-bottom: 0.35rem;
+  display: block;
 }
 
-.pitch-route-card h3 {
+.pitch-card-body h3 {
   margin: 0 0 0.45rem;
   font-size: 1.45rem;
   color: var(--text);
 }
 
-.pitch-route-card p {
+.pitch-card-body p {
   margin: 0 0 1.1rem;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: 0.92rem;
+  line-height: 1.55;
   color: var(--text-soft);
   flex-grow: 1;
+}
+
+.pitch-card-link {
+  color: var(--paper);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--dur) var(--ease);
+}
+
+.pitch-card-link:hover {
+  color: var(--rust-soft);
 }
 
 .pitch-route-card b {
