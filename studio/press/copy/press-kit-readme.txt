@@ -1,4 +1,4 @@
-CRADLEPOINT STUDIO PRESS KIT
+SIGILFORGE STUDIOS PRESS KIT
 Public package · July 2026
 
 START HERE
@@ -11,7 +11,7 @@ START HERE
 7. Read Guidance/ before publication.
 
 BRAND BOUNDARY
-Cradlepoint Studio is the real-world founder-operated studio identity.
+SigilForge Studios is the real-world founder-operated studio identity.
 VeilDaemon is the public software product/platform.
 VeilCorp is a fictional in-universe organization, not a contracting party or real-world endorser.
 
@@ -20,7 +20,7 @@ Use the color horizontal lockup for wide identity placements, the lotus-eye embl
 The round emblem and seal include transparent PNG/WebP derivatives that remove only exterior canvas darkness. Their enclosed black bands, shadows, and imagery remain intact. Original unmasked PNG sources are retained in Cradlepoint-Studio/Sources/.
 
 CURRENT STATUS
-Cradlepoint Studio has shipping tabletop products and live VeilDaemon browser software. Fiction remains in development. Mobile AR and Ritual Sites remain separately scoped future directions.
+SigilForge Studios has shipping tabletop products and live VeilDaemon browser software. Fiction remains in development. Mobile AR and Ritual Sites remain separately scoped future directions.
 
 CONTACT
 J. Donavon Love

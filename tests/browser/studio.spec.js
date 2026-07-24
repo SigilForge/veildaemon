@@ -5,8 +5,8 @@ const { Readable } = require("stream");
 
 const reviewDir = "/tmp/studio-review";
 const studioRoutes = [
-  { path: "/studio/", name: "portal", title: /Cradlepoint Studio.*TTRPG|TTRPG.*Cradlepoint Studio|Cradlepoint Studio/, h1: /One universe/ },
-  { path: "/studio/about/", name: "about", title: /About Cradlepoint Studio/, h1: /Translation before mythology/ },
+  { path: "/studio/", name: "portal", title: /SigilForge Studios.*TTRPG|TTRPG.*SigilForge Studios|SigilForge Studios/, h1: /One universe/ },
+  { path: "/studio/about/", name: "about", title: /About SigilForge Studios/, h1: /Translation before mythology/ },
   { path: "/studio/web-design/", name: "web-design", title: /Small Business Web Design/, h1: /Get Online Without|Websites Built/ },
   { path: "/studio/projects/", name: "projects", title: /Projects/, h1: /One system/ },
   { path: "/studio/publishing/", name: "publishing", title: /Publishing/, h1: /publishing line already in market/ },
@@ -397,9 +397,9 @@ test.describe("studio subtree routes", () => {
     const kitLink = page.getByRole("link", { name: /Download complete press kit/i });
     await expect(kitLink).toBeVisible();
     await expect(kitLink).toHaveAttribute("href", "downloads/cradlepoint-studio-press-kit-july-2026.zip");
-    await expect(page.locator(".press-copy-grid .long-copy")).toContainText(/Cradlepoint Studio is an independent creative technology studio/i);
+    await expect(page.locator(".press-copy-grid .long-copy")).toContainText(/SigilForge Studios is an independent creative technology studio/i);
     await expect(page.locator(".press-copy-grid").first()).not.toContainText("See full text in download");
-    await expect(page.locator(".press-copy-grid")).toContainText(/Cradlepoint Studio is an independent founder-operated studio/i);
+    await expect(page.locator(".press-copy-grid")).toContainText(/SigilForge Studios is an independent founder-operated studio/i);
     for (const id of ["studio-assets", "veildaemon-assets", "veilcorp-assets"]) {
       await expect(page.locator("#" + id)).toHaveCount(1);
     }
@@ -517,8 +517,8 @@ test.describe("studio subtree routes", () => {
       ? parsedData["@graph"].find((entry) => entry["@type"] === "Organization")
       : parsedData;
     expect(data["@type"]).toBe("Organization");
-    expect(data.name).toBe("Cradlepoint Studio");
-    expect(data.logo || "", "Organization logo should be Cradlepoint Studio mark").toMatch(
+    expect(data.name).toBe("SigilForge Studios");
+    expect(data.logo || "", "Organization logo should be SigilForge Studios mark").toMatch(
       /cradlepoint-studio/
     );
     expect(String(data.logo || "")).not.toContain("veilcorp-avatar");
@@ -570,7 +570,7 @@ test.describe("studio subtree routes", () => {
       // versioned src still required for art plates
       expect(img.src.includes("?v="), img.src).toBeTruthy();
     }
-    // Brand mark is Cradlepoint Studio, not only VeilCorp
+    // Brand mark is SigilForge Studios, not only VeilCorp
     expect(imgReport.some((i) => (i.src || "").includes("cradlepoint-studio-emblem"))).toBeTruthy();
 
     // Build marker present

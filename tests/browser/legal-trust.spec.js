@@ -71,6 +71,6 @@ test("public pages avoid false entity and all-data-local claims", async () => {
   ];
   const text = publicFiles.map((file) => fs.readFileSync(path.join(root, file), "utf8")).join("\n");
   expect(text).not.toMatch(/all (?:user )?(?:data|records).*remain local/i);
-  expect(text).not.toMatch(/Cradlepoint Studio (?:LLC|Inc\.|Corporation)/i);
+  expect(text).not.toMatch(/SigilForge Studios (?:LLC|Inc\.|Corporation)/i);
   expect(text).not.toMatch(/registered trademark/i);
 });

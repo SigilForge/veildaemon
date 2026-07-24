@@ -14,7 +14,7 @@ Commercial use of creative elements requires written permission.
 
 ## Marks and Source Identifiers
 
-Cradlepoint Studio, Cradlepoint, VeilDaemon, VeilCorp, product names, logos, trademarks, service marks, source identifiers, trade dress, and source-identifying designs are excluded from the Creative Commons grant. No trademark rights are granted by this repository. No trademark registration is claimed.
+SigilForge Studios, Cradlepoint, VeilDaemon, VeilCorp, product names, logos, trademarks, service marks, source identifiers, trade dress, and source-identifying designs are excluded from the Creative Commons grant. No trademark rights are granted by this repository. No trademark registration is claimed.
 
 Media-use permission for approved press assets is limited to the published media-usage guidance and does not transfer ownership or trademark rights. Other commercial licensing requires written permission.
 

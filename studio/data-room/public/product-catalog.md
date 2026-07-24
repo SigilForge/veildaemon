@@ -2,7 +2,7 @@
 
 > **Open-web summary only.** Not the private Cradlepoint archive. Full diligence materials are shared by request, not linked here.
 
-**Studio:** Cradlepoint Studio<br>
+**Studio:** SigilForge Studios<br>
 **As-of:** July 2026<br>
 **Access:** Public
 

@@ -1,4 +1,4 @@
-# Cradlepoint Studio — Executive Overview (Public)
+# SigilForge Studios — Executive Overview (Public)
 
 > **Open-web summary only.** Not the private Cradlepoint archive. Full diligence materials are shared by request, not linked here.
 

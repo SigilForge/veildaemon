@@ -1,7 +1,7 @@
-Cradlepoint Studio — Media Usage Guidance (public)
+SigilForge Studios — Media Usage Guidance (public)
 
 Brand architecture (keep separate)
-- Cradlepoint Studio — founder-operated studio and business identity
+- SigilForge Studios — founder-operated studio and business identity
 - VeilDaemon — public product / platform
 - VeilCorp — fictional in-universe organization (not a real-world endorser or contracting party)
 
@@ -10,7 +10,7 @@ Approved uses
 - Non-commercial attribution when describing the studio or products
 
 Preferred attribution
-- “Cradlepoint Studio” for the founder-operated studio and business identity
+- “SigilForge Studios” for the founder-operated studio and business identity
 - “VeilDaemon” for the software product
 - Credit: J. Donavon Love where a creator credit is appropriate
 - Do not present VeilCorp as the negotiating party on real-world contracts
@@ -25,10 +25,10 @@ Please do not
 - Present concept or planned work (Mobile AR, Ritual Sites) as currently shipping products
 - Alter logos into new brand marks
 - Imply endorsement by VeilCorp as a real-world corporation
-- Use VeilCorp marks as the real-world Cradlepoint Studio identity
+- Use VeilCorp marks as the real-world SigilForge Studios identity
 
 Higher-resolution or exclusive assets
-- Request via J.Donavon.Love@gmail.com with subject “Cradlepoint Studio Press Inquiry”
+- Request via J.Donavon.Love@gmail.com with subject “SigilForge Studios Press Inquiry”
 
 Still needed for professional brand packs
 - SVG / vector masters
