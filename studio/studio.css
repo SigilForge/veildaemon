@@ -1679,6 +1679,114 @@ footer > p {
   grid-row: span 2;
 }
 
+/* Pitch timeline container */
+.pitch-timeline {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.timeline-phase {
+  padding: 1.15rem 1.25rem;
+  border-radius: var(--radius-sm);
+  background: rgba(8, 10, 11, 0.75);
+  border: 1px solid rgba(181, 117, 104, 0.22);
+}
+
+.phase-tag {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-pill);
+  background: rgba(181, 117, 104, 0.15);
+  border: 1px solid rgba(181, 117, 104, 0.35);
+  color: var(--rust-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.timeline-phase ul {
+  margin: 0;
+  padding-left: 1.05rem;
+}
+
+.timeline-phase li {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-soft);
+}
+
+.timeline-phase li + li {
+  margin-top: 0.35rem;
+}
+
+/* Pitch Closing Route Cards */
+.pitch-route-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius);
+  border: 1px solid rgba(181, 117, 104, 0.22);
+  background: rgba(14, 16, 17, 0.92);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.pitch-route-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(181, 117, 104, 0.45);
+  box-shadow: var(--shadow-md);
+}
+
+.pitch-route-card img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center center;
+  background: #0a0c0d;
+}
+
+.pitch-route-card > div {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 1.25rem 1.35rem;
+}
+
+.pitch-route-card span {
+  color: var(--rust-soft);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.pitch-route-card h3 {
+  margin: 0 0 0.45rem;
+  font-size: 1.45rem;
+  color: var(--text);
+}
+
+.pitch-route-card p {
+  margin: 0 0 1.1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-soft);
+  flex-grow: 1;
+}
+
+.pitch-route-card b {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--paper);
+}
+
 .pitch-statement {
   font-family: var(--font-display);
   font-size: clamp(1.25rem, 2.2vw, 1.55rem);
