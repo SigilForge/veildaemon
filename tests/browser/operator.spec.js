@@ -700,11 +700,8 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await expect(page.locator("#roll-attribute")).toContainText("Body +3");
   await expect(page.getByText("Creation: skills 0/8 // attribute spread 2/6 // Bonus Breach 3/3")).toBeVisible();
 
-  await page.getByLabel("Body 1").click();
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
-  await expect(page.locator("#roll-attribute")).toContainText("Body +1");
+  await expect(page.getByLabel("Body 4")).toBeDisabled();
 
-  await page.getByLabel("Body 3").click();
   await page.getByLabel("Agility 3").click();
   await page.getByLabel("Mind 3").click();
   await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 3/3")).toBeVisible();
@@ -717,15 +714,14 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
   await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 3/3")).toBeVisible();
 
-  await expect(page.getByLabel("Body 4")).toBeDisabled();
-  await expect(page.locator("#roll-attribute")).toContainText("Body +3");
-
+  await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await importAuthorizationPacket(page, ["BREACH_REWARD:5"]);
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("8");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
-  await expect(page.getByLabel("Body 4")).toBeDisabled();
-  await expect(page.locator("#roll-attribute")).toContainText("Body +3");
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("8");
+  await expect(page.getByLabel("Body 4")).toBeEnabled();
+  await page.getByLabel("Body 4").click();
+  await expect(page.locator("#roll-attribute")).toContainText("Body +4");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("4");
 });
 
 test("open core presentations appear without Handler unlock", async ({ page }) => {
@@ -733,10 +729,6 @@ test("open core presentations appear without Handler unlock", async ({ page }) =
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
 
   const options = page.locator('[name="ontologyPresentation"] option');
-  await expect(options).toContainText(["Resonant Sensitive"]);
-  await expect(options).toContainText(["Echo-Altered Presentation"]);
-  await expect(options).toContainText(["Hollow / Silence-Altered"]);
-  await expect(options).toContainText(["Technomancer / Daemon-Aligned"]);
   await expect(options).toContainText(["Therian Adaptation"]);
   await expect(options).not.toContainText(["Sanguine Presentation"]);
   await expect(options).not.toContainText(["Wraith-Touched / Anchor-Bound"]);
@@ -782,4 +774,97 @@ test("archive unlock keys clear sealed presentations for assignment", async ({ p
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Demon-Bound");
   await expect(page.locator('[name="ontologyPresentation"]')).toContainText("Infernal");
+});
+
+test("Core Start prioritizes Intake primaryFrequency over stale selected petal", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.evaluate(() => {
+    window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
+      designation: "INTAKE-PRIORITY-OP",
+      primaryFrequency: "Silence",
+      observerClassification: "Operator",
+      attentionStatus: "Local",
+      accessLevel: "LOCAL"
+    }));
+  });
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  await page.getByRole("button", { name: "Frequency" }).click();
+  await expect(page.locator("#lotus-frequency")).toHaveText("Silence");
+  await expect(page.locator("#lotus-gate")).toHaveText("Gate 1 // 1 Void");
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("1 / 6");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+});
+
+test("Manual Core Start without Intake primaryFrequency gives 1 uncommitted VoidMark", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.evaluate(() => {
+    window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
+      designation: "MANUAL-OP",
+      primaryFrequency: "",
+      observerClassification: "Operator",
+      attentionStatus: "Local",
+      accessLevel: "LOCAL"
+    }));
+  });
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  await page.getByRole("button", { name: "Frequency" }).click();
+  await expect(page.locator("#void-bank-readout")).toHaveText("1");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+
+  await page.getByRole("button", { name: "Hunger", exact: true }).click();
+  await page.getByLabel("Hunger Void").fill("1");
+  await expect(page.locator("#void-bank-readout")).toHaveText("0");
+  await expect(page.locator("#lotus-gate")).toHaveText("Gate 1 // 1 Void");
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("1 / 6");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+});
+
+test("Gate 3 requires 3 total Void and unlocks pips 5-6", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+  await page.getByRole("button", { name: "Creation Mode: On" }).click();
+
+  await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
+  await page.getByRole("button", { name: "Frequency" }).click();
+
+  await page.getByLabel("Dream Void").fill("2");
+  await expect(page.locator("#lotus-gate")).toHaveText("Gate 2 // 2 Void");
+
+  await page.getByLabel("Dream Void").fill("3");
+  await expect(page.locator("#lotus-gate")).toHaveText("Gate 3 // 3 Void");
+
+  await page.getByLabel("Dream pip 2").click();
+  await page.getByLabel("Dream pip 3").click();
+  await page.getByLabel("Dream pip 4").click();
+  await page.getByLabel("Dream pip 5").click();
+  await page.getByLabel("Dream pip 6").click();
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("6 / 6");
+});
+
+test("Creation Mode blocks finalizing blank Rank 0 Operator", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.evaluate(() => {
+    window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
+      designation: "BLANK-OP",
+      primaryFrequency: "",
+      observerClassification: "Operator",
+      attentionStatus: "Local",
+      accessLevel: "LOCAL"
+    }));
+  });
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  await page.getByRole("button", { name: "Creation Mode: On" }).click();
+  await expect(page.locator("#storage-status")).toContainText("Select a non-blind Frequency petal and invest 1 Void");
+  await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
 });

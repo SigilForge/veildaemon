@@ -582,14 +582,54 @@
     return pageEditUnlocked() && creationActive();
   }
 
+  function creationCanFinalize(status = consoleState.operatorStatus) {
+    const blind = normalizeFrequencyName(status.blindPetal);
+    const lotus = normalizeLotus(status.lotus);
+    const voidByFreq = normalizeVoidByFrequency(status.voidByFrequency);
+
+    const openedEntry = Object.entries(voidByFreq).find(([freq, voidVal]) => freq !== blind && Number(voidVal || 0) > 0);
+    if (!openedEntry) {
+      const bankVoid = Number(normalizeNonNegative(status.voidMarks));
+      if (bankVoid > 0) {
+        return { ok: false, message: "Select a non-blind Frequency petal and invest 1 Void to open Gate 1 and assign Pip 1." };
+      }
+      return { ok: false, message: "Character Creation incomplete: Gate 1 must be opened on a non-blind Frequency." };
+    }
+
+    const freq = openedEntry[0];
+    const pips = Number(lotus[freq] || 0);
+    if (pips < 1) {
+      return { ok: false, message: `Character Creation incomplete: Gate 1 on ${freq} requires Pip 1 to be assigned.` };
+    }
+
+    return { ok: true };
+  }
+
   function togglePageEdit() {
     const status = consoleState.operatorStatus;
+    if (status.sheetEditMode && status.creationMode) {
+      const canFinalize = creationCanFinalize(status);
+      if (!canFinalize.ok) {
+        setStorageStatus(canFinalize.message, true);
+        return false;
+      }
+      status.creationMode = false;
+    }
     status.sheetEditMode = !status.sheetEditMode;
-    if (!status.sheetEditMode) status.creationMode = false;
+    return true;
   }
 
   function toggleCreationMode() {
-    consoleState.operatorStatus.creationMode = !consoleState.operatorStatus.creationMode;
+    const status = consoleState.operatorStatus;
+    if (status.creationMode) {
+      const canFinalize = creationCanFinalize(status);
+      if (!canFinalize.ok) {
+        setStorageStatus(canFinalize.message, true);
+        return false;
+      }
+    }
+    status.creationMode = !status.creationMode;
+    return true;
   }
 
   function guardBuildDefiningField(field, incomingValue) {
@@ -1069,6 +1109,30 @@
     const pressures = migrated.presentationPressures && typeof migrated.presentationPressures === "object"
       ? migrated.presentationPressures
       : {};
+
+    let lotus = normalizeLotus(migrated.lotus);
+    let voidByFrequency = normalizeVoidByFrequency(migrated.voidByFrequency);
+    let voidMarks = normalizeNonNegative(migrated.voidMarks);
+    let breachPoints = normalizeNonNegative(migrated.breachPoints);
+    const blindPetal = normalizeFrequencyName(migrated.blindPetal || status.blindPetal);
+    let selectedLotusPetal = normalizeFrequencyName(migrated.selectedLotusPetal || status.selectedLotusPetal);
+
+    const totalPips = totalCultivatedPips(lotus);
+    const totalVoid = totalInvestedVoid(voidByFrequency);
+
+    if (status.creationMode && totalPips === 0 && totalVoid === 0) {
+      const intakeFreq = normalizeFrequencyName(operatorRecord?.primaryFrequency);
+      if (intakeFreq && intakeFreq !== blindPetal) {
+        voidByFrequency[intakeFreq] = "1";
+        lotus[intakeFreq] = "1";
+        selectedLotusPetal = intakeFreq;
+        if (Number(breachPoints || 0) === 0) breachPoints = String(creationBonusBreachBudget());
+      } else {
+        if (Number(voidMarks || 0) === 0) voidMarks = "1";
+        if (Number(breachPoints || 0) === 0) breachPoints = String(creationBonusBreachBudget());
+      }
+    }
+
     return clampAttributesForBonuses({
       ...migrated,
       presentationPressures: pressures,
@@ -1078,9 +1142,9 @@
       creationMode: Boolean(migrated.creationMode),
       stability: normalizeStabilityValue(migrated.stability),
       harmBoxes: normalizeBoxValue(migrated.harmBoxes, 5),
-      voidMarks: normalizeNonNegative(migrated.voidMarks),
-      voidByFrequency: normalizeVoidByFrequency(migrated.voidByFrequency),
-      breachPoints: normalizeNonNegative(migrated.breachPoints),
+      voidMarks,
+      voidByFrequency,
+      breachPoints,
       activeMisfire: normalizeActiveMisfire(migrated),
       misfireSeverity: normalizeMisfireSeverity(migrated.misfireSeverity || severityFromLegacyMisfire(migrated.misfireBoxes)),
       presentationPressure: normalizeBoxValue(migrated.presentationPressure, 5),
@@ -1094,9 +1158,9 @@
       becomingInstinctSurge: normalizeBoxValue(migrated.becomingInstinctSurge, 6),
       empyreanRadianceLoad: normalizeBoxValue(migrated.empyreanRadianceLoad, 6),
       silenceSuppression: normalizeBoxValue(migrated.silenceSuppression, 6),
-      lotus: normalizeLotus(migrated.lotus),
-      blindPetal: normalizeFrequencyName(status.blindPetal),
-      selectedLotusPetal: normalizeFrequencyName(status.selectedLotusPetal),
+      lotus,
+      blindPetal,
+      selectedLotusPetal,
       attributes: normalizeAttributes(status.attributes),
       skills: normalizeSkills(status.skills),
       rollAttributeKey: normalizeAttributeName(status.rollAttributeKey) || "Body",
@@ -2132,21 +2196,25 @@
   }
 
   function selectedCoreFrequency() {
-    const blind = normalizeFrequencyName(consoleState.operatorStatus.blindPetal);
-    const candidates = [
-      normalizeFrequencyName(consoleState.operatorStatus.selectedLotusPetal),
-      normalizeFrequencyName(operatorRecord?.primaryFrequency),
-      "Dream",
-      ...frequencies()
-    ];
-    return candidates.find((frequency) => frequency && frequency !== blind) || "Dream";
+    const blind = normalizeFrequencyName(consoleState?.operatorStatus?.blindPetal);
+    const intakeFreq = normalizeFrequencyName(operatorRecord?.primaryFrequency);
+    if (intakeFreq && intakeFreq !== blind) {
+      return intakeFreq;
+    }
+    return "";
   }
 
-  function operatorStatusCoreStartBaseline(frequency) {
+  function operatorStatusCoreStartBaseline(overrideFrequency) {
     const fresh = cloneDefaultState().operatorStatus;
-    const current = consoleState.operatorStatus;
+    const current = consoleState ? consoleState.operatorStatus : fresh;
     const blind = normalizeFrequencyName(current.blindPetal);
-    const gateFrequency = frequency && frequency !== blind ? frequency : selectedCoreFrequency();
+    const intakeFreq = normalizeFrequencyName(operatorRecord?.primaryFrequency);
+    const hasIntakeFreq = intakeFreq && intakeFreq !== blind;
+
+    const gateFrequency = overrideFrequency && overrideFrequency !== blind
+      ? overrideFrequency
+      : (hasIntakeFreq ? intakeFreq : null);
+
     const preserved = {
       operatorName: current.operatorName,
       designation: current.designation,
@@ -2157,18 +2225,35 @@
       blindPetal: current.blindPetal,
       sheetEditMode: current.sheetEditMode
     };
+
+    if (gateFrequency) {
+      // INTAKE CREATION (or explicit non-blind Frequency selection)
+      const next = {
+        ...fresh,
+        ...preserved,
+        creationMode: true,
+        voidMarks: "0",
+        breachPoints: String(creationBonusBreachBudget()),
+        voidByFrequency: normalizeVoidByFrequency(fresh.voidByFrequency),
+        lotus: normalizeLotus(fresh.lotus),
+        selectedLotusPetal: gateFrequency
+      };
+      next.voidByFrequency[gateFrequency] = "1";
+      next.lotus[gateFrequency] = "1";
+      return migrateOperatorStatus(next);
+    }
+
+    // MANUAL CREATION (No valid Intake Frequency)
     const next = {
       ...fresh,
       ...preserved,
       creationMode: true,
-      voidMarks: "0",
+      voidMarks: "1", // 1 uncommitted starting VoidMark
       breachPoints: String(creationBonusBreachBudget()),
       voidByFrequency: normalizeVoidByFrequency(fresh.voidByFrequency),
       lotus: normalizeLotus(fresh.lotus),
-      selectedLotusPetal: gateFrequency
+      selectedLotusPetal: ""
     };
-    next.voidByFrequency[gateFrequency] = "1";
-    next.lotus[gateFrequency] = "1";
     return migrateOperatorStatus(next);
   }
 
@@ -2306,7 +2391,7 @@
 
   function requiredVoidForFrequencyLevel(level) {
     const value = Number(normalizeBoxValue(level, 6));
-    if (value >= 5) return 4;
+    if (value >= 5) return 3;
     if (value >= 3) return 2;
     if (value >= 1) return 1;
     return 0;
@@ -2314,7 +2399,7 @@
 
   function maxFrequencyLevelForVoid(value) {
     const voidValue = Number(normalizeNonNegative(value));
-    if (voidValue >= 4) return 6;
+    if (voidValue >= 3) return 6;
     if (voidValue >= 2) return 4;
     if (voidValue >= 1) return 2;
     return 0;
@@ -2378,7 +2463,13 @@
       consoleState.operatorStatus.voidMarks = String(bank + Math.abs(delta));
     }
     consoleState.operatorStatus.lotus = normalizeLotus(consoleState.operatorStatus.lotus);
-    const currentLevel = Number(consoleState.operatorStatus.lotus[frequency] || 0);
+    let currentLevel = Number(consoleState.operatorStatus.lotus[frequency] || 0);
+
+    if (creationActive() && target >= 1 && totalCultivatedPips(consoleState.operatorStatus.lotus) === 0 && frequency !== normalizeFrequencyName(consoleState.operatorStatus.blindPetal)) {
+      consoleState.operatorStatus.lotus[frequency] = "1";
+      currentLevel = 1;
+    }
+
     const maxLevel = maxFrequencyLevelForVoid(target);
     if (currentLevel > maxLevel) {
       const refund = cumulativeFrequencyBreachCost(currentLevel) - cumulativeFrequencyBreachCost(maxLevel);
@@ -4035,7 +4126,7 @@
       }
       const petal = document.createElement("article");
       petal.className = "lotus-petal";
-      const openGate = petalVoid >= 4 ? 3 : petalVoid >= 2 ? 2 : petalVoid >= 1 ? 1 : 0;
+      const openGate = petalVoid >= 3 ? 3 : petalVoid >= 2 ? 2 : petalVoid >= 1 ? 1 : 0;
       petal.dataset.gate = String(openGate);
       petal.classList.toggle("is-selected", frequency === status.selectedLotusPetal);
       petal.classList.toggle("is-blind", frequency === status.blindPetal);
@@ -4109,10 +4200,12 @@
       voidInput.value = status.voidByFrequency[frequency];
       voidInput.disabled = !editing;
       voidInput.setAttribute("aria-label", `${frequency} Void`);
-      voidInput.addEventListener("change", () => {
+      const updateVoid = () => {
         setFrequencyVoid(frequency, voidInput.value);
         renderLotus();
-      });
+      };
+      voidInput.addEventListener("change", updateVoid);
+      voidInput.addEventListener("input", updateVoid);
       voidField.append(voidText, voidInput);
 
       const blind = document.createElement("button");
@@ -4141,7 +4234,7 @@
     const selectedLevel = Number(lotus[status.selectedLotusPetal] || 0);
     const tier = lotusTier(selectedLevel);
     const selectedVoid = voidForFrequency(status.selectedLotusPetal);
-    const selectedGate = selectedVoid >= 4 ? "Gate 3" : selectedVoid >= 2 ? "Gate 2" : selectedVoid >= 1 ? "Gate 1" : "Gate 0";
+    const selectedGate = selectedVoid >= 3 ? "Gate 3" : selectedVoid >= 2 ? "Gate 2" : selectedVoid >= 1 ? "Gate 1" : "Gate 0";
     const nextPip = Math.min(6, selectedLevel + 1);
     const nextRequirement = selectedLevel >= 6
       ? "Ceiling reached"
@@ -4504,7 +4597,7 @@
     if (rollButton) rollButton.addEventListener("click", rollAction);
     document.querySelectorAll("[data-page-edit-toggle]").forEach((button) => {
       button.addEventListener("click", () => {
-        togglePageEdit();
+        if (!togglePageEdit()) return;
         writeConsoleState();
         renderPageLock();
         renderCreationMode();
@@ -4538,6 +4631,7 @@
     const applyCoreStart = document.getElementById("apply-core-start");
     if (applyCoreStart) applyCoreStart.addEventListener("click", () => {
       if (!confirmCoreStartReset()) return;
+      operatorRecord = readOperatorRecord();
       const frequency = selectedCoreFrequency();
       consoleState.operatorStatus = operatorStatusCoreStartBaseline(frequency);
       setNamedValue("voidMarks", consoleState.operatorStatus.voidMarks);
@@ -4545,7 +4639,9 @@
       renderCurrencyBanks();
       writeConsoleState();
       renderAll();
-      setStorageStatus(`Core start applied: ${frequency} pip 1, 1 Void invested, 3 Bonus Breach.`);
+      setStorageStatus(frequency
+        ? `Core start applied: ${frequency} Gate 1 opened, pip 1 assigned, 3 Bonus Breach.`
+        : "Core start applied: 1 uncommitted Void available, 3 Bonus Breach. Select a non-blind Frequency to open Gate 1 and assign pip 1.");
     });
     const creationMode = document.getElementById("creation-mode-toggle");
     if (creationMode) creationMode.addEventListener("click", () => {
@@ -4554,7 +4650,7 @@
         renderCreationMode();
         return;
       }
-      toggleCreationMode();
+      if (!toggleCreationMode()) return;
       writeConsoleState();
       renderCreationMode();
       renderAuthorizationSelects();
