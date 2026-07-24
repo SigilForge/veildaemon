@@ -28,21 +28,63 @@
     } catch (_) {}
   }
 
-  async function fetchConfig() {
-    const saved = getSavedConfig();
-    if (saved && saved.supabaseUrl && saved.supabaseAnonKey) {
-      return saved;
-    }
+  let lastInitError = null;
+
+  async function tryFetchEndpoint(url) {
     try {
-      const res = await fetch("/api/auth/config");
+      const res = await fetch(url, { credentials: "omit" });
       if (res.ok) {
-        const data = await res.json();
-        if (data.ok && data.supabaseUrl && data.supabaseAnonKey) {
-          saveConfig(data);
-          return data;
-        }
+        const text = await res.text();
+        try {
+          const data = JSON.parse(text);
+          if (data && data.ok && data.supabaseUrl && data.supabaseAnonKey) {
+            return data;
+          }
+        } catch (_) {}
       }
     } catch (_) {}
+    return null;
+  }
+
+  async function fetchConfig() {
+    if (global.VEILDAEMON_SUPABASE_URL && global.VEILDAEMON_SUPABASE_ANON_KEY) {
+      return {
+        supabaseUrl: global.VEILDAEMON_SUPABASE_URL,
+        supabaseAnonKey: global.VEILDAEMON_SUPABASE_ANON_KEY
+      };
+    }
+
+    const saved = getSavedConfig();
+    if (saved && saved.supabaseUrl && saved.supabaseAnonKey) {
+      setTimeout(() => {
+        tryFetchEndpoint("/api/auth/config").then((fresh) => {
+          if (!fresh) {
+            tryFetchEndpoint("https://api.veildaemon.app/api/auth/config").then((f2) => {
+              if (f2) saveConfig(f2);
+            });
+          } else {
+            saveConfig(fresh);
+          }
+        });
+      }, 1000);
+      return saved;
+    }
+
+    const endpoints = [
+      "/api/auth/config",
+      "https://api.veildaemon.app/api/auth/config",
+      "https://go.veildaemon.app/api/auth/config"
+    ];
+
+    for (const ep of endpoints) {
+      const data = await tryFetchEndpoint(ep);
+      if (data) {
+        saveConfig(data);
+        return data;
+      }
+    }
+
+    lastInitError = "Supabase Auth is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel.";
     return null;
   }
 
@@ -78,6 +120,7 @@
 
         const supabaseSDK = await loadSupabaseSDK();
         if (!supabaseSDK || !supabaseSDK.createClient) {
+          lastInitError = "Failed to load Supabase SDK.";
           return null;
         }
 
@@ -139,7 +182,7 @@
 
   async function signInWithPassword(email, password) {
     const client = await init();
-    if (!client) throw new Error("Auth system unavailable.");
+    if (!client) throw new Error(lastInitError || "Auth system unavailable. Could not connect to Supabase Auth service.");
     const { data, error } = await client.auth.signInWithPassword({ email, password });
     if (error) throw error;
     return data;
@@ -147,7 +190,7 @@
 
   async function signUp(email, password) {
     const client = await init();
-    if (!client) throw new Error("Auth system unavailable.");
+    if (!client) throw new Error(lastInitError || "Auth system unavailable. Could not connect to Supabase Auth service.");
     const { data, error } = await client.auth.signUp({ email, password });
     if (error) throw error;
     return data;

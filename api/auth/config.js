@@ -1,13 +1,16 @@
 const { json } = require("../../lib/alertQueue");
 
 module.exports = function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
   if (req.method === "OPTIONS") {
-    res.setHeader("Allow", "GET, OPTIONS");
     return json(res, 204, {});
   }
 
   if (req.method !== "GET") {
-    res.setHeader("Allow", "GET");
+    res.setHeader("Allow", "GET, OPTIONS");
     return json(res, 405, { ok: false, error: "Method not allowed." });
   }
 
