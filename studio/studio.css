@@ -800,9 +800,12 @@ footer nav a:hover {
   gap: clamp(2rem, 5vw, 4.5rem);
   align-items: center;
   padding: clamp(5rem, 10vw, 8rem) var(--pad);
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(ellipse 50% 60% at 90% 50%, rgba(181, 117, 104, 0.08), transparent 55%),
-    linear-gradient(180deg, rgba(5, 7, 9, 0.42), rgba(5, 7, 9, 0.62));
+    linear-gradient(135deg, rgba(16, 10, 24, 0.93) 0%, rgba(26, 13, 36, 0.82) 50%, rgba(12, 8, 18, 0.93) 100%),
+    url("/studio/assets/social/cradlepoint-purple-banner.webp") center/cover no-repeat;
+  border: 1px solid rgba(181, 117, 104, 0.32);
 }
 
 .current-priority > div > p:not(.eyebrow) {
@@ -860,17 +863,23 @@ footer nav a:hover {
 }
 
 .closing-routes > a:first-child {
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(ellipse 80% 70% at 20% 0%, rgba(126, 184, 168, 0.12), transparent 55%),
-    #d9d4cb;
-  color: var(--ink-text);
+    linear-gradient(to top, rgba(12, 14, 15, 0.96) 0%, rgba(12, 14, 15, 0.72) 55%, rgba(12, 14, 15, 0.35) 100%),
+    url("/studio/assets/social/data-room-operations-vault.webp") center/cover no-repeat;
+  color: var(--paper);
+  border: 1px solid rgba(137, 255, 218, 0.22);
 }
 
 .closing-routes > a:last-child {
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(ellipse 70% 60% at 80% 100%, rgba(181, 117, 104, 0.18), transparent 50%),
-    #2a1a1c;
+    linear-gradient(to top, rgba(20, 12, 14, 0.96) 0%, rgba(20, 12, 14, 0.72) 55%, rgba(20, 12, 14, 0.35) 100%),
+    url("/studio/assets/social/legal-vault-of-secrets.webp") center/cover no-repeat;
   color: var(--paper);
+  border: 1px solid rgba(181, 117, 104, 0.28);
 }
 
 .closing-routes > a:hover {
@@ -5179,9 +5188,11 @@ footer.site-footer {
   padding: clamp(1.35rem, 3vw, 1.85rem) clamp(1.25rem, 3vw, 1.75rem);
   border-radius: var(--radius);
   border: 1px solid rgba(181, 117, 104, 0.28);
+  position: relative;
+  overflow: hidden;
   background:
-    radial-gradient(ellipse 70% 90% at 100% 0%, rgba(181, 117, 104, 0.1), transparent 55%),
-    rgba(17, 19, 20, 0.9);
+    linear-gradient(to right, rgba(14, 16, 17, 0.96) 0%, rgba(14, 16, 17, 0.86) 55%, rgba(14, 16, 17, 0.45) 100%),
+    url("/studio/assets/social/web-design-dev-workspace.webp") center/cover no-repeat;
   text-decoration: none;
   color: inherit;
   transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
