@@ -66,7 +66,7 @@ const shortenerHosts = new Set([
 
 function parseArgs(argv) {
   const args = {
-    title: "CRADLEPOINT STUDIO",
+    title: "SIGILFORGE STUDIOS",
     subtitle: "CLIENT SERVICES // VERIFIED",
     node: "INTAKE NODE",
     clearance: "PUBLIC",
@@ -163,12 +163,12 @@ function parseArgs(argv) {
         args.scale = Number.parseFloat(value);
         break;
       default:
-        throw new Error(`Unknown option: --${key}`);
+        throw new Error(`Unexpected argument: --${key}`);
     }
   }
 
   if (args.fancy && !args.logoPath && !args.logoSvg) {
-    args.logoPath = "studio/assets/brand/cradlepoint-studio-emblem-transparent.png";
+    args.logoPath = "studio/assets/brand/sigilforge-emblem.png";
   }
 
   return args;
