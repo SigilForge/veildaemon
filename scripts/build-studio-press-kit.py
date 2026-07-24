@@ -22,6 +22,7 @@ FILES = {
     "studio/assets/brand/sigilforge-studios-emblem-transparent.png": "SigilForge-Studios/sigilforge-studios-emblem-transparent.png",
     "studio/assets/brand/sigilforge-studios-emblem-transparent.webp": "SigilForge-Studios/sigilforge-studios-emblem-transparent.webp",
     "studio/assets/brand/sigilforge-studios-emblem.png": "SigilForge-Studios/Sources/sigilforge-studios-emblem-source.png",
+    "studio/press/media/sigilforge-brand-board.webp": "SigilForge-Studios/sigilforge-brand-board.webp",
     "studio/press/media/software-veildaemon.webp": "VeilDaemon/veildaemon-live-platform.webp",
     "studio/assets/social/data-room-operations-vault-og.jpg": "VeilDaemon/technology-social-preview.jpg",
     "studio/press/media/product-operator-core.webp": "Products/operator-core.webp",
