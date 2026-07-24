@@ -2426,6 +2426,20 @@ footer > p {
   object-position: center center;
   display: block;
 }
+.release-inventory .media-book {
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(180deg, rgba(10,12,13,.4), rgba(10,12,13,.65)),
+    #0a0c0d;
+}
+.release-inventory .media-book img {
+  width: auto;
+  max-width: 42%;
+  height: 92%;
+  object-fit: contain;
+  object-position: center center;
+}
 /* Fallback if a tile forgets .media (e.g. bare book-cover img) */
 .release-inventory figure > img {
   display: block;
