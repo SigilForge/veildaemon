@@ -1,6 +1,6 @@
 # Public Traction Summary
 
-> **Open-web summary only.** Not the private Cradlepoint archive. Full diligence materials are shared by request, not linked here.
+> **Open-web summary only.** Not the private SigilForge archive. Full diligence materials are shared by request, not linked here.
 
 **Studio:** SigilForge Studios
 **As-of:** July 10, 2026 (public rounded figures)  

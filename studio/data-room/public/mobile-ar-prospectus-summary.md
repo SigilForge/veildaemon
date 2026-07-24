@@ -1,6 +1,6 @@
 # VeilDaemon Mobile AR — Public Prospectus Summary
 
-> **Open-web summary only.** Not the private Cradlepoint archive. Full diligence materials are shared by request, not linked here.
+> **Open-web summary only.** Not the private SigilForge archive. Full diligence materials are shared by request, not linked here.
 
 **Version:** 0.1 summary · July 2026  
 **Access:** Public overview (full capital model on request)
