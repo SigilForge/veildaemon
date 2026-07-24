@@ -1176,7 +1176,8 @@
     setText("snapshot-classification", operatorRecord && operatorRecord.observerClassification || "PENDING");
     setText("snapshot-frequency", operatorRecord && operatorRecord.primaryFrequency || "UNASSIGNED");
     setText("snapshot-status", operatorRecord ? "LOCAL RECORD" : "NO LOCAL RECORD");
-    setText("snapshot-access", operatorRecord && operatorRecord.accessLevel || "LOCAL");
+    const authUser = window.VeilAuth && window.VeilAuth.getUser();
+    setText("snapshot-access", authUser ? "AUTHENTICATED" : (operatorRecord && operatorRecord.accessLevel || "LOCAL"));
 
     const notice = document.getElementById("record-notice");
     const sealedPanel = document.getElementById("operator-sealed-panel");
@@ -4864,4 +4865,11 @@
       setStorageStatus(`Operator Record imported: ${safeString(operatorRecord.designation, 80)}.`);
     }
   });
+
+  if (window.VeilAuth) {
+    window.VeilAuth.mountAuthWidget(document.getElementById("operator-auth-mount"));
+    window.addEventListener("veildaemon:auth-changed", () => {
+      renderSnapshot();
+    });
+  }
 }());

@@ -6,6 +6,13 @@
   document.head.append(script);
 }());
 
+(function loadVeilAuth() {
+  if (window.VeilAuth || document.querySelector('script[src*="veildaemon-auth.js"]')) return;
+  const script = document.createElement("script");
+  script.src = "/veildaemon-auth.js?v=20260724-auth1";
+  document.head.append(script);
+}());
+
 (function () {
   const api = window.HandlerState;
 
@@ -220,10 +227,35 @@
     });
   }
 
+  function ensureAuthMount() {
+    let mount = document.getElementById("handler-auth-mount");
+    if (!mount) {
+      const header = document.querySelector(".handler-header");
+      if (header) {
+        mount = document.createElement("div");
+        mount.id = "handler-auth-mount";
+        mount.style.cssText = "margin-left:auto;align-self:center";
+        header.append(mount);
+      } else {
+        const strip = document.getElementById("handler-session-strip");
+        if (strip) {
+          mount = document.createElement("div");
+          mount.id = "handler-auth-mount";
+          strip.append(mount);
+        }
+      }
+    }
+    if (mount && window.VeilAuth && !mount.dataset.mounted) {
+      mount.dataset.mounted = "true";
+      window.VeilAuth.mountAuthWidget(mount);
+    }
+  }
+
   function render() {
     renderNav();
     renderSessionStrip();
     renderFieldLock();
+    ensureAuthMount();
   }
 
   render();
