@@ -15,7 +15,7 @@ function sendHtml(res, statusCode, title, message) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>${escapeHtml(title)} | Cradlepoint Studio</title>
+  <title>${escapeHtml(title)} | SigilForge Studios</title>
   <style>
     :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #070a0b; color: #f3eee5; }
     body { min-height: 100vh; display: grid; place-items: center; margin: 0; padding: 24px; }
@@ -65,7 +65,7 @@ function sendClaimPage(res, downloads) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Book One downloads | Cradlepoint Studio</title>
+  <title>Book One downloads | SigilForge Studios</title>
   <style>
     :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #070a0b; color: #f3eee5; }
     body { min-height: 100vh; display: grid; place-items: center; margin: 0; padding: 24px; }

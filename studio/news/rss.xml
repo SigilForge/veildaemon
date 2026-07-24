@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>Cradlepoint Studio News</title>
+    <title>SigilForge Studios News</title>
     <link>https://veildaemon.app/studio/news/</link>
     <description>Development logs, release notices, recovered transmissions, and changes to the Archive.</description>
     <language>en-us</language>
@@ -19,7 +19,7 @@
       <link>https://veildaemon.app/studio/news/book-one-digital-release-infrastructure/</link>
       <guid isPermaLink="true">https://veildaemon.app/studio/news/book-one-digital-release-infrastructure/</guid>
       <pubDate>Thu, 23 Jul 2026 17:30:00 GMT</pubDate>
-      <description>First full version of Cradlepoint Studio digital publishing infrastructure for Book One and future Archive recoveries. One live acquisition cycle remains.</description>
+      <description>First full version of SigilForge Studios digital publishing infrastructure for Book One and future Archive recoveries. One live acquisition cycle remains.</description>
       <category>Studio Dispatch</category>
     </item>
     <item>
@@ -39,7 +39,7 @@
       <category>Studio Dispatch</category>
     </item>
     <item>
-      <title>Current Cradlepoint Studio Roadmap</title>
+      <title>Current SigilForge Studios Roadmap</title>
       <link>https://veildaemon.app/studio/news/current-cradlepoint-studio-roadmap/</link>
       <guid isPermaLink="true">https://veildaemon.app/studio/news/current-cradlepoint-studio-roadmap/</guid>
       <pubDate>Thu, 23 Jul 2026 16:00:00 GMT</pubDate>

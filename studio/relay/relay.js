@@ -876,7 +876,7 @@
   }
 
   function detectLayer(text, contentClass) {
-    // Character attribution is not Cradlepoint Studio marketing. Keep layer personal unless archive is explicit.
+    // Character attribution is not SigilForge Studios marketing. Keep layer personal unless archive is explicit.
     if (characterProfiles[character.value]) {
       if (/veilcorp|archive transmission|entity file|operator notice/i.test(text)) {
         return { value: "Archive / character commentary", key: "archive", reason: "Character is reacting to Archive/VeilCorp material — not a Studio business post." };
@@ -892,7 +892,7 @@
     // Require real studio-business language — not generic "development" (as in web development).
     if (/\b(cradlepoint studio|studio funding|publishing partner|founder|investor|crowdfunding)\b/i.test(text)
       || (contentClass === "Studio / business news" && /\b(funding|partner|founder|investor|publishing)\b/i.test(text))) {
-      return { value: "Cradlepoint Studio", key: "studio", reason: "Real-world studio or commercial language is primary." };
+      return { value: "SigilForge Studios", key: "studio", reason: "Real-world studio or commercial language is primary." };
     }
     if (/cradlepoint|needlepoint|sanguine|entity/i.test(text)) {
       return { value: "Cradlepoint universe", key: "cradlepoint", reason: "The fictional universe is primary without a VeilCorp attribution." };
