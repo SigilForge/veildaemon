@@ -107,6 +107,12 @@
       pressureRound: clampInt(item.pressureRound ?? item.round, 0, 999, 0),
       round: clampInt(item.round, 1, 999, 1)
     };
+    if (item.isLate) out.isLate = true;
+    if (item.lateForRound !== undefined) out.lateForRound = clampInt(item.lateForRound, 0, 999, 0);
+    if (item.closedHandlerRound !== undefined) out.closedHandlerRound = clampInt(item.closedHandlerRound, 0, 999, 0);
+    if (item.isFuture) out.isFuture = true;
+    if (item.futureRound !== undefined) out.futureRound = clampInt(item.futureRound, 0, 999, 0);
+    if (item.rejectionReason) out.rejectionReason = safeString(item.rejectionReason, 40);
     // Void / Breach travel with the send for Archive visibility only.
     if (item.voidMarks !== undefined) out.voidMarks = clampInt(item.voidMarks, 0, 13, 0);
     if (item.breachPoints !== undefined) out.breachPoints = clampInt(item.breachPoints, 0, 99, 0);
@@ -261,13 +267,70 @@
     }
     const bus = read();
     if (!bus.cellId) bus.cellId = makeId("cell");
+
+    if (bus.handler && bus.handler.kind === "archive") {
+      return {
+        bus,
+        result: "session_archived",
+        reason: "session_archived",
+        status: "session_archived",
+        send
+      };
+    }
+
+    const sendRound = send.pressureRound || send.round || 1;
+    const handlerRound = bus.handler ? (bus.handler.pressureRound || 0) : 0;
+
+    let result = "accepted";
+    if (handlerRound > 0) {
+      if (sendRound < handlerRound) {
+        result = "late_for_closed_round";
+        send.isLate = true;
+        send.lateForRound = sendRound;
+        send.closedHandlerRound = handlerRound;
+        send.rejectionReason = "late_for_closed_round";
+      } else if (sendRound > handlerRound) {
+        result = "future_round";
+        send.isFuture = true;
+        send.futureRound = sendRound;
+        send.closedHandlerRound = handlerRound;
+        send.rejectionReason = "future_round";
+      } else {
+        send.isLate = false;
+        send.isFuture = false;
+        delete send.rejectionReason;
+      }
+    } else {
+      send.isLate = false;
+      send.isFuture = false;
+      delete send.rejectionReason;
+    }
+
     bus.operators = { ...bus.operators, [send.operatorKey]: send };
     bus.lastKind = "operator_send";
-    return write(bus);
+    const written = write(bus);
+
+    return {
+      bus: written,
+      result,
+      reason: result,
+      status: result,
+      send,
+      sendRound,
+      handlerRound
+    };
   }
 
-  function listOperatorSends() {
-    return Object.values(read().operators || {});
+  function listOperatorSends(options) {
+    const all = Object.values(read().operators || {});
+    if (!options) return all;
+    if (options.onTimeOnly) return all.filter((s) => !s.isLate && !s.isFuture);
+    if (options.lateOnly) return all.filter((s) => Boolean(s.isLate));
+    return all;
+  }
+
+  function listLateOperatorSends() {
+    return listOperatorSends({ lateOnly: true });
   }
 
   function clearOperatorSend(operatorKey) {
@@ -340,6 +403,7 @@
     publishHandlerPush,
     publishOperatorSend,
     listOperatorSends,
+    listLateOperatorSends,
     clearOperatorSend,
     onUpdate,
     matchKey,

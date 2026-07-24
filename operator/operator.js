@@ -841,7 +841,36 @@
       }
       if (!options.skipAutosave) autosaveStatus();
       const send = buildOperatorCellSend(options.extra);
-      cell.publishOperatorSend(send);
+      const publishRes = cell.publishOperatorSend(send);
+
+      if (publishRes?.result === "session_archived") {
+        markCellSendPending("Session is archived");
+        setStorageStatus("CELL SEND REFUSED — Session is archived.", true);
+        return false;
+      }
+
+      if (publishRes?.result === "late_for_closed_round") {
+        const handlerRound = publishRes.handlerRound || "?";
+        markCellSendPending(`Round ${send.round} is closed by Handler (current Round ${handlerRound})`);
+        renderSceneTimerStrip();
+        setStorageStatus(
+          `CELL SEND LATE — Round ${send.round} is closed by Handler (current Round ${handlerRound}). Queued for Handler review.`,
+          true
+        );
+        return false;
+      }
+
+      if (publishRes?.result === "future_round") {
+        const handlerRound = publishRes.handlerRound || "?";
+        markCellSendPending(`Round ${send.round} is ahead of Handler (current Round ${handlerRound})`);
+        renderSceneTimerStrip();
+        setStorageStatus(
+          `CELL SEND HELD — Round ${send.round} is ahead of Handler (current Round ${handlerRound}). Queued.`,
+          true
+        );
+        return false;
+      }
+
       clearCellSendPending();
       writeConsoleState();
       renderSceneTimerStrip();

@@ -154,8 +154,31 @@
       .map((p) => p.id);
 
     // 1) Pull Operator sends first.
-    //    Operator-submitted Harm and Stability remain authoritative when present.
-    const sends = cell.listOperatorSends();
+    //    On-time sends are authoritative. Late/future sends refuse automatic sync.
+    const allSends = cell.listOperatorSends();
+    const currentRound = Number(session.pressureRound) || 0;
+
+    const sends = [];
+    const heldSends = [];
+    allSends.forEach((send) => {
+      const sendRound = send.pressureRound || send.round || 0;
+      if (send.isLate || (currentRound > 0 && sendRound < currentRound)) {
+        heldSends.push({ send, reason: "late", round: send.lateForRound || sendRound });
+      } else if (send.isFuture || (currentRound > 0 && sendRound > currentRound)) {
+        heldSends.push({ send, reason: "future", round: send.futureRound || sendRound });
+      } else {
+        sends.push(send);
+      }
+    });
+
+    heldSends.forEach(({ send, reason, round: sendRound }) => {
+      if (reason === "late") {
+        lines.push(`Hold ${send.name}: Late send for closed Round ${sendRound} (current Round ${currentRound || 1}). Refused automatic sync.`);
+      } else {
+        lines.push(`Hold ${send.name}: Future send for Round ${sendRound} (current Round ${currentRound || 1}). Refused automatic sync.`);
+      }
+    });
+
     let players = Array.isArray(state.players) ? state.players.slice() : [];
     const seatsThatSent = new Set();
     const recoveryNotes = [];
@@ -300,6 +323,103 @@
     return { state, kind, lines, summary, publishResult };
   }
 
+  function resolveLateSend(operatorKey, choice) {
+    const cell = window.VeilDaemonCellSync;
+    if (!cell || !api) return null;
+    let state = api.readState();
+    const session = ensureSession(state);
+    const sends = cell.listOperatorSends();
+    const key = api.safeString(operatorKey, 120);
+    const send = sends.find((s) => cell.matchKey({ sourceId: key, id: key, name: key }, [s]) || s.operatorKey === key);
+    if (!send) return null;
+
+    let players = Array.isArray(state.players) ? state.players.slice() : [];
+    const index = players.findIndex((player) => cell.matchKey(player, [send]));
+    if (index < 0) {
+      setStatus(`Late send resolution failed: no matching seat for ${send.name}`, true);
+      return null;
+    }
+
+    const currentRound = Number(session.pressureRound) || 0;
+    const sendRound = send.lateForRound || send.round || 0;
+    const before = players[index];
+    players[index] = applyOperatorSendToPlayer(before, send, { includeBanks: false });
+
+    const timeStamp = new Date().toISOString();
+    let logNote = "";
+    if (choice === "apply_correction") {
+      logNote = `Audit: Operator submitted: Round ${sendRound} // Received during: Round ${currentRound || 1} // Resolution: Amended Round ${sendRound} // Resolved by Handler at: ${timeStamp}`;
+    } else {
+      logNote = `Audit: Operator submitted: Round ${sendRound} // Received during: Round ${currentRound || 1} // Resolution: Carried into Round ${currentRound || 1} // Resolved by Handler at: ${timeStamp}`;
+    }
+
+    state.players = players;
+    try {
+      cell.clearOperatorSend(send.operatorKey);
+    } catch (_error) {
+      // ignore
+    }
+
+    try {
+      state = api.writeState(state, logNote);
+    } catch (_error) {
+      // ignore
+    }
+
+    setStatus(logNote);
+    if (window.HandlerCellSync?.refreshHint) window.HandlerCellSync.refreshHint();
+    return { state, send, logNote };
+  }
+
+  function renderLateSendReview(lateSends, currentRound) {
+    let container = document.getElementById("cell-sync-late-review");
+    const dock = document.getElementById("cell-sync-dock");
+    if (!dock) return;
+
+    if (!Array.isArray(lateSends) || !lateSends.length) {
+      if (container) container.remove();
+      return;
+    }
+
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "cell-sync-late-review";
+      container.className = "cell-sync-late-review";
+      dock.appendChild(container);
+    }
+
+    container.innerHTML = lateSends.map((send) => {
+      const sendRound = send.lateForRound || send.round || 1;
+      const name = api.safeString ? api.safeString(send.name, 80) : send.name;
+      return `
+        <div class="late-send-card" data-op-key="${send.operatorKey}">
+          <div class="late-send-info">
+            <strong>⚠️ ROUND ${sendRound} ALREADY CLOSED — Operator report from ${name}</strong>
+            <span>Arrived during Round ${currentRound || 1} · Harm ${send.harmBoxes} / Stability ${send.stability}</span>
+          </div>
+          <div class="late-send-actions">
+            <button class="button secondary btn-late-correct" type="button" data-op-key="${send.operatorKey}">Amend Round ${sendRound}</button>
+            <button class="button primary btn-late-carry" type="button" data-op-key="${send.operatorKey}">Carry into Round ${currentRound || 1}</button>
+          </div>
+        </div>
+      `;
+    }).join("\n");
+
+    container.querySelectorAll(".btn-late-correct").forEach((btn) => {
+      btn.onclick = () => {
+        const key = btn.getAttribute("data-op-key");
+        resolveLateSend(key, "apply_correction");
+      };
+    });
+
+    container.querySelectorAll(".btn-late-carry").forEach((btn) => {
+      btn.onclick = () => {
+        const key = btn.getAttribute("data-op-key");
+        resolveLateSend(key, "carry_forward");
+      };
+    });
+  }
+
   function bind(hooks) {
     const onAfter = typeof hooks?.onAfter === "function" ? hooks.onAfter : null;
     const pressureBtn = document.getElementById("cell-sync-pressure-round");
@@ -336,25 +456,31 @@
       if (!statusLine || !api) return;
       const state = api.readState();
       const pending = pendingPrompts(state).filter((p) => isRoundTrack(p.track)).length;
-      const sends = window.VeilDaemonCellSync?.listOperatorSends?.()?.length || 0;
+      const allSends = window.VeilDaemonCellSync?.listOperatorSends?.() || [];
       const round = Number(state.session?.pressureRound) || 0;
+      const onTimeSends = allSends.filter((s) => !s.isLate && !s.isFuture && !(round > 0 && (s.pressureRound || s.round) < round));
+      const lateSends = allSends.filter((s) => s.isLate || (round > 0 && (s.pressureRound || s.round) < round));
       const rev = Number(state.session?.lastCellSyncRevision) || 0;
       const archived = state.session?.cellArchiveToken ? "archived" : "open";
+
       statusLine.textContent = [
         round ? `Pressure Round ${round}` : "Pressure Round ready",
         rev ? `rev ${rev}` : "rev —",
         pending ? `${pending} Handler update(s) queued` : "No Handler queue",
-        sends ? `${sends} Operator send(s) waiting` : "No Operator sends",
+        onTimeSends.length ? `${onTimeSends.length} Operator send(s) waiting` : "No active Operator sends",
+        lateSends.length ? `⚠️ ${lateSends.length} LATE REPORT(S) QUEUED` : "",
         `session ${archived}`,
-        "Operator send authority · Harm/Stability mid-round · Void/Breach Archive · Lotus between sessions"
-      ].join(" · ");
+        "Closed-round boundary active"
+      ].filter(Boolean).join(" · ");
+
+      renderLateSendReview(lateSends, round);
     }
     refreshHint();
     window.setInterval(refreshHint, 4000);
     window.VeilDaemonCellSync?.onUpdate?.(refreshHint);
 
-    window.HandlerCellSync = { syncKind, refreshHint, pendingPrompts };
+    window.HandlerCellSync = { syncKind, resolveLateSend, refreshHint, pendingPrompts };
   }
 
-  window.HandlerCellSync = { bind, syncKind, pendingPrompts };
+  window.HandlerCellSync = { bind, syncKind, resolveLateSend, pendingPrompts };
 }());
