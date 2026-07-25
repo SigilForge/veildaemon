@@ -164,7 +164,7 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await applyCoreStart(page);
-  await importAuthorizationPacket(page, ["VOID_REWARD:7", "BREACH_REWARD:27"]);
+  await importAuthorizationPacket(page, ["VOID_REWARD:7", "BREACH_REWARD:45"]);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await page.getByRole("button", { name: "Frequency" }).click();
@@ -177,13 +177,13 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.getByLabel("Dream pip 3").click();
   await expect(page.locator("#lotus-frequency")).toHaveText("Dream");
   await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("27");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("43");
   await expect(page.locator("[data-page-lock-status]")).toContainText("Edit stats mode");
   await page.getByLabel("Dream pip 3").click();
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("29");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("46");
   await expect(page.locator("#lotus-tier")).toHaveText("Basic");
   await page.getByLabel("Dream pip 3").click();
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("27");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("43");
   await expect(page.locator("#lotus-tier")).toHaveText("Empowered");
   await expect(page.getByLabel("Silence pip 6")).toBeDisabled();
   await page.getByLabel("Silence Void").fill("4");
@@ -207,14 +207,14 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await expect(page.locator("#frequency-build-summary")).toContainText("13 / 20");
   await expect(page.locator("#frequency-build-summary")).toContainText("Total Void committed");
   await expect(page.locator("#frequency-build-summary")).toContainText("8 / 13");
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("9");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("12");
   await page.getByLabel("Silence Void").fill("1");
   await page.getByLabel("Silence Void").blur();
   await expect(page.locator("#lotus-frequency")).toHaveText("Silence");
   await expect(page.locator("#lotus-tier")).toHaveText("Basic");
   await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
   await expect(page.locator('input[name="voidMarks"]')).toHaveValue("3");
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("19");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("30");
   await expect(page.locator("#active-resonance-profile")).not.toContainText("5. CONCEPT EROSION");
   await expect(page.locator("#frequency-build-summary")).toContainText("9 / 20");
   await page.getByLabel("Silence Void").fill("4");
@@ -271,7 +271,7 @@ test("frequency dossier stays selected while resonance profile summarizes the bu
   await expect(page.locator("#lotus-tier")).toHaveText("Basic");
   await expect(page.locator("#lotus-gate")).toHaveText("Gate 1 // 1 Void");
   await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
-  await expect(page.locator("#lotus-next")).toHaveText("2 Void // 2 Breach");
+  await expect(page.locator("#lotus-next")).toHaveText("2 Void // 3 Breach");
   await expect(page.locator("#lotus-unlocks")).toContainText("1: SOFT FOOTPRINT");
   await expect(page.locator("#lotus-unlocks")).toContainText("2: DAMPENING");
   await expect(page.locator("#lotus-unlocks")).not.toContainText("All active expressions");
@@ -668,13 +668,16 @@ test("creation frequency pip spending uses and refunds bonus breach", async ({ p
   await expect(page.getByText("Creation: skills 0/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
 
   await page.getByRole("button", { name: "Frequency" }).click();
+  await expect(page.locator("#lotus-next")).toContainText("1 Void // 2 Breach");
   await page.getByLabel("Dream pip 2").click();
   await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("2");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("1");
 
   await page.getByLabel("Dream pip 2").click();
   await expect(page.locator("#lotus-pips-readout")).toHaveText("1 / 6");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
+
+  await expect(page.getByLabel("Dream pip 3")).toBeDisabled();
 
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await expect(page.locator("#breach-bank-readout")).toHaveText("3");
@@ -954,4 +957,95 @@ test("Creation Mode blocks finalizing blank Rank 0 Operator", async ({ page }) =
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await expect(page.locator("#storage-status")).toContainText("Select a non-blind Frequency petal and invest 1 Void");
   await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
+});
+
+test("sequential post-creation frequency costs", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  await page.getByRole("button", { name: "Creation Mode: On" }).click();
+  await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
+  await page.getByRole("button", { name: "Frequency" }).click();
+
+  await page.getByLabel("Dream Void").fill("3");
+
+  await expect(page.locator("#lotus-next")).toContainText("1 Void // 2 Breach");
+  await page.getByLabel("Dream pip 2").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("51");
+
+  await expect(page.locator("#lotus-next")).toContainText("2 Void // 3 Breach");
+  await page.getByLabel("Dream pip 3").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("48");
+
+  await expect(page.locator("#lotus-next")).toContainText("2 Void // 4 Breach");
+  await page.getByLabel("Dream pip 4").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("44");
+
+  await expect(page.locator("#lotus-next")).toContainText("3 Void // 5 Breach");
+  await page.getByLabel("Dream pip 5").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("39");
+
+  await expect(page.locator("#lotus-next")).toContainText("3 Void // 6 Breach");
+  await page.getByLabel("Dream pip 6").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("33");
+
+  await expect(page.locator("#lotus-next")).toHaveText("Ceiling reached");
+});
+
+test("direct jump frequency cost", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  await page.getByRole("button", { name: "Creation Mode: On" }).click();
+  await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
+  await page.getByRole("button", { name: "Frequency" }).click();
+
+  await page.getByLabel("Dream Void").fill("2");
+  await page.getByLabel("Dream pip 4").click();
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("4 / 6");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("44");
+});
+
+test("new frequency direct jump to pip 6", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  await page.getByRole("button", { name: "Creation Mode: On" }).click();
+  await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
+  await page.getByRole("button", { name: "Frequency" }).click();
+
+  await page.getByRole("button", { name: "Hunger", exact: true }).click();
+  await page.getByLabel("Hunger Void").fill("3");
+  await page.getByLabel("Hunger pip 6").click();
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("6 / 6");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("32");
+});
+
+test("void reduction refunds clamped pips", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  await page.getByRole("button", { name: "Creation Mode: On" }).click();
+  await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
+  await page.getByRole("button", { name: "Frequency" }).click();
+
+  await page.getByLabel("Dream Void").fill("3");
+  await page.getByLabel("Dream pip 6").click();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("33");
+
+  await page.getByLabel("Dream Void").fill("2");
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("4 / 6");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("44");
+
+  await page.getByLabel("Dream Void").fill("1");
+  await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("51");
 });

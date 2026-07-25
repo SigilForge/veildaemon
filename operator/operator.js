@@ -2441,10 +2441,7 @@
 
   function frequencyPipBreachCost(pip) {
     const value = Number(normalizeBoxValue(pip, 6));
-    if (value >= 5) return 3;
-    if (value >= 3) return 2;
-    if (value >= 1) return 1;
-    return 0;
+    return value >= 1 ? value : 0;
   }
 
   function cumulativeFrequencyBreachCost(level) {
