@@ -573,6 +573,13 @@ test("background skill bonuses do not count against creation skill budget", asyn
   await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 0 Bonus Breach");
   await page.getByRole("button", { name: "Add Skill" }).click();
   await expect(page.getByText("Creation: skills 3/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+  await expect(page.locator("#skill-summary-list")).toContainText("+2 (1+1)");
+
+  await page.locator("#skill-picker").selectOption("Hacking");
+  await page.locator("#skill-rank").fill("3");
+  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 0 Bonus Breach");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await expect(page.getByText("Creation: skills 4/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
   await expect(page.locator("#skill-summary-list")).toContainText("+3 (2+1)");
 });
 
@@ -790,6 +797,10 @@ test("creation background skill bonus cost delta after free budget", async ({ pa
   await expect(page.locator("#background-grant-preview")).toHaveText("Grants: Investigation +1 // Nerves +1");
   await expect(page.getByText("Creation: skills 0/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
 
+  // Assert Investigation displays effective +1 before purchasing ranks and consumes zero free skill budget
+  const invRowBefore = page.locator(".skill-summary-row", { hasText: "Investigation" });
+  await expect(invRowBefore.locator(".skill-summary-rank")).toHaveText("+1");
+
   // Fill the 8 free player skill ranks with other skills
   const skills = ["Athletics", "Melee", "Ranged", "Stealth"];
   for (const s of skills) {
@@ -806,12 +817,28 @@ test("creation background skill bonus cost delta after free budget", async ({ pa
   await page.getByRole("button", { name: "Add Skill" }).click();
   await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 2/3")).toBeVisible();
 
+  // Read localStorage and assert stored skills.Investigation === "1"
+  let consoleState = await page.evaluate(() => JSON.parse(localStorage.getItem("veildaemon.operatorConsole.v1")));
+  expect(consoleState.operatorStatus.skills.Investigation).toBe("1");
+
+  // Assert displayed Investigation is effective +2, not +3
+  const invRowRank2 = page.locator(".skill-summary-row", { hasText: "Investigation" });
+  await expect(invRowRank2.locator(".skill-summary-rank")).toHaveText("+2 (1+1)");
+
   // Raising Investigation to effective 3 buys player Rank 2 and costs 2 Bonus Breach
   await page.locator("#skill-picker").selectOption("Investigation");
   await page.locator("#skill-rank").fill("3");
   await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 2 Bonus Breach");
   await page.getByRole("button", { name: "Add Skill" }).click();
   await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 0/3")).toBeVisible();
+
+  // Read localStorage and assert stored skills.Investigation === "2"
+  consoleState = await page.evaluate(() => JSON.parse(localStorage.getItem("veildaemon.operatorConsole.v1")));
+  expect(consoleState.operatorStatus.skills.Investigation).toBe("2");
+
+  // Assert displayed Investigation is effective +3
+  const invRowRank3 = page.locator(".skill-summary-row", { hasText: "Investigation" });
+  await expect(invRowRank3.locator(".skill-summary-rank")).toHaveText("+3 (2+1)");
 });
 
 test("open core presentations appear without Handler unlock", async ({ page }) => {

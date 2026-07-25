@@ -2120,13 +2120,8 @@
   }
 
   function creationSkillRanksSpent(status) {
-    const skills = normalizeSkills(status.skills);
-    const bgBonuses = backgroundSkillBonuses(status);
-    return Object.entries(skills).reduce((sum, [skill, rank]) => {
-      const baseRank = Number(rank || 0);
-      const bgBonus = bgBonuses[skill] || 0;
-      return sum + Math.max(0, baseRank - bgBonus);
-    }, 0);
+    return Object.values(normalizeSkills(status.skills))
+      .reduce((sum, rank) => sum + Number(rank || 0), 0);
   }
 
   function totalAttributeBoosts(attributes) {
@@ -2175,15 +2170,16 @@
   }
 
   function creationSkillRankSteps(status) {
-    const skills = normalizeSkills(status.skills);
-    const bgBonuses = backgroundSkillBonuses(status);
     const steps = [];
-    Object.entries(skills).forEach(([skill, rankStr]) => {
+
+    Object.values(normalizeSkills(status.skills)).forEach((rankStr) => {
       const baseRank = Number(rankStr || 0);
-      const bgBonus = bgBonuses[skill] || 0;
-      const playerRanks = Math.max(0, baseRank - bgBonus);
-      for (let step = 1; step <= playerRanks; step += 1) steps.push(step);
+
+      for (let step = 1; step <= baseRank; step += 1) {
+        steps.push(step);
+      }
     });
+
     return steps;
   }
 
@@ -2314,32 +2310,47 @@
 
   function creationSkillCostDelta(status, skill, targetEffectiveRank) {
     const skills = normalizeSkills(status.skills);
-    const bgBonus = backgroundSkillBonuses(status)[skill] || 0;
-    const oldEffective = Number(skills[skill] || 0);
-    const nextEffective = Number(normalizeBoxValue(targetEffectiveRank, 5));
+    const derivedBonus = derivedSkillBonuses(status)[skill] || 0;
 
-    const oldPlayerRank = Math.max(0, oldEffective - bgBonus);
-    const nextPlayerRank = Math.max(0, nextEffective - bgBonus);
+    const oldBaseRank = Number(skills[skill] || 0);
+    const nextEffectiveRank = Number(
+      normalizeBoxValue(targetEffectiveRank, 5)
+    );
+    const nextBaseRank = Math.max(
+      0,
+      nextEffectiveRank - derivedBonus
+    );
 
-    if (nextPlayerRank === oldPlayerRank) return 0;
+    if (nextBaseRank === oldBaseRank) return 0;
 
     let usedRanks = creationSkillRanksSpent(status);
     let delta = 0;
 
-    if (nextPlayerRank > oldPlayerRank) {
-      for (let rank = oldPlayerRank + 1; rank <= nextPlayerRank; rank += 1) {
+    if (nextBaseRank > oldBaseRank) {
+      for (
+        let rank = oldBaseRank + 1;
+        rank <= nextBaseRank;
+        rank += 1
+      ) {
         if (usedRanks >= creationSkillBudget()) {
           delta += rank;
         }
+
         usedRanks += 1;
       }
+
       return delta;
     }
 
-    for (let rank = oldPlayerRank; rank > nextPlayerRank; rank -= 1) {
+    for (
+      let rank = oldBaseRank;
+      rank > nextBaseRank;
+      rank -= 1
+    ) {
       if (usedRanks > creationSkillBudget()) {
         delta -= rank;
       }
+
       usedRanks -= 1;
     }
 
@@ -2348,8 +2359,20 @@
 
   function skillChangeAllowed(skills, skill, targetRank, status = consoleState.operatorStatus) {
     if (creationActive()) {
-      if (targetRank > 3) {
-        return { ok: false, message: "Creation skill cap is Rank 3." };
+      const derivedBonus = derivedSkillBonuses(status)[skill] || 0;
+      const targetEffective = Number(
+        normalizeBoxValue(targetRank, 5)
+      );
+      const targetBase = Math.max(
+        0,
+        targetEffective - derivedBonus
+      );
+
+      if (targetBase > 3) {
+        return {
+          ok: false,
+          message: "Creation skill purchases cap at base Rank 3."
+        };
       }
 
       return {
@@ -2357,8 +2380,9 @@
         cost: creationSkillCostDelta(
           { ...status, skills },
           skill,
-          targetRank
-        )
+          targetEffective
+        ),
+        targetBase
       };
     }
     const oldRank = Number(normalizeSkills(skills)[skill] || 0);
@@ -4683,8 +4707,15 @@
         return;
       }
       if (!applyBreachDelta(allowed.cost || 0)) return;
-      consoleState.operatorStatus.skills[skill] = String(targetRank);
-      if (consoleState.operatorStatus.skills[skill] === "0") consoleState.operatorStatus.skills[skill] = "1";
+      const storedRank = creationActive()
+        ? Number(allowed.targetBase || 0)
+        : targetRank;
+
+      if (storedRank > 0) {
+        consoleState.operatorStatus.skills[skill] = String(storedRank);
+      } else {
+        delete consoleState.operatorStatus.skills[skill];
+      }
       consoleState.operatorStatus.rollSkillKey = skill;
       writeConsoleState();
       renderSkills();
