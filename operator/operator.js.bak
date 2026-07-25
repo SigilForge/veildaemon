@@ -2326,40 +2326,9 @@
 
   function creationAttributeCostDelta(attributes, attribute, targetEffectiveRank, status = consoleState.operatorStatus) {
     const bonus = backgroundAttributeBonuses(status)[attribute] || 0;
-    const current = normalizeAttributes(attributes);
-    const oldBase = Number(current[attribute] || 1);
     const targetBase = attributeBaseFromEffective(targetEffectiveRank, bonus);
-
-    if (targetBase === oldBase) return 0;
-
-    /*
-     * Creation grants the first six base Attribute increases.
-     * Any increase after that costs the rank being purchased:
-     *
-     *   Rank 2 costs 2 Breach
-     *   Rank 3 costs 3 Breach
-     *
-     * Background bonuses do not consume the spread and are handled
-     * separately through effective Attribute ranks.
-     */
-    const freeBudget = creationAttributeSpreadBudget();
-    let boosts = totalAttributeBoosts(current);
-    let delta = 0;
-
-    if (targetBase > oldBase) {
-      for (let rank = oldBase + 1; rank <= targetBase; rank += 1) {
-        if (boosts >= freeBudget) delta += rank;
-        boosts += 1;
-      }
-      return delta;
-    }
-
-    for (let rank = oldBase; rank > targetBase; rank -= 1) {
-      if (boosts > freeBudget) delta -= rank;
-      boosts -= 1;
-    }
-
-    return delta;
+    const next = normalizeAttributes({ ...attributes, [attribute]: String(targetBase) });
+    return creationAttributeBreachSpent(next, status) - creationAttributeBreachSpent(attributes, status);
   }
 
   function attributeChangeAllowed(attributes, attribute, targetEffectiveRank) {
