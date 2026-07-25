@@ -2312,13 +2312,54 @@
     return applyBreachDelta(delta);
   }
 
+  function creationSkillCostDelta(status, skill, targetEffectiveRank) {
+    const skills = normalizeSkills(status.skills);
+    const bgBonus = backgroundSkillBonuses(status)[skill] || 0;
+    const oldEffective = Number(skills[skill] || 0);
+    const nextEffective = Number(normalizeBoxValue(targetEffectiveRank, 5));
+
+    const oldPlayerRank = Math.max(0, oldEffective - bgBonus);
+    const nextPlayerRank = Math.max(0, nextEffective - bgBonus);
+
+    if (nextPlayerRank === oldPlayerRank) return 0;
+
+    let usedRanks = creationSkillRanksSpent(status);
+    let delta = 0;
+
+    if (nextPlayerRank > oldPlayerRank) {
+      for (let rank = oldPlayerRank + 1; rank <= nextPlayerRank; rank += 1) {
+        if (usedRanks >= creationSkillBudget()) {
+          delta += rank;
+        }
+        usedRanks += 1;
+      }
+      return delta;
+    }
+
+    for (let rank = oldPlayerRank; rank > nextPlayerRank; rank -= 1) {
+      if (usedRanks > creationSkillBudget()) {
+        delta -= rank;
+      }
+      usedRanks -= 1;
+    }
+
+    return delta;
+  }
+
   function skillChangeAllowed(skills, skill, targetRank, status = consoleState.operatorStatus) {
-    const next = normalizeSkills({ ...skills, [skill]: String(targetRank) });
     if (creationActive()) {
-      if (targetRank > 3) return { ok: false, message: "Creation skill cap is Rank 3." };
-      const oldBreach = creationSkillBreachSpent({ ...status, skills });
-      const newBreach = creationSkillBreachSpent({ ...status, skills: next });
-      return { ok: true, cost: newBreach - oldBreach };
+      if (targetRank > 3) {
+        return { ok: false, message: "Creation skill cap is Rank 3." };
+      }
+
+      return {
+        ok: true,
+        cost: creationSkillCostDelta(
+          { ...status, skills },
+          skill,
+          targetRank
+        )
+      };
     }
     const oldRank = Number(normalizeSkills(skills)[skill] || 0);
     return { ok: true, cost: advancementCost(oldRank, targetRank) };
@@ -2332,31 +2373,24 @@
 
     if (targetBase === oldBase) return 0;
 
-    /*
-     * Creation grants the first six base Attribute increases.
-     * Any increase after that costs the rank being purchased:
-     *
-     *   Rank 2 costs 2 Breach
-     *   Rank 3 costs 3 Breach
-     *
-     * Background bonuses do not consume the spread and are handled
-     * separately through effective Attribute ranks.
-     */
-    const freeBudget = creationAttributeSpreadBudget();
-    let boosts = totalAttributeBoosts(current);
+    let usedBoosts = totalAttributeBoosts(current);
     let delta = 0;
 
     if (targetBase > oldBase) {
       for (let rank = oldBase + 1; rank <= targetBase; rank += 1) {
-        if (boosts >= freeBudget) delta += rank;
-        boosts += 1;
+        if (usedBoosts >= creationAttributeSpreadBudget()) {
+          delta += rank;
+        }
+        usedBoosts += 1;
       }
       return delta;
     }
 
     for (let rank = oldBase; rank > targetBase; rank -= 1) {
-      if (boosts > freeBudget) delta -= rank;
-      boosts -= 1;
+      if (usedBoosts > creationAttributeSpreadBudget()) {
+        delta -= rank;
+      }
+      usedBoosts -= 1;
     }
 
     return delta;

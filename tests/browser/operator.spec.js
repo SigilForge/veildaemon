@@ -707,8 +707,8 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 3/3")).toBeVisible();
 
   await page.getByLabel("Presence 2").click();
-  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("0");
-  await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 0/3")).toBeVisible();
+  await expect(page.locator('input[name="breachPoints"]')).toHaveValue("1");
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 6/6 // Bonus Breach 1/3")).toBeVisible();
 
   await page.getByLabel("Presence 1").click();
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
@@ -722,6 +722,93 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await page.getByLabel("Body 4").click();
   await expect(page.locator("#roll-attribute")).toContainText("Body +4");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("4");
+});
+
+test("creation skill spending after free budget and refunds", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  // Assign exactly 8 free player Skill ranks (4 skills at rank 2)
+  const skills = ["Athletics", "Melee", "Ranged", "Stealth"];
+  for (const s of skills) {
+    await page.locator("#skill-picker").selectOption(s);
+    await page.locator("#skill-rank").fill("2");
+    await page.getByRole("button", { name: "Add Skill" }).click();
+  }
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+
+  // A1: Buying a new Rank 1 Skill costs 1 Bonus Breach
+  await page.locator("#skill-picker").selectOption("Medicine");
+  await page.locator("#skill-rank").fill("1");
+  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 1 Bonus Breach");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 2/3")).toBeVisible();
+
+  // D1: Removing paid Rank 1 Skill (setting rank to 0) refunds 1
+  await page.getByRole("button", { name: "Decrease Medicine rank" }).click();
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+
+  // A2: Raising an existing Rank 2 Skill to Rank 3 costs 3 Bonus Breach
+  await page.locator("#skill-picker").selectOption("Athletics");
+  await page.locator("#skill-rank").fill("3");
+  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 3 Bonus Breach");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 0/3")).toBeVisible();
+
+  // D2: Reducing paid Skill 3->2 refunds 3
+  await page.getByRole("button", { name: "Decrease Athletics rank" }).click();
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+
+  // A3 & D3: Raising a Rank 1 Skill to Rank 2 after 8 free ranks costs 2 Bonus Breach, reducing 2->1 refunds 2
+  await page.locator("#skill-picker").selectOption("Medicine");
+  await page.locator("#skill-rank").fill("1");
+  await page.getByRole("button", { name: "Add Skill" }).click(); // costs 1, breach = 2
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 2/3")).toBeVisible();
+
+  await page.locator("#skill-picker").selectOption("Medicine");
+  await page.locator("#skill-rank").fill("2");
+  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 2 Bonus Breach");
+  await page.getByRole("button", { name: "Add Skill" }).click(); // costs +2, breach = 0
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 0/3")).toBeVisible();
+
+  await page.getByRole("button", { name: "Decrease Medicine rank" }).click(); // refunds 2, breach = 2
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 2/3")).toBeVisible();
+});
+
+test("creation background skill bonus cost delta after free budget", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  await page.locator('[name="background"]').selectOption("Burnout Professional");
+  await expect(page.locator("#background-grant-preview")).toHaveText("Grants: Investigation +1 // Nerves +1");
+  await expect(page.getByText("Creation: skills 0/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+
+  // Fill the 8 free player skill ranks with other skills
+  const skills = ["Athletics", "Melee", "Ranged", "Stealth"];
+  for (const s of skills) {
+    await page.locator("#skill-picker").selectOption(s);
+    await page.locator("#skill-rank").fill("2");
+    await page.getByRole("button", { name: "Add Skill" }).click();
+  }
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+
+  // Investigation is effective 1 (0 player ranks). Raising to effective 2 buys player Rank 1 and costs 1 Bonus Breach
+  await page.locator("#skill-picker").selectOption("Investigation");
+  await page.locator("#skill-rank").fill("2");
+  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 1 Bonus Breach");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 2/3")).toBeVisible();
+
+  // Raising Investigation to effective 3 buys player Rank 2 and costs 2 Bonus Breach
+  await page.locator("#skill-picker").selectOption("Investigation");
+  await page.locator("#skill-rank").fill("3");
+  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 2 Bonus Breach");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 0/3")).toBeVisible();
 });
 
 test("open core presentations appear without Handler unlock", async ({ page }) => {
