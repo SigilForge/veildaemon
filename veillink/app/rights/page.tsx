@@ -23,7 +23,7 @@ export default function RightsIndexPage() {
         </p>
         <div className="toolbar">
           <Link className="button" href="/rights/create">
-            Create a record
+            Create a permanent record
           </Link>
           <a className="button secondary" href="https://veildaemon.app/studio/creator-rights/" target="_blank" rel="noopener noreferrer">
             Public overview
@@ -53,6 +53,11 @@ export default function RightsIndexPage() {
                 <a className="button secondary" href={recordUrl(record.slug)} target="_blank" rel="noopener noreferrer">
                   Public URL
                 </a>
+                {record.source_url ? (
+                  <a className="button secondary" href={record.source_url} target="_blank" rel="noopener noreferrer">
+                    View project
+                  </a>
+                ) : null}
               </div>
             </article>
           ))}

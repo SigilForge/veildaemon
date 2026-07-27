@@ -37,6 +37,7 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
   const publicationDate = record.publication_date
     ? new Date(`${record.publication_date}T00:00:00.000Z`).toLocaleDateString("en-US", { timeZone: "UTC" })
     : "Not specified";
+  const purchaseUrl = record.slug === "the-anchor-and-the-glitch" ? "https://app.veildaemon.app/book-one" : null;
 
   return (
     <main className="page rights-record-page">
@@ -69,6 +70,18 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
             <div><dt>Identifier</dt><dd>{record.external_identifier || record.record_id || "Draft ID pending"}</dd></div>
           </dl>
           <p>{record.rights_statement}</p>
+          <div className="toolbar">
+            {record.source_url ? (
+              <a className="button secondary" href={record.source_url} target="_blank" rel="noopener noreferrer">
+                View project
+              </a>
+            ) : null}
+            {purchaseUrl ? (
+              <a className="button secondary" href={purchaseUrl} target="_blank" rel="noopener noreferrer">
+                Buy publication
+              </a>
+            ) : null}
+          </div>
         </article>
 
         <aside className="panel rights-qr-panel">
