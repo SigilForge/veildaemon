@@ -1,5 +1,7 @@
 import type { CreatorRightsRecord, RecordStatus } from "./schema";
 
+export const RIGHTS_PURCHASE_TYPE = "creator_rights_record";
+
 export const privatePrePublicationStatuses: RecordStatus[] = ["draft", "pending_payment", "paid"];
 export const publicRecordStatuses: RecordStatus[] = [
   "published",
@@ -41,6 +43,28 @@ export function canCreateCheckout(status: RecordStatus) {
   return status === "draft" || status === "pending_payment";
 }
 
+export type RightsCheckoutSessionLike = {
+  id: string;
+  amount_total: number | null;
+  currency: string | null;
+  customer: string | { id?: string } | null;
+  metadata: Record<string, string> | null;
+  payment_intent: string | { id?: string } | null;
+  payment_status: string | null;
+};
+
+export type RightsLineItemLike = {
+  price?: {
+    id?: string;
+  } | null;
+};
+
+export type RightsCheckoutExpectation = {
+  priceId: string;
+  amount: number;
+  currency: string;
+};
+
 export function assertCanPublish(record: Pick<CreatorRightsRecord, "record_status" | "published_at">, authority: RightsPublicationAuthority) {
   if (authority.kind === "stripe_webhook" && authority.paymentStatus !== "paid") {
     throw new Error("Rights record publication requires a paid Stripe Checkout Session.");
@@ -54,6 +78,58 @@ export function assertCanPublish(record: Pick<CreatorRightsRecord, "record_statu
   if (!privatePrePublicationStatuses.includes(record.record_status)) {
     throw new Error(`Rights record cannot publish from ${record.record_status}.`);
   }
+}
+
+function idFromStripeValue(value: string | { id?: string } | null) {
+  if (!value) return "";
+  return typeof value === "string" ? value : value.id || "";
+}
+
+export function validateRightsCheckoutSession(
+  record: Pick<CreatorRightsRecord, "id" | "user_id" | "record_status" | "stripe_checkout_session_id">,
+  session: RightsCheckoutSessionLike,
+  lineItems: RightsLineItemLike[],
+  expected: RightsCheckoutExpectation
+) {
+  const metadata = session.metadata || {};
+  if (metadata.purchase_type !== RIGHTS_PURCHASE_TYPE) {
+    throw new Error("Stripe session purchase type is not a Creator Rights Record.");
+  }
+  if (metadata.rights_record_uuid !== record.id) {
+    throw new Error("Stripe session rights record metadata mismatch.");
+  }
+  if (metadata.owner_user_id !== record.user_id) {
+    throw new Error("Stripe session owner metadata mismatch.");
+  }
+  if (record.record_status !== "pending_payment" && record.record_status !== "paid") {
+    throw new Error(`Rights record cannot publish from ${record.record_status}.`);
+  }
+  if (record.stripe_checkout_session_id && record.stripe_checkout_session_id !== session.id) {
+    throw new Error("Rights record is attached to another Checkout Session.");
+  }
+  if (session.payment_status !== "paid") {
+    throw new Error("Stripe session is not paid.");
+  }
+  if (session.amount_total !== expected.amount) {
+    throw new Error("Stripe session amount does not match Creator Rights price.");
+  }
+  if ((session.currency || "").toLowerCase() !== expected.currency.toLowerCase()) {
+    throw new Error("Stripe session currency does not match Creator Rights price.");
+  }
+  if (!idFromStripeValue(session.payment_intent)) {
+    throw new Error("Stripe session is missing a PaymentIntent.");
+  }
+  if (!lineItems.some((item) => item.price?.id === expected.priceId)) {
+    throw new Error("Stripe session does not contain the configured Creator Rights price.");
+  }
+}
+
+export function paymentIntentIdFromSession(session: RightsCheckoutSessionLike) {
+  return idFromStripeValue(session.payment_intent);
+}
+
+export function customerIdFromSession(session: RightsCheckoutSessionLike) {
+  return idFromStripeValue(session.customer);
 }
 
 export function buildVersionSnapshot(record: CreatorRightsRecord) {

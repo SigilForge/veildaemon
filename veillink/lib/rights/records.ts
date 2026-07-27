@@ -4,6 +4,7 @@ import type { Json } from "@/lib/database.types";
 import {
   RIGHTS_DISCLAIMER,
   RIGHTS_SCHEMA_VERSION,
+  RIGHTS_PRICE_CENTS,
   creatorRightsInputSchema,
   permissionLabel,
   type AiPermissionBlock,
@@ -270,6 +271,111 @@ export async function listOwnedRightsRecords(userId: string) {
     .order("updated_at", { ascending: false });
   if (error) throw error;
   return (data || []) as CreatorRightsRecord[];
+}
+
+export async function getOwnedRightsRecord(userId: string, id: string) {
+  const admin = getSupabaseAdminClient() as any;
+  const { data, error } = await admin
+    .from("creator_rights_records")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", userId)
+    .single();
+  if (error || !data) throw new Error("Rights record not found.");
+  return data as CreatorRightsRecord;
+}
+
+export async function attachRightsCheckoutSession(userId: string, id: string, checkoutSessionId: string) {
+  const admin = getSupabaseAdminClient() as any;
+  const { data, error } = await admin
+    .from("creator_rights_records")
+    .update({
+      record_status: "pending_payment",
+      stripe_checkout_session_id: checkoutSessionId,
+      currency: "usd",
+      payment_status: "pending",
+    })
+    .eq("id", id)
+    .eq("user_id", userId)
+    .in("record_status", ["draft", "pending_payment"])
+    .select("*")
+    .single();
+  if (error || !data) throw new Error("Rights record checkout session could not be attached.");
+  await admin.from("creator_rights_payment_attempts").insert({
+    record_id: id,
+    user_id: userId,
+    stripe_checkout_session_id: checkoutSessionId,
+    amount_expected: RIGHTS_PRICE_CENTS,
+    currency: "usd",
+    attempt_status: "pending",
+  });
+  return data as CreatorRightsRecord;
+}
+
+export async function markRightsCheckoutExpired(id: string, checkoutSessionId: string) {
+  const admin = getSupabaseAdminClient() as any;
+  const { data, error } = await admin
+    .from("creator_rights_records")
+    .update({
+      record_status: "draft",
+      payment_status: "expired",
+    })
+    .eq("id", id)
+    .eq("stripe_checkout_session_id", checkoutSessionId)
+    .eq("record_status", "pending_payment")
+    .select("*")
+    .maybeSingle();
+  if (error) throw error;
+  await admin
+    .from("creator_rights_payment_attempts")
+    .update({ attempt_status: "expired" })
+    .eq("record_id", id)
+    .eq("stripe_checkout_session_id", checkoutSessionId);
+  return (data || null) as CreatorRightsRecord | null;
+}
+
+export async function publishRightsRecordFromCheckout(args: {
+  recordId: string;
+  ownerUserId: string;
+  checkoutSessionId: string;
+  paymentIntentId: string;
+  stripeCustomerId: string | null;
+  amountPaid: number;
+  currency: string;
+  paymentStatus: "paid";
+}) {
+  const admin = getSupabaseAdminClient() as any;
+  await admin
+    .from("creator_rights_records")
+    .update({ record_status: "paid", payment_status: "paid" })
+    .eq("id", args.recordId)
+    .eq("user_id", args.ownerUserId)
+    .eq("stripe_checkout_session_id", args.checkoutSessionId)
+    .eq("record_status", "pending_payment");
+  const { data, error } = await admin.rpc("creator_rights_publish_record", {
+    record_id_input: args.recordId,
+    actor_user_id_input: args.ownerUserId,
+    checkout_session_id_input: args.checkoutSessionId,
+    payment_intent_id_input: args.paymentIntentId,
+    stripe_customer_id_input: args.stripeCustomerId,
+    amount_paid_input: args.amountPaid,
+    currency_input: args.currency,
+    payment_status_input: args.paymentStatus,
+    internal_publication_input: false,
+  });
+  if (error) throw error;
+  await admin
+    .from("creator_rights_payment_attempts")
+    .update({
+      stripe_payment_intent_id: args.paymentIntentId,
+      stripe_customer_id: args.stripeCustomerId,
+      amount_paid: args.amountPaid,
+      attempt_status: "paid",
+      completed_at: new Date().toISOString(),
+    })
+    .eq("record_id", args.recordId)
+    .eq("stripe_checkout_session_id", args.checkoutSessionId);
+  return data as CreatorRightsRecord;
 }
 
 export async function createDraftRightsRecord(userId: string, input: CreatorRightsInput) {

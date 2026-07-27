@@ -3,6 +3,7 @@ import {
   assertCanPublish,
   buildVersionSnapshot,
   canCreateCheckout,
+  validateRightsCheckoutSession,
   isPrivatePrePublicationStatus,
   isPublicRightsStatus,
 } from "@/lib/rights/lifecycle";
@@ -74,6 +75,31 @@ const paidWebhook = {
   confirmedAt: "2026-07-27T01:00:00.000Z",
 };
 
+const expectedCheckout = {
+  priceId: "price_rights",
+  amount: 999,
+  currency: "usd",
+};
+
+function paidSession(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "cs_live_123",
+    amount_total: 999,
+    currency: "usd",
+    customer: "cus_123",
+    metadata: {
+      rights_record_uuid: "record-1",
+      owner_user_id: "user-1",
+      purchase_type: "creator_rights_record",
+    },
+    payment_intent: "pi_123",
+    payment_status: "paid",
+    ...overrides,
+  };
+}
+
+const rightsLineItems = [{ price: { id: "price_rights" } }];
+
 describe("Creator Rights lifecycle", () => {
   it("keeps draft, pending payment, and paid records private until publication", () => {
     expect(isPrivatePrePublicationStatus("draft")).toBe(true);
@@ -139,5 +165,51 @@ describe("Creator Rights lifecycle", () => {
       value: "a".repeat(64),
       createdAt: "2026-07-27T00:30:00.000Z",
     });
+  });
+
+  it("validates the exact Checkout Session before publication", () => {
+    expect(() =>
+      validateRightsCheckoutSession(
+        rightsRecord({ record_status: "pending_payment", stripe_checkout_session_id: "cs_live_123" }),
+        paidSession(),
+        rightsLineItems,
+        expectedCheckout
+      )
+    ).not.toThrow();
+  });
+
+  it("rejects unpaid or mismatched Checkout Sessions", () => {
+    const record = rightsRecord({ record_status: "pending_payment", stripe_checkout_session_id: "cs_live_123" });
+    expect(() => validateRightsCheckoutSession(record, paidSession({ payment_status: "unpaid" }), rightsLineItems, expectedCheckout)).toThrow(/not paid/);
+    expect(() => validateRightsCheckoutSession(record, paidSession({ amount_total: 1999 }), rightsLineItems, expectedCheckout)).toThrow(/amount/);
+    expect(() => validateRightsCheckoutSession(record, paidSession({ currency: "eur" }), rightsLineItems, expectedCheckout)).toThrow(/currency/);
+    expect(() => validateRightsCheckoutSession(record, paidSession(), [{ price: { id: "price_other" } }], expectedCheckout)).toThrow(/configured Creator Rights price/);
+  });
+
+  it("rejects metadata mismatch and records attached to a different Checkout Session", () => {
+    expect(() =>
+      validateRightsCheckoutSession(
+        rightsRecord({ record_status: "pending_payment", stripe_checkout_session_id: "cs_live_123" }),
+        paidSession({ metadata: { rights_record_uuid: "record-2", owner_user_id: "user-1", purchase_type: "creator_rights_record" } }),
+        rightsLineItems,
+        expectedCheckout
+      )
+    ).toThrow(/record metadata/);
+    expect(() =>
+      validateRightsCheckoutSession(
+        rightsRecord({ record_status: "pending_payment", stripe_checkout_session_id: "cs_live_123" }),
+        paidSession({ metadata: { rights_record_uuid: "record-1", owner_user_id: "user-2", purchase_type: "creator_rights_record" } }),
+        rightsLineItems,
+        expectedCheckout
+      )
+    ).toThrow(/owner metadata/);
+    expect(() =>
+      validateRightsCheckoutSession(
+        rightsRecord({ record_status: "pending_payment", stripe_checkout_session_id: "cs_live_other" }),
+        paidSession(),
+        rightsLineItems,
+        expectedCheckout
+      )
+    ).toThrow(/another Checkout Session/);
   });
 });

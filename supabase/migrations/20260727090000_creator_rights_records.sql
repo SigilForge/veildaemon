@@ -92,6 +92,21 @@ create table public.creator_rights_license_inquiries (
   created_at timestamptz not null default now()
 );
 
+create table public.creator_rights_payment_attempts (
+  id uuid primary key default gen_random_uuid(),
+  record_id uuid not null references public.creator_rights_records(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  stripe_checkout_session_id text not null unique,
+  stripe_payment_intent_id text,
+  stripe_customer_id text,
+  amount_expected integer not null,
+  amount_paid integer,
+  currency text not null default 'usd',
+  attempt_status text not null default 'pending',
+  created_at timestamptz not null default now(),
+  completed_at timestamptz
+);
+
 create or replace function public.creator_rights_touch_updated_at()
 returns trigger
 language plpgsql
@@ -217,6 +232,7 @@ grant execute on function public.creator_rights_publish_record(uuid, uuid, text,
 alter table public.creator_rights_records enable row level security;
 alter table public.creator_rights_record_versions enable row level security;
 alter table public.creator_rights_license_inquiries enable row level security;
+alter table public.creator_rights_payment_attempts enable row level security;
 
 create policy "published creator rights records are readable"
 on public.creator_rights_records for select
@@ -236,7 +252,10 @@ using (
   exists (
     select 1 from public.creator_rights_records r
     where r.id = record_id
-    and (r.record_status <> 'draft' or r.user_id = auth.uid())
+    and (
+      r.record_status in ('published', 'updated', 'transferred', 'disputed', 'under_review', 'withdrawn', 'archived')
+      or r.user_id = auth.uid()
+    )
   )
 );
 
@@ -266,11 +285,16 @@ with check (
   exists (
     select 1 from public.creator_rights_records r
     where r.id = record_id
-    and r.record_status <> 'draft'
+    and r.record_status in ('published', 'updated', 'transferred', 'disputed', 'under_review', 'withdrawn', 'archived')
   )
 );
+
+create policy "users read own creator rights payment attempts"
+on public.creator_rights_payment_attempts for select
+using (auth.uid() = user_id);
 
 grant select on public.creator_rights_records to anon;
 grant select, insert, update on public.creator_rights_records to authenticated;
 grant select, insert on public.creator_rights_record_versions to authenticated;
 grant select, insert on public.creator_rights_license_inquiries to anon, authenticated;
+grant select on public.creator_rights_payment_attempts to authenticated;
