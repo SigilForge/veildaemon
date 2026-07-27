@@ -117,7 +117,16 @@ try {
     console.error(
       `Refusing to store tokens: expected bot login "${EXPECTED_BOT_LOGIN}" but got "${validation.login}".`,
     );
-    console.error("Log out of Twitch in the browser and authorize while logged in as SigilForge.");
+    console.error("");
+    console.error("That OAuth code is already spent (single-use). Do NOT re-run auth-code with it.");
+    console.error("Next steps:");
+    console.error("  1. Browser: log OUT of Twitch (or use a private/incognito window).");
+    console.error("  2. Log IN as SigilForge (not VeilCorpNode).");
+    console.error("  3. npm run twitch:auth-url");
+    console.error("  4. Open the NEW url, approve, copy the NEW ?code= from the redirect.");
+    console.error("  5. npm run twitch:auth-code -- THAT_NEW_CODE");
+    console.error("");
+    console.error("Broadcaster tokens were NOT written to .env.local (safety). Alerts unchanged.");
     process.exit(1);
   }
 
