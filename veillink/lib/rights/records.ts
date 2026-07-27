@@ -10,6 +10,7 @@ import {
   type CreatorRightsInput,
   type CreatorRightsRecord,
 } from "./schema";
+import { isPublicRightsStatus } from "./lifecycle";
 
 export const rightsPublicOrigin = "https://veildaemon.app";
 
@@ -247,13 +248,17 @@ export async function findRightsRecord(slug: string) {
       .from("creator_rights_records")
       .select("*")
       .eq("slug", slug)
-      .in("record_status", ["published", "updated", "transferred", "disputed", "withdrawn", "archived"])
+      .in("record_status", ["published", "updated", "transferred", "disputed", "under_review", "withdrawn", "archived"])
       .maybeSingle();
     if (!error && data) return data as CreatorRightsRecord;
   } catch {
     return example || null;
   }
   return example || null;
+}
+
+export function recordIsPublic(record: CreatorRightsRecord) {
+  return isPublicRightsStatus(record.record_status);
 }
 
 export async function listOwnedRightsRecords(userId: string) {

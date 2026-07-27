@@ -17,6 +17,8 @@ export const permissionValues = [
 
 export const recordStatuses = [
   "draft",
+  "pending_payment",
+  "paid",
   "published",
   "updated",
   "transferred",
@@ -114,6 +116,11 @@ export type CreatorRightsRecord = {
   updated_at: string;
   stripe_checkout_session_id?: string | null;
   stripe_payment_intent_id?: string | null;
+  stripe_customer_id?: string | null;
+  amount_paid?: number | null;
+  currency?: string | null;
+  payment_status?: string | null;
+  payment_confirmed_at?: string | null;
   filename?: string | null;
   file_size?: number | null;
   mime_type?: string | null;

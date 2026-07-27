@@ -1,5 +1,7 @@
 create type public.creator_rights_record_status as enum (
   'draft',
+  'pending_payment',
+  'paid',
   'published',
   'updated',
   'transferred',
@@ -50,6 +52,11 @@ create table public.creator_rights_records (
   updated_at timestamptz not null default now(),
   stripe_checkout_session_id text,
   stripe_payment_intent_id text,
+  stripe_customer_id text,
+  amount_paid integer,
+  currency text,
+  payment_status text,
+  payment_confirmed_at timestamptz,
   filename text,
   file_size bigint,
   mime_type text,
@@ -104,11 +111,11 @@ returns trigger
 language plpgsql
 as $$
 begin
-  if new.record_status <> 'draft' and new.record_id is null then
+  if new.record_status in ('published', 'updated', 'transferred', 'disputed', 'under_review', 'withdrawn', 'archived') and new.record_id is null then
     new.record_id := 'SFR-' || to_char(coalesce(new.published_at, now()), 'YYYY') || '-' ||
       lpad(nextval('public.creator_rights_record_number_seq')::text, 6, '0');
   end if;
-  if new.record_status <> 'draft' and new.published_at is null then
+  if new.record_status in ('published', 'updated', 'transferred', 'disputed', 'under_review', 'withdrawn', 'archived') and new.published_at is null then
     new.published_at := now();
   end if;
   return new;
@@ -119,13 +126,104 @@ create trigger creator_rights_assign_record_id
 before insert or update of record_status on public.creator_rights_records
 for each row execute function public.creator_rights_assign_record_id();
 
+create or replace function public.creator_rights_publish_record(
+  record_id_input uuid,
+  actor_user_id_input uuid,
+  checkout_session_id_input text,
+  payment_intent_id_input text,
+  stripe_customer_id_input text,
+  amount_paid_input integer,
+  currency_input text,
+  payment_status_input text,
+  internal_publication_input boolean default false
+)
+returns public.creator_rights_records
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_record public.creator_rights_records;
+  published_record public.creator_rights_records;
+begin
+  select *
+  into current_record
+  from public.creator_rights_records
+  where id = record_id_input
+  for update;
+
+  if current_record.id is null then
+    raise exception 'creator_rights_record_not_found';
+  end if;
+
+  if current_record.user_id <> actor_user_id_input then
+    raise exception 'creator_rights_record_owner_mismatch';
+  end if;
+
+  if current_record.record_status in ('published', 'updated', 'transferred', 'disputed', 'under_review', 'withdrawn', 'archived') then
+    if current_record.stripe_checkout_session_id = checkout_session_id_input then
+      return current_record;
+    end if;
+    raise exception 'creator_rights_record_already_published';
+  end if;
+
+  if current_record.record_status not in ('draft', 'pending_payment', 'paid') then
+    raise exception 'creator_rights_record_invalid_publication_state';
+  end if;
+
+  if not internal_publication_input and payment_status_input <> 'paid' then
+    raise exception 'creator_rights_record_payment_required';
+  end if;
+
+  update public.creator_rights_records
+  set
+    record_status = 'published',
+    stripe_checkout_session_id = checkout_session_id_input,
+    stripe_payment_intent_id = payment_intent_id_input,
+    stripe_customer_id = stripe_customer_id_input,
+    amount_paid = amount_paid_input,
+    currency = lower(currency_input),
+    payment_status = payment_status_input,
+    payment_confirmed_at = now()
+  where id = current_record.id
+  returning *
+  into published_record;
+
+  insert into public.creator_rights_record_versions (
+    record_id,
+    version_number,
+    snapshot_json,
+    change_summary,
+    created_by
+  )
+  values (
+    published_record.id,
+    1,
+    to_jsonb(published_record),
+    'Initial published snapshot',
+    actor_user_id_input
+  )
+  on conflict (record_id, version_number) do nothing;
+
+  return published_record;
+end;
+$$;
+
+revoke execute on function public.creator_rights_publish_record(uuid, uuid, text, text, text, integer, text, text, boolean) from public;
+revoke execute on function public.creator_rights_publish_record(uuid, uuid, text, text, text, integer, text, text, boolean) from anon;
+revoke execute on function public.creator_rights_publish_record(uuid, uuid, text, text, text, integer, text, text, boolean) from authenticated;
+grant execute on function public.creator_rights_publish_record(uuid, uuid, text, text, text, integer, text, text, boolean) to service_role;
+
 alter table public.creator_rights_records enable row level security;
 alter table public.creator_rights_record_versions enable row level security;
 alter table public.creator_rights_license_inquiries enable row level security;
 
 create policy "published creator rights records are readable"
 on public.creator_rights_records for select
-using (record_status <> 'draft' or auth.uid() = user_id);
+using (
+  record_status in ('published', 'updated', 'transferred', 'disputed', 'under_review', 'withdrawn', 'archived')
+  or auth.uid() = user_id
+);
 
 create policy "users manage their creator rights drafts"
 on public.creator_rights_records for all
