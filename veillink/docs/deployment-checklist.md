@@ -67,6 +67,10 @@ STRIPE_PRO_MONTHLY_PRICE_ID=price_1Tw7WwFht6uPr4mz8XUCExEX
 STRIPE_PRO_YEARLY_PRICE_ID=price_1Tw7X1Fht6uPr4mzVswg6DQ9
 STRIPE_BUSINESS_MONTHLY_PRICE_ID=price_1Tw7X6Fht6uPr4mzA6QzzNmW
 STRIPE_BUSINESS_YEARLY_PRICE_ID=price_1Tw7XEFht6uPr4mzSYwqM4RY
+RIGHTS_STRIPE_PRICE_ID=...
+RIGHTS_STRIPE_WEBHOOK_SECRET=...
+RIGHTS_SUCCESS_URL=https://app.veildaemon.app/account/rights?checkout=success
+RIGHTS_CANCEL_URL=https://app.veildaemon.app/account/rights?checkout=cancelled
 ```
 
 Use Vercel's encrypted environment variable UI or CLI for secrets. Do not commit secret keys, restricted keys, publishable live keys, webhook signing secrets, Supabase service-role keys, or local `.env` files.
@@ -83,6 +87,17 @@ Prefer a least-privilege Stripe restricted key for the server if it supports the
 - Store the endpoint signing secret in `STRIPE_WEBHOOK_SECRET`.
 
 VeilLink verifies Stripe signatures before processing events. Processed event IDs are recorded in `stripe_webhook_events`, so duplicate deliveries return without reapplying billing state.
+
+Creator Rights Records use a separate payment-governed publication boundary:
+
+- Endpoint: `https://app.veildaemon.app/api/rights/webhook`
+- Events:
+  - `checkout.session.completed`
+  - `checkout.session.expired`
+- Store the endpoint signing secret in `RIGHTS_STRIPE_WEBHOOK_SECRET`, or use `STRIPE_WEBHOOK_SECRET` only if the same Stripe endpoint is intentionally shared.
+- Configure `RIGHTS_STRIPE_PRICE_ID` to a one-time `$9.99 USD` Price in the same Stripe mode as `STRIPE_SECRET_KEY`.
+- The webhook validates the configured Price ID, `amount_total=999`, `currency=usd`, `payment_status=paid`, stable metadata, and the database-owned pending Checkout Session before publishing.
+- Browser success/cancel URLs do not publish. Missing Stripe config fails closed: checkout returns unavailable, webhook returns unavailable, and no public record is created.
 
 ## 5. Routing and DNS
 

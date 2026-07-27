@@ -23,8 +23,8 @@ export default async function LicenseInquiryPage({ params }: { params: Promise<{
     <main className="page">
       <p className="eyebrow">License inquiry</p>
       <h1 className="page-title">{record.title}</h1>
-      <p className="lede">This MVP stores the inquiry shape for the dashboard and keeps negotiation human.</p>
-      <form className="form rights-form" action={`mailto:${record.licensing_contact || record.contact_email}`} method="post" encType="text/plain">
+      <p className="lede">This route defines the inquiry shape without exposing the rights holder&apos;s private contact address.</p>
+      <form className="form rights-form" aria-describedby="license-disabled-note">
         <label>Requester name<input name="requester_name" required /></label>
         <label>Company<input name="company" /></label>
         <label>Email<input name="email" type="email" required /></label>
@@ -36,8 +36,12 @@ export default async function LicenseInquiryPage({ params }: { params: Promise<{
         <label>Distribution plan<textarea name="distribution_plan" rows={3} /></label>
         <label>Budget range<input name="budget_range" /></label>
         <label className="full">Notes<textarea name="notes" rows={4} /></label>
-        <button type="submit">Send inquiry</button>
+        <button type="button" disabled>Inquiry storage pending</button>
       </form>
+      <p id="license-disabled-note" className="notice">
+        Public inquiry storage and creator notification are intentionally disabled until the deployed storage, rate-limit,
+        and notification path is verified.
+      </p>
     </main>
   );
 }

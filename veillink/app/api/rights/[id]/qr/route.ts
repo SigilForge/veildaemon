@@ -2,7 +2,8 @@ import sharp from "sharp";
 import { NextRequest, NextResponse } from "next/server";
 import { generateArtisticQrSvg } from "@/lib/qr-generator";
 import { getSupabaseAdminClient } from "@/lib/supabase";
-import { exampleRightsRecords, recordUrl } from "@/lib/rights/records";
+import { requireUser } from "@/lib/store";
+import { exampleRightsRecords, recordIsPublic, recordUrl } from "@/lib/rights/records";
 import type { CreatorRightsRecord } from "@/lib/rights/schema";
 
 function filename(slug: string, extension: string) {
@@ -25,6 +26,16 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   const { id } = await context.params;
   const record = await getRecord(id);
   if (!record) return NextResponse.json({ ok: false, error: "Rights record not found." }, { status: 404 });
+  if (!recordIsPublic(record)) {
+    const session = await requireUser().catch(() => null);
+    if (!session) {
+      return NextResponse.json({ ok: false, error: "Rights record not found." }, { status: 404 });
+    }
+    const { user } = session;
+    if (record.user_id !== user.id) {
+      return NextResponse.json({ ok: false, error: "Rights record not found." }, { status: 404 });
+    }
+  }
   const format = request.nextUrl.searchParams.get("format") === "png" ? "png" : "svg";
   const svg = await generateArtisticQrSvg({
     url: recordUrl(record.slug),

@@ -122,6 +122,8 @@ Billing is Stripe-ready but not live until configured. The live Stripe catalog w
 
 Book One uses a separate price/product configuration on the root API claim path (`BOOK_ONE_STRIPE_PRICE_ID` and related env on the VeilDaemon Vercel project).
 
+Creator Rights Records use a separate one-time Stripe Price. The application expects `$9.99 USD`; the code validates the configured Price ID, `amount_total = 999`, `currency = usd`, metadata, and `payment_status = paid` before calling the service-role Supabase publication function. Browser success redirects never publish records.
+
 1. Create Stripe products for Pro and Business.
 2. Create monthly and yearly recurring prices.
 3. Set:
@@ -132,15 +134,36 @@ Book One uses a separate price/product configuration on the root API claim path 
    - `STRIPE_PRO_YEARLY_PRICE_ID`
    - `STRIPE_BUSINESS_MONTHLY_PRICE_ID`
    - `STRIPE_BUSINESS_YEARLY_PRICE_ID`
+   - `RIGHTS_STRIPE_PRICE_ID`
+   - `RIGHTS_STRIPE_WEBHOOK_SECRET` if the Creator Rights webhook uses a separate Stripe endpoint signing secret. If omitted, `/api/rights/webhook` falls back to `STRIPE_WEBHOOK_SECRET`.
+   - Optional `RIGHTS_SUCCESS_URL` and `RIGHTS_CANCEL_URL`; defaults return to `/account/rights`.
 4. Add a webhook endpoint at `/api/billing/webhook`.
 5. Subscribe to:
    - `checkout.session.completed`
    - `customer.subscription.updated`
    - `customer.subscription.deleted`
+6. Add a Creator Rights webhook endpoint at `/api/rights/webhook`.
+7. Subscribe the Creator Rights endpoint to:
+   - `checkout.session.completed`
+   - `checkout.session.expired`
 
 Without those values, checkout and portal routes fail closed with configuration errors.
 
+Without `STRIPE_SECRET_KEY` and `RIGHTS_STRIPE_PRICE_ID`, Creator Rights draft creation and preview can remain available, but `/api/rights/checkout` returns a clear unavailable response. Without a webhook signing secret, `/api/rights/webhook` returns unavailable and cannot publish. No partial paid/public state should be produced when configuration is absent.
+
 Webhook handling records processed Stripe event IDs in `stripe_webhook_events` before changing billing state. Duplicate processed events return early, and subscription state is derived from Stripe webhook events rather than from the browser returning after Checkout.
+
+Creator Rights publication additionally validates stable Stripe metadata only:
+
+```json
+{
+  "rights_record_uuid": "...",
+  "owner_user_id": "...",
+  "purchase_type": "creator_rights_record"
+}
+```
+
+Titles, slugs, creator names, and pricing are not trusted from Stripe metadata. Those values come from the database and configured Price ID.
 
 VeilLink pins Stripe API calls to `2026-06-24.dahlia` and tags Checkout Sessions with a stable integration identifier for Dashboard tracking. Do not enable Stripe Tax until tax registrations are configured in Stripe; enabling tax without registrations can make the integration look tax-ready while collecting nothing.
 

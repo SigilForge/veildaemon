@@ -7,6 +7,7 @@ import {
   isPrivatePrePublicationStatus,
   isPublicRightsStatus,
 } from "@/lib/rights/lifecycle";
+import { rightsJson } from "@/lib/rights/records";
 import type { CreatorRightsRecord } from "@/lib/rights/schema";
 
 function rightsRecord(overrides: Partial<CreatorRightsRecord> = {}): CreatorRightsRecord {
@@ -165,6 +166,39 @@ describe("Creator Rights lifecycle", () => {
       value: "a".repeat(64),
       createdAt: "2026-07-27T00:30:00.000Z",
     });
+  });
+
+  it("public JSON excludes owner identity, private email, and payment fields", () => {
+    const json = rightsJson(
+      rightsRecord({
+        record_id: "SFR-2026-000001",
+        record_status: "published",
+        contact_email: "private@example.com",
+        licensing_contact: "rights-private@example.com",
+        stripe_checkout_session_id: "cs_live_secret",
+        stripe_payment_intent_id: "pi_secret",
+        stripe_customer_id: "cus_secret",
+        payment_status: "paid",
+      })
+    );
+    const serialized = JSON.stringify(json);
+    expect(serialized).not.toContain("private@example.com");
+    expect(serialized).not.toContain("rights-private@example.com");
+    expect(serialized).not.toContain("user-1");
+    expect(serialized).not.toContain("cs_live_secret");
+    expect(serialized).not.toContain("pi_secret");
+    expect(serialized).not.toContain("cus_secret");
+    expect(serialized).not.toContain("payment_status");
+    expect(json).toMatchObject({
+      recordType: "CreatorRightsRecord",
+      recordId: "SFR-2026-000001",
+      licenseContact: "/rights/test-record/license",
+    });
+  });
+
+  it("pending payment and paid records are not public statuses", () => {
+    expect(isPublicRightsStatus("pending_payment")).toBe(false);
+    expect(isPublicRightsStatus("paid")).toBe(false);
   });
 
   it("validates the exact Checkout Session before publication", () => {
