@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { buildMetadata } from "@/lib/seo";
 import { generateArtisticQrSvg } from "@/lib/qr-generator";
-import { RIGHTS_DISCLAIMER, permissionLabel, workTypeLabel } from "@/lib/rights/schema";
+import { RIGHTS_DISCLAIMER, availabilityLabel, permissionLabel, workTypeLabel } from "@/lib/rights/schema";
 import { findRightsRecord, permissionEntries, recordUrl, rightsJsonLd } from "@/lib/rights/records";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${record.title} Rights, Copyright and AI Use Record`,
     description: `View the declared copyright, ownership, licensing terms, AI permissions, and recorded version for ${record.title} by ${record.public_display_name || record.creator_name}.`,
     path: `/rights/${record.slug}`,
-    image: "https://veildaemon.app/studio/assets/social/creator-rights-record-og.webp",
+    image: "https://veildaemon.app/assets/social/creator-rights-record-og.webp",
     imageAlt: "Creator Rights Record verification card from SigilForge Studios",
     imageWidth: 1200,
     imageHeight: 675,
@@ -71,6 +71,7 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
         <div className="proof-row">
           <span className="proof-chip status-chip">Active Record</span>
           <span className="proof-chip">{workTypeLabel(record.work_type)}</span>
+          <span className="proof-chip">{availabilityLabel(record.availability)}</span>
           <span className="proof-chip">{record.edition || "Version not specified"}</span>
         </div>
       </section>
@@ -83,6 +84,7 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
             <div><dt>Creator</dt><dd>{record.public_display_name || record.creator_name}</dd></div>
             <div><dt>Recorded</dt><dd>{publishedDate}</dd></div>
             <div><dt>Publication</dt><dd>{publicationDate}</dd></div>
+            <div><dt>Availability</dt><dd>{availabilityLabel(record.availability)}</dd></div>
             <div><dt>Identifier</dt><dd>{record.external_identifier || record.record_id || "Draft ID pending"}</dd></div>
           </dl>
           <p>{record.rights_statement}</p>

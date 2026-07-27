@@ -8,7 +8,7 @@ export const metadata: Metadata = buildMetadata({
   title: "Creator Rights Records",
   description: "Create permanent rights records with AI-use terms, licensing contact paths, QR targets, and JSON metadata.",
   path: "/rights",
-  image: "https://veildaemon.app/studio/assets/social/creator-rights-record-og.webp",
+  image: "https://veildaemon.app/assets/social/creator-rights-record-og.webp",
   imageAlt: "Creator Rights Record verification card from SigilForge Studios",
   imageWidth: 1200,
   imageHeight: 675,

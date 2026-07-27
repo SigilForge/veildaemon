@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { buildMetadata } from "@/lib/seo";
 import { requireUser } from "@/lib/store";
-import { RIGHTS_DISCLAIMER, permissionValues, workTypes } from "@/lib/rights/schema";
+import { RIGHTS_DISCLAIMER, availabilityCategories, permissionValues, workTypes } from "@/lib/rights/schema";
 
 export const metadata: Metadata = buildMetadata({
   title: "Create a Creator Rights Record",
   description: "Create a draft rights record with ownership, licensing, AI permissions, and optional file fingerprint metadata.",
   path: "/rights/create",
-  image: "https://veildaemon.app/studio/assets/social/creator-rights-record-og.webp",
+  image: "https://veildaemon.app/assets/social/creator-rights-record-og.webp",
   imageAlt: "Creator Rights Record verification card from SigilForge Studios",
   imageWidth: 1200,
   imageHeight: 675,
@@ -65,6 +65,12 @@ export default async function CreateRightsRecordPage() {
           Work type
           <select name="workType" defaultValue="book">
             {workTypes.map((type) => <option key={type} value={type}>{optionLabel(type)}</option>)}
+          </select>
+        </label>
+        <label>
+          Availability
+          <select name="availability" defaultValue="public">
+            {availabilityCategories.map((category) => <option key={category} value={category}>{optionLabel(category)}</option>)}
           </select>
         </label>
         <label className="full">Description<textarea name="description" rows={4} required /></label>

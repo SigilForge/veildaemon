@@ -18,6 +18,7 @@ function rightsRecord(overrides: Partial<CreatorRightsRecord> = {}): CreatorRigh
     slug: "test-record",
     title: "Test Record",
     work_type: "book",
+    availability: "public",
     description: "A lifecycle test record.",
     creator_name: "Creator",
     public_display_name: "Creator",

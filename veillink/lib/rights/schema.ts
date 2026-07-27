@@ -39,6 +39,17 @@ export const workTypes = [
   "other",
 ] as const;
 
+export const availabilityCategories = [
+  "public",
+  "licensed",
+  "scheduled",
+  "restricted",
+  "internal",
+  "archive_only",
+  "redacted",
+  "lost",
+] as const;
+
 export const rightsPermissionSchema = z.enum(permissionValues);
 
 export const aiPermissionBlockSchema = z.object({
@@ -63,6 +74,7 @@ export const creatorRightsInputSchema = z.object({
   title: z.string().trim().min(1).max(220),
   slug: z.string().trim().min(3).max(90).optional().or(z.literal("")),
   workType: z.enum(workTypes),
+  availability: z.enum(availabilityCategories).default("public"),
   description: z.string().trim().min(1).max(4000),
   creationDate: z.string().trim().max(40).optional().or(z.literal("")),
   publicationDate: z.string().trim().max(40).optional().or(z.literal("")),
@@ -84,6 +96,7 @@ export const creatorRightsInputSchema = z.object({
 export type PermissionValue = (typeof permissionValues)[number];
 export type RecordStatus = (typeof recordStatuses)[number];
 export type WorkType = (typeof workTypes)[number];
+export type AvailabilityCategory = (typeof availabilityCategories)[number];
 export type AiPermissionBlock = z.infer<typeof aiPermissionBlockSchema>;
 export type CreatorRightsInput = z.infer<typeof creatorRightsInputSchema>;
 
@@ -94,6 +107,7 @@ export type CreatorRightsRecord = {
   slug: string;
   title: string;
   work_type: WorkType;
+  availability: AvailabilityCategory;
   description: string;
   creator_name: string;
   public_display_name: string;
@@ -150,5 +164,18 @@ export function workTypeLabel(value: WorkType) {
     software: "Software",
     worldbuilding: "Worldbuilding",
     other: "Other",
+  }[value];
+}
+
+export function availabilityLabel(value: AvailabilityCategory) {
+  return {
+    public: "Public",
+    licensed: "Licensed",
+    scheduled: "Scheduled",
+    restricted: "Restricted",
+    internal: "Internal",
+    archive_only: "Archive Only",
+    redacted: "Redacted",
+    lost: "Lost",
   }[value];
 }

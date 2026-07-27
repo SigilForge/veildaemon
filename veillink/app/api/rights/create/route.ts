@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
       title: formValue(form, "title"),
       slug: formValue(form, "slug"),
       workType: formValue(form, "workType") as never,
+      availability: formValue(form, "availability") as never,
       description: formValue(form, "description"),
       creationDate: formValue(form, "creationDate"),
       publicationDate: formValue(form, "publicationDate"),

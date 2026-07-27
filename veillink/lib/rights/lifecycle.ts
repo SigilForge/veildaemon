@@ -142,6 +142,7 @@ export function buildVersionSnapshot(record: CreatorRightsRecord) {
     slug: record.slug,
     title: record.title,
     workType: record.work_type,
+    availability: record.availability,
     creatorName: record.creator_name,
     publicDisplayName: record.public_display_name,
     rightsHolderName: record.rights_holder_name,

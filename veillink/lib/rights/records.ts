@@ -6,8 +6,10 @@ import {
   RIGHTS_SCHEMA_VERSION,
   RIGHTS_PRICE_CENTS,
   creatorRightsInputSchema,
+  availabilityLabel,
   permissionLabel,
   type AiPermissionBlock,
+  type AvailabilityCategory,
   type CreatorRightsInput,
   type CreatorRightsRecord,
 } from "./schema";
@@ -94,6 +96,7 @@ function publishedTtrpgBookRecord(input: {
   edition: string;
   externalIdentifier: string;
   sourceUrl?: string;
+  availability?: AvailabilityCategory;
 }): CreatorRightsRecord {
   return {
     id: input.id,
@@ -101,6 +104,7 @@ function publishedTtrpgBookRecord(input: {
     slug: input.slug,
     title: input.title,
     work_type: "game",
+    availability: input.availability || "licensed",
     description: input.description,
     creator_name: "J. Donavon Love",
     public_display_name: "S. KAELËN VALE",
@@ -133,6 +137,7 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     slug: "the-anchor-and-the-glitch",
     title: "The Anchor and the Glitch",
     work_type: "book",
+    availability: "public",
     description: "CradlePoint Book One direct digital edition and associated publication record.",
     creator_name: "J. Donavon Love",
     public_display_name: "S. KAELËN VALE",
@@ -175,6 +180,7 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     slug: "sanguine-sacrament",
     title: "Sanguine Sacrament",
     work_type: "game",
+    availability: "scheduled",
     description: "A CradlePoint NeedlePoint case record for tabletop publication and licensing notice.",
     creator_name: "J. Donavon Love",
     public_display_name: "S. KAELËN VALE",
@@ -217,6 +223,7 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     slug: "cradlepoint-operator-core",
     title: "CradlePoint Operator Core",
     work_type: "worldbuilding",
+    availability: "public",
     description: "Core player-facing rules and Operator identity structure for CradlePoint play.",
     creator_name: "J. Donavon Love",
     public_display_name: "S. KAELËN VALE",
@@ -261,6 +268,7 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     description: "Published Handler-facing core release pack for running CradlePoint sessions, clocks, consequences, cases, and table procedures.",
     edition: "Published Handler Core release pack",
     externalIdentifier: "Published/Paid/Handler Core",
+    availability: "public",
   }),
   publishedTtrpgBookRecord({
     id: "example-field-dossier",
@@ -279,6 +287,7 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     description: "Published Handler expansion covering myth-tech procedures, the Epic Lotus, and advanced CradlePoint table material.",
     edition: "Published core book",
     externalIdentifier: "Published/Paid/Core Books/CRADLEPOINT HANDLER EXPANSION - MYTH-TECH & THE EPIC LOTUS.md",
+    availability: "scheduled",
   }),
   publishedTtrpgBookRecord({
     id: "example-handler-guide",
@@ -297,6 +306,7 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     description: "Published creature, anomaly, and opposition reference for CradlePoint tabletop play and Handler preparation.",
     edition: "Published core book",
     externalIdentifier: "Published/Paid/Core Books/CRADLEPOINT MONSTER MANUAL.md",
+    availability: "scheduled",
   }),
   publishedTtrpgBookRecord({
     id: "example-operator-guide",
@@ -315,6 +325,7 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     description: "Published systems and metaphysics reference for CradlePoint ontology, procedures, presentation logic, and setting rules.",
     edition: "Published core book",
     externalIdentifier: "Published/Paid/Core Books/CRADLEPOINT SYSTEMS METAPHYSICS.md",
+    availability: "restricted",
   }),
 ];
 
@@ -324,6 +335,8 @@ export function rightsJson(record: CreatorRightsRecord) {
     schemaVersion: RIGHTS_SCHEMA_VERSION,
     recordId: record.record_id,
     status: record.record_status,
+    availability: record.availability,
+    availabilityLabel: availabilityLabel(record.availability),
     title: record.title,
     creator: record.public_display_name || record.creator_name,
     rightsHolder: record.rights_holder_name,
@@ -362,7 +375,7 @@ export function rightsJsonLd(record: CreatorRightsRecord) {
     version: record.edition,
     url: recordUrl(record.slug),
     identifier: record.record_id || record.id,
-    conditionsOfAccess: record.ai_permissions_summary,
+    conditionsOfAccess: `${availabilityLabel(record.availability)}. ${record.ai_permissions_summary}`,
   };
 }
 
@@ -511,6 +524,7 @@ export async function createDraftRightsRecord(userId: string, input: CreatorRigh
     slug: normalized.slug,
     title: normalized.title,
     work_type: normalized.workType,
+    availability: normalized.availability,
     description: normalized.description,
     creator_name: normalized.creatorName,
     public_display_name: normalized.publicDisplayName,
