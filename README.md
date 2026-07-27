@@ -1,6 +1,6 @@
 # VeilDaemon
 
-VeilDaemon is the public Operator interface for the Cradlepoint universe: intake, local character records, Needlepoint play support, anomaly reporting, debrief collection, and archive-facing tools for VeilCorp continuity operations.
+VeilDaemon is the public Operator interface for the CradlePoint universe: intake, local character records, Needlepoint play support, anomaly reporting, debrief collection, and archive-facing tools for VeilCorp continuity operations.
 
 The public surface is a static VeilCorp intake node with local-first Operator tooling and Vercel-backed review channels where server-side routing is required.
 
@@ -33,6 +33,16 @@ The current Node target is declared in `package.json`.
 Supported runtime surfaces and optional local checks are documented in
 `Docs/SUPPORTED_ENVIRONMENTS.md`. The future Forge-facing service boundary is
 documented in `Docs/FORGE_SERVICE_INTERFACES.md`.
+
+## License
+
+Copyright (c) 2024-2026 SigilForge Studios. All Rights Reserved.
+
+VeilDaemon is proprietary commercial software and public-service infrastructure
+operated by SigilForge Studios. It is not an open-source framework or
+self-hosted platform. Repository visibility does not grant rights to copy,
+redistribute, host, sublicense, or create derivative works. See `LICENSE` and
+`LICENSE_SCOPE.md`.
 
 ## VeilCorp QR Assets
 

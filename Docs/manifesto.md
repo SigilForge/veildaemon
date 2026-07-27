@@ -64,8 +64,8 @@ but it will never claim dominion over it.
 
 ## **Architecture Vow**
 
-* **Core Code**: Open (Apache 2.0)
-* **Creative Assets (Glyphs, UI, Ritual Language)**: Protected (CC-BY-NC)
+* **Core Code**: Proprietary commercial software; All Rights Reserved
+* **Creative Assets (Glyphs, UI, Ritual Language)**: Commercially controlled; All Rights Reserved unless explicitly licensed otherwise
   Because daemons have souls, and souls are not free.
 
 ---

@@ -47,16 +47,16 @@ test("YouTube is not requested until the transmission viewer opens", async ({ pa
   await expect(iframe).toHaveAttribute("loading", "lazy");
 });
 
-test("license scope reserves marks outside the Creative Commons grant", async () => {
+test("license scope describes proprietary repository and reserves marks", async () => {
   const license = fs.readFileSync(path.join(root, "LICENSE"), "utf8");
   const scope = fs.readFileSync(path.join(root, "LICENSE_SCOPE.md"), "utf8");
   for (const text of [license, scope]) {
-    expect(text).toMatch(/excluded from the Creative Commons grant/i);
+    expect(text).toMatch(/All Rights Reserved/i);
+    expect(text).toMatch(/proprietary commercial software/i);
     expect(text).toMatch(/No trademark rights are granted/i);
-    expect(text).toMatch(/J\. Donavon Love/i);
-    expect(text).toMatch(/Knoxmortis/i);
+    expect(text).toMatch(/SigilForge Studios/i);
   }
-  expect(scope).toMatch(/UI implementation code.*Apache/i);
+  expect(scope).toMatch(/VeilDaemon source code and implementation.*Proprietary/i);
 });
 
 test("public pages avoid false entity and all-data-local claims", async () => {

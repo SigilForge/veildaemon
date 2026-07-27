@@ -1,4 +1,4 @@
-# Cradlepoint Studio — Founder decisions still required
+# CradlePoint Studio — Founder decisions still required
 
 Public audit remediation (July 2026). Do not invent values for outreach packets until confirmed.
 
@@ -15,7 +15,7 @@ Public site currently states: **founder-operated by J. Donavon Love; formal enti
 
 ## Brand
 
-- [x] Dedicated **Cradlepoint Studio** lotus-eye family (horizontal lockups, compact emblem, and city-duality seal)
+- [x] Dedicated **CradlePoint Studio** lotus-eye family (horizontal lockups, compact emblem, and city-duality seal)
 - [x] Exterior-masked transparent PNG/WebP derivatives for the round lotus-eye marks
 - [ ] SVG / vector masters for Studio + product marks
 - [x] WebP display assets, PNG source masters, favicon, and Apple touch icon variants
@@ -24,10 +24,10 @@ Public site currently states: **founder-operated by J. Donavon Love; formal enti
 
 ### Private trademark-risk record
 
-- “Cradlepoint” is also an active Ericsson enterprise-networking brand.
-- Public real-world branding should consistently use **Cradlepoint Studio**.
+- “CradlePoint” is close to an active Ericsson enterprise-networking brand.
+- Public real-world branding should consistently use **CradlePoint Studio** unless the brand is renamed or hyphenated after counsel review.
 - **VeilDaemon** remains the primary software and AR product identity.
-- Avoid standalone Cradlepoint branding for networking, routers, cloud connectivity, or enterprise communications.
+- Avoid standalone CradlePoint branding for networking, routers, cloud connectivity, or enterprise communications.
 - Complete federal, state, common-law, domain, and international clearance before filing or major brand investment.
 - Do not add a public Ericsson disclaimer without founder or counsel approval.
 
@@ -63,5 +63,21 @@ Revenue, customer counts, conversion rates, market size, valuation, legal struct
 
 ## Credit / license identity
 
-- [x] Align LICENSE credit (Knoxmortis) with public credit (J. Donavon Love)
+- [x] Align writer credit (S. KAELËN VALE) with owner/founder credit (J. Donavon Love)
 - [ ] Confirm legal owner string for Copyright page once entity exists
+
+## Private license roadmap
+
+This is product strategy, not a public grant. Public notices should expose only
+the current license state and explicit package/file licenses.
+
+| Product / surface | Intended position |
+| --- | --- |
+| VeilDaemon | Proprietary production SaaS and public service for the website, Creator Rights, QR platform, licensing, APIs, MCP services, Relay integration, and business logic |
+| VeilForge | Proprietary / enterprise local AI runtime for automation and orchestration |
+| VeilAI Mobile (+AR) | Community ecosystem surface with room for mod SDKs, plugin APIs, theme support, accessibility extensions, local-model integrations, HUDs, widgets, and AR overlays |
+| Public SDKs | MIT, Apache, or another explicit permissive license only when published as separate packages with their own license files |
+
+Default rule: the platform and commercial services stay proprietary; only
+deliberately separated SDKs, plugins, templates, or community tools receive
+their own public licenses.
