@@ -25,7 +25,7 @@ limitations under the License.
 
 Licensed under **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**
 
-* You **may share and adapt** eligible creative works (lore, ritual language, narrative UI copy, non-brand glyph artwork, and other creative visual expression)
+* You **may share and adapt** original narrative text, lore, clearly identified creative works, non-brand artwork, and other creative content unless otherwise noted
 * You **must provide attribution**
 * You **may not use them for commercial purposes** without explicit permission
 
@@ -33,6 +33,15 @@ Full license text:
 [https://creativecommons.org/licenses/by-nc/4.0/](https://creativecommons.org/licenses/by-nc/4.0/)
 
 SigilForge Studios, Cradlepoint, VeilDaemon, VeilCorp, product names, logos, trademarks, service marks, source identifiers, trade dress, and source-identifying designs are **excluded from the Creative Commons grant**. No trademark rights are granted. Commercial licensing requires written permission. File-specific notices override this general scope when they explicitly say so.
+
+| Component | License / status |
+| --- | --- |
+| VeilDaemon source code | Apache License 2.0 |
+| Technical documentation | Apache License 2.0, unless otherwise stated |
+| Narrative text and lore | CC BY-NC 4.0, unless otherwise stated |
+| Non-brand artwork and creative content | CC BY-NC 4.0, unless otherwise stated |
+| Logos, trademarks, and trade dress | Reserved |
+| Cradlepoint fiction and published books | All rights reserved unless a specific record or written license says otherwise |
 
 © 2024–2026 J. Donavon Love, also publishing under the creator name Knoxmortis. Individual works retain their own known creation and publication dates.
 ---

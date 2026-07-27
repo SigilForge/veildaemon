@@ -8,9 +8,20 @@ Code, core logic, and UI implementation code are licensed under the Apache Licen
 
 ## Creative Elements
 
-Eligible lore, ritual language, narrative UI copy, non-brand glyph artwork, and other creative visual expression are licensed under Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0), unless otherwise stated.
+Unless otherwise noted, original narrative text, lore, clearly identified creative works, non-brand artwork, and other creative content are licensed under Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0).
 
 Commercial use of creative elements requires written permission.
+
+## Quick Matrix
+
+| Component | License / status |
+| --- | --- |
+| VeilDaemon source code | Apache License 2.0 |
+| Technical documentation | Apache License 2.0, unless otherwise stated |
+| Narrative text and lore | CC BY-NC 4.0, unless otherwise stated |
+| Non-brand artwork and creative content | CC BY-NC 4.0, unless otherwise stated |
+| Logos, trademarks, and trade dress | Reserved |
+| Cradlepoint fiction and published books | All rights reserved unless a specific record or written license says otherwise |
 
 ## Marks and Source Identifiers
 
@@ -20,7 +31,7 @@ Media-use permission for approved press assets is limited to the published media
 
 ## Boundary
 
-If a file mixes code and protected creative expression, the code portions remain Apache-2.0 and eligible creative expression remains CC BY-NC 4.0. Excluded marks and source identifiers remain excluded. File-specific notices override this general scope when they explicitly say so. The split is intentional: public daemon engine, licensed creative expression, reserved identity.
+If a file mixes code and protected creative expression, the code portions remain Apache-2.0 and clearly identified creative expression remains CC BY-NC 4.0 unless otherwise stated. Excluded marks and source identifiers remain excluded. File-specific notices override this general scope when they explicitly say so. The split is intentional: public daemon engine, licensed creative expression, reserved identity.
 
 ## Creator Identity
 
