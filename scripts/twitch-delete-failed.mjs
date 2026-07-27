@@ -1,3 +1,5 @@
+import "./load-local-env.mjs";
+
 const { TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET } = process.env;
 
 const FAILED_STATUS = "webhook_callback_verification_failed";
