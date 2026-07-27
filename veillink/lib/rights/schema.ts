@@ -30,12 +30,41 @@ export const recordStatuses = [
 
 export const workTypes = [
   "book",
+  "short_story",
+  "ttrpg",
+  "artwork",
+  "photography",
   "screenplay",
-  "game",
-  "visual_art",
   "music",
+  "audio",
+  "video",
+  "animation",
+  "comic",
   "software",
-  "worldbuilding",
+  "game",
+  "website",
+  "dataset",
+  "3d_model",
+  "map",
+  "asset_pack",
+  "document",
+  "research",
+  "course",
+  "other",
+] as const;
+
+export const categoryValues = [
+  "fiction",
+  "tabletop",
+  "publishing",
+  "technical",
+  "software",
+  "legal",
+  "research",
+  "marketing",
+  "reference",
+  "canon",
+  "internal",
   "other",
 ] as const;
 
@@ -74,6 +103,7 @@ export const creatorRightsInputSchema = z.object({
   title: z.string().trim().min(1).max(220),
   slug: z.string().trim().min(3).max(90).optional().or(z.literal("")),
   workType: z.enum(workTypes),
+  category: z.enum(categoryValues).default("other"),
   availability: z.enum(availabilityCategories).default("public"),
   description: z.string().trim().min(1).max(4000),
   creationDate: z.string().trim().max(40).optional().or(z.literal("")),
@@ -95,7 +125,9 @@ export const creatorRightsInputSchema = z.object({
 
 export type PermissionValue = (typeof permissionValues)[number];
 export type RecordStatus = (typeof recordStatuses)[number];
-export type WorkType = (typeof workTypes)[number];
+export type KnownWorkType = (typeof workTypes)[number];
+export type WorkType = KnownWorkType | (string & {});
+export type CategoryValue = (typeof categoryValues)[number];
 export type AvailabilityCategory = (typeof availabilityCategories)[number];
 export type AiPermissionBlock = z.infer<typeof aiPermissionBlockSchema>;
 export type CreatorRightsInput = z.infer<typeof creatorRightsInputSchema>;
@@ -107,6 +139,7 @@ export type CreatorRightsRecord = {
   slug: string;
   title: string;
   work_type: WorkType;
+  category: CategoryValue | (string & {});
   availability: AvailabilityCategory;
   description: string;
   creator_name: string;
@@ -154,17 +187,58 @@ export function permissionLabel(value: PermissionValue) {
   }[value];
 }
 
-export function workTypeLabel(value: WorkType) {
-  return {
+function fallbackLabel(value: string) {
+  return value.replace(/_/g, " ").replace(/^./, (first) => first.toUpperCase());
+}
+
+export function workTypeLabel(value: string) {
+  const labels: Record<KnownWorkType, string> = {
     book: "Book",
+    short_story: "Short story",
+    ttrpg: "TTRPG",
+    artwork: "Artwork",
+    photography: "Photography",
     screenplay: "Screenplay",
-    game: "Interactive work",
-    visual_art: "Visual art",
     music: "Music",
+    audio: "Audio",
+    video: "Video",
+    animation: "Animation",
+    comic: "Comic",
     software: "Software",
-    worldbuilding: "Worldbuilding",
+    game: "Game",
+    website: "Website",
+    dataset: "Dataset",
+    "3d_model": "3D model",
+    map: "Map",
+    asset_pack: "Asset pack",
+    document: "Document",
+    research: "Research",
+    course: "Course",
     other: "Other",
-  }[value];
+  };
+  return value in labels ? labels[value as KnownWorkType] : fallbackLabel(value);
+}
+
+export function categoryLabel(value: string) {
+  const labels: Record<CategoryValue, string> = {
+    fiction: "Fiction",
+    tabletop: "Tabletop",
+    publishing: "Publishing",
+    technical: "Technical",
+    software: "Software",
+    legal: "Legal",
+    research: "Research",
+    marketing: "Marketing",
+    reference: "Reference",
+    canon: "Canon",
+    internal: "Internal",
+    other: "Other",
+  };
+  return value in labels ? labels[value as CategoryValue] : fallbackLabel(value);
+}
+
+export function categoryOrDefault(value?: string | null) {
+  return value || "other";
 }
 
 export function availabilityLabel(value: AvailabilityCategory) {

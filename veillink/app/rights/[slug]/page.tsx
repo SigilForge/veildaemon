@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { buildMetadata } from "@/lib/seo";
 import { generateArtisticQrSvg } from "@/lib/qr-generator";
-import { RIGHTS_DISCLAIMER, availabilityLabel, permissionLabel, workTypeLabel } from "@/lib/rights/schema";
+import { RIGHTS_DISCLAIMER, availabilityLabel, categoryLabel, categoryOrDefault, permissionLabel, workTypeLabel } from "@/lib/rights/schema";
 import { findRightsRecord, permissionEntries, recordUrl, rightsJsonLd } from "@/lib/rights/records";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -71,6 +71,7 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
         <div className="proof-row">
           <span className="proof-chip status-chip">Active Record</span>
           <span className="proof-chip">{workTypeLabel(record.work_type)}</span>
+          <span className="proof-chip">{categoryLabel(categoryOrDefault(record.category))}</span>
           <span className="proof-chip">{availabilityLabel(record.availability)}</span>
           <span className="proof-chip">{record.edition || "Version not specified"}</span>
         </div>
@@ -82,6 +83,8 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
           <h2>{record.rights_holder_name}</h2>
           <dl className="rights-facts">
             <div><dt>Creator</dt><dd>{record.public_display_name || record.creator_name}</dd></div>
+            <div><dt>Work type</dt><dd>{workTypeLabel(record.work_type)}</dd></div>
+            <div><dt>Category</dt><dd>{categoryLabel(categoryOrDefault(record.category))}</dd></div>
             <div><dt>Recorded</dt><dd>{publishedDate}</dd></div>
             <div><dt>Publication</dt><dd>{publicationDate}</dd></div>
             <div><dt>Availability</dt><dd>{availabilityLabel(record.availability)}</dd></div>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { buildMetadata } from "@/lib/seo";
-import { RIGHTS_DISCLAIMER, RIGHTS_PRICE_CENTS } from "@/lib/rights/schema";
+import { RIGHTS_DISCLAIMER, RIGHTS_PRICE_CENTS, availabilityLabel, categoryLabel, categoryOrDefault, workTypeLabel } from "@/lib/rights/schema";
 import { exampleRightsRecords, recordUrl } from "@/lib/rights/records";
 
 export const metadata: Metadata = buildMetadata({
@@ -34,8 +34,8 @@ export default function RightsIndexPage() {
         <p className="eyebrow">SigilForge Rights</p>
         <h1>Creator Rights Records</h1>
         <p className="lede">
-          A paid record for declared ownership, licensing terms, AI permissions, and a stable URL creators can place in
-          books, decks, packets, and product pages.
+          A paid metadata record for declared ownership, provenance, publication state, availability, licensing terms,
+          AI permissions, and a stable URL creators can attach to creative work.
         </p>
         <div className="toolbar">
           <Link className="button" href="/rights/create">
@@ -61,6 +61,9 @@ export default function RightsIndexPage() {
             <article className="panel" key={record.id}>
               <p className="panel-kicker">{record.record_id}</p>
               <h2>{record.title}</h2>
+              <p className="muted">
+                {workTypeLabel(record.work_type)} · {categoryLabel(categoryOrDefault(record.category))} · {availabilityLabel(record.availability)}
+              </p>
               <p className="muted">{record.ai_permissions_summary}</p>
               <div className="toolbar">
                 <Link className="button secondary" href={`/rights/${record.slug}`}>

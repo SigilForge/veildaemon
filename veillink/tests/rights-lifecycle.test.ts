@@ -8,6 +8,7 @@ import {
   isPublicRightsStatus,
 } from "@/lib/rights/lifecycle";
 import { rightsJson } from "@/lib/rights/records";
+import { creatorRightsInputSchema } from "@/lib/rights/schema";
 import type { CreatorRightsRecord } from "@/lib/rights/schema";
 
 function rightsRecord(overrides: Partial<CreatorRightsRecord> = {}): CreatorRightsRecord {
@@ -18,6 +19,7 @@ function rightsRecord(overrides: Partial<CreatorRightsRecord> = {}): CreatorRigh
     slug: "test-record",
     title: "Test Record",
     work_type: "book",
+    category: "fiction",
     availability: "public",
     description: "A lifecycle test record.",
     creator_name: "Creator",
@@ -158,6 +160,9 @@ describe("Creator Rights lifecycle", () => {
 
     expect(snapshot.recordId).toBe("SFR-2026-000001");
     expect(snapshot.status).toBe("published");
+    expect(snapshot.workType).toBe("book");
+    expect(snapshot.category).toBe("fiction");
+    expect(snapshot.availability).toBe("public");
     expect(snapshot.publishedAt).toBe("2026-07-27T01:00:00.000Z");
     expect(snapshot.fileFingerprint).toEqual({
       algorithm: "SHA-256",
@@ -193,8 +198,36 @@ describe("Creator Rights lifecycle", () => {
     expect(json).toMatchObject({
       recordType: "CreatorRightsRecord",
       recordId: "SFR-2026-000001",
+      workType: "book",
+      workTypeLabel: "Book",
+      category: "fiction",
+      categoryLabel: "Fiction",
+      availability: "public",
+      availabilityLabel: "Public",
       licenseContact: "/rights/test-record/license",
     });
+  });
+
+  it("validates generalized non-written work types with creator-selected category", () => {
+    const parsed = creatorRightsInputSchema.parse({
+      creatorName: "Creator",
+      publicDisplayName: "Creator",
+      rightsHolderName: "Rights Holder",
+      email: "creator@example.com",
+      title: "Neon Archive Model",
+      workType: "3d_model",
+      category: "marketing",
+      availability: "restricted",
+      description: "A promotional 3D model with restricted asset access.",
+      rightsStatement: "All rights reserved.",
+      aiSummaryApproved: "yes",
+      permissions: {},
+      humanCommercialLicenseAvailable: "case_by_case",
+    });
+
+    expect(parsed.workType).toBe("3d_model");
+    expect(parsed.category).toBe("marketing");
+    expect(parsed.availability).toBe("restricted");
   });
 
   it("pending payment and paid records are not public statuses", () => {

@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { buildMetadata } from "@/lib/seo";
 import { requireUser } from "@/lib/store";
-import { RIGHTS_DISCLAIMER, availabilityCategories, permissionValues, workTypes } from "@/lib/rights/schema";
+import { RIGHTS_DISCLAIMER, availabilityCategories, categoryValues, permissionValues, workTypes } from "@/lib/rights/schema";
 
 export const metadata: Metadata = buildMetadata({
   title: "Create a Creator Rights Record",
-  description: "Create a draft rights record with ownership, licensing, AI permissions, and optional file fingerprint metadata.",
+  description: "Create a draft rights record with work type, category, availability, licensing, AI permissions, and optional file fingerprint metadata.",
   path: "/rights/create",
   image: "https://veildaemon.app/assets/social/creator-rights-record-og.webp",
   imageAlt: "Creator Rights Record verification card from SigilForge Studios",
@@ -68,6 +68,12 @@ export default async function CreateRightsRecordPage() {
           </select>
         </label>
         <label>
+          Category
+          <select name="category" defaultValue="fiction">
+            {categoryValues.map((category) => <option key={category} value={category}>{optionLabel(category)}</option>)}
+          </select>
+        </label>
+        <label>
           Availability
           <select name="availability" defaultValue="public">
             {availabilityCategories.map((category) => <option key={category} value={category}>{optionLabel(category)}</option>)}
@@ -78,7 +84,7 @@ export default async function CreateRightsRecordPage() {
         <label>First publication date<input name="publicationDate" placeholder="YYYY-MM-DD" /></label>
         <label>Edition or version<input name="edition" /></label>
         <label>Original publication URL<input name="sourceUrl" type="url" /></label>
-        <label>ISBN, registration number, or other identifier<input name="externalIdentifier" /></label>
+        <label>Registration number, release ID, repository, or other identifier<input name="externalIdentifier" /></label>
         <label>Licensing contact<input name="licensingContact" placeholder={user.email || "rights@example.com"} /></label>
         <label>Copyright notice<input name="copyrightNotice" /></label>
         <label className="full">Rights statement<textarea name="rightsStatement" rows={5} required /></label>

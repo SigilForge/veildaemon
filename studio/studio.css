@@ -2105,10 +2105,27 @@ footer > p {
   text-transform: uppercase;
   color: var(--rust-soft);
 }
-.status-pill.live { border-color: rgba(126,184,168,.45); color: var(--sage); }
-.status-pill.shipping { border-color: rgba(181,117,104,.4); color: var(--rust-soft); }
-.status-pill.planning { color: var(--text-faint); }
-.status-pill.future { color: #7a7872; border-style: dashed; }
+.status-pill.live {
+  border-color: rgba(126,184,168,.55);
+  background: rgba(126,184,168,.08);
+  color: var(--sage);
+}
+.status-pill.shipping {
+  border-color: rgba(211,146,89,.55);
+  background: rgba(211,146,89,.09);
+  color: #d59a62;
+}
+.status-pill.planning {
+  border-color: rgba(148,137,166,.48);
+  background: rgba(148,137,166,.08);
+  color: #b9adc9;
+}
+.status-pill.future {
+  border-color: rgba(96,132,171,.48);
+  border-style: dashed;
+  background: rgba(96,132,171,.08);
+  color: #8eabc9;
+}
 
 .media-frame {
   border-radius: var(--radius);

@@ -1,4 +1,4 @@
-import type { CreatorRightsRecord, RecordStatus } from "./schema";
+import { categoryOrDefault, type CreatorRightsRecord, type RecordStatus } from "./schema";
 
 export const RIGHTS_PURCHASE_TYPE = "creator_rights_record";
 
@@ -142,6 +142,7 @@ export function buildVersionSnapshot(record: CreatorRightsRecord) {
     slug: record.slug,
     title: record.title,
     workType: record.work_type,
+    category: categoryOrDefault(record.category),
     availability: record.availability,
     creatorName: record.creator_name,
     publicDisplayName: record.public_display_name,
