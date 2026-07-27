@@ -62,17 +62,41 @@ function isCenterZone(x: number, y: number, size: number, hasArt: boolean, cente
   return Math.abs(x - center) <= radius && Math.abs(y - center) <= radius;
 }
 
-function getArtImageSrc(art: QrArtOption, customArtUrl?: string) {
+const STOCK_BRAND_FILES: Partial<Record<QrArtOption, string>> = {
+  "book-one": "book-one-cover.webp",
+  "studio-seal": "cradlepoint-studio-seal-city-duality.webp",
+};
+
+/**
+ * Resolve center-mark image source.
+ * - Browser: site-relative /brand/... paths work in live SVG previews.
+ * - Server (PNG via sharp): relative paths do not load — embed stock brand files
+ *   as PNG data URIs so raster export keeps the center art.
+ */
+async function resolveArtImageSrc(art: QrArtOption, customArtUrl?: string) {
   if (art === "custom" && customArtUrl?.trim()) {
     return customArtUrl.trim();
   }
-  if (art === "book-one") {
-    return "/brand/book-one-cover.webp";
+
+  const file = STOCK_BRAND_FILES[art];
+  if (!file) return "";
+
+  const publicPath = `/brand/${file}`;
+  if (typeof window !== "undefined") {
+    return publicPath;
   }
-  if (art === "studio-seal") {
-    return "/brand/cradlepoint-studio-seal-city-duality.webp";
+
+  try {
+    const { readFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const bytes = await readFile(join(process.cwd(), "public", "brand", file));
+    // Convert webp → PNG so librsvg/sharp can paint the <image> during SVG rasterize.
+    const sharp = (await import("sharp")).default;
+    const png = await sharp(bytes).png().toBuffer();
+    return `data:image/png;base64,${png.toString("base64")}`;
+  } catch {
+    return publicPath;
   }
-  return "";
 }
 
 export async function generateArtisticQrSvg(opts: QrGeneratorOptions): Promise<string> {
@@ -110,7 +134,7 @@ export async function generateArtisticQrSvg(opts: QrGeneratorOptions): Promise<s
   const totalModules = qrSize + quietZone * 2;
 
   const seed = hashString(url);
-  const imageSrc = getArtImageSrc(art, customArtUrl);
+  const imageSrc = await resolveArtImageSrc(art, customArtUrl);
   const hasArt = art !== "none";
   // Clear center for vector marks, stock images, or a provided custom data URL / https image.
   const clearCenter =

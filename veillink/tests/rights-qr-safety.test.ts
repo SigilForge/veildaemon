@@ -39,4 +39,17 @@ describe("Creator Rights QR safety", () => {
     const result = await verifyQrDecodesToUrl(svg, durableUrl);
     expect(result.decoded.replace(/\/+$/, "")).toBe(durableUrl);
   }, 20000);
+
+  it("embeds studio-seal brand art as a data URI on the server so PNG export is not blank", async () => {
+    const svg = await generateArtisticQrSvg({
+      url: "https://app.veildaemon.app/rights/studio-seal-probe",
+      foreground: "#111827",
+      background: "#ffffff",
+      art: "studio-seal",
+      frameStyle: "badge",
+      ecc: "H",
+    });
+    expect(svg).toMatch(/data:image\/png;base64,/);
+    expect(svg).not.toMatch(/href="\/brand\/cradlepoint-studio-seal/);
+  }, 20000);
 });
