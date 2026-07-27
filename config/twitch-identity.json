@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "notes": "Public Twitch identity map only. OAuth tokens stay in env/secret store, never here.",
+  "broadcaster": {
+    "login": "VeilCorpNode",
+    "user_id": "181850555",
+    "role": "channel_owner"
+  },
+  "bot": {
+    "login": "SigilForge",
+    "user_id": "1327200493",
+    "role": "service_identity",
+    "channel_moderator_on": "VeilCorpNode"
+  },
+  "eventsub": {
+    "status": "live",
+    "alerts_path": "api/twitch/eventsub.js → lib/alertQueue.enqueue"
+  },
+  "env_mapping": {
+    "TWITCH_BROADCASTER_USER_ID": "181850555",
+    "TWITCH_MODERATOR_USER_ID": "1327200493",
+    "TWITCH_BOT_LOGIN": "sigilforge",
+    "TWITCH_BOT_USER_ID": "1327200493"
+  }
+}

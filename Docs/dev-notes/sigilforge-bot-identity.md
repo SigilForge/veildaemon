@@ -3,6 +3,23 @@
 Broadcaster owns the channel. **SigilForge** is the bot/service identity that
 VeilDaemon logs in as. VeilForge never holds broadcaster or bot passwords.
 
+## Live channel map (public IDs only)
+
+| Role | Login | Numeric id |
+| --- | --- | --- |
+| Broadcaster / main channel | **VeilCorpNode** | `181850555` |
+| Bot / service identity | **SigilForge** | `1327200493` |
+
+```text
+TWITCH_BROADCASTER_USER_ID=181850555
+TWITCH_MODERATOR_USER_ID=1327200493
+TWITCH_BOT_LOGIN=sigilforge
+TWITCH_BOT_USER_ID=1327200493
+```
+
+EventSub is **already live** in VeilDaemon (Twitch alerts / overlay path).
+Remaining work is bot-user OAuth for chat read/respond (phase 1–2), not EventSub bootstrap.
+
 ```text
 Broadcaster account
 → owns channel and final authority
