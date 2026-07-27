@@ -314,6 +314,21 @@ describe("Creator Rights lifecycle", () => {
       background: "#000000",
     });
     expect(wild.ok).toBe(false);
+
+    const customMissing = parseRightsQrPreferences({
+      foreground: "#111827",
+      background: "#ffffff",
+      art: "custom",
+    });
+    expect(customMissing.ok).toBe(false);
+
+    const customOk = parseRightsQrPreferences({
+      foreground: "#111827",
+      background: "#ffffff",
+      art: "custom",
+      customArtUrl: "data:image/png;base64,iVBORw0KGgo=",
+    });
+    expect(customOk.ok).toBe(true);
   });
 
   it("rejects metadata mismatch and records attached to a different Checkout Session", () => {

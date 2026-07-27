@@ -205,14 +205,58 @@ export function RightsQrStudio({
 
           <label>
             Center mark
-            <select value={preferences.art} onChange={(e) => patch({ art: e.target.value as RightsQrPreferences["art"] })}>
+            <select
+              value={preferences.art}
+              onChange={(e) => {
+                const art = e.target.value as RightsQrPreferences["art"];
+                patch({ art, customArtUrl: art === "custom" ? preferences.customArtUrl : "" });
+              }}
+            >
               {rightsQrArtOptions.map((art) => (
                 <option key={art} value={art}>
-                  {optionLabel(art)}
+                  {art === "custom" ? "Custom upload" : optionLabel(art)}
                 </option>
               ))}
             </select>
           </label>
+
+          {preferences.art === "custom" ? (
+            <label>
+              Upload center logo
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 150_000) {
+                    setError("Center art should be under about 150KB so the QR still scans cleanly.");
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const dataUri = String(reader.result || "");
+                    if (!dataUri.startsWith("data:image/")) {
+                      setError("Could not read that image.");
+                      return;
+                    }
+                    patch({ art: "custom", customArtUrl: dataUri });
+                    setError("");
+                  };
+                  reader.onerror = () => setError("Could not read that image.");
+                  reader.readAsDataURL(file);
+                }}
+              />
+              <span className="muted" style={{ display: "block", marginTop: "0.35rem", fontSize: "0.78rem" }}>
+                PNG, JPEG, WebP, or SVG. Center obstruction stays capped; download still runs ECC H + decode verification.
+              </span>
+              {preferences.customArtUrl ? (
+                <span className="muted" style={{ display: "block", marginTop: "0.25rem", fontSize: "0.78rem" }}>
+                  Custom mark loaded{preferences.customArtUrl.startsWith("data:") ? " from upload" : ""}.
+                </span>
+              ) : null}
+            </label>
+          ) : null}
 
           <label>
             Frame style

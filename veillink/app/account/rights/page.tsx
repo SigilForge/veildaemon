@@ -128,14 +128,14 @@ export default async function AccountRightsPage({
 
                     <div className="toolbar">
                       <Link className="button secondary" href={`/rights/${record.slug}`}>
-                        Preview
+                        View Record
                       </Link>
                       {entitled || record.record_status === "published" || record.record_status === "updated" ? (
                         <a className="button secondary" href={durable} target="_blank" rel="noopener noreferrer">
-                          Public URL
+                          Public Page
                         </a>
                       ) : (
-                        <span className="muted">Public URL issues after payment</span>
+                        <span className="muted">Public page issues after payment</span>
                       )}
                       {showCheckout ? (
                         <form action="/api/rights/checkout" method="post">
@@ -147,7 +147,7 @@ export default async function AccountRightsPage({
                       ) : null}
                       {editable ? (
                         <Link className="button secondary" href={`/account/rights/${record.id}/edit`}>
-                          Edit metadata
+                          Edit
                         </Link>
                       ) : null}
                     </div>
