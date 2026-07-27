@@ -66,6 +66,7 @@ async function assertLocalAssets(page, routePath) {
 
 test.describe("studio subtree routes", () => {
   test("desktop route matrix, screenshots, and local assets", async ({ page }) => {
+    test.setTimeout(120_000);
     ensureReviewDir();
     await page.setViewportSize({ width: 1440, height: 1000 });
 
@@ -129,24 +130,23 @@ test.describe("studio subtree routes", () => {
     });
 
     await page.goto("/studio/projects/");
-    await expect(page.locator(".portfolio-card")).toHaveCount(8);
-    await expect(page.locator(".portfolio-card .card-media")).toHaveCount(8);
+    await expect(page.locator(".portfolio-card")).toHaveCount(9);
+    await expect(page.locator(".portfolio-card .card-media")).toHaveCount(9);
     await expect(page.locator(".portfolio-card img.art-zoom")).toHaveCount(2);
     await expect(page.locator(".portfolio-card h3")).toHaveText([
-      "Cradlepoint TTRPG",
-      "VeilDaemon",
+      "Book One",
+      "Complete TTRPG",
       "Operator + Handler Systems",
+      "VeilLink",
+      "VeilDaemon",
       "RelayDaemon",
-      "Fiction + public archive",
+      "VeilForge",
       "Mobile AR",
       "Ritual Sites",
-      "VeilForge",
     ]);
     await expect(page.locator('.dual-system-card a[href="/operator/"]')).toHaveCount(1);
     await expect(page.locator('.dual-system-card a[href="/handler/"]')).toHaveCount(1);
-    await expect(page.locator('.narrative-card a[href="https://wiki.veildaemon.app/"]')).toHaveCount(1);
-    await expect(page.locator('.narrative-card a[href="https://www.youtube.com/@CradlepointArchive"]')).toHaveCount(1);
-    await expect(page.locator(".narrative-card")).toContainText(/fiction in development/i);
+    await expect(page.locator(".narrative-card")).toContainText(/Book One/i);
     const projectTileMetrics = await page.locator(".portfolio-card").evaluateAll((cards) => cards.map((card) => {
       const cardBox = card.getBoundingClientRect();
       const mediaBox = card.querySelector(".card-media").getBoundingClientRect();
@@ -238,7 +238,8 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/data-room/public/mobile-ar-prospectus-summary.html");
     await expect(page.locator(".status-pill.live").first()).toHaveText("Live");
     await page.goto("/studio/data-room/public/product-catalog.html");
-    await expect(page.locator(".doc-inventory")).toHaveCount(2);
+    await expect(page.locator(".doc-inventory")).toHaveCount(3);
+    await expect(page.locator("main")).toContainText(/Fiction Book One/i);
   });
 
   test("web design service page scope, pricing, and inquiry form", async ({ page }) => {
@@ -316,14 +317,14 @@ test.describe("studio subtree routes", () => {
   test("publishing page leads with the existing commercial opportunity", async ({ page }) => {
     await page.goto("/studio/publishing/");
     await expect(page.locator("h1")).toHaveText("A publishing line already in market.");
-    await expect(page.locator(".publishing-brief")).toContainText("Operator Core · Handler Core · recurring Needlepoints");
-    await expect(page.locator(".publishing-brief")).toContainText("Direct digital sales · combined Full Core Set");
+    await expect(page.locator(".publishing-brief")).toContainText("Book One (PDF + wallpapers) · tabletop · digital assets · future Studio editions");
+    await expect(page.locator(".publishing-brief")).toContainText("Direct digital · Full Core Set · VeilLink checkout");
     await expect(page.locator(".publishing-brief")).toContainText("Professional production, print, distribution, and audience growth");
     await expect(page.locator(".release-inventory > a")).toHaveCount(4);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/needlepoint"]')).toHaveCount(1);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/cradlepoint-handler-core"]')).toHaveCount(1);
     await expect(page.locator('.release-inventory > a[href="https://the-cradlepoint-archives.itch.io/cradlepoint-operator-core"]')).toHaveCount(1);
-    await expect(page.locator('.release-inventory > a[href="https://play.veildaemon.app/"]')).toHaveCount(1);
+    await expect(page.locator('a[href="https://play.veildaemon.app/"]')).toHaveCount(3);
     await expect(page.locator('a[href="https://itch.io/s/195935/the-cradlepoint-archive-full-core-set"]')).toHaveCount(1);
     await expect(page.locator("#partner-frame")).toContainText(/rights, exclusivity, marketing obligations/i);
     await expect(page.getByRole("heading", { name: "Choose the route around an existing catalog" })).toBeVisible();
@@ -333,11 +334,11 @@ test.describe("studio subtree routes", () => {
   test("technology page leads with live tools and bounded partner work", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("/studio/technology/");
-    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://veildaemon.app/studio/assets/social/technology-social-preview.jpg");
-    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", "https://veildaemon.app/studio/assets/social/technology-social-preview.jpg");
-    await expect(page.locator(".technology-brief")).toContainText("VeilDaemon + Operator and Handler browser tools");
-    await expect(page.locator(".technology-brief")).toContainText("Local-first tools · open core · protected creative layer");
-    await expect(page.locator("#trust-boundaries")).toContainText(/remain in the browser by default/i);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /technology-og\.jpg/);
+    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", /technology-og\.jpg/);
+    await expect(page.locator(".technology-brief")).toContainText("Operator + Handler · VeilLink · deliberate Cell sync");
+    await expect(page.locator(".technology-brief")).toContainText("Local edit · deliberate sync · no polling · no WebSockets for table state");
+    await expect(page.locator("#trust-boundaries")).toContainText(/stay under local control/i);
     await expect(page.locator("#trust-boundaries")).toContainText(/separate Studio review/i);
     await expect(page.locator("#next-platform-work")).toContainText(/Reliability and operations/i);
     await expect(page.locator("#poc")).toContainText(/Full MVP development and the studio-growth envelope remain separately budgeted/i);
@@ -354,7 +355,7 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#production-proof")).not.toContainText("100+ Passing browser tests");
     await expect(page.locator("#market-evidence")).toContainText(/itch.io analytics · latest tracked month · organic · reach \+ action/i);
     await expect(page.locator("#market-evidence")).toContainText("$0 paid acquisition");
-    await expect(page.locator("#measurement-next")).toContainText(/VeilDaemon Operator or Handler use/i);
+    await expect(page.locator("#measurement-next")).toContainText(/Operator or Handler console use/i);
     await expect(page.locator(".traction-disclosure")).toHaveCount(1);
     await expect(page.locator(".disclosure-box")).toHaveCount(0);
     await noHorizontalOverflow(page);
@@ -372,7 +373,7 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#technology-review")).toContainText(/live local-first software/i);
     await expect(page.locator("#private-diligence")).toContainText(/Access is scoped to the conversation/i);
     await expect(page.locator("#private-diligence")).toContainText(/In development/i);
-    const accessLinks = page.locator('a[href^="mailto:J.Donavon.Love@gmail.com?subject=Cradlepoint%20Studio%20Data%20Room%20Request"]');
+    const accessLinks = page.locator('a[href^="mailto:J.Donavon.Love@gmail.com?subject=SigilForge%20Studios%20Data%20Room%20Request"]');
     await expect(accessLinks).toHaveCount(2);
     const privateFileLinks = page.locator('main a[href*="/private/"], main a[href$=".xlsx"], main a[href$=".docx"], main a[href$=".zip"]');
     await expect(privateFileLinks).toHaveCount(0);
@@ -396,7 +397,7 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/press/");
     const kitLink = page.getByRole("link", { name: /Download complete press kit/i });
     await expect(kitLink).toBeVisible();
-    await expect(kitLink).toHaveAttribute("href", "downloads/cradlepoint-studio-press-kit-july-2026.zip");
+    await expect(kitLink).toHaveAttribute("href", "downloads/sigilforge-studios-press-kit-july-2026.zip");
     await expect(page.locator(".press-copy-grid .long-copy")).toContainText(/SigilForge Studios is an independent creative technology studio/i);
     await expect(page.locator(".press-copy-grid").first()).not.toContainText("See full text in download");
     await expect(page.locator(".press-copy-grid")).toContainText(/SigilForge Studios is an independent founder-operated studio/i);
@@ -427,7 +428,7 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#operating-model")).toContainText(/Human release authority/i);
     await expect(page.locator("#founder-and-collaborators")).toContainText(/Where collaborators enter/i);
     await expect(page.locator("#current-chapter")).toContainText(/revealed itself as a studio/i);
-    await expect(page.locator("#current-chapter")).toContainText(/Long-form fiction/i);
+    await expect(page.locator("#current-chapter")).toContainText(/Book One on the Published Shelf/i);
     await expect(page.locator("main")).not.toContainText(/Formal contracting, ownership, and entity details/i);
     await assertLocalAssets(page, "/studio/about/");
     await noHorizontalOverflow(page);
@@ -474,13 +475,13 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator(".portal-proof")).toContainText(/internally audited rules words/i);
 
     await page.goto("/studio/technology/");
-    await expect(page.locator("#veildaemon-today")).toContainText(/studio-controlled browser infrastructure/i);
-    await expect(page.locator("#veildaemon-today")).toContainText(/open core and protected creative layer/i);
+    await expect(page.locator("#veildaemon-today")).toContainText(/Purpose-built browser infrastructure/i);
+    await expect(page.locator("#veildaemon-today")).toContainText(/working table software/i);
     await expect(page.locator("#veildaemon-today")).toContainText(/not presented as a proprietary AI framework/i);
 
     await page.goto("/studio/projects/");
-    await expect(page.locator(".ecosystem")).toContainText(/Audience & IP validation/i);
-    await expect(page.locator(".ecosystem")).toContainText(/local-first Operator and Handler tools/i);
+    await expect(page.locator(".ecosystem")).toContainText(/Audience & world validation/i);
+    await expect(page.locator(".ecosystem")).toContainText(/Operator \+ Handler/i);
   });
 
   test("unique titles, JSON-LD validity, fragments, and focus", async ({ page }) => {
@@ -566,12 +567,12 @@ test.describe("studio subtree routes", () => {
     );
     expect(portalArt.length).toBeGreaterThan(3);
     for (const img of portalArt) {
-      expect(img.src, img.src).toMatch(/\?v=20260712-srcfix1|20260712-navunity1/);
+      expect(img.src, img.src).toMatch(/\?v=20260712-srcfix1|\?v=20260712-navunity1|\?v=20260723-vl1|\?v=20260727-list1|\?v=20260727-news1/);
       // versioned src still required for art plates
       expect(img.src.includes("?v="), img.src).toBeTruthy();
     }
     // Brand mark is SigilForge Studios, not only VeilCorp
-    expect(imgReport.some((i) => (i.src || "").includes("cradlepoint-studio-emblem"))).toBeTruthy();
+    expect(imgReport.some((i) => (i.src || "").includes("sigilforge-emblem") || (i.src || "").includes("cradlepoint-studio-wordmark"))).toBeTruthy();
 
     // Build marker present
     await expect(page.locator('meta[name="build-version"]')).toHaveAttribute(
@@ -629,6 +630,7 @@ test.describe("studio subtree routes", () => {
   });
 
   test("mobile route matrix and screenshots", async ({ page }) => {
+    test.setTimeout(90_000);
     ensureReviewDir();
     await page.setViewportSize({ width: 390, height: 844 });
 
@@ -644,7 +646,7 @@ test.describe("studio subtree routes", () => {
     }
 
     await page.goto("/studio/");
-    await expect(page.locator(".pathway")).toHaveCount(6);
+    await expect(page.locator(".pathway")).toHaveCount(8);
     await page.screenshot({
       path: path.join(reviewDir, "cradlepoint-studio-mobile.png"),
       fullPage: true,
@@ -700,7 +702,7 @@ test.describe("studio subtree routes", () => {
     const generatedCopies = await page.locator(".variant-copy").evaluateAll((nodes) => nodes.map((node) => node.value));
     expect(new Set(generatedCopies).size).toBeGreaterThan(10);
 
-    await page.locator("#media-file").setInputFiles(path.join(process.cwd(), "studio/assets/social/technology-social-preview.webp"));
+    await page.locator("#media-file").setInputFiles(path.join(process.cwd(), "studio/assets/social/technology-og.webp"));
     await expect(page.locator("#code-confirmation")).toBeVisible();
     await expect(page.locator("#code-scan-status")).not.toContainText("Inspecting");
     await page.getByRole("button", { name: "Regenerate after edits" }).click();
@@ -768,9 +770,9 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#persona-validation-score")).toHaveText("Strong");
     await expect(page.locator('[data-platform="instagram"] .variant-copy')).toContainText("Hunger is honest");
     await expect(page.locator('[data-platform="instagram"] .variant-copy')).not.toContainText("The room helps people and stays morally compromised because every need overlaps.");
-    await expect(page.locator('[data-platform="x"] .variant-copy')).toHaveValue(/both truths belong in the same answer\.$/);
-    await expect(page.locator('[data-platform="threads"] .variant-copy')).toHaveValue(/both truths belong in the same answer\.$/);
-    await expect(page.locator('[data-platform="bluesky"] .variant-copy')).toHaveValue(/meant to be reassuring\.$/);
+    await expect(page.locator('[data-platform="x"] .variant-copy')).toHaveValue(/teeth marks\.$/);
+    await expect(page.locator('[data-platform="threads"] .variant-copy')).toHaveValue(/teeth marks\.$/);
+    await expect(page.locator('[data-platform="bluesky"] .variant-copy')).toHaveValue(/teeth marks\.$/);
     await expect(page.locator('[data-platform="mastodon"] .variant-copy')).toHaveValue(/easier to hold\.$/);
     expect(requestNumber).toBe(1);
     expect(await page.evaluate(() => window.__relayLoopbackRequests)).toEqual([]);

@@ -30,6 +30,10 @@ npm run browser:check
 
 The current Node target is declared in `package.json`.
 
+Supported runtime surfaces and optional local checks are documented in
+`Docs/SUPPORTED_ENVIRONMENTS.md`. The future Forge-facing service boundary is
+documented in `Docs/FORGE_SERVICE_INTERFACES.md`.
+
 ## VeilCorp QR Assets
 
 Generate permanent static QR assets locally. The generator uses direct URLs only, refuses common short-link hosts, defaults to QR error correction `H`, and writes an editable SVG as the publishing asset.

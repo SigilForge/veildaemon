@@ -70,6 +70,11 @@ describe("forgeStreamBridge helpers", () => {
 
 describe("forgeStreamBridge live round-trip (optional)", () => {
   it("pushes one follow through Forge when server is available", async (t) => {
+    if (process.env.VD_ENABLE_FORGE_LIVE_SMOKE !== "1") {
+      t.skip("live Forge IPC smoke is opt-in; set VD_ENABLE_FORGE_LIVE_SMOKE=1");
+      return;
+    }
+
     // Spawn Python StreamBridgeServer if veilforge is present.
     const veilforge = path.resolve(__dirname, "../../../veilforge");
     const py = path.join(veilforge, ".venv/bin/python");

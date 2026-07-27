@@ -110,6 +110,9 @@
 - Run `node --check script.js` after JavaScript edits.
 - For RelayDaemon: `node --check studio/relay/relay.js` after `studio/relay` JS edits; re-prepare and redeploy Vercel when live Relay must update (see **RelayDaemon** section).
 - Run `git diff --check` before handing back changes.
+- Python tests use the repo venv at `./veildaemon/.venv`; prefer `./veildaemon/.venv/bin/python -m pytest` over plain `pytest` or `python3 -m pytest`.
+- In WSL/Codex, browser checks may need writable temp/cache overrides: `TMPDIR=/tmp TEMP=/tmp TMP=/tmp npm run browser:check`. Do not set `PLAYWRIGHT_BROWSERS_PATH` unless browsers have been installed there; the existing repo install is usable without that override.
+- `npm run webp:check` currently reports a pre-existing unrelated PNG reference in `studio/press/index.html`; do not treat that as a Creator Rights blocker unless touching press assets.
 - For link changes, verify every external route opens in a new tab and keeps `rel="noopener noreferrer"`.
 - For copy changes, search for forbidden meta terms before finishing:
   - `in-world`

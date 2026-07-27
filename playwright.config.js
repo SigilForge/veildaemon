@@ -8,9 +8,9 @@ module.exports = defineConfig({
     trace: "retain-on-failure"
   },
   webServer: {
-    command: "node node_modules/http-server/bin/http-server . -a 127.0.0.1 -p 4173 --silent",
+    command: "node scripts/playwright-static-server.mjs",
     url: "http://127.0.0.1:4173",
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     timeout: 20_000
   }
 });

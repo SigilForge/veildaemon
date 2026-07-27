@@ -41,6 +41,11 @@ export default async function AccountPage() {
           </div>
         </div>
         <div className="panel">
+          <h2>Rights Records</h2>
+          <p className="muted">Create draft records, review published status, and download QR assets from the rights dashboard.</p>
+          <p><a className="button secondary" href="/account/rights">Open rights records</a></p>
+        </div>
+        <div className="panel">
           <h2>Delete account</h2>
           <p className="muted">Account deletion should remove the Supabase auth user, profile, redirects, scans, and audit-owned records through server-side admin tooling. The destructive endpoint is intentionally left as a documented follow-up until support policy is decided.</p>
         </div>

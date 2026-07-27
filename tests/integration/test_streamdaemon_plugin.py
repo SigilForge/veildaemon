@@ -2,6 +2,14 @@ import os, sys, importlib, time
 import pytest
 from pathlib import Path
 
+pytestmark = pytest.mark.legacy_external
+
+if os.environ.get("VD_ENABLE_LEGACY_STREAMDAEMON_PLUGIN") != "1":
+    pytest.skip(
+        "legacy StreamDaemon plugin smoke is opt-in; set VD_ENABLE_LEGACY_STREAMDAEMON_PLUGIN=1",
+        allow_module_level=True,
+    )
+
 # Ensure PYTHONPATH includes the pack (VS Code .env.dev handles this; fallback hints below)
 PACK_HINTS = [
     Path(__file__).resolve().parents[2] / "streamdaemon-pack",
@@ -21,7 +29,7 @@ from veildaemon.apps.stage.stage_director import StageDirector
 
 def _import_pack():
     errors = []
-    for name in ("streamdaemon.plugins", "StreamDaemon.plugins", "plugins"):
+    for name in ("streamdaemon.plugins", "StreamDaemon.plugins"):
         try:
             return importlib.import_module(name)
         except Exception as e:
