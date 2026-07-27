@@ -74,7 +74,7 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     work_type: "book",
     description: "Cradlepoint Book One direct digital edition and associated publication record.",
     creator_name: "J. Donavon Love",
-    public_display_name: "Knoxmortis",
+    public_display_name: "S. KAELËN VALE",
     rights_holder_name: "SigilForge Studios",
     contact_email: "J.Donavon.Love@gmail.com",
     creation_date: "2024-01-01",
