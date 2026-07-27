@@ -31,7 +31,13 @@ export default async function AccountRightsPage({
 }) {
   const { user } = await requireUser().catch(() => redirect("/login?next=/account/rights"));
   const params = await searchParams;
-  const records = await listOwnedRightsRecords(user.id).catch(() => []);
+  let records: Awaited<ReturnType<typeof listOwnedRightsRecords>> = [];
+  let loadError = "";
+  try {
+    records = await listOwnedRightsRecords(user.id);
+  } catch (error) {
+    loadError = error instanceof Error ? error.message : "Could not load rights records.";
+  }
   const checkout = typeof params.checkout === "string" ? params.checkout : "";
   const created = typeof params.created === "string" ? params.created : "";
 
@@ -67,6 +73,11 @@ export default async function AccountRightsPage({
         </p>
       ) : null}
       {checkout === "cancelled" ? <p className="notice">Checkout cancelled. The draft remains private and unpublished.</p> : null}
+      {loadError ? (
+        <p className="notice rights-qr-warn" role="alert">
+          Could not load your Rights Records: {loadError}
+        </p>
+      ) : null}
 
       <section className="section">
         {records.length ? (
