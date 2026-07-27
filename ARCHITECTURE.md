@@ -109,10 +109,12 @@ Use the SDK surfaces:
 * `veildaemon.tts.manager`
   Never import `event_bus`, `stage_director`, or `daemon_tts` from the repo root. Shims are gone on purpose.
 
-## 5) StreamDaemon (paid pack) integration
+## 5) StreamDaemon legacy pack smoke
 
-* StreamDaemon lives outside this repo. The SDK loads it dynamically via `plugins.register(...)`.
-* Plugin contract (documented and enforced by local integration smoke):
+* StreamDaemon lives outside this repo and is not part of default validation.
+* The archived smoke test is opt-in with `VD_ENABLE_LEGACY_STREAMDAEMON_PLUGIN=1`.
+* Do not import a generic top-level `plugins` module from this repository; that path now names unrelated local material.
+* Legacy plugin contract:
 
   ```python
   # streamdaemon/plugins.py
@@ -139,7 +141,7 @@ $env:PYTHONPATH=".;$env:PYTHONPATH"
 python tools/pack_smoke.py
 ```
 
-Expected: `ModuleNotFoundError` unless your private pack is on `PYTHONPATH`. With the pack present, the shimmed modules should import.
+Expected: `ModuleNotFoundError` unless your private pack is on `PYTHONPATH`. With the pack present and `VD_ENABLE_LEGACY_STREAMDAEMON_PLUGIN=1`, the shimmed modules should import.
 
 ## 7) Scene caps & budgets (knobs for producers)
 
@@ -161,4 +163,3 @@ Anything runtime. Root is meta only: docs, CI, hooks, tools, scripts, tests, con
 ---
 
 If someone ignores this and tries to smuggle binaries into root again, pre-commit will slam the door and CI will heckle them. That’s intentional. You’ve got a stable SDK node, a quarantined paid pack, and a repo that doesn’t look like a crime scene. Go ship.
-

@@ -6,12 +6,22 @@ Lightweight Tk chat window that talks to the orchestrator brain and optional TTS
 from __future__ import annotations
 
 import threading
-import tkinter as tk
-import tkinter.scrolledtext as scrolledtext
 from dataclasses import dataclass
-from typing import List
+from typing import Any, List
 
 from .brain import ask_daemon
+
+
+def _load_tkinter() -> tuple[Any, Any]:
+    try:
+        import tkinter as tk
+        import tkinter.scrolledtext as scrolledtext
+    except ModuleNotFoundError as exc:
+        raise RuntimeError(
+            "veildaemon-chat requires the desktop tkinter package. "
+            "Headless imports remain supported; install python3-tk or use the shell entry point."
+        ) from exc
+    return tk, scrolledtext
 
 
 @dataclass
@@ -21,7 +31,9 @@ class Message:
 
 
 class ChatBoundUI:
-    def __init__(self, root: tk.Tk, role: str = "whisper") -> None:
+    def __init__(self, root: Any, role: str = "whisper") -> None:
+        tk, scrolledtext = _load_tkinter()
+        self._tk = tk
         self.root = root
         self.role = role
         self.root.title("🜏 VeilDaemon — Chat")
@@ -32,7 +44,7 @@ class ChatBoundUI:
 
         self.chat_log = scrolledtext.ScrolledText(
             root,
-            wrap=tk.WORD,
+            wrap=self._tk.WORD,
             font=("Consolas", 13),
             bg="#1a1a1a",
             fg="#6be8fa",
@@ -40,7 +52,7 @@ class ChatBoundUI:
             state="disabled",
             height=22,
         )
-        self.chat_log.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.chat_log.pack(fill=self._tk.BOTH, expand=True, padx=10, pady=10)
 
         self.entry_var = tk.StringVar()
         self.entry_box = tk.Entry(
@@ -51,7 +63,7 @@ class ChatBoundUI:
             fg="white",
             insertbackground="lime",
         )
-        self.entry_box.pack(fill=tk.X, padx=10, pady=(0, 6))
+        self.entry_box.pack(fill=self._tk.X, padx=10, pady=(0, 6))
         self.entry_box.bind("<Return>", self.send_message)
 
         btn = tk.Button(
@@ -90,6 +102,7 @@ class ChatBoundUI:
 
 
 def main() -> None:
+    tk, _ = _load_tkinter()
     root = tk.Tk()
     _app = ChatBoundUI(root)
     root.mainloop()

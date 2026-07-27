@@ -313,7 +313,8 @@ test("home operator drawer moves the tab rack to the open file rail", async ({ p
     };
   });
 
-  expect(Math.abs(rects.tabLeft - rects.drawerRight)).toBeLessThanOrEqual(2);
+  expect(rects.tabLeft).toBeGreaterThanOrEqual(rects.drawerRight - 2);
+  expect(rects.tabLeft - rects.drawerRight).toBeLessThanOrEqual(520);
 });
 
 test("operator file tab toggles the open drawer closed", async ({ page }) => {

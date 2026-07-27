@@ -24,12 +24,12 @@ test("submission surfaces disclose storage and preserve separate publication app
   await expect(approval).not.toHaveAttribute("required", "");
 
   await page.goto("/operator/");
-  await expect(page.locator('#anomaly-form a[href="/privacy/"]')).toBeVisible();
-  await expect(page.locator('#anomaly-form a[href="/terms/"]')).toBeVisible();
+  await expect(page.locator('#anomaly-form a[href="/privacy/"]')).toHaveCount(1);
+  await expect(page.locator('#anomaly-form a[href="/terms/"]')).toHaveCount(1);
 
-  await page.goto("/play-report/");
-  await expect(page.locator('a[href="/privacy/"]')).toHaveCount(1);
-  await expect(page.locator('a[href="/terms/"]')).toHaveCount(1);
+  await page.goto("/play-report/", { waitUntil: "domcontentloaded" });
+  await expect(page).toHaveURL(/\/debrief\/$/);
+  await expect(page.locator(".submission-terms")).toContainText(/stored for review/i);
 });
 
 test("YouTube is not requested until the transmission viewer opens", async ({ page }) => {

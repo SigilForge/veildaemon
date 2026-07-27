@@ -380,6 +380,13 @@
   transform: translateY(0);
 }
 
+@media (max-width: 760px) {
+  .field-help-tip {
+    left: auto;
+    right: 0;
+  }
+}
+
 .field-wide {
   width: 100%;
 }
