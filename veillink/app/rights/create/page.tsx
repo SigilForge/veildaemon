@@ -8,6 +8,10 @@ export const metadata: Metadata = buildMetadata({
   title: "Create a Creator Rights Record",
   description: "Create a draft rights record with ownership, licensing, AI permissions, and optional file fingerprint metadata.",
   path: "/rights/create",
+  image: "https://veildaemon.app/studio/assets/social/creator-rights-record-og.webp",
+  imageAlt: "Creator Rights Record verification card from SigilForge Studios",
+  imageWidth: 1200,
+  imageHeight: 675,
   noIndex: true,
 });
 

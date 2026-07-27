@@ -14,6 +14,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: `${record.title} Rights, Copyright and AI Use Record`,
     description: `View the declared copyright, ownership, licensing terms, AI permissions, and recorded version for ${record.title} by ${record.public_display_name || record.creator_name}.`,
     path: `/rights/${record.slug}`,
+    image: "https://veildaemon.app/studio/assets/social/creator-rights-record-og.webp",
+    imageAlt: "Creator Rights Record verification card from SigilForge Studios",
+    imageWidth: 1200,
+    imageHeight: 675,
     noIndex: record.record_status === "draft",
   });
 }
