@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { generateArtisticQrSvg } from "@/lib/qr-generator";
 import {
+  RIGHTS_QR_MAX_CUSTOM_ART_FILE_BYTES,
   RIGHTS_QR_MIN_CONTRAST,
   defaultRightsQrPreferences,
-  parseRightsQrPreferences,
+  parseRightsQrPreferencesForExport,
+  parseRightsQrPreferencesForPreview,
   rightsQrArtOptions,
   rightsQrFrameStyles,
   toGeneratorOptions,
@@ -67,19 +69,23 @@ export function RightsQrStudio({
   useEffect(() => {
     let canceled = false;
     async function update() {
-      const safety = parseRightsQrPreferences(preferences);
+      // Same generation path as the original redirect QR studio — never blank the preview
+      // just because custom art is selected but not uploaded yet.
+      const safety = parseRightsQrPreferencesForPreview(preferences);
       if (!safety.ok) {
-        if (!canceled) {
-          setError(safety.error);
-          setPreviewSvg("");
-        }
+        if (!canceled) setError(safety.error);
         return;
       }
       try {
         const svg = await generateArtisticQrSvg(toGeneratorOptions(safety.preferences, durableUrl));
         if (!canceled) {
           setPreviewSvg(svg);
-          setError("");
+          // Keep upload guidance if custom is selected without a mark yet.
+          if (preferences.art === "custom" && !preferences.customArtUrl) {
+            setError("");
+          } else {
+            setError("");
+          }
         }
       } catch (err) {
         if (!canceled) setError(err instanceof Error ? err.message : "Preview failed.");
@@ -100,7 +106,7 @@ export function RightsQrStudio({
       setError("Publish this Rights Record to unlock branded QR downloads. Preview is free; downloadable assets require an issued record.");
       return;
     }
-    const safety = parseRightsQrPreferences(preferences);
+    const safety = parseRightsQrPreferencesForExport(preferences);
     if (!safety.ok) {
       setError(safety.error);
       return;
@@ -229,8 +235,10 @@ export function RightsQrStudio({
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  if (file.size > 150_000) {
-                    setError("Center art should be under about 150KB so the QR still scans cleanly.");
+                  if (file.size > RIGHTS_QR_MAX_CUSTOM_ART_FILE_BYTES) {
+                    setError(
+                      `Center art should be under ${Math.round(RIGHTS_QR_MAX_CUSTOM_ART_FILE_BYTES / 1024)}KB so the QR still scans cleanly.`
+                    );
                     return;
                   }
                   const reader = new FileReader();
@@ -240,6 +248,7 @@ export function RightsQrStudio({
                       setError("Could not read that image.");
                       return;
                     }
+                    // Same pattern as QrStudioPreview: set art + data URL together, keep matrix live.
                     patch({ art: "custom", customArtUrl: dataUri });
                     setError("");
                   };
@@ -248,13 +257,18 @@ export function RightsQrStudio({
                 }}
               />
               <span className="muted" style={{ display: "block", marginTop: "0.35rem", fontSize: "0.78rem" }}>
-                PNG, JPEG, WebP, or SVG. Center obstruction stays capped; download still runs ECC H + decode verification.
+                PNG, JPEG, WebP, or SVG under {Math.round(RIGHTS_QR_MAX_CUSTOM_ART_FILE_BYTES / 1024)}KB. Preview stays live
+                while you choose a file; download still enforces ECC H + decode verification.
               </span>
               {preferences.customArtUrl ? (
                 <span className="muted" style={{ display: "block", marginTop: "0.25rem", fontSize: "0.78rem" }}>
-                  Custom mark loaded{preferences.customArtUrl.startsWith("data:") ? " from upload" : ""}.
+                  Custom mark loaded.
                 </span>
-              ) : null}
+              ) : (
+                <span className="muted" style={{ display: "block", marginTop: "0.25rem", fontSize: "0.78rem" }}>
+                  No logo yet — preview shows a clean QR until you upload.
+                </span>
+              )}
             </label>
           ) : null}
 

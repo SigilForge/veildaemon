@@ -20,8 +20,12 @@ export const RIGHTS_QR_MAX_CENTER_FRACTION = 0.24;
 export const rightsQrArtOptions = ["none", "emblem", "seal", "mark", "studio-seal", "custom"] as const;
 export const rightsQrFrameStyles = ["badge", "tech-card", "poster", "neon"] as const;
 
-/** Cap custom center-mark payloads so JSON preferences stay portable (≈150KB raw). */
-export const RIGHTS_QR_MAX_CUSTOM_ART_CHARS = 200_000;
+/**
+ * Cap custom center-mark payloads (data URLs). Base64 expands ~4/3 over raw file size,
+ * so allow headroom above a ~120KB upload limit in the UI.
+ */
+export const RIGHTS_QR_MAX_CUSTOM_ART_CHARS = 350_000;
+export const RIGHTS_QR_MAX_CUSTOM_ART_FILE_BYTES = 120_000;
 
 const hexColor = z
   .string()
@@ -138,14 +142,17 @@ export function defaultRightsQrPreferences(record: {
 }
 
 export function toGeneratorOptions(preferences: RightsQrPreferences, url: string) {
+  const hasCustom = preferences.art === "custom" && Boolean(preferences.customArtUrl?.trim());
+  // Preview-friendly: custom without an upload yet falls back to a clean matrix (same as redirect QR studio).
+  const art = (preferences.art === "custom" && !hasCustom ? "none" : preferences.art) as QrArtOption;
   return {
     url,
     foreground: preferences.foreground,
     background: preferences.background,
     accent: preferences.accent || undefined,
     eyeColor: preferences.eyeColor || undefined,
-    art: preferences.art as QrArtOption,
-    customArtUrl: preferences.art === "custom" ? preferences.customArtUrl || "" : "",
+    art,
+    customArtUrl: hasCustom ? preferences.customArtUrl || "" : "",
     frameStyle: preferences.frameStyle as QrFrameStyleOption,
     frameTitle: preferences.frameTitle,
     frameSubtitle: preferences.frameSubtitle,
@@ -157,4 +164,41 @@ export function toGeneratorOptions(preferences: RightsQrPreferences, url: string
     maxCenterFraction: RIGHTS_QR_MAX_CENTER_FRACTION,
     minQuietZone: RIGHTS_QR_MIN_QUIET_ZONE,
   };
+}
+
+/** Strict validation for download/save (custom mark required if art=custom). */
+export function parseRightsQrPreferencesForExport(raw: unknown): RightsQrSafetyResult {
+  return parseRightsQrPreferences(raw);
+}
+
+/**
+ * Preview validation: allow art=custom before an image is chosen so the QR matrix stays live.
+ * Mirrors the original redirect QR studio behavior.
+ */
+export function parseRightsQrPreferencesForPreview(raw: unknown): RightsQrSafetyResult {
+  const soft =
+    raw && typeof raw === "object"
+      ? {
+          ...(raw as Record<string, unknown>),
+          // Temporarily treat empty custom as "none" for schema acceptance, then restore art flag.
+          art:
+            (raw as { art?: string }).art === "custom" && !(raw as { customArtUrl?: string }).customArtUrl
+              ? "none"
+              : (raw as { art?: string }).art,
+        }
+      : raw;
+  const result = parseRightsQrPreferences(soft);
+  if (!result.ok || !raw || typeof raw !== "object") return result;
+  const originalArt = (raw as { art?: string }).art;
+  if (originalArt === "custom") {
+    return {
+      ...result,
+      preferences: {
+        ...result.preferences,
+        art: "custom",
+        customArtUrl: String((raw as { customArtUrl?: string }).customArtUrl || ""),
+      },
+    };
+  }
+  return result;
 }

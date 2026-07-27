@@ -112,7 +112,9 @@ export async function generateArtisticQrSvg(opts: QrGeneratorOptions): Promise<s
   const seed = hashString(url);
   const imageSrc = getArtImageSrc(art, customArtUrl);
   const hasArt = art !== "none";
-  const clearCenter = hasArt && (imageSrc !== "" || ["emblem", "seal", "mark"].includes(art));
+  // Clear center for vector marks, stock images, or a provided custom data URL / https image.
+  const clearCenter =
+    hasArt && (imageSrc !== "" || art === "emblem" || art === "seal" || art === "mark");
 
   // Build module rects
   const rects: string[] = [];

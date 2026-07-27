@@ -10,7 +10,7 @@ import {
   isPublicRightsStatus,
 } from "@/lib/rights/lifecycle";
 import { rightsJson } from "@/lib/rights/records";
-import { parseRightsQrPreferences } from "@/lib/rights/qr-options";
+import { parseRightsQrPreferences, parseRightsQrPreferencesForPreview } from "@/lib/rights/qr-options";
 import { creatorRightsInputSchema } from "@/lib/rights/schema";
 import type { CreatorRightsRecord } from "@/lib/rights/schema";
 
@@ -321,6 +321,15 @@ describe("Creator Rights lifecycle", () => {
       art: "custom",
     });
     expect(customMissing.ok).toBe(false);
+
+    // Preview must stay usable before an image is chosen (redirect QR studio parity).
+    const customPreview = parseRightsQrPreferencesForPreview({
+      foreground: "#111827",
+      background: "#ffffff",
+      art: "custom",
+      customArtUrl: "",
+    });
+    expect(customPreview.ok).toBe(true);
 
     const customOk = parseRightsQrPreferences({
       foreground: "#111827",
