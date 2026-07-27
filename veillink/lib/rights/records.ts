@@ -145,7 +145,7 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     title: "The Anchor and the Glitch",
     work_type: "book",
     category: "fiction",
-    availability: "public",
+    availability: "licensed",
     description: "CradlePoint Book One direct digital edition and associated publication record.",
     creator_name: "J. Donavon Love",
     public_display_name: "S. KAELËN VALE",
