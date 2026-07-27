@@ -62,9 +62,14 @@ function isCenterZone(x: number, y: number, size: number, hasArt: boolean, cente
   return Math.abs(x - center) <= radius && Math.abs(y - center) <= radius;
 }
 
+/**
+ * Stock center marks that load real brand files (not geometric stand-ins).
+ * SigilForge is the studio logo. VeilCorp is fictional diegesis — never the studio mark.
+ */
 const STOCK_BRAND_FILES: Partial<Record<QrArtOption, string>> = {
+  emblem: "sigilforge-emblem-256.webp",
+  "studio-seal": "sigilforge-branded-round-badge.webp",
   "book-one": "book-one-cover.webp",
-  "studio-seal": "cradlepoint-studio-seal-city-duality.webp",
 };
 
 /**
@@ -110,11 +115,11 @@ export async function generateArtisticQrSvg(opts: QrGeneratorOptions): Promise<s
     art = "emblem",
     customArtUrl = "",
     frameStyle = "badge",
-    frameTitle = "VEILCORP ARCHIVES",
-    frameSubtitle = "ACCESS NODE // VERIFIED",
-    node = "PUBLIC INTAKE",
-    clearance = "OBSERVER",
-    footer = "HUMAN AUTHORIZATION PARTIAL. SURVIVAL AUTHORIZATION ACTIVE.",
+    frameTitle = "SIGILFORGE STUDIOS",
+    frameSubtitle = "CREATOR RIGHTS // VERIFIED",
+    node = "PUBLIC RECORD",
+    clearance = "ISSUED",
+    footer = "DURABLE PUBLIC RECORD // SCAN TO VERIFY",
     ecc: userEcc,
     minQuietZone = 3,
     maxCenterFraction = 0.24,
@@ -136,9 +141,9 @@ export async function generateArtisticQrSvg(opts: QrGeneratorOptions): Promise<s
   const seed = hashString(url);
   const imageSrc = await resolveArtImageSrc(art, customArtUrl);
   const hasArt = art !== "none";
-  // Clear center for vector marks, stock images, or a provided custom data URL / https image.
-  const clearCenter =
-    hasArt && (imageSrc !== "" || art === "emblem" || art === "seal" || art === "mark");
+  // Clear center for stock/custom images or pure-vector geometric marks (seal/mark only).
+  // emblem is the real SigilForge logo image — not a geometric VeilCorp stand-in.
+  const clearCenter = hasArt && (imageSrc !== "" || art === "seal" || art === "mark");
 
   // Build module rects
   const rects: string[] = [];
@@ -293,7 +298,7 @@ export async function generateArtisticQrSvg(opts: QrGeneratorOptions): Promise<s
   <rect x="44" y="44" width="812" height="1012" fill="none" stroke="${safeAccent || safeFg}" stroke-width="1" stroke-dasharray="10 8" rx="10" opacity="0.6"/>
 
   <g id="card-header">
-    <text x="70" y="110" fill="${safeFg}" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="700">${escapeXml((frameTitle || "CRADLEPOINT SCANNER").toUpperCase())}</text>
+    <text x="70" y="110" fill="${safeFg}" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="700">${escapeXml((frameTitle || "SIGILFORGE STUDIOS").toUpperCase())}</text>
     <text x="70" y="145" fill="${safeAccent || safeFg}" font-family="Consolas, monospace" font-size="18">${escapeXml((frameSubtitle || "DYNAMIC UTILITY NODE").toUpperCase())}</text>
   </g>
 
@@ -363,7 +368,7 @@ export async function generateArtisticQrSvg(opts: QrGeneratorOptions): Promise<s
     <path d="M756 916h-50 M756 916v-50" stroke="${safeFg}" stroke-width="4" stroke-linecap="round"/>
   </g>
 
-  <text x="400" y="110" fill="${safeFg}" font-family="Inter, system-ui, sans-serif" font-size="34" font-weight="800" text-anchor="middle" letter-spacing="3">${escapeXml((frameTitle || "VEILDEMOM LINK").toUpperCase())}</text>
+  <text x="400" y="110" fill="${safeFg}" font-family="Inter, system-ui, sans-serif" font-size="34" font-weight="800" text-anchor="middle" letter-spacing="3">${escapeXml((frameTitle || "VEILLINK").toUpperCase())}</text>
 
   <g id="qr-field">
     <rect x="${qrX - 12}" y="${qrY - 12}" width="${qrPixels + 24}" height="${qrPixels + 24}" fill="${safeBg}" stroke="${safeAccent || safeFg}" stroke-width="2" rx="12"/>

@@ -6,7 +6,7 @@ import { generateArtisticQrSvg } from "@/lib/qr-generator";
 import type { QrArtOption, QrFrameStyleOption } from "@/lib/types";
 
 const colorPresets = [
-  { name: "VeilCorp Purple", fg: "#c9b8d0", bg: "#0f0f15", accent: "#9a3cff", eye: "#9a3cff" },
+  { name: "SigilForge Violet", fg: "#c9b8d0", bg: "#0f0f15", accent: "#9a3cff", eye: "#9a3cff" },
   { name: "Obsidian Tech", fg: "#e0e6ed", bg: "#0d1117", accent: "#00f0ff", eye: "#00f0ff" },
   { name: "Crimson Glitch", fg: "#ff3b3b", bg: "#0d0607", accent: "#ff9900", eye: "#ff3b3b" },
   { name: "Archival Parchment", fg: "#161817", bg: "#efebe4", accent: "#7c2d12", eye: "#161817" },
@@ -15,18 +15,18 @@ const colorPresets = [
 ];
 
 const centerArtOptions: { id: QrArtOption; label: string }[] = [
-  { id: "emblem", label: "VeilCorp Emblem (Vector)" },
-  { id: "seal", label: "Cradlepoint Seal (Vector)" },
-  { id: "mark", label: "Studio Crest (Vector)" },
+  { id: "emblem", label: "SigilForge Emblem" },
+  { id: "studio-seal", label: "SigilForge Badge" },
+  { id: "seal", label: "Geometric Seal (vector)" },
+  { id: "mark", label: "Geometric Mark (vector)" },
   { id: "book-one", label: "Book One Cover Art" },
-  { id: "studio-seal", label: "Cradlepoint Studio Seal" },
   { id: "none", label: "None (Standard QR)" },
   { id: "custom", label: "Custom Logo Upload" },
 ];
 
 const frameStyleOptions: { id: QrFrameStyleOption; label: string }[] = [
   { id: "badge", label: "Clean QR Badge" },
-  { id: "poster", label: "VeilCorp Archive Poster (1200x1600)" },
+  { id: "poster", label: "Archive Poster (1200x1600)" },
   { id: "tech-card", label: "Archival Tech Card (900x1200)" },
   { id: "neon", label: "Glossy Cyber Neon (800x960)" },
 ];
@@ -41,11 +41,11 @@ export function QrStudioPreview() {
   const [art, setArt] = useState<QrArtOption>("emblem");
   const [customArtUrl, setCustomArtUrl] = useState("");
   const [frameStyle, setFrameStyle] = useState<QrFrameStyleOption>("badge");
-  const [frameTitle, setFrameTitle] = useState("VEILCORP ARCHIVES");
-  const [frameSubtitle, setFrameSubtitle] = useState("ACCESS NODE // VERIFIED");
-  const [node, setNode] = useState("PUBLIC INTAKE");
-  const [clearance, setClearance] = useState("OBSERVER");
-  const [footer, setFooter] = useState("HUMAN AUTHORIZATION PARTIAL. SURVIVAL AUTHORIZATION ACTIVE.");
+  const [frameTitle, setFrameTitle] = useState("SIGILFORGE STUDIOS");
+  const [frameSubtitle, setFrameSubtitle] = useState("DYNAMIC LINK // VERIFIED");
+  const [node, setNode] = useState("VEILLINK");
+  const [clearance, setClearance] = useState("PUBLIC");
+  const [footer, setFooter] = useState("PRINTED QR STAYS YOURS // DESTINATION STAYS EDITABLE");
 
   const [previewSvg, setPreviewSvg] = useState("");
   const [inspectModalOpen, setInspectModalOpen] = useState(false);

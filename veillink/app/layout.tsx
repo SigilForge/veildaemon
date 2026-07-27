@@ -117,7 +117,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className="brand-emblem"
-                src="/brand/cradlepoint-studio-emblem-256.webp"
+                src="/brand/sigilforge-emblem-256.webp"
                 alt=""
                 width={40}
                 height={40}

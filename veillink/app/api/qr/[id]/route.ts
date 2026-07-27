@@ -25,11 +25,11 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   const eyeColor = searchParams.get("eye") || redirect.qr_eye_color || "";
   const customArtUrl = searchParams.get("customArt") || redirect.qr_custom_art_url || "";
 
-  const frameTitle = searchParams.get("title") || redirect.qr_frame_title || redirect.name || "VEILCORP ARCHIVES";
-  const frameSubtitle = searchParams.get("subtitle") || redirect.qr_frame_subtitle || "ACCESS NODE // VERIFIED";
-  const node = searchParams.get("node") || redirect.qr_node || "PUBLIC INTAKE";
-  const clearance = searchParams.get("clearance") || redirect.qr_clearance || "OBSERVER";
-  const footer = searchParams.get("footer") || redirect.qr_footer || "HUMAN AUTHORIZATION PARTIAL. SURVIVAL AUTHORIZATION ACTIVE.";
+  const frameTitle = searchParams.get("title") || redirect.qr_frame_title || redirect.name || "SIGILFORGE STUDIOS";
+  const frameSubtitle = searchParams.get("subtitle") || redirect.qr_frame_subtitle || "DYNAMIC LINK // VERIFIED";
+  const node = searchParams.get("node") || redirect.qr_node || "VEILLINK";
+  const clearance = searchParams.get("clearance") || redirect.qr_clearance || "PUBLIC";
+  const footer = searchParams.get("footer") || redirect.qr_footer || "PRINTED QR STAYS YOURS // DESTINATION STAYS EDITABLE";
 
   const stableUrl = redirect.routing_mode === "subdomain" ? publicSubdomainUrl(redirect.slug) : publicPathUrl(redirect.slug);
 

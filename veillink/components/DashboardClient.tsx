@@ -48,11 +48,11 @@ const emptyForm: FormState = {
   qrAccentRate: 0.025,
   qrEyeColor: "#9a3cff",
   qrFrameStyle: "badge",
-  qrFrameTitle: "VEILCORP ARCHIVES",
-  qrFrameSubtitle: "ACCESS NODE // VERIFIED",
-  qrNode: "PUBLIC INTAKE",
-  qrClearance: "OBSERVER",
-  qrFooter: "HUMAN AUTHORIZATION PARTIAL. SURVIVAL AUTHORIZATION ACTIVE.",
+  qrFrameTitle: "SIGILFORGE STUDIOS",
+  qrFrameSubtitle: "DYNAMIC LINK // VERIFIED",
+  qrNode: "VEILLINK",
+  qrClearance: "PUBLIC",
+  qrFooter: "PRINTED QR STAYS YOURS // DESTINATION STAYS EDITABLE",
 };
 
 type Props = {
@@ -69,7 +69,7 @@ type Props = {
 };
 
 const colorPresets = [
-  { name: "VeilCorp Purple", fg: "#c9b8d0", bg: "#0f0f15", accent: "#9a3cff", eye: "#9a3cff" },
+  { name: "SigilForge Violet", fg: "#c9b8d0", bg: "#0f0f15", accent: "#9a3cff", eye: "#9a3cff" },
   { name: "Obsidian Tech", fg: "#e0e6ed", bg: "#0d1117", accent: "#00f0ff", eye: "#00f0ff" },
   { name: "Crimson Glitch", fg: "#ff3b3b", bg: "#0d0607", accent: "#ff9900", eye: "#ff3b3b" },
   { name: "Archival Parchment", fg: "#161817", bg: "#efebe4", accent: "#7c2d12", eye: "#161817" },
@@ -81,19 +81,19 @@ const colorPresets = [
 
 const centerArtOptions: { id: QrArtOption; label: string }[] = [
   { id: "none", label: "None (Standard QR)" },
-  { id: "emblem", label: "VeilCorp Emblem (Vector)" },
-  { id: "seal", label: "Cradlepoint Seal (Vector)" },
-  { id: "mark", label: "Studio Crest (Vector)" },
+  { id: "emblem", label: "SigilForge Emblem" },
+  { id: "studio-seal", label: "SigilForge Badge" },
+  { id: "seal", label: "Geometric Seal (vector)" },
+  { id: "mark", label: "Geometric Mark (vector)" },
   { id: "book-one", label: "Book One Cover Art" },
-  { id: "studio-seal", label: "Cradlepoint Studio Seal (Duality)" },
   { id: "custom", label: "Custom Image / Data URI" },
 ];
 
 const frameStyleOptions: { id: QrFrameStyleOption; label: string; desc: string }[] = [
   { id: "badge", label: "Clean QR Badge", desc: "Minimalist high-density barcode with center artwork" },
-  { id: "poster", label: "VeilCorp Archive Poster", desc: "Diegetic 1200x1600 industrial poster with node & clearance metadata" },
-  { id: "tech-card", label: "Archival Tech Card", desc: "Cyberpunk 900x1200 scanner card with dashed grid marks" },
-  { id: "neon", label: "Glossy Cyber Neon", desc: "Futuristic 800x960 panel with glowing corner brackets" },
+  { id: "poster", label: "Archive Poster", desc: "1200x1600 poster with node and clearance metadata" },
+  { id: "tech-card", label: "Archival Tech Card", desc: "900x1200 scanner card with dashed grid marks" },
+  { id: "neon", label: "Glossy Cyber Neon", desc: "800x960 panel with glowing corner brackets" },
 ];
 
 export function DashboardClient({ initialRedirects, usage, analytics }: Props) {
@@ -154,7 +154,7 @@ export function DashboardClient({ initialRedirects, usage, analytics }: Props) {
           art: form.qrArt,
           customArtUrl: form.qrCustomArtUrl,
           frameStyle: form.qrFrameStyle,
-          frameTitle: form.qrFrameTitle || form.name || "VEILCORP ARCHIVES",
+          frameTitle: form.qrFrameTitle || form.name || "SIGILFORGE STUDIOS",
           frameSubtitle: form.qrFrameSubtitle,
           node: form.qrNode,
           clearance: form.qrClearance,
@@ -413,7 +413,7 @@ export function DashboardClient({ initialRedirects, usage, analytics }: Props) {
 
               {form.qrFrameStyle !== "badge" ? (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.8rem", marginTop: "0.8rem" }}>
-                  <label>Frame Title<input value={form.qrFrameTitle} onChange={(event) => updateField("qrFrameTitle", event.target.value)} placeholder="VEILCORP ARCHIVES" /></label>
+                  <label>Frame Title<input value={form.qrFrameTitle} onChange={(event) => updateField("qrFrameTitle", event.target.value)} placeholder="SIGILFORGE STUDIOS" /></label>
                   <label>Subtitle<input value={form.qrFrameSubtitle} onChange={(event) => updateField("qrFrameSubtitle", event.target.value)} placeholder="ACCESS NODE // VERIFIED" /></label>
                   <label>Node ID<input value={form.qrNode} onChange={(event) => updateField("qrNode", event.target.value)} placeholder="PUBLIC INTAKE" /></label>
                   <label>Clearance Level<input value={form.qrClearance} onChange={(event) => updateField("qrClearance", event.target.value)} placeholder="OBSERVER" /></label>

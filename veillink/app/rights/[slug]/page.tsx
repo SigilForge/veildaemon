@@ -41,11 +41,11 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
   const stableUrl = recordUrl(record.slug);
   const qrSvg = await generateArtisticQrSvg({
     url: stableUrl,
-    art: "seal",
+    art: "emblem",
     frameStyle: "tech-card",
     frameTitle: "CREATOR RIGHTS RECORD",
     frameSubtitle: record.record_id || "DRAFT",
-    node: "RIGHTS REGISTRY",
+    node: "SIGILFORGE RIGHTS",
     clearance: record.record_status.toUpperCase(),
     footer: "PUBLIC NOTICE // RIGHTS POSITION DECLARED BY CREATOR",
   }).then((svg) => svg.replace(/^<\?xml[^>]*>\s*/, ""));

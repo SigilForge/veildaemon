@@ -17,7 +17,8 @@ export const RIGHTS_QR_MIN_CONTRAST = 4.5;
  */
 export const RIGHTS_QR_MAX_CENTER_FRACTION = 0.24;
 
-export const rightsQrArtOptions = ["none", "emblem", "seal", "mark", "studio-seal", "custom"] as const;
+/** emblem / studio-seal load real SigilForge brand files; seal/mark are geometric only. */
+export const rightsQrArtOptions = ["none", "emblem", "studio-seal", "seal", "mark", "custom"] as const;
 export const rightsQrFrameStyles = ["badge", "tech-card", "poster", "neon"] as const;
 
 /**
@@ -46,13 +47,13 @@ export const rightsQrPreferencesSchema = z.object({
   background: hexColor.default("#0f0f15"),
   accent: hexColor.or(z.literal("")).default("#9a3cff"),
   eyeColor: hexColor.or(z.literal("")).default(""),
-  art: z.enum(rightsQrArtOptions).default("seal"),
+  art: z.enum(rightsQrArtOptions).default("emblem"),
   /** data: URL or https image for art=custom only */
   customArtUrl: customArtField,
   frameStyle: z.enum(rightsQrFrameStyles).default("tech-card"),
   frameTitle: labelField.default("CREATOR RIGHTS RECORD"),
   frameSubtitle: labelField.default(""),
-  node: labelField.default("RIGHTS REGISTRY"),
+  node: labelField.default("SIGILFORGE RIGHTS"),
   clearance: labelField.default(""),
   footer: z.string().trim().max(120).default("PUBLIC NOTICE // RIGHTS POSITION DECLARED BY CREATOR"),
 });
@@ -133,10 +134,10 @@ export function defaultRightsQrPreferences(record: {
   return rightsQrPreferencesSchema.parse({
     frameTitle: "CREATOR RIGHTS RECORD",
     frameSubtitle: record.record_id || "ISSUED RECORD",
-    node: "RIGHTS REGISTRY",
+    node: "SIGILFORGE RIGHTS",
     clearance: (record.record_status || "PUBLISHED").toUpperCase(),
     footer: "PUBLIC NOTICE // RIGHTS POSITION DECLARED BY CREATOR",
-    art: "seal",
+    art: "emblem",
     frameStyle: "tech-card",
   });
 }

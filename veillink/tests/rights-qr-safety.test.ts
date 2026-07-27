@@ -40,16 +40,17 @@ describe("Creator Rights QR safety", () => {
     expect(result.decoded.replace(/\/+$/, "")).toBe(durableUrl);
   }, 20000);
 
-  it("embeds studio-seal brand art as a data URI on the server so PNG export is not blank", async () => {
+  it("embeds SigilForge emblem brand art as a data URI on the server so PNG export is not blank", async () => {
     const svg = await generateArtisticQrSvg({
-      url: "https://app.veildaemon.app/rights/studio-seal-probe",
+      url: "https://app.veildaemon.app/rights/sigilforge-emblem-probe",
       foreground: "#111827",
       background: "#ffffff",
-      art: "studio-seal",
+      art: "emblem",
       frameStyle: "badge",
       ecc: "H",
     });
     expect(svg).toMatch(/data:image\/png;base64,/);
-    expect(svg).not.toMatch(/href="\/brand\/cradlepoint-studio-seal/);
+    expect(svg).not.toMatch(/href="\/brand\//);
+    expect(svg).not.toMatch(/VEILCORP/i);
   }, 20000);
 });

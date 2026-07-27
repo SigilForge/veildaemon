@@ -16,11 +16,20 @@ import {
 import { contrastRatio } from "@/lib/validation";
 
 const colorPresets = [
-  { name: "Archive Violet", fg: "#c9b8d0", bg: "#0f0f15", accent: "#9a3cff" },
+  { name: "SigilForge Violet", fg: "#c9b8d0", bg: "#0f0f15", accent: "#9a3cff" },
   { name: "Obsidian", fg: "#e0e6ed", bg: "#0d1117", accent: "#00f0ff" },
   { name: "Parchment", fg: "#161817", bg: "#efebe4", accent: "#7c2d12" },
   { name: "Cathode", fg: "#7eb8a8", bg: "#070d0b", accent: "#10b981" },
 ];
+
+const artLabels: Record<string, string> = {
+  none: "None (standard QR)",
+  emblem: "SigilForge Emblem",
+  "studio-seal": "SigilForge Badge",
+  seal: "Geometric Seal (vector)",
+  mark: "Geometric Mark (vector)",
+  custom: "Custom upload",
+};
 
 type Props = {
   recordId: string;
@@ -35,7 +44,7 @@ type Props = {
 };
 
 function optionLabel(value: string) {
-  return value.replace(/_/g, " ").replace(/^./, (first) => first.toUpperCase());
+  return artLabels[value] || value.replace(/_/g, " ").replace(/^./, (first) => first.toUpperCase());
 }
 
 export function RightsQrStudio({
