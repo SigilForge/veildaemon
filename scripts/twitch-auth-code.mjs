@@ -148,6 +148,13 @@ try {
   console.log("Bot tokens written to .env.local (TWITCH_BOT_ACCESS_TOKEN / REFRESH). Values not printed.");
   console.log("EventSub alerts are unaffected (separate app webhook path).");
 } catch (error) {
-  console.error(`Twitch authorization failed: ${error.message}`);
+  const msg = String(error && error.message ? error.message : error);
+  console.error(`Twitch authorization failed: ${msg}`);
+  if (/invalid authorization code|400/i.test(msg)) {
+    console.error("");
+    console.error("OAuth codes are single-use and expire in ~10 minutes.");
+    console.error("If you already ran auth-code once (even if it refused to store), that code is dead.");
+    console.error("Run: npm run twitch:auth-url  →  authorize as SigilForge  →  use the NEW code once.");
+  }
   process.exit(1);
 }

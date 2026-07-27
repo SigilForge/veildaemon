@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { browserFamily, deviceCategory, operatingSystem } from "@/lib/analytics";
-import { authRedirectUrl } from "@/lib/config";
+import { authRedirectUrl, authReturnTarget } from "@/lib/config";
 import { parseRedirectRequest } from "@/lib/host";
 import { canCreateActiveRedirect, requireAdminRole, userOwnsRedirect } from "@/lib/policy";
 import { redirectState } from "@/lib/resolve";
@@ -118,9 +118,28 @@ describe("auth redirect configuration", () => {
     );
   });
 
-  it("rejects Vercel deployment domains for production auth redirects", () => {
-    expect(() =>
+  it("forces production auth redirects off Vercel deployment domains onto app.veildaemon.app", () => {
+    expect(
       authRedirectUrl("/auth/confirm", { next: "/dashboard" }, "https://veillink-alpha.vercel.app", "production")
-    ).toThrow("Production VeilLink auth redirects must use https://app.veildaemon.app");
+    ).toBe("https://app.veildaemon.app/auth/confirm?next=%2Fdashboard");
+  });
+
+  it("forces production even when env still points at a Vercel host", () => {
+    expect(authRedirectUrl("/update-password", undefined, "https://foo.vercel.app", "production")).toBe(
+      "https://app.veildaemon.app/update-password"
+    );
+  });
+
+  it("allows Operator and Handler returns on the root VeilDaemon surface", () => {
+    expect(authReturnTarget("https://veildaemon.app/operator/")).toBe("https://veildaemon.app/operator/");
+    expect(authReturnTarget("https://veildaemon.app/handler/live/?case=viridian")).toBe(
+      "https://veildaemon.app/handler/live/?case=viridian"
+    );
+  });
+
+  it("rejects external auth return targets outside the allowed surfaces", () => {
+    expect(authReturnTarget("https://example.com/operator/")).toBe("/dashboard");
+    expect(authReturnTarget("https://evil.veildaemon.app/handler/")).toBe("/dashboard");
+    expect(authReturnTarget("//veildaemon.app/operator/")).toBe("/dashboard");
   });
 });

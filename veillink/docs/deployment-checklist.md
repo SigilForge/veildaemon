@@ -14,12 +14,23 @@ Current Vercel project:
 - Confirm the hosted Supabase project is the intended VeilLink project.
 - Apply all migrations in `supabase/migrations/`, including `002_stripe_webhook_events.sql`.
 - Enable email/password auth.
-- In **Authentication -> URL Configuration**, set **Site URL** to `https://app.veildaemon.app`.
+- In **Authentication -> URL Configuration**, set **Site URL** to `https://app.veildaemon.app` (not any `*.vercel.app` host).
 - In **Authentication -> URL Configuration**, keep redirect allow-list entries scoped to the app routes VeilLink actually uses:
   - `https://app.veildaemon.app/**`
+  - `https://app.veildaemon.app/auth/confirm**`
+  - `https://app.veildaemon.app/update-password**`
   - `https://veildaemon.app/**`
-- Remove stale `*.vercel.app` entries from Supabase auth redirects after `app.veildaemon.app` is verified.
+- Remove every `*.vercel.app` entry from Supabase redirect allow-list and Site URL. Team deployment hosts can hit Vercel SSO and look like “the void.”
 - Set password reset redirects to `https://app.veildaemon.app/update-password`.
+- **Confirm email template** (Authentication → Email Templates → Confirm signup) must use `token_hash`, not a bare Site URL root:
+
+```html
+<h2>Confirm your email</h2>
+<p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">Confirm email address</a></p>
+```
+
+  Do **not** append `/auth/confirm?...` onto `{{ .RedirectTo }}` when the app already passes `emailRedirectTo` as a full `/auth/confirm` URL (that produces a broken double path). Prefer the `token_hash` template above with Site URL = `https://app.veildaemon.app`.
+- Magic link / recovery templates should also land on `/auth/confirm?token_hash={{ .TokenHash }}&type=...` (or `/update-password` for recovery after confirm).
 - Add `VEILLINK_ADMIN_EMAILS` in Vercel for operator/admin access.
 - Keep `SUPABASE_SERVICE_ROLE_KEY` server-side only. Never expose it through a `NEXT_PUBLIC_` variable.
 

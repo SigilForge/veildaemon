@@ -21,7 +21,12 @@ export async function getSupabaseServerClient() {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+          } catch {
+            // Called from a Server Component context where response cookies are immutable.
+            // Route handlers and server actions can set cookies; RSC reads are best-effort.
+          }
         },
       },
     },
