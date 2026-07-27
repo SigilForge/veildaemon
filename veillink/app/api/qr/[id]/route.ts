@@ -55,7 +55,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       .png()
       .toBuffer();
 
-    return new NextResponse(pngBuffer, {
+    return new NextResponse(new Uint8Array(pngBuffer), {
       headers: {
         "content-type": "image/png",
         "content-disposition": `attachment; filename="${filename(redirect.slug, "png")}"`,

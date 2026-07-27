@@ -158,6 +158,12 @@ export type CreatorRightsRecord = {
   ai_permissions_summary: string;
   human_commercial_license_available: PermissionValue;
   record_status: RecordStatus;
+  /** Durable issuance entitlement: none | active | revoked */
+  entitlement_status?: "none" | "active" | "revoked" | null;
+  /** Monotonic branded QR asset version under an active entitlement */
+  qr_asset_version?: number | null;
+  /** Last controlled QR customization preferences */
+  qr_preferences?: Record<string, unknown> | null;
   published_at: string | null;
   created_at: string;
   updated_at: string;

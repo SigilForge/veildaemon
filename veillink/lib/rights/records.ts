@@ -1,4 +1,4 @@
-import { product } from "@/lib/config";
+import { PRODUCTION_APP_URL, product } from "@/lib/config";
 import { getSupabaseAdminClient } from "@/lib/supabase";
 import type { Json } from "@/lib/database.types";
 import {
@@ -18,15 +18,23 @@ import {
   type CreatorRightsRecord,
 } from "./schema";
 import { isPublicRightsStatus } from "./lifecycle";
+import { canEditRightsRecord, canGenerateRightsQrAssets } from "./entitlement";
+import type { RightsQrPreferences } from "./qr-options";
 
-export const rightsPublicOrigin = "https://veildaemon.app";
+/**
+ * Durable public record host for issuance QR targets.
+ * Prefer RIGHTS_PUBLIC_ORIGIN, then production app — never localhost in paid assets.
+ */
+export const rightsPublicOrigin = (process.env.RIGHTS_PUBLIC_ORIGIN || PRODUCTION_APP_URL).replace(/\/$/, "");
 
 export function recordUrl(slug: string) {
   return `${rightsPublicOrigin}/rights/${slug}`;
 }
 
 export function appRecordUrl(slug: string) {
-  return `${product.appUrl.replace(/\/$/, "")}/rights/${slug}`;
+  const app = product.appUrl.replace(/\/$/, "");
+  if (/localhost|127\.0\.0\.1/i.test(app)) return recordUrl(slug);
+  return `${app}/rights/${slug}`;
 }
 
 export function slugFromTitle(title: string) {
@@ -674,9 +682,147 @@ export async function createDraftRightsRecord(userId: string, input: CreatorRigh
     mime_type: normalized.mimeType || null,
     sha256_hash: normalized.sha256Hash || null,
     hash_created_at: normalized.sha256Hash ? new Date().toISOString() : null,
+    entitlement_status: "none",
+    qr_asset_version: 0,
+    qr_preferences: {},
   };
   const { data, error } = await admin.from("creator_rights_records").insert(insert).select("*").single();
   if (error) throw error;
+  return data as CreatorRightsRecord;
+}
+
+const draftEditableKeys = [
+  "title",
+  "description",
+  "creator_name",
+  "public_display_name",
+  "rights_holder_name",
+  "creation_date",
+  "publication_date",
+  "edition",
+  "external_identifier",
+  "source_url",
+  "licensing_contact",
+  "copyright_notice",
+  "rights_statement",
+  "ai_permissions",
+  "ai_permissions_summary",
+  "human_commercial_license_available",
+  "work_type",
+  "category",
+  "availability",
+  "filename",
+  "file_size",
+  "mime_type",
+  "sha256_hash",
+] as const;
+
+/** Limited fields an entitled creator may update after issuance (versioned). */
+const publishedEditableKeys = [
+  "description",
+  "licensing_contact",
+  "copyright_notice",
+  "rights_statement",
+  "ai_permissions",
+  "ai_permissions_summary",
+  "human_commercial_license_available",
+  "availability",
+  "edition",
+  "source_url",
+  "filename",
+  "file_size",
+  "mime_type",
+  "sha256_hash",
+] as const;
+
+export async function updateOwnedRightsRecord(
+  userId: string,
+  id: string,
+  patch: Partial<CreatorRightsRecord> & { permissions?: AiPermissionBlock; aiPermissionsSummary?: string }
+) {
+  const current = await getOwnedRightsRecord(userId, id);
+  if (!canEditRightsRecord(current)) {
+    throw Object.assign(new Error("This rights record cannot be edited in its current state."), { status: 409 });
+  }
+
+  const allowed = new Set(
+    current.record_status === "draft" || current.record_status === "pending_payment"
+      ? draftEditableKeys
+      : publishedEditableKeys
+  );
+
+  const update: Record<string, unknown> = {};
+  for (const key of Object.keys(patch) as (keyof typeof patch)[]) {
+    if (key === "permissions" && patch.permissions && allowed.has("ai_permissions")) {
+      update.ai_permissions = patch.permissions;
+      update.ai_permissions_summary = patch.aiPermissionsSummary || buildAiSummary(patch.permissions);
+      continue;
+    }
+    if (typeof key === "string" && allowed.has(key as (typeof draftEditableKeys)[number]) && patch[key] !== undefined) {
+      update[key] = patch[key];
+    }
+  }
+
+  if (Object.keys(update).length === 0) {
+    throw Object.assign(new Error("No editable fields provided."), { status: 400 });
+  }
+
+  if (patch.sha256_hash || update.sha256_hash) {
+    update.hash_created_at = new Date().toISOString();
+  }
+
+  // Issued records stay public under "updated" when metadata changes.
+  if (isPublicRightsStatus(current.record_status) || current.record_status === "published") {
+    update.record_status = current.record_status === "published" ? "updated" : current.record_status;
+  }
+
+  const admin = getSupabaseAdminClient() as any;
+  const { data, error } = await admin
+    .from("creator_rights_records")
+    .update(update)
+    .eq("id", id)
+    .eq("user_id", userId)
+    .select("*")
+    .single();
+  if (error || !data) throw Object.assign(new Error(error?.message || "Rights record could not be updated."), { status: 500 });
+
+  if (isPublicRightsStatus((data as CreatorRightsRecord).record_status)) {
+    const { count } = await admin
+      .from("creator_rights_record_versions")
+      .select("id", { count: "exact", head: true })
+      .eq("record_id", id);
+    await admin.from("creator_rights_record_versions").insert({
+      record_id: id,
+      version_number: (count || 0) + 1,
+      snapshot_json: data,
+      change_summary: "Creator metadata update",
+      created_by: userId,
+    });
+  }
+
+  return data as CreatorRightsRecord;
+}
+
+/** Persist controlled QR preferences and bump QR asset version for an issued record. */
+export async function saveOwnedRightsQrPreferences(userId: string, id: string, preferences: RightsQrPreferences) {
+  const current = await getOwnedRightsRecord(userId, id);
+  if (!canGenerateRightsQrAssets(current)) {
+    throw Object.assign(new Error("Publish this Rights Record before saving branded QR assets."), { status: 402 });
+  }
+
+  const nextVersion = Math.max(1, Number(current.qr_asset_version || 0) + 1);
+  const admin = getSupabaseAdminClient() as any;
+  const { data, error } = await admin
+    .from("creator_rights_records")
+    .update({
+      qr_preferences: preferences as unknown as Json,
+      qr_asset_version: nextVersion,
+    })
+    .eq("id", id)
+    .eq("user_id", userId)
+    .select("*")
+    .single();
+  if (error || !data) throw Object.assign(new Error(error?.message || "QR preferences could not be saved."), { status: 500 });
   return data as CreatorRightsRecord;
 }
 

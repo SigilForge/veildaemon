@@ -18,6 +18,10 @@ export type QrGeneratorOptions = {
   clearance?: string;
   footer?: string;
   ecc?: "L" | "M" | "Q" | "H";
+  /** Minimum quiet zone in modules (default 3). Rights product enforces ≥3. */
+  minQuietZone?: number;
+  /** Max center art diameter as fraction of QR field (default ~0.24). */
+  maxCenterFraction?: number;
 };
 
 const EMBLEM_SVG = `<path d="M50 14 L82 50 L50 86 L18 50 Z" fill="none" stroke="CURRENT_FG" stroke-width="6" stroke-linejoin="round"/><circle cx="50" cy="50" r="10" fill="CURRENT_FG"/><path d="M50 28 V72 M28 50 H72" stroke="CURRENT_BG" stroke-width="4"/>`;
@@ -50,10 +54,11 @@ function isFinderModule(x: number, y: number, size: number) {
   return inTopLeft || inTopRight || inBottomLeft;
 }
 
-function isCenterZone(x: number, y: number, size: number, hasArt: boolean) {
+function isCenterZone(x: number, y: number, size: number, hasArt: boolean, centerFraction = 0.24) {
   if (!hasArt) return false;
   const center = (size - 1) / 2;
-  const radius = Math.max(3, Math.floor(size * 0.11));
+  // Diameter fraction → half-size in modules, capped for ECC H safety.
+  const radius = Math.max(2, Math.floor((size * Math.min(0.24, centerFraction)) / 2));
   return Math.abs(x - center) <= radius && Math.abs(y - center) <= radius;
 }
 
@@ -87,29 +92,34 @@ export async function generateArtisticQrSvg(opts: QrGeneratorOptions): Promise<s
     clearance = "OBSERVER",
     footer = "HUMAN AUTHORIZATION PARTIAL. SURVIVAL AUTHORIZATION ACTIVE.",
     ecc: userEcc,
+    minQuietZone = 3,
+    maxCenterFraction = 0.24,
   } = opts;
 
-  const safeFg = contrastRatio(foreground, background) >= 4.0 ? foreground : "#ffffff";
-  const safeBg = contrastRatio(foreground, background) >= 4.0 ? background : "#0d1117";
+  const safeFg = contrastRatio(foreground, background) >= 4.5 ? foreground : "#ffffff";
+  const safeBg = contrastRatio(foreground, background) >= 4.5 ? background : "#0d1117";
   const safeAccent = accent && /^#[0-9a-f]{6}$/i.test(accent) ? accent : "";
   const safeEye = eyeColor && /^#[0-9a-f]{6}$/i.test(eyeColor) ? eyeColor : safeFg;
+  // High ECC whenever center art is present; Rights product always requests H.
   const ecc = art !== "none" ? "H" : userEcc || "H";
+  const quietZone = Math.max(3, Math.floor(minQuietZone || 3));
+  const centerFraction = Math.min(0.24, Math.max(0, maxCenterFraction ?? 0.24));
 
   const qr = QRCode.create(url, { errorCorrectionLevel: ecc });
   const qrSize = qr.modules.size;
-  const quietZone = 3;
   const totalModules = qrSize + quietZone * 2;
 
   const seed = hashString(url);
   const imageSrc = getArtImageSrc(art, customArtUrl);
   const hasArt = art !== "none";
+  const clearCenter = hasArt && (imageSrc !== "" || ["emblem", "seal", "mark"].includes(art));
 
   // Build module rects
   const rects: string[] = [];
   for (let y = 0; y < qrSize; y++) {
     for (let x = 0; x < qrSize; x++) {
       if (!qr.modules.data[y * qrSize + x]) continue;
-      if (isCenterZone(x, y, qrSize, hasArt && (imageSrc !== "" || ["emblem", "seal", "mark"].includes(art)))) {
+      if (isCenterZone(x, y, qrSize, clearCenter, centerFraction)) {
         continue; // Clear center for art badge
       }
 

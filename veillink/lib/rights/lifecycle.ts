@@ -1,4 +1,12 @@
 import { categoryOrDefault, type CreatorRightsRecord, type RecordStatus } from "./schema";
+export {
+  canEditRightsRecord,
+  canGenerateRightsQrAssets,
+  entitlementLabel,
+  entitlementStatusOf,
+  hasActiveRightsEntitlement,
+  issuanceChipLabel,
+} from "./entitlement";
 
 export const RIGHTS_PURCHASE_TYPE = "creator_rights_record";
 

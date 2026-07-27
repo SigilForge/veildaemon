@@ -251,7 +251,8 @@ on public.creator_rights_record_versions for select
 using (
   exists (
     select 1 from public.creator_rights_records r
-    where r.id = record_id
+    -- Qualify outer FK: inner table also has record_id (text SFR id), which would be uuid = text.
+    where r.id = creator_rights_record_versions.record_id
     and (
       r.record_status in ('published', 'updated', 'transferred', 'disputed', 'under_review', 'withdrawn', 'archived')
       or r.user_id = auth.uid()
@@ -264,7 +265,7 @@ on public.creator_rights_record_versions for insert
 with check (
   exists (
     select 1 from public.creator_rights_records r
-    where r.id = record_id
+    where r.id = creator_rights_record_versions.record_id
     and r.user_id = auth.uid()
   )
 );
@@ -274,7 +275,7 @@ on public.creator_rights_license_inquiries for select
 using (
   exists (
     select 1 from public.creator_rights_records r
-    where r.id = record_id
+    where r.id = creator_rights_license_inquiries.record_id
     and r.user_id = auth.uid()
   )
 );
@@ -284,7 +285,7 @@ on public.creator_rights_license_inquiries for insert
 with check (
   exists (
     select 1 from public.creator_rights_records r
-    where r.id = record_id
+    where r.id = creator_rights_license_inquiries.record_id
     and r.record_status in ('published', 'updated', 'transferred', 'disputed', 'under_review', 'withdrawn', 'archived')
   )
 );

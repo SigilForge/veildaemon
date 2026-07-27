@@ -3,11 +3,14 @@ import {
   assertCanPublish,
   buildVersionSnapshot,
   canCreateCheckout,
+  canGenerateRightsQrAssets,
+  hasActiveRightsEntitlement,
   validateRightsCheckoutSession,
   isPrivatePrePublicationStatus,
   isPublicRightsStatus,
 } from "@/lib/rights/lifecycle";
 import { rightsJson } from "@/lib/rights/records";
+import { parseRightsQrPreferences } from "@/lib/rights/qr-options";
 import { creatorRightsInputSchema } from "@/lib/rights/schema";
 import type { CreatorRightsRecord } from "@/lib/rights/schema";
 
@@ -65,6 +68,9 @@ function rightsRecord(overrides: Partial<CreatorRightsRecord> = {}): CreatorRigh
     mime_type: null,
     sha256_hash: null,
     hash_created_at: null,
+    entitlement_status: "none",
+    qr_asset_version: 0,
+    qr_preferences: {},
     ...overrides,
   };
 }
@@ -252,6 +258,62 @@ describe("Creator Rights lifecycle", () => {
     expect(() => validateRightsCheckoutSession(record, paidSession({ amount_total: 1999 }), rightsLineItems, expectedCheckout)).toThrow(/amount/);
     expect(() => validateRightsCheckoutSession(record, paidSession({ currency: "eur" }), rightsLineItems, expectedCheckout)).toThrow(/currency/);
     expect(() => validateRightsCheckoutSession(record, paidSession(), [{ price: { id: "price_other" } }], expectedCheckout)).toThrow(/configured Creator Rights price/);
+  });
+
+  it("treats payment publication as durable entitlement for QR assets", () => {
+    const unpaidDraft = rightsRecord();
+    expect(hasActiveRightsEntitlement(unpaidDraft)).toBe(false);
+    expect(canGenerateRightsQrAssets(unpaidDraft)).toBe(false);
+
+    const entitled = rightsRecord({
+      record_status: "published",
+      payment_status: "paid",
+      entitlement_status: "active",
+      record_id: "SFR-2026-000099",
+      published_at: "2026-07-27T01:00:00.000Z",
+      qr_asset_version: 1,
+    });
+    expect(hasActiveRightsEntitlement(entitled)).toBe(true);
+    expect(canGenerateRightsQrAssets(entitled)).toBe(true);
+
+    const revoked = rightsRecord({
+      record_status: "published",
+      payment_status: "paid",
+      entitlement_status: "revoked",
+    });
+    expect(canGenerateRightsQrAssets(revoked)).toBe(false);
+
+    // Browser success alone (pending_payment without active entitlement) never unlocks assets.
+    expect(
+      canGenerateRightsQrAssets(
+        rightsRecord({ record_status: "pending_payment", payment_status: "pending", entitlement_status: "none" })
+      )
+    ).toBe(false);
+  });
+
+  it("enforces controlled QR customization and contrast floor", () => {
+    const ok = parseRightsQrPreferences({
+      foreground: "#111827",
+      background: "#ffffff",
+      art: "seal",
+      frameStyle: "tech-card",
+      frameTitle: "CREATOR RIGHTS RECORD",
+    });
+    expect(ok.ok).toBe(true);
+
+    const weak = parseRightsQrPreferences({
+      foreground: "#777777",
+      background: "#888888",
+      art: "seal",
+    });
+    expect(weak.ok).toBe(false);
+    if (!weak.ok) expect(weak.error).toMatch(/contrast/i);
+
+    const wild = parseRightsQrPreferences({
+      foreground: "red",
+      background: "#000000",
+    });
+    expect(wild.ok).toBe(false);
   });
 
   it("rejects metadata mismatch and records attached to a different Checkout Session", () => {
