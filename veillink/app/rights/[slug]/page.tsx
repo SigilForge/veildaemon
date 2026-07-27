@@ -18,6 +18,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     imageAlt: "Creator Rights Record verification card from SigilForge Studios",
     imageWidth: 1200,
     imageHeight: 675,
+    keywords: [
+      "AI permissions",
+      "copyright metadata",
+      "creator rights",
+      "digital publication verification",
+      "digital provenance",
+      "machine-readable license",
+      "publication record",
+      "rights metadata",
+      "SHA-256 file verification",
+      "version history for creative work",
+    ],
     noIndex: record.record_status === "draft",
   });
 }

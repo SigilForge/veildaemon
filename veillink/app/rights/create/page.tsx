@@ -12,6 +12,15 @@ export const metadata: Metadata = buildMetadata({
   imageAlt: "Creator Rights Record verification card from SigilForge Studios",
   imageWidth: 1200,
   imageHeight: 675,
+  keywords: [
+    "AI training permissions",
+    "creator rights registry",
+    "copyright metadata",
+    "digital rights declaration",
+    "machine-readable AI permissions",
+    "permanent publication record",
+    "public licensing record",
+  ],
   noIndex: true,
 });
 
