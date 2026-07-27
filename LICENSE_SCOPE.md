@@ -19,12 +19,12 @@ Commercial use of creative elements requires written permission.
 | VeilDaemon source code and implementation | Apache License 2.0 |
 | Technical documentation | Apache License 2.0, unless otherwise stated |
 | Creative elements explicitly identified as CC-licensed | CC BY-NC 4.0 |
-| Cradlepoint fiction, manuscripts, books, game publications, and commercial releases | All rights reserved unless explicitly licensed otherwise |
+| CradlePoint fiction, manuscripts, books, game publications, and commercial releases | All rights reserved unless explicitly licensed otherwise |
 | Logos, names, trademarks, source identifiers, and trade dress | Reserved |
 
 ## Marks and Source Identifiers
 
-SigilForge Studios, Cradlepoint, VeilDaemon, VeilCorp, product names, logos, trademarks, service marks, source identifiers, trade dress, and source-identifying designs are excluded from the Creative Commons grant. No trademark rights are granted by this repository or license.
+SigilForge Studios, CradlePoint, VeilDaemon, VeilCorp, product names, logos, trademarks, service marks, source identifiers, trade dress, and source-identifying designs are excluded from the Creative Commons grant. No trademark rights are granted by this repository or license.
 
 Media-use permission for approved press assets is limited to the published media-usage guidance and does not transfer ownership or trademark rights. Other commercial licensing requires written permission.
 
