@@ -14,7 +14,12 @@ Current Vercel project:
 - Confirm the hosted Supabase project is the intended VeilLink project.
 - Apply all migrations in `supabase/migrations/`, including `002_stripe_webhook_events.sql`.
 - Enable email/password auth.
-- Set password reset redirects to the deployed VeilLink app URL.
+- In **Authentication -> URL Configuration**, set **Site URL** to `https://app.veildaemon.app`.
+- In **Authentication -> URL Configuration**, keep redirect allow-list entries scoped to the app routes VeilLink actually uses:
+  - `https://app.veildaemon.app/**`
+  - `https://veildaemon.app/**`
+- Remove stale `*.vercel.app` entries from Supabase auth redirects after `app.veildaemon.app` is verified.
+- Set password reset redirects to `https://app.veildaemon.app/update-password`.
 - Add `VEILLINK_ADMIN_EMAILS` in Vercel for operator/admin access.
 - Keep `SUPABASE_SERVICE_ROLE_KEY` server-side only. Never expose it through a `NEXT_PUBLIC_` variable.
 

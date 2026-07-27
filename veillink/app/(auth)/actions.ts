@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/supabase";
-import { product } from "@/lib/config";
+import { authRedirectUrl } from "@/lib/config";
 
 function field(formData: FormData, name: string) {
   return String(formData.get(name) || "").trim();
@@ -24,7 +24,7 @@ export async function signUp(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: `${product.appUrl}/auth/confirm?next=${encodeURIComponent(next)}`,
+      emailRedirectTo: authRedirectUrl("/auth/confirm", { next }),
     },
   });
   if (error) redirect(`/signup?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
@@ -54,7 +54,7 @@ export async function logout() {
 export async function resetPassword(formData: FormData) {
   const supabase = await getSupabaseServerClient();
   const { error } = await supabase.auth.resetPasswordForEmail(field(formData, "email"), {
-    redirectTo: `${product.appUrl}/update-password`,
+    redirectTo: authRedirectUrl("/update-password"),
   });
   if (error) redirect(`/reset?error=${encodeURIComponent(error.message)}`);
   redirect("/reset?sent=1");

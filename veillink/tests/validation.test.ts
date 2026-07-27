@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { browserFamily, deviceCategory, operatingSystem } from "@/lib/analytics";
+import { authRedirectUrl } from "@/lib/config";
 import { parseRedirectRequest } from "@/lib/host";
 import { canCreateActiveRedirect, requireAdminRole, userOwnsRedirect } from "@/lib/policy";
 import { redirectState } from "@/lib/resolve";
@@ -107,5 +108,19 @@ describe("analytics classification", () => {
     expect(deviceCategory(ua)).toBe("mobile");
     expect(browserFamily(ua)).toBe("Safari");
     expect(operatingSystem(ua)).toBe("iOS");
+  });
+});
+
+describe("auth redirect configuration", () => {
+  it("builds confirmation redirects from the canonical app URL", () => {
+    expect(authRedirectUrl("/auth/confirm", { next: "/book-one" }, "https://app.veildaemon.app")).toBe(
+      "https://app.veildaemon.app/auth/confirm?next=%2Fbook-one"
+    );
+  });
+
+  it("rejects Vercel deployment domains for production auth redirects", () => {
+    expect(() =>
+      authRedirectUrl("/auth/confirm", { next: "/dashboard" }, "https://veillink-alpha.vercel.app", "production")
+    ).toThrow("Production VeilLink auth redirects must use https://app.veildaemon.app");
   });
 });

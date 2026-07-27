@@ -31,6 +31,27 @@ export const plans = {
 
 export type PlanId = keyof typeof plans;
 
+function assertProductionAuthOrigin(appUrl: string, vercelEnv = process.env.VERCEL_ENV) {
+  const { hostname } = new URL(appUrl);
+  if (vercelEnv === "production" && (hostname === "vercel.app" || hostname.endsWith(".vercel.app"))) {
+    throw new Error("Production VeilLink auth redirects must use https://app.veildaemon.app, not a Vercel deployment domain.");
+  }
+}
+
+export function authRedirectUrl(
+  pathname: string,
+  searchParams?: Record<string, string>,
+  appUrl = product.appUrl,
+  vercelEnv = process.env.VERCEL_ENV
+) {
+  assertProductionAuthOrigin(appUrl, vercelEnv);
+  const url = new URL(pathname, appUrl);
+  for (const [key, value] of Object.entries(searchParams || {})) {
+    url.searchParams.set(key, value);
+  }
+  return url.toString();
+}
+
 export function publicPathUrl(slug: string) {
   return `https://${product.pathHost}/${slug}`;
 }
