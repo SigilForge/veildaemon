@@ -1,0 +1,30 @@
+{
+  "recordType": "CreatorRightsRecord",
+  "schemaVersion": "1.0",
+  "recordId": "SFR-2026-000003",
+  "status": "published",
+  "title": "Cradlepoint Operator Core",
+  "creator": "Knoxmortis",
+  "rightsHolder": "SigilForge Studios",
+  "recordedAt": "2026-07-27T00:00:00.000Z",
+  "workVersion": "Public Operator core record",
+  "copyrightNotice": "© 2025-2026 J. Donavon Love, under the SigilForge Studios name",
+  "permissions": {
+    "generalTraining": "license_required",
+    "foundationModelPretraining": "license_required",
+    "fineTuning": "prohibited",
+    "embeddings": "allowed",
+    "rag": "license_required",
+    "generation": "license_required",
+    "datasetRedistribution": "prohibited",
+    "researchUse": "research_only",
+    "commercialUse": "license_required",
+    "attributionRequired": "license_required",
+    "licenseRequired": "license_required"
+  },
+  "permissionsSummary": "This work may not be used for model training, fine-tuning, or dataset redistribution without a separate written license. Embeddings for search are permitted with attribution under the stated terms.",
+  "licenseContact": "/rights/cradlepoint-operator-core/license",
+  "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-operator-core",
+  "fileFingerprint": null,
+  "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership."
+}

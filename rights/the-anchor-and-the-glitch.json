@@ -1,0 +1,30 @@
+{
+  "recordType": "CreatorRightsRecord",
+  "schemaVersion": "1.0",
+  "recordId": "SFR-2026-000001",
+  "status": "published",
+  "title": "The Anchor and the Glitch",
+  "creator": "Knoxmortis",
+  "rightsHolder": "SigilForge Studios",
+  "recordedAt": "2026-07-27T00:00:00.000Z",
+  "workVersion": "Book One digital release",
+  "copyrightNotice": "© 2024-2026 J. Donavon Love, under the SigilForge Studios name",
+  "permissions": {
+    "generalTraining": "license_required",
+    "foundationModelPretraining": "license_required",
+    "fineTuning": "prohibited",
+    "embeddings": "license_required",
+    "rag": "license_required",
+    "generation": "license_required",
+    "datasetRedistribution": "prohibited",
+    "researchUse": "research_only",
+    "commercialUse": "license_required",
+    "attributionRequired": "license_required",
+    "licenseRequired": "license_required"
+  },
+  "permissionsSummary": "This work may not be used for fine-tuning or dataset redistribution without a separate written license. Model training, retrieval use, and commercial use require written permission.",
+  "licenseContact": "/rights/the-anchor-and-the-glitch/license",
+  "publicRecordUrl": "https://veildaemon.app/rights/the-anchor-and-the-glitch",
+  "fileFingerprint": null,
+  "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership."
+}
