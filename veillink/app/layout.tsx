@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
+import { ProductAccountLink } from "@/components/ProductAccountLink";
 import { product } from "@/lib/config";
 import { absoluteUrl, siteConfig, siteOrigin } from "@/lib/seo";
 import { getSupabaseServerClient } from "@/lib/supabase";
@@ -131,13 +132,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {email ? (
                 <>
                   <Link href="/dashboard">Dashboard</Link>
-                  <Link href="/account/rights">Rights</Link>
                   <Link href="/table">Table</Link>
                   <Link href="/billing">Billing</Link>
-                  <Link href="/account">Account</Link>
+                  {/* Original QR / short-link product: shared Account control → /account */}
+                  <ProductAccountLink product="qr" signedIn className="button secondary" />
                 </>
               ) : (
                 <>
+                  {/* Always expose Account on QR product chrome (login with return). */}
+                  <ProductAccountLink product="qr" signedIn={false} />
                   <Link href="/login">Log in</Link>
                   <Link className="button" href="/signup">
                     Start free
