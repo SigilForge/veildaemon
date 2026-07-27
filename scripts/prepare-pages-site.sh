@@ -14,7 +14,7 @@ rsync -a \
   --exclude 'node_modules/' \
   --exclude 'test-results/' \
   --exclude 'playwright-report/' \
-  --exclude 'veildaemon/' \
+  --exclude '/veildaemon/' \
   --exclude 'tests/' \
   --exclude 'studio/relay/' \
   --exclude 'tools/' \
