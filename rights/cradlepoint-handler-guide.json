@@ -1,14 +1,14 @@
 {
   "recordType": "CreatorRightsRecord",
   "schemaVersion": "1.0",
-  "recordId": "SFR-2026-000002",
+  "recordId": "SFR-2026-000007",
   "status": "published",
-  "title": "Sanguine Sacrament",
+  "title": "Cradlepoint Handler Guide",
   "creator": "S. KAELËN VALE",
   "rightsHolder": "SigilForge Studios",
   "recordedAt": "2026-07-27T00:00:00.000Z",
-  "workVersion": "NeedlePoint release record",
-  "copyrightNotice": "© 2026 J. Donavon Love, under the SigilForge Studios name",
+  "workVersion": "Published core book",
+  "copyrightNotice": "© 2025-2026 J. Donavon Love, under the SigilForge Studios name",
   "permissions": {
     "generalTraining": "license_required",
     "foundationModelPretraining": "license_required",
@@ -22,9 +22,9 @@
     "attributionRequired": "license_required",
     "licenseRequired": "license_required"
   },
-  "permissionsSummary": "This work may not be used for fine-tuning or dataset redistribution without a separate written license. Commercial AI use requires written permission.",
-  "licenseContact": "/rights/sanguine-sacrament/license",
-  "publicRecordUrl": "https://veildaemon.app/rights/sanguine-sacrament",
+  "permissionsSummary": "This work may not be used for model training, fine-tuning, or dataset redistribution without a separate written license. Retrieval use, generation, and commercial use require written permission.",
+  "licenseContact": "/rights/cradlepoint-handler-guide/license",
+  "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-handler-guide",
   "fileFingerprint": null,
   "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership."
 }

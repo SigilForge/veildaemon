@@ -426,6 +426,40 @@ button:disabled {
   text-transform: uppercase;
 }
 
+.status-chip {
+  border-color: rgba(126, 184, 168, 0.55);
+  color: var(--sage);
+}
+
+.record-meta-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  max-width: 52rem;
+  margin: 1rem 0 0;
+}
+
+.record-meta-row div {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.record-meta-row dt {
+  color: var(--text-faint);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.record-meta-row dd {
+  margin: 0.25rem 0 0;
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
 /* Demo plate */
 
 .demo-plate {
@@ -1286,6 +1320,7 @@ textarea {
   }
 
   .rights-record-grid,
+  .record-meta-row,
   .rights-form {
     grid-template-columns: 1fr;
   }

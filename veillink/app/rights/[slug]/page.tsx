@@ -33,16 +33,26 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
     clearance: record.record_status.toUpperCase(),
     footer: "PUBLIC NOTICE // RIGHTS POSITION DECLARED BY CREATOR",
   }).then((svg) => svg.replace(/^<\?xml[^>]*>\s*/, ""));
+  const publishedDate = record.published_at ? new Date(record.published_at).toLocaleDateString("en-US") : "Draft";
+  const publicationDate = record.publication_date
+    ? new Date(`${record.publication_date}T00:00:00.000Z`).toLocaleDateString("en-US", { timeZone: "UTC" })
+    : "Not specified";
 
   return (
     <main className="page rights-record-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(rightsJsonLd(record)) }} />
       <section className="hero">
-        <p className="eyebrow">Creator Rights Record · {record.record_id || "Draft ID pending"}</p>
+        <p className="eyebrow">Creator Rights Record</p>
         <h1>{record.title}</h1>
         <p className="lede">{record.description}</p>
+        <dl className="record-meta-row">
+          <div><dt>Record ID</dt><dd>{record.record_id || "Draft ID pending"}</dd></div>
+          <div><dt>Published</dt><dd>{publicationDate}</dd></div>
+          <div><dt>Status</dt><dd>Verified Publication Record</dd></div>
+          <div><dt>Version</dt><dd>1</dd></div>
+        </dl>
         <div className="proof-row">
-          <span className="proof-chip">{record.record_status}</span>
+          <span className="proof-chip status-chip">Active Record</span>
           <span className="proof-chip">{workTypeLabel(record.work_type)}</span>
           <span className="proof-chip">{record.edition || "Version not specified"}</span>
         </div>
@@ -54,8 +64,8 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
           <h2>{record.rights_holder_name}</h2>
           <dl className="rights-facts">
             <div><dt>Creator</dt><dd>{record.public_display_name || record.creator_name}</dd></div>
-            <div><dt>Recorded</dt><dd>{record.published_at ? new Date(record.published_at).toLocaleDateString("en-US") : "Draft"}</dd></div>
-            <div><dt>Publication</dt><dd>{record.publication_date || "Not specified"}</dd></div>
+            <div><dt>Recorded</dt><dd>{publishedDate}</dd></div>
+            <div><dt>Publication</dt><dd>{publicationDate}</dd></div>
             <div><dt>Identifier</dt><dd>{record.external_identifier || record.record_id || "Draft ID pending"}</dd></div>
           </dl>
           <p>{record.rights_statement}</p>
@@ -103,7 +113,7 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
         <article className="panel">
           <p className="panel-kicker">Revision history</p>
           <h2>Version 1</h2>
-          <p className="muted">Initial published snapshot. Historical snapshots are immutable; updates create a new version.</p>
+          <p className="muted">Published {publicationDate}. Initial immutable snapshot; updates create a new version rather than rewriting this one.</p>
         </article>
         <article className="panel">
           <p className="panel-kicker">Fingerprint</p>

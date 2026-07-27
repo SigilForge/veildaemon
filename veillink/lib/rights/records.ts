@@ -65,6 +65,67 @@ export function normalizeRightsInput(raw: unknown) {
   };
 }
 
+const defaultCradlepointAiPermissions: AiPermissionBlock = {
+  generalTraining: "license_required",
+  foundationModelPretraining: "license_required",
+  fineTuning: "prohibited",
+  embeddings: "license_required",
+  rag: "license_required",
+  generation: "license_required",
+  datasetRedistribution: "prohibited",
+  researchUse: "research_only",
+  commercialUse: "license_required",
+  attributionRequired: "license_required",
+  licenseRequired: "license_required",
+};
+
+const ttrpgRightsStatement =
+  "Original rules expression, terminology, procedures, table structures, and creative setting material are reserved except where a separate written agreement, repository license, or media-use guideline explicitly grants permission.";
+
+const ttrpgAiSummary =
+  "This work may not be used for model training, fine-tuning, or dataset redistribution without a separate written license. Retrieval use, generation, and commercial use require written permission.";
+
+function publishedTtrpgBookRecord(input: {
+  id: string;
+  recordId: string;
+  slug: string;
+  title: string;
+  description: string;
+  edition: string;
+  externalIdentifier: string;
+  sourceUrl?: string;
+}): CreatorRightsRecord {
+  return {
+    id: input.id,
+    record_id: input.recordId,
+    slug: input.slug,
+    title: input.title,
+    work_type: "game",
+    description: input.description,
+    creator_name: "J. Donavon Love",
+    public_display_name: "S. KAELËN VALE",
+    rights_holder_name: "SigilForge Studios",
+    contact_email: "J.Donavon.Love@gmail.com",
+    creation_date: "2025-01-01",
+    publication_date: "2026-07-01",
+    edition: input.edition,
+    external_identifier: input.externalIdentifier,
+    source_url: input.sourceUrl || "https://play.veildaemon.app/",
+    licensing_contact: "J.Donavon.Love@gmail.com",
+    copyright_notice: "© 2025-2026 J. Donavon Love, under the SigilForge Studios name",
+    rights_statement: ttrpgRightsStatement,
+    ai_permissions: defaultCradlepointAiPermissions,
+    ai_permissions_summary: ttrpgAiSummary,
+    human_commercial_license_available: "case_by_case",
+    record_status: "published",
+    published_at: "2026-07-27T00:00:00.000Z",
+    created_at: "2026-07-27T00:00:00.000Z",
+    updated_at: "2026-07-27T00:00:00.000Z",
+    sha256_hash: null,
+    hash_created_at: null,
+  };
+}
+
 export const exampleRightsRecords: CreatorRightsRecord[] = [
   {
     id: "example-anchor-glitch",
@@ -116,7 +177,7 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     work_type: "game",
     description: "A Cradlepoint NeedlePoint case record for tabletop publication and licensing notice.",
     creator_name: "J. Donavon Love",
-    public_display_name: "Knoxmortis",
+    public_display_name: "S. KAELËN VALE",
     rights_holder_name: "SigilForge Studios",
     contact_email: "J.Donavon.Love@gmail.com",
     creation_date: "2026-01-01",
@@ -158,7 +219,7 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     work_type: "worldbuilding",
     description: "Core player-facing rules and Operator identity structure for Cradlepoint play.",
     creator_name: "J. Donavon Love",
-    public_display_name: "Knoxmortis",
+    public_display_name: "S. KAELËN VALE",
     rights_holder_name: "SigilForge Studios",
     contact_email: "J.Donavon.Love@gmail.com",
     creation_date: "2025-01-01",
@@ -192,6 +253,69 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
     sha256_hash: null,
     hash_created_at: null,
   },
+  publishedTtrpgBookRecord({
+    id: "example-handler-core",
+    recordId: "SFR-2026-000004",
+    slug: "cradlepoint-handler-core",
+    title: "Cradlepoint Handler Core",
+    description: "Published Handler-facing core release pack for running Cradlepoint sessions, clocks, consequences, cases, and table procedures.",
+    edition: "Published Handler Core release pack",
+    externalIdentifier: "Published/Paid/Handler Core",
+  }),
+  publishedTtrpgBookRecord({
+    id: "example-field-dossier",
+    recordId: "SFR-2026-000005",
+    slug: "cradlepoint-field-dossier",
+    title: "Cradlepoint Field Dossier",
+    description: "Published Cradlepoint field reference and dossier text for tabletop orientation, setting procedure, and evidence-style play.",
+    edition: "Published core book",
+    externalIdentifier: "Published/Paid/Core Books/CRADLEPOINT FIELD DOSSIER.md",
+  }),
+  publishedTtrpgBookRecord({
+    id: "example-handler-expansion-myth-tech-epic-lotus",
+    recordId: "SFR-2026-000006",
+    slug: "cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus",
+    title: "Cradlepoint Handler Expansion: Myth-Tech and the Epic Lotus",
+    description: "Published Handler expansion covering myth-tech procedures, the Epic Lotus, and advanced Cradlepoint table material.",
+    edition: "Published core book",
+    externalIdentifier: "Published/Paid/Core Books/CRADLEPOINT HANDLER EXPANSION - MYTH-TECH & THE EPIC LOTUS.md",
+  }),
+  publishedTtrpgBookRecord({
+    id: "example-handler-guide",
+    recordId: "SFR-2026-000007",
+    slug: "cradlepoint-handler-guide",
+    title: "Cradlepoint Handler Guide",
+    description: "Published facilitator-facing guide for Handler procedures, scene pressure, cases, consequences, and campaign operation.",
+    edition: "Published core book",
+    externalIdentifier: "Published/Paid/Core Books/CRADLEPOINT HANDLER GUIDE.md",
+  }),
+  publishedTtrpgBookRecord({
+    id: "example-monster-manual",
+    recordId: "SFR-2026-000008",
+    slug: "cradlepoint-monster-manual",
+    title: "Cradlepoint Monster Manual",
+    description: "Published creature, anomaly, and opposition reference for Cradlepoint tabletop play and Handler preparation.",
+    edition: "Published core book",
+    externalIdentifier: "Published/Paid/Core Books/CRADLEPOINT MONSTER MANUAL.md",
+  }),
+  publishedTtrpgBookRecord({
+    id: "example-operator-guide",
+    recordId: "SFR-2026-000009",
+    slug: "cradlepoint-operator-guide",
+    title: "Cradlepoint Operator Guide",
+    description: "Published player-facing guide for Operator creation, advancement, presentations, field procedure, and table play.",
+    edition: "Published core book",
+    externalIdentifier: "Published/Paid/Core Books/CRADLEPOINT OPERATOR GUIDE.md",
+  }),
+  publishedTtrpgBookRecord({
+    id: "example-systems-metaphysics",
+    recordId: "SFR-2026-000010",
+    slug: "cradlepoint-systems-metaphysics",
+    title: "Cradlepoint Systems Metaphysics",
+    description: "Published systems and metaphysics reference for Cradlepoint ontology, procedures, presentation logic, and setting rules.",
+    edition: "Published core book",
+    externalIdentifier: "Published/Paid/Core Books/CRADLEPOINT SYSTEMS METAPHYSICS.md",
+  }),
 ];
 
 export function rightsJson(record: CreatorRightsRecord) {

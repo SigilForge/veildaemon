@@ -35,10 +35,10 @@ export default function RightsIndexPage() {
         <strong>${(RIGHTS_PRICE_CENTS / 100).toFixed(2)} per published record.</strong> {RIGHTS_DISCLAIMER}
       </section>
 
-      <section className="section" aria-labelledby="examples-heading">
+      <section className="section" aria-labelledby="records-heading">
         <div className="section-head">
-          <p className="eyebrow">Working examples</p>
-          <h2 id="examples-heading">Records from the Studio shelf.</h2>
+          <p className="eyebrow">Published records</p>
+          <h2 id="records-heading">Records from the Studio shelf.</h2>
         </div>
         <div className="grid">
           {exampleRightsRecords.map((record) => (

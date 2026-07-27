@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/seo";
+import { exampleRightsRecords } from "@/lib/rights/records";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -13,7 +14,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/reset", priority: 0.3, changeFrequency: "yearly" },
   ];
 
-  return entries.map((entry) => ({
+  const rightsEntries = exampleRightsRecords.map((record) => ({
+    path: `/rights/${record.slug}`,
+    priority: 0.6,
+    changeFrequency: "monthly" as const,
+  }));
+
+  return [...entries, ...rightsEntries].map((entry) => ({
     url: absoluteUrl(entry.path),
     lastModified: now,
     changeFrequency: entry.changeFrequency,
