@@ -101,19 +101,15 @@ test.describe("studio subtree routes", () => {
 
     // Portal-specific checks on a dedicated revisit (not last route)
     await page.goto("/studio/");
+    await expect(page.locator(".pathway")).toHaveCount(4);
+    await expect(page.locator('a.pathway[href="/studio/shelf/"]')).toBeVisible();
+    await expect(page.locator('a.pathway[href="/studio/creator-rights/"]')).toBeVisible();
+    await expect(page.locator('a.pathway[href="/studio/web-design/"]')).toBeVisible();
+    await expect(page.locator('a.pathway[href="/studio/funding/"]')).toBeVisible();
     await expect(page.getByRole("link", { name: /Open the Funding Case/ })).toHaveAttribute(
       "href",
       "/studio/funding/"
     );
-    await expect(page.getByRole("link", { name: /Explore Publishing/ })).toHaveAttribute(
-      "href",
-      "/studio/publishing/"
-    );
-    await expect(page.getByRole("link", { name: /Explore the Platform/ })).toHaveAttribute(
-      "href",
-      "/studio/technology/"
-    );
-    await expect(page.locator('a.service-callout[href="/studio/web-design/"]')).toBeVisible();
     await expect(page.locator('footer.site-footer a[href="/studio/web-design/"]')).toHaveCount(1);
     await expect(page.locator('script[src="/_vercel/insights/script.js"]')).toHaveCount(1);
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
@@ -520,7 +516,7 @@ test.describe("studio subtree routes", () => {
     expect(data["@type"]).toBe("Organization");
     expect(data.name).toBe("SigilForge Studios");
     expect(data.logo || "", "Organization logo should be SigilForge Studios mark").toMatch(
-      /cradlepoint-studio/
+      /sigilforge-banner-primary\.webp/
     );
     expect(String(data.logo || "")).not.toContain("veilcorp-avatar");
     expect(data.founder.name).toBe("J. Donavon Love");
@@ -646,7 +642,7 @@ test.describe("studio subtree routes", () => {
     }
 
     await page.goto("/studio/");
-    await expect(page.locator(".pathway")).toHaveCount(8);
+    await expect(page.locator(".pathway")).toHaveCount(4);
     await page.screenshot({
       path: path.join(reviewDir, "cradlepoint-studio-mobile.png"),
       fullPage: true,

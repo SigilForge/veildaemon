@@ -1,11 +1,13 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import QRCode from "qrcode";
+import sharp from "sharp";
 import { rightsStaticFooterHtml, rightsStaticHeaderHtml } from "./creator-rights-product-nav.mjs";
 
 const root = process.cwd();
 const rightsDir = path.join(root, "rights");
-const styleVersion = "20260728-rights-shell1";
+const styleVersion = "20260728-qr-webp1";
+const qrAssetVersion = "20260728-qr-webp1";
 const publicOrigin = "https://veildaemon.app";
 const appOrigin = "https://app.veildaemon.app";
 
@@ -95,7 +97,7 @@ function permissionRows(record) {
   return rows.join("");
 }
 
-function qrSvgFor(url) {
+function qrModelFor(url) {
   const qr = QRCode.create(url, { errorCorrectionLevel: "M" });
   const quietZone = 4;
   const qrSize = qr.modules.size;
@@ -109,18 +111,34 @@ function qrSvgFor(url) {
     }
   }
 
-  return (
+  const svg = (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${viewSize} ${viewSize}" shape-rendering="crispEdges" role="img" aria-label="QR code for ${escapeHtml(url)}">` +
     `<rect width="${viewSize}" height="${viewSize}" fill="#fff"/>` +
     `<g fill="#000">${modules.join("")}</g>` +
     `</svg>`
   );
+
+  return { svg, viewSize };
+}
+
+async function writeQrWebpFor(url, outputPath) {
+  const modulePixels = 20;
+  const { svg, viewSize } = qrModelFor(url);
+  const pixelSize = viewSize * modulePixels;
+
+  await sharp(Buffer.from(svg))
+    .resize(pixelSize, pixelSize, { kernel: "nearest" })
+    .webp({ lossless: true, quality: 100, effort: 6 })
+    .toFile(outputPath);
+
+  return pixelSize;
 }
 
 async function recordBody(record, { licenseRoute = false } = {}) {
   const slug = record.publicRecordUrl.split("/").filter(Boolean).pop();
   const stableUrl = `${publicOrigin}${recordPath(slug).replace(/\/$/, "")}`;
-  const qrSvg = qrSvgFor(stableUrl);
+  const qrPixelSize = qrModelFor(stableUrl).viewSize * 20;
+  const qrImagePath = `${recordPath(slug)}record-qr.webp?v=${qrAssetVersion}`;
   const publicationDate = displayDate(record.publicationDate);
   const compactPublication = compactDate(record.publicationDate);
   const fingerprint = record.fileFingerprint;
@@ -169,7 +187,7 @@ async function recordBody(record, { licenseRoute = false } = {}) {
 
         <aside class="panel rights-qr-panel">
           <p class="panel-kicker">Stable record URL</p>
-          <div class="rights-qr">${qrSvg}</div>
+          <div class="rights-qr"><img src="${qrImagePath}" alt="QR code for ${escapeHtml(stableUrl)}" width="${qrPixelSize}" height="${qrPixelSize}" loading="eager" decoding="async"></div>
           <p class="muted">${escapeHtml(stableUrl)}</p>
           <div class="toolbar">
             <a class="button secondary" href="${recordJsonPath(slug)}">JSON</a>
@@ -271,6 +289,7 @@ for (const file of files) {
   const licenseDir = path.join(dir, "license");
   await fs.mkdir(licenseDir, { recursive: true });
   const canonical = `${publicOrigin}${recordPath(slug)}`;
+  await writeQrWebpFor(canonical.replace(/\/$/, ""), path.join(dir, "record-qr.webp"));
   const recordHtml = pageShell({
     title: `${record.title} Rights, Copyright and AI Use Record`,
     description: `View the declared copyright, licensing terms, AI permissions, stable URL, revision history, fingerprint status, and recorded version for ${record.title}.`,

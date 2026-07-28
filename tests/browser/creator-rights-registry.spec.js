@@ -106,7 +106,7 @@ test("Creator Rights license pages expose the full record contract on mobile", a
     await expect(page.locator("main")).toContainText("Fingerprint");
     await expect(page.locator("main")).toContainText("Licensing");
     await expect(page.locator("main")).toContainText("Request shape");
-    await expect(page.locator(".rights-qr svg")).toBeVisible();
+    await expect(page.locator('.rights-qr img[src$="record-qr.webp?v=20260728-qr-webp1"]')).toBeVisible();
     await expect(page.locator("footer.site-footer")).toBeVisible();
     await expect(page.locator('footer.site-footer a[href="https://app.veildaemon.app/rights/create"]')).toHaveText("Register product");
     await expect(page.locator(".permission-row")).toHaveCount(record.permissionCount);
@@ -135,7 +135,7 @@ test("Creator Rights record keeps the rich record panels on desktop and mobile",
     await expect(page.locator('header.site-header a.nav-cta[href="https://app.veildaemon.app/rights/create"]')).toHaveText("Register product");
     await expect(page.locator(".rights-record-grid")).toBeVisible();
     await expect(page.locator(".rights-support-grid")).toBeVisible();
-    await expect(page.locator(".rights-qr svg")).toBeVisible();
+    await expect(page.locator('.rights-qr img[src$="record-qr.webp?v=20260728-qr-webp1"]')).toBeVisible();
     await expect(page.locator("footer.site-footer")).toBeVisible();
     await expect(page.locator(".permission-row")).toHaveCount(12);
     const overflow = await page.evaluate(

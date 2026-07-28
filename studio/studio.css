@@ -1049,13 +1049,14 @@ footer > p {
   box-shadow: none;
 }
 
-.rights-qr svg {
+.rights-qr img {
   display: block;
   width: 100%;
   height: auto;
   background: #fff;
   border-radius: 0;
   image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .rights-qr-panel .toolbar,
