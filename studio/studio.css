@@ -382,12 +382,21 @@ footer nav a:hover {
 
 /* Hero */
 .portal-hero {
-  min-height: min(62vh, 38rem);
+  min-height: auto;
+  display: block;
+  padding: clamp(2.5rem, 5vw, 4rem) var(--pad) clamp(2rem, 4vw, 3.25rem);
+}
+
+.portal-banner {
+  width: 100%;
+  margin-bottom: clamp(1.75rem, 3.5vw, 2.75rem);
+}
+
+.portal-hero-grid {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: clamp(2rem, 5vw, 4.25rem);
   align-items: center;
-  padding: clamp(2.5rem, 5vw, 4rem) var(--pad) clamp(2rem, 4vw, 3.25rem);
 }
 
 .portal-hero h1 {
@@ -406,11 +415,12 @@ footer nav a:hover {
 
 .studio-wordmark {
   display: block;
-  width: min(100%, 34rem);
+  width: 100%;
+  max-width: 100%;
   height: auto;
-  margin: 0 0 clamp(1rem, 2vw, 1.45rem);
-  border: 1px solid rgba(146, 92, 201, 0.12);
-  border-radius: 0.45rem;
+  margin: 0;
+  border: 1px solid rgba(146, 92, 201, 0.14);
+  border-radius: 0.55rem;
   background: #000;
   filter: drop-shadow(0 0 1.4rem rgba(128, 63, 210, 0.14));
 }
@@ -1463,7 +1473,7 @@ footer > p {
 }
 
 @media (max-width: 900px) {
-  .portal-hero {
+  .portal-hero-grid {
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
   }
@@ -1543,8 +1553,10 @@ footer > p {
 
   /* keep full primary nav on small screens; wrap instead of hide */
 
-  .portal-hero {
+  .portal-hero-grid {
     grid-template-columns: 1fr;
+  }
+  .portal-hero {
     min-height: 0;
     padding-top: 3.25rem;
   }
