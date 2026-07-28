@@ -19,6 +19,7 @@ export const CREATOR_RIGHTS_PRODUCT_NAV = {
   accountPath: "/account/rights",
   appOrigin: "https://app.veildaemon.app",
   createPath: "/rights/create",
+  registryPath: "/registry/",
   studioOverview: "/studio/creator-rights/",
 };
 
@@ -32,14 +33,15 @@ export function rightsAccountAnchorHtml(className = "nav-cta") {
 }
 
 export function rightsStaticHeaderHtml() {
-  const { accountLabel, createPath, studioOverview, appOrigin } = CREATOR_RIGHTS_PRODUCT_NAV;
+  const { accountLabel, createPath, registryPath, studioOverview, appOrigin } = CREATOR_RIGHTS_PRODUCT_NAV;
   return (
     `<header class="site-header" data-product="creator-rights">` +
-    `<a class="brand" href="${studioOverview}">` +
+    `<a class="brand" href="${registryPath}">` +
     `<img src="/studio/assets/brand/sigilforge-emblem-256.webp?v=20260724-sigilforge1" alt="SigilForge Studios">` +
     `<span><strong>SIGILFORGE</strong><small>RIGHTS</small></span></a>` +
     `<nav aria-label="Creator Rights">` +
-    `<a href="${studioOverview}">Registry</a>` +
+    `<a href="${registryPath}">Registry</a>` +
+    `<a href="${studioOverview}">Overview</a>` +
     `<a href="${appOrigin}${createPath}" target="_blank" rel="noopener noreferrer">Create</a>` +
     `<a class="nav-cta" href="${rightsAccountHref()}" target="_blank" rel="noopener noreferrer">${accountLabel}</a>` +
     `</nav></header>`

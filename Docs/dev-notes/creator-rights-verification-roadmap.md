@@ -7,20 +7,20 @@ Scope: `/creator-rights/` and VeilLink Creator Rights implementation.
 Current public surface:
 
 - Studio overview page at `/studio/creator-rights/`.
-- Rights library section at `/studio/creator-rights/#rights-library`.
+- Canonical rights registry at `/rights/`.
 - Static record pages under `/rights/<record-slug>/`.
 - Machine-readable records under `/rights/<record-slug>.json`.
 - License inquiry placeholders under `/rights/<record-slug>/license`.
 
 Near-term product-navigation work:
 
-- Keep the Data Room executive overview, Publishing, Shelf, Technology, Press, copyright/legal pages, and individual record pages linked into the rights library.
-- Keep the public library searchable by title, category, work type, availability, license, and AI-use terms.
+- Keep the Data Room executive overview, Publishing, Shelf, Technology, Press, copyright/legal pages, and individual record pages linked into the rights registry.
+- Keep the public registry searchable by title, category, work type, availability, license, and AI-use terms.
 - Add category selection to creator-owned draft creation in VeilLink before expanding public filters beyond search.
 - Preserve the distinction between publication status and availability as a first-class UI concept.
-- Promote a dedicated library route only when the card list outgrows the Studio overview page.
+- Keep `/registry/` as the remembered public route for checking records.
 
-Do not make the rights library depend on private drafts, payment metadata, owner email, or dashboard-only fields.
+Do not make the rights registry depend on private drafts, payment metadata, owner email, or dashboard-only fields.
 
 ## Claim Boundary
 

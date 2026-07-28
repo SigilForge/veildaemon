@@ -64,6 +64,12 @@
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://veildaemon.app/registry/</loc>
+    <lastmod>2026-07-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://veildaemon.app/rights/the-anchor-and-the-glitch/</loc>
     <lastmod>2026-07-27</lastmod>
     <changefreq>monthly</changefreq>
