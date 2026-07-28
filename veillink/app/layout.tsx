@@ -4,6 +4,11 @@ import { Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
 import { ProductAccountLink } from "@/components/ProductAccountLink";
 import { product } from "@/lib/config";
+import {
+  RIGHTS_PRODUCT_CREATE_LABEL,
+  RIGHTS_PRODUCT_CREATE_PATH,
+  RIGHTS_PRODUCT_REGISTRY_PATH,
+} from "@/lib/rights/product-nav";
 import { absoluteUrl, siteConfig, siteOrigin } from "@/lib/seo";
 import { getSupabaseServerClient } from "@/lib/supabase";
 
@@ -129,6 +134,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </Link>
             <nav className="nav-links" aria-label="Primary">
               <Link href="/pricing">Pricing</Link>
+              <Link href={RIGHTS_PRODUCT_REGISTRY_PATH}>Creator Rights</Link>
               {email ? (
                 <>
                   <Link href="/dashboard">Dashboard</Link>
@@ -153,14 +159,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <footer className="site-footer">
             <div className="footer-inner">
               <p className="footer-copy">
-                {product.name} is a Cradlepoint Studio utility for short links and editable QR codes. Printed QR files stay
-                yours. Dynamic redirects depend on the service remaining active.
+                {product.name} hosts dynamic QR links and Creator Rights records for SigilForge Studio. Printed QR
+                files stay yours. Public rights records stay readable.
               </p>
               <nav className="footer-links" aria-label="Footer">
                 <Link href="/pricing">Pricing</Link>
+                <Link href={RIGHTS_PRODUCT_REGISTRY_PATH}>Creator Rights</Link>
+                <Link href={RIGHTS_PRODUCT_CREATE_PATH}>{RIGHTS_PRODUCT_CREATE_LABEL}</Link>
                 <Link href="/report">Report abuse</Link>
                 <a href="https://veildaemon.app/studio/" target="_blank" rel="noopener noreferrer">
-                  Cradlepoint Studio
+                  SigilForge Studio
                 </a>
                 <a href="https://veildaemon.app/" target="_blank" rel="noopener noreferrer">
                   VeilDaemon

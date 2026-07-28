@@ -104,7 +104,7 @@ export function QrStudioPreview() {
   }, [url, fg, bg, accent, accentRate, eyeColor, art, customArtUrl, frameStyle, frameTitle, frameSubtitle, node, clearance, footer]);
 
   return (
-    <div className="panel" style={{ background: "#0b0d14", border: "1px solid #1e2433", borderRadius: "12px", padding: "1.5rem" }}>
+    <div className="panel qr-studio-sandbox" style={{ background: "#0b0d14", border: "1px solid #1e2433", borderRadius: "12px", padding: "1.5rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
           <p className="panel-kicker" style={{ color: "#38bdf8", margin: 0, textTransform: "uppercase", fontSize: "0.8rem", letterSpacing: "2px" }}>
@@ -124,7 +124,7 @@ export function QrStudioPreview() {
         </button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 400px", gap: "2rem", alignItems: "start" }}>
+      <div className="qr-studio-sandbox-grid" style={{ display: "grid", gap: "2rem", alignItems: "start" }}>
         {/* Controls Column */}
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div>
@@ -225,7 +225,7 @@ export function QrStudioPreview() {
         </div>
 
         {/* Live Preview Display Box */}
-        <aside style={{ background: "#06080e", border: "1px solid #1e2433", borderRadius: "10px", padding: "1.2rem", textAlign: "center" }}>
+        <aside className="qr-studio-preview-pane" style={{ background: "#06080e", border: "1px solid #1e2433", borderRadius: "10px", padding: "1.2rem", textAlign: "center" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem" }}>
             <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "1px" }}>
               Real-time Live Preview
