@@ -35,6 +35,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
@@ -80,6 +82,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
@@ -125,6 +129,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
@@ -170,6 +176,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
@@ -215,6 +223,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
@@ -260,6 +270,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
@@ -305,6 +317,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
@@ -350,6 +364,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
@@ -395,6 +411,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
@@ -440,6 +458,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
@@ -485,6 +505,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
@@ -530,6 +552,8 @@
       },
       "verification": {
         "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
         "methods": [],
         "evidence": []
       },
