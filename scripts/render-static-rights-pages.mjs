@@ -101,8 +101,8 @@ async function qrSvgFor(url) {
     errorCorrectionLevel: "M",
     margin: 2,
     color: {
-      dark: "#e5dac7",
-      light: "#111314",
+      dark: "#111314",
+      light: "#f6f3ed",
     },
   });
   return svg.replace(/^<\?xml[^>]*>\s*/, "");

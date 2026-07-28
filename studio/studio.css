@@ -1067,16 +1067,18 @@ footer > p {
 .rights-qr {
   width: min(100%, 16rem);
   margin: 0 auto 1rem;
-  border: 1px solid var(--line);
+  padding: .45rem;
+  border: 1px solid rgba(246, 243, 237, .24);
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background: #111314;
+  background: #f6f3ed;
 }
 
 .rights-qr svg {
   display: block;
   width: 100%;
   height: auto;
+  background: #f6f3ed;
 }
 
 .rights-qr-panel .toolbar,

@@ -1,6 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
+const sharp = require("sharp");
 
 const rightsRecords = fs.readdirSync(path.join(process.cwd(), "rights"))
   .filter((file) => file.endsWith(".json") && file !== "creator-rights-record.schema.json")
@@ -8,6 +9,24 @@ const rightsRecords = fs.readdirSync(path.join(process.cwd(), "rights"))
     const record = JSON.parse(fs.readFileSync(path.join(process.cwd(), "rights", file), "utf8"));
     return { slug: file.replace(/\.json$/, ""), title: record.title, permissionCount: Object.keys(record.permissions).length + 1 };
   });
+
+async function qrContrast(locator) {
+  const image = await locator.screenshot();
+  const { data, info } = await sharp(image).raw().toBuffer({ resolveWithObject: true });
+  let dark = 0;
+  let light = 0;
+  let min = 255;
+  let max = 0;
+  for (let i = 0; i < data.length; i += info.channels) {
+    const luminance = (data[i] * 0.2126) + (data[i + 1] * 0.7152) + (data[i + 2] * 0.0722);
+    if (luminance < 80) dark += 1;
+    if (luminance > 210) light += 1;
+    min = Math.min(min, luminance);
+    max = Math.max(max, luminance);
+  }
+  const pixels = info.width * info.height;
+  return { darkRatio: dark / pixels, lightRatio: light / pixels, contrast: max - min };
+}
 
 test("Creator Rights registry filters against structured catalog facets", async ({ page }) => {
   await page.goto("/registry/", { waitUntil: "networkidle" });
@@ -67,6 +86,10 @@ test("Creator Rights license pages expose the full record contract on mobile", a
     await expect(page.locator("main")).toContainText("Request shape");
     await expect(page.locator(".rights-qr svg")).toBeVisible();
     await expect(page.locator(".permission-row")).toHaveCount(record.permissionCount);
+    const contrast = await qrContrast(page.locator(".rights-qr"));
+    expect(contrast.darkRatio, `${record.slug} QR dark modules`).toBeGreaterThan(0.05);
+    expect(contrast.lightRatio, `${record.slug} QR light field`).toBeGreaterThan(0.15);
+    expect(contrast.contrast, `${record.slug} QR contrast`).toBeGreaterThan(140);
 
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
