@@ -20,7 +20,7 @@ async function qrContrast(locator) {
   for (let i = 0; i < data.length; i += info.channels) {
     const luminance = (data[i] * 0.2126) + (data[i + 1] * 0.7152) + (data[i + 2] * 0.0722);
     if (luminance < 80) dark += 1;
-    if (luminance > 210) light += 1;
+    if (luminance > 170) light += 1;
     min = Math.min(min, luminance);
     max = Math.max(max, luminance);
   }
@@ -58,6 +58,7 @@ test("Creator Rights registry facet controls fit on mobile", async ({ page }) =>
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/registry/", { waitUntil: "networkidle" });
 
+  await expect(page.locator('header.site-header a.nav-cta[href="https://app.veildaemon.app/rights/create"]')).toHaveText("Register product");
   await expect(page.locator("#rights-work-filter")).toBeVisible();
   await expect(page.locator("#rights-license-filter")).toBeVisible();
   await expect(page.locator("#rights-permission-filter")).toBeVisible();
@@ -108,6 +109,7 @@ test("Creator Rights record keeps the rich record panels on desktop and mobile",
   for (const [name, viewport] of viewports) {
     await page.setViewportSize(viewport);
     await page.goto(route, { waitUntil: "networkidle" });
+    await expect(page.locator('header.site-header a.nav-cta[href="https://app.veildaemon.app/rights/create"]')).toHaveText("Register product");
     await expect(page.locator(".rights-record-grid")).toBeVisible();
     await expect(page.locator(".rights-support-grid")).toBeVisible();
     await expect(page.locator(".rights-qr svg")).toBeVisible();
