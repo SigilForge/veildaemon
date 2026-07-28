@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap");
 
 /* ==========================================================================
-   Cradlepoint Studio — visual system
+   SigilForge Studios — visual system
    Charcoal / warm paper / muted rust / soft sage. Editorial, not terminal.
    ========================================================================== */
 
@@ -382,12 +382,17 @@ footer nav a:hover {
 
 /* Hero */
 .portal-hero {
-  min-height: min(78vh, 52rem);
+  min-height: min(62vh, 38rem);
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-  gap: clamp(2.5rem, 6vw, 5.5rem);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(2rem, 5vw, 4.25rem);
   align-items: center;
-  padding: clamp(4.5rem, 9vw, 7.5rem) var(--pad) clamp(3.5rem, 6vw, 5rem);
+  padding: clamp(2.5rem, 5vw, 4rem) var(--pad) clamp(2rem, 4vw, 3.25rem);
+}
+
+.portal-hero h1 {
+  margin-bottom: 1.7rem;
+  font-size: clamp(3.2rem, 5.4vw, 5rem);
 }
 
 .portal-hero-copy > p:not(.eyebrow) {
@@ -403,7 +408,7 @@ footer nav a:hover {
   display: block;
   width: min(100%, 34rem);
   height: auto;
-  margin: 0 0 clamp(1.35rem, 3vw, 2rem);
+  margin: 0 0 clamp(1rem, 2vw, 1.45rem);
   border: 1px solid rgba(146, 92, 201, 0.12);
   border-radius: 0.45rem;
   background: #000;
@@ -528,7 +533,7 @@ footer nav a:hover {
 /* Pathways */
 .pathways,
 .selected-work {
-  padding: clamp(5rem, 10vw, 8.5rem) var(--pad);
+  padding: clamp(4rem, 7vw, 6.25rem) var(--pad);
 }
 
 .pathways header,
@@ -553,10 +558,17 @@ footer nav a:hover {
   white-space: nowrap;
 }
 
+.pathways header > a {
+  color: var(--rust-soft);
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-underline-offset: 0.28rem;
+  white-space: nowrap;
+}
+
 .pathway-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.9fr 1fr;
-  grid-template-rows: auto auto auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.9rem;
   align-items: stretch;
 }
@@ -630,7 +642,7 @@ footer nav a:hover {
 .pathway h3 {
   margin: 0.45rem 0 0.4rem;
   padding: 0 1.3rem;
-  font-size: clamp(1.45rem, 2.3vw, 2.1rem);
+  font-size: clamp(1.3rem, 1.8vw, 1.72rem);
   max-width: 18ch;
 }
 
@@ -666,45 +678,7 @@ footer nav a:hover {
   filter: saturate(0.96) brightness(0.98) contrast(1.03);
 }
 
-/* Explicit placement — no tall row-spans (those forced empty voids under 16:9 art) */
-.funding-path {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.technology-path {
-  grid-column: 2 / 4;
-  grid-row: 1;
-}
-
-.publishing-path {
-  grid-column: 1;
-  grid-row: 2;
-}
-
-.projects-path {
-  grid-column: 2 / 4;
-  grid-row: 2;
-}
-
-.news-path {
-  grid-column: 1;
-  grid-row: 3;
-}
-
-.story-path {
-  grid-column: 2;
-  grid-row: 3;
-}
-
-.press-path {
-  grid-column: 3;
-  grid-row: 3;
-}
-
-.small-path {
-  min-height: 0;
-}
+/* Homepage cards are equal-weight routes; page-specific depth lives one click down. */
 
 /* Selected work */
 .selected-work {
@@ -777,7 +751,7 @@ footer nav a:hover {
   grid-template-columns: 1.1fr 0.9fr;
   gap: clamp(2rem, 5vw, 4.5rem);
   align-items: center;
-  padding: clamp(5rem, 10vw, 8rem) var(--pad);
+  padding: clamp(4rem, 7vw, 5.5rem) var(--pad);
   position: relative;
   overflow: hidden;
   background:

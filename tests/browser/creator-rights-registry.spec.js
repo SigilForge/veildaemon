@@ -59,6 +59,8 @@ test("Creator Rights registry facet controls fit on mobile", async ({ page }) =>
   await page.goto("/registry/", { waitUntil: "networkidle" });
 
   await expect(page.locator('header.site-header a.nav-cta[href="https://app.veildaemon.app/rights/create"]')).toHaveText("Register product");
+  await expect(page.locator('header.site-header a[href="https://app.veildaemon.app/account/rights"]')).toHaveCount(0);
+  await expect(page.locator('footer.site-footer a[href="https://app.veildaemon.app/account/rights"]')).toHaveText("Account");
   await expect(page.locator("#rights-work-filter")).toBeVisible();
   await expect(page.locator("#rights-license-filter")).toBeVisible();
   await expect(page.locator("#rights-permission-filter")).toBeVisible();
@@ -68,6 +70,25 @@ test("Creator Rights registry facet controls fit on mobile", async ({ page }) =>
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth
   );
   expect(overflow, "horizontal overflow").toBeLessThanOrEqual(1);
+});
+
+test("Creator Rights overview uses the lean product shell on desktop", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/studio/creator-rights/", { waitUntil: "networkidle" });
+
+  await expect(page.locator("header.site-header")).toHaveAttribute("data-product", "creator-rights");
+  await expect(page.locator("header.site-header nav a")).toHaveText([
+    "Registry",
+    "Overview",
+    "Register product",
+  ]);
+  await expect(page.locator('header.site-header a[href="https://app.veildaemon.app/account/rights"]')).toHaveCount(0);
+  await expect(page.locator("footer.site-footer")).toBeVisible();
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+  );
+  expect(overflow, "desktop horizontal overflow").toBeLessThanOrEqual(1);
 });
 
 test("Creator Rights license pages expose the full record contract on mobile", async ({ page }) => {
@@ -86,6 +107,8 @@ test("Creator Rights license pages expose the full record contract on mobile", a
     await expect(page.locator("main")).toContainText("Licensing");
     await expect(page.locator("main")).toContainText("Request shape");
     await expect(page.locator(".rights-qr svg")).toBeVisible();
+    await expect(page.locator("footer.site-footer")).toBeVisible();
+    await expect(page.locator('footer.site-footer a[href="https://app.veildaemon.app/rights/create"]')).toHaveText("Register product");
     await expect(page.locator(".permission-row")).toHaveCount(record.permissionCount);
     const contrast = await qrContrast(page.locator(".rights-qr"));
     expect(contrast.darkRatio, `${record.slug} QR dark modules`).toBeGreaterThan(0.05);
@@ -113,6 +136,7 @@ test("Creator Rights record keeps the rich record panels on desktop and mobile",
     await expect(page.locator(".rights-record-grid")).toBeVisible();
     await expect(page.locator(".rights-support-grid")).toBeVisible();
     await expect(page.locator(".rights-qr svg")).toBeVisible();
+    await expect(page.locator("footer.site-footer")).toBeVisible();
     await expect(page.locator(".permission-row")).toHaveCount(12);
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth

@@ -1,11 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import QRCode from "qrcode";
-import { rightsStaticHeaderHtml } from "./creator-rights-product-nav.mjs";
+import { rightsStaticFooterHtml, rightsStaticHeaderHtml } from "./creator-rights-product-nav.mjs";
 
 const root = process.cwd();
 const rightsDir = path.join(root, "rights");
-const styleVersion = "20260728-rights-full1";
+const styleVersion = "20260728-rights-shell1";
 const publicOrigin = "https://veildaemon.app";
 const appOrigin = "https://app.veildaemon.app";
 
@@ -239,8 +239,10 @@ function pageShell({ title, description, canonical, noindex = false, body }) {
   <link rel="stylesheet" href="/studio/studio.css?v=${styleVersion}">
 </head>
 <body class="subpage page-shell">
+  <a class="skip-link" href="#main">Skip to content</a>
   ${rightsStaticHeaderHtml()}
   ${body}
+  ${rightsStaticFooterHtml()}
 </body>
 </html>`;
 }

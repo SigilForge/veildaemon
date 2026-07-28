@@ -1,5 +1,5 @@
 /**
- * Single source of Creator Rights product Account chrome for static surfaces.
+ * Single source of Creator Rights product chrome for static surfaces.
  * Keep in sync with veillink/lib/rights/product-nav.ts
  *
  * Usage:
@@ -34,7 +34,7 @@ export function rightsAccountAnchorHtml(className = "nav-cta") {
 }
 
 export function rightsStaticHeaderHtml() {
-  const { accountLabel, createPath, registerLabel, registryPath, studioOverview, appOrigin } =
+  const { createPath, registerLabel, registryPath, studioOverview, appOrigin } =
     CREATOR_RIGHTS_PRODUCT_NAV;
   return (
     `<header class="site-header" data-product="creator-rights">` +
@@ -44,10 +44,25 @@ export function rightsStaticHeaderHtml() {
     `<nav aria-label="Creator Rights">` +
     `<a href="${registryPath}">Registry</a>` +
     `<a href="${studioOverview}">Overview</a>` +
-    `<a href="${rightsAccountHref()}" target="_blank" rel="noopener noreferrer">${accountLabel}</a>` +
     `<a class="nav-cta" href="${appOrigin}${createPath}" target="_blank" rel="noopener noreferrer">${registerLabel}</a>` +
     `</nav></header>`
   );
+}
+
+export function rightsStaticFooterHtml() {
+  const { appOrigin, createPath, registerLabel, studioOverview } = CREATOR_RIGHTS_PRODUCT_NAV;
+  return `
+  <footer class="site-footer" data-product="creator-rights">
+    <div class="footer-top">
+      <div class="footer-brand"><img src="/studio/assets/brand/sigilforge-emblem-256.webp?v=20260724-sigilforge1" alt="SigilForge Studios"><span><strong>SIGILFORGE STUDIOS</strong><small>Founder-operated creator rights registry and publishing infrastructure.</small></span></div>
+      <div class="footer-cols">
+        <nav aria-label="Creator Rights product"><strong>Creator Rights</strong><a href="/registry/">Registry</a><a href="${studioOverview}">Overview</a><a href="${appOrigin}${createPath}" target="_blank" rel="noopener noreferrer">${registerLabel}</a><a href="${rightsAccountHref()}" target="_blank" rel="noopener noreferrer">Account</a></nav>
+        <nav aria-label="Studio and legal"><strong>Studio</strong><a href="/studio/">Studio home</a><a href="/studio/shelf/">Shelf</a><a href="/studio/publishing/">Publishing</a><a href="/studio/copyright/">Copyright</a><a href="/studio/about/">Contact</a></nav>
+        <nav aria-label="Platform and code"><strong>Platform</strong><a href="/">VeilDaemon</a><a href="https://app.veildaemon.app/" target="_blank" rel="noopener noreferrer">VeilLink</a><a href="https://github.com/SigilForge/veildaemon" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer">Public wiki</a></nav>
+      </div>
+    </div>
+    <p class="footer-copy">© 2024–2026 J. Donavon Love, under the SigilForge Studios name</p>
+  </footer>`;
 }
 
 function walkRightsHtml(dir, out = []) {
@@ -69,7 +84,8 @@ function ensureStaticHeaders({ checkOnly = false } = {}) {
     let html = fs.readFileSync(file, "utf8");
     const hasProductHeader = html.includes('data-product="creator-rights"');
     const hasCurrentRegisterAction = html.includes(`>${CREATOR_RIGHTS_PRODUCT_NAV.registerLabel}</a>`);
-    if (hasProductHeader && hasCurrentRegisterAction) continue;
+    const hasLegacyTopAccount = /<header class="site-header" data-product="creator-rights">[\s\S]*?https:\/\/app\.veildaemon\.app\/account\/rights[\s\S]*?<\/header>/.test(html);
+    if (hasProductHeader && hasCurrentRegisterAction && !hasLegacyTopAccount) continue;
     missing += 1;
     if (checkOnly) continue;
     if (hasProductHeader) {
@@ -83,35 +99,39 @@ function ensureStaticHeaders({ checkOnly = false } = {}) {
   return { files: files.length, missing, updated };
 }
 
+function ensureStaticFooters({ checkOnly = false } = {}) {
+  const footer = rightsStaticFooterHtml();
+  const rightsRoot = path.join(root, "rights");
+  const files = walkRightsHtml(rightsRoot).filter((file) => file !== path.join(rightsRoot, "index.html"));
+  let missing = 0;
+  let updated = 0;
+  for (const file of files) {
+    let html = fs.readFileSync(file, "utf8");
+    const hasCurrentFooter = html.includes('<footer class="site-footer" data-product="creator-rights">');
+    if (hasCurrentFooter) continue;
+    missing += 1;
+    if (checkOnly) continue;
+    if (/<footer\b[\s\S]*?<\/footer>/.test(html)) {
+      html = html.replace(/<footer\b[\s\S]*?<\/footer>/, footer);
+    } else {
+      html = html.replace(/\n<\/body>/, `${footer}\n</body>`);
+    }
+    fs.writeFileSync(file, html);
+    updated += 1;
+  }
+  return { files: files.length, missing, updated };
+}
+
 function ensureStudioCreatorRights({ checkOnly = false } = {}) {
   const file = path.join(root, "studio/creator-rights/index.html");
   let html = fs.readFileSync(file, "utf8");
-  const accountAnchor = rightsAccountAnchorHtml();
-  const registerAnchor = `<a class="nav-cta" href="${CREATOR_RIGHTS_PRODUCT_NAV.appOrigin}${CREATOR_RIGHTS_PRODUCT_NAV.createPath}" target="_blank" rel="noopener noreferrer">${CREATOR_RIGHTS_PRODUCT_NAV.registerLabel}</a>`;
-  const hasCorrect =
-    html.includes(rightsAccountHref()) &&
-    html.includes(`>${CREATOR_RIGHTS_PRODUCT_NAV.accountLabel}</a>`) &&
-    html.includes(`>${CREATOR_RIGHTS_PRODUCT_NAV.registerLabel}</a>`);
-  if (hasCorrect && html.includes('data-product="creator-rights"')) {
+  const header = rightsStaticHeaderHtml();
+  const hasCorrect = html.includes(header);
+  if (hasCorrect) {
     return { ok: true, updated: false };
   }
   if (checkOnly) return { ok: false, updated: false };
-  // Strip old app CTAs then insert current product actions before Contact.
-  html = html.replace(
-    /<a class="nav-cta" href="https:\/\/app\.veildaemon\.app\/account(?:\/rights)?"[^>]*>[^<]*<\/a>/g,
-    ""
-  );
-  html = html.replace(
-    /<a class="nav-cta" href="https:\/\/app\.veildaemon\.app\/rights\/create"[^>]*>[^<]*<\/a>/g,
-    ""
-  );
-  html = html.replace(
-    /(<a class="nav-cta" href="(?:mailto:|\/studio\/about\/)[^"]*"[^>]*>Contact<\/a>)/,
-    `${accountAnchor}${registerAnchor}$1`
-  );
-  if (!html.includes('data-product="creator-rights"')) {
-    html = html.replace('<header class="site-header">', '<header class="site-header" data-product="creator-rights">');
-  }
+  html = html.replace(/<header class="site-header"(?: data-product="creator-rights")?>[\s\S]*?<\/header>/, header);
   fs.writeFileSync(file, html);
   return { ok: true, updated: true };
 }
@@ -122,7 +142,8 @@ function ensureRegistryHeader({ checkOnly = false } = {}) {
   const header = rightsStaticHeaderHtml();
   const hasProductHeader = html.includes('data-product="creator-rights"');
   const hasCurrentRegisterAction = html.includes(`>${CREATOR_RIGHTS_PRODUCT_NAV.registerLabel}</a>`);
-  if (hasProductHeader && hasCurrentRegisterAction) {
+  const hasLegacyTopAccount = /<header class="site-header" data-product="creator-rights">[\s\S]*?https:\/\/app\.veildaemon\.app\/account\/rights[\s\S]*?<\/header>/.test(html);
+  if (hasProductHeader && hasCurrentRegisterAction && !hasLegacyTopAccount) {
     return { ok: true, updated: false };
   }
   if (checkOnly) return { ok: false, updated: false };
@@ -135,13 +156,31 @@ function ensureRegistryHeader({ checkOnly = false } = {}) {
   return { ok: true, updated: true };
 }
 
+function ensureRegistryFooter({ checkOnly = false } = {}) {
+  const file = path.join(root, "registry/index.html");
+  let html = fs.readFileSync(file, "utf8");
+  const footer = rightsStaticFooterHtml();
+  const hasCurrentFooter = html.includes('<footer class="site-footer" data-product="creator-rights">');
+  if (hasCurrentFooter) return { ok: true, updated: false };
+  if (checkOnly) return { ok: false, updated: false };
+  if (/<footer\b[\s\S]*?<\/footer>/.test(html)) {
+    html = html.replace(/<footer\b[\s\S]*?<\/footer>/, footer);
+  } else {
+    html = html.replace(/\n<\/body>/, `${footer}\n</body>`);
+  }
+  fs.writeFileSync(file, html);
+  return { ok: true, updated: true };
+}
+
 const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
 const modulePath = fileURLToPath(import.meta.url);
 
 if (invokedPath === modulePath) {
   const checkOnly = process.argv.includes("--check");
   const staticResult = ensureStaticHeaders({ checkOnly });
+  const staticFooterResult = ensureStaticFooters({ checkOnly });
   const registryResult = ensureRegistryHeader({ checkOnly });
+  const registryFooterResult = ensureRegistryFooter({ checkOnly });
   const studioResult = ensureStudioCreatorRights({ checkOnly });
 
   console.log(
@@ -150,7 +189,9 @@ if (invokedPath === modulePath) {
         accountHref: rightsAccountHref(),
         label: CREATOR_RIGHTS_PRODUCT_NAV.accountLabel,
         static: staticResult,
+        staticFooter: staticFooterResult,
         registry: registryResult,
+        registryFooter: registryFooterResult,
         studio: studioResult,
         checkOnly,
       },
@@ -159,7 +200,14 @@ if (invokedPath === modulePath) {
     )
   );
 
-  if (checkOnly && (staticResult.missing > 0 || !registryResult.ok || !studioResult.ok)) {
+  if (
+    checkOnly &&
+    (staticResult.missing > 0 ||
+      staticFooterResult.missing > 0 ||
+      !registryResult.ok ||
+      !registryFooterResult.ok ||
+      !studioResult.ok)
+  ) {
     process.exit(1);
   }
 }
