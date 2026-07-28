@@ -419,6 +419,10 @@ footer nav a:hover {
   background: #f4f2ef;
 }
 
+.asset-card .preview.light-preview img {
+  filter: invert(1) brightness(0.86) contrast(1.08);
+}
+
 .asset-card .preview.wordmark-preview img {
   width: 100%;
   max-height: none;
@@ -1060,6 +1064,19 @@ footer > p {
 .rights-qr-panel .toolbar,
 .rights-license-intake .gate-list {
   margin-top: .75rem;
+}
+
+.rights-verification-panel {
+  display: grid;
+  gap: .75rem;
+}
+
+.rights-verification-panel .proof-row {
+  margin-top: .1rem;
+}
+
+.rights-verification-panel .rights-facts {
+  margin-top: .4rem;
 }
 
 .permission-grid {
