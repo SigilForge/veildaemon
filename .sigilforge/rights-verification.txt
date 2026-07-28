@@ -1,0 +1,3 @@
+record_id=SFR-2026-000011
+challenge=mzHlFCwASH2IrO2cTkHlFTMyBceifvdl28Qxdv9Lsvw
+canonical_url=https://veildaemon.app/rights/veildaemon
