@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const RIGHTS_SCHEMA_VERSION = "1.0";
+export const RIGHTS_SCHEMA_VERSION = "1.1";
 export const RIGHTS_PRICE_CENTS = 999;
 export const RIGHTS_DISCLAIMER =
   "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.";
@@ -79,6 +79,61 @@ export const availabilityCategories = [
   "lost",
 ] as const;
 
+export const catalogWorkTypes = [
+  "book",
+  "software",
+  "game",
+  "dataset",
+  "music",
+  "art",
+  "video",
+  "website",
+  "model",
+  "other",
+] as const;
+
+export const publisherTypes = [
+  "individual",
+  "studio",
+  "company",
+  "university",
+  "nonprofit",
+  "government",
+  "other",
+] as const;
+
+export const licensingAvailabilityValues = [
+  "unavailable",
+  "contact",
+  "open",
+  "paid_license",
+  "enterprise",
+  "exclusive",
+] as const;
+
+export const commercialReadinessValues = [
+  "inquiry_only",
+  "template_available",
+  "checkout_available",
+  "enterprise_review_required",
+] as const;
+
+export const verificationLevels = [
+  "declared",
+  "surface_verified",
+  "artifact_verified",
+  "signed",
+] as const;
+
+export const verificationMethods = [
+  "domain",
+  "github",
+  "publisher_profile",
+  "package_registry",
+  "signed_release",
+  "sha256",
+] as const;
+
 export const rightsPermissionSchema = z.enum(permissionValues);
 
 export const aiPermissionBlockSchema = z.object({
@@ -129,6 +184,12 @@ export type KnownWorkType = (typeof workTypes)[number];
 export type WorkType = KnownWorkType | (string & {});
 export type CategoryValue = (typeof categoryValues)[number];
 export type AvailabilityCategory = (typeof availabilityCategories)[number];
+export type CatalogWorkType = (typeof catalogWorkTypes)[number];
+export type PublisherType = (typeof publisherTypes)[number];
+export type LicensingAvailability = (typeof licensingAvailabilityValues)[number];
+export type CommercialReadiness = (typeof commercialReadinessValues)[number];
+export type VerificationLevel = (typeof verificationLevels)[number];
+export type VerificationMethod = (typeof verificationMethods)[number];
 export type AiPermissionBlock = z.infer<typeof aiPermissionBlockSchema>;
 export type CreatorRightsInput = z.infer<typeof creatorRightsInputSchema>;
 
@@ -258,4 +319,46 @@ export function availabilityLabel(value: AvailabilityCategory) {
     redacted: "Redacted",
     lost: "Lost",
   }[value];
+}
+
+export function catalogWorkTypeFor(workType: string): CatalogWorkType {
+  const mapped: Record<string, CatalogWorkType> = {
+    book: "book",
+    short_story: "book",
+    ttrpg: "game",
+    artwork: "art",
+    photography: "art",
+    screenplay: "book",
+    music: "music",
+    audio: "music",
+    video: "video",
+    animation: "video",
+    comic: "book",
+    software: "software",
+    game: "game",
+    website: "website",
+    dataset: "dataset",
+    "3d_model": "model",
+    map: "art",
+    asset_pack: "other",
+    document: "book",
+    research: "book",
+    course: "video",
+    other: "other",
+  };
+  return mapped[workType] || "other";
+}
+
+export function licensingAvailabilityFor(availability: AvailabilityCategory): LicensingAvailability {
+  const mapped: Record<AvailabilityCategory, LicensingAvailability> = {
+    public: "contact",
+    licensed: "paid_license",
+    scheduled: "contact",
+    restricted: "contact",
+    internal: "unavailable",
+    archive_only: "unavailable",
+    redacted: "unavailable",
+    lost: "unavailable",
+  };
+  return mapped[availability];
 }

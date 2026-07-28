@@ -1,0 +1,547 @@
+{
+  "schemaVersion": "1.0",
+  "sourceSchemaVersion": "1.1",
+  "generatedFrom": "/rights/*.json",
+  "records": [
+    {
+      "slug": "cradlepoint-field-dossier",
+      "recordId": "SFR-2026-000005",
+      "title": "CradlePoint Field Dossier",
+      "status": "published",
+      "work": {
+        "type": "book",
+        "category": "reference"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "license_required",
+        "rag": "license_required",
+        "generation": "license_required",
+        "datasetRedistribution": "prohibited",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/cradlepoint-field-dossier/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-field-dossier",
+      "jsonUrl": "/rights/cradlepoint-field-dossier.json"
+    },
+    {
+      "slug": "cradlepoint-handler-core",
+      "recordId": "SFR-2026-000004",
+      "title": "CradlePoint Handler Core",
+      "status": "published",
+      "work": {
+        "type": "game",
+        "category": "tabletop"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "license_required",
+        "rag": "license_required",
+        "generation": "license_required",
+        "datasetRedistribution": "prohibited",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/cradlepoint-handler-core/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-handler-core",
+      "jsonUrl": "/rights/cradlepoint-handler-core.json"
+    },
+    {
+      "slug": "cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus",
+      "recordId": "SFR-2026-000006",
+      "title": "CradlePoint Handler Expansion: Myth-Tech and the Epic Lotus",
+      "status": "published",
+      "work": {
+        "type": "game",
+        "category": "tabletop"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "license_required",
+        "rag": "license_required",
+        "generation": "license_required",
+        "datasetRedistribution": "prohibited",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus",
+      "jsonUrl": "/rights/cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus.json"
+    },
+    {
+      "slug": "cradlepoint-handler-guide",
+      "recordId": "SFR-2026-000007",
+      "title": "CradlePoint Handler Guide",
+      "status": "published",
+      "work": {
+        "type": "book",
+        "category": "tabletop"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "license_required",
+        "rag": "license_required",
+        "generation": "license_required",
+        "datasetRedistribution": "prohibited",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/cradlepoint-handler-guide/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-handler-guide",
+      "jsonUrl": "/rights/cradlepoint-handler-guide.json"
+    },
+    {
+      "slug": "cradlepoint-monster-manual",
+      "recordId": "SFR-2026-000008",
+      "title": "CradlePoint Monster Manual",
+      "status": "published",
+      "work": {
+        "type": "game",
+        "category": "tabletop"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "license_required",
+        "rag": "license_required",
+        "generation": "license_required",
+        "datasetRedistribution": "prohibited",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/cradlepoint-monster-manual/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-monster-manual",
+      "jsonUrl": "/rights/cradlepoint-monster-manual.json"
+    },
+    {
+      "slug": "cradlepoint-operator-core",
+      "recordId": "SFR-2026-000003",
+      "title": "CradlePoint Operator Core",
+      "status": "published",
+      "work": {
+        "type": "game",
+        "category": "tabletop"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "allowed",
+        "rag": "license_required",
+        "generation": "license_required",
+        "datasetRedistribution": "prohibited",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/cradlepoint-operator-core/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-operator-core",
+      "jsonUrl": "/rights/cradlepoint-operator-core.json"
+    },
+    {
+      "slug": "cradlepoint-operator-guide",
+      "recordId": "SFR-2026-000009",
+      "title": "CradlePoint Operator Guide",
+      "status": "published",
+      "work": {
+        "type": "book",
+        "category": "tabletop"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "license_required",
+        "rag": "license_required",
+        "generation": "license_required",
+        "datasetRedistribution": "prohibited",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/cradlepoint-operator-guide/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-operator-guide",
+      "jsonUrl": "/rights/cradlepoint-operator-guide.json"
+    },
+    {
+      "slug": "cradlepoint-systems-metaphysics",
+      "recordId": "SFR-2026-000010",
+      "title": "CradlePoint Systems Metaphysics",
+      "status": "published",
+      "work": {
+        "type": "book",
+        "category": "internal"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "license_required",
+        "rag": "license_required",
+        "generation": "license_required",
+        "datasetRedistribution": "prohibited",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/cradlepoint-systems-metaphysics/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-systems-metaphysics",
+      "jsonUrl": "/rights/cradlepoint-systems-metaphysics.json"
+    },
+    {
+      "slug": "sanguine-sacrament",
+      "recordId": "SFR-2026-000002",
+      "title": "Sanguine Sacrament",
+      "status": "published",
+      "work": {
+        "type": "game",
+        "category": "tabletop"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "license_required",
+        "rag": "license_required",
+        "generation": "license_required",
+        "datasetRedistribution": "prohibited",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/sanguine-sacrament/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/sanguine-sacrament",
+      "jsonUrl": "/rights/sanguine-sacrament.json"
+    },
+    {
+      "slug": "the-anchor-and-the-glitch",
+      "recordId": "SFR-2026-000001",
+      "title": "The Anchor and the Glitch",
+      "status": "published",
+      "work": {
+        "type": "book",
+        "category": "fiction"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "license_required",
+        "rag": "license_required",
+        "generation": "license_required",
+        "datasetRedistribution": "prohibited",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/the-anchor-and-the-glitch/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/the-anchor-and-the-glitch",
+      "jsonUrl": "/rights/the-anchor-and-the-glitch.json"
+    },
+    {
+      "slug": "veildaemon",
+      "recordId": "SFR-2026-000011",
+      "title": "VeilDaemon",
+      "status": "published",
+      "work": {
+        "type": "software",
+        "category": "software"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "license_required",
+        "rag": "license_required",
+        "generation": "license_required",
+        "datasetRedistribution": "prohibited",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/veildaemon/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/veildaemon",
+      "jsonUrl": "/rights/veildaemon.json"
+    },
+    {
+      "slug": "veilforge",
+      "recordId": "SFR-2026-000012",
+      "title": "VeilForge",
+      "status": "published",
+      "work": {
+        "type": "software",
+        "category": "software"
+      },
+      "publisher": {
+        "type": "studio"
+      },
+      "permissions": {
+        "generalTraining": "license_required",
+        "foundationModelPretraining": "license_required",
+        "fineTuning": "prohibited",
+        "embeddings": "allowed",
+        "rag": "allowed",
+        "generation": "license_required",
+        "datasetRedistribution": "license_required",
+        "researchUse": "research_only",
+        "commercialUse": "license_required",
+        "attributionRequired": "license_required",
+        "licenseRequired": "license_required"
+      },
+      "licensing": {
+        "availability": "paid_license",
+        "commercialReadiness": "inquiry_only",
+        "contactUrl": "/rights/veilforge/license"
+      },
+      "verification": {
+        "level": "declared",
+        "methods": [],
+        "evidence": []
+      },
+      "technicalArtifacts": {
+        "jsonAvailable": true,
+        "canonicalUrl": true,
+        "sha256Available": false,
+        "signatureAvailable": false,
+        "versionHistoryAvailable": true
+      },
+      "publicRecordUrl": "https://veildaemon.app/rights/veilforge",
+      "jsonUrl": "/rights/veilforge.json"
+    }
+  ]
+}

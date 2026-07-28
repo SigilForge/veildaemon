@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://veildaemon.app/rights/creator-rights-record.schema.json",
+  "title": "Creator Rights Record",
+  "description": "Machine-readable public declaration, catalog, permission, licensing, verification, and artifact metadata for a Creator Rights Record. Verification levels document declaration, publication-surface control, artifact matching, or cryptographic signing; none independently proves legal ownership.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "recordType",
+    "schemaVersion",
+    "recordId",
+    "status",
+    "work",
+    "publisher",
+    "permissions",
+    "licensing",
+    "verification",
+    "technicalArtifacts",
+    "title",
+    "rightsHolder",
+    "publicRecordUrl",
+    "disclaimer"
+  ],
+  "properties": {
+    "recordType": { "const": "CreatorRightsRecord" },
+    "schemaVersion": { "const": "1.1" },
+    "recordId": { "type": ["string", "null"] },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "pending_payment", "paid", "published", "updated", "transferred", "disputed", "under_review", "withdrawn", "archived"]
+    },
+    "workType": { "type": "string" },
+    "category": { "type": "string" },
+    "availability": { "type": "string" },
+    "work": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "category"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["book", "software", "game", "dataset", "music", "art", "video", "website", "model", "other"]
+        },
+        "category": {
+          "type": "string",
+          "enum": ["fiction", "tabletop", "publishing", "technical", "software", "legal", "research", "marketing", "reference", "canon", "internal", "other"]
+        }
+      }
+    },
+    "publisher": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["individual", "studio", "company", "university", "nonprofit", "government", "other"]
+        }
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generalTraining",
+        "foundationModelPretraining",
+        "fineTuning",
+        "embeddings",
+        "rag",
+        "generation",
+        "datasetRedistribution",
+        "researchUse",
+        "commercialUse",
+        "attributionRequired",
+        "licenseRequired"
+      ],
+      "properties": {
+        "generalTraining": { "$ref": "#/$defs/permissionValue" },
+        "foundationModelPretraining": { "$ref": "#/$defs/permissionValue" },
+        "fineTuning": { "$ref": "#/$defs/permissionValue" },
+        "embeddings": { "$ref": "#/$defs/permissionValue" },
+        "rag": { "$ref": "#/$defs/permissionValue" },
+        "generation": { "$ref": "#/$defs/permissionValue" },
+        "datasetRedistribution": { "$ref": "#/$defs/permissionValue" },
+        "researchUse": { "$ref": "#/$defs/permissionValue" },
+        "commercialUse": { "$ref": "#/$defs/permissionValue" },
+        "attributionRequired": { "$ref": "#/$defs/permissionValue" },
+        "licenseRequired": { "$ref": "#/$defs/permissionValue" }
+      }
+    },
+    "licensing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["availability", "commercialReadiness", "contactUrl"],
+      "properties": {
+        "availability": {
+          "type": "string",
+          "enum": ["unavailable", "contact", "open", "paid_license", "enterprise", "exclusive"]
+        },
+        "commercialReadiness": {
+          "type": "string",
+          "enum": ["inquiry_only", "template_available", "checkout_available", "enterprise_review_required"]
+        },
+        "contactUrl": { "type": "string" }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "methods", "evidence"],
+      "properties": {
+        "level": {
+          "description": "declared means the account published the claim. surface_verified means the account demonstrated control of a referenced publication surface. artifact_verified means the supplied artifact matches the recorded fingerprint. signed means the record or artifact was cryptographically signed. None independently proves legal ownership.",
+          "type": "string",
+          "enum": ["declared", "surface_verified", "artifact_verified", "signed"]
+        },
+        "methods": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["domain", "github", "publisher_profile", "package_registry", "signed_release", "sha256"]
+          },
+          "uniqueItems": true
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      }
+    },
+    "technicalArtifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["jsonAvailable", "canonicalUrl", "sha256Available", "signatureAvailable", "versionHistoryAvailable"],
+      "properties": {
+        "jsonAvailable": { "type": "boolean" },
+        "canonicalUrl": { "type": "boolean" },
+        "sha256Available": { "type": "boolean" },
+        "signatureAvailable": { "type": "boolean" },
+        "versionHistoryAvailable": { "type": "boolean" }
+      }
+    },
+    "title": { "type": "string" },
+    "creator": { "type": "string" },
+    "rightsHolder": { "type": "string" },
+    "recordedAt": { "type": "string" },
+    "publicationDate": { "type": ["string", "null"] },
+    "workVersion": { "type": ["string", "null"] },
+    "copyrightNotice": { "type": ["string", "null"] },
+    "permissionsSummary": { "type": "string" },
+    "licenseContact": { "type": "string" },
+    "publicRecordUrl": { "type": "string" },
+    "fileFingerprint": {
+      "type": ["object", "null"],
+      "properties": {
+        "algorithm": { "const": "SHA-256" },
+        "value": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
+        "filename": { "type": ["string", "null"] },
+        "fileSize": { "type": ["number", "null"] },
+        "mimeType": { "type": ["string", "null"] },
+        "createdAt": { "type": ["string", "null"] }
+      }
+    },
+    "disclaimer": { "type": "string" }
+  },
+  "$defs": {
+    "permissionValue": {
+      "type": "string",
+      "enum": ["allowed", "prohibited", "license_required", "research_only", "case_by_case", "custom_terms", "not_specified"]
+    }
+  }
+}

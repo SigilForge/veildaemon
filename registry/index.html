@@ -28,7 +28,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/studio/assets/brand/favicon-32x32.png">
   <link rel="apple-touch-icon" href="/studio/assets/brand/apple-touch-icon.png">
   <link rel="stylesheet" href="/studio/studio.css?v=20260727-sigil1">
-  <script defer src="/registry/registry.js?v=20260728-search1"></script>
+  <script defer src="/registry/registry.js?v=20260728-filters1"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body class="subpage page-shell">
@@ -55,21 +55,71 @@
           <span>Search records</span>
           <input id="rights-record-search" type="search" name="q" autocomplete="off" placeholder="Search title, category, availability, license, or AI terms" data-rights-search>
         </label>
+        <label for="rights-work-filter">
+          <span>Work</span>
+          <select id="rights-work-filter" data-rights-filter="work.type">
+            <option value="">All works</option>
+            <option value="book">Book</option>
+            <option value="software">Software</option>
+            <option value="game">Game</option>
+            <option value="dataset">Dataset</option>
+            <option value="music">Music</option>
+            <option value="art">Art</option>
+            <option value="video">Video</option>
+            <option value="website">Website</option>
+            <option value="model">Model</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label for="rights-license-filter">
+          <span>License</span>
+          <select id="rights-license-filter" data-rights-filter="licensing.availability">
+            <option value="">All licensing</option>
+            <option value="unavailable">Unavailable</option>
+            <option value="contact">Contact</option>
+            <option value="open">Open</option>
+            <option value="paid_license">Paid license</option>
+            <option value="enterprise">Enterprise</option>
+            <option value="exclusive">Exclusive</option>
+          </select>
+        </label>
+        <label for="rights-permission-filter">
+          <span>AI Permission</span>
+          <select id="rights-permission-filter" data-rights-permission-filter>
+            <option value="">All permissions</option>
+            <option value="rag:allowed">RAG allowed</option>
+            <option value="rag:license_required">RAG license required</option>
+            <option value="embeddings:allowed">Embeddings allowed</option>
+            <option value="embeddings:license_required">Embeddings license required</option>
+            <option value="fineTuning:prohibited">Fine-tuning prohibited</option>
+            <option value="commercialUse:license_required">Commercial license required</option>
+          </select>
+        </label>
+        <label for="rights-verification-filter">
+          <span>Verification</span>
+          <select id="rights-verification-filter" data-rights-filter="verification.level">
+            <option value="">All verification</option>
+            <option value="declared">Declared</option>
+            <option value="surface_verified">Surface verified</option>
+            <option value="artifact_verified">Artifact verified</option>
+            <option value="signed">Signed</option>
+          </select>
+        </label>
         <p class="rights-library-count" aria-live="polite" data-rights-summary>Showing all records.</p>
       </div>
       <div class="gate-list rights-record-grid">
-        <article data-rights-card><h3>The Anchor and the Glitch</h3><p><span class="status-pill shipping">Published · Licensed</span></p><p class="muted">Book · Fiction</p><p>Book One direct digital edition and associated publication record.</p><p><a href="/rights/the-anchor-and-the-glitch/">View record</a> · <a href="/rights/the-anchor-and-the-glitch.json">JSON metadata</a></p></article>
-        <article data-rights-card><h3>CradlePoint Operator Core</h3><p><span class="status-pill shipping">Published · Licensed Pack</span></p><p class="muted">TTRPG · Tabletop</p><p>Player PDF pack with the rules, identity structure, and table-facing material an Operator needs for CradlePoint play.</p><p><a href="/rights/cradlepoint-operator-core/">View record</a> · <a href="/rights/cradlepoint-operator-core.json">JSON metadata</a></p></article>
-        <article data-rights-card><h3>CradlePoint Handler Core</h3><p><span class="status-pill shipping">Published · Licensed Pack</span></p><p class="muted">TTRPG · Tabletop</p><p>Handler PDF pack for running sessions, clocks, consequences, cases, and table procedures.</p><p><a href="/rights/cradlepoint-handler-core/">View record</a> · <a href="/rights/cradlepoint-handler-core.json">JSON metadata</a></p></article>
-        <article data-rights-card><h3>CradlePoint Field Dossier</h3><p><span class="status-pill shipping">Published · Licensed</span></p><p class="muted">Document · Reference</p><p>Field reference and dossier text for tabletop orientation, setting procedure, and evidence-style play.</p><p><a href="/rights/cradlepoint-field-dossier/">View record</a> · <a href="/rights/cradlepoint-field-dossier.json">JSON metadata</a></p></article>
-        <article data-rights-card><h3>CradlePoint Handler Guide</h3><p><span class="status-pill shipping">Published · Licensed</span></p><p class="muted">Document · Tabletop</p><p>Facilitator-facing guide for Handler procedures, scene pressure, cases, consequences, and campaign operation.</p><p><a href="/rights/cradlepoint-handler-guide/">View record</a> · <a href="/rights/cradlepoint-handler-guide.json">JSON metadata</a></p></article>
-        <article data-rights-card><h3>CradlePoint Operator Guide</h3><p><span class="status-pill shipping">Published · Licensed</span></p><p class="muted">Document · Tabletop</p><p>Player-facing guide for Operator creation, advancement, presentations, field procedure, and table play.</p><p><a href="/rights/cradlepoint-operator-guide/">View record</a> · <a href="/rights/cradlepoint-operator-guide.json">JSON metadata</a></p></article>
-        <article data-rights-card><h3>VeilDaemon</h3><p><span class="status-pill planning">Published · Restricted Software</span></p><p class="muted">Software · Software</p><p>Production SaaS and public platform software operated by SigilForge Studios. First-live month recorded as June 2025.</p><p><a href="/rights/veildaemon/">View record</a> · <a href="/rights/veildaemon.json">JSON metadata</a></p></article>
-        <article data-rights-card><h3>VeilForge</h3><p><span class="status-pill live">Published · MPL 2.0</span></p><p class="muted">Software · Software</p><p>Local-first AI runtime and orchestration engine for governed automation, safety gates, and traceable execution.</p><p><a href="/rights/veilforge/">View record</a> · <a href="/rights/veilforge.json">JSON metadata</a></p></article>
-        <article data-rights-card><h3>Sanguine Sacrament</h3><p><span class="status-pill future">Recorded · Scheduled</span></p><p class="muted">TTRPG · Tabletop</p><p>NeedlePoint case record for a future public release. Work access is not currently available from the public shelf.</p><p><a href="/rights/sanguine-sacrament/">View record</a> · <a href="/rights/sanguine-sacrament.json">JSON metadata</a></p></article>
-        <article data-rights-card><h3>CradlePoint Monster Manual</h3><p><span class="status-pill future">Recorded · Future Release</span></p><p class="muted">TTRPG · Tabletop</p><p>Creature, anomaly, and opposition reference reserved for a later release. Public access is not currently available.</p><p><a href="/rights/cradlepoint-monster-manual/">View record</a> · <a href="/rights/cradlepoint-monster-manual.json">JSON metadata</a></p></article>
-        <article data-rights-card><h3>CradlePoint Handler Expansion: Myth-Tech and the Epic Lotus</h3><p><span class="status-pill future">Recorded · Future Release</span></p><p class="muted">TTRPG · Tabletop</p><p>Handler expansion covering myth-tech procedures, the Epic Lotus, and advanced table material. Public release is not active.</p><p><a href="/rights/cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus/">View record</a> · <a href="/rights/cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus.json">JSON metadata</a></p></article>
-        <article data-rights-card><h3>CradlePoint Systems Metaphysics</h3><p><span class="status-pill planning">Published · Restricted Archive</span></p><p class="muted">Document · Internal</p><p>Internal ontological reference used for senior Handler and setting architecture work. Public access is unavailable.</p><p><a href="/rights/cradlepoint-systems-metaphysics/">View record</a> · <a href="/rights/cradlepoint-systems-metaphysics.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="the-anchor-and-the-glitch"><h3>The Anchor and the Glitch</h3><p><span class="status-pill shipping">Published · Licensed</span></p><p class="muted">Book · Fiction</p><p>Book One direct digital edition and associated publication record.</p><p><a href="/rights/the-anchor-and-the-glitch/">View record</a> · <a href="/rights/the-anchor-and-the-glitch.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="cradlepoint-operator-core"><h3>CradlePoint Operator Core</h3><p><span class="status-pill shipping">Published · Licensed Pack</span></p><p class="muted">TTRPG · Tabletop</p><p>Player PDF pack with the rules, identity structure, and table-facing material an Operator needs for CradlePoint play.</p><p><a href="/rights/cradlepoint-operator-core/">View record</a> · <a href="/rights/cradlepoint-operator-core.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="cradlepoint-handler-core"><h3>CradlePoint Handler Core</h3><p><span class="status-pill shipping">Published · Licensed Pack</span></p><p class="muted">TTRPG · Tabletop</p><p>Handler PDF pack for running sessions, clocks, consequences, cases, and table procedures.</p><p><a href="/rights/cradlepoint-handler-core/">View record</a> · <a href="/rights/cradlepoint-handler-core.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="cradlepoint-field-dossier"><h3>CradlePoint Field Dossier</h3><p><span class="status-pill shipping">Published · Licensed</span></p><p class="muted">Document · Reference</p><p>Field reference and dossier text for tabletop orientation, setting procedure, and evidence-style play.</p><p><a href="/rights/cradlepoint-field-dossier/">View record</a> · <a href="/rights/cradlepoint-field-dossier.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="cradlepoint-handler-guide"><h3>CradlePoint Handler Guide</h3><p><span class="status-pill shipping">Published · Licensed</span></p><p class="muted">Document · Tabletop</p><p>Facilitator-facing guide for Handler procedures, scene pressure, cases, consequences, and campaign operation.</p><p><a href="/rights/cradlepoint-handler-guide/">View record</a> · <a href="/rights/cradlepoint-handler-guide.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="cradlepoint-operator-guide"><h3>CradlePoint Operator Guide</h3><p><span class="status-pill shipping">Published · Licensed</span></p><p class="muted">Document · Tabletop</p><p>Player-facing guide for Operator creation, advancement, presentations, field procedure, and table play.</p><p><a href="/rights/cradlepoint-operator-guide/">View record</a> · <a href="/rights/cradlepoint-operator-guide.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="veildaemon"><h3>VeilDaemon</h3><p><span class="status-pill planning">Published · Restricted Software</span></p><p class="muted">Software · Software</p><p>Production SaaS and public platform software operated by SigilForge Studios. First-live month recorded as June 2025.</p><p><a href="/rights/veildaemon/">View record</a> · <a href="/rights/veildaemon.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="veilforge"><h3>VeilForge</h3><p><span class="status-pill live">Published · MPL 2.0</span></p><p class="muted">Software · Software</p><p>Local-first AI runtime and orchestration engine for governed automation, safety gates, and traceable execution.</p><p><a href="/rights/veilforge/">View record</a> · <a href="/rights/veilforge.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="sanguine-sacrament"><h3>Sanguine Sacrament</h3><p><span class="status-pill future">Recorded · Scheduled</span></p><p class="muted">TTRPG · Tabletop</p><p>NeedlePoint case record for a future public release. Work access is not currently available from the public shelf.</p><p><a href="/rights/sanguine-sacrament/">View record</a> · <a href="/rights/sanguine-sacrament.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="cradlepoint-monster-manual"><h3>CradlePoint Monster Manual</h3><p><span class="status-pill future">Recorded · Future Release</span></p><p class="muted">TTRPG · Tabletop</p><p>Creature, anomaly, and opposition reference reserved for a later release. Public access is not currently available.</p><p><a href="/rights/cradlepoint-monster-manual/">View record</a> · <a href="/rights/cradlepoint-monster-manual.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus"><h3>CradlePoint Handler Expansion: Myth-Tech and the Epic Lotus</h3><p><span class="status-pill future">Recorded · Future Release</span></p><p class="muted">TTRPG · Tabletop</p><p>Handler expansion covering myth-tech procedures, the Epic Lotus, and advanced table material. Public release is not active.</p><p><a href="/rights/cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus/">View record</a> · <a href="/rights/cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus.json">JSON metadata</a></p></article>
+        <article data-rights-card data-rights-slug="cradlepoint-systems-metaphysics"><h3>CradlePoint Systems Metaphysics</h3><p><span class="status-pill planning">Published · Restricted Archive</span></p><p class="muted">Document · Internal</p><p>Internal ontological reference used for senior Handler and setting architecture work. Public access is unavailable.</p><p><a href="/rights/cradlepoint-systems-metaphysics/">View record</a> · <a href="/rights/cradlepoint-systems-metaphysics.json">JSON metadata</a></p></article>
       </div>
     </section>
   </main>

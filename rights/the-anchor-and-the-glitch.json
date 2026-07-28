@@ -1,6 +1,6 @@
 {
   "recordType": "CreatorRightsRecord",
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "recordId": "SFR-2026-000001",
   "status": "published",
   "workType": "book",
@@ -9,6 +9,13 @@
   "categoryLabel": "Fiction",
   "availability": "licensed",
   "availabilityLabel": "Licensed",
+  "work": {
+    "type": "book",
+    "category": "fiction"
+  },
+  "publisher": {
+    "type": "studio"
+  },
   "title": "The Anchor and the Glitch",
   "creator": "S. KAELËN VALE",
   "rightsHolder": "SigilForge Studios",
@@ -30,6 +37,23 @@
     "licenseRequired": "license_required"
   },
   "permissionsSummary": "This work may not be used for fine-tuning or dataset redistribution without a separate written license. Model training, retrieval use, and commercial use require written permission.",
+  "licensing": {
+    "availability": "paid_license",
+    "commercialReadiness": "inquiry_only",
+    "contactUrl": "/rights/the-anchor-and-the-glitch/license"
+  },
+  "verification": {
+    "level": "declared",
+    "methods": [],
+    "evidence": []
+  },
+  "technicalArtifacts": {
+    "jsonAvailable": true,
+    "canonicalUrl": true,
+    "sha256Available": false,
+    "signatureAvailable": false,
+    "versionHistoryAvailable": true
+  },
   "licenseContact": "/rights/the-anchor-and-the-glitch/license",
   "publicRecordUrl": "https://veildaemon.app/rights/the-anchor-and-the-glitch",
   "fileFingerprint": null,

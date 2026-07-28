@@ -1,6 +1,6 @@
 {
   "recordType": "CreatorRightsRecord",
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "recordId": "SFR-2026-000002",
   "status": "published",
   "workType": "ttrpg",
@@ -9,6 +9,13 @@
   "categoryLabel": "Tabletop",
   "availability": "scheduled",
   "availabilityLabel": "Scheduled",
+  "work": {
+    "type": "game",
+    "category": "tabletop"
+  },
+  "publisher": {
+    "type": "studio"
+  },
   "title": "Sanguine Sacrament",
   "creator": "S. KAELËN VALE",
   "rightsHolder": "SigilForge Studios",
@@ -30,6 +37,23 @@
     "licenseRequired": "license_required"
   },
   "permissionsSummary": "This work may not be used for fine-tuning or dataset redistribution without a separate written license. Commercial AI use requires written permission.",
+  "licensing": {
+    "availability": "paid_license",
+    "commercialReadiness": "inquiry_only",
+    "contactUrl": "/rights/sanguine-sacrament/license"
+  },
+  "verification": {
+    "level": "declared",
+    "methods": [],
+    "evidence": []
+  },
+  "technicalArtifacts": {
+    "jsonAvailable": true,
+    "canonicalUrl": true,
+    "sha256Available": false,
+    "signatureAvailable": false,
+    "versionHistoryAvailable": true
+  },
   "licenseContact": "/rights/sanguine-sacrament/license",
   "publicRecordUrl": "https://veildaemon.app/rights/sanguine-sacrament",
   "fileFingerprint": null,

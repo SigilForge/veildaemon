@@ -7,8 +7,10 @@ import {
   RIGHTS_PRICE_CENTS,
   creatorRightsInputSchema,
   availabilityLabel,
+  catalogWorkTypeFor,
   categoryOrDefault,
   categoryLabel,
+  licensingAvailabilityFor,
   permissionLabel,
   workTypeLabel,
   type AiPermissionBlock,
@@ -16,6 +18,7 @@ import {
   type CategoryValue,
   type CreatorRightsInput,
   type CreatorRightsRecord,
+  type LicensingAvailability,
 } from "./schema";
 import { isPublicRightsStatus } from "./lifecycle";
 import { canEditRightsRecord, canGenerateRightsQrAssets } from "./entitlement";
@@ -442,6 +445,13 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
 ];
 
 export function rightsJson(record: CreatorRightsRecord) {
+  const hasFingerprint = Boolean(record.sha256_hash);
+  const licenseContact = `/rights/${record.slug}/license`;
+  const canonicalUrl = recordUrl(record.slug);
+  const licensingAvailability: LicensingAvailability = record.rights_holder_name === "SigilForge Studios"
+    ? "paid_license"
+    : licensingAvailabilityFor(record.availability);
+
   return {
     recordType: "CreatorRightsRecord",
     schemaVersion: RIGHTS_SCHEMA_VERSION,
@@ -453,6 +463,13 @@ export function rightsJson(record: CreatorRightsRecord) {
     categoryLabel: categoryLabel(categoryOrDefault(record.category)),
     availability: record.availability,
     availabilityLabel: availabilityLabel(record.availability),
+    work: {
+      type: catalogWorkTypeFor(record.work_type),
+      category: categoryOrDefault(record.category),
+    },
+    publisher: {
+      type: record.rights_holder_name === "SigilForge Studios" ? "studio" : "individual",
+    },
     title: record.title,
     creator: record.public_display_name || record.creator_name,
     rightsHolder: record.rights_holder_name,
@@ -462,8 +479,25 @@ export function rightsJson(record: CreatorRightsRecord) {
     copyrightNotice: record.copyright_notice,
     permissions: record.ai_permissions,
     permissionsSummary: record.ai_permissions_summary,
-    licenseContact: `/rights/${record.slug}/license`,
-    publicRecordUrl: recordUrl(record.slug),
+    licensing: {
+      availability: licensingAvailability,
+      commercialReadiness: "inquiry_only",
+      contactUrl: licenseContact,
+    },
+    verification: {
+      level: hasFingerprint ? "artifact_verified" : "declared",
+      methods: hasFingerprint ? ["sha256"] : [],
+      evidence: [],
+    },
+    technicalArtifacts: {
+      jsonAvailable: true,
+      canonicalUrl: true,
+      sha256Available: hasFingerprint,
+      signatureAvailable: false,
+      versionHistoryAvailable: true,
+    },
+    licenseContact,
+    publicRecordUrl: canonicalUrl,
     fileFingerprint: record.sha256_hash
       ? {
           algorithm: "SHA-256",

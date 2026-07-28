@@ -1,6 +1,6 @@
 {
   "recordType": "CreatorRightsRecord",
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "recordId": "SFR-2026-000005",
   "status": "published",
   "workType": "document",
@@ -9,6 +9,13 @@
   "categoryLabel": "Reference",
   "availability": "licensed",
   "availabilityLabel": "Licensed",
+  "work": {
+    "type": "book",
+    "category": "reference"
+  },
+  "publisher": {
+    "type": "studio"
+  },
   "title": "CradlePoint Field Dossier",
   "creator": "S. KAELËN VALE",
   "rightsHolder": "SigilForge Studios",
@@ -30,6 +37,23 @@
     "licenseRequired": "license_required"
   },
   "permissionsSummary": "This work may not be used for model training, fine-tuning, or dataset redistribution without a separate written license. Retrieval use, generation, and commercial use require written permission.",
+  "licensing": {
+    "availability": "paid_license",
+    "commercialReadiness": "inquiry_only",
+    "contactUrl": "/rights/cradlepoint-field-dossier/license"
+  },
+  "verification": {
+    "level": "declared",
+    "methods": [],
+    "evidence": []
+  },
+  "technicalArtifacts": {
+    "jsonAvailable": true,
+    "canonicalUrl": true,
+    "sha256Available": false,
+    "signatureAvailable": false,
+    "versionHistoryAvailable": true
+  },
   "licenseContact": "/rights/cradlepoint-field-dossier/license",
   "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-field-dossier",
   "fileFingerprint": null,

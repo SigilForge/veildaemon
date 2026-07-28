@@ -1,6 +1,6 @@
 {
   "recordType": "CreatorRightsRecord",
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "recordId": "SFR-2026-000012",
   "status": "published",
   "workType": "software",
@@ -9,6 +9,13 @@
   "categoryLabel": "Software",
   "availability": "public",
   "availabilityLabel": "Public",
+  "work": {
+    "type": "software",
+    "category": "software"
+  },
+  "publisher": {
+    "type": "studio"
+  },
   "title": "VeilForge",
   "creator": "SigilForge Studios",
   "rightsHolder": "SigilForge Studios",
@@ -30,6 +37,23 @@
     "licenseRequired": "license_required"
   },
   "permissionsSummary": "VeilForge source covered by MPL 2.0 may be used under that license. Model training, fine-tuning, dataset redistribution, hosted cloning, enterprise deployment, trademark use, and commercial AI use should be reviewed against MPL 2.0, file-specific notices, and any separately published product terms.",
+  "licensing": {
+    "availability": "paid_license",
+    "commercialReadiness": "inquiry_only",
+    "contactUrl": "/rights/veilforge/license"
+  },
+  "verification": {
+    "level": "declared",
+    "methods": [],
+    "evidence": []
+  },
+  "technicalArtifacts": {
+    "jsonAvailable": true,
+    "canonicalUrl": true,
+    "sha256Available": false,
+    "signatureAvailable": false,
+    "versionHistoryAvailable": true
+  },
   "licenseContact": "/rights/veilforge/license",
   "publicRecordUrl": "https://veildaemon.app/rights/veilforge",
   "fileFingerprint": null,

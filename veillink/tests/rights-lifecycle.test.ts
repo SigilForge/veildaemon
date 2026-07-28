@@ -203,6 +203,7 @@ describe("Creator Rights lifecycle", () => {
     expect(serialized).not.toContain("payment_status");
     expect(json).toMatchObject({
       recordType: "CreatorRightsRecord",
+      schemaVersion: "1.1",
       recordId: "SFR-2026-000001",
       workType: "book",
       workTypeLabel: "Book",
@@ -210,6 +211,30 @@ describe("Creator Rights lifecycle", () => {
       categoryLabel: "Fiction",
       availability: "public",
       availabilityLabel: "Public",
+      work: {
+        type: "book",
+        category: "fiction",
+      },
+      publisher: {
+        type: "individual",
+      },
+      licensing: {
+        availability: "contact",
+        commercialReadiness: "inquiry_only",
+        contactUrl: "/rights/test-record/license",
+      },
+      verification: {
+        level: "declared",
+        methods: [],
+        evidence: [],
+      },
+      technicalArtifacts: {
+        jsonAvailable: true,
+        canonicalUrl: true,
+        sha256Available: false,
+        signatureAvailable: false,
+        versionHistoryAvailable: true,
+      },
       licenseContact: "/rights/test-record/license",
     });
   });

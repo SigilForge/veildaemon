@@ -22,6 +22,33 @@ Near-term product-navigation work:
 
 Do not make the rights registry depend on private drafts, payment metadata, owner email, or dashboard-only fields.
 
+## Catalog Contract Roadmap
+
+Architectural hinge: the UI can stay simple while the schema becomes explicit. Public record pages establish trust; structured catalog fields create discovery utility; licensing workflow creates revenue.
+
+Current baseline:
+
+- Public records publish `/rights/<slug>.json` and dynamic VeilLink records publish `/rights/<slug>/record.json`.
+- `schemaVersion: "1.1"` keeps legacy display fields while adding controlled catalog facets.
+- The public JSON Schema lives at `/rights/creator-rights-record.schema.json`.
+- Static registry records are SigilForge studio-published/self-licensed products with `licensing.availability: "paid_license"` and `licensing.commercialReadiness: "inquiry_only"` until templates, checkout, or enterprise review surfaces exist.
+
+Controlled discovery facets:
+
+- `work.type`: `book`, `software`, `game`, `dataset`, `music`, `art`, `video`, `website`, `model`, `other`.
+- `publisher.type`: `individual`, `studio`, `company`, `university`, `nonprofit`, `government`, `other`.
+- `permissions.*`: `allowed`, `prohibited`, `license_required`, `research_only`, `case_by_case`, `custom_terms`, `not_specified`.
+- `licensing.availability`: `unavailable`, `contact`, `open`, `paid_license`, `enterprise`, `exclusive`.
+- `licensing.commercialReadiness`: `inquiry_only`, `template_available`, `checkout_available`, `enterprise_review_required`.
+- `verification.level`: `declared`, `surface_verified`, `artifact_verified`, `signed`.
+- `verification.methods`: `domain`, `github`, `publisher_profile`, `package_registry`, `signed_release`, `sha256`.
+
+Discovery rule:
+
+> Any property buyers should filter by later must be structured before records multiply.
+
+Do not overload one verification badge. Domain control, publisher-profile control, package registry control, artifact hash matching, and cryptographic signatures are separate evidence types. None independently proves legal ownership.
+
 ## Claim Boundary
 
 Creator Rights Records should distinguish themselves through verification, but the system must not promise to prove authorship, legal ownership, or the truth of a disputed rights claim.
