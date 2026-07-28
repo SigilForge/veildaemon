@@ -1041,19 +1041,20 @@ footer > p {
 .rights-qr {
   width: min(100%, 13rem);
   margin: 0 auto 1rem;
-  padding: .5rem;
-  border: 1px solid rgba(216, 202, 180, .32);
+  padding: .6rem;
+  border: 1px solid rgba(244, 240, 232, .18);
   border-radius: var(--radius-sm);
   overflow: hidden;
-  background: #d8cab4;
-  box-shadow: 0 0 0 1px rgba(5, 7, 9, .55) inset, 0 12px 30px rgba(0, 0, 0, .25);
+  background: #050505;
+  box-shadow: none;
 }
 
 .rights-qr svg {
   display: block;
   width: 100%;
   height: auto;
-  background: #d8cab4;
+  background: #f4f0e8;
+  border-radius: calc(var(--radius-sm) - .2rem);
 }
 
 .rights-qr-panel .toolbar,
