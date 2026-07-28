@@ -2974,6 +2974,12 @@ footer > p {
     url("/studio/assets/shelf/digital/alex-shade-dossier.webp") center 28% / cover no-repeat,
     #111314;
 }
+.shelf-category.creator-rights {
+  background:
+    linear-gradient(180deg, rgba(17,19,20,.18), rgba(17,19,20,.96)),
+    url("/assets/social/creator-rights-record-og.webp?v=20260728-rights-card9") center / cover no-repeat,
+    #111314;
+}
 .digital-lede {
   max-width: 52rem;
   color: var(--text-soft);
