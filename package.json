@@ -23,6 +23,7 @@
     "webp:check": "node scripts/ensure-webp.mjs --check",
     "rights:index": "node scripts/build-creator-rights-registry-index.mjs",
     "rights:index:check": "node scripts/validate-creator-rights-registry-index.mjs",
+    "rights:render": "node scripts/render-static-rights-pages.mjs",
     "rights:validate": "node scripts/validate-creator-rights-records.mjs",
     "relay:vendor": "node scripts/vendor-zxing-reader.mjs",
     "relay:local": "node scripts/relay-local-bridge.mjs",

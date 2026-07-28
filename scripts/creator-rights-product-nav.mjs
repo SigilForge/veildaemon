@@ -59,7 +59,8 @@ function walkRightsHtml(dir, out = []) {
 
 function ensureStaticHeaders({ checkOnly = false } = {}) {
   const header = rightsStaticHeaderHtml();
-  const files = walkRightsHtml(path.join(root, "rights"));
+  const rightsRoot = path.join(root, "rights");
+  const files = walkRightsHtml(rightsRoot).filter((file) => file !== path.join(rightsRoot, "index.html"));
   let missing = 0;
   let updated = 0;
   for (const file of files) {
@@ -100,24 +101,29 @@ function ensureStudioCreatorRights({ checkOnly = false } = {}) {
   return { ok: true, updated: true };
 }
 
-const checkOnly = process.argv.includes("--check");
-const staticResult = ensureStaticHeaders({ checkOnly });
-const studioResult = ensureStudioCreatorRights({ checkOnly });
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
+const modulePath = fileURLToPath(import.meta.url);
 
-console.log(
-  JSON.stringify(
-    {
-      accountHref: rightsAccountHref(),
-      label: CREATOR_RIGHTS_PRODUCT_NAV.accountLabel,
-      static: staticResult,
-      studio: studioResult,
-      checkOnly,
-    },
-    null,
-    2
-  )
-);
+if (invokedPath === modulePath) {
+  const checkOnly = process.argv.includes("--check");
+  const staticResult = ensureStaticHeaders({ checkOnly });
+  const studioResult = ensureStudioCreatorRights({ checkOnly });
 
-if (checkOnly && (staticResult.missing > 0 || !studioResult.ok)) {
-  process.exit(1);
+  console.log(
+    JSON.stringify(
+      {
+        accountHref: rightsAccountHref(),
+        label: CREATOR_RIGHTS_PRODUCT_NAV.accountLabel,
+        static: staticResult,
+        studio: studioResult,
+        checkOnly,
+      },
+      null,
+      2
+    )
+  );
+
+  if (checkOnly && (staticResult.missing > 0 || !studioResult.ok)) {
+    process.exit(1);
+  }
 }
