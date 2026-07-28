@@ -124,7 +124,29 @@
         },
         "evidence": {
           "type": "array",
-          "items": { "type": "object" }
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["method", "status", "claim"],
+            "properties": {
+              "method": {
+                "type": "string",
+                "enum": ["domain", "github", "publisher_profile", "package_registry", "signed_release", "sha256", "isbn"]
+              },
+              "status": {
+                "type": "string",
+                "enum": ["pending", "passed", "failed", "expired", "revoked", "attached"]
+              },
+              "claim": {
+                "type": "string",
+                "enum": ["surface_control", "linked_publication_evidence", "artifact_fingerprint"]
+              },
+              "target": { "type": ["string", "null"] },
+              "verifiedAt": { "type": ["string", "null"] },
+              "revokedAt": { "type": ["string", "null"] },
+              "proof": { "type": "object" }
+            }
+          }
         }
       }
     },

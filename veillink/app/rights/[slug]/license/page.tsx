@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { buildMetadata } from "@/lib/seo";
 import { findRightsRecord } from "@/lib/rights/records";
+import { effectiveVerification, verificationClaimFor, verificationLevelLabel } from "@/lib/rights/verification";
+import { publicVerificationForRecord } from "@/lib/rights/verification-store";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -18,12 +20,18 @@ export default async function LicenseInquiryPage({ params }: { params: Promise<{
   const { slug } = await params;
   const record = await findRightsRecord(slug);
   if (!record) notFound();
+  const verification = await publicVerificationForRecord(record).catch(() => effectiveVerification(record));
 
   return (
     <main className="page">
       <p className="eyebrow">License inquiry</p>
       <h1 className="page-title">{record.title}</h1>
       <p className="lede">This route defines the inquiry shape without exposing the rights holder&apos;s private contact address.</p>
+      <section className="panel rights-verification-panel">
+        <p className="panel-kicker">Verification</p>
+        <h2>{verificationLevelLabel(verification.level)}</h2>
+        <p className="muted">{verificationClaimFor(verification.level)}</p>
+      </section>
       <form className="form rights-form" aria-describedby="license-disabled-note">
         <label>Requester name<input name="requester_name" required /></label>
         <label>Company<input name="company" /></label>

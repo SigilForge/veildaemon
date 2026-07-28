@@ -37,6 +37,10 @@ test("Creator Rights registry filters against structured catalog facets", async 
   await page.locator('[data-rights-filter="licensing.availability"]').selectOption("paid_license");
   await expect(page.locator("[data-rights-summary]")).toContainText("2 of 12 records match 2 filters");
 
+  await page.locator('[data-rights-filter="verification.level"]').selectOption("declared");
+  await expect(page.locator("[data-rights-summary]")).toContainText("2 of 12 records match 3 filters");
+  await page.locator('[data-rights-filter="verification.level"]').selectOption("");
+
   await page.locator("[data-rights-permission-filter]").selectOption("rag:allowed");
   await expect(page.locator("[data-rights-summary]")).toContainText("1 of 12 records match 3 filters");
   await expect(page.locator("[data-rights-card]:not([hidden]) h3")).toHaveText("VeilForge");
@@ -103,6 +107,9 @@ test("Creator Rights license pages expose the full record contract on mobile", a
     await expect(page.locator("main")).toContainText("AI permissions");
     await expect(page.locator("main")).toContainText("Machine-readable terms, translated for humans.");
     await expect(page.locator("main")).toContainText("Revision history");
+    await expect(page.locator("main")).toContainText("Verification");
+    await expect(page.locator("main")).toContainText("Declared");
+    await expect(page.locator("main")).not.toContainText("Verified Publication Record");
     await expect(page.locator("main")).toContainText("Fingerprint");
     await expect(page.locator("main")).toContainText("Licensing");
     await expect(page.locator("main")).toContainText("Request shape");
@@ -135,6 +142,9 @@ test("Creator Rights record keeps the rich record panels on desktop and mobile",
     await expect(page.locator('header.site-header a.nav-cta[href="https://app.veildaemon.app/rights/create"]')).toHaveText("Register product");
     await expect(page.locator(".rights-record-grid")).toBeVisible();
     await expect(page.locator(".rights-support-grid")).toBeVisible();
+    await expect(page.locator("main")).toContainText("Verification");
+    await expect(page.locator("main")).toContainText("Declared");
+    await expect(page.locator("main")).not.toContainText("Verified Publication Record");
     await expect(page.locator('.rights-qr img[src$="record-qr.webp?v=20260728-qr-webp1"]')).toBeVisible();
     await expect(page.locator("footer.site-footer")).toBeVisible();
     await expect(page.locator(".permission-row")).toHaveCount(12);

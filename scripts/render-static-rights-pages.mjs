@@ -6,7 +6,7 @@ import { rightsStaticFooterHtml, rightsStaticHeaderHtml } from "./creator-rights
 
 const root = process.cwd();
 const rightsDir = path.join(root, "rights");
-const styleVersion = "20260728-qr-webp1";
+const styleVersion = "20260728-verification1";
 const qrAssetVersion = "20260728-qr-webp1";
 const publicOrigin = "https://veildaemon.app";
 const appOrigin = "https://app.veildaemon.app";
@@ -55,6 +55,46 @@ function titleCase(value) {
   return String(value || "other")
     .replace(/_/g, " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function verificationLabel(level) {
+  return {
+    declared: "Declared",
+    surface_verified: "Surface verified",
+    artifact_verified: "Artifact verified",
+    signed: "Signed",
+  }[level] || "Declared";
+}
+
+function verificationClaim(level) {
+  return {
+    declared: "This record was published by an authenticated account.",
+    surface_verified: "This authenticated account demonstrated control of the referenced publication surface.",
+    artifact_verified: "The recorded artifact matched the listed fingerprint.",
+    signed: "The record or artifact was cryptographically signed.",
+  }[level] || "This record was published by an authenticated account.";
+}
+
+function verificationPanel(record) {
+  const verification = record.verification || { level: "declared", methods: [], evidence: [] };
+  const methodChips = (verification.methods || [])
+    .map((method) => `<span class="proof-chip">${sentence(method).replace(/_/g, " ")}</span>`)
+    .join("");
+  const evidenceRows = (verification.evidence || [])
+    .map((item) => {
+      const label = item.method === "isbn" ? "ISBN evidence" : titleCase(item.method);
+      const value = [item.status, item.target, item.verifiedAt ? compactDate(item.verifiedAt.slice(0, 10)) : ""].filter(Boolean).join(" · ");
+      return `<div><dt>${sentence(label)}</dt><dd>${sentence(value)}</dd></div>`;
+    })
+    .join("");
+  return `
+        <article class="panel rights-verification-panel">
+          <p class="panel-kicker">Verification</p>
+          <h2>${verificationLabel(verification.level)}</h2>
+          <p class="muted">${verificationClaim(verification.level)}</p>
+          ${methodChips ? `<div class="proof-row">${methodChips}</div>` : ""}
+          ${evidenceRows ? `<dl class="rights-facts">${evidenceRows}</dl>` : ""}
+        </article>`;
 }
 
 function recordPath(slug) {
@@ -154,7 +194,7 @@ async function recordBody(record, { licenseRoute = false } = {}) {
           <dl class="record-meta-row">
             <div><dt>Record ID</dt><dd>${sentence(record.recordId)}</dd></div>
             <div><dt>Published</dt><dd>${escapeHtml(compactPublication)}</dd></div>
-            <div><dt>Status</dt><dd>Verified Publication Record</dd></div>
+            <div><dt>Verification</dt><dd>${verificationLabel(record.verification?.level)}</dd></div>
             <div><dt>Version</dt><dd>1</dd></div>
           </dl>
           <div class="proof-row">
@@ -207,6 +247,7 @@ async function recordBody(record, { licenseRoute = false } = {}) {
       </section>
 
       <section class="section-block grid rights-support-grid">
+        ${verificationPanel(record)}
         <article class="panel">
           <p class="panel-kicker">Revision history</p>
           <h2>Version 1</h2>

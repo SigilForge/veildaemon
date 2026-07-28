@@ -5,6 +5,41 @@ import { buildMetadata } from "@/lib/seo";
 import { generateArtisticQrSvg } from "@/lib/qr-generator";
 import { RIGHTS_DISCLAIMER, availabilityLabel, categoryLabel, categoryOrDefault, permissionLabel, workTypeLabel } from "@/lib/rights/schema";
 import { findRightsRecord, permissionEntries, recordUrl, rightsJsonLd } from "@/lib/rights/records";
+import { effectiveVerification, verificationClaimFor, verificationLevelLabel, type VerificationProjection } from "@/lib/rights/verification";
+import { publicVerificationForRecord } from "@/lib/rights/verification-store";
+
+function VerificationPanel({ verification }: { verification: VerificationProjection }) {
+  return (
+    <article className="panel rights-verification-panel">
+      <p className="panel-kicker">Verification</p>
+      <h2>{verificationLevelLabel(verification.level)}</h2>
+      <p className="muted">{verificationClaimFor(verification.level)}</p>
+      {verification.methods.length ? (
+        <div className="proof-row">
+          {verification.methods.map((method) => (
+            <span className="proof-chip" key={method}>
+              {method.replace(/_/g, " ")}
+            </span>
+          ))}
+        </div>
+      ) : null}
+      {verification.evidence.length ? (
+        <dl className="rights-facts">
+          {verification.evidence.map((item) => (
+            <div key={item.id || `${item.method}-${item.target}`}>
+              <dt>{item.method === "isbn" ? "ISBN evidence" : item.method}</dt>
+              <dd>
+                {[item.status, item.target, item.verifiedAt ? new Date(item.verifiedAt).toLocaleDateString("en-US") : ""]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+    </article>
+  );
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -38,6 +73,7 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
   const { slug } = await params;
   const record = await findRightsRecord(slug);
   if (!record) notFound();
+  const verification = await publicVerificationForRecord(record).catch(() => effectiveVerification(record));
   const stableUrl = recordUrl(record.slug);
   const qrSvg = await generateArtisticQrSvg({
     url: stableUrl,
@@ -65,7 +101,7 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
         <dl className="record-meta-row">
           <div><dt>Record ID</dt><dd>{record.record_id || "Draft ID pending"}</dd></div>
           <div><dt>Published</dt><dd>{publicationDate}</dd></div>
-          <div><dt>Status</dt><dd>Verified Publication Record</dd></div>
+          <div><dt>Verification</dt><dd>{verificationLevelLabel(verification.level)}</dd></div>
           <div><dt>Version</dt><dd>1</dd></div>
         </dl>
         <div className="proof-row">
@@ -144,6 +180,7 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
       </section>
 
       <section className="grid">
+        <VerificationPanel verification={verification} />
         <article className="panel">
           <p className="panel-kicker">Revision history</p>
           <h2>Version 1</h2>

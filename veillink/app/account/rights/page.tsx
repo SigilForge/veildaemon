@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { RightsQrStudio } from "@/components/RightsQrStudio";
+import { RightsVerificationPanel } from "@/components/RightsVerificationPanel";
 import { buildMetadata } from "@/lib/seo";
 import { requireUser } from "@/lib/store";
 import { canCreateCheckout } from "@/lib/rights/lifecycle";
@@ -9,6 +10,8 @@ import { canEditRightsRecord, canGenerateRightsQrAssets, entitlementLabel, entit
 import { listOwnedRightsRecords, recordUrl } from "@/lib/rights/records";
 import { RIGHTS_PRICE_CENTS, availabilityLabel, workTypeLabel } from "@/lib/rights/schema";
 import type { RightsQrPreferences } from "@/lib/rights/qr-options";
+import { effectiveVerification } from "@/lib/rights/verification";
+import { listVerificationState } from "@/lib/rights/verification-store";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -38,6 +41,18 @@ export default async function AccountRightsPage({
   } catch (error) {
     loadError = error instanceof Error ? error.message : "Could not load rights records.";
   }
+  const verificationStates = new Map(
+    await Promise.all(
+      records.map(async (record) => {
+        const state = await listVerificationState(record, true).catch(() => ({
+          projection: effectiveVerification(record),
+          evidence: [],
+          challenges: [],
+        }));
+        return [record.id, state] as const;
+      })
+    )
+  );
   const checkout = typeof params.checkout === "string" ? params.checkout : "";
   const created = typeof params.created === "string" ? params.created : "";
 
@@ -88,6 +103,11 @@ export default async function AccountRightsPage({
               const durable = recordUrl(record.slug);
               const showCheckout = canCreateCheckout(record.record_status);
               const editable = canEditRightsRecord(record);
+              const verification = verificationStates.get(record.id) || {
+                projection: effectiveVerification(record),
+                evidence: [],
+                challenges: [],
+              };
 
               return (
                 <article className="panel rights-manage-card" key={record.id}>
@@ -163,6 +183,13 @@ export default async function AccountRightsPage({
                     durableUrl={durable}
                     initialPreferences={(record.qr_preferences || null) as Partial<RightsQrPreferences> | null}
                     qrAssetVersion={record.qr_asset_version}
+                  />
+
+                  <RightsVerificationPanel
+                    recordId={record.id}
+                    initialProjection={verification.projection}
+                    initialEvidence={verification.evidence}
+                    initialChallenges={verification.challenges}
                   />
                 </article>
               );

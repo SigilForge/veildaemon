@@ -22,6 +22,7 @@ import {
 } from "./schema";
 import { isPublicRightsStatus } from "./lifecycle";
 import { canEditRightsRecord, canGenerateRightsQrAssets } from "./entitlement";
+import { effectiveVerification, type VerificationProjection } from "./verification";
 import type { RightsQrPreferences } from "./qr-options";
 
 /**
@@ -444,8 +445,9 @@ export const exampleRightsRecords: CreatorRightsRecord[] = [
   }),
 ];
 
-export function rightsJson(record: CreatorRightsRecord) {
+export function rightsJson(record: CreatorRightsRecord, verification?: VerificationProjection) {
   const hasFingerprint = Boolean(record.sha256_hash);
+  const verificationState = verification || effectiveVerification(record);
   const licenseContact = `/rights/${record.slug}/license`;
   const canonicalUrl = recordUrl(record.slug);
   const licensingAvailability: LicensingAvailability = record.rights_holder_name === "SigilForge Studios"
@@ -484,11 +486,7 @@ export function rightsJson(record: CreatorRightsRecord) {
       commercialReadiness: "inquiry_only",
       contactUrl: licenseContact,
     },
-    verification: {
-      level: hasFingerprint ? "artifact_verified" : "declared",
-      methods: hasFingerprint ? ["sha256"] : [],
-      evidence: [],
-    },
+    verification: verificationState,
     technicalArtifacts: {
       jsonAvailable: true,
       canonicalUrl: true,

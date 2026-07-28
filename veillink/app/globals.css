@@ -1029,6 +1029,81 @@ textarea {
   color: #f0a08a;
 }
 
+.rights-verification {
+  display: grid;
+  gap: 1rem;
+}
+
+.rights-verification h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.rights-verification-form {
+  display: grid;
+  grid-template-columns: minmax(9rem, 0.65fr) minmax(14rem, 1fr) auto;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.rights-verification-form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.rights-verification-form .muted {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.rights-proof-box {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  border-radius: var(--radius-sm);
+  background: rgba(10, 19, 28, 0.8);
+}
+
+.rights-proof-box p {
+  margin: 0;
+}
+
+.rights-proof-box pre {
+  overflow-x: auto;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.28);
+  color: #f8fafc;
+  font-size: 0.78rem;
+  white-space: pre;
+}
+
+.rights-verification-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.rights-verification-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.rights-verification-row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.rights-verification-panel .rights-facts {
+  margin-top: 0.8rem;
+}
+
 /* Creator Rights product chrome — only under /rights/* layouts */
 .rights-product-chrome {
   margin: 0 auto;
@@ -1539,10 +1614,16 @@ textarea {
   .rights-record-grid,
   .record-meta-row,
   .rights-form,
+  .rights-verification-form,
   .rights-qr-grid,
   .rights-qr-colors,
   .rights-qr-labels {
     grid-template-columns: 1fr;
+  }
+
+  .rights-verification-row {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .rights-facts div {
