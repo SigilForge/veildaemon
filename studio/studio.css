@@ -1041,8 +1041,8 @@ footer > p {
 .rights-qr {
   width: min(100%, 13rem);
   margin: 0 auto 1rem;
-  padding: .6rem;
-  border: 1px solid rgba(244, 240, 232, .18);
+  padding: .55rem;
+  border: 1px solid rgba(255, 255, 255, .22);
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: #050505;
@@ -1053,8 +1053,9 @@ footer > p {
   display: block;
   width: 100%;
   height: auto;
-  background: #f4f0e8;
-  border-radius: calc(var(--radius-sm) - .2rem);
+  background: #fff;
+  border-radius: 0;
+  image-rendering: pixelated;
 }
 
 .rights-qr-panel .toolbar,
@@ -3781,6 +3782,18 @@ body.digital-shelf-page .digital-hero .shelf-hero-art img {
   height: auto;
   object-fit: contain;
 }
+
+.asset-card .preview.seal-preview {
+  background:
+    radial-gradient(circle at center, rgba(126, 78, 255, .16), transparent 42%),
+    #080a0b;
+}
+
+.asset-card .preview.seal-preview img {
+  max-height: 10.5rem;
+  filter: drop-shadow(0 0 .85rem rgba(0, 0, 0, .72));
+}
+
 .asset-card .preview.cover {
   padding: 0;
 }

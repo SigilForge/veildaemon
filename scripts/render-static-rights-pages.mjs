@@ -95,23 +95,32 @@ function permissionRows(record) {
   return rows.join("");
 }
 
-async function qrSvgFor(url) {
-  const svg = await QRCode.toString(url, {
-    type: "svg",
-    errorCorrectionLevel: "M",
-    margin: 2,
-    color: {
-      dark: "#050505",
-      light: "#f4f0e8",
-    },
-  });
-  return svg.replace(/^<\?xml[^>]*>\s*/, "");
+function qrSvgFor(url) {
+  const qr = QRCode.create(url, { errorCorrectionLevel: "M" });
+  const quietZone = 4;
+  const qrSize = qr.modules.size;
+  const viewSize = qrSize + quietZone * 2;
+  const modules = [];
+
+  for (let y = 0; y < qrSize; y += 1) {
+    for (let x = 0; x < qrSize; x += 1) {
+      if (!qr.modules.data[y * qrSize + x]) continue;
+      modules.push(`<rect x="${x + quietZone}" y="${y + quietZone}" width="1" height="1"/>`);
+    }
+  }
+
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${viewSize} ${viewSize}" shape-rendering="crispEdges" role="img" aria-label="QR code for ${escapeHtml(url)}">` +
+    `<rect width="${viewSize}" height="${viewSize}" fill="#fff"/>` +
+    `<g fill="#000">${modules.join("")}</g>` +
+    `</svg>`
+  );
 }
 
 async function recordBody(record, { licenseRoute = false } = {}) {
   const slug = record.publicRecordUrl.split("/").filter(Boolean).pop();
   const stableUrl = `${publicOrigin}${recordPath(slug).replace(/\/$/, "")}`;
-  const qrSvg = await qrSvgFor(stableUrl);
+  const qrSvg = qrSvgFor(stableUrl);
   const publicationDate = displayDate(record.publicationDate);
   const compactPublication = compactDate(record.publicationDate);
   const fingerprint = record.fileFingerprint;
