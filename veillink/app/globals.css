@@ -1037,10 +1037,9 @@ textarea {
 }
 
 .rights-product-nav {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 0.75rem 1rem;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--line);
@@ -1059,29 +1058,37 @@ textarea {
 
 .rights-product-links {
   display: flex;
-  flex-wrap: wrap;
+  min-width: 0;
+  flex-wrap: nowrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.35rem 0.65rem;
 }
 
-.rights-product-links a {
+.rights-product-link {
   color: var(--text-soft);
   font-size: 0.82rem;
   text-decoration: none;
   padding: 0.35rem 0.55rem;
   border-radius: var(--radius-pill);
+  white-space: nowrap;
 }
 
-.rights-product-links a:hover,
-.rights-product-links a[aria-current="page"] {
+.rights-product-link:hover,
+.rights-product-link[aria-current="page"] {
   color: var(--text);
   background: rgba(255, 255, 255, 0.05);
 }
 
 .rights-product-account {
-  min-height: 2.25rem !important;
-  padding: 0.4rem 0.85rem !important;
-  font-size: 0.82rem !important;
+  color: var(--text-soft);
+}
+
+.rights-product-register {
+  min-height: 2.25rem;
+  padding: 0.42rem 0.9rem;
+  font-size: 0.82rem;
+  white-space: nowrap;
 }
 
 .permission-grid {
@@ -1186,6 +1193,40 @@ textarea {
 
   .nav-links {
     width: 100%;
+  }
+
+  .rights-product-chrome {
+    padding-top: 0.45rem;
+  }
+
+  .rights-product-nav {
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    padding: 0.6rem;
+  }
+
+  .rights-product-brand {
+    font-size: 0.72rem;
+  }
+
+  .rights-product-links {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    gap: 0.4rem;
+  }
+
+  .rights-product-link,
+  .rights-product-register {
+    min-height: 2.35rem;
+    justify-content: center;
+    padding: 0.48rem 0.45rem;
+    font-size: 0.74rem;
+    text-align: center;
+  }
+
+  .rights-product-register {
+    grid-column: 1 / -1;
   }
 
   .table,

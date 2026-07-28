@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ProductAccountLink } from "@/components/ProductAccountLink";
 import {
+  RIGHTS_PRODUCT_CREATE_LABEL,
   RIGHTS_PRODUCT_CREATE_PATH,
   RIGHTS_PRODUCT_REGISTRY_PATH,
   RIGHTS_PRODUCT_STUDIO_OVERVIEW,
@@ -27,24 +28,29 @@ export function RightsProductChrome({ signedIn }: Props) {
           Creator Rights
         </Link>
         <div className="rights-product-links">
-          <a href={RIGHTS_PRODUCT_STUDIO_OVERVIEW} target="_blank" rel="noopener noreferrer">
+          <a className="rights-product-link" href={RIGHTS_PRODUCT_STUDIO_OVERVIEW} target="_blank" rel="noopener noreferrer">
             Overview
           </a>
-          <Link href={RIGHTS_PRODUCT_REGISTRY_PATH} aria-current={pathname === "/rights" ? "page" : undefined}>
-            Records
-          </Link>
           <Link
-            href={RIGHTS_PRODUCT_CREATE_PATH}
-            aria-current={pathname.startsWith("/rights/create") ? "page" : undefined}
+            className="rights-product-link"
+            href={RIGHTS_PRODUCT_REGISTRY_PATH}
+            aria-current={pathname === "/rights" ? "page" : undefined}
           >
-            Create
+            Records
           </Link>
           <ProductAccountLink
             product="rights"
             signedIn={signedIn}
-            className="button secondary rights-product-account"
+            className="rights-product-link rights-product-account"
             returnTo={pathname}
           />
+          <Link
+            className="button rights-product-register"
+            href={RIGHTS_PRODUCT_CREATE_PATH}
+            aria-current={pathname.startsWith("/rights/create") ? "page" : undefined}
+          >
+            {RIGHTS_PRODUCT_CREATE_LABEL}
+          </Link>
         </div>
       </nav>
     </div>

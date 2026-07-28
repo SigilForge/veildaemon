@@ -8,6 +8,7 @@ import { PRODUCTION_APP_URL, product } from "@/lib/config";
 export const RIGHTS_PRODUCT_ACCOUNT_LABEL = "Account";
 export const RIGHTS_PRODUCT_ACCOUNT_PATH = "/account/rights";
 export const RIGHTS_PRODUCT_CREATE_PATH = "/rights/create";
+export const RIGHTS_PRODUCT_CREATE_LABEL = "Register product";
 export const RIGHTS_PRODUCT_REGISTRY_PATH = "/rights";
 export const RIGHTS_PRODUCT_STUDIO_OVERVIEW = "https://veildaemon.app/studio/creator-rights/";
 
