@@ -504,11 +504,44 @@
         "contactUrl": "/rights/veildaemon/license"
       },
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
-        "evidence": []
+        "level": "surface_verified",
+        "claim": "surface_control",
+        "statement": "The authenticated account demonstrated control of the referenced publication surface.",
+        "methods": [
+          "domain",
+          "github"
+        ],
+        "evidence": [
+          {
+            "id": "29488c28-a208-4167-9117-7375d20bd32c",
+            "method": "domain",
+            "status": "passed",
+            "claim": "surface_control",
+            "target": "https://veildaemon.app",
+            "verifiedAt": "2026-07-28T21:28:55.199+00:00",
+            "revokedAt": null,
+            "proof": {
+              "bodySha256": "3192c23b2b06eb357ea9d820c2fbd99977aed9cc20ac41765809cab1bdfc6fb0",
+              "checkedUrl": "https://veildaemon.app/.well-known/sigilforge-rights-verification.txt",
+              "responseStatus": 200
+            }
+          },
+          {
+            "id": "60d4b80b-524d-4875-8434-700843ec63c3",
+            "method": "github",
+            "status": "passed",
+            "claim": "surface_control",
+            "target": "https://github.com/SigilForge/veildaemon",
+            "verifiedAt": "2026-07-28T21:28:12.213+00:00",
+            "revokedAt": null,
+            "proof": {
+              "url": "https://github.com/SigilForge/veildaemon/blob/main/.sigilforge/rights-verification.txt",
+              "path": ".sigilforge/rights-verification.txt",
+              "blobSha": "46938e4312c916cd7b78e574b9c9b2a7315068d8",
+              "bodySha256": "3b154d9715ec4f8e8b7b3178b1d6345baa3d2a59c77bcf6677e9c3aa021627e4"
+            }
+          }
+        ]
       },
       "technicalArtifacts": {
         "jsonAvailable": true,
