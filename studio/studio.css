@@ -416,13 +416,7 @@ footer nav a:hover {
 }
 
 .asset-card .preview.light-preview {
-  background:
-    radial-gradient(circle at center, rgba(126, 78, 255, 0.14), transparent 48%),
-    #080a0b;
-}
-
-.asset-card .preview.light-preview img {
-  filter: invert(1) brightness(0.86) contrast(1.08);
+  background: #f4f2ef;
 }
 
 .asset-card .preview.wordmark-preview img {
@@ -3795,7 +3789,9 @@ body.digital-shelf-page .digital-hero .shelf-hero-art img {
 }
 
 .asset-card .preview.seal-preview img {
+  aspect-ratio: 1;
   max-height: 10.5rem;
+  border-radius: 50%;
   filter: drop-shadow(0 0 .85rem rgba(0, 0, 0, .72));
 }
 
