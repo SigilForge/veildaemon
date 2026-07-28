@@ -15,6 +15,7 @@ A tech-enabled mythpunk studio using one governed story-and-rules framework to p
 - Operator/Handler play surfaces with deliberate Cell sync
 - VeilLink identity, ownership, Table Live-Link, and dynamic links
 - Digital shelf previews (dossiers, wallpapers)
+- Creator Rights library with public record routes, AI permission declarations, JSON metadata, and QR-linked verification
 - Internally audited rules corpus and multi-book manuscripts
 - Public wiki and marketing library
 - Governed production pipeline with human release authority
@@ -33,4 +34,5 @@ A tech-enabled mythpunk studio using one governed story-and-rules framework to p
 - Optional **≤$20K** bounded proof-of-concept contribution is not the studio plan
 
 Guided case: https://veildaemon.app/studio/funding/
+Creator Rights library: https://veildaemon.app/studio/creator-rights/#rights-library
 Contact: J.Donavon.Love@gmail.com
