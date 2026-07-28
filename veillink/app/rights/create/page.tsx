@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/store";
 import { RIGHTS_DISCLAIMER, availabilityCategories, categoryValues, permissionValues, workTypes } from "@/lib/rights/schema";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Create a Creator Rights Record",
+  title: "Register a Creator Rights Product",
   description: "Create a draft rights record with work type, category, availability, licensing, AI permissions, and optional file fingerprint metadata.",
   path: "/rights/create",
   image: "https://veildaemon.app/assets/social/creator-rights-record-og.webp",
@@ -48,7 +48,7 @@ export default async function CreateRightsRecordPage() {
   return (
     <main className="page">
       <p className="eyebrow">Creator Rights Record</p>
-      <h1 className="page-title">Create draft</h1>
+      <h1 className="page-title">Register product</h1>
       <p className="lede">
         Enter the declared rights position, review the generated AI-use summary, then publish only after verified payment.
       </p>

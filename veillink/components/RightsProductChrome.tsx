@@ -21,6 +21,8 @@ type Props = {
 export function RightsProductChrome({ signedIn }: Props) {
   const pathname = usePathname() || "/rights";
 
+  if (pathname.startsWith(RIGHTS_PRODUCT_CREATE_PATH)) return null;
+
   return (
     <div className="rights-product-chrome" data-product="creator-rights">
       <nav className="rights-product-nav" aria-label="Creator Rights">
