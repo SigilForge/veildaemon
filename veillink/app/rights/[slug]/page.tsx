@@ -13,7 +13,7 @@ function VerificationPanel({ verification }: { verification: VerificationProject
     <article className="panel rights-verification-panel">
       <p className="panel-kicker">Verification</p>
       <h2>{verificationLevelLabel(verification.level)}</h2>
-      <p className="muted">{verificationClaimFor(verification.level)}</p>
+      <p className="muted">{verification.statement || verificationClaimFor(verification.level)}</p>
       {verification.methods.length ? (
         <div className="proof-row">
           {verification.methods.map((method) => (

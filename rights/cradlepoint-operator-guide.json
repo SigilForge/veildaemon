@@ -44,6 +44,8 @@
   },
   "verification": {
     "level": "declared",
+    "claim": "declared",
+    "statement": "This record was published by an authenticated account.",
     "methods": [],
     "evidence": []
   },
@@ -57,5 +59,15 @@
   "licenseContact": "/rights/cradlepoint-operator-guide/license",
   "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-operator-guide",
   "fileFingerprint": null,
-  "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership."
+  "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.",
+  "aiPolicy": {
+    "effectiveFrom": "2026-07-28",
+    "appliesTo": [
+      "model_training",
+      "fine_tuning",
+      "retrieval",
+      "generation",
+      "commercial_output"
+    ]
+  }
 }

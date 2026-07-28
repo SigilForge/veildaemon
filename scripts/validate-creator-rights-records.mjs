@@ -81,7 +81,7 @@ function validateRecord(record, schema, filename) {
 
 const schema = JSON.parse(await readFile(schemaPath, "utf8"));
 const files = (await readdir(rightsDir))
-  .filter((file) => file.endsWith(".json") && file !== "creator-rights-record.schema.json")
+  .filter((file) => file.endsWith(".json") && file !== "creator-rights-record.schema.json" && file !== "verification-projection.json")
   .sort();
 
 const failures = [];

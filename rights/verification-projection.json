@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "1.0",
+  "artifactType": "creator_rights_verification_projection",
+  "exporterVersion": "1.1",
+  "projectionMode": "local_bootstrap",
+  "source": "static",
+  "sourceProject": null,
+  "generatedAt": "2026-07-28T21:07:35.101Z",
+  "recordCount": 12,
+  "records": {
+    "cradlepoint-field-dossier": {
+      "recordId": "SFR-2026-000005",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    },
+    "cradlepoint-handler-core": {
+      "recordId": "SFR-2026-000004",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    },
+    "cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus": {
+      "recordId": "SFR-2026-000006",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    },
+    "cradlepoint-handler-guide": {
+      "recordId": "SFR-2026-000007",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    },
+    "cradlepoint-monster-manual": {
+      "recordId": "SFR-2026-000008",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    },
+    "cradlepoint-operator-core": {
+      "recordId": "SFR-2026-000003",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    },
+    "cradlepoint-operator-guide": {
+      "recordId": "SFR-2026-000009",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    },
+    "cradlepoint-systems-metaphysics": {
+      "recordId": "SFR-2026-000010",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    },
+    "sanguine-sacrament": {
+      "recordId": "SFR-2026-000002",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    },
+    "the-anchor-and-the-glitch": {
+      "recordId": "SFR-2026-000001",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    },
+    "veildaemon": {
+      "recordId": "SFR-2026-000011",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    },
+    "veilforge": {
+      "recordId": "SFR-2026-000012",
+      "verification": {
+        "level": "declared",
+        "claim": "declared",
+        "statement": "This record was published by an authenticated account.",
+        "methods": [],
+        "evidence": []
+      }
+    }
+  },
+  "payloadSha256": "2ad7bf5f355b9282680c0cb6c028762035f0e8a5173359ce6d563a2647594265"
+}

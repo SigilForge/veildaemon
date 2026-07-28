@@ -4,7 +4,7 @@ const path = require("node:path");
 const sharp = require("sharp");
 
 const rightsRecords = fs.readdirSync(path.join(process.cwd(), "rights"))
-  .filter((file) => file.endsWith(".json") && file !== "creator-rights-record.schema.json")
+  .filter((file) => file.endsWith(".json") && file !== "creator-rights-record.schema.json" && file !== "verification-projection.json")
   .map((file) => {
     const record = JSON.parse(fs.readFileSync(path.join(process.cwd(), "rights", file), "utf8"));
     return { slug: file.replace(/\.json$/, ""), title: record.title, permissionCount: Object.keys(record.permissions).length + 1 };

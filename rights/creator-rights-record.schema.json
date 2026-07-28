@@ -88,6 +88,22 @@
         "licenseRequired": { "$ref": "#/$defs/permissionValue" }
       }
     },
+    "aiPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["effectiveFrom", "appliesTo"],
+      "properties": {
+        "effectiveFrom": { "type": "string" },
+        "appliesTo": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["model_training", "fine_tuning", "retrieval", "generation", "commercial_output"]
+          },
+          "uniqueItems": true
+        }
+      }
+    },
     "licensing": {
       "type": "object",
       "additionalProperties": false,
@@ -114,6 +130,11 @@
           "type": "string",
           "enum": ["declared", "surface_verified", "artifact_verified", "signed"]
         },
+        "claim": {
+          "type": "string",
+          "enum": ["declared", "surface_control", "artifact_fingerprint", "signed_release"]
+        },
+        "statement": { "type": "string" },
         "methods": {
           "type": "array",
           "items": {

@@ -91,7 +91,7 @@ function verificationPanel(record) {
         <article class="panel rights-verification-panel">
           <p class="panel-kicker">Verification</p>
           <h2>${verificationLabel(verification.level)}</h2>
-          <p class="muted">${verificationClaim(verification.level)}</p>
+          <p class="muted">${sentence(verification.statement || verificationClaim(verification.level))}</p>
           ${methodChips ? `<div class="proof-row">${methodChips}</div>` : ""}
           ${evidenceRows ? `<dl class="rights-facts">${evidenceRows}</dl>` : ""}
         </article>`;
@@ -320,7 +320,7 @@ function cleanGeneratedHtml(html) {
 }
 
 const files = (await fs.readdir(rightsDir))
-  .filter((file) => file.endsWith(".json") && file !== "creator-rights-record.schema.json")
+  .filter((file) => file.endsWith(".json") && file !== "creator-rights-record.schema.json" && file !== "verification-projection.json")
   .sort();
 
 for (const file of files) {

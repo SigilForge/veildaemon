@@ -30,7 +30,7 @@ export default async function LicenseInquiryPage({ params }: { params: Promise<{
       <section className="panel rights-verification-panel">
         <p className="panel-kicker">Verification</p>
         <h2>{verificationLevelLabel(verification.level)}</h2>
-        <p className="muted">{verificationClaimFor(verification.level)}</p>
+        <p className="muted">{verification.statement || verificationClaimFor(verification.level)}</p>
       </section>
       <form className="form rights-form" aria-describedby="license-disabled-note">
         <label>Requester name<input name="requester_name" required /></label>

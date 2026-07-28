@@ -17,6 +17,24 @@ export const isbnEvidenceMethod = "isbn" as const;
 export const verificationProofPath = ".sigilforge/rights-verification.txt";
 export const domainProofPath = "/.well-known/sigilforge-rights-verification.txt";
 export const verificationPublicOrigin = (process.env.RIGHTS_PUBLIC_ORIGIN || process.env.NEXT_PUBLIC_RIGHTS_PUBLIC_ORIGIN || "https://veildaemon.app").replace(/\/$/, "");
+const verificationProjectionStatements = {
+  declared: {
+    claim: "declared" as const,
+    statement: "This record was published by an authenticated account.",
+  },
+  surface_verified: {
+    claim: "surface_control" as const,
+    statement: "The authenticated account demonstrated control of the referenced publication surface.",
+  },
+  artifact_verified: {
+    claim: "artifact_fingerprint" as const,
+    statement: "The recorded artifact matched the listed fingerprint.",
+  },
+  signed: {
+    claim: "signed_release" as const,
+    statement: "The record or artifact was cryptographically signed.",
+  },
+};
 
 export type ChallengeMethod = (typeof challengeMethods)[number];
 export type ChallengeStatus = (typeof challengeStatuses)[number];
@@ -37,6 +55,8 @@ export type VerificationEvidence = {
 
 export type VerificationProjection = {
   level: VerificationLevel;
+  claim?: "declared" | EvidenceClaim | "signed_release";
+  statement?: string;
   methods: VerificationMethod[];
   evidence: VerificationEvidence[];
 };
@@ -357,6 +377,8 @@ export function effectiveVerification(record: CreatorRightsRecord, evidence: Ver
 
   return {
     level,
+    claim: verificationProjectionStatements[level].claim,
+    statement: verificationProjectionStatements[level].statement,
     methods: Array.from(new Set(methods)),
     evidence: evidence.map(publicEvidence),
   };

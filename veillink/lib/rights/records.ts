@@ -481,6 +481,16 @@ export function rightsJson(record: CreatorRightsRecord, verification?: Verificat
     copyrightNotice: record.copyright_notice,
     permissions: record.ai_permissions,
     permissionsSummary: record.ai_permissions_summary,
+    aiPolicy: {
+      effectiveFrom: "2026-07-28",
+      appliesTo: [
+        "model_training",
+        "fine_tuning",
+        "retrieval",
+        "generation",
+        "commercial_output",
+      ],
+    },
     licensing: {
       availability: licensingAvailability,
       commercialReadiness: "inquiry_only",
