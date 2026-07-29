@@ -981,7 +981,10 @@ footer > p {
 .record-meta-row dd,
 .rights-facts dd {
   margin: .28rem 0 0;
+  min-width: 0;
   color: var(--text);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .proof-row {

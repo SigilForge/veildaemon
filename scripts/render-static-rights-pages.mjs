@@ -6,7 +6,7 @@ import { rightsStaticFooterHtml, rightsStaticHeaderHtml } from "./creator-rights
 
 const root = process.cwd();
 const rightsDir = path.join(root, "rights");
-const styleVersion = "20260728-verification1";
+const styleVersion = "20260729-rights-wrap1";
 const qrAssetVersion = "20260728-qr-webp1";
 const publicOrigin = "https://veildaemon.app";
 const appOrigin = "https://app.veildaemon.app";
