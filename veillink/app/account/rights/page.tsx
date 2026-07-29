@@ -108,6 +108,9 @@ export default async function AccountRightsPage({
                 evidence: [],
                 challenges: [],
               };
+              const hasSurfaceVerification =
+                verification.projection.methods.includes("domain") || verification.projection.methods.includes("github");
+              const verificationPanelId = `verification-${record.id}`;
 
               return (
                 <article className="panel rights-manage-card" key={record.id}>
@@ -170,7 +173,25 @@ export default async function AccountRightsPage({
                           Edit
                         </Link>
                       ) : null}
+                      <Link className="button secondary" href={`/account/rights/${record.id}/dossier`}>
+                        Build Creator Dossier
+                      </Link>
                     </div>
+
+                    {!hasSurfaceVerification ? (
+                      <div className="rights-verification-nudge">
+                        <div>
+                          <p className="panel-kicker">Publisher surface</p>
+                          <strong>Add domain or GitHub verification</strong>
+                          <p className="muted">
+                            Show that this account controls a referenced publication surface for the record.
+                          </p>
+                        </div>
+                        <a className="button secondary" href={`#${verificationPanelId}`}>
+                          Add verification
+                        </a>
+                      </div>
+                    ) : null}
                   </div>
 
                   <RightsQrStudio
@@ -185,12 +206,14 @@ export default async function AccountRightsPage({
                     qrAssetVersion={record.qr_asset_version}
                   />
 
-                  <RightsVerificationPanel
-                    recordId={record.id}
-                    initialProjection={verification.projection}
-                    initialEvidence={verification.evidence}
-                    initialChallenges={verification.challenges}
-                  />
+                  <div id={verificationPanelId}>
+                    <RightsVerificationPanel
+                      recordId={record.id}
+                      initialProjection={verification.projection}
+                      initialEvidence={verification.evidence}
+                      initialChallenges={verification.challenges}
+                    />
+                  </div>
                 </article>
               );
             })}
