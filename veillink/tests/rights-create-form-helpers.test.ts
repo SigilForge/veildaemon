@@ -41,7 +41,18 @@ describe("Creator Rights create form helpers", () => {
       embeddings: "allowed",
     });
     expect(summary).toContain("Embeddings");
+    expect(summary).toContain("Model training, retrieval use, and commercial use require written permission.");
+    expect(summary).toContain("Embeddings and research use are permitted only within the stated record terms.");
     expect(permissionMeaning("license_required")).toContain("written permission");
+  });
+
+  it("uses singular wording for one licensed permission", () => {
+    const summary = aiSummaryForPermissions({
+      ...recommendedAiPermissions,
+      generalTraining: "allowed",
+      rag: "allowed",
+    });
+    expect(summary).toContain("Commercial use requires written permission.");
   });
 
   it("suggests copyright notices from year and rights holder", () => {

@@ -121,6 +121,15 @@ export function permissionsForPreset(key: PermissionPresetKey | "custom") {
   return permissionPresets[key].permissions;
 }
 
+function formatSentenceList(items: string[]) {
+  if (items.length === 0) return "";
+  const [first, ...rest] = items;
+  const capitalizedFirst = first[0].toUpperCase() + first.slice(1);
+  if (rest.length === 0) return capitalizedFirst;
+  if (rest.length === 1) return `${capitalizedFirst} and ${rest[0]}`;
+  return `${capitalizedFirst}, ${rest.slice(0, -1).join(", ")}, and ${rest[rest.length - 1]}`;
+}
+
 export function aiSummaryForPermissions(permissions: AiPermissionBlock) {
   const blocked = [
     permissions.generalTraining === "prohibited" ? "model training" : "",
@@ -139,8 +148,11 @@ export function aiSummaryForPermissions(permissions: AiPermissionBlock) {
 
   const sentences = [];
   if (blocked.length) sentences.push(`This work may not be used for ${blocked.join(", ")} without a separate written license.`);
-  if (licensed.length) sentences.push(`${licensed.map((item) => item[0].toUpperCase() + item.slice(1)).join(", ")} require written permission.`);
-  if (allowed.length) sentences.push(`${allowed.map((item) => item[0].toUpperCase() + item.slice(1)).join(", ")} are permitted only within the stated record terms.`);
+  if (licensed.length) {
+    const subject = formatSentenceList(licensed);
+    sentences.push(`${subject} ${licensed.length === 1 ? "requires" : "require"} written permission.`);
+  }
+  if (allowed.length) sentences.push(`${formatSentenceList(allowed)} ${allowed.length === 1 ? "is" : "are"} permitted only within the stated record terms.`);
   return sentences.join(" ") || "AI use permissions are not specified; contact the rights holder before use.";
 }
 
