@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireUser } from "@/lib/store";
 import {
   buildDossierSnapshot,
+  buildDossierZip,
   dossierPurposeValues,
   dossierSectionValues,
   nextDossierVersion,
   persistDossierSnapshot,
+  sha256Hex,
   type DossierPurpose,
   type DossierSection,
 } from "@/lib/rights/dossier";
@@ -79,8 +81,24 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
           "content-type": "application/json; charset=utf-8",
           "content-disposition": `attachment; filename="${filename}-manifest.json"`,
           "x-dossier-id": snapshot.dossierId,
+          "x-dossier-code": snapshot.manifest.dossierCode,
           "x-dossier-manifest-sha256": snapshot.exportHashes.manifestSha256,
           "x-dossier-package-sha256": snapshot.exportHashes.packageSha256,
+        },
+      });
+    }
+
+    if (format === "package") {
+      const zip = buildDossierZip(snapshot.packageFiles);
+      return new NextResponse(zip, {
+        headers: {
+          "content-type": "application/zip",
+          "content-disposition": `attachment; filename="${filename}.zip"`,
+          "x-dossier-id": snapshot.dossierId,
+          "x-dossier-code": snapshot.manifest.dossierCode,
+          "x-dossier-manifest-sha256": snapshot.exportHashes.manifestSha256,
+          "x-dossier-package-sha256": snapshot.exportHashes.packageSha256,
+          "x-dossier-zip-sha256": sha256Hex(zip),
         },
       });
     }
@@ -90,6 +108,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         "content-type": "text/html; charset=utf-8",
         "content-disposition": `attachment; filename="${filename}.html"`,
         "x-dossier-id": snapshot.dossierId,
+        "x-dossier-code": snapshot.manifest.dossierCode,
         "x-dossier-html-sha256": snapshot.exportHashes.htmlSha256,
         "x-dossier-manifest-sha256": snapshot.exportHashes.manifestSha256,
       },

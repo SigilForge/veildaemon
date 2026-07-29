@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFile } from "node:fs/promises";
 import {
   buildDossierSnapshot,
+  buildDossierZip,
   normalizeDossierInput,
   sectionsForPurpose,
   sha256Hex,
@@ -109,8 +110,36 @@ describe("Creator Dossier", () => {
     expect(snapshot.manifest.registryFramework).toEqual({ id: "sfr", version: "1.0" });
     expect(snapshot.manifest.includedSections).toContain("ai_permissions");
     expect(snapshot.manifest.files.some((file) => file.path.endsWith("CREATOR-RIGHTS-RECORD.json"))).toBe(true);
+    expect(snapshot.manifest.dossierCode).toMatch(/^DOS-2026-[A-F0-9]{10}$/);
+    expect(snapshot.packageFiles.map((file) => file.path)).toContain("README.md");
+    expect(snapshot.packageFiles.map((file) => file.path)).toContain("LICENSE");
+    expect(snapshot.packageFiles.map((file) => file.path)).toContain("LICENSE-SUMMARY.md");
+    expect(snapshot.packageFiles.map((file) => file.path)).toContain("SFR.md");
+    expect(snapshot.packageFiles.map((file) => file.path)).toContain("DOSSIER-MANIFEST.json");
+    expect(snapshot.packageFiles.map((file) => file.path)).toContain("CREATOR-DOSSIER.html");
+    expect(snapshot.packageFiles.map((file) => file.path)).toContain("Timeline.md");
     expect(snapshot.manifest.manifestSha256).toMatch(/^[a-f0-9]{64}$/);
     expect(snapshot.exportHashes.htmlSha256).toBe(sha256Hex(snapshot.html));
+  });
+
+  it("builds a real deterministic dossier ZIP package", () => {
+    const snapshot = buildDossierSnapshot({
+      record: record(),
+      userId: "user-1",
+      input: { purpose: "open_source" },
+      dossierVersion: 1,
+      now: "2026-07-29T00:00:00.000Z",
+    });
+
+    const first = buildDossierZip(snapshot.packageFiles);
+    const second = buildDossierZip(snapshot.packageFiles);
+    expect(first.subarray(0, 4).toString("hex")).toBe("504b0304");
+    expect(first.equals(second)).toBe(true);
+    expect(sha256Hex(first)).toBe(sha256Hex(second));
+    expect(first.includes(Buffer.from("README.md"))).toBe(true);
+    expect(first.includes(Buffer.from("LICENSE"))).toBe(true);
+    expect(first.includes(Buffer.from("SFR.md"))).toBe(true);
+    expect(first.includes(Buffer.from("CREATOR-DOSSIER.html"))).toBe(true);
   });
 
   it("classifies suspected use as a reported observation", () => {
@@ -139,6 +168,7 @@ describe("Creator Dossier", () => {
     const accountPage = await readFile(new URL("../app/account/rights/page.tsx", import.meta.url), "utf8");
     expect(source).toContain("requireUser()");
     expect(source).toContain("getOwnedRightsRecord(user.id, id)");
+    expect(source).toContain("application/zip");
     expect(source).toContain("content-disposition");
     expect(accountPage).toContain("Build Creator Dossier");
     expect(accountPage).not.toContain("Build Evidence");

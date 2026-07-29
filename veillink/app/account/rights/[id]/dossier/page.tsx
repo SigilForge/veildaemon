@@ -121,8 +121,11 @@ export default async function BuildDossierPage({
             <div><span>Canonical URL</span><strong>{canonicalUrl}</strong></div>
           </div>
           <div className="toolbar">
+            <button name="format" value="package" type="submit">
+              Download dossier package
+            </button>
             <button name="format" value="html" type="submit">
-              Download print-ready HTML
+              Download Creator Dossier HTML
             </button>
             <button className="button secondary" name="format" value="manifest" type="submit">
               Download JSON manifest

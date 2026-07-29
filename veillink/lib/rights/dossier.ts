@@ -50,6 +50,10 @@ export type DossierFileEntry = {
   evidenceClass: EvidenceClass;
 };
 
+export type DossierPackageFile = DossierFileEntry & {
+  content: string;
+};
+
 export type DossierTimelineEntry = {
   label: string;
   date: string;
@@ -74,6 +78,7 @@ export type DossierBuildInput = {
 
 export type CreatorDossierManifest = {
   dossierId: string;
+  dossierCode: string;
   dossierVersion: number;
   schemaVersion: string;
   generatedAt: string;
@@ -245,6 +250,14 @@ function bytes(value: string) {
   return new TextEncoder().encode(value).byteLength;
 }
 
+function packageFile(args: Omit<DossierFileEntry, "sha256" | "sizeBytes"> & { content: string }): DossierPackageFile {
+  return {
+    ...args,
+    sha256: sha256Hex(args.content),
+    sizeBytes: bytes(args.content),
+  };
+}
+
 function escapeHtml(value: unknown) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -261,6 +274,20 @@ function permissionSummary(record: CreatorRightsRecord) {
   return Object.entries(record.ai_permissions || {})
     .map(([key, value]) => `${titleCase(key)}: ${permissionLabel(value)}`)
     .join("\n");
+}
+
+function humanDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(value));
+}
+
+function dossierCode(dossierId: string, generatedAt: string) {
+  const year = new Date(generatedAt).getUTCFullYear();
+  return `DOS-${year}-${sha256Hex(dossierId).slice(0, 10).toUpperCase()}`;
 }
 
 function markdownRightsSummary(record: CreatorRightsRecord, verification: VerificationProjection) {
@@ -294,6 +321,67 @@ function markdownSfr(record: CreatorRightsRecord) {
     `Title: ${record.title}`,
     `Rights holder: ${record.rights_holder_name}`,
     `Canonical URL: ${recordUrl(record.slug)}`,
+  ].join("\n");
+}
+
+function markdownTimeline(timeline: DossierTimelineEntry[]) {
+  return [
+    "# Timeline",
+    "",
+    ...(
+      timeline.length
+        ? timeline.flatMap((entry) => [
+            `## ${entry.date}`,
+            "",
+            `Event: ${entry.label}`,
+            `Evidence class: ${titleCase(entry.evidenceClass)}`,
+            `Source: ${entry.source}`,
+            "",
+          ])
+        : ["No dated timeline entries were available for this dossier.", ""]
+    ),
+  ].join("\n");
+}
+
+function packageReadme(args: {
+  record: CreatorRightsRecord;
+  manifest: CreatorDossierManifest;
+}) {
+  return [
+    "# Creator Dossier",
+    "",
+    `Dossier ID: ${args.manifest.dossierCode}`,
+    "",
+    `Generated: ${humanDate(args.manifest.generatedAt)}`,
+    "",
+    `Purpose: ${titleCase(args.manifest.purpose)}`,
+    "",
+    `Work: ${args.record.title}`,
+    "",
+    "## Contents",
+    "",
+    "LICENSE",
+    "Canonical license or rights notice.",
+    "",
+    "LICENSE-SUMMARY.md",
+    "Plain-language explanation.",
+    "",
+    "SFR.md",
+    "Registry framework declaration.",
+    "",
+    "CREATOR-RIGHTS-RECORD.json",
+    "Canonical machine-readable record.",
+    "",
+    "DOSSIER-MANIFEST.json",
+    "Integrity manifest.",
+    "",
+    "CREATOR-DOSSIER.html",
+    "Professional printable view.",
+    "",
+    "Timeline.md",
+    "Publication and verification history.",
+    "",
+    "This package supplements the selected copyright license. It does not replace or modify that license.",
   ].join("\n");
 }
 
@@ -367,52 +455,50 @@ export function buildDossierSnapshot(args: {
   const licenseSummaryText = licenseSummary(args.record);
   const licenseText = licenseNotice(args.record);
   const sfrText = markdownSfr(args.record);
-  const files: DossierFileEntry[] = [
-    {
-      path: "creator-dossier/CREATOR-RIGHTS-RECORD.json",
+  const sourceFiles: DossierPackageFile[] = [
+    packageFile({
+      path: "CREATOR-RIGHTS-RECORD.json",
       role: "canonical_record",
-      sha256: sha256Hex(recordJson),
-      sizeBytes: bytes(recordJson),
       mimeType: "application/json",
       evidenceClass: "verified_fact",
-    },
-    {
-      path: "creator-dossier/RIGHTS-SUMMARY.md",
+      content: recordJson,
+    }),
+    packageFile({
+      path: "RIGHTS-SUMMARY.md",
       role: "human_summary",
-      sha256: sha256Hex(rightsSummary),
-      sizeBytes: bytes(rightsSummary),
       mimeType: "text/markdown",
       evidenceClass: "creator_declaration",
-    },
-    {
-      path: "creator-dossier/LICENSE-SUMMARY.md",
+      content: rightsSummary,
+    }),
+    packageFile({
+      path: "LICENSE-SUMMARY.md",
       role: "license_summary",
-      sha256: sha256Hex(licenseSummaryText),
-      sizeBytes: bytes(licenseSummaryText),
       mimeType: "text/markdown",
       evidenceClass: "creator_declaration",
-    },
-    {
-      path: "creator-dossier/LICENSE",
+      content: licenseSummaryText,
+    }),
+    packageFile({
+      path: "LICENSE",
       role: license.spdxId ? "canonical_license_reference" : "rights_notice",
-      sha256: sha256Hex(licenseText),
-      sizeBytes: bytes(licenseText),
       mimeType: "text/plain",
       evidenceClass: "creator_declaration",
-    },
-    {
-      path: "creator-dossier/SFR.md",
+      content: licenseText,
+    }),
+    packageFile({
+      path: "SFR.md",
       role: "registry_framework",
-      sha256: sha256Hex(sfrText),
-      sizeBytes: bytes(sfrText),
       mimeType: "text/markdown",
       evidenceClass: "creator_declaration",
-    },
+      content: sfrText,
+    }),
   ];
+  const files: DossierFileEntry[] = sourceFiles.map(({ content: _content, ...file }) => file);
   const timeline = buildTimeline(args.record, verification);
   const packageSha256 = sha256Hex(files.map((file) => `${file.sha256}  ${file.path}`).join("\n"));
+  const publicDossierCode = dossierCode(dossierId, now);
   const manifestWithoutHash = {
     dossierId,
+    dossierCode: publicDossierCode,
     dossierVersion: args.dossierVersion,
     schemaVersion: DOSSIER_SCHEMA_VERSION,
     generatedAt: now,
@@ -447,10 +533,44 @@ export function buildDossierSnapshot(args: {
   const manifestSha256 = sha256Hex(JSON.stringify(manifestWithoutHash));
   const manifest: CreatorDossierManifest = { ...manifestWithoutHash, manifestSha256 };
   const html = renderDossierHtml(args.record, manifest, verification, normalized);
+  const manifestJson = JSON.stringify(manifest, null, 2);
+  const timelineText = markdownTimeline(timeline);
+  const packageFiles: DossierPackageFile[] = [
+    packageFile({
+      path: "CREATOR-DOSSIER.html",
+      role: "print_ready_html",
+      mimeType: "text/html",
+      evidenceClass: "creator_declaration",
+      content: html,
+    }),
+    packageFile({
+      path: "DOSSIER-MANIFEST.json",
+      role: "package_manifest",
+      mimeType: "application/json",
+      evidenceClass: "verified_fact",
+      content: manifestJson,
+    }),
+    packageFile({
+      path: "Timeline.md",
+      role: "timeline",
+      mimeType: "text/markdown",
+      evidenceClass: "creator_declaration",
+      content: timelineText,
+    }),
+    ...sourceFiles,
+    packageFile({
+      path: "README.md",
+      role: "package_readme",
+      mimeType: "text/markdown",
+      evidenceClass: "creator_declaration",
+      content: packageReadme({ record: args.record, manifest }),
+    }),
+  ].sort((a, b) => a.path.localeCompare(b.path));
   return {
     dossierId,
     manifest,
     html,
+    packageFiles,
     exportHashes: {
       manifestSha256,
       htmlSha256: sha256Hex(html),
@@ -525,6 +645,7 @@ export function renderDossierHtml(
     <h2>Manifest Summary</h2>
     <dl>
       <dt>Dossier ID</dt><dd>${escapeHtml(manifest.dossierId)}</dd>
+      <dt>Dossier code</dt><dd>${escapeHtml(manifest.dossierCode)}</dd>
       <dt>Dossier version</dt><dd>${manifest.dossierVersion}</dd>
       <dt>Manifest SHA-256</dt><dd>${escapeHtml(manifest.manifestSha256)}</dd>
       <dt>Package SHA-256</dt><dd>${escapeHtml(manifest.packageSha256)}</dd>
@@ -567,4 +688,95 @@ export async function persistDossierSnapshot(args: {
     export_hashes: args.snapshot.exportHashes as unknown as Json,
   });
   if (error) throw error;
+}
+
+const crcTable = Array.from({ length: 256 }, (_, index) => {
+  let value = index;
+  for (let bit = 0; bit < 8; bit += 1) {
+    value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+  }
+  return value >>> 0;
+});
+
+function crc32(data: Uint8Array) {
+  let value = 0xffffffff;
+  for (const byte of data) {
+    value = crcTable[(value ^ byte) & 0xff] ^ (value >>> 8);
+  }
+  return (value ^ 0xffffffff) >>> 0;
+}
+
+function dosDateTime() {
+  const year = 2026 - 1980;
+  const month = 7;
+  const day = 29;
+  const hour = 12;
+  const minute = 0;
+  const second = 0;
+  return {
+    time: (hour << 11) | (minute << 5) | Math.floor(second / 2),
+    date: (year << 9) | (month << 5) | day,
+  };
+}
+
+export function buildDossierZip(files: DossierPackageFile[]) {
+  const encoder = new TextEncoder();
+  const { date, time } = dosDateTime();
+  const localParts: Buffer[] = [];
+  const centralParts: Buffer[] = [];
+  let offset = 0;
+  const sorted = [...files].sort((a, b) => a.path.localeCompare(b.path));
+
+  for (const file of sorted) {
+    const name = Buffer.from(file.path.replace(/\\/g, "/"), "utf8");
+    const data = Buffer.from(encoder.encode(file.content));
+    const checksum = crc32(data);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt16LE(0x0800, 6);
+    local.writeUInt16LE(0, 8);
+    local.writeUInt16LE(time, 10);
+    local.writeUInt16LE(date, 12);
+    local.writeUInt32LE(checksum, 14);
+    local.writeUInt32LE(data.length, 18);
+    local.writeUInt32LE(data.length, 22);
+    local.writeUInt16LE(name.length, 26);
+    local.writeUInt16LE(0, 28);
+    localParts.push(local, name, data);
+
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(20, 4);
+    central.writeUInt16LE(20, 6);
+    central.writeUInt16LE(0x0800, 8);
+    central.writeUInt16LE(0, 10);
+    central.writeUInt16LE(time, 12);
+    central.writeUInt16LE(date, 14);
+    central.writeUInt32LE(checksum, 16);
+    central.writeUInt32LE(data.length, 20);
+    central.writeUInt32LE(data.length, 24);
+    central.writeUInt16LE(name.length, 28);
+    central.writeUInt16LE(0, 30);
+    central.writeUInt16LE(0, 32);
+    central.writeUInt16LE(0, 34);
+    central.writeUInt16LE(0, 36);
+    central.writeUInt32LE(0, 38);
+    central.writeUInt32LE(offset, 42);
+    centralParts.push(central, name);
+    offset += local.length + name.length + data.length;
+  }
+
+  const centralDirectory = Buffer.concat(centralParts);
+  const centralOffset = offset;
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(0, 4);
+  end.writeUInt16LE(0, 6);
+  end.writeUInt16LE(sorted.length, 8);
+  end.writeUInt16LE(sorted.length, 10);
+  end.writeUInt32LE(centralDirectory.length, 12);
+  end.writeUInt32LE(centralOffset, 16);
+  end.writeUInt16LE(0, 20);
+  return Buffer.concat([...localParts, centralDirectory, end]);
 }
