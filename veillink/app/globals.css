@@ -1556,6 +1556,16 @@ textarea {
     grid-column: 1 / -1;
   }
 
+  .field-help[open] {
+    flex-basis: 100%;
+  }
+
+  .field-help p {
+    position: static;
+    width: 100%;
+    margin-top: 0.45rem;
+  }
+
   .table,
   .table tbody,
   .table tr,
