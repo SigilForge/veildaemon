@@ -36,13 +36,15 @@ documented in `Docs/FORGE_SERVICE_INTERFACES.md`.
 
 ## License
 
-Copyright (c) 2024-2026 SigilForge Studios. All Rights Reserved.
+VeilDaemon uses a dual-layer licensing architecture harmonized with the **SigilForge Rights Framework (SFR)**:
 
-VeilDaemon is proprietary commercial software and public-service infrastructure
-operated by SigilForge Studios. It is not an open-source framework or
-self-hosted platform. Repository visibility does not grant rights to copy,
-redistribute, host, sublicense, or create derivative works. See `LICENSE` and
-`LICENSE_SCOPE.md`.
+- **VeilDaemon Core**: Open core source code is licensed under the [Apache License, Version 2.0](LICENSE).
+- **SigilForge Rights Framework (SFR)**: Creator Rights Records (CRRs), the Creator Rights Registry, verification data, trademarks, hosted APIs, and creative assets are governed by the SigilForge Rights Framework (SFR) and remain All Rights Reserved unless explicitly licensed otherwise.
+
+For details, component matrices, and architectural boundaries, see:
+- [LICENSE](LICENSE)
+- [LICENSE_SCOPE.md](LICENSE_SCOPE.md)
+- [docs/licensing.md](docs/licensing.md)
 
 ## VeilCorp QR Assets
 
