@@ -10,10 +10,10 @@ function jsonError(error: unknown) {
   );
 }
 
-export async function POST(_request: NextRequest, context: { params: Promise<{ id: string; verificationId: string }> }) {
+export async function POST(_request: NextRequest, context: { params: Promise<{ id: string; challengeId: string }> }) {
   try {
     const { user } = await requireUser();
-    const { id, verificationId } = await context.params;
+    const { id, challengeId: verificationId } = await context.params;
     const result = await revokeVerificationEvidence(user.id, id, verificationId);
     return NextResponse.json({ ok: true, ...result });
   } catch (error) {

@@ -9,7 +9,7 @@ import {
   isPrivatePrePublicationStatus,
   isPublicRightsStatus,
 } from "@/lib/rights/lifecycle";
-import { rightsJson } from "@/lib/rights/records";
+import { normalizeRightsInput, rightsJson } from "@/lib/rights/records";
 import { parseRightsQrPreferences, parseRightsQrPreferencesForPreview } from "@/lib/rights/qr-options";
 import { creatorRightsInputSchema } from "@/lib/rights/schema";
 import type { CreatorRightsRecord } from "@/lib/rights/schema";
@@ -259,6 +259,27 @@ describe("Creator Rights lifecycle", () => {
     expect(parsed.workType).toBe("3d_model");
     expect(parsed.category).toBe("marketing");
     expect(parsed.availability).toBe("restricted");
+  });
+
+  it("normalizes accepted uppercase SHA-256 values before persistence", () => {
+    const normalized = normalizeRightsInput({
+      creatorName: "Creator",
+      publicDisplayName: "Creator",
+      rightsHolderName: "Rights Holder",
+      email: "creator@example.com",
+      title: "Hash Test",
+      workType: "book",
+      category: "fiction",
+      availability: "public",
+      description: "A record with a manually pasted hash.",
+      rightsStatement: "All rights reserved.",
+      aiSummaryApproved: "yes",
+      permissions: {},
+      humanCommercialLicenseAvailable: "case_by_case",
+      sha256Hash: "A".repeat(64),
+    });
+
+    expect(normalized.sha256Hash).toBe("a".repeat(64));
   });
 
   it("pending payment and paid records are not public statuses", () => {

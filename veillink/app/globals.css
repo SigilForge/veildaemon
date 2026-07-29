@@ -1212,6 +1212,242 @@ textarea {
   grid-column: 1 / -1;
 }
 
+.guided-rights-form {
+  gap: 1rem;
+}
+
+.completion-strip,
+.form-step,
+.preflight-summary,
+.ai-summary-review,
+.fingerprint-panel {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.completion-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.45rem;
+  padding: 0.65rem;
+}
+
+.completion-strip span {
+  display: flex;
+  min-width: 0;
+  gap: 0.45rem;
+  align-items: center;
+  color: var(--text-soft);
+  font-size: 0.72rem;
+}
+
+.completion-strip strong {
+  display: grid;
+  width: 1.45rem;
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(126, 184, 168, 0.45);
+  border-radius: 999px;
+  color: var(--sage);
+  font-size: 0.7rem;
+}
+
+.form-step {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  padding: 1rem;
+}
+
+.form-step-head,
+.form-step .full,
+.fingerprint-panel,
+.advanced-fields,
+.review-step .notice,
+.review-step .checkbox-label,
+.review-step button,
+.form-error {
+  grid-column: 1 / -1;
+}
+
+.form-step-head h2,
+.ai-summary-review h3 {
+  margin: 0.15rem 0 0;
+}
+
+.field-label {
+  display: flex;
+  min-width: 0;
+  gap: 0.45rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.field-badge {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.1rem 0.38rem;
+  color: var(--text-faint);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.field-badge.required {
+  border-color: rgba(181, 117, 104, 0.45);
+  color: var(--rust-soft);
+}
+
+.field-help {
+  position: relative;
+  display: inline-grid;
+}
+
+.field-help summary {
+  display: grid;
+  width: 1.25rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgba(126, 184, 168, 0.45);
+  border-radius: 999px;
+  color: var(--sage);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 800;
+  list-style: none;
+}
+
+.field-help summary::-webkit-details-marker {
+  display: none;
+}
+
+.field-help p {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  width: min(18rem, 82vw);
+  margin: 0;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: rgba(8, 10, 11, 0.98);
+  color: var(--text-soft);
+  box-shadow: var(--shadow);
+}
+
+.field-hint,
+.field-error {
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.field-error,
+.form-error {
+  color: var(--danger);
+}
+
+.preset-row,
+.segmented-choice {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.segmented-choice {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.segmented-choice label {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.segmented-choice input {
+  width: auto;
+  min-height: auto;
+}
+
+.fingerprint-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 0.85rem;
+}
+
+.advanced-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding-top: 0.45rem;
+}
+
+.advanced-fields summary,
+.advanced-fields p {
+  grid-column: 1 / -1;
+}
+
+.advanced-fields summary {
+  cursor: pointer;
+  color: var(--rust-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.preflight-summary {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  padding: 0.8rem;
+}
+
+.preflight-summary div {
+  min-width: 0;
+}
+
+.preflight-summary span {
+  display: block;
+  color: var(--text-faint);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.preflight-summary strong {
+  display: block;
+  margin-top: 0.2rem;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.ai-summary-review {
+  grid-column: 1 / -1;
+  padding: 0.85rem;
+}
+
+.ai-summary-review p {
+  margin-bottom: 0;
+}
+
 .permission-fieldset {
   margin: 0;
   padding: 1rem;
@@ -1616,6 +1852,13 @@ textarea {
   .rights-record-grid,
   .record-meta-row,
   .rights-form,
+  .form-step,
+  .completion-strip,
+  .preset-row,
+  .segmented-choice,
+  .fingerprint-panel,
+  .advanced-fields,
+  .preflight-summary,
   .rights-verification-form,
   .rights-qr-grid,
   .rights-qr-colors,

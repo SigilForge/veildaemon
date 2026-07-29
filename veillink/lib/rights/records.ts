@@ -79,6 +79,7 @@ export function normalizeRightsInput(raw: unknown) {
   return {
     ...parsed,
     slug: parsed.slug ? slugFromTitle(parsed.slug) : slugFromTitle(parsed.title),
+    sha256Hash: parsed.sha256Hash ? parsed.sha256Hash.toLowerCase() : "",
     aiPermissionsSummary: buildAiSummary(parsed.permissions),
   };
 }
