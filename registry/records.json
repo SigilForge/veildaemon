@@ -34,16 +34,18 @@
         "contactUrl": "/rights/cradlepoint-field-dossier/license"
       },
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       },
       "technicalArtifacts": {
         "jsonAvailable": true,
         "canonicalUrl": true,
-        "sha256Available": false,
+        "sha256Available": true,
         "signatureAvailable": false,
         "versionHistoryAvailable": true
       },
@@ -81,16 +83,18 @@
         "contactUrl": "/rights/cradlepoint-handler-core/license"
       },
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       },
       "technicalArtifacts": {
         "jsonAvailable": true,
         "canonicalUrl": true,
-        "sha256Available": false,
+        "sha256Available": true,
         "signatureAvailable": false,
         "versionHistoryAvailable": true
       },
@@ -128,16 +132,18 @@
         "contactUrl": "/rights/cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus/license"
       },
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       },
       "technicalArtifacts": {
         "jsonAvailable": true,
         "canonicalUrl": true,
-        "sha256Available": false,
+        "sha256Available": true,
         "signatureAvailable": false,
         "versionHistoryAvailable": true
       },
@@ -175,16 +181,18 @@
         "contactUrl": "/rights/cradlepoint-handler-guide/license"
       },
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       },
       "technicalArtifacts": {
         "jsonAvailable": true,
         "canonicalUrl": true,
-        "sha256Available": false,
+        "sha256Available": true,
         "signatureAvailable": false,
         "versionHistoryAvailable": true
       },
@@ -222,16 +230,18 @@
         "contactUrl": "/rights/cradlepoint-monster-manual/license"
       },
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       },
       "technicalArtifacts": {
         "jsonAvailable": true,
         "canonicalUrl": true,
-        "sha256Available": false,
+        "sha256Available": true,
         "signatureAvailable": false,
         "versionHistoryAvailable": true
       },
@@ -269,16 +279,18 @@
         "contactUrl": "/rights/cradlepoint-operator-core/license"
       },
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       },
       "technicalArtifacts": {
         "jsonAvailable": true,
         "canonicalUrl": true,
-        "sha256Available": false,
+        "sha256Available": true,
         "signatureAvailable": false,
         "versionHistoryAvailable": true
       },
@@ -316,16 +328,18 @@
         "contactUrl": "/rights/cradlepoint-operator-guide/license"
       },
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       },
       "technicalArtifacts": {
         "jsonAvailable": true,
         "canonicalUrl": true,
-        "sha256Available": false,
+        "sha256Available": true,
         "signatureAvailable": false,
         "versionHistoryAvailable": true
       },
@@ -363,16 +377,18 @@
         "contactUrl": "/rights/cradlepoint-systems-metaphysics/license"
       },
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       },
       "technicalArtifacts": {
         "jsonAvailable": true,
         "canonicalUrl": true,
-        "sha256Available": false,
+        "sha256Available": true,
         "signatureAvailable": false,
         "versionHistoryAvailable": true
       },
@@ -410,16 +426,18 @@
         "contactUrl": "/rights/sanguine-sacrament/license"
       },
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       },
       "technicalArtifacts": {
         "jsonAvailable": true,
         "canonicalUrl": true,
-        "sha256Available": false,
+        "sha256Available": true,
         "signatureAvailable": false,
         "versionHistoryAvailable": true
       },
@@ -457,16 +475,18 @@
         "contactUrl": "/rights/the-anchor-and-the-glitch/license"
       },
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       },
       "technicalArtifacts": {
         "jsonAvailable": true,
         "canonicalUrl": true,
-        "sha256Available": false,
+        "sha256Available": true,
         "signatureAvailable": false,
         "versionHistoryAvailable": true
       },

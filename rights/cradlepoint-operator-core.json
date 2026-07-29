@@ -43,22 +43,31 @@
     "contactUrl": "/rights/cradlepoint-operator-core/license"
   },
   "verification": {
-    "level": "declared",
-    "claim": "declared",
-    "statement": "This record was published by an authenticated account.",
-    "methods": [],
+    "level": "artifact_verified",
+    "claim": "artifact_fingerprint",
+    "statement": "The recorded artifact matched the listed fingerprint.",
+    "methods": [
+      "sha256"
+    ],
     "evidence": []
   },
   "technicalArtifacts": {
     "jsonAvailable": true,
     "canonicalUrl": true,
-    "sha256Available": false,
+    "sha256Available": true,
     "signatureAvailable": false,
     "versionHistoryAvailable": true
   },
   "licenseContact": "/rights/cradlepoint-operator-core/license",
   "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-operator-core",
-  "fileFingerprint": null,
+  "fileFingerprint": {
+    "algorithm": "SHA-256",
+    "value": "9d4df169cc25af8321803de72b33cb719e73f77d26dc07d34b42ad657ae1cae8",
+    "filename": "CRADLEPOINT_OPERATOR_CORE_RELEASE_PACK.zip",
+    "fileSize": 40597926,
+    "mimeType": "application/zip",
+    "createdAt": "2026-07-29T00:00:00.000Z"
+  },
   "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.",
   "aiPolicy": {
     "effectiveFrom": "2026-07-28",

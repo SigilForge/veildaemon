@@ -43,22 +43,31 @@
     "contactUrl": "/rights/cradlepoint-field-dossier/license"
   },
   "verification": {
-    "level": "declared",
-    "claim": "declared",
-    "statement": "This record was published by an authenticated account.",
-    "methods": [],
+    "level": "artifact_verified",
+    "claim": "artifact_fingerprint",
+    "statement": "The recorded artifact matched the listed fingerprint.",
+    "methods": [
+      "sha256"
+    ],
     "evidence": []
   },
   "technicalArtifacts": {
     "jsonAvailable": true,
     "canonicalUrl": true,
-    "sha256Available": false,
+    "sha256Available": true,
     "signatureAvailable": false,
     "versionHistoryAvailable": true
   },
   "licenseContact": "/rights/cradlepoint-field-dossier/license",
   "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-field-dossier",
-  "fileFingerprint": null,
+  "fileFingerprint": {
+    "algorithm": "SHA-256",
+    "value": "1f7b22bb4b758c16c742fde44596fcf95b787081ea7652b00f50255002ecf643",
+    "filename": "CRADLEPOINT FIELD DOSSIER.md",
+    "fileSize": 65980,
+    "mimeType": "text/markdown",
+    "createdAt": "2026-07-29T00:00:00.000Z"
+  },
   "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.",
   "aiPolicy": {
     "effectiveFrom": "2026-07-28",

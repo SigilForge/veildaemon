@@ -43,22 +43,31 @@
     "contactUrl": "/rights/cradlepoint-systems-metaphysics/license"
   },
   "verification": {
-    "level": "declared",
-    "claim": "declared",
-    "statement": "This record was published by an authenticated account.",
-    "methods": [],
+    "level": "artifact_verified",
+    "claim": "artifact_fingerprint",
+    "statement": "The recorded artifact matched the listed fingerprint.",
+    "methods": [
+      "sha256"
+    ],
     "evidence": []
   },
   "technicalArtifacts": {
     "jsonAvailable": true,
     "canonicalUrl": true,
-    "sha256Available": false,
+    "sha256Available": true,
     "signatureAvailable": false,
     "versionHistoryAvailable": true
   },
   "licenseContact": "/rights/cradlepoint-systems-metaphysics/license",
   "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-systems-metaphysics",
-  "fileFingerprint": null,
+  "fileFingerprint": {
+    "algorithm": "SHA-256",
+    "value": "867fda1cb08c9af794a69bdf2af0f20994b6d65d12fd77fe62ce0cd80e16898e",
+    "filename": "CRADLEPOINT SYSTEMS METAPHYSICS.md",
+    "fileSize": 122818,
+    "mimeType": "text/markdown",
+    "createdAt": "2026-07-29T00:00:00.000Z"
+  },
   "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.",
   "aiPolicy": {
     "effectiveFrom": "2026-07-28",

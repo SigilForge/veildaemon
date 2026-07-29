@@ -5,106 +5,126 @@
   "projectionMode": "live",
   "source": "creator_rights_verification_evidence",
   "sourceProject": "iaeykfeyctujqsqyenqt.supabase.co",
-  "generatedAt": "2026-07-28T21:29:06.341Z",
+  "generatedAt": "2026-07-29T17:28:13.965Z",
   "recordCount": 12,
   "records": {
     "cradlepoint-field-dossier": {
       "recordId": "SFR-2026-000005",
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       }
     },
     "cradlepoint-handler-core": {
       "recordId": "SFR-2026-000004",
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       }
     },
     "cradlepoint-handler-expansion-myth-tech-and-the-epic-lotus": {
       "recordId": "SFR-2026-000006",
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       }
     },
     "cradlepoint-handler-guide": {
       "recordId": "SFR-2026-000007",
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       }
     },
     "cradlepoint-monster-manual": {
       "recordId": "SFR-2026-000008",
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       }
     },
     "cradlepoint-operator-core": {
       "recordId": "SFR-2026-000003",
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       }
     },
     "cradlepoint-operator-guide": {
       "recordId": "SFR-2026-000009",
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       }
     },
     "cradlepoint-systems-metaphysics": {
       "recordId": "SFR-2026-000010",
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       }
     },
     "sanguine-sacrament": {
       "recordId": "SFR-2026-000002",
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       }
     },
     "the-anchor-and-the-glitch": {
       "recordId": "SFR-2026-000001",
       "verification": {
-        "level": "declared",
-        "claim": "declared",
-        "statement": "This record was published by an authenticated account.",
-        "methods": [],
+        "level": "artifact_verified",
+        "claim": "artifact_fingerprint",
+        "statement": "The recorded artifact matched the listed fingerprint.",
+        "methods": [
+          "sha256"
+        ],
         "evidence": []
       }
     },
@@ -162,5 +182,5 @@
       }
     }
   },
-  "payloadSha256": "39cd3939b7cf54ab697c21a8054482b2820a0a15f09ea7d21fa8e9244a2dc0d0"
+  "payloadSha256": "865cf005cb2ed0c7c25b8b1db5abfa808f424061b114eb78cc57a40b01801b11"
 }

@@ -43,22 +43,31 @@
     "contactUrl": "/rights/sanguine-sacrament/license"
   },
   "verification": {
-    "level": "declared",
-    "claim": "declared",
-    "statement": "This record was published by an authenticated account.",
-    "methods": [],
+    "level": "artifact_verified",
+    "claim": "artifact_fingerprint",
+    "statement": "The recorded artifact matched the listed fingerprint.",
+    "methods": [
+      "sha256"
+    ],
     "evidence": []
   },
   "technicalArtifacts": {
     "jsonAvailable": true,
     "canonicalUrl": true,
-    "sha256Available": false,
+    "sha256Available": true,
     "signatureAvailable": false,
     "versionHistoryAvailable": true
   },
   "licenseContact": "/rights/sanguine-sacrament/license",
   "publicRecordUrl": "https://veildaemon.app/rights/sanguine-sacrament",
-  "fileFingerprint": null,
+  "fileFingerprint": {
+    "algorithm": "SHA-256",
+    "value": "98d7d271b7a24cbc010e4274b4401de82c29e31c5ae2e45568a5cc2fa2ce6516",
+    "filename": "THE_CRADLEPOINT_ARCHIVE_BOOK_TWO_SANGUINE_SACRAMENT_WORKING_9_EDITED.md",
+    "fileSize": 517749,
+    "mimeType": "text/markdown",
+    "createdAt": "2026-07-29T00:00:00.000Z"
+  },
   "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.",
   "aiPolicy": {
     "effectiveFrom": "2026-07-28",

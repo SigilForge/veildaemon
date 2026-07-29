@@ -43,22 +43,31 @@
     "contactUrl": "/rights/cradlepoint-handler-guide/license"
   },
   "verification": {
-    "level": "declared",
-    "claim": "declared",
-    "statement": "This record was published by an authenticated account.",
-    "methods": [],
+    "level": "artifact_verified",
+    "claim": "artifact_fingerprint",
+    "statement": "The recorded artifact matched the listed fingerprint.",
+    "methods": [
+      "sha256"
+    ],
     "evidence": []
   },
   "technicalArtifacts": {
     "jsonAvailable": true,
     "canonicalUrl": true,
-    "sha256Available": false,
+    "sha256Available": true,
     "signatureAvailable": false,
     "versionHistoryAvailable": true
   },
   "licenseContact": "/rights/cradlepoint-handler-guide/license",
   "publicRecordUrl": "https://veildaemon.app/rights/cradlepoint-handler-guide",
-  "fileFingerprint": null,
+  "fileFingerprint": {
+    "algorithm": "SHA-256",
+    "value": "d620d034b46214139fc99dc61ec90b40a83a4c037528c37bbe32507d3ef3123b",
+    "filename": "CRADLEPOINT HANDLER GUIDE.md",
+    "fileSize": 513516,
+    "mimeType": "text/markdown",
+    "createdAt": "2026-07-29T00:00:00.000Z"
+  },
   "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.",
   "aiPolicy": {
     "effectiveFrom": "2026-07-28",

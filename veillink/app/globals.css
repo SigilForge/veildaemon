@@ -1170,7 +1170,7 @@ textarea {
 
 .permission-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.6rem;
 }
 
@@ -1264,6 +1264,7 @@ textarea {
 
 .form-step-head,
 .form-step .full,
+.permission-grid,
 .fingerprint-panel,
 .advanced-fields,
 .review-step .notice,
@@ -1491,6 +1492,10 @@ textarea {
   .hero-grid,
   .price-grid {
     grid-template-columns: 1fr;
+  }
+
+  .permission-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .price-card.featured {
@@ -1864,6 +1869,7 @@ textarea {
   .rights-form,
   .form-step,
   .completion-strip,
+  .permission-grid,
   .preset-row,
   .segmented-choice,
   .fingerprint-panel,

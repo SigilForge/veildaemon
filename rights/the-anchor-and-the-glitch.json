@@ -43,22 +43,31 @@
     "contactUrl": "/rights/the-anchor-and-the-glitch/license"
   },
   "verification": {
-    "level": "declared",
-    "claim": "declared",
-    "statement": "This record was published by an authenticated account.",
-    "methods": [],
+    "level": "artifact_verified",
+    "claim": "artifact_fingerprint",
+    "statement": "The recorded artifact matched the listed fingerprint.",
+    "methods": [
+      "sha256"
+    ],
     "evidence": []
   },
   "technicalArtifacts": {
     "jsonAvailable": true,
     "canonicalUrl": true,
-    "sha256Available": false,
+    "sha256Available": true,
     "signatureAvailable": false,
     "versionHistoryAvailable": true
   },
   "licenseContact": "/rights/the-anchor-and-the-glitch/license",
   "publicRecordUrl": "https://veildaemon.app/rights/the-anchor-and-the-glitch",
-  "fileFingerprint": null,
+  "fileFingerprint": {
+    "algorithm": "SHA-256",
+    "value": "93d59c8ff4cdc3f49c5e970fd4732aedc07966f5ff99cb74bc8b59832a3c8378",
+    "filename": "THE_CRADLEPOINT_ARCHIVE_BOOK_ONE_v47_2C_RELEASE.epub",
+    "fileSize": 3701715,
+    "mimeType": "application/epub+zip",
+    "createdAt": "2026-07-29T00:00:00.000Z"
+  },
   "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.",
   "aiPolicy": {
     "effectiveFrom": "2026-07-28",
