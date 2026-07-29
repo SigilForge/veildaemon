@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { requireUser } from "@/lib/store";
 import { updateOwnedRightsRecord } from "@/lib/rights/records";
+import { licenseById } from "@/lib/rights/license-catalog";
 import { aiPermissionBlockSchema } from "@/lib/rights/schema";
 import { buildAiSummary } from "@/lib/rights/records";
 
@@ -24,11 +25,19 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     if (permissions) {
       permissions = aiPermissionBlockSchema.parse(permissions);
     }
+    const licenseId = typeof body.copyrightLicenseId === "string" ? body.copyrightLicenseId : body.copyright_license_id;
+    const copyrightLicense = licenseId ? licenseById(licenseId) : null;
 
     const record = await updateOwnedRightsRecord(user.id, id, {
       description: body.description,
       licensing_contact: body.licensingContact ?? body.licensing_contact,
       copyright_notice: body.copyrightNotice ?? body.copyright_notice,
+      copyright_license_id: copyrightLicense?.id,
+      copyright_license_name: copyrightLicense?.name,
+      copyright_license_spdx_id: copyrightLicense?.spdxId,
+      copyright_license_url: copyrightLicense?.officialUrl,
+      registry_framework_id: "sfr",
+      registry_framework_version: "1.0",
       rights_statement: body.rightsStatement ?? body.rights_statement,
       availability: body.availability,
       edition: body.edition,

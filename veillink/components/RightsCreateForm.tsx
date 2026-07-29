@@ -18,6 +18,13 @@ import {
   type FingerprintMode,
   type PermissionPresetKey,
 } from "@/lib/rights/create-form-helpers";
+import {
+  LICENSE_CATALOG,
+  SFR_REGISTRY_FRAMEWORK,
+  licenseById,
+  licenseOptionsForWorkType,
+  licenseWorkTypeWarning,
+} from "@/lib/rights/license-catalog";
 import type { AiPermissionBlock, PermissionValue } from "@/lib/rights/schema";
 
 type SelectOption = { value: string; label: string };
@@ -41,6 +48,7 @@ type FormState = {
   externalIdentifier: string;
   licensingContact: string;
   copyrightNotice: string;
+  copyrightLicenseId: string;
   rightsStatement: string;
   humanCommercialLicenseAvailable: PermissionValue;
   fileName: string;
@@ -134,6 +142,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
     externalIdentifier: "",
     licensingContact: email,
     copyrightNotice: "",
+    copyrightLicenseId: "proprietary",
     rightsStatement: "",
     humanCommercialLicenseAvailable: "case_by_case",
     fileName: "",
@@ -152,6 +161,9 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
   const [submitting, setSubmitting] = useState(false);
 
   const aiSummary = useMemo(() => aiSummaryForPermissions(permissions), [permissions]);
+  const selectedLicense = useMemo(() => licenseById(form.copyrightLicenseId), [form.copyrightLicenseId]);
+  const workTypeLicenseOptions = useMemo(() => licenseOptionsForWorkType(form.workType), [form.workType]);
+  const licenseWarning = licenseWorkTypeWarning(form.copyrightLicenseId, form.workType);
   const slugPreview = slugHelpText(form.title, form.slug);
   const publicContact = form.licensingContact || email || "Not specified";
   const hasFingerprint = fingerprintMode !== "skip" && Boolean(form.sha256Hash);
@@ -392,6 +404,57 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
           <LabelText help="Suggested from the creation year and rights holder. You may edit it.">Copyright notice</LabelText>
           <input name="copyrightNotice" value={form.copyrightNotice} placeholder={copyrightSuggestion(form.creationDate.slice(0, 4), form.rightsHolderName)} onChange={(event) => setField("copyrightNotice", event.target.value)} />
         </label>
+        <div className="license-composition full">
+          <div className="form-step-head">
+            <p className="eyebrow">License composition</p>
+            <h3>Primary License + Registry Framework</h3>
+          </div>
+          <label>
+            <LabelText required help="Choose the primary copyright license. SFR stays separate and does not replace SPDX identifiers or canonical license text.">Primary License</LabelText>
+            <select
+              name="copyrightLicenseId"
+              value={form.copyrightLicenseId}
+              onChange={(event) => setField("copyrightLicenseId", event.target.value)}
+            >
+              {LICENSE_CATALOG.map((license) => (
+                <option key={license.id} value={license.id}>
+                  {license.name}{license.spdxId ? ` (${license.spdxId})` : ""}
+                </option>
+              ))}
+            </select>
+            <span className={licenseWarning ? "field-error" : "field-hint"}>
+              {licenseWarning || selectedLicense.summary}
+            </span>
+          </label>
+          <div className="license-guide">
+            {workTypeLicenseOptions.map((license) => (
+              <article
+                className={license.id === selectedLicense.id ? "license-option selected" : "license-option"}
+                key={license.id}
+              >
+                <div>
+                  <p className="panel-kicker">{license.spdxId || "No SPDX ID"}</p>
+                  <h4>{license.shortName}</h4>
+                  <p>{license.summary}</p>
+                  <p className="muted">{license.goodFor}</p>
+                </div>
+                <button className="button secondary" type="button" onClick={() => setField("copyrightLicenseId", license.id)}>
+                  Use this license
+                </button>
+              </article>
+            ))}
+          </div>
+          <div className="registry-framework-row">
+            <span>Registry Framework</span>
+            <strong>{SFR_REGISTRY_FRAMEWORK.name} ({SFR_REGISTRY_FRAMEWORK.shortName}) v{SFR_REGISTRY_FRAMEWORK.version}</strong>
+            <p>{SFR_REGISTRY_FRAMEWORK.summary}</p>
+          </div>
+          <p className="notice sfr-notice">
+            SFR does not replace your selected copyright license. It publishes additional creator declarations,
+            attribution guidance, AI permissions, provenance metadata, verification state, and machine-readable rights
+            information alongside that license.
+          </p>
+        </div>
         <label className="full">
           <LabelText required help="A rights statement is human-readable. The AI permission grid below is structured machine-readable policy. Example: All rights reserved except where a separate written agreement grants permission.">Rights statement</LabelText>
           <textarea name="rightsStatement" rows={5} value={form.rightsStatement} required onChange={(event) => setField("rightsStatement", event.target.value)} />
@@ -491,6 +554,9 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
           <div><span>Public name</span><strong>{form.publicDisplayName || "Not entered"}</strong></div>
           <div><span>Work title</span><strong>{form.title || "Not entered"}</strong></div>
           <div><span>Rights holder</span><strong>{form.rightsHolderName || "Not entered"}</strong></div>
+          <div><span>Primary License</span><strong>{selectedLicense.shortName}</strong></div>
+          <div><span>Registry Framework</span><strong>SFR v{SFR_REGISTRY_FRAMEWORK.version}</strong></div>
+          <div><span>AI Permissions</span><strong>Creator-defined</strong></div>
           <div><span>Availability</span><strong>{optionLabel(form.availability)}</strong></div>
           <div><span>Licensing contact</span><strong>{publicContact}</strong></div>
           <div><span>File verification</span><strong>{hasFingerprint ? "SHA-256 attached" : "Skipped"}</strong></div>

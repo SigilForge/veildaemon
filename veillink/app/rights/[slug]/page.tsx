@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { buildMetadata } from "@/lib/seo";
 import { generateArtisticQrSvg } from "@/lib/qr-generator";
 import { RIGHTS_DISCLAIMER, availabilityLabel, categoryLabel, categoryOrDefault, permissionLabel, workTypeLabel } from "@/lib/rights/schema";
+import { publicLicenseShape, publicRegistryFrameworkShape } from "@/lib/rights/license-catalog";
 import { findRightsRecord, permissionEntries, recordUrl, rightsJsonLd } from "@/lib/rights/records";
 import { effectiveVerification, verificationClaimFor, verificationLevelLabel, type VerificationProjection } from "@/lib/rights/verification";
 import { publicVerificationForRecord } from "@/lib/rights/verification-store";
@@ -90,6 +91,8 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
     ? new Date(`${record.publication_date}T00:00:00.000Z`).toLocaleDateString("en-US", { timeZone: "UTC" })
     : "Not specified";
   const purchaseUrl = record.slug === "the-anchor-and-the-glitch" ? "https://app.veildaemon.app/book-one" : null;
+  const copyrightLicense = publicLicenseShape(record.copyright_license_id);
+  const registryFramework = publicRegistryFrameworkShape(record.registry_framework_id, record.registry_framework_version);
 
   return (
     <main className="page rights-record-page">
@@ -127,6 +130,23 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
             <div><dt>Identifier</dt><dd>{record.external_identifier || record.record_id || "Draft ID pending"}</dd></div>
           </dl>
           <p>{record.rights_statement}</p>
+          <div className="license-stack">
+            <div>
+              <span>Primary License</span>
+              <strong>{copyrightLicense.name}</strong>
+              {copyrightLicense.spdxId ? <small>{copyrightLicense.spdxId}</small> : null}
+            </div>
+            <div>
+              <span>Registry Framework</span>
+              <strong>{registryFramework.shortName} v{registryFramework.version}</strong>
+              <small>Record semantics and machine-readable posture</small>
+            </div>
+            <div>
+              <span>AI Permissions</span>
+              <strong>Creator-defined</strong>
+              <small>Structured separately below</small>
+            </div>
+          </div>
           <div className="toolbar">
             {record.source_url ? (
               <a className="button secondary" href={record.source_url} target="_blank" rel="noopener noreferrer">
@@ -157,6 +177,37 @@ export default async function RightsRecordPage({ params }: { params: Promise<{ s
             </Link>
           </div>
         </aside>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <p className="eyebrow">License composition</p>
+          <h2>Primary license and supplemental declarations.</h2>
+        </div>
+        <div className="grid license-composition-public">
+          <article className="panel">
+            <p className="panel-kicker">Primary License</p>
+            <h2>{copyrightLicense.name}</h2>
+            <p className="muted">{copyrightLicense.summary}</p>
+            <dl className="rights-facts compact-facts">
+              <div><dt>SPDX</dt><dd>{copyrightLicense.spdxId || "Not applicable"}</dd></div>
+              <div>
+                <dt>License URL</dt>
+                <dd>
+                  <a href={copyrightLicense.url} target="_blank" rel="noopener noreferrer">
+                    {copyrightLicense.url}
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </article>
+          <article className="panel">
+            <p className="panel-kicker">Registry Framework</p>
+            <h2>{registryFramework.name} ({registryFramework.shortName}) v{registryFramework.version}</h2>
+            <p className="muted">{registryFramework.summary}</p>
+            <p className="notice">{registryFramework.supplementalNotice}</p>
+          </article>
+        </div>
       </section>
 
       <section className="section">

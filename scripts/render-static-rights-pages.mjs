@@ -21,6 +21,25 @@ const permissionLabels = {
   not_specified: "Not Specified",
 };
 
+const fallbackLicense = {
+  id: "proprietary",
+  name: "Proprietary / all rights reserved",
+  shortName: "Proprietary",
+  spdxId: null,
+  url: "https://www.copyright.gov/help/faq/",
+  summary: "No reuse rights are granted unless a separate notice, agreement, or license says otherwise.",
+};
+
+const sfrDeclaration = {
+  id: "sfr",
+  name: "SigilForge Rights Framework",
+  shortName: "SFR",
+  version: "1.0",
+  summary:
+    "Defines the Creator Rights Record behavior: provenance metadata, verification state, AI permissions, evidence package semantics, artifact status, and machine-readable rights information.",
+  supplementalNotice: "This framework supplements the selected copyright license. It does not replace or modify that license.",
+};
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -137,6 +156,66 @@ function permissionRows(record) {
   return rows.join("");
 }
 
+function copyrightLicenseFor(record) {
+  return record.copyrightLicense || fallbackLicense;
+}
+
+function registryFrameworkFor(record) {
+  return record.registryFramework || sfrDeclaration;
+}
+
+function licenseStackHtml(record) {
+  const license = copyrightLicenseFor(record);
+  const framework = registryFrameworkFor(record);
+  return `
+          <div class="license-stack">
+            <div>
+              <span>Primary License</span>
+              <strong>${sentence(license.name)}</strong>
+              ${license.spdxId ? `<small>${sentence(license.spdxId)}</small>` : ""}
+            </div>
+            <div>
+              <span>Registry Framework</span>
+              <strong>${sentence(`${framework.shortName} v${framework.version}`)}</strong>
+              <small>Record semantics and machine-readable posture</small>
+            </div>
+            <div>
+              <span>AI Permissions</span>
+              <strong>Creator-defined</strong>
+              <small>Structured separately below</small>
+            </div>
+          </div>`;
+}
+
+function licenseCompositionHtml(record) {
+  const license = copyrightLicenseFor(record);
+  const framework = registryFrameworkFor(record);
+  return `
+      <section class="section-block">
+        <div class="section-heading">
+          <p class="eyebrow">License composition</p>
+          <h2>Primary license and supplemental declarations.</h2>
+        </div>
+        <div class="grid license-composition-public">
+          <article class="panel">
+            <p class="panel-kicker">Primary License</p>
+            <h2>${sentence(license.name)}</h2>
+            <p class="muted">${sentence(license.summary)}</p>
+            <dl class="rights-facts compact-facts">
+              <div><dt>SPDX</dt><dd>${sentence(license.spdxId || "Not applicable")}</dd></div>
+              <div><dt>License URL</dt><dd><a href="${sentence(license.url)}" target="_blank" rel="noopener noreferrer">${sentence(license.url)}</a></dd></div>
+            </dl>
+          </article>
+          <article class="panel">
+            <p class="panel-kicker">Registry Framework</p>
+            <h2>${sentence(`${framework.name} (${framework.shortName}) v${framework.version}`)}</h2>
+            <p class="muted">${sentence(framework.summary)}</p>
+            <p class="notice">${sentence(framework.supplementalNotice)}</p>
+          </article>
+        </div>
+      </section>`;
+}
+
 function qrModelFor(url) {
   const qr = QRCode.create(url, { errorCorrectionLevel: "M" });
   const quietZone = 4;
@@ -222,6 +301,7 @@ async function recordBody(record, { licenseRoute = false } = {}) {
           </dl>
           <p>${sentence(record.copyrightNotice)}</p>
           <p>${sentence(record.permissionsSummary)}</p>
+          ${licenseStackHtml(record)}
           <div class="toolbar">${projectAction(record)}${sourceAction(record)}</div>
         </article>
 
@@ -236,6 +316,8 @@ async function recordBody(record, { licenseRoute = false } = {}) {
           </div>
         </aside>
       </section>
+
+      ${licenseCompositionHtml(record)}
 
       <section class="section-block rights-permissions-section">
         <div class="section-heading">

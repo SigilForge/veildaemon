@@ -22,6 +22,11 @@ import {
 } from "./schema";
 import { isPublicRightsStatus } from "./lifecycle";
 import { canEditRightsRecord, canGenerateRightsQrAssets } from "./entitlement";
+import {
+  licenseById,
+  publicLicenseShape,
+  publicRegistryFrameworkShape,
+} from "./license-catalog";
 import { effectiveVerification, type VerificationProjection } from "./verification";
 import type { RightsQrPreferences } from "./qr-options";
 
@@ -88,9 +93,11 @@ export function buildAiSummary(permissions: AiPermissionBlock) {
 
 export function normalizeRightsInput(raw: unknown) {
   const parsed = creatorRightsInputSchema.parse(raw);
+  const copyrightLicense = licenseById(parsed.copyrightLicenseId);
   return {
     ...parsed,
     slug: parsed.slug ? slugFromTitle(parsed.slug) : slugFromTitle(parsed.title),
+    copyrightLicense,
     sha256Hash: parsed.sha256Hash ? parsed.sha256Hash.toLowerCase() : "",
     aiPermissionsSummary: buildAiSummary(parsed.permissions),
   };
@@ -149,6 +156,12 @@ function publishedTtrpgBookRecord(input: {
     source_url: input.sourceUrl || "https://play.veildaemon.app/",
     licensing_contact: "J.Donavon.Love@gmail.com",
     copyright_notice: "© 2025-2026 J. Donavon Love, under the SigilForge Studios name",
+    copyright_license_id: "proprietary",
+    copyright_license_name: "Proprietary / all rights reserved",
+    copyright_license_spdx_id: null,
+    copyright_license_url: "https://www.copyright.gov/help/faq/",
+    registry_framework_id: "sfr",
+    registry_framework_version: "1.0",
     rights_statement: ttrpgRightsStatement,
     ai_permissions: defaultCradlePointAiPermissions,
     ai_permissions_summary: ttrpgAiSummary,
@@ -492,6 +505,8 @@ export function rightsJson(record: CreatorRightsRecord, verification?: Verificat
     publicationDate: record.publication_date,
     workVersion: record.edition,
     copyrightNotice: record.copyright_notice,
+    copyrightLicense: publicLicenseShape(record.copyright_license_id),
+    registryFramework: publicRegistryFrameworkShape(record.registry_framework_id, record.registry_framework_version),
     permissions: record.ai_permissions,
     permissionsSummary: record.ai_permissions_summary,
     aiPolicy: {
@@ -728,6 +743,12 @@ export async function createDraftRightsRecord(userId: string, input: CreatorRigh
     source_url: normalized.sourceUrl || null,
     licensing_contact: normalized.licensingContact || normalized.email,
     copyright_notice: normalized.copyrightNotice || null,
+    copyright_license_id: normalized.copyrightLicense.id,
+    copyright_license_name: normalized.copyrightLicense.name,
+    copyright_license_spdx_id: normalized.copyrightLicense.spdxId,
+    copyright_license_url: normalized.copyrightLicense.officialUrl,
+    registry_framework_id: "sfr",
+    registry_framework_version: "1.0",
     rights_statement: normalized.rightsStatement,
     ai_permissions: normalized.permissions as unknown as Json,
     ai_permissions_summary: normalized.aiPermissionsSummary,
@@ -759,6 +780,12 @@ const draftEditableKeys = [
   "source_url",
   "licensing_contact",
   "copyright_notice",
+  "copyright_license_id",
+  "copyright_license_name",
+  "copyright_license_spdx_id",
+  "copyright_license_url",
+  "registry_framework_id",
+  "registry_framework_version",
   "rights_statement",
   "ai_permissions",
   "ai_permissions_summary",
@@ -777,6 +804,12 @@ const publishedEditableKeys = [
   "description",
   "licensing_contact",
   "copyright_notice",
+  "copyright_license_id",
+  "copyright_license_name",
+  "copyright_license_spdx_id",
+  "copyright_license_url",
+  "registry_framework_id",
+  "registry_framework_version",
   "rights_statement",
   "ai_permissions",
   "ai_permissions_summary",

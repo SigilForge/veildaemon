@@ -69,5 +69,24 @@
       "generation",
       "commercial_output"
     ]
+  },
+  "copyrightLicense": {
+    "id": "mpl-2.0",
+    "name": "Mozilla Public License 2.0",
+    "shortName": "MPL 2.0",
+    "spdxId": "MPL-2.0",
+    "category": "open_source",
+    "url": "https://www.mozilla.org/en-US/MPL/2.0/",
+    "summary": "A file-level copyleft software license that requires changes to MPL-covered files to remain available under MPL.",
+    "requiresNotice": true
+  },
+  "registryFramework": {
+    "id": "sfr",
+    "name": "SigilForge Rights Framework",
+    "shortName": "SFR",
+    "version": "1.0",
+    "url": "https://veildaemon.app/rights/",
+    "summary": "Defines the Creator Rights Record behavior: provenance metadata, verification state, AI permissions, evidence package semantics, artifact status, and machine-readable rights information.",
+    "supplementalNotice": "This framework supplements the selected copyright license. It does not replace or modify that license."
   }
 }

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { LICENSE_CATALOG, SFR_REGISTRY_FRAMEWORK, licenseById, licenseWorkTypeWarning } from "@/lib/rights/license-catalog";
 
 const permissionFields = [
   ["generalTraining", "General AI training"],
@@ -33,6 +34,7 @@ type Props = {
     sourceUrl: string;
     licensingContact: string;
     copyrightNotice: string;
+    copyrightLicenseId: string;
     rightsStatement: string;
     humanCommercialLicenseAvailable: string;
     permissions: Record<string, string>;
@@ -60,6 +62,8 @@ export function RightsEditForm({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState(initial);
+  const selectedLicense = licenseById(form.copyrightLicenseId);
+  const licenseWarning = licenseWorkTypeWarning(form.copyrightLicenseId, form.workType);
 
   function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -172,6 +176,35 @@ export function RightsEditForm({
         Copyright notice
         <input value={form.copyrightNotice} onChange={(e) => setField("copyrightNotice", e.target.value)} />
       </label>
+      <div className="license-composition full">
+        <div className="form-step-head">
+          <p className="eyebrow">License composition</p>
+          <h3>Primary License + Registry Framework</h3>
+        </div>
+        <label>
+          Primary License
+          <select value={form.copyrightLicenseId} onChange={(e) => setField("copyrightLicenseId", e.target.value)}>
+            {LICENSE_CATALOG.map((license) => (
+              <option key={license.id} value={license.id}>
+                {license.name}{license.spdxId ? ` (${license.spdxId})` : ""}
+              </option>
+            ))}
+          </select>
+          <span className={licenseWarning ? "field-error" : "field-hint"}>
+            {licenseWarning || selectedLicense.summary}
+          </span>
+        </label>
+        <div className="registry-framework-row">
+          <span>Registry Framework</span>
+          <strong>{SFR_REGISTRY_FRAMEWORK.name} ({SFR_REGISTRY_FRAMEWORK.shortName}) v{SFR_REGISTRY_FRAMEWORK.version}</strong>
+          <p>{SFR_REGISTRY_FRAMEWORK.summary}</p>
+        </div>
+        <p className="notice sfr-notice">
+          SFR does not replace your selected copyright license. It publishes additional creator declarations,
+          attribution guidance, AI permissions, provenance metadata, verification state, and machine-readable rights
+          information alongside that license.
+        </p>
+      </div>
       <label className="full">
         Original publication URL
         <input value={form.sourceUrl} type="url" onChange={(e) => setField("sourceUrl", e.target.value)} />

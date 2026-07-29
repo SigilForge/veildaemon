@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { buildMetadata } from "@/lib/seo";
 import { findRightsRecord } from "@/lib/rights/records";
+import { publicLicenseShape, publicRegistryFrameworkShape } from "@/lib/rights/license-catalog";
 import { effectiveVerification, verificationClaimFor, verificationLevelLabel } from "@/lib/rights/verification";
 import { publicVerificationForRecord } from "@/lib/rights/verification-store";
 
@@ -21,6 +22,8 @@ export default async function LicenseInquiryPage({ params }: { params: Promise<{
   const record = await findRightsRecord(slug);
   if (!record) notFound();
   const verification = await publicVerificationForRecord(record).catch(() => effectiveVerification(record));
+  const copyrightLicense = publicLicenseShape(record.copyright_license_id);
+  const registryFramework = publicRegistryFrameworkShape(record.registry_framework_id, record.registry_framework_version);
 
   return (
     <main className="page">
@@ -31,6 +34,30 @@ export default async function LicenseInquiryPage({ params }: { params: Promise<{
         <p className="panel-kicker">Verification</p>
         <h2>{verificationLevelLabel(verification.level)}</h2>
         <p className="muted">{verification.statement || verificationClaimFor(verification.level)}</p>
+      </section>
+      <section className="grid license-composition-public">
+        <article className="panel">
+          <p className="panel-kicker">Primary License</p>
+          <h2>{copyrightLicense.name}</h2>
+          <p className="muted">{copyrightLicense.summary}</p>
+          <dl className="rights-facts compact-facts">
+            <div><dt>SPDX</dt><dd>{copyrightLicense.spdxId || "Not applicable"}</dd></div>
+            <div>
+              <dt>License URL</dt>
+              <dd>
+                <a href={copyrightLicense.url} target="_blank" rel="noopener noreferrer">
+                  {copyrightLicense.url}
+                </a>
+              </dd>
+            </div>
+          </dl>
+        </article>
+        <article className="panel">
+          <p className="panel-kicker">Registry Framework</p>
+          <h2>{registryFramework.name} ({registryFramework.shortName}) v{registryFramework.version}</h2>
+          <p className="muted">{registryFramework.summary}</p>
+          <p className="notice">{registryFramework.supplementalNotice}</p>
+        </article>
       </section>
       <form className="form rights-form" aria-describedby="license-disabled-note">
         <label>Requester name<input name="requester_name" required /></label>

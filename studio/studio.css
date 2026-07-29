@@ -1092,6 +1092,52 @@ footer > p {
   margin-top: .4rem;
 }
 
+.license-stack {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 1rem 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(17,19,20,.72);
+}
+
+.license-stack div {
+  min-width: 0;
+  padding: .7rem;
+  border-right: 1px solid var(--line);
+}
+
+.license-stack div:last-child {
+  border-right: 0;
+}
+
+.license-stack span,
+.license-stack small {
+  display: block;
+  color: var(--text-soft);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.license-stack strong {
+  display: block;
+  margin: .24rem 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
+
+.license-composition-public a,
+.compact-facts dd,
+.rights-support-grid .muted,
+.rights-verification-panel dd {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .permission-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
@@ -4145,6 +4191,7 @@ body.digital-shelf-page .digital-hero .shelf-hero-art img {
   .asset-grid,
   .rights-record-grid,
   .rights-support-grid,
+  .license-stack,
   .metric-board,
   .ecosystem,
   .gate-list,
@@ -4159,6 +4206,13 @@ body.digital-shelf-page .digital-hero .shelf-hero-art img {
   .rights-facts div {
     grid-template-columns: 1fr;
     gap: .2rem;
+  }
+  .license-stack div {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .license-stack div:last-child {
+    border-bottom: 0;
   }
 }
 

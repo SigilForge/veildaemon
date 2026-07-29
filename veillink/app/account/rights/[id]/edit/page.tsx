@@ -70,6 +70,7 @@ export default async function EditRightsRecordPage({ params }: { params: Promise
           sourceUrl: record.source_url || "",
           licensingContact: record.licensing_contact || "",
           copyrightNotice: record.copyright_notice || "",
+          copyrightLicenseId: record.copyright_license_id || "proprietary",
           rightsStatement: record.rights_statement,
           humanCommercialLicenseAvailable: record.human_commercial_license_available,
           permissions: record.ai_permissions as Record<string, string>,

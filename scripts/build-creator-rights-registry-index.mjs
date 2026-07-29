@@ -22,6 +22,8 @@ for (const file of files) {
     status: record.status,
     work: record.work,
     publisher: record.publisher,
+    copyrightLicense: record.copyrightLicense,
+    registryFramework: record.registryFramework,
     permissions: record.permissions,
     licensing: record.licensing,
     verification: record.verification,

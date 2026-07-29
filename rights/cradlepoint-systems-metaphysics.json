@@ -78,5 +78,24 @@
       "generation",
       "commercial_output"
     ]
+  },
+  "copyrightLicense": {
+    "id": "proprietary",
+    "name": "Proprietary / all rights reserved",
+    "shortName": "Proprietary",
+    "spdxId": null,
+    "category": "proprietary",
+    "url": "https://www.copyright.gov/help/faq/",
+    "summary": "No reuse rights are granted unless a separate notice, agreement, or license says otherwise.",
+    "requiresNotice": false
+  },
+  "registryFramework": {
+    "id": "sfr",
+    "name": "SigilForge Rights Framework",
+    "shortName": "SFR",
+    "version": "1.0",
+    "url": "https://veildaemon.app/rights/",
+    "summary": "Defines the Creator Rights Record behavior: provenance metadata, verification state, AI permissions, evidence package semantics, artifact status, and machine-readable rights information.",
+    "supplementalNotice": "This framework supplements the selected copyright license. It does not replace or modify that license."
   }
 }

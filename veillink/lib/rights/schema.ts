@@ -134,7 +134,28 @@ export const verificationMethods = [
   "sha256",
 ] as const;
 
+export const copyrightLicenseIds = [
+  "proprietary",
+  "mit",
+  "apache-2.0",
+  "bsd-3-clause",
+  "mpl-2.0",
+  "gpl-3.0-only",
+  "lgpl-3.0-only",
+  "agpl-3.0-only",
+  "unlicense",
+  "cc-by-4.0",
+  "cc-by-sa-4.0",
+  "cc-by-nc-4.0",
+  "cc0-1.0",
+  "custom",
+] as const;
+
+export const registryFrameworkIds = ["sfr"] as const;
+
 export const rightsPermissionSchema = z.enum(permissionValues);
+export const copyrightLicenseIdSchema = z.enum(copyrightLicenseIds);
+export const registryFrameworkIdSchema = z.enum(registryFrameworkIds);
 
 export const aiPermissionBlockSchema = z.object({
   generalTraining: rightsPermissionSchema.default("license_required"),
@@ -168,6 +189,7 @@ export const creatorRightsInputSchema = z.object({
   externalIdentifier: z.string().trim().max(160).optional().or(z.literal("")),
   licensingContact: z.string().trim().max(320).optional().or(z.literal("")),
   copyrightNotice: z.string().trim().max(260).optional().or(z.literal("")),
+  copyrightLicenseId: copyrightLicenseIdSchema.default("proprietary"),
   rightsStatement: z.string().trim().min(1).max(4000),
   aiSummaryApproved: z.literal("yes"),
   permissions: aiPermissionBlockSchema,
@@ -190,6 +212,8 @@ export type LicensingAvailability = (typeof licensingAvailabilityValues)[number]
 export type CommercialReadiness = (typeof commercialReadinessValues)[number];
 export type VerificationLevel = (typeof verificationLevels)[number];
 export type VerificationMethod = (typeof verificationMethods)[number];
+export type CopyrightLicenseId = (typeof copyrightLicenseIds)[number];
+export type RegistryFrameworkId = (typeof registryFrameworkIds)[number];
 export type AiPermissionBlock = z.infer<typeof aiPermissionBlockSchema>;
 export type CreatorRightsInput = z.infer<typeof creatorRightsInputSchema>;
 
@@ -214,6 +238,12 @@ export type CreatorRightsRecord = {
   source_url: string | null;
   licensing_contact: string | null;
   copyright_notice: string | null;
+  copyright_license_id?: CopyrightLicenseId | (string & {}) | null;
+  copyright_license_name?: string | null;
+  copyright_license_spdx_id?: string | null;
+  copyright_license_url?: string | null;
+  registry_framework_id?: RegistryFrameworkId | (string & {}) | null;
+  registry_framework_version?: string | null;
   rights_statement: string;
   ai_permissions: AiPermissionBlock;
   ai_permissions_summary: string;

@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
       externalIdentifier: formValue(form, "externalIdentifier"),
       licensingContact: formValue(form, "licensingContact"),
       copyrightNotice: formValue(form, "copyrightNotice"),
+      copyrightLicenseId: formValue(form, "copyrightLicenseId") as never,
       rightsStatement: formValue(form, "rightsStatement"),
       aiSummaryApproved: formValue(form, "aiSummaryApproved") as "yes",
       permissions: permissionsFromForm(form) as never,
