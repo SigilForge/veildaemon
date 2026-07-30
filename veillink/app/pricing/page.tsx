@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { plans, product } from "@/lib/config";
+import { plans } from "@/lib/config";
+import { RIGHTS_PRICE_CENTS } from "@/lib/rights/schema";
 import { buildMetadata, pricingJsonLd, siteConfig } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Pricing for Dynamic QR Codes & Short Links",
-  description: `${siteConfig.name} pricing: free plan with 3 active redirects, Pro at $7/mo for 100 redirects, Business at $19/mo for 1,000. Editable destinations, scan analytics, PNG/SVG QR downloads.`,
+  title: "Pricing — Dynamic Redirects & SigilForge Rights (SFR)",
+  description: `${siteConfig.name} pricing: free plan with 3 active redirects, Pro at $7/mo, Business at $19/mo, plus one-time Creator Rights Records ($9.99 lifetime Registry license) under the SigilForge Rights Framework (SFR).`,
   path: "/pricing",
   keywords: [
     "dynamic QR code pricing",
     "cheap editable QR codes",
     "short link subscription",
-    "QR code generator free",
-    "business QR code plan",
+    "SigilForge Rights SFR",
+    "creator rights record CRR pricing",
+    "creator rights registry cost",
+    "lifetime rights record license",
   ],
 });
 
@@ -52,6 +55,10 @@ const planCopy = {
   },
 } as const;
 
+function money(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
 export default function PricingPage() {
   return (
     <main className="page">
@@ -60,20 +67,20 @@ export default function PricingPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingJsonLd()) }}
       />
       <p className="eyebrow">Pricing</p>
-      <h1 className="page-title">Clear plans. No theatrical tiers.</h1>
+      <h1 className="page-title">Clear products. No theatrical tiers.</h1>
       <p className="lede">
-        A dynamic QR code is just a QR pointing at an editable redirect. Useful, honest, and much less dramatic than most
-        subscription pages make it sound.
+        Dynamic redirects for editable QR links, plus one-time Creator Rights Records for durable publication provenance.
+        Transparent pricing, zero hidden fees.
       </p>
 
-      <section className="price-grid" aria-label="Plans">
+      <section className="price-grid" aria-label="VeilLink Redirect Plans">
         {Object.values(plans).map((plan) => {
           const copy = planCopy[plan.id as keyof typeof planCopy];
           const featured = plan.id === "pro";
           return (
             <article className={`price-card${featured ? " featured" : ""}`} key={plan.id}>
               {featured ? <span className="price-badge">Most common</span> : null}
-              <p className="panel-kicker">{plan.label}</p>
+              <p className="panel-kicker">{plan.label} Redirects</p>
               <p className="amount">
                 {plan.monthlyPrice ? (
                   <>
@@ -101,8 +108,51 @@ export default function PricingPage() {
         })}
       </section>
 
+      <section className="section panel rights-pricing-section" style={{ marginTop: "2.5rem" }}>
+        <p className="eyebrow">Standalone Product · SFR</p>
+        <h2>SigilForge Rights (SFR) — Creator Rights Records (CRR)</h2>
+        <p className="lede" style={{ fontSize: "1rem", margin: "0.25rem 0 1.25rem" }}>
+          A standalone, creator-declared publication record with machine-readable AI permissions, SHA-256 fingerprinting,
+          versioned evidence, QR verification, and Creator Dossier export under the SigilForge Rights Framework (SFR). Covered by a single one-time lifetime license.
+        </p>
+
+        <article className="price-card featured" style={{ maxWidth: "100%", width: "100%" }}>
+          <span className="price-badge">One-Time Lifetime License</span>
+          <p className="panel-kicker">SigilForge Rights Registry</p>
+          <p className="amount">
+            {money(RIGHTS_PRICE_CENTS)}
+            <span style={{ fontSize: "0.875rem", fontWeight: 400, color: "var(--muted)" }}> / one-time per record</span>
+          </p>
+          <p className="muted">
+            Each CRR includes permanent hosting of the record, public verification page, Creator Dossier generation, and future access. Zero recurring subscription fees required.
+          </p>
+          <ul style={{ margin: "1.25rem 0" }}>
+            <li><strong>One-time payment</strong> — no recurring monthly or annual subscription fees to keep your record active</li>
+            <li><strong>Permanent hosted record</strong> &amp; public verification page at <code>/rights/&lt;slug&gt;</code></li>
+            <li><strong>Machine-readable AI permissions</strong> for training, fine-tuning, retrieval, and commercial licensing</li>
+            <li><strong>SHA-256 file fingerprinting</strong> &amp; branded QR verification assets</li>
+            <li><strong>Creator Dossier export</strong> for publisher review, dispute intake, procurement, or archival delivery</li>
+            <li><strong>Free public Advisor</strong> available without an account to inspect files and compare SPDX licenses</li>
+          </ul>
+          <div className="dashboard-actions" style={{ marginTop: "1rem" }}>
+            <Link className="button" href="/rights/create">
+              Preserve rights record
+            </Link>
+            <Link className="button secondary" href="/rights/advisor">
+              Open public Advisor
+            </Link>
+            <a className="button secondary" href="https://veildaemon.app/studio/creator-rights/" target="_blank" rel="noopener noreferrer">
+              SigilForge Rights overview
+            </a>
+          </div>
+        </article>
+        <p className="note" style={{ marginTop: "1rem", fontSize: "0.8125rem" }}>
+          Registry fees support long-term record storage, verification infrastructure, maintenance, and the continued operation of this independent creator-focused service under the SigilForge Rights Framework. Each CRR is covered by a single one-time lifetime Registry license.
+        </p>
+      </section>
+
       <section className="section panel">
-        <h2>Plain-English limits</h2>
+        <h2>Plain-English limits for dynamic redirects</h2>
         <div style={{ overflowX: "auto", maxWidth: "100%" }}>
           <table className="table">
             <thead>
