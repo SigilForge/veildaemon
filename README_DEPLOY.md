@@ -17,7 +17,22 @@ Options:
 - `--relay`: Include Relay Vercel deployment (`relay.veildaemon.app`).
 - `--root-api`: Include Root Vercel API deployment (`api.veildaemon.app`).
 - `--skip-checks`: Skip pre-flight unit tests and syntax checks.
+- `--skip-supabase-migrations`: Skip `supabase db push`.
 - `--dry-run`: Preview execution steps without running them.
+
+### Supabase migrations
+
+The push script applies `supabase/migrations/` (repo root — the one linked
+project, `project_id "veildaemon"` in `supabase/config.toml`) via
+`supabase db push`, using `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF`
+from the environment (see `.env.example`; `SUPABASE_DB_PASSWORD` is optional).
+Without those set, this phase logs a warning and skips — migrations must then
+be applied by hand before code depending on the new schema goes live.
+
+`veillink/supabase/migrations/` is a legacy, unmaintained duplicate of the
+root migrations directory (it has drifted and is missing newer files). Do not
+add new migrations there — it is not linked to any project and nothing
+applies it automatically.
 
 ## GitHub Pages source
 
