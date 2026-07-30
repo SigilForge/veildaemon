@@ -50,13 +50,14 @@ test("YouTube is not requested until the transmission viewer opens", async ({ pa
 test("license scope describes proprietary repository and reserves marks", async () => {
   const license = fs.readFileSync(path.join(root, "LICENSE"), "utf8");
   const scope = fs.readFileSync(path.join(root, "LICENSE_SCOPE.md"), "utf8");
-  for (const text of [license, scope]) {
-    expect(text).toMatch(/All Rights Reserved/i);
-    expect(text).toMatch(/proprietary commercial software/i);
-    expect(text).toMatch(/No trademark rights are granted/i);
-    expect(text).toMatch(/SigilForge Studios/i);
-  }
-  expect(scope).toMatch(/VeilDaemon source code and implementation.*Proprietary/i);
+  expect(license).toMatch(/VeilDaemon Core source code.*Apache License, Version 2\.0/is);
+  expect(license).toMatch(/SigilForge Rights Framework.*All Rights Reserved/is);
+  expect(license).toMatch(/Trademarks, logos, studio names/is);
+  expect(license).toMatch(/SigilForge Studios/i);
+  expect(scope).toMatch(/open core software logic from proprietary rights infrastructure, assets, and brand identity/i);
+  expect(scope).toMatch(/All Rights Reserved/i);
+  expect(scope).toMatch(/No trademark rights are granted/i);
+  expect(scope).toMatch(/SigilForge Studios/i);
 });
 
 test("public pages avoid false entity and all-data-local claims", async () => {

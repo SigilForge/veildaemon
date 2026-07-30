@@ -150,6 +150,7 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.getByText(/4D6 .* DISADVANTAGE KEEP WORST 3 .* DROP .* Body \+3 .* Investigation \+2 .* = /)).toBeVisible();
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await page.locator("#skill-picker").selectOption("Investigation");
   await page.locator("#skill-rank").fill("3");
   await expect(page.getByText("Cost: 3 Breach")).toBeVisible();
@@ -167,6 +168,7 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await importAuthorizationPacket(page, ["VOID_REWARD:7", "BREACH_REWARD:45"]);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await page.getByRole("button", { name: "Frequency" }).click();
   await expect(page.getByText("Abilities, tells, grounding, and misfire language.")).toBeVisible();
   await expect(page.locator(".lotus-petal")).toHaveCount(6);
@@ -728,6 +730,7 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await importAuthorizationPacket(page, ["BREACH_REWARD:5"]);
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("8");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await expect(page.getByLabel("Body 4")).toBeEnabled();
   await page.getByLabel("Body 4").click();
   await expect(page.locator("#roll-attribute")).toContainText("Body +4");
@@ -950,6 +953,8 @@ test("Gate 3 requires 3 total Void and unlocks pips 5-6", async ({ page }) => {
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
 
   await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await page.getByRole("button", { name: "Frequency" }).click();
 
   await page.getByLabel("Dream Void").fill("2");
@@ -986,6 +991,52 @@ test("Creation Mode blocks finalizing blank Rank 0 Operator", async ({ page }) =
   await expect(page.getByRole("button", { name: "Creation Mode: On" })).toBeVisible();
 });
 
+test("creation skill cap blocks Athletics before post-creation advancement", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+  await importAuthorizationPacket(page, ["BREACH_REWARD:50"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+
+  await page.locator("#skill-picker").selectOption("Athletics");
+  await page.locator("#skill-rank").fill("3");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+
+  const athleticsRow = page.locator(".skill-summary-row", { hasText: "Athletics" });
+  await expect(athleticsRow.locator(".skill-summary-rank")).toHaveText("+3");
+  await expect(page.getByText("Creation: skills 3/8 // attribute spread 0/6 // Bonus Breach 53/3")).toBeVisible();
+
+  await page.getByRole("button", { name: "Increase Athletics rank" }).click();
+  await expect(page.locator("#storage-status")).toContainText("Creation skill purchases cap at base Rank 3.");
+  await expect(athleticsRow.locator(".skill-summary-rank")).toHaveText("+3");
+  await expect(page.getByText("Creation: skills 3/8 // attribute spread 0/6 // Bonus Breach 53/3")).toBeVisible();
+
+  let state = await page.evaluate(() => JSON.parse(localStorage.getItem("veildaemon.operatorConsole.v1")).operatorStatus);
+  expect(state.skills.Athletics).toBe("3");
+  expect(state.breachPoints).toBe("53");
+  expect(state.creationMode).toBe(true);
+  expect(state.sheetEditMode).toBe(true);
+
+  await page.getByRole("button", { name: "Creation Mode: On" }).click();
+  await expect(page.getByRole("button", { name: "Creation Mode: Off" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Edit Sheet: Off" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Increase Athletics rank" })).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await page.getByRole("button", { name: "Increase Athletics rank" }).click();
+  await expect(athleticsRow.locator(".skill-summary-rank")).toHaveText("+4");
+  await page.getByRole("button", { name: "Increase Athletics rank" }).click();
+  await expect(athleticsRow.locator(".skill-summary-rank")).toHaveText("+5");
+  await expect(page.getByText("Advancement: Breach bank 44")).toBeVisible();
+
+  state = await page.evaluate(() => JSON.parse(localStorage.getItem("veildaemon.operatorConsole.v1")).operatorStatus);
+  expect(state.skills.Athletics).toBe("5");
+  expect(state.breachPoints).toBe("44");
+  expect(state.creationMode).toBe(false);
+  expect(state.sheetEditMode).toBe(true);
+});
+
 test("sequential post-creation frequency costs", async ({ page }) => {
   await page.goto("/operator/");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
@@ -994,6 +1045,8 @@ test("sequential post-creation frequency costs", async ({ page }) => {
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await page.getByRole("button", { name: "Frequency" }).click();
 
   await page.getByLabel("Dream Void").fill("3");
@@ -1029,6 +1082,8 @@ test("direct jump frequency cost", async ({ page }) => {
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await page.getByRole("button", { name: "Frequency" }).click();
 
   await page.getByLabel("Dream Void").fill("2");
@@ -1045,6 +1100,8 @@ test("new frequency direct jump to pip 6", async ({ page }) => {
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await page.getByRole("button", { name: "Frequency" }).click();
 
   await page.getByRole("button", { name: "Hunger", exact: true }).click();
@@ -1062,6 +1119,8 @@ test("void reduction refunds clamped pips", async ({ page }) => {
 
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await page.getByRole("button", { name: "Frequency" }).click();
 
   await page.getByLabel("Dream Void").fill("3");

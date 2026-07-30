@@ -627,6 +627,10 @@
         setStorageStatus(canFinalize.message, true);
         return false;
       }
+      status.creationMode = false;
+      status.sheetEditMode = false;
+      setStorageStatus("Character Creation finalized. Re-enable Edit Sheet for post-creation advancement.");
+      return true;
     }
     status.creationMode = !status.creationMode;
     return true;

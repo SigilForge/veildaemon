@@ -555,9 +555,8 @@ test("mobile surface rack stays compact and drawers open above it", async ({ pag
 
     const drawer = page.locator("#recovered-reports-drawer");
     await expect(drawer).toBeVisible();
-    await page.waitForTimeout(300);
 
-    const { openRack, drawerBox } = await page.evaluate(() => {
+    const readOpenGeometry = () => page.evaluate(() => {
       const rackRect = document.querySelector(".surface-tabs")?.getBoundingClientRect();
       const drawerRect = document.querySelector("#recovered-reports-drawer")?.getBoundingClientRect();
       return {
@@ -573,6 +572,13 @@ test("mobile surface rack stays compact and drawers open above it", async ({ pag
         }
       };
     });
+
+    await expect.poll(async () => {
+      const { openRack, drawerBox } = await readOpenGeometry();
+      return drawerBox.y + drawerBox.height - openRack.y;
+    }).toBeLessThanOrEqual(2);
+
+    const { openRack, drawerBox } = await readOpenGeometry();
     expect(openRack.height).toBeLessThanOrEqual(60);
     expect(drawerBox.x).toBeGreaterThanOrEqual(-1);
     expect(drawerBox.width).toBeGreaterThanOrEqual(388);
