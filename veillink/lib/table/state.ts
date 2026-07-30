@@ -284,6 +284,64 @@ export function generateJoinCode(): string {
   return code;
 }
 
+export type ImportedOperatorSnapshot = {
+  displayName: string;
+  designation: string;
+  blindPetal: Frequency;
+  /** Partial — only fields actually present in the source export are set, so
+   * defaultLiveState's own fallbacks apply to anything missing rather than
+   * being overridden by an injected zero. */
+  liveState: Partial<LiveState>;
+  /** The raw, unmodified export payload — stored as operator_profiles.character_snapshot
+   * for Handler reference only. Attributes/skills/background have no home in
+   * LiveState, so this never flows through mergeLiveState/defaultLiveState. */
+  snapshot: unknown;
+};
+
+/**
+ * Maps a static Operator sheet's `cradlepoint.operator` export (see
+ * operator/operator.js, `#export-operator-file`) into the fields VeilLink's
+ * Table Live-Link can use: identity for a new operator_profiles row, starting
+ * live-session values, and the raw snapshot for reference.
+ */
+export function importFromOperatorExport(
+  payload: unknown,
+): { ok: true; result: ImportedOperatorSnapshot } | { ok: false; error: string } {
+  if (!payload || typeof payload !== "object") {
+    return { ok: false, error: "Not a valid Operator sheet export file." };
+  }
+  const record = payload as Record<string, unknown>;
+  if (record.exportType && record.exportType !== "cradlepoint.operator") {
+    return { ok: false, error: "File is not an Operator sheet export (cradlepoint.operator)." };
+  }
+  const status = (record.operatorStatus && typeof record.operatorStatus === "object"
+    ? record.operatorStatus
+    : {}) as Record<string, unknown>;
+  const opRecord = (record.operatorRecord && typeof record.operatorRecord === "object"
+    ? record.operatorRecord
+    : {}) as Record<string, unknown>;
+
+  const displayName =
+    String(status.operatorName || opRecord.designation || status.designation || "").trim().slice(0, 80) ||
+    "Operator";
+  const designation = String(status.designation || opRecord.designation || "").trim().slice(0, 40);
+  const blindPetal = normalizeBlindPetal(status.blindPetal, "Silence");
+
+  const liveState: Partial<LiveState> = { blindPetal };
+  if (status.harmBoxes !== undefined) liveState.harm = clampInt(status.harmBoxes, 0, 5);
+  if (status.stability !== undefined) liveState.stability = clampInt(status.stability, 0, 10);
+  if (status.breachPoints !== undefined) liveState.breach = clampInt(status.breachPoints, 0, 99);
+  if (status.voidMarks !== undefined) liveState.voidMarks = clampInt(status.voidMarks, 0, 13);
+  if (status.lotus && typeof status.lotus === "object") {
+    liveState.lotus = { ...emptyFrequencyMap(0), ...(status.lotus as Partial<FrequencyMap>) };
+  }
+
+  return {
+    ok: true,
+    result: { displayName, designation, blindPetal, liveState, snapshot: payload },
+  };
+}
+
 /**
  * Storage adapter for {@link applyStatePatch}. `read` returns the current row's
  * live_state and a monotonic version stamp; `write` performs a compare-and-swap

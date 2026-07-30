@@ -765,6 +765,38 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("4");
 });
 
+test("authorization packet HARM_SET and STABILITY_SET override rather than add", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  // Baseline: Harm starts at 0, Stability at 10.
+  await expect(page.getByLabel("Harm 1")).not.toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 10")).toHaveClass(/is-filled/);
+
+  await importAuthorizationPacket(page, ["HARM_SET:3", "STABILITY_SET:6"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.getByLabel("Harm 3")).toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Harm 4")).not.toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 6")).toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 7")).not.toHaveClass(/is-filled/);
+
+  // A second packet with different values replaces the prior set instead of stacking.
+  await importAuthorizationPacket(page, ["HARM_SET:1", "STABILITY_SET:9"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.getByLabel("Harm 1")).toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Harm 2")).not.toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 9")).toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 10")).not.toHaveClass(/is-filled/);
+
+  // Out-of-range values clamp to the track's max instead of overflowing.
+  await importAuthorizationPacket(page, ["HARM_SET:9", "STABILITY_SET:99"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.getByLabel("Harm 5")).toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 10")).toHaveClass(/is-filled/);
+});
+
 test("creation skill spending after free budget and refunds", async ({ page }) => {
   await page.goto("/operator/");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();

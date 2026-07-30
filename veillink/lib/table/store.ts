@@ -4,6 +4,7 @@ import {
   applyStatePatch,
   defaultLiveState,
   generateJoinCode,
+  importFromOperatorExport,
   isFrequency,
   mergeLiveState,
   normalizeBlindPetal,
@@ -11,7 +12,14 @@ import {
   type LiveState,
   type StateStoreAdapter,
 } from "@/lib/table/state";
+import { buildSessionClosePacket, type AuthorizationPacket } from "@/lib/table/authorizationPacket";
 import type { Json } from "@/lib/database.types";
+
+function clampAward(value: unknown): number {
+  const n = Math.round(Number(value));
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.min(n, 99);
+}
 
 export async function listMyOperators() {
   const { user, supabase } = await requireUser();
@@ -45,6 +53,33 @@ export async function createOperator(input: {
       display_name: name,
       designation: String(input.designation || "").trim().slice(0, 40),
       persistent_state: state as unknown as Json,
+    })
+    .select("*")
+    .single();
+  if (error) throw publicError(error.message, 500);
+  return data;
+}
+
+/**
+ * Creates a new operator_profiles row from a static Operator sheet's
+ * `cradlepoint.operator` export. Always creates a fresh row rather than
+ * matching/overwriting an existing one (V1 scope — avoids ambiguous matching;
+ * the caller picks the freshly-imported entry to join with).
+ */
+export async function importOperator(payload: unknown) {
+  const { user, supabase } = await requireUser();
+  const mapped = importFromOperatorExport(payload);
+  if (!mapped.ok) throw publicError(mapped.error);
+  const { displayName, designation, blindPetal, liveState, snapshot } = mapped.result;
+  const state = defaultLiveState({ blindPetal, ...liveState });
+  const { data, error } = await supabase
+    .from("operator_profiles")
+    .insert({
+      owner_user_id: user.id,
+      display_name: displayName,
+      designation,
+      persistent_state: state as unknown as Json,
+      character_snapshot: snapshot as unknown as Json,
     })
     .select("*")
     .single();
@@ -325,7 +360,30 @@ export async function leaveSession(sessionId: string, sessionOperatorStateId: st
   return updated;
 }
 
-export async function closeSession(sessionId: string) {
+export type CloseSessionOptions = {
+  /** Final session for these characters vs an ongoing campaign. Recorded on the session; doesn't hard-gate other choices. */
+  oneShot?: boolean;
+  /** Reset Harm to 0 / Stability to 10 instead of carrying the session's ending levels forward. */
+  resetVitals?: boolean;
+  /** Applied equally to every still-active seat. */
+  groupAward?: {
+    voidReward?: number;
+    breachReward?: number;
+    ontologyUnlocks?: string[];
+    backgroundUnlocks?: string[];
+    caseUnlock?: string;
+  };
+  /** Discretionary, per-seat, on top of the group award (e.g. "went above and beyond"). Keyed by session_operator_state id. */
+  perOperatorAwards?: Record<string, { voidBonus?: number; breachBonus?: number }>;
+};
+
+export type SessionClosePacketResult = {
+  sessionOperatorStateId: string;
+  operatorName: string;
+  packet: AuthorizationPacket;
+};
+
+export async function closeSession(sessionId: string, options: CloseSessionOptions = {}) {
   const { user, supabase } = await requireUser();
   const { data: session, error } = await supabase
     .from("handler_sessions")
@@ -334,14 +392,21 @@ export async function closeSession(sessionId: string) {
     .eq("handler_user_id", user.id)
     .single();
   if (error || !session) throw publicError("Session not found.", 404);
-  if (session.status === "closed") return { session, reconciled: 0 };
+  if (session.status === "closed") return { session, reconciled: 0, packets: [] as SessionClosePacketResult[] };
 
   const { data: seats } = await supabase
     .from("session_operator_state")
     .select("*")
     .eq("session_id", sessionId);
 
+  const groupAward = options.groupAward || {};
+  const groupVoid = clampAward(groupAward.voidReward);
+  const groupBreach = clampAward(groupAward.breachReward);
+  const perOperatorAwards = options.perOperatorAwards || {};
+  const sessionLabel = session.needlepoint || session.mission || "Session Archive";
+
   let reconciled = 0;
+  const packets: SessionClosePacketResult[] = [];
   for (const seat of seats || []) {
     if (seat.left_at) continue;
     const live = defaultLiveState((seat.live_state || {}) as Partial<LiveState>);
@@ -353,14 +418,20 @@ export async function closeSession(sessionId: string) {
       .eq("id", seat.operator_profile_id)
       .single();
     if (!profile) continue;
+
+    const bonus = perOperatorAwards[seat.id] || {};
+    const voidAwarded = groupVoid + clampAward(bonus.voidBonus);
+    const breachAwarded = groupBreach + clampAward(bonus.breachBonus);
+
     const persistent = defaultLiveState((profile.persistent_state || {}) as Partial<LiveState>);
-    // Archive reconcile: Harm/Stability + Void/Breach + unlocks.
+    // Archive reconcile: Harm/Stability (reset or carried per resetVitals) + Void/Breach (session's
+    // ending banks plus any group/per-operator award) + unlocks.
     // Lotus is between-sessions — do not overwrite persistent petals from live session.
     const next = mergeLiveState(persistent, {
-      harm: live.harm,
-      stability: live.stability,
-      breach: live.breach,
-      voidMarks: live.voidMarks,
+      harm: options.resetVitals ? 0 : live.harm,
+      stability: options.resetVitals ? 10 : live.stability,
+      breach: live.breach + breachAwarded,
+      voidMarks: live.voidMarks + voidAwarded,
       conditions: live.conditions,
       unlocks: live.unlocks,
     });
@@ -374,14 +445,31 @@ export async function closeSession(sessionId: string) {
       .eq("id", seat.id)
       .is("left_at", null);
     reconciled += 1;
+
+    packets.push({
+      sessionOperatorStateId: seat.id,
+      operatorName: profile.display_name,
+      packet: buildSessionClosePacket({
+        operatorName: profile.display_name,
+        sessionLabel,
+        finalHarm: next.harm,
+        finalStability: next.stability,
+        voidAwarded,
+        breachAwarded,
+        ontologyUnlocks: groupAward.ontologyUnlocks,
+        backgroundUnlocks: groupAward.backgroundUnlocks,
+        caseUnlock: groupAward.caseUnlock,
+        oneShot: Boolean(options.oneShot),
+      }),
+    });
   }
 
   const { data: closed, error: closeError } = await supabase
     .from("handler_sessions")
-    .update({ status: "closed", closed_at: new Date().toISOString() })
+    .update({ status: "closed", closed_at: new Date().toISOString(), one_shot: Boolean(options.oneShot) })
     .eq("id", sessionId)
     .select("*")
     .single();
   if (closeError) throw publicError(closeError.message, 500);
-  return { session: closed, reconciled };
+  return { session: closed, reconciled, packets };
 }

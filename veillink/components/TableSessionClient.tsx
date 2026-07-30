@@ -9,6 +9,26 @@ import {
   type LiveState,
   type SyncKind,
 } from "@/lib/table/state";
+import type { AuthorizationPacket } from "@/lib/table/authorizationPacket";
+
+type ClosePacket = { sessionOperatorStateId: string; operatorName: string; packet: AuthorizationPacket };
+
+function splitFlagList(text: string): string[] {
+  return text
+    .split(",")
+    .map((item) => item.trim().toUpperCase().replace(/\s+/g, "_"))
+    .filter(Boolean);
+}
+
+function downloadPacket(operatorName: string, packet: AuthorizationPacket) {
+  const blob = new Blob([JSON.stringify(packet, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `authorization-${operatorName.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "operator"}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
 type Seat = {
   id: string;
@@ -54,6 +74,19 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
   const [busy, setBusy] = useState(false);
   /** Local tactical counter — End Pressure Round advances; Sync Cell does not. */
   const [pressureRound, setPressureRound] = useState(0);
+
+  const [closePanelOpen, setClosePanelOpen] = useState(false);
+  const [oneShot, setOneShot] = useState(false);
+  const [resetVitals, setResetVitals] = useState(false);
+  const [groupVoidReward, setGroupVoidReward] = useState("0");
+  const [groupBreachReward, setGroupBreachReward] = useState("0");
+  const [groupOntology, setGroupOntology] = useState("");
+  const [groupBackground, setGroupBackground] = useState("");
+  const [groupCaseUnlock, setGroupCaseUnlock] = useState("");
+  const [perOperatorBonus, setPerOperatorBonus] = useState<Record<string, { voidBonus: string; breachBonus: string }>>(
+    {},
+  );
+  const [closePackets, setClosePackets] = useState<ClosePacket[]>([]);
 
   const loadSession = useCallback(async () => {
     const res = await fetch(`/api/table/sessions/${sessionId}`);
@@ -183,31 +216,10 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
     }
   }
 
-  async function handlerSync(kind: SyncKind) {
+  async function handlerSync(kind: Exclude<SyncKind, "archive">) {
     setBusy(true);
     setError("");
     try {
-      if (kind === "archive") {
-        if (bundle?.session?.status === "closed") {
-          setFlash("Archive already complete — session is closed.");
-          setTimeout(() => setFlash(""), 2800);
-          return;
-        }
-        const dirtyIds = Object.keys(dirty).filter((id) => dirty[id]);
-        await pushDrafts(dirtyIds, "archive");
-        const res = await fetch(`/api/table/sessions/${sessionId}`, { method: "DELETE" });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Archive failed");
-        const count = Number(data.reconciled) || 0;
-        setFlash(
-          count
-            ? `Archive Session complete. Reconciled ${count} Operator file(s). Void/Breach once. Lotus unchanged (between sessions).`
-            : "Archive already complete — no additional bank reconciliation.",
-        );
-        await loadSession();
-        return;
-      }
-
       const dirtyIds = Object.keys(dirty).filter((id) => dirty[id]);
       await pushDrafts(dirtyIds, kind);
       await loadSession();
@@ -224,6 +236,69 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
         );
       }
       setTimeout(() => setFlash(""), 3200);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function setSeatBonus(seatId: string, field: "voidBonus" | "breachBonus", value: string) {
+    setPerOperatorBonus((prev) => {
+      const current = prev[seatId] || { voidBonus: "0", breachBonus: "0" };
+      const next = { ...current };
+      next[field] = value;
+      return { ...prev, [seatId]: next };
+    });
+  }
+
+  async function submitArchiveSession() {
+    setBusy(true);
+    setError("");
+    try {
+      if (bundle?.session?.status === "closed") {
+        setFlash("Archive already complete — session is closed.");
+        setTimeout(() => setFlash(""), 2800);
+        setClosePanelOpen(false);
+        return;
+      }
+      const dirtyIds = Object.keys(dirty).filter((id) => dirty[id]);
+      await pushDrafts(dirtyIds, "archive");
+
+      const perOperatorAwards: Record<string, { voidBonus: number; breachBonus: number }> = {};
+      for (const [seatId, bonus] of Object.entries(perOperatorBonus)) {
+        const voidBonus = Number(bonus.voidBonus) || 0;
+        const breachBonus = Number(bonus.breachBonus) || 0;
+        if (voidBonus || breachBonus) perOperatorAwards[seatId] = { voidBonus, breachBonus };
+      }
+
+      const res = await fetch(`/api/table/sessions/${sessionId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          oneShot,
+          resetVitals,
+          groupAward: {
+            voidReward: Number(groupVoidReward) || 0,
+            breachReward: Number(groupBreachReward) || 0,
+            ontologyUnlocks: splitFlagList(groupOntology),
+            backgroundUnlocks: splitFlagList(groupBackground),
+            caseUnlock: groupCaseUnlock.trim(),
+          },
+          perOperatorAwards,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Archive failed");
+      const count = Number(data.reconciled) || 0;
+      setClosePackets((data.packets || []) as ClosePacket[]);
+      setClosePanelOpen(false);
+      setFlash(
+        count
+          ? `Archive Session complete. Reconciled ${count} Operator file(s). Download each Authorization Packet below to hand back to that player's Operator sheet.`
+          : "Archive already complete — no additional bank reconciliation.",
+      );
+      await loadSession();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -330,8 +405,13 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
             <button className="button secondary" type="button" disabled={busy} onClick={() => handlerSync("cell")}>
               Sync Cell
             </button>
-            <button className="button secondary" type="button" disabled={busy} onClick={() => handlerSync("archive")}>
-              Archive Session
+            <button
+              className="button secondary"
+              type="button"
+              disabled={busy}
+              onClick={() => setClosePanelOpen((open) => !open)}
+            >
+              Archive Session…
             </button>
           </div>
         ) : null}
@@ -351,6 +431,124 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
             Recovery resolves on your Operator sheet first. Lotus purchases are between sessions.
           </p>
         )}
+
+        {isHandler && sessionOpen && closePanelOpen ? (
+          <div className="card close-panel">
+            <p className="eyebrow">Archive Session — close options</p>
+            <label className="check-field">
+              <input type="checkbox" checked={oneShot} onChange={(e) => setOneShot(e.target.checked)} />
+              One-shot (final session for these characters)
+            </label>
+            <fieldset className="stack-form">
+              <legend>Harm &amp; Stability for next session</legend>
+              <label className="check-field">
+                <input type="radio" name="reset-vitals" checked={!resetVitals} onChange={() => setResetVitals(false)} />
+                Carry current levels forward
+              </label>
+              <label className="check-field">
+                <input type="radio" name="reset-vitals" checked={resetVitals} onChange={() => setResetVitals(true)} />
+                Reset to baseline (Harm 0, Stability 10)
+              </label>
+            </fieldset>
+            <fieldset className="stack-form">
+              <legend>Group award — applied to every connected Operator</legend>
+              <label>
+                Void Reward
+                <input
+                  type="number"
+                  min={0}
+                  max={99}
+                  value={groupVoidReward}
+                  onChange={(e) => setGroupVoidReward(e.target.value)}
+                />
+              </label>
+              <label>
+                Breach Reward
+                <input
+                  type="number"
+                  min={0}
+                  max={99}
+                  value={groupBreachReward}
+                  onChange={(e) => setGroupBreachReward(e.target.value)}
+                />
+              </label>
+              <label>
+                Ontology Unlocks (comma-separated)
+                <input value={groupOntology} onChange={(e) => setGroupOntology(e.target.value)} placeholder="SANGUINE, WRAITH_TOUCHED" />
+              </label>
+              <label>
+                Background Unlocks (comma-separated)
+                <input value={groupBackground} onChange={(e) => setGroupBackground(e.target.value)} placeholder="TECH, FIELD_MEDIC" />
+              </label>
+              <label>
+                Case Unlock
+                <input value={groupCaseUnlock} onChange={(e) => setGroupCaseUnlock(e.target.value)} placeholder="NEEDLEPOINT_SURVIVOR" />
+              </label>
+            </fieldset>
+            {connected.length ? (
+              <fieldset className="stack-form">
+                <legend>Per-Operator bonus — on top of the group award (e.g. went above and beyond)</legend>
+                {connected.map((seat) => (
+                  <div key={seat.id} className="stat-row">
+                    <span>{seatLabel(seat)}</span>
+                    <label>
+                      Bonus Void
+                      <input
+                        type="number"
+                        min={0}
+                        max={99}
+                        value={perOperatorBonus[seat.id]?.voidBonus ?? "0"}
+                        onChange={(e) => setSeatBonus(seat.id, "voidBonus", e.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Bonus Breach
+                      <input
+                        type="number"
+                        min={0}
+                        max={99}
+                        value={perOperatorBonus[seat.id]?.breachBonus ?? "0"}
+                        onChange={(e) => setSeatBonus(seat.id, "breachBonus", e.target.value)}
+                      />
+                    </label>
+                  </div>
+                ))}
+              </fieldset>
+            ) : null}
+            <div className="lobby-actions">
+              <button className="button primary" type="button" disabled={busy} onClick={submitArchiveSession}>
+                Archive Session
+              </button>
+              <button className="button ghost" type="button" disabled={busy} onClick={() => setClosePanelOpen(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {closePackets.length ? (
+          <div className="card close-panel">
+            <p className="eyebrow">Authorization Packets — hand each to that player</p>
+            <ul className="connected-list">
+              {closePackets.map((entry) => (
+                <li key={entry.sessionOperatorStateId}>
+                  <strong>{entry.operatorName}</strong>
+                  <button
+                    className="button secondary"
+                    type="button"
+                    onClick={() => downloadPacket(entry.operatorName, entry.packet)}
+                  >
+                    Download packet
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <p className="muted small">
+              Import on the static Operator sheet under Authorized Unlocks. Sets Harm/Stability to the closing values
+              and applies any Void/Breach/unlock awards.
+            </p>
+          </div>
+        ) : null}
       </section>
 
       {!connected.length ? null : (

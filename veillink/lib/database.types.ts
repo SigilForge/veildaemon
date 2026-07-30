@@ -134,6 +134,7 @@ export type Database = {
           display_name: string;
           designation: string;
           persistent_state: Json;
+          character_snapshot: Json;
           created_at: string;
           updated_at: string;
         };
@@ -153,6 +154,7 @@ export type Database = {
           needlepoint: string;
           mission: string;
           max_operators: number | null;
+          one_shot: boolean | null;
           created_at: string;
           closed_at: string | null;
           updated_at: string;

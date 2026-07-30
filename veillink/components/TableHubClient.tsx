@@ -78,6 +78,36 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
     }
   }
 
+  async function importOperatorFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file (e.g. re-import after edits) later
+    if (!file) return;
+    setBusy(true);
+    setError("");
+    try {
+      const text = await file.text();
+      let payload: unknown;
+      try {
+        payload = JSON.parse(text);
+      } catch {
+        throw new Error("That file isn't valid JSON.");
+      }
+      const res = await fetch("/api/table/operators/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Import failed");
+      await loadOperators();
+      setSelectedOp(data.operator.id);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function createSession(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -162,6 +192,15 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
             Create Operator file
           </button>
         </form>
+        <p className="muted small">— or —</p>
+        <label className="stack-form">
+          Import from Operator sheet export (.json)
+          <input type="file" accept="application/json" onChange={importOperatorFile} disabled={busy} />
+        </label>
+        <p className="muted small">
+          Uses the &quot;Export Operator File&quot; download from your local Operator sheet. Creates a new Operator
+          file seeded with current Harm, Stability, Breach, Void, and Lotus.
+        </p>
         {operators.length ? (
           <ul className="op-list">
             {operators.map((op) => (

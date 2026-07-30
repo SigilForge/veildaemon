@@ -763,7 +763,7 @@
 
   function normalizeUnlockType(value) {
     const type = safeString(value, 40).toLowerCase();
-    if (["ontology", "background", "case", "void", "breach", "archive"].includes(type)) return type;
+    if (["ontology", "background", "case", "void", "breach", "archive", "harm", "stability"].includes(type)) return type;
     return "";
   }
 
@@ -1531,7 +1531,7 @@
         ? packet.unlocks.map((item) => item.flag || `${String(item.type || "").toUpperCase()}_UNLOCK:${item.key || item.value || ""}`)
         : [];
     const source = rawFlags.length ? rawFlags.join("\n") : text;
-    const matches = Array.from(source.matchAll(/\b((?:ONTOLOGY|BACKGROUND|CASE|ARCHIVE)_UNLOCK|(?:VOID|BREACH)_REWARD)\s*:\s*([A-Z0-9_ -]+)/gi));
+    const matches = Array.from(source.matchAll(/\b((?:ONTOLOGY|BACKGROUND|CASE|ARCHIVE)_UNLOCK|(?:VOID|BREACH)_REWARD|(?:HARM|STABILITY)_SET)\s*:\s*([A-Z0-9_ -]+)/gi));
     return matches.map((match) => {
       const flagKind = match[1].toUpperCase();
       const type = flagKind.includes("_REWARD") ? flagKind.split("_")[0].toLowerCase() : flagKind.split("_")[0].toLowerCase();
@@ -1555,12 +1555,15 @@
     if (type === "background") return backgroundEntry(key).displayName;
     if (type === "void") return `${normalizeNonNegative(key)} Void`;
     if (type === "breach") return `${normalizeNonNegative(key)} Breach`;
+    if (type === "harm") return `Harm set to ${normalizeBoxValue(key, 5)}`;
+    if (type === "stability") return `Stability set to ${normalizeStabilityValue(key)}`;
     if (type === "case" && key === "NEEDLEPOINT_SURVIVOR") return "Needlepoint Survivor";
     return titleCaseKey(key);
   }
 
   function unlockFlag(unlock) {
     if (unlock.type === "void" || unlock.type === "breach") return `${unlock.type.toUpperCase()}_REWARD:${unlock.key}`;
+    if (unlock.type === "harm" || unlock.type === "stability") return `${unlock.type.toUpperCase()}_SET:${unlock.key}`;
     return `${unlock.type.toUpperCase()}_UNLOCK:${unlock.key}`;
   }
 
@@ -1568,6 +1571,21 @@
     let added = 0;
     unlocks.forEach((unlock) => {
       if (unlock.type === "void" || unlock.type === "breach") {
+        consoleState.unlocks.push(unlock);
+        added += 1;
+        return;
+      }
+      if (unlock.type === "harm" || unlock.type === "stability") {
+        // Absolute set, not a reward — a session only has one final Harm and one final Stability.
+        const existingSet = consoleState.unlocks.find((item) => item.type === unlock.type);
+        if (existingSet) {
+          existingSet.key = unlock.key;
+          existingSet.label = unlock.label;
+          existingSet.note = unlock.note || existingSet.note;
+          existingSet.importedAt = unlock.importedAt;
+          existingSet.applied = false;
+          return;
+        }
         consoleState.unlocks.push(unlock);
         added += 1;
         return;
@@ -1608,6 +1626,20 @@
         const current = Number(normalizeNonNegative(consoleState.operatorStatus.breachPoints));
         const amount = Number(normalizeNonNegative(unlock.key));
         consoleState.operatorStatus.breachPoints = String(Math.min(99, current + amount));
+        unlock.applied = true;
+        consoleState.appliedUnlocks.push(key);
+        return;
+      }
+      if (unlock.type === "harm") {
+        consoleState.operatorStatus.harmBoxes = normalizeBoxValue(unlock.key, 5);
+        unlock.applied = true;
+        consoleState.appliedUnlocks.push(key);
+        return;
+      }
+      if (unlock.type === "stability") {
+        const next = normalizeStabilityValue(unlock.key);
+        consoleState.operatorStatus.stability = next;
+        consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(next);
         unlock.applied = true;
         consoleState.appliedUnlocks.push(key);
       }
