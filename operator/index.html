@@ -107,8 +107,32 @@
         <h1>PERSONAL OPERATIONS NODE</h1>
         <p class="subhead">Initialize. Record. Operate. Local record only.</p>
       </div>
-      <div id="operator-auth-mount" style="margin-left:auto;align-self:center"></div>
+      <div class="header-right-controls">
+        <div class="mode-toggle-group" id="operator-mode-toggle" role="radiogroup" aria-label="Operation Mode">
+          <span class="mode-toggle-label">MODE:</span>
+          <button type="button" class="mode-toggle-btn is-active" data-mode="local" role="radio" aria-checked="true" title="Local browser storage. Everything stays in your browser. Works offline without login.">
+            <span class="mode-dot">●</span> LOCAL
+          </button>
+          <button type="button" class="mode-toggle-btn" data-mode="live" role="radio" aria-checked="false" title="Live Table mode. Connects to VeilLink for multi-device table sync.">
+            <span class="mode-dot">○</span> LIVE TABLE
+          </button>
+        </div>
+        <div id="operator-auth-mount"></div>
+      </div>
     </header>
+
+    <section class="live-session-bar" id="live-session-bar" hidden>
+      <div class="live-session-content">
+        <span class="live-session-badge" id="live-session-badge">● LIVE TABLE</span>
+        <span class="live-session-code" id="live-session-code-display" style="color:var(--muted);font-size:0.75rem;font-family:monospace">NO SESSION</span>
+        <form class="live-session-join-inline" id="live-session-join-form">
+          <input type="text" name="joinCode" id="live-join-code-input" class="join-code-input" placeholder="JOIN CODE" maxlength="6" aria-label="Join Code" />
+          <button type="submit" class="button primary small" style="min-height:1.8rem;padding:0 0.6rem">Connect</button>
+        </form>
+        <a class="button ghost small" href="https://app.veildaemon.app/table" target="_blank" rel="noopener noreferrer" style="min-height:1.8rem;padding:0 0.6rem;align-self:center">Open Table Hub ↗</a>
+        <button type="button" class="button ghost small" id="live-session-disconnect" style="min-height:1.8rem;padding:0 0.6rem" hidden>Disconnect</button>
+      </div>
+    </section>
 
     <section class="notice-panel" id="record-notice" aria-live="polite">
       <p><span class="prompt">&gt;</span> Console checks this browser for an operator record. Nothing here syncs upstream.</p>
@@ -565,9 +589,10 @@
       <div class="data-panel-groups">
         <section class="data-transfer-group" aria-label="Operator Handler handoff">
           <p class="kicker">OPERATOR — HANDLER HANDOFF</p>
-          <p class="local-note">Handler packets are for table transfer.</p>
+          <p class="local-note">Handler packets are for local/offline table transfer. For multi-device live sessions across phones and laptops, link your sheet to VeilLink Table Live-Link.</p>
           <div class="data-actions">
             <button class="button" type="button" id="export-operator-file">Create Handler Packet</button>
+            <a class="button primary" href="https://app.veildaemon.app/table" target="_blank" rel="noopener noreferrer">Table Live-Link ↗</a>
             <label class="button file-button authorization-import-handoff">Import Authorization Packet<input id="import-authorization-handoff" type="file" accept=".json,.txt,text/plain,application/json" /></label>
             <label class="button file-button">Import Operator Record<input data-operator-file-import type="file" accept="application/json" /></label>
           </div>

@@ -20,8 +20,11 @@ export default async function TablePage() {
       <h1 className="page-title">Table Live-Link</h1>
       <p className="lede">
         VeilLink Table Live-Link connects Operators and a Handler across devices without background polling or continuous
-        state transfer. Each participant edits locally; selected state moves only when someone deliberately uses Send to
-        Cell, End Pressure Round, Sync Cell, or Archive Session.
+        state transfer. Each participant edits locally on their{" "}
+        <a href="https://veildaemon.app/operator/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>
+          Personal Operations Node ↗
+        </a>
+        ; selected state moves only when someone deliberately uses Send to Cell, End Pressure Round, Sync Cell, or Archive Session.
       </p>
       <TableHubClient />
     </main>

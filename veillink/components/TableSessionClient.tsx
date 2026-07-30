@@ -281,6 +281,9 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
           {isHandler ? <p className="mono small">{joinUrl}</p> : null}
         </div>
         <div className="session-actions">
+          <a className="button ghost" href="https://veildaemon.app/operator/" target="_blank" rel="noopener noreferrer">
+            Personal Node ↗
+          </a>
           <Link className="button ghost" href="/table">
             Hub
           </Link>

@@ -267,6 +267,105 @@ h3 {
   border-color: rgba(255,92,138,.44);
   color: #ffd8e4;
 }
+
+/* Header Right Controls & Mode Toggle */
+.header-right-controls {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .5rem;
+}
+.mode-toggle-group {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .25rem .45rem;
+  border: 1px solid rgba(137,255,218,.25);
+  background: rgba(0,0,0,.5);
+  border-radius: 4px;
+}
+.mode-toggle-label {
+  color: var(--cyan);
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  margin-right: .2rem;
+}
+.mode-toggle-btn {
+  padding: .25rem .55rem;
+  min-height: 1.8rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all .15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+}
+.mode-toggle-btn .mode-dot {
+  font-size: .65rem;
+  color: var(--muted);
+}
+.mode-toggle-btn.is-active[data-mode="local"] {
+  border-color: rgba(137,255,218,.5);
+  background: rgba(137,255,218,.12);
+  color: #fff;
+}
+.mode-toggle-btn.is-active[data-mode="local"] .mode-dot {
+  color: #89ffda;
+  text-shadow: 0 0 8px rgba(137,255,218,.6);
+}
+.mode-toggle-btn.is-active[data-mode="live"] {
+  border-color: rgba(94,228,255,.5);
+  background: rgba(94,228,255,.14);
+  color: #fff;
+}
+.mode-toggle-btn.is-active[data-mode="live"] .mode-dot {
+  color: #5ee4ff;
+  text-shadow: 0 0 8px rgba(94,228,255,.7);
+}
+
+.live-session-bar {
+  margin-top: .8rem;
+  padding: .75rem 1rem;
+  border: 1px solid rgba(94,228,255,.3);
+  background: rgba(5,20,30,.85);
+  border-radius: 4px;
+}
+.live-session-content {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .8rem;
+}
+.live-session-badge {
+  color: #5ee4ff;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+.live-session-join-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+}
+.join-code-input {
+  width: 7rem;
+  padding: .3rem .5rem;
+  border: 1px solid rgba(94,228,255,.3);
+  background: rgba(0,0,0,.6);
+  color: #fff;
+  font-family: monospace;
+  font-size: .8rem;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
 .module-panel {
   display: none;
   margin-top: 1rem;

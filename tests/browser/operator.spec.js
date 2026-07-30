@@ -760,18 +760,18 @@ test("creation skill spending after free budget and refunds", async ({ page }) =
   await page.getByRole("button", { name: "Decrease Medicine rank" }).click();
   await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
 
-  // A2: Raising an existing Rank 2 Skill to Rank 3 costs 3 Bonus Breach
+  // A2: Raising an existing Rank 2 Skill to Rank 3 costs 1 Bonus Breach (flat 1 Breach per rank step beyond 8)
   await page.locator("#skill-picker").selectOption("Athletics");
   await page.locator("#skill-rank").fill("3");
-  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 3 Bonus Breach");
+  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 1 Bonus Breach");
   await page.getByRole("button", { name: "Add Skill" }).click();
-  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 0/3")).toBeVisible();
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 2/3")).toBeVisible();
 
-  // D2: Reducing paid Skill 3->2 refunds 3
+  // D2: Reducing paid Skill 3->2 refunds 1
   await page.getByRole("button", { name: "Decrease Athletics rank" }).click();
   await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
 
-  // A3 & D3: Raising a Rank 1 Skill to Rank 2 after 8 free ranks costs 2 Bonus Breach, reducing 2->1 refunds 2
+  // A3 & D3: Raising a Rank 1 Skill to Rank 2 after 8 free ranks costs 1 Bonus Breach, reducing 2->1 refunds 1
   await page.locator("#skill-picker").selectOption("Medicine");
   await page.locator("#skill-rank").fill("1");
   await page.getByRole("button", { name: "Add Skill" }).click(); // costs 1, breach = 2
@@ -779,11 +779,11 @@ test("creation skill spending after free budget and refunds", async ({ page }) =
 
   await page.locator("#skill-picker").selectOption("Medicine");
   await page.locator("#skill-rank").fill("2");
-  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 2 Bonus Breach");
-  await page.getByRole("button", { name: "Add Skill" }).click(); // costs +2, breach = 0
-  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 0/3")).toBeVisible();
+  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 1 Bonus Breach");
+  await page.getByRole("button", { name: "Add Skill" }).click(); // costs +1, breach = 1
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 1/3")).toBeVisible();
 
-  await page.getByRole("button", { name: "Decrease Medicine rank" }).click(); // refunds 2, breach = 2
+  await page.getByRole("button", { name: "Decrease Medicine rank" }).click(); // refunds 1, breach = 2
   await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 2/3")).toBeVisible();
 });
 
@@ -825,12 +825,12 @@ test("creation background skill bonus cost delta after free budget", async ({ pa
   const invRowRank2 = page.locator(".skill-summary-row", { hasText: "Investigation" });
   await expect(invRowRank2.locator(".skill-summary-rank")).toHaveText("+2 (1+1)");
 
-  // Raising Investigation to effective 3 buys player Rank 2 and costs 2 Bonus Breach
+  // Raising Investigation to effective 3 buys player Rank 2 and costs 1 Bonus Breach (flat 1 Breach per rank step beyond 8)
   await page.locator("#skill-picker").selectOption("Investigation");
   await page.locator("#skill-rank").fill("3");
-  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 2 Bonus Breach");
+  await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 1 Bonus Breach");
   await page.getByRole("button", { name: "Add Skill" }).click();
-  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 0/3")).toBeVisible();
+  await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 1/3")).toBeVisible();
 
   // Read localStorage and assert stored skills.Investigation === "2"
   consoleState = await page.evaluate(() => JSON.parse(localStorage.getItem("veildaemon.operatorConsole.v1")));

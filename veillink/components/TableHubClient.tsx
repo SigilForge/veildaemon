@@ -138,6 +138,12 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
         <p className="eyebrow">1 · Operator file</p>
         <h2>Persistent Archive record</h2>
         <p className="muted">Account-owned. Survives between missions.</p>
+        <p className="muted small" style={{ marginBottom: "0.85rem" }}>
+          Running a local browser sheet? Open your{" "}
+          <a href="https://veildaemon.app/operator/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>
+            Personal Operations Node ↗
+          </a>
+        </p>
         <form className="stack-form" onSubmit={createOperator}>
           <label>
             Display name

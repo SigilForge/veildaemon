@@ -671,6 +671,8 @@
       anomalies: normalizeArray(state.anomalies),
       relationships: normalizeArray(state.relationships),
       residue: normalizeArray(state.residue),
+      operationMode: state.operationMode === "live" ? "live" : "local",
+      activeLiveSession: safeString(state.activeLiveSession, 20),
       lastCellPullAt: safeString(state.lastCellPullAt, 40),
       cellSync: normalizeCellSyncMeta(state.cellSync || {
         lastAppliedRevision: 0,
@@ -2188,7 +2190,7 @@
   }
 
   function creationSkillBreachSpent(status) {
-    return breachSpentFromRankSteps(creationSkillRankSteps(status), creationSkillBudget());
+    return Math.max(0, creationSkillRanksSpent(status) - creationSkillBudget());
   }
 
   function selectedCoreFrequency() {
@@ -2333,7 +2335,7 @@
         rank += 1
       ) {
         if (usedRanks >= creationSkillBudget()) {
-          delta += rank;
+          delta += 1;
         }
 
         usedRanks += 1;
@@ -2348,7 +2350,7 @@
       rank -= 1
     ) {
       if (usedRanks > creationSkillBudget()) {
-        delta -= rank;
+        delta -= 1;
       }
 
       usedRanks -= 1;
@@ -2357,17 +2359,19 @@
     return delta;
   }
 
-  function skillChangeAllowed(skills, skill, targetRank, status = consoleState.operatorStatus) {
-    if (creationActive()) {
-      const derivedBonus = derivedSkillBonuses(status)[skill] || 0;
-      const targetEffective = Number(
-        normalizeBoxValue(targetRank, 5)
-      );
-      const targetBase = Math.max(
-        0,
-        targetEffective - derivedBonus
-      );
+  function skillChangeAllowed(skills, skill, targetRank, isEffectiveRank = false, status = consoleState.operatorStatus) {
+    const derivedBonus = derivedSkillBonuses(status)[skill] || 0;
+    const targetNum = Number(normalizeBoxValue(targetRank, 5));
 
+    const targetBase = isEffectiveRank
+      ? Math.max(0, targetNum - derivedBonus)
+      : targetNum;
+
+    const targetEffective = isEffectiveRank
+      ? targetNum
+      : Math.min(5, targetBase + derivedBonus);
+
+    if (creationActive()) {
       if (targetBase > 3) {
         return {
           ok: false,
@@ -2382,11 +2386,13 @@
           skill,
           targetEffective
         ),
-        targetBase
+        targetBase,
+        targetEffective
       };
     }
+
     const oldRank = Number(normalizeSkills(skills)[skill] || 0);
-    return { ok: true, cost: advancementCost(oldRank, targetRank) };
+    return { ok: true, cost: advancementCost(oldRank, targetBase), targetBase, targetEffective };
   }
 
   function creationAttributeCostDelta(attributes, attribute, targetEffectiveRank, status = consoleState.operatorStatus) {
@@ -3406,7 +3412,7 @@
 
   function applySkillRankChange(skills, name, targetRank) {
     const nextRank = Number(normalizeBoxValue(targetRank, 5));
-    const allowed = skillChangeAllowed(skills, name, nextRank);
+    const allowed = skillChangeAllowed(skills, name, nextRank, false);
     if (!allowed.ok) {
       setStorageStatus(allowed.message, true);
       renderSkills();
@@ -3416,11 +3422,12 @@
       renderSkills();
       return false;
     }
-    skills[name] = String(nextRank);
+    skills[name] = String(allowed.targetBase);
     if (skills[name] === "0") delete skills[name];
     consoleState.operatorStatus.skills = skills;
     writeConsoleState();
     renderSkills();
+    renderCreationMode();
     return true;
   }
 
@@ -3561,7 +3568,7 @@
       if (meaning) meaning.textContent = "Select a skill to load rank meaning.";
       return;
     }
-    const allowed = skillChangeAllowed(skills, skill, targetRank);
+    const allowed = skillChangeAllowed(skills, skill, targetRank, true);
     if (!allowed.ok) {
       preview.textContent = allowed.message;
       if (meaning) meaning.textContent = `${skill} ${targetRank} // ${skillRankLabel(targetRank)}: ${skillRankDescription(skill, targetRank)}`;
@@ -4390,7 +4397,12 @@
       ["Recovery opening", item.recoveryOpening]
     ]);
     renderAuthorization();
-    setStorageStatus("Local console record held in this browser.");
+    renderModeToggle();
+    setStorageStatus(
+      consoleState.operationMode === "live"
+        ? "Live Table mode active. Sheet syncs via VeilLink."
+        : "Local console record held in this browser."
+    );
   }
 
   function formatDate(value) {
@@ -4701,7 +4713,7 @@
       if (!skill) return;
       consoleState.operatorStatus.skills = normalizeSkills(consoleState.operatorStatus.skills);
       const targetRank = Number(normalizeBoxValue(rank && rank.value || 1, 5));
-      const allowed = skillChangeAllowed(consoleState.operatorStatus.skills, skill, targetRank);
+      const allowed = skillChangeAllowed(consoleState.operatorStatus.skills, skill, targetRank, true);
       if (!allowed.ok) {
         setStorageStatus(allowed.message, true);
         return;
@@ -5032,6 +5044,90 @@
     });
   }
 
+  function bindModeToggle() {
+    const toggle = document.getElementById("operator-mode-toggle");
+    if (toggle) {
+      toggle.addEventListener("click", (event) => {
+        const btn = event.target && event.target.closest && event.target.closest("[data-mode]");
+        if (!btn) return;
+
+        const nextMode = btn.getAttribute("data-mode") === "live" ? "live" : "local";
+        consoleState.operationMode = nextMode;
+        try {
+          writeConsoleState();
+        } catch (_e) {
+          // best effort
+        }
+        renderModeToggle();
+      });
+    }
+
+    const joinForm = document.getElementById("live-session-join-form");
+    if (joinForm) {
+      joinForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const input = document.getElementById("live-join-code-input");
+        const code = input ? input.value.trim().toUpperCase() : "";
+        if (!code) return;
+        consoleState.activeLiveSession = code;
+        try {
+          writeConsoleState();
+        } catch (_e) {}
+        renderModeToggle();
+        setStorageStatus(`LIVE TABLE — Connected to session [${code}]. Live state sync active.`);
+      });
+    }
+
+    const disconnectBtn = document.getElementById("live-session-disconnect");
+    if (disconnectBtn) {
+      disconnectBtn.addEventListener("click", () => {
+        consoleState.activeLiveSession = "";
+        try {
+          writeConsoleState();
+        } catch (_e) {}
+        renderModeToggle();
+        setStorageStatus("LIVE TABLE — Disconnected. Reverted to Local browser storage.");
+      });
+    }
+  }
+
+  function renderModeToggle() {
+    const isLive = consoleState.operationMode === "live";
+    const modeBtns = document.querySelectorAll("#operator-mode-toggle [data-mode]");
+    modeBtns.forEach((btn) => {
+      const mode = btn.getAttribute("data-mode");
+      const active = (mode === "live" && isLive) || (mode === "local" && !isLive);
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-checked", active ? "true" : "false");
+    });
+
+    const bar = document.getElementById("live-session-bar");
+    if (bar) {
+      bar.hidden = !isLive;
+    }
+
+    const noticeP = document.querySelector("#record-notice p");
+    const codeDisplay = document.getElementById("live-session-code-display");
+    const disconnectBtn = document.getElementById("live-session-disconnect");
+
+    if (isLive) {
+      const code = consoleState.activeLiveSession || "";
+      if (codeDisplay) {
+        codeDisplay.textContent = code ? `SESSION: ${code}` : "NO SESSION — ENTER CODE";
+      }
+      if (disconnectBtn) {
+        disconnectBtn.hidden = !code;
+      }
+      if (noticeP) {
+        noticeP.innerHTML = `<span class="prompt">&gt;</span> Mode: <strong>LIVE TABLE</strong> — Sheet controls remain identical. State updates sync across devices via VeilLink ${code ? `[Session: ${code}]` : "(enter code to link)"}.`;
+      }
+    } else {
+      if (noticeP) {
+        noticeP.innerHTML = `<span class="prompt">&gt;</span> Mode: <strong>LOCAL (BROWSER)</strong> — All data is held in this browser's local storage. Offline ready. Like paper & pencil.`;
+      }
+    }
+  }
+
   consoleState = readConsoleState();
   operatorRecord = readOperatorRecord();
   artifactState = readArtifactState();
@@ -5039,6 +5135,7 @@
   bindTabs();
   bindForms();
   bindDataControls();
+  bindModeToggle();
   renderAll();
   if (window.VeilDaemonCellSync?.onUpdate) {
     window.VeilDaemonCellSync.onUpdate(() => {
