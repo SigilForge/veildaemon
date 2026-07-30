@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ProductAccountLink } from "@/components/ProductAccountLink";
 import {
+  RIGHTS_PRODUCT_ADVISOR_LABEL,
+  RIGHTS_PRODUCT_ADVISOR_PATH,
   RIGHTS_PRODUCT_CREATE_LABEL,
   RIGHTS_PRODUCT_CREATE_PATH,
   RIGHTS_PRODUCT_REGISTRY_PATH,
@@ -21,7 +23,7 @@ type Props = {
 export function RightsProductChrome({ signedIn }: Props) {
   const pathname = usePathname() || "/rights";
 
-  if (pathname.startsWith(RIGHTS_PRODUCT_CREATE_PATH)) return null;
+  if (pathname.startsWith(RIGHTS_PRODUCT_CREATE_PATH) || pathname.startsWith(RIGHTS_PRODUCT_ADVISOR_PATH)) return null;
 
   return (
     <div className="rights-product-chrome" data-product="creator-rights">
@@ -47,11 +49,18 @@ export function RightsProductChrome({ signedIn }: Props) {
             returnTo={pathname}
           />
           <Link
-            className="button rights-product-register"
+            className="rights-product-link"
             href={RIGHTS_PRODUCT_CREATE_PATH}
             aria-current={pathname.startsWith("/rights/create") ? "page" : undefined}
           >
             {RIGHTS_PRODUCT_CREATE_LABEL}
+          </Link>
+          <Link
+            className="button rights-product-register"
+            href={RIGHTS_PRODUCT_ADVISOR_PATH}
+            aria-current={pathname.startsWith("/rights/advisor") ? "page" : undefined}
+          >
+            {RIGHTS_PRODUCT_ADVISOR_LABEL}
           </Link>
         </div>
       </nav>

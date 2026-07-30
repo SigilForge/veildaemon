@@ -1,4 +1,5 @@
 const baseUrl = process.env.RIGHTS_SMOKE_BASE_URL || "http://localhost:3000";
+const smokePath = process.env.RIGHTS_SMOKE_PATH || "/rights/advisor";
 const email = process.env.RIGHTS_SMOKE_EMAIL || "";
 const password = process.env.RIGHTS_SMOKE_PASSWORD || "";
 const screenshot = process.env.RIGHTS_SMOKE_SCREENSHOT || "/tmp/rights-create-smoke.png";
@@ -16,7 +17,7 @@ async function main() {
   page.on("pageerror", (error) => logs.push(`pageerror: ${error.message}`));
 
   try {
-    const target = new URL("/rights/create", baseUrl).toString();
+    const target = new URL(smokePath, baseUrl).toString();
     await page.goto(target, { waitUntil: "networkidle", timeout: 45000 });
     if (page.url().includes("/login")) {
       if (!email || !password) {
@@ -25,14 +26,14 @@ async function main() {
       await page.fill('input[name="email"]', email);
       await page.fill('input[name="password"]', password);
       await page.click('button[type="submit"]');
-      await page.waitForFunction(() => location.pathname === "/rights/create", null, { timeout: 45000 });
+      await page.waitForFunction((path) => location.pathname === path, smokePath, { timeout: 45000 });
       await page.waitForLoadState("networkidle", { timeout: 45000 }).catch(() => {});
     }
 
     await page.screenshot({ path: screenshot, fullPage: true });
     const body = await page.locator("body").innerText();
     const required = [
-      "Register product",
+      smokePath === "/rights/advisor" ? "CREATOR RIGHTS ADVISOR" : "Preserve a Creator Rights Record",
       "Import from artifact or source",
       "Upload work file",
       "Source URL or identifier",
@@ -40,6 +41,7 @@ async function main() {
       "Supported sources: GitHub, npm, PyPI, DOI, ISBN, Steam, and itch.io.",
       "Not sure which license fits your project?",
       "The license picker is an assistive recommendation system, not an automatic legal decision.",
+      "Sign in to preserve",
     ];
     const missing = required.filter((text) => !body.includes(text));
     if (missing.length) throw new Error(`Missing expected text: ${missing.join(", ")}`);

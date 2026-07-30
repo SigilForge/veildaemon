@@ -18,7 +18,7 @@ export const revalidate = 0;
 
 export const metadata: Metadata = buildMetadata({
   title: "Rights Records",
-  description: "Manage provenance-aware Creator Rights drafts, publication payment, durable public URLs, Creator Dossier exports, and branded QR assets.",
+  description: "Manage durable Creator Rights Registry records, version history, public verification pages, Creator Dossier exports, and branded QR assets.",
   path: "/account/rights",
   noIndex: true,
 });
@@ -61,24 +61,27 @@ export default async function AccountRightsPage({
       <p className="eyebrow">Account</p>
       <h1 className="page-title">Creator Rights portal</h1>
       <p className="lede">
-        Import a source or artifact, review the draft, publish a durable public URL, export a Creator Dossier, generate a
-        branded QR for the work, and come back anytime to manage permissions or regenerate QR artwork. You buy the issued
-        record — the QR is a regenerable asset of that record.
+        This account portal is the Registry management surface. Use it when you want to preserve a permanent hosted
+        record, maintain version history, manage verification evidence, export a Creator Dossier, generate QR assets, and
+        come back later to update the durable provenance record.
       </p>
 
       <div className="toolbar">
         <Link className="button" href="/rights/create">
-          Create record
+          Preserve record
+        </Link>
+        <Link className="button secondary" href="/rights/advisor">
+          Open public Advisor
         </Link>
         <a className="button secondary" href="https://veildaemon.app/studio/creator-rights/" target="_blank" rel="noopener noreferrer">
-          Public registry
+          Creator Rights overview
         </a>
       </div>
 
       {created ? (
         <p className="notice">
-          Draft saved. Review it below, then publish ({money(RIGHTS_PRICE_CENTS)}) to issue the Rights Record and unlock
-          branded QR downloads.
+          Draft saved. Review it below, then publish ({money(RIGHTS_PRICE_CENTS)}) to issue the durable Rights Record,
+          public verification URL, version history, and branded QR downloads.
         </p>
       ) : null}
       {checkout === "success" ? (
@@ -223,12 +226,15 @@ export default async function AccountRightsPage({
             <p className="panel-kicker">No records yet</p>
             <h2>Create the first draft.</h2>
             <p className="muted">
-              The portal is where source imports become drafts, drafts become issued records, and issued records can be
-              verified, exported, and managed. The public registry is the discovery layer for issued works.
+              The public Advisor can help you explore imports and licensing without an account. The portal is where a
+              reviewed draft becomes a durable Registry record that can be verified, exported, versioned, and managed.
             </p>
             <div className="toolbar">
               <Link className="button" href="/rights/create">
-                Create Rights Record
+                Preserve Rights Record
+              </Link>
+              <Link className="button secondary" href="/rights/advisor">
+                Open public Advisor
               </Link>
             </div>
           </div>

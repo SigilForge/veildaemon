@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildExternalSourceDraft, licenseIdForSpdx } from "@/lib/rights/import-draft";
 import type { CopyrightLicenseId, KnownWorkType } from "@/lib/rights/schema";
-import { publicError, requireUser } from "@/lib/store";
+import { publicError } from "@/lib/store";
 
 type SourceKind = "npm" | "pypi" | "doi" | "isbn" | "steam" | "itch";
 
@@ -114,7 +114,6 @@ function licenseFromValue(value: unknown) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireUser();
     const body = (await request.json().catch(() => null)) as { sourceType?: string; value?: string } | null;
     const value = bodyValue(body?.value);
     if (!value) throw publicError("Enter a source URL or identifier.", 400);

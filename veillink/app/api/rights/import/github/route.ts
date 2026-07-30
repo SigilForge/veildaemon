@@ -1,7 +1,7 @@
 import { Buffer } from "node:buffer";
 import { NextRequest, NextResponse } from "next/server";
 import { buildGitHubRepositoryDraft, parseGitHubRepositoryUrl } from "@/lib/rights/import-draft";
-import { publicError, requireUser } from "@/lib/store";
+import { publicError } from "@/lib/store";
 
 type GitHubContentResponse = {
   content?: string;
@@ -80,7 +80,6 @@ function parsePackageJson(response: GitHubContentResponse | null) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireUser();
     const body = (await request.json().catch(() => null)) as { repositoryUrl?: string } | null;
     const ref = parseGitHubRepositoryUrl(body?.repositoryUrl || "");
     const owner = encodeURIComponent(ref.owner);

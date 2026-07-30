@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import {
   aiSummaryForPermissions,
   copyrightSuggestion,
@@ -59,13 +59,27 @@ type FormState = {
 };
 
 type Props = {
-  email: string;
+  email?: string;
+  mode?: "advisor" | "registry";
   workTypes: SelectOption[];
   categories: SelectOption[];
   availabilityCategories: SelectOption[];
   permissionValues: SelectOption[];
   disclaimer: string;
 };
+
+type AdvisorDraftSnapshot = {
+  form: FormState;
+  permissions: AiPermissionBlock;
+  preset: PermissionPresetKey | "custom";
+  fingerprintMode: FingerprintMode;
+  licenseIntent: LicenseIntentId;
+  sourceValue: string;
+  importDraft: CreatorRightsImportDraft | null;
+  savedAt: string;
+};
+
+const advisorDraftStorageKey = "creator-rights-advisor-draft-v1";
 
 const permissionFields: PermissionField[] = [
   { name: "generalTraining", label: "General AI training", help: "Use in model-training datasets or broad model improvement workflows." },
@@ -189,7 +203,8 @@ async function sha256ForFile(file: File) {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-export function RightsCreateForm({ email, workTypes, categories, availabilityCategories, permissionValues, disclaimer }: Props) {
+export function RightsCreateForm({ email = "", mode = "registry", workTypes, categories, availabilityCategories, permissionValues, disclaimer }: Props) {
+  const isAdvisor = mode === "advisor";
   const [form, setForm] = useState<FormState>({
     creatorName: "",
     publicDisplayName: "",
@@ -223,6 +238,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
   const [hashError, setHashError] = useState("");
   const [slugError, setSlugError] = useState("");
   const [fileStatus, setFileStatus] = useState("");
+  const [advisorStatus, setAdvisorStatus] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [licenseIntent, setLicenseIntent] = useState<LicenseIntentId>("all_rights");
@@ -294,6 +310,54 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
         },
       ]
     : [];
+
+  function advisorDraftSnapshot(): AdvisorDraftSnapshot {
+    return {
+      form: {
+        ...form,
+        slug: form.slug || normalizeSlugInput(form.title),
+      },
+      permissions,
+      preset,
+      fingerprintMode,
+      licenseIntent,
+      sourceValue,
+      importDraft,
+      savedAt: new Date().toISOString(),
+    };
+  }
+
+  function saveAdvisorDraft() {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(advisorDraftStorageKey, JSON.stringify(advisorDraftSnapshot()));
+    } catch {
+      setAdvisorStatus("This browser could not save the Advisor draft for sign-in handoff. Your visible draft is still here.");
+    }
+  }
+
+  useEffect(() => {
+    if (isAdvisor || typeof window === "undefined") return;
+    const restoreTimer = window.setTimeout(() => {
+      const raw = window.localStorage.getItem(advisorDraftStorageKey);
+      if (!raw) return;
+      try {
+        const snapshot = JSON.parse(raw) as Partial<AdvisorDraftSnapshot>;
+        if (!snapshot.form) return;
+        setForm((current) => ({ ...current, ...snapshot.form }));
+        if (snapshot.permissions) setPermissions(snapshot.permissions);
+        if (snapshot.preset) setPreset(snapshot.preset);
+        if (snapshot.fingerprintMode) setFingerprintMode(snapshot.fingerprintMode);
+        if (snapshot.licenseIntent) setLicenseIntent(snapshot.licenseIntent);
+        if (typeof snapshot.sourceValue === "string") setSourceValue(snapshot.sourceValue);
+        if (snapshot.importDraft) setImportDraft(snapshot.importDraft);
+        setAdvisorStatus("Advisor draft restored after sign-in. Review it below, then publish only when you are ready to preserve the permanent Registry record.");
+      } catch {
+        setAdvisorStatus("A saved Advisor draft was found, but this browser could not restore it. You can continue with the advanced editor.");
+      }
+    }, 0);
+    return () => window.clearTimeout(restoreTimer);
+  }, [isAdvisor]);
 
   function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -522,6 +586,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitError("");
+    setAdvisorStatus("");
     const nextSlug = form.slug || normalizeSlugInput(form.title);
     if (nextSlug.length < 3) {
       setSlugError("Enter a title that can create a public URL slug, or edit the slug.");
@@ -529,6 +594,14 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
     }
     if (fingerprintMode !== "skip" && !isValidSha256(form.sha256Hash)) {
       setHashError(sha256ValidationMessage(form.sha256Hash) || "Provide a valid SHA-256 hash or skip fingerprinting.");
+      return;
+    }
+
+    if (isAdvisor) {
+      saveAdvisorDraft();
+      setAdvisorStatus(
+        "Advisor draft generated in this browser. Review the summary, resolve missing or conflicting fields, then sign in only if you want to preserve and publish a permanent Registry record.",
+      );
       return;
     }
 
@@ -556,6 +629,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
         setSubmitError(payload.error || "The draft could not be created. Review the highlighted fields and try again.");
         return;
       }
+      window.localStorage.removeItem(advisorDraftStorageKey);
       window.location.assign("/account/rights");
     } catch {
       setSubmitError("Network error while creating the draft. Your entered values are still here.");
@@ -570,12 +644,19 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
 
       <section className="form-step import-source-panel full">
         <div className="form-step-head">
-          <p className="eyebrow">Start from source</p>
+          <p className="eyebrow">{isAdvisor ? "Advisor intake" : "Start from source"}</p>
           <h2>Import from artifact or source</h2>
         </div>
         <p className="field-hint full">
-          Upload a file or paste a supported public URL or identifier to draft the record from source metadata. Imported data is a review queue, not a verified rights claim.
+          Upload a file or paste a supported public URL or identifier to draft the record from source metadata. Imported data
+          is a review queue, not a verified rights claim.
         </p>
+        {isAdvisor ? (
+          <p className="notice full">
+            The Advisor is public and free. It can help you understand the next step without an account; signing in is only
+            needed when you choose to preserve and manage a permanent Registry record.
+          </p>
+        ) : null}
         <label className="source-file-field">
           <LabelText help="The selected file stays in your browser. The form stores the SHA-256 hash and metadata, not the file bytes.">Upload work file</LabelText>
           <input type="file" onChange={importUploadedFileDraft} />
@@ -932,7 +1013,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
       <section className="form-step review-step full">
         <div className="form-step-head">
           <p className="eyebrow">Step 5</p>
-          <h2>Review and create draft</h2>
+          <h2>{isAdvisor ? "Review advisor draft" : "Review and create draft"}</h2>
         </div>
         <div className="preflight-summary" aria-live="polite">
           <div><span>Public name</span><strong>{form.publicDisplayName || "Not entered"}</strong></div>
@@ -949,13 +1030,29 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
           <h3>Generated AI-use summary</h3>
           <p>{aiSummary}</p>
         </div>
-        <p className="notice">{disclaimer}</p>
+        <p className="notice">
+          {isAdvisor
+            ? "This Advisor draft helps you understand licensing, AI permissions, metadata health, conflicts, and fingerprints. It is not preserved, published, verified, or stored as a permanent record until you sign in and create a Registry record."
+            : disclaimer}
+        </p>
+        {advisorStatus ? <p className="notice" role="status">{advisorStatus}</p> : null}
         {submitError ? <p className="form-error" role="alert">{submitError}</p> : null}
-        <label className="full checkbox-label">
-          <input name="aiSummaryApproved" type="checkbox" value="yes" required />
-          <span>I reviewed the generated AI-use summary and understand this record is a declaration, not independent legal proof.</span>
-        </label>
-        <button type="submit" disabled={submitting}>{submitting ? "Creating draft..." : "Create draft"}</button>
+        {isAdvisor ? null : (
+          <label className="full checkbox-label">
+            <input name="aiSummaryApproved" type="checkbox" value="yes" required />
+            <span>I reviewed the generated AI-use summary and understand this record is a declaration, not independent legal proof.</span>
+          </label>
+        )}
+        <div className="dashboard-actions full">
+          <button type="submit" disabled={submitting}>
+            {isAdvisor ? "Generate advisor draft" : submitting ? "Creating draft..." : "Create draft"}
+          </button>
+          {isAdvisor ? (
+            <a className="button secondary" href="/login?next=/rights/create" onClick={saveAdvisorDraft}>
+              Sign in to preserve this record
+            </a>
+          ) : null}
+        </div>
       </section>
     </form>
   );

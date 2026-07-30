@@ -91,6 +91,7 @@ describe("Creator Rights create form helpers", () => {
     const fs = await import("node:fs/promises");
     const formSource = await fs.readFile(new URL("../components/RightsCreateForm.tsx", import.meta.url), "utf8");
     const routeSource = await fs.readFile(new URL("../app/api/rights/import/github/route.ts", import.meta.url), "utf8");
+    const sourceRouteSource = await fs.readFile(new URL("../app/api/rights/import/source/route.ts", import.meta.url), "utf8");
     expect(formSource).toContain("Import from artifact or source");
     expect(formSource).toContain("Upload work file");
     expect(formSource).toContain("Supported files: EPUB, PDF, Office documents, Blender and 3D models, Unity assets");
@@ -104,14 +105,47 @@ describe("Creator Rights create form helpers", () => {
     expect(formSource).toContain("Likely, please confirm");
     expect(formSource).toContain("Still needed");
     expect(formSource).toContain("advanced editor");
-    expect(routeSource).toContain("await requireUser()");
+    expect(routeSource).not.toContain("requireUser");
+    expect(sourceRouteSource).not.toContain("requireUser");
     expect(routeSource).toContain("https://api.github.com");
     expect(routeSource).not.toContain("fetch(body");
+  });
+
+  it("keeps Advisor public while Registry publishing remains authenticated", async () => {
+    const fs = await import("node:fs/promises");
+    const advisorPage = await fs.readFile(new URL("../app/rights/advisor/page.tsx", import.meta.url), "utf8");
+    const createPage = await fs.readFile(new URL("../app/rights/create/page.tsx", import.meta.url), "utf8");
+    const formSource = await fs.readFile(new URL("../components/RightsCreateForm.tsx", import.meta.url), "utf8");
+    expect(advisorPage).toContain("Creator Rights Advisor");
+    expect(advisorPage).toContain("does not require an account");
+    expect(advisorPage).toContain("mode=\"advisor\"");
+    expect(advisorPage).not.toContain("requireUser");
+    expect(createPage).toContain("Creator Rights Registry");
+    expect(createPage).toContain("await requireUser()");
+    expect(createPage).toContain("mode=\"registry\"");
+    expect(formSource).toContain("Advisor draft generated in this browser.");
+    expect(formSource).toContain("creator-rights-advisor-draft-v1");
+    expect(formSource).toContain("Advisor draft restored after sign-in.");
+    expect(formSource).toContain("window.localStorage.setItem");
+    expect(formSource).toContain("window.localStorage.removeItem");
+    expect(formSource).toContain("Sign in to preserve this record");
+  });
+
+  it("preserves the account creation route when Advisor users need to register", async () => {
+    const source = await import("node:fs/promises").then((fs) => fs.readFile(new URL("../components/AuthForm.tsx", import.meta.url), "utf8"));
+    expect(source).toContain("Create account to preserve a record");
+    expect(source).toContain("/signup?next=");
+    expect(source).toContain("Create a free account when you are ready to preserve and manage durable Creator Rights Registry records.");
   });
 
   it("keeps the public Creator Rights overview aligned with artifact-first intake", async () => {
     const source = await import("node:fs/promises").then((fs) => fs.readFile(new URL("../../studio/creator-rights/index.html", import.meta.url), "utf8"));
     expect(source).toContain("License guidance");
+    expect(source).toContain("Creator Rights Advisor and Registry");
+    expect(source).toContain("Free, no account required.");
+    expect(source).toContain("Sign in only when you choose to preserve");
+    expect(source).toContain("permanent hosted records, public verification pages, Registry IDs, QR verification, version history");
+    expect(source).toContain("Create something → open Creator Rights Advisor");
     expect(source).toContain("Not sure which license fits your project?");
     expect(source).toContain("Answer a few plain-language questions");
     expect(source).toContain("The software can guide, compare, and prefill.");
@@ -125,6 +159,8 @@ describe("Creator Rights create form helpers", () => {
     expect(source).toContain("The SigilForge Rights Framework layers provenance");
     expect(source).toContain("It does not replace or modify that license.");
     expect(source).toContain("Creator Dossier package");
+    expect(source).toContain("An account is only needed when you choose to preserve or publish a permanent Registry record");
+    expect(source).not.toContain("Register product");
     expect(source).not.toContain("Import from artifact or GitHub");
     expect(source).not.toContain("Import repository");
   });

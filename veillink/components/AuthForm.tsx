@@ -15,18 +15,24 @@ type Props = {
 };
 
 export function AuthForm({ title, action, submit, error, sent, verified, email, reset, signup, updatePassword, next }: Props) {
+  const rightsPreservation = next === "/rights/create" || next === "/account/rights";
+
   return (
     <main className="page">
       <p className="eyebrow">Account</p>
       <h1 className="page-title">{title}</h1>
       <p className="lede">
         {signup
-          ? "Create a free account to issue short links and editable QR codes."
+          ? rightsPreservation
+            ? "Create a free account when you are ready to preserve and manage durable Creator Rights Registry records."
+            : "Create a free account to issue short links and editable QR codes."
           : reset
             ? "We will email a reset link if the address is on file."
             : updatePassword
               ? "Choose a new password for this account."
-              : "Sign in to manage redirects, downloads, and billing."}
+              : rightsPreservation
+                ? "Sign in to preserve records, manage version history, generate Creator Dossiers, and maintain long-term provenance."
+                : "Sign in to manage redirects, downloads, and billing."}
       </p>
       {verified ? (
         <p className="success" role="status">
@@ -66,7 +72,15 @@ export function AuthForm({ title, action, submit, error, sent, verified, email, 
           {signup ? (
             <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}>Already have an account?</Link>
           ) : (
-            <Link href="/reset">Reset password</Link>
+            <>
+              <Link href="/reset">Reset password</Link>
+              {rightsPreservation ? (
+                <>
+                  {" · "}
+                  <Link href={`/signup?next=${encodeURIComponent(next || "/rights/create")}`}>Create account to preserve a record</Link>
+                </>
+              ) : null}
+            </>
           )}
         </p>
       </form>
