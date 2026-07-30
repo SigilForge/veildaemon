@@ -7,7 +7,7 @@ import { requireUser } from "@/lib/store";
 export const metadata: Metadata = buildMetadata({
   title: "Book One",
   description:
-    "Purchase Book One — The Anchor and the Glitch — direct digital edition through a VeilLink account. PDF + wallpaper pack after verified checkout.",
+    "Purchase Book One — The Anchor and the Glitch — direct digital edition through a VeilLink account. PDF, EPUB, MOBI, and wallpaper pack after verified checkout.",
   path: "/book-one",
   noIndex: true,
   image: "/brand/book-one-og.webp",
