@@ -108,6 +108,7 @@
         <p class="subhead">Initialize. Record. Operate. Local record only.</p>
       </div>
       <div class="header-right-controls">
+        <button type="button" class="button primary lobby-quick-btn" id="lobby-quick-btn" title="Quick join a Live Table session lobby">⚡ JOIN LOBBY</button>
         <div class="mode-toggle-group" id="operator-mode-toggle" role="radiogroup" aria-label="Operation Mode">
           <span class="mode-toggle-label">MODE:</span>
           <button type="button" class="mode-toggle-btn is-active" data-mode="local" role="radio" aria-checked="true" title="Local browser storage. Everything stays in your browser. Works offline without login.">
@@ -251,6 +252,7 @@
           <article class="sheet-card operator-roll-dock wide">
             <div class="operator-roll-heading">
               <p class="card-label">Action Roll</p>
+              <button type="button" class="button ghost small roll-dock-join-btn" id="roll-dock-join-btn">⚡ JOIN LOBBY</button>
               <details class="roll-guide-drawer">
                 <summary>Roll guide</summary>
                 <div class="roll-guide-body">
@@ -283,6 +285,7 @@
               <button type="button" class="button primary roll-button" id="roll-action">Roll 3D6</button>
             </div>
             <div class="roll-output" id="roll-output">Awaiting action.</div>
+            <div class="roll-sync-status" id="roll-sync-status" hidden><span class="sync-check">✓</span> Roll logged to Cell &amp; Live Table (Handler feed updated)</div>
           </article>
 
           <div class="operator-live-grid live-lower-grid wide">

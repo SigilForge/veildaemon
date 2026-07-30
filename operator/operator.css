@@ -331,6 +331,52 @@ h3 {
   text-shadow: 0 0 8px rgba(94,228,255,.7);
 }
 
+.lobby-quick-btn {
+  font-family: monospace;
+  font-weight: 700;
+  letter-spacing: .08em;
+  font-size: .75rem;
+  padding: .35rem .75rem;
+  border-color: rgba(94,228,255,.5);
+  box-shadow: 0 0 10px rgba(94,228,255,.2);
+  transition: all .2s ease;
+}
+.lobby-quick-btn:hover {
+  box-shadow: 0 0 15px rgba(94,228,255,.4);
+  transform: translateY(-1px);
+}
+.lobby-quick-btn.is-connected,
+.roll-dock-join-btn.is-connected {
+  border-color: rgba(102,255,220,.7);
+  color: #66ffdc;
+  background: rgba(102,255,220,.12);
+  box-shadow: 0 0 12px rgba(102,255,220,.3);
+}
+
+.roll-dock-join-btn {
+  margin-left: auto;
+  font-family: monospace;
+  font-size: .7rem;
+  padding: .2rem .5rem;
+}
+
+.roll-sync-status {
+  margin-top: .5rem;
+  font-family: monospace;
+  font-size: .72rem;
+  color: #66ffdc;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(102,255,220,.08);
+  padding: .3rem .6rem;
+  border-radius: 3px;
+  border: 1px solid rgba(102,255,220,.25);
+}
+.roll-sync-status .sync-check {
+  font-weight: bold;
+}
+
 .live-session-bar {
   margin-top: .8rem;
   padding: .75rem 1rem;

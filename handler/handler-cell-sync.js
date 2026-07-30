@@ -451,8 +451,44 @@
       });
     }
 
+    function renderRollFeed() {
+      const container = document.getElementById("roll-feed-list");
+      const badge = document.getElementById("roll-feed-badge");
+      if (!container) return;
+      const rolls = window.VeilDaemonCellSync?.listRollFeed?.() || [];
+      if (badge) {
+        badge.textContent = `${rolls.length} ROLL${rolls.length === 1 ? "" : "S"}`;
+      }
+      if (!rolls.length) {
+        container.innerHTML = `<p class="roll-feed-empty">No Operator rolls recorded yet in this session.</p>`;
+        return;
+      }
+      const reversed = rolls.slice().reverse();
+      container.innerHTML = reversed.map((item) => {
+        const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
+        const diceStr = Array.isArray(item.keptDice) && item.keptDice.length ? item.keptDice.join("+") : (Array.isArray(item.dice) ? item.dice.join("+") : "");
+        return `
+          <article class="roll-feed-card">
+            <div class="roll-feed-header">
+              <strong class="roll-feed-name">${api.safeString(item.name || item.operatorKey, 80)}</strong>
+              <span class="roll-feed-type">${api.safeString(item.rollType || "Check", 60)}</span>
+              <time class="roll-feed-time">${timeStr}</time>
+            </div>
+            <div class="roll-feed-body">
+              <div class="roll-feed-result-line">
+                <span class="roll-feed-total">TOTAL ${item.total}</span>
+                <span class="roll-feed-mode">${api.safeString(item.rollMode, 20)} (${diceStr})</span>
+              </div>
+              <p class="roll-feed-summary">${api.safeString(item.summary, 300)}</p>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
     const statusLine = document.getElementById("cell-sync-status");
     function refreshHint() {
+      renderRollFeed();
       if (!statusLine || !api) return;
       const state = api.readState();
       const pending = pendingPrompts(state).filter((p) => isRoundTrack(p.track)).length;

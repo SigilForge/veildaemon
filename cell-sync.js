@@ -43,7 +43,8 @@
         archiveToken: "",
         projections: []
       },
-      operators: {}
+      operators: {},
+      rollFeed: []
     };
   }
 
@@ -122,6 +123,25 @@
     return out;
   }
 
+  function normalizeRollFeedItem(item) {
+    if (!item || typeof item !== "object") return null;
+    const operatorKey = safeString(item.operatorKey || item.sourceId || item.id || item.name, 120);
+    return {
+      id: safeString(item.id || makeId("roll"), 80),
+      operatorKey,
+      name: safeString(item.name || item.operatorName, 80) || "Operator",
+      rollType: safeString(item.rollType || "Check", 80),
+      attribute: safeString(item.attribute, 40),
+      skill: safeString(item.skill, 40),
+      rollMode: safeString(item.rollMode, 20) || "STANDARD",
+      dice: Array.isArray(item.dice) ? item.dice.map((d) => clampInt(d, 1, 6, 1)) : [],
+      keptDice: Array.isArray(item.keptDice) ? item.keptDice.map((d) => clampInt(d, 1, 6, 1)) : [],
+      total: clampInt(item.total, -99, 999, 0),
+      summary: safeString(item.summary, 400),
+      timestamp: safeString(item.timestamp || nowStamp(), 40)
+    };
+  }
+
   function normalizeBus(raw) {
     const base = emptyBus();
     if (!raw || typeof raw !== "object") return base;
@@ -134,6 +154,9 @@
       const normalized = normalizeOperatorSend({ ...rawOps[key], operatorKey: key });
       if (normalized) operators[normalized.operatorKey] = normalized;
     });
+    const rollFeed = Array.isArray(raw.rollFeed)
+      ? raw.rollFeed.map(normalizeRollFeedItem).filter(Boolean).slice(-50)
+      : [];
     const publishedAt = safeString(raw.handler?.publishedAt || raw.handler?.pushedAt, 40);
     return {
       version: 1,
@@ -150,7 +173,8 @@
         archiveToken: safeString(raw.handler?.archiveToken, 120),
         projections
       },
-      operators
+      operators,
+      rollFeed
     };
   }
 
@@ -321,6 +345,23 @@
     };
   }
 
+  function publishOperatorRoll(payload) {
+    const roll = normalizeRollFeedItem(payload);
+    if (!roll) return null;
+    const bus = read();
+    if (!bus.cellId) bus.cellId = makeId("cell");
+    bus.rollFeed = Array.isArray(bus.rollFeed) ? bus.rollFeed.slice() : [];
+    bus.rollFeed.push(roll);
+    if (bus.rollFeed.length > 50) bus.rollFeed = bus.rollFeed.slice(-50);
+    bus.lastKind = "operator_roll";
+    const written = write(bus);
+    return { bus: written, roll };
+  }
+
+  function listRollFeed() {
+    return (read().rollFeed || []).slice();
+  }
+
   function listOperatorSends(options) {
     const all = Object.values(read().operators || {});
     if (!options) return all;
@@ -402,8 +443,10 @@
     write,
     publishHandlerPush,
     publishOperatorSend,
+    publishOperatorRoll,
     listOperatorSends,
     listLateOperatorSends,
+    listRollFeed,
     clearOperatorSend,
     onUpdate,
     matchKey,

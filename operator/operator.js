@@ -4867,6 +4867,26 @@
       const namedText = namedBonus ? ` // NAMED PRESSURE +${namedBonus}` : "";
       output.dataset.rolled = "true";
       output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${surgeText}${resonantText}${secondPassText}${slipNoticeText}${daemonPushText}${feralDriveText}${borrowedForceText}${functionSurgeText}${anomalyPushText}${namedText}${loadText} = ${total}`;
+
+      if (window.VeilDaemonCellSync?.publishOperatorRoll) {
+        window.VeilDaemonCellSync.publishOperatorRoll({
+          operatorKey: operatorRecord ? (operatorRecord.designation || "OP-LOCAL") : "OP-LOCAL",
+          name: operatorRecord ? (operatorRecord.designation || "Operator") : "Operator",
+          rollType: `${attrKey} + ${skillKey || "Untrained"}`,
+          attribute: attrKey,
+          skill: skillKey || "Untrained",
+          rollMode,
+          dice,
+          keptDice: keptDice.values,
+          total,
+          summary: output.textContent,
+          timestamp: new Date().toISOString()
+        });
+      }
+      const syncStatus = document.getElementById("roll-sync-status");
+      if (syncStatus) {
+        syncStatus.hidden = false;
+      }
     }
   }
 
@@ -5044,7 +5064,26 @@
     });
   }
 
+  function focusLobbyJoin() {
+    consoleState.operationMode = "live";
+    try { writeConsoleState(); } catch (_e) {}
+    renderModeToggle();
+    const bar = document.getElementById("live-session-bar");
+    const input = document.getElementById("live-join-code-input");
+    if (bar) bar.hidden = false;
+    if (input) {
+      input.focus();
+      input.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }
+
   function bindModeToggle() {
+    const quickBtn = document.getElementById("lobby-quick-btn");
+    if (quickBtn) quickBtn.addEventListener("click", focusLobbyJoin);
+
+    const dockBtn = document.getElementById("roll-dock-join-btn");
+    if (dockBtn) dockBtn.addEventListener("click", focusLobbyJoin);
+
     const toggle = document.getElementById("operator-mode-toggle");
     if (toggle) {
       toggle.addEventListener("click", (event) => {
@@ -5093,6 +5132,7 @@
 
   function renderModeToggle() {
     const isLive = consoleState.operationMode === "live";
+    const code = consoleState.activeLiveSession || "";
     const modeBtns = document.querySelectorAll("#operator-mode-toggle [data-mode]");
     modeBtns.forEach((btn) => {
       const mode = btn.getAttribute("data-mode");
@@ -5100,6 +5140,18 @@
       btn.classList.toggle("is-active", active);
       btn.setAttribute("aria-checked", active ? "true" : "false");
     });
+
+    const quickBtn = document.getElementById("lobby-quick-btn");
+    if (quickBtn) {
+      quickBtn.textContent = (isLive && code) ? `🟢 LOBBY: ${code}` : "⚡ JOIN LOBBY";
+      quickBtn.classList.toggle("is-connected", Boolean(isLive && code));
+    }
+
+    const dockBtn = document.getElementById("roll-dock-join-btn");
+    if (dockBtn) {
+      dockBtn.textContent = (isLive && code) ? `🟢 LOBBY: ${code}` : "⚡ JOIN LOBBY";
+      dockBtn.classList.toggle("is-connected", Boolean(isLive && code));
+    }
 
     const bar = document.getElementById("live-session-bar");
     if (bar) {
@@ -5111,7 +5163,6 @@
     const disconnectBtn = document.getElementById("live-session-disconnect");
 
     if (isLive) {
-      const code = consoleState.activeLiveSession || "";
       if (codeDisplay) {
         codeDisplay.textContent = code ? `SESSION: ${code}` : "NO SESSION — ENTER CODE";
       }

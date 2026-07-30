@@ -2404,3 +2404,91 @@ body.is-player-view .private-panel {
     background: #fff;
   }
 }
+
+/* KEEP HONEST ROLL FEED */
+.roll-feed-panel {
+  border-color: rgba(102, 255, 220, .35);
+  background: linear-gradient(180deg, rgba(6, 18, 24, .95), rgba(5, 7, 9, .92));
+}
+.roll-feed-badge {
+  font-family: var(--font);
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--cyan);
+  background: rgba(102, 255, 220, .12);
+  border: 1px solid rgba(102, 255, 220, .3);
+  padding: .15rem .5rem;
+  border-radius: 3px;
+}
+.roll-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  max-height: 380px;
+  overflow-y: auto;
+  margin-top: .6rem;
+}
+.roll-feed-empty {
+  font-size: .8rem;
+  color: var(--muted);
+  font-style: italic;
+  margin: .4rem 0;
+}
+.roll-feed-card {
+  padding: .6rem .75rem;
+  border: 1px solid rgba(102, 255, 220, .25);
+  background: rgba(0, 0, 0, .45);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  transition: all .2s ease;
+}
+.roll-feed-card:hover {
+  border-color: var(--cyan);
+  background: rgba(102, 255, 220, .05);
+}
+.roll-feed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+.roll-feed-name {
+  font-size: .82rem;
+  color: #fff;
+}
+.roll-feed-type {
+  font-size: .72rem;
+  color: var(--cyan);
+  background: rgba(102, 255, 220, .1);
+  padding: .05rem .4rem;
+  border-radius: 2px;
+}
+.roll-feed-time {
+  font-size: .68rem;
+  color: var(--muted);
+  margin-left: auto;
+}
+.roll-feed-result-line {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+.roll-feed-total {
+  font-size: .9rem;
+  font-weight: 800;
+  color: #66ffdc;
+  text-shadow: 0 0 8px rgba(102, 255, 220, .4);
+}
+.roll-feed-mode {
+  font-size: .72rem;
+  color: var(--muted);
+}
+.roll-feed-summary {
+  font-size: .7rem;
+  color: rgba(231, 255, 248, .8);
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
