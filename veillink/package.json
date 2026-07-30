@@ -10,7 +10,9 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "TMPDIR=/tmp TEMP=/tmp TMP=/tmp vitest run"
+    "test": "TMPDIR=/tmp TEMP=/tmp TMP=/tmp vitest run",
+    "rights:check": "node scripts/rights-slice-check.mjs",
+    "rights:smoke:create": "node scripts/rights-create-smoke.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",

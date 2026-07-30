@@ -65,6 +65,16 @@
 - Keep favicon and image paths browser-safe; encode spaces in URLs when referencing filenames with spaces.
 - Preserve mobile usability without yanking desktop users around. Scroll only when an opened panel would otherwise be off-screen.
 
+## Automate Repeated Validation
+- When the same multi-step validation, smoke, deployment, or preflight sequence is performed more than once, add a repository-backed script or command for it.
+- Preserve the existing safety and verification gates.
+- Fail clearly and nonzero on error.
+- Avoid embedding credentials.
+- Accept secrets through environment variables.
+- Produce concise, actionable output.
+- Prefer one canonical command over repeated manual command sequences.
+- Document the command near the affected subsystem.
+
 ## Deploy Surfaces (Git vs Vercel)
 - **GitHub Pages (`veildaemon.app`)** ships most static public/studio surfaces from `main`. That is the default after `git push origin main` (legacy Pages branch build; see `README_DEPLOY.md`).
 - **Vercel project `veildaemon`** (`api.veildaemon.app`) serves repo-root API functions (`api/*`, root `vercel.json`) used by reports, alerts, routing, etc.
