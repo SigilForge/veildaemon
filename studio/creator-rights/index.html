@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Creator Rights &amp; Publication Records | SigilForge</title>
-  <meta name="description" content="Public records for copyright notice, AI permissions, licensing terms, SHA-256 verification, QR links, and JSON metadata across books, games, software, and art.">
+  <meta name="description" content="Artifact-first Creator Rights Records for copyright notice, AI permissions, licensing terms, SHA-256 fingerprints, provenance-aware drafts, QR links, and JSON metadata.">
   <link rel="canonical" href="https://veildaemon.app/studio/creator-rights/">
   <meta name="robots" content="index,follow">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="SigilForge Studios">
   <meta property="og:title" content="Creator Rights &amp; Publication Records | SigilForge">
-  <meta property="og:description" content="Creator-declared publication records for copyright notice, AI permissions, licensing terms, QR links, SHA-256 verification, and JSON metadata.">
+  <meta property="og:description" content="Creator-declared publication records that start from a file or source, extract draft evidence, preserve conflicts, and publish AI permissions, QR links, SHA-256 fingerprints, and JSON metadata.">
   <meta property="og:url" content="https://veildaemon.app/studio/creator-rights/">
   <meta property="og:image" content="https://veildaemon.app/assets/social/creator-rights-record-og.webp?v=20260727-sigil1">
   <meta property="og:image:type" content="image/webp">
@@ -19,10 +19,10 @@
   <meta property="og:image:alt" content="Creator Rights Record verification card from SigilForge Studios">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Creator Rights &amp; Publication Records | SigilForge">
-  <meta name="twitter:description" content="Creator-declared publication records for copyright notice, AI permissions, licensing terms, QR links, SHA-256 verification, and JSON metadata.">
+  <meta name="twitter:description" content="Creator-declared publication records that start from a file or source, extract draft evidence, preserve conflicts, and publish AI permissions, QR links, SHA-256 fingerprints, and JSON metadata.">
   <meta name="twitter:image" content="https://veildaemon.app/assets/social/creator-rights-record-og.webp?v=20260727-sigil1">
   <meta name="twitter:image:alt" content="Creator Rights Record verification card from SigilForge Studios">
-  <meta name="build-version" content="20260728-rights-library2">
+  <meta name="build-version" content="20260729-rights-artifact-docs1">
   <meta name="theme-color" content="#070a0b">
   <link rel="icon" href="/studio/assets/brand/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="/studio/assets/brand/favicon-32x32.png">
@@ -46,7 +46,7 @@
         "@id": "https://veildaemon.app/studio/creator-rights/#webpage",
         "url": "https://veildaemon.app/studio/creator-rights/",
         "name": "Creator Rights and Publication Records",
-        "description": "Public creator-declared publication records for copyright notice, AI permissions, licensing terms, SHA-256 verification, QR links, and JSON metadata.",
+        "description": "Public creator-declared publication records that start from a file or source, extract draft evidence, preserve conflicts, and publish AI permissions, QR links, SHA-256 fingerprints, and JSON metadata.",
         "image": "https://veildaemon.app/assets/social/creator-rights-record-og.webp?v=20260727-sigil1",
         "keywords": [
           "AI scrape protection",
@@ -120,7 +120,7 @@
         "@type": "Product",
         "@id": "https://veildaemon.app/studio/creator-rights/#product",
         "name": "Creator Rights Record",
-        "description": "A creator-declared publication record with rights holder, version, licensing position, AI permissions, QR target, SHA-256 verification option, and JSON metadata.",
+        "description": "A creator-declared publication record drafted from an artifact, source URL, or identifier, then reviewed by the creator before publication with rights holder, version, licensing position, AI permissions, QR target, SHA-256 fingerprint option, and JSON metadata.",
         "image": "https://veildaemon.app/assets/social/creator-rights-record-og.webp?v=20260727-sigil1",
         "brand": {
           "@type": "Brand",
@@ -179,7 +179,15 @@
             "name": "Can I record books, games, artwork, PDFs, or software releases?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes, when you have authority to create the record. The registry can document publication metadata for books, tabletop releases, artwork, PDFs, software releases, and other creative work."
+              "text": "Yes, when you have authority to create the record. The intake accepts supported URLs and identifiers, plus local files such as EPUB, PDF, Office documents, Blender and 3D files, Unity assets, images, audio, video, datasets, source files, and LICENSE-like files."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does imported metadata verify ownership?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Imported values create a draft, not a verified rights claim. GitHub ownership, package ownership, usernames, and publication metadata are evidence to review; they are not proof of authorship or rights ownership."
             }
           },
           {
@@ -195,7 +203,23 @@
             "name": "Why include a SHA-256 hash?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "A SHA-256 hash can connect a specific file fingerprint to the publication record. It shows that the record contained that fingerprint at publication time, but it does not prove authorship by itself."
+              "text": "A SHA-256 hash can connect a specific file fingerprint to the publication record. Uploaded files are fingerprinted in the browser and the same calculated hash is reused later in the workflow. It does not prove authorship by itself."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is SFR the copyright license?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The selected SPDX or copyright license remains separate. The SigilForge Rights Framework adds provenance, verification state, AI permissions, evidence semantics, and machine-readable rights metadata. It does not replace or modify the selected license."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does the license picker make the legal decision for me?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. The license picker is an assistive recommendation system. It asks plain-language questions, narrows appropriate SPDX options or recommends custom terms, explains why a license is suggested, and leaves the final selection to the creator."
             }
           },
           {
@@ -221,7 +245,7 @@
       <div>
         <p class="eyebrow">SigilForge Rights</p>
         <h1>Creator Rights Records</h1>
-        <p>A Creator Rights Record is a public publication record for books, games, artwork, PDFs, software releases, and other creative work. It identifies who claims the work, what version was recorded, and how the work may be used or licensed.</p>
+        <p>A Creator Rights Record is a public publication record for books, games, artwork, PDFs, software releases, and other creative work. It starts from a file, source URL, or identifier, drafts what can be found, and helps creators choose a license in plain language before they confirm what the system cannot know.</p>
         <p class="pitch-note">This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.</p>
         <p></p>
       </div>
@@ -245,6 +269,60 @@
 
     <section class="section-block">
       <div class="section-heading">
+        <p class="eyebrow">License guidance</p>
+        <h2>Not sure which license fits your project?</h2>
+        <p>Answer a few plain-language questions and the picker explains your options, recommends an appropriate SPDX license or custom terms, and shows what alternatives would change. That guidance is useful even before you publish a Creator Rights Record.</p>
+      </div>
+      <div class="gate-list">
+        <article><h3>Ask creators' questions</h3><p>The picker starts with goals creators recognize: commercial use, attribution, forks, open modifications, reciprocal sharing, AI training, and when separate permission should be required.</p></article>
+        <article><h3>Explain tradeoffs</h3><p>A recommendation can say why MPL, MIT, Apache, AGPL, Creative Commons, proprietary, or custom terms fit better, and what a different choice would change downstream.</p></article>
+        <article><h3>Keep the creator in control</h3><p>The software can guide, compare, and prefill. The creator still reviews the evidence, chooses the final license, and decides whether to publish the record.</p></article>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading">
+        <p class="eyebrow">Artifact first</p>
+        <h2>Give it the work. Review what it found.</h2>
+        <p>Creator Rights is designed for working creators, not licensing analysts. The front door is a source or file, and the detailed form becomes the advanced editor after import.</p>
+      </div>
+      <div class="gate-list">
+        <article><h3>Provide a source</h3><p>One source field accepts supported URLs or identifiers. Current external sources include GitHub, npm, PyPI, DOI/Crossref, ISBN/Open Library, Steam, and itch.io.</p></article>
+        <article><h3>Upload a file</h3><p>Local file import supports EPUB, PDF and Office documents, Blender and 3D files, Unity assets, images, audio, video, datasets, source files, and LICENSE-like files.</p></article>
+        <article><h3>Reuse the fingerprint</h3><p>Uploaded files are fingerprinted with SHA-256 in the browser. The same uploaded file and calculated hash are reused later in the workflow; there is no second required upload.</p></article>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading">
+        <p class="eyebrow">Draft evidence</p>
+        <h2>Imported values are reviewed, not worshipped.</h2>
+        <p>Artifact first. Draft, not fact. Agreement increases confidence. Disagreement lowers confidence. Conflict never resolves silently.</p>
+      </div>
+      <div class="gate-list">
+        <article><h3>Evidence is labeled</h3><p>Imported fields keep their source, confidence, review status, and candidate values so the creator can see what was found and what still needs judgment.</p></article>
+        <article><h3>Agreement helps</h3><p>When sources match, the draft can mark that agreement and raise confidence without pretending the machine made a legal determination.</p></article>
+        <article><h3>Conflict requires review</h3><p>If license sources disagree, every candidate is preserved and displayed. No source wins silently; the creator must choose the governing license or mark the record as custom.</p></article>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading">
+        <p class="eyebrow">License composition</p>
+        <h2>Copyright license first. SFR alongside it.</h2>
+      </div>
+      <div class="gate-list">
+        <article><h3>Assistive picker</h3><p>The license picker asks plain-language questions about the creator's goals, narrows appropriate SPDX options or recommends custom terms when needed, and explains why each license is suggested. It is not an automatic legal decision.</p></article>
+        <article><h3>Creator decides</h3><p>Imported repository or package metadata may prefill or suggest a license, but the creator can override the draft after review. When evidence conflicts, the picker enters a review state instead of silently selecting a winner.</p></article>
+        <article><h3>Traceable recommendation</h3><p>Every recommendation should be explainable and traceable to the creator's answers, the selected work type, imported evidence, or preserved conflict candidates.</p></article>
+        <article><h3>Primary license</h3><p>The selected SPDX or copyright license remains the work's license: MIT, Apache, MPL, Creative Commons, proprietary, or another supported option.</p></article>
+        <article><h3>SFR framework</h3><p>The SigilForge Rights Framework layers provenance, verification state, AI permissions, evidence semantics, and machine-readable rights metadata on top of the chosen license. It does not replace or modify that license.</p></article>
+        <article><h3>Creator Dossier</h3><p>After a record exists, the account portal can export a Creator Dossier package for publisher review, open-source release support, dispute intake, or archive delivery.</p></article>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-heading">
         <p class="eyebrow">Rights registry</p>
         <h2>Use the simple record index.</h2>
         <p>The public registry lives at <a href="/registry/">/registry/</a>. Search by title, work type, category, availability, licensing terms, and AI-use position, then open the permanent record or JSON metadata from one place.</p>
@@ -252,7 +330,7 @@
       <div class="gate-list">
         <article><h3>Public registry</h3><p><span class="status-pill live">Canonical Index</span></p><p>One searchable public route for Creator Rights Records and machine-readable metadata.</p><p><a href="/registry/">Open registry</a></p></article>
         <article><h3>Individual records</h3><p><span class="status-pill shipping">Permanent URLs</span></p><p>Each record remains available at <code>/rights/&lt;record-slug&gt;/</code> with a matching JSON route.</p><p><a href="/rights/the-anchor-and-the-glitch/">View Book One record</a></p></article>
-        <article><h3>Creator workflow</h3><p><span class="status-pill planning">VeilLink App</span></p><p>Draft creation, checkout, account management, and QR downloads stay inside VeilLink.</p><p><a href="https://app.veildaemon.app/rights/create" target="_blank" rel="noopener noreferrer">Create a record</a></p></article>
+        <article><h3>Creator workflow</h3><p><span class="status-pill planning">VeilLink App</span></p><p>Source import, provenance-aware draft review, checkout, account management, Creator Dossier export, and QR downloads stay inside VeilLink.</p><p><a href="https://app.veildaemon.app/rights/create" target="_blank" rel="noopener noreferrer">Create a record</a></p></article>
       </div>
     </section>
 
@@ -275,13 +353,16 @@
       </div>
       <div class="gate-list">
         <article><h3>Is this a government copyright registration?</h3><p>No. A Creator Rights Record is a creator-declared publication record. It does not replace government copyright registration.</p></article>
-        <article><h3>Does a record prove legal ownership?</h3><p>No. It documents a declared rights position, publication metadata, and version history. Legal ownership can depend on facts and law beyond this record.</p></article>
+        <article><h3>Does a record prove legal ownership?</h3><p>No. It documents a declared rights position, publication metadata, version history, and evidence labels. Legal ownership can depend on facts and law beyond this record.</p></article>
         <article><h3>How do I prove I published first?</h3><p>A public record can document the declared publication date, recorded version, rights holder, and later version history. It is provenance evidence, not a court ruling.</p></article>
         <article><h3>How do I tell AI systems not to train on my content?</h3><p>The record publishes AI training permissions, licensing requirements, and machine-readable metadata so crawlers, licensing teams, and reviewers can read the creator's declared policy.</p></article>
-        <article><h3>Can I record books, games, artwork, PDFs, or software releases?</h3><p>Yes, when you have authority to create the record. The registry can document publication metadata for books, tabletop releases, artwork, PDFs, software releases, and other creative work.</p></article>
+        <article><h3>Can I record books, games, artwork, PDFs, or software releases?</h3><p>Yes, when you have authority to create the record. The intake accepts supported URLs and identifiers, plus local files such as EPUB, PDF, Office documents, Blender and 3D files, Unity assets, images, audio, video, datasets, source files, and LICENSE-like files.</p></article>
+        <article><h3>Does imported metadata verify ownership?</h3><p>No. Imported values create a draft, not a verified rights claim. GitHub ownership, package ownership, usernames, and publication metadata are evidence to review; they are not proof of authorship or rights ownership.</p></article>
         <article><h3>What are AI permissions?</h3><p>AI permissions describe the creator's declared position for training, fine-tuning, embeddings, retrieval, generation, dataset redistribution, research use, and commercial AI licensing.</p></article>
         <article><h3>What if AI scraped my website or work?</h3><p>A record cannot undo scraping, but it can publish a clear creator rights declaration, AI usage policy, licensing route, and timestamped publication metadata for future reference.</p></article>
-        <article><h3>Why include a SHA-256 hash?</h3><p>A SHA-256 hash can connect a specific file fingerprint to the publication record. It shows that the record contained that fingerprint at publication time, but it does not prove authorship by itself.</p></article>
+        <article><h3>Why include a SHA-256 hash?</h3><p>A SHA-256 hash can connect a specific file fingerprint to the publication record. Uploaded files are fingerprinted in the browser and the same calculated hash is reused later in the workflow. It does not prove authorship by itself.</p></article>
+        <article><h3>Is SFR the copyright license?</h3><p>No. The selected SPDX or copyright license remains separate. The SigilForge Rights Framework adds provenance, verification state, AI permissions, evidence semantics, and machine-readable rights metadata. It does not replace or modify the selected license.</p></article>
+        <article><h3>Does the license picker make the legal decision for me?</h3><p>No. The picker is assistive. It asks plain-language questions, narrows likely SPDX licenses or recommends custom terms, explains the suggestion, and leaves the final selection to the creator.</p></article>
         <article><h3>What does the QR link do?</h3><p>The QR code points to the permanent public record URL so readers, licensors, crawlers, and archives can find the current publication record and machine-readable metadata.</p></article>
       </div>
     </section>

@@ -33,10 +33,13 @@ async function main() {
     const body = await page.locator("body").innerText();
     const required = [
       "Register product",
-      "Import from artifact or GitHub",
+      "Import from artifact or source",
       "Upload work file",
-      "Import repository",
-      "Choose how your work may be reused",
+      "Source URL or identifier",
+      "Import source",
+      "Supported sources: GitHub, npm, PyPI, DOI, ISBN, Steam, and itch.io.",
+      "Not sure which license fits your project?",
+      "The license picker is an assistive recommendation system, not an automatic legal decision.",
     ];
     const missing = required.filter((text) => !body.includes(text));
     if (missing.length) throw new Error(`Missing expected text: ${missing.join(", ")}`);

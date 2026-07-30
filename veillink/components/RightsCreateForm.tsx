@@ -748,11 +748,23 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
         <div className="license-composition full">
           <div className="form-step-head">
             <p className="eyebrow">License composition</p>
-            <h3>Choose how your work may be reused</h3>
+            <h3>Not sure which license fits your project?</h3>
           </div>
           <p className="field-hint">
-            Your record will combine your selected copyright license with the SigilForge Rights Framework for
-            provenance, verification, and AI permissions.
+            The license picker is an assistive recommendation system, not an automatic legal decision. It asks
+            plain-language questions about your goals, narrows appropriate SPDX options or points you toward a custom
+            license, and explains why each option is suggested. You always make the final selection.
+          </p>
+          <p className="field-hint">
+            Choose the goal that sounds closest: broad commercial reuse, attribution, forks, open modifications,
+            reciprocal sharing, AI training posture, or separate permission for negotiated use. The exact license options
+            below narrow from those answers and the selected work type.
+          </p>
+          <p className="field-hint">
+            Imported repository or package metadata may prefill a draft license, but you can override it after review.
+            If evidence conflicts, the picker enters a review state instead of silently choosing a winner. SFR metadata
+            layers provenance, verification state, AI permissions, and machine-readable rights details on top of the
+            chosen license; it never replaces or modifies that license.
           </p>
           <div className="license-intent-grid">
             {licenseIntentOptions.map((intent) => {
@@ -775,7 +787,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
             })}
           </div>
           <label>
-            <LabelText required help="Choose the exact copyright license for this reuse intent. SFR stays separate and does not replace SPDX identifiers or canonical license text.">Exact copyright license</LabelText>
+            <LabelText required help="Choose the final copyright license. Suggestions are traceable to your answers, work type, imported evidence, or conflict review; they are not legal advice. SFR stays separate and does not replace SPDX identifiers or canonical license text.">Exact copyright license</LabelText>
             <select
               name="copyrightLicenseId"
               value={form.copyrightLicenseId}

@@ -42,7 +42,7 @@ export default async function AccountPage() {
         </div>
         <div className="panel">
           <h2>Rights Records</h2>
-          <p className="muted">Create draft records, review published status, and download QR assets from the rights dashboard.</p>
+          <p className="muted">Import a source or artifact, review a draft record, manage published status, export Creator Dossiers, and download QR assets from the rights dashboard.</p>
           <p><a className="button secondary" href="/account/rights">Open rights records</a></p>
         </div>
         <div className="panel">

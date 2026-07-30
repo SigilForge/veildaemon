@@ -77,7 +77,12 @@ describe("Creator Rights create form helpers", () => {
 
   it("keeps license selection guided by work type instead of dumping the whole catalog", async () => {
     const source = await import("node:fs/promises").then((fs) => fs.readFile(new URL("../components/RightsCreateForm.tsx", import.meta.url), "utf8"));
-    expect(source).toContain("Choose how your work may be reused");
+    expect(source).toContain("Not sure which license fits your project?");
+    expect(source).toContain("The license picker is an assistive recommendation system, not an automatic legal decision.");
+    expect(source).toContain("Choose the goal that sounds closest");
+    expect(source).toContain("Imported repository or package metadata may prefill a draft license");
+    expect(source).toContain("If evidence conflicts, the picker enters a review state instead of silently choosing a winner.");
+    expect(source).toContain("You always make the final selection.");
     expect(source).toContain("workTypeLicenseOptions.map");
     expect(source).not.toContain("LICENSE_CATALOG.map");
   });
@@ -102,5 +107,25 @@ describe("Creator Rights create form helpers", () => {
     expect(routeSource).toContain("await requireUser()");
     expect(routeSource).toContain("https://api.github.com");
     expect(routeSource).not.toContain("fetch(body");
+  });
+
+  it("keeps the public Creator Rights overview aligned with artifact-first intake", async () => {
+    const source = await import("node:fs/promises").then((fs) => fs.readFile(new URL("../../studio/creator-rights/index.html", import.meta.url), "utf8"));
+    expect(source).toContain("License guidance");
+    expect(source).toContain("Not sure which license fits your project?");
+    expect(source).toContain("Answer a few plain-language questions");
+    expect(source).toContain("The software can guide, compare, and prefill.");
+    expect(source).toContain("Artifact first");
+    expect(source).toContain("One source field accepts supported URLs or identifiers.");
+    expect(source).toContain("Artifact first. Draft, not fact. Agreement increases confidence. Disagreement lowers confidence. Conflict never resolves silently.");
+    expect(source).toContain("No source wins silently");
+    expect(source).toContain("Uploaded files are fingerprinted with SHA-256 in the browser.");
+    expect(source).toContain("The license picker asks plain-language questions");
+    expect(source).toContain("It is not an automatic legal decision.");
+    expect(source).toContain("The SigilForge Rights Framework layers provenance");
+    expect(source).toContain("It does not replace or modify that license.");
+    expect(source).toContain("Creator Dossier package");
+    expect(source).not.toContain("Import from artifact or GitHub");
+    expect(source).not.toContain("Import repository");
   });
 });

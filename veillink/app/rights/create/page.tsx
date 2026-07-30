@@ -7,7 +7,7 @@ import { RIGHTS_DISCLAIMER, availabilityCategories, categoryValues, permissionVa
 
 export const metadata: Metadata = buildMetadata({
   title: "Register a Creator Rights Product",
-  description: "Create a draft rights record with work type, category, availability, licensing, AI permissions, and optional file fingerprint metadata.",
+  description: "Start from a file, source URL, or identifier, then review a provenance-aware Creator Rights draft with licensing, AI permissions, and optional SHA-256 fingerprint metadata.",
   path: "/rights/create",
   image: "https://veildaemon.app/assets/social/creator-rights-record-og.webp",
   imageAlt: "Creator Rights Record verification card from SigilForge Studios",
@@ -41,7 +41,8 @@ export default async function CreateRightsRecordPage() {
       <p className="eyebrow">Creator Rights Record</p>
       <h1 className="page-title">Register product</h1>
       <p className="lede">
-        Enter the declared rights position, review the generated AI-use summary, then publish only after verified payment.
+        Start with a file, source URL, or identifier. The intake extracts what it can, labels uncertainty, keeps conflicts
+        visible, and helps you choose a license through plain-language goals before you declare and publish.
       </p>
       <p className="notice">{RIGHTS_DISCLAIMER}</p>
 

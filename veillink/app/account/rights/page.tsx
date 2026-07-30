@@ -18,7 +18,7 @@ export const revalidate = 0;
 
 export const metadata: Metadata = buildMetadata({
   title: "Rights Records",
-  description: "Manage Creator Rights Record drafts, publication payment, durable public URLs, and branded QR assets.",
+  description: "Manage provenance-aware Creator Rights drafts, publication payment, durable public URLs, Creator Dossier exports, and branded QR assets.",
   path: "/account/rights",
   noIndex: true,
 });
@@ -61,9 +61,9 @@ export default async function AccountRightsPage({
       <p className="eyebrow">Account</p>
       <h1 className="page-title">Creator Rights portal</h1>
       <p className="lede">
-        Create a Rights Record, publish it, get a durable public URL, generate a branded QR for the work, and come back
-        anytime to manage permissions or regenerate QR artwork. You buy the issued record — the QR is a regenerable asset
-        of that record.
+        Import a source or artifact, review the draft, publish a durable public URL, export a Creator Dossier, generate a
+        branded QR for the work, and come back anytime to manage permissions or regenerate QR artwork. You buy the issued
+        record — the QR is a regenerable asset of that record.
       </p>
 
       <div className="toolbar">
@@ -223,8 +223,8 @@ export default async function AccountRightsPage({
             <p className="panel-kicker">No records yet</p>
             <h2>Create the first draft.</h2>
             <p className="muted">
-              The portal is where records are issued and managed. The public registry is the verification layer for issued
-              works.
+              The portal is where source imports become drafts, drafts become issued records, and issued records can be
+              verified, exported, and managed. The public registry is the discovery layer for issued works.
             </p>
             <div className="toolbar">
               <Link className="button" href="/rights/create">
