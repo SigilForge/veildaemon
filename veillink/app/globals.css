@@ -1427,6 +1427,7 @@ textarea {
     linear-gradient(135deg, rgba(126, 184, 168, 0.055), rgba(255, 255, 255, 0.025));
 }
 
+.source-file-field,
 .source-url-field {
   min-width: 0;
 }

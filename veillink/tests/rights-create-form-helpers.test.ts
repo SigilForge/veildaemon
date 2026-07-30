@@ -86,7 +86,9 @@ describe("Creator Rights create form helpers", () => {
     const fs = await import("node:fs/promises");
     const formSource = await fs.readFile(new URL("../components/RightsCreateForm.tsx", import.meta.url), "utf8");
     const routeSource = await fs.readFile(new URL("../app/api/rights/import/github/route.ts", import.meta.url), "utf8");
-    expect(formSource).toContain("Import a GitHub repository");
+    expect(formSource).toContain("Import from artifact or GitHub");
+    expect(formSource).toContain("Upload work file");
+    expect(formSource).toContain("buildUploadedFileDraft");
     expect(formSource).toContain("Found automatically");
     expect(formSource).toContain("Likely, please confirm");
     expect(formSource).toContain("Still needed");

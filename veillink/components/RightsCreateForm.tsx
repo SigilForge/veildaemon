@@ -25,7 +25,7 @@ import {
   licenseOptionsForWorkType,
   licenseWorkTypeWarning,
 } from "@/lib/rights/license-catalog";
-import type { CreatorRightsImportDraft, DraftField, DraftFieldStatus } from "@/lib/rights/import-draft";
+import { buildUploadedFileDraft, type CreatorRightsImportDraft, type DraftField, type DraftFieldStatus } from "@/lib/rights/import-draft";
 import type { AiPermissionBlock, PermissionValue } from "@/lib/rights/schema";
 
 type SelectOption = { value: string; label: string };
@@ -241,16 +241,41 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
   const slugPreview = slugHelpText(form.title, form.slug);
   const publicContact = form.licensingContact || email || "Not specified";
   const hasFingerprint = fingerprintMode !== "skip" && Boolean(form.sha256Hash);
+  const foundImportFields: Array<[string, DraftField<unknown>]> = importDraft?.importKind === "uploaded_file"
+    ? [
+        ["Filename", importDraft.fields.fileName],
+        ["MIME type", importDraft.fields.mimeType],
+        ["File size", importDraft.fields.fileSize],
+        ["SHA-256", importDraft.fields.sha256Hash],
+      ]
+    : importDraft
+      ? [
+          ["Work title", importDraft.fields.title],
+          ["Repository", importDraft.fields.sourceUrl],
+          ["Primary license", importDraft.fields.copyrightLicenseId],
+          ["Version or release", importDraft.fields.externalIdentifier],
+        ]
+      : [];
+  const stillNeededImportFields: Array<[string, DraftField<unknown>]> = importDraft?.importKind === "uploaded_file"
+    ? [
+        ["Creator name", importDraft.fields.creatorName],
+        ["Public display name", importDraft.fields.publicDisplayName],
+        ["Rights holder", importDraft.fields.rightsHolderName],
+        ["Source URL", importDraft.fields.sourceUrl],
+        ["Rights statement", importDraft.fields.rightsStatement],
+      ]
+    : importDraft
+      ? [
+          ["Creator name", importDraft.fields.creatorName],
+          ["Rights holder", importDraft.fields.rightsHolderName],
+          ["Rights statement", importDraft.fields.rightsStatement],
+        ]
+      : [];
   const importReviewGroups: ImportReviewGroup[] = importDraft
     ? [
         {
           title: "Found automatically",
-          fields: [
-            ["Work title", importDraft.fields.title],
-            ["Repository", importDraft.fields.sourceUrl],
-            ["Primary license", importDraft.fields.copyrightLicenseId],
-            ["Version or release", importDraft.fields.externalIdentifier],
-          ],
+          fields: foundImportFields,
         },
         {
           title: "Likely, please confirm",
@@ -263,11 +288,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
         },
         {
           title: "Still needed",
-          fields: [
-            ["Creator name", importDraft.fields.creatorName],
-            ["Rights holder", importDraft.fields.rightsHolderName],
-            ["Rights statement", importDraft.fields.rightsStatement],
-          ],
+          fields: stillNeededImportFields,
         },
       ]
     : [];
@@ -333,11 +354,20 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
       sourceUrl: current.sourceUrl || fields.sourceUrl.value || "",
       externalIdentifier: current.externalIdentifier || fields.externalIdentifier.value || "",
       edition: current.edition || fields.edition.value || "",
+      fileName: current.fileName || fields.fileName.value || "",
+      fileSize: current.fileSize || fields.fileSize.value || "",
+      mimeType: current.mimeType || fields.mimeType.value || "",
+      sha256Hash: current.sha256Hash || fields.sha256Hash.value || "",
       copyrightNotice: current.copyrightNotice || fields.copyrightNotice.value || "",
       copyrightLicenseId: nextLicenseId,
       rightsStatement: current.rightsStatement || fields.rightsStatement.value || "",
     }));
     setLicenseIntent(intentForLicense(nextLicenseId));
+    if (fields.sha256Hash.value) {
+      setFingerprintMode("file");
+      setHashError("");
+      setFileStatus("Fingerprint calculated from source import. Review the hash before creating the draft.");
+    }
   }
 
   async function importRepositoryDraft() {
@@ -361,6 +391,33 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
     } catch {
       setImportError("Network error while importing the repository. You can still complete the form manually.");
       setImportStatus("idle");
+    }
+  }
+
+  async function importUploadedFileDraft(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setImportError("");
+    setImportStatus("loading");
+    setFileStatus("Calculating SHA-256 in this browser...");
+    setHashError("");
+    try {
+      const hash = await sha256ForFile(file);
+      const draft = buildUploadedFileDraft({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        sha256Hash: hash,
+      });
+      setImportDraft(draft);
+      applyImportDraft(draft);
+      setImportStatus("ready");
+    } catch {
+      setImportStatus("idle");
+      setFileStatus("");
+      setHashError("This browser could not calculate the file fingerprint. Paste a SHA-256 hash instead.");
+      setImportError("This browser could not import the selected file. You can still complete the form manually.");
     }
   }
 
@@ -483,11 +540,15 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
       <section className="form-step import-source-panel full">
         <div className="form-step-head">
           <p className="eyebrow">Start from source</p>
-          <h2>Import a GitHub repository</h2>
+          <h2>Import from artifact or GitHub</h2>
         </div>
         <p className="field-hint full">
-          Paste a public repository URL to draft the record from source metadata. Imported data is a review queue, not a verified rights claim.
+          Upload a file or paste a public repository URL to draft the record from source metadata. Imported data is a review queue, not a verified rights claim.
         </p>
+        <label className="source-file-field">
+          <LabelText help="The selected file stays in your browser. The form stores the SHA-256 hash and metadata, not the file bytes.">Upload work file</LabelText>
+          <input type="file" onChange={importUploadedFileDraft} />
+        </label>
         <label className="source-url-field">
           <LabelText help="Use a public repository URL such as https://github.com/SigilForge/veildaemon. The server fetches only constructed GitHub API URLs.">Repository URL</LabelText>
           <input
@@ -506,7 +567,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
           <div className="import-review-panel full" aria-live="polite">
             <div>
               <p className="panel-kicker">Draft import</p>
-              <h3>{importDraft.repository.fullName}</h3>
+              <h3>{importDraft.sourceLabel}</h3>
             </div>
             <ul className="import-summary">
               {importDraft.summary.map((item) => <li key={item}>{item}</li>)}
