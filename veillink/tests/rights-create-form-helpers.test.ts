@@ -128,14 +128,14 @@ describe("Creator Rights create form helpers", () => {
     expect(formSource).toContain("Advisor draft restored after sign-in.");
     expect(formSource).toContain("window.localStorage.setItem");
     expect(formSource).toContain("window.localStorage.removeItem");
-    expect(formSource).toContain("Sign in to preserve this record");
+    expect(formSource).toContain("Preserve this rights record");
   });
 
   it("preserves the account creation route when Advisor users need to register", async () => {
     const source = await import("node:fs/promises").then((fs) => fs.readFile(new URL("../components/AuthForm.tsx", import.meta.url), "utf8"));
     expect(source).toContain("Create account to preserve a record");
     expect(source).toContain("/signup?next=");
-    expect(source).toContain("Create a free account when you are ready to preserve and manage durable Creator Rights Registry records.");
+    expect(source).toContain("Create a free account to generate your Creator Dossier, maintain versioned evidence over time, and preserve permanent, timestamped Registry records.");
   });
 
   it("keeps the public Creator Rights overview aligned with artifact-first intake", async () => {

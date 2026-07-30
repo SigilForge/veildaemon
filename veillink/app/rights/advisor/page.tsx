@@ -45,7 +45,7 @@ export default function CreatorRightsAdvisorPage() {
           Browse public records
         </Link>
         <Link className="button" href="/login?next=/rights/create">
-          Sign in to preserve a record
+          Preserve this rights record
         </Link>
       </div>
       <p className="notice">

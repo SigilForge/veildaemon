@@ -1030,11 +1030,30 @@ export function RightsCreateForm({ email = "", mode = "registry", workTypes, cat
           <h3>Generated AI-use summary</h3>
           <p>{aiSummary}</p>
         </div>
-        <p className="notice">
-          {isAdvisor
-            ? "This Advisor draft helps you understand licensing, AI permissions, metadata health, conflicts, and fingerprints. It is not preserved, published, verified, or stored as a permanent record until you sign in and create a Registry record."
-            : disclaimer}
-        </p>
+        {isAdvisor ? (
+          <div className="rights-preserve-card panel" style={{ marginTop: "1.5rem", marginBottom: "1.5rem" }}>
+            <p className="panel-kicker">Permanence &amp; Registry License</p>
+            <h3 style={{ margin: "0.25rem 0 0.5rem" }}>Preserve this rights record</h3>
+            <p style={{ fontWeight: 500 }}>
+              Sign in to create a permanent, timestamped Registry record, generate your Creator Dossier, and maintain versioned evidence over time.
+            </p>
+            <p className="muted" style={{ fontSize: "0.875rem", margin: "0.5rem 0 1rem" }}>
+              A single one-time Registry license covers the lifetime of this Creator Rights Record. There are no recurring subscription fees to keep your record active. Your purchase supports the long-term storage, verification infrastructure, and maintenance required to preserve your record and dossier.
+            </p>
+            <div className="dashboard-actions">
+              <a className="button" href="/login?next=/rights/create" onClick={saveAdvisorDraft}>
+                Preserve this rights record
+              </a>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p className="notice">{disclaimer}</p>
+            <p className="field-hint" style={{ marginTop: "0.5rem" }}>
+              Registry fees support long-term record storage, verification infrastructure, maintenance, and the continued operation of this independent creator-focused service. Each record is covered by a single one-time lifetime Registry license with no recurring subscription fees.
+            </p>
+          </>
+        )}
         {advisorStatus ? <p className="notice" role="status">{advisorStatus}</p> : null}
         {submitError ? <p className="form-error" role="alert">{submitError}</p> : null}
         {isAdvisor ? null : (
@@ -1045,11 +1064,11 @@ export function RightsCreateForm({ email = "", mode = "registry", workTypes, cat
         )}
         <div className="dashboard-actions full">
           <button type="submit" disabled={submitting}>
-            {isAdvisor ? "Generate advisor draft" : submitting ? "Creating draft..." : "Create draft"}
+            {isAdvisor ? "Generate advisor draft" : submitting ? "Creating permanent Registry record..." : "Create permanent Registry record"}
           </button>
           {isAdvisor ? (
             <a className="button secondary" href="/login?next=/rights/create" onClick={saveAdvisorDraft}>
-              Sign in to preserve this record
+              Preserve this rights record
             </a>
           ) : null}
         </div>

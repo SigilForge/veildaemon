@@ -43,8 +43,8 @@ export default async function CreateRightsRecordPage() {
       <h1 className="page-title">Preserve a Creator Rights Record</h1>
       <p className="lede">
         This authenticated Registry flow creates the durable record: permanent URL, Registry ID, version history, QR
-        verification, Creator Dossier export, and long-term provenance management. If you are still deciding what to do,
-        the public Advisor remains available without signing in.
+        verification, Creator Dossier export, and long-term provenance management. A single one-time Registry license
+        covers the lifetime of this Creator Rights Record with no recurring subscription fees.
       </p>
       <div className="dashboard-actions">
         <Link className="button secondary" href="/rights/advisor">

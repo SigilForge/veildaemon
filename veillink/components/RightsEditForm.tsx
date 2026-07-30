@@ -253,7 +253,7 @@ export function RightsEditForm({
 
       {error ? <p className="full rights-qr-warn">{error}</p> : null}
       <button type="submit" disabled={busy}>
-        {busy ? "Saving…" : "Save changes"}
+        {busy ? "Saving record updates…" : "Save record updates"}
       </button>
     </form>
   );

@@ -41,7 +41,7 @@ async function main() {
       "Supported sources: GitHub, npm, PyPI, DOI, ISBN, Steam, and itch.io.",
       "Not sure which license fits your project?",
       "The license picker is an assistive recommendation system, not an automatic legal decision.",
-      "Sign in to preserve",
+      "Preserve this rights record",
     ];
     const missing = required.filter((text) => !body.includes(text));
     if (missing.length) throw new Error(`Missing expected text: ${missing.join(", ")}`);

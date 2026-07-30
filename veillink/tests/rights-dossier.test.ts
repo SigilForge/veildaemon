@@ -170,7 +170,7 @@ describe("Creator Dossier", () => {
     expect(source).toContain("getOwnedRightsRecord(user.id, id)");
     expect(source).toContain("application/zip");
     expect(source).toContain("content-disposition");
-    expect(accountPage).toContain("Build Creator Dossier");
+    expect(accountPage).toContain("Generate Creator Dossier");
     expect(accountPage).not.toContain("Build Evidence");
   });
 });
