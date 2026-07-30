@@ -74,4 +74,25 @@ describe("Creator Rights create form helpers", () => {
     expect(source).toContain("<summary aria-label=\"Show field help\">?</summary>");
     expect(source).not.toContain("onMouseEnter");
   });
+
+  it("keeps license selection guided by work type instead of dumping the whole catalog", async () => {
+    const source = await import("node:fs/promises").then((fs) => fs.readFile(new URL("../components/RightsCreateForm.tsx", import.meta.url), "utf8"));
+    expect(source).toContain("Choose how your work may be reused");
+    expect(source).toContain("workTypeLicenseOptions.map");
+    expect(source).not.toContain("LICENSE_CATALOG.map");
+  });
+
+  it("presents repository import as draft review instead of verification", async () => {
+    const fs = await import("node:fs/promises");
+    const formSource = await fs.readFile(new URL("../components/RightsCreateForm.tsx", import.meta.url), "utf8");
+    const routeSource = await fs.readFile(new URL("../app/api/rights/import/github/route.ts", import.meta.url), "utf8");
+    expect(formSource).toContain("Import a GitHub repository");
+    expect(formSource).toContain("Found automatically");
+    expect(formSource).toContain("Likely, please confirm");
+    expect(formSource).toContain("Still needed");
+    expect(formSource).toContain("advanced editor");
+    expect(routeSource).toContain("await requireUser()");
+    expect(routeSource).toContain("https://api.github.com");
+    expect(routeSource).not.toContain("fetch(body");
+  });
 });

@@ -19,12 +19,13 @@ import {
   type PermissionPresetKey,
 } from "@/lib/rights/create-form-helpers";
 import {
-  LICENSE_CATALOG,
   SFR_REGISTRY_FRAMEWORK,
+  defaultLicenseIdForWorkType,
   licenseById,
   licenseOptionsForWorkType,
   licenseWorkTypeWarning,
 } from "@/lib/rights/license-catalog";
+import type { CreatorRightsImportDraft, DraftField, DraftFieldStatus } from "@/lib/rights/import-draft";
 import type { AiPermissionBlock, PermissionValue } from "@/lib/rights/schema";
 
 type SelectOption = { value: string; label: string };
@@ -93,6 +94,54 @@ const availabilityHelp: Record<string, string> = {
 
 const roleOptions = ["Creator", "Publisher", "Rights Holder", "Licensee", "Other"];
 
+type LicenseIntentId = "all_rights" | "broad_reuse" | "reciprocal_open" | "creative_reuse";
+
+type LicenseIntentOption = {
+  id: LicenseIntentId;
+  title: string;
+  summary: string;
+  goodFor: string;
+  recommendedLicenseIds: string[];
+};
+
+type ImportStatus = "idle" | "loading" | "ready";
+
+type ImportReviewGroup = {
+  title: string;
+  fields: Array<[string, DraftField<unknown>]>;
+};
+
+const licenseIntentOptions: LicenseIntentOption[] = [
+  {
+    id: "all_rights",
+    title: "Keep all rights",
+    summary: "Nobody may reuse it without separate permission.",
+    goodFor: "Commercial works, unreleased projects, books, art, and private releases.",
+    recommendedLicenseIds: ["proprietary", "custom"],
+  },
+  {
+    id: "broad_reuse",
+    title: "Allow broad reuse",
+    summary: "Best for open-source software where reuse should be simple.",
+    goodFor: "Libraries, developer tools, examples, and small software projects.",
+    recommendedLicenseIds: ["mit", "apache-2.0", "bsd-3-clause", "unlicense"],
+  },
+  {
+    id: "reciprocal_open",
+    title: "Require improvements to stay open",
+    summary: "Best for software where modified code should remain available.",
+    goodFor: "Open software projects that want file-level, program-level, or network-service reciprocity.",
+    recommendedLicenseIds: ["mpl-2.0", "gpl-3.0-only", "lgpl-3.0-only", "agpl-3.0-only"],
+  },
+  {
+    id: "creative_reuse",
+    title: "Allow creative reuse",
+    summary: "Best for books, art, music, video, courses, datasets, and similar work.",
+    goodFor: "Creative or educational work where sharing, attribution, noncommercial use, or public-domain dedication matters.",
+    recommendedLicenseIds: ["cc-by-4.0", "cc-by-sa-4.0", "cc-by-nc-4.0", "cc0-1.0"],
+  },
+];
+
 function FieldHelp({ id, children }: { id: string; children: React.ReactNode }) {
   return (
     <details className="field-help" id={id}>
@@ -115,6 +164,23 @@ function LabelText({ children, help, required = false }: { children: React.React
 
 function optionLabel(value: string) {
   return value.replace(/_/g, " ").replace(/^./, (first) => first.toUpperCase());
+}
+
+function intentForLicense(licenseId: string): LicenseIntentId {
+  return licenseIntentOptions.find((intent) => intent.recommendedLicenseIds.includes(licenseId))?.id || "all_rights";
+}
+
+function draftStatusLabel(status: DraftFieldStatus) {
+  return {
+    found: "Found",
+    inferred: "Inferred",
+    needs_review: "Needs review",
+    confirmed: "Confirmed",
+  }[status];
+}
+
+function draftStatusClass(status: DraftFieldStatus) {
+  return `draft-status ${status.replace("_", "-")}`;
 }
 
 async function sha256ForFile(file: File) {
@@ -159,17 +225,78 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
   const [fileStatus, setFileStatus] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [licenseIntent, setLicenseIntent] = useState<LicenseIntentId>("all_rights");
+  const [repositoryUrl, setRepositoryUrl] = useState("");
+  const [importStatus, setImportStatus] = useState<ImportStatus>("idle");
+  const [importError, setImportError] = useState("");
+  const [importDraft, setImportDraft] = useState<CreatorRightsImportDraft | null>(null);
 
   const aiSummary = useMemo(() => aiSummaryForPermissions(permissions), [permissions]);
   const selectedLicense = useMemo(() => licenseById(form.copyrightLicenseId), [form.copyrightLicenseId]);
   const workTypeLicenseOptions = useMemo(() => licenseOptionsForWorkType(form.workType), [form.workType]);
+  const selectedIntent = licenseIntentOptions.find((intent) => intent.id === licenseIntent) || licenseIntentOptions[0];
+  const exactLicenseOptions = workTypeLicenseOptions.filter((license) => selectedIntent.recommendedLicenseIds.includes(license.id));
+  const visibleExactLicenseOptions = exactLicenseOptions.length ? exactLicenseOptions : workTypeLicenseOptions;
   const licenseWarning = licenseWorkTypeWarning(form.copyrightLicenseId, form.workType);
   const slugPreview = slugHelpText(form.title, form.slug);
   const publicContact = form.licensingContact || email || "Not specified";
   const hasFingerprint = fingerprintMode !== "skip" && Boolean(form.sha256Hash);
+  const importReviewGroups: ImportReviewGroup[] = importDraft
+    ? [
+        {
+          title: "Found automatically",
+          fields: [
+            ["Work title", importDraft.fields.title],
+            ["Repository", importDraft.fields.sourceUrl],
+            ["Primary license", importDraft.fields.copyrightLicenseId],
+            ["Version or release", importDraft.fields.externalIdentifier],
+          ],
+        },
+        {
+          title: "Likely, please confirm",
+          fields: [
+            ["Work type", importDraft.fields.workType],
+            ["Public display name", importDraft.fields.publicDisplayName],
+            ["Category", importDraft.fields.category],
+            ["Copyright notice", importDraft.fields.copyrightNotice],
+          ],
+        },
+        {
+          title: "Still needed",
+          fields: [
+            ["Creator name", importDraft.fields.creatorName],
+            ["Rights holder", importDraft.fields.rightsHolderName],
+            ["Rights statement", importDraft.fields.rightsStatement],
+          ],
+        },
+      ]
+    : [];
 
   function setField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function chooseLicense(licenseId: string) {
+    setLicenseIntent(intentForLicense(licenseId));
+    setField("copyrightLicenseId", licenseId);
+  }
+
+  function chooseLicenseIntent(intentId: LicenseIntentId) {
+    const intent = licenseIntentOptions.find((option) => option.id === intentId) || licenseIntentOptions[0];
+    const recommended = workTypeLicenseOptions.find((license) => intent.recommendedLicenseIds.includes(license.id));
+    setLicenseIntent(intent.id);
+    if (recommended) setField("copyrightLicenseId", recommended.id);
+  }
+
+  function setWorkType(value: string) {
+    const options = licenseOptionsForWorkType(value);
+    const currentStillFits = options.some((license) => license.id === form.copyrightLicenseId);
+    setForm((current) => ({
+      ...current,
+      workType: value,
+      copyrightLicenseId: currentStillFits ? current.copyrightLicenseId : defaultLicenseIdForWorkType(value),
+    }));
+    if (!currentStillFits) setLicenseIntent(intentForLicense(defaultLicenseIdForWorkType(value)));
   }
 
   function setTitle(value: string) {
@@ -186,6 +313,55 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
       rightsHolderName: value,
       copyrightNotice: current.copyrightNotice || copyrightSuggestion(current.creationDate.slice(0, 4), value),
     }));
+  }
+
+  function applyImportDraft(draft: CreatorRightsImportDraft) {
+    const fields = draft.fields;
+    const nextTitle = fields.title.value || "";
+    const nextLicenseId = fields.copyrightLicenseId.value || defaultLicenseIdForWorkType(fields.workType.value || "software");
+    setForm((current) => ({
+      ...current,
+      creatorName: current.creatorName || fields.creatorName.value || "",
+      publicDisplayName: current.publicDisplayName || fields.publicDisplayName.value || "",
+      rightsHolderName: current.rightsHolderName || fields.rightsHolderName.value || "",
+      title: current.title || nextTitle,
+      slug: current.slug || fields.slug.value || normalizeSlugInput(nextTitle),
+      workType: fields.workType.value || current.workType,
+      category: fields.category.value || current.category,
+      availability: fields.availability.value || current.availability,
+      description: current.description || fields.description.value || "",
+      sourceUrl: current.sourceUrl || fields.sourceUrl.value || "",
+      externalIdentifier: current.externalIdentifier || fields.externalIdentifier.value || "",
+      edition: current.edition || fields.edition.value || "",
+      copyrightNotice: current.copyrightNotice || fields.copyrightNotice.value || "",
+      copyrightLicenseId: nextLicenseId,
+      rightsStatement: current.rightsStatement || fields.rightsStatement.value || "",
+    }));
+    setLicenseIntent(intentForLicense(nextLicenseId));
+  }
+
+  async function importRepositoryDraft() {
+    setImportError("");
+    setImportStatus("loading");
+    try {
+      const response = await fetch("/api/rights/import/github", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ repositoryUrl }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as { ok?: boolean; error?: string; draft?: CreatorRightsImportDraft };
+      if (!response.ok || !payload.draft) {
+        setImportError(payload.error || "The repository could not be imported. Check the URL and try again.");
+        setImportStatus("idle");
+        return;
+      }
+      setImportDraft(payload.draft);
+      applyImportDraft(payload.draft);
+      setImportStatus("ready");
+    } catch {
+      setImportError("Network error while importing the repository. You can still complete the form manually.");
+      setImportStatus("idle");
+    }
   }
 
   function setCreationDate(value: string) {
@@ -304,6 +480,63 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
     <form className="form rights-form guided-rights-form" action="/api/rights/create" method="post" onSubmit={onSubmit} noValidate>
       <input type="hidden" name="email" value={email} />
 
+      <section className="form-step import-source-panel full">
+        <div className="form-step-head">
+          <p className="eyebrow">Start from source</p>
+          <h2>Import a GitHub repository</h2>
+        </div>
+        <p className="field-hint full">
+          Paste a public repository URL to draft the record from source metadata. Imported data is a review queue, not a verified rights claim.
+        </p>
+        <label className="source-url-field">
+          <LabelText help="Use a public repository URL such as https://github.com/SigilForge/veildaemon. The server fetches only constructed GitHub API URLs.">Repository URL</LabelText>
+          <input
+            inputMode="url"
+            placeholder="https://github.com/owner/repository"
+            type="url"
+            value={repositoryUrl}
+            onChange={(event) => setRepositoryUrl(event.target.value)}
+          />
+        </label>
+        <button className="button secondary import-button" disabled={importStatus === "loading"} onClick={importRepositoryDraft} type="button">
+          {importStatus === "loading" ? "Importing..." : "Import repository"}
+        </button>
+        {importError ? <p className="form-error full" role="alert">{importError}</p> : null}
+        {importDraft ? (
+          <div className="import-review-panel full" aria-live="polite">
+            <div>
+              <p className="panel-kicker">Draft import</p>
+              <h3>{importDraft.repository.fullName}</h3>
+            </div>
+            <ul className="import-summary">
+              {importDraft.summary.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+            <div className="import-review-groups">
+              {importReviewGroups.map((group) => (
+                <section className="import-review-group" key={group.title}>
+                  <h4>{group.title}</h4>
+                  <div className="import-review-grid">
+                    {group.fields.map(([label, field]) => (
+                      <div className="import-review-item" key={String(label)}>
+                        <span className={draftStatusClass(field.status)}>{draftStatusLabel(field.status)}</span>
+                        <strong>{String(field.value || "Not determined")}</strong>
+                        <small>{String(label)} · {field.evidence}</small>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+            <p className="field-hint">
+              The sections below are the advanced editor for correcting the draft before publication.
+            </p>
+            <p className="notice">
+              {importDraft.warnings.join(" ")} Review the highlighted fields before creating the draft.
+            </p>
+          </div>
+        ) : null}
+      </section>
+
       <div className="completion-strip full" aria-label="Creator Rights form sections">
         {["Work identity", "Rights and publication", "AI permissions", "File verification", "Review"].map((step, index) => (
           <span key={step}><strong>{index + 1}</strong>{step}</span>
@@ -344,7 +577,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
         </label>
         <label>
           <LabelText required help="Choose the closest kind of work so buyers and AI teams can filter records later.">Work type</LabelText>
-          <select name="workType" value={form.workType} onChange={(event) => setField("workType", event.target.value)}>
+          <select name="workType" value={form.workType} onChange={(event) => setWorkType(event.target.value)}>
             {workTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
           </select>
         </label>
@@ -407,16 +640,40 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
         <div className="license-composition full">
           <div className="form-step-head">
             <p className="eyebrow">License composition</p>
-            <h3>Primary License + Registry Framework</h3>
+            <h3>Choose how your work may be reused</h3>
+          </div>
+          <p className="field-hint">
+            Your record will combine your selected copyright license with the SigilForge Rights Framework for
+            provenance, verification, and AI permissions.
+          </p>
+          <div className="license-intent-grid">
+            {licenseIntentOptions.map((intent) => {
+              const recommended = workTypeLicenseOptions.filter((license) => intent.recommendedLicenseIds.includes(license.id));
+              const compatible = recommended.length > 0;
+              return (
+                <button
+                  aria-pressed={licenseIntent === intent.id}
+                  className={licenseIntent === intent.id ? "license-intent-card selected" : "license-intent-card"}
+                  disabled={!compatible}
+                  key={intent.id}
+                  onClick={() => chooseLicenseIntent(intent.id)}
+                  type="button"
+                >
+                  <span>{intent.title}</span>
+                  <strong>{intent.summary}</strong>
+                  <small>{compatible ? intent.goodFor : "Not recommended for the selected work type."}</small>
+                </button>
+              );
+            })}
           </div>
           <label>
-            <LabelText required help="Choose the primary copyright license. SFR stays separate and does not replace SPDX identifiers or canonical license text.">Primary License</LabelText>
+            <LabelText required help="Choose the exact copyright license for this reuse intent. SFR stays separate and does not replace SPDX identifiers or canonical license text.">Exact copyright license</LabelText>
             <select
               name="copyrightLicenseId"
               value={form.copyrightLicenseId}
-              onChange={(event) => setField("copyrightLicenseId", event.target.value)}
+              onChange={(event) => chooseLicense(event.target.value)}
             >
-              {LICENSE_CATALOG.map((license) => (
+              {workTypeLicenseOptions.map((license) => (
                 <option key={license.id} value={license.id}>
                   {license.name}{license.spdxId ? ` (${license.spdxId})` : ""}
                 </option>
@@ -427,7 +684,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
             </span>
           </label>
           <div className="license-guide">
-            {workTypeLicenseOptions.map((license) => (
+            {visibleExactLicenseOptions.map((license) => (
               <article
                 className={license.id === selectedLicense.id ? "license-option selected" : "license-option"}
                 key={license.id}
@@ -438,8 +695,8 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
                   <p>{license.summary}</p>
                   <p className="muted">{license.goodFor}</p>
                 </div>
-                <button className="button secondary" type="button" onClick={() => setField("copyrightLicenseId", license.id)}>
-                  Use this license
+                <button className="button secondary" type="button" onClick={() => chooseLicense(license.id)}>
+                  Use {license.shortName}
                 </button>
               </article>
             ))}

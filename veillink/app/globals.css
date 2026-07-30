@@ -1247,7 +1247,9 @@ textarea {
 .preflight-summary,
 .ai-summary-review,
 .fingerprint-panel,
+.import-review-panel,
 .license-composition {
+  scroll-margin-top: 6rem;
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -1293,6 +1295,7 @@ textarea {
 .form-step .full,
 .permission-grid,
 .fingerprint-panel,
+.import-review-panel,
 .license-composition,
 .advanced-fields,
 .review-step .notice,
@@ -1418,6 +1421,123 @@ textarea {
   padding: 0.85rem;
 }
 
+.import-source-panel {
+  border-color: rgba(126, 184, 168, 0.28);
+  background:
+    linear-gradient(135deg, rgba(126, 184, 168, 0.055), rgba(255, 255, 255, 0.025));
+}
+
+.source-url-field {
+  min-width: 0;
+}
+
+.import-button {
+  align-self: end;
+  min-height: 2.75rem;
+}
+
+.import-review-panel {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.9rem;
+  background: rgba(7, 10, 10, 0.42);
+}
+
+.import-review-panel h3 {
+  margin: 0.15rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.import-summary {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--text-soft);
+  font-size: 0.86rem;
+}
+
+.import-summary li {
+  margin: 0.22rem 0;
+}
+
+.import-review-groups,
+.import-review-group {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.import-review-group h4 {
+  margin: 0;
+  color: var(--rust-soft);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.import-review-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.import-review-item {
+  min-width: 0;
+  padding: 0.72rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.import-review-item strong,
+.import-review-item small {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.import-review-item strong {
+  margin-top: 0.35rem;
+  color: var(--paper);
+  font-size: 0.9rem;
+}
+
+.import-review-item small {
+  margin-top: 0.35rem;
+  color: var(--text-faint);
+  line-height: 1.4;
+}
+
+.draft-status {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  padding: 0.18rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  color: var(--text-faint);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.draft-status.found,
+.draft-status.confirmed {
+  border-color: rgba(126, 184, 168, 0.48);
+  color: var(--sage);
+}
+
+.draft-status.inferred {
+  border-color: rgba(181, 117, 104, 0.45);
+  color: var(--rust-soft);
+}
+
+.draft-status.needs-review {
+  border-color: rgba(224, 122, 132, 0.4);
+  color: #ffd6db;
+}
+
 .license-composition {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1426,9 +1546,16 @@ textarea {
 }
 
 .license-guide,
+.license-intent-grid,
 .license-stack,
 .license-composition-public {
   min-width: 0;
+}
+
+.license-intent-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
 }
 
 .license-guide {
@@ -1437,6 +1564,7 @@ textarea {
   gap: 0.7rem;
 }
 
+.license-intent-card,
 .license-option,
 .license-stack,
 .registry-framework-row {
@@ -1445,17 +1573,55 @@ textarea {
   background: rgba(255, 255, 255, 0.025);
 }
 
+.license-intent-card {
+  display: grid;
+  min-width: 0;
+  min-height: 9rem;
+  gap: 0.4rem;
+  align-content: start;
+  padding: 0.8rem;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.license-intent-card:hover,
+.license-intent-card.selected,
+.license-option.selected {
+  border-color: rgba(126, 184, 168, 0.58);
+  background: rgba(126, 184, 168, 0.08);
+}
+
+.license-intent-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.license-intent-card span {
+  color: var(--text-faint);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.license-intent-card strong {
+  color: var(--paper);
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+
+.license-intent-card small {
+  color: var(--text-faint);
+  line-height: 1.35;
+}
+
 .license-option {
   display: grid;
   align-content: space-between;
   gap: 0.65rem;
   min-width: 0;
   padding: 0.75rem;
-}
-
-.license-option.selected {
-  border-color: rgba(126, 184, 168, 0.58);
-  background: rgba(126, 184, 168, 0.08);
 }
 
 .license-option h4,
@@ -1698,9 +1864,15 @@ textarea {
 }
 
 @media (max-width: 720px) {
+  .form-step,
+  .license-composition {
+    scroll-margin-top: 13rem;
+  }
+
   .nav {
     align-items: flex-start;
     flex-direction: column;
+    position: static;
   }
 
   .nav-links {
@@ -2067,8 +2239,10 @@ textarea {
   .preset-row,
   .segmented-choice,
   .fingerprint-panel,
+  .license-intent-grid,
   .license-guide,
   .license-stack,
+  .import-review-grid,
   .dossier-purpose-grid,
   .dossier-section-grid,
   .dossier-class-grid,
