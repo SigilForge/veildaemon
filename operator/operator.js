@@ -2143,6 +2143,10 @@
     return 3;
   }
 
+  function creationSkillRankCap() {
+    return 3;
+  }
+
   function creationBonusBreachBudget() {
     return 3;
   }
@@ -2333,7 +2337,7 @@
         rank += 1
       ) {
         if (usedRanks >= creationSkillBudget()) {
-          delta += rank;
+          delta += 1;
         }
 
         usedRanks += 1;
@@ -2348,7 +2352,7 @@
       rank -= 1
     ) {
       if (usedRanks > creationSkillBudget()) {
-        delta -= rank;
+        delta -= 1;
       }
 
       usedRanks -= 1;
@@ -2368,10 +2372,10 @@
         targetEffective - derivedBonus
       );
 
-      if (targetBase > 3) {
+      if (targetBase > creationSkillRankCap()) {
         return {
           ok: false,
-          message: "Creation skill purchases cap at base Rank 3."
+          message: `Creation skill purchases cap at base Rank ${creationSkillRankCap()}.`
         };
       }
 
@@ -3404,9 +3408,12 @@
     renderRollSelectors();
   }
 
-  function applySkillRankChange(skills, name, targetRank) {
-    const nextRank = Number(normalizeBoxValue(targetRank, 5));
-    const allowed = skillChangeAllowed(skills, name, nextRank);
+  function applySkillRankChange(skills, name, targetBaseRank) {
+    const status = consoleState.operatorStatus;
+    const nextBase = Number(normalizeBoxValue(targetBaseRank, 5));
+    const bonus = derivedSkillBonuses(status)[name] || 0;
+    const requestRank = creationActive() ? Math.min(5, nextBase + bonus) : nextBase;
+    const allowed = skillChangeAllowed(skills, name, requestRank, status);
     if (!allowed.ok) {
       setStorageStatus(allowed.message, true);
       renderSkills();
@@ -3416,8 +3423,12 @@
       renderSkills();
       return false;
     }
-    skills[name] = String(nextRank);
-    if (skills[name] === "0") delete skills[name];
+    const resolvedBase = creationActive() ? allowed.targetBase : requestRank;
+    if (resolvedBase > 0) {
+      skills[name] = String(resolvedBase);
+    } else {
+      delete skills[name];
+    }
     consoleState.operatorStatus.skills = skills;
     writeConsoleState();
     renderSkills();
@@ -3507,7 +3518,7 @@
         increase.type = "button";
         increase.textContent = "+";
         increase.setAttribute("aria-label", `Increase ${name} rank`);
-        increase.disabled = numericBaseRank >= 5;
+        increase.disabled = numericBaseRank >= (creationActive() ? creationSkillRankCap() : 5);
         increase.addEventListener("click", (event) => {
           blockSummaryActivation(event);
           applySkillRankChange(skills, name, numericBaseRank + 1);
