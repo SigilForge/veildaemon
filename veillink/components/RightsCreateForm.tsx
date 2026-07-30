@@ -25,7 +25,7 @@ import {
   licenseOptionsForWorkType,
   licenseWorkTypeWarning,
 } from "@/lib/rights/license-catalog";
-import { buildUploadedFileDraft, type CreatorRightsImportDraft, type DraftField, type DraftFieldStatus } from "@/lib/rights/import-draft";
+import { buildUploadedFileDraft, reconcileImportDrafts, type CreatorRightsImportDraft, type DraftField, type DraftFieldStatus } from "@/lib/rights/import-draft";
 import type { AiPermissionBlock, PermissionValue } from "@/lib/rights/schema";
 
 type SelectOption = { value: string; label: string };
@@ -247,6 +247,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
         ["MIME type", importDraft.fields.mimeType],
         ["File size", importDraft.fields.fileSize],
         ["SHA-256", importDraft.fields.sha256Hash],
+        ["Primary license", importDraft.fields.copyrightLicenseId],
       ]
     : importDraft
       ? [
@@ -339,7 +340,8 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
   function applyImportDraft(draft: CreatorRightsImportDraft) {
     const fields = draft.fields;
     const nextTitle = fields.title.value || "";
-    const nextLicenseId = fields.copyrightLicenseId.value || defaultLicenseIdForWorkType(fields.workType.value || "software");
+    const hasLicenseConflict = fields.copyrightLicenseId.status === "needs_review" && Boolean(fields.copyrightLicenseId.candidates?.length);
+    const nextLicenseId = hasLicenseConflict ? "custom" : fields.copyrightLicenseId.value || defaultLicenseIdForWorkType(fields.workType.value || "software");
     setForm((current) => ({
       ...current,
       creatorName: current.creatorName || fields.creatorName.value || "",
@@ -370,6 +372,12 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
     }
   }
 
+  function setAndApplyImportDraft(draft: CreatorRightsImportDraft) {
+    const reconciled = reconcileImportDrafts(importDraft, draft);
+    setImportDraft(reconciled);
+    applyImportDraft(reconciled);
+  }
+
   async function importRepositoryDraft() {
     setImportError("");
     setImportStatus("loading");
@@ -385,8 +393,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
         setImportStatus("idle");
         return;
       }
-      setImportDraft(payload.draft);
-      applyImportDraft(payload.draft);
+      setAndApplyImportDraft(payload.draft);
       setImportStatus("ready");
     } catch {
       setImportError("Network error while importing the repository. You can still complete the form manually.");
@@ -403,15 +410,18 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
     setHashError("");
     try {
       const hash = await sha256ForFile(file);
+      const textContent = file.size <= 200000 && (file.type.startsWith("text/") || /license|copying/i.test(file.name) || /\.(txt|md)$/i.test(file.name))
+        ? await file.text().catch(() => "")
+        : "";
       const draft = buildUploadedFileDraft({
         name: file.name,
         size: file.size,
         type: file.type,
         lastModified: file.lastModified,
         sha256Hash: hash,
+        textContent,
       });
-      setImportDraft(draft);
-      applyImportDraft(draft);
+      setAndApplyImportDraft(draft);
       setImportStatus("ready");
     } catch {
       setImportStatus("idle");
@@ -582,6 +592,16 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
                         <span className={draftStatusClass(field.status)}>{draftStatusLabel(field.status)}</span>
                         <strong>{String(field.value || "Not determined")}</strong>
                         <small>{String(label)} · {field.evidence}</small>
+                        {field.candidates?.length ? (
+                          <ul className="draft-candidate-list">
+                            {field.candidates.map((candidate) => (
+                              <li key={`${String(candidate.value)}-${candidate.source}-${candidate.evidence}`}>
+                                <b>{String(candidate.value)}</b>
+                                <span>{candidate.source.replace(/_/g, " ")} · {candidate.evidence}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
                       </div>
                     ))}
                   </div>

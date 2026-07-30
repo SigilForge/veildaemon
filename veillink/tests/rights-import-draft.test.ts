@@ -4,7 +4,9 @@ import {
   buildUploadedFileDraft,
   extractCopyrightNotices,
   licenseIdForSpdx,
+  licenseIdFromText,
   parseGitHubRepositoryUrl,
+  reconcileImportDrafts,
 } from "@/lib/rights/import-draft";
 
 describe("Creator Rights repository import drafts", () => {
@@ -24,6 +26,12 @@ describe("Creator Rights repository import drafts", () => {
     expect(licenseIdForSpdx("Apache-2.0")).toBe("apache-2.0");
     expect(licenseIdForSpdx("NOASSERTION")).toBeNull();
     expect(licenseIdForSpdx("LicenseRef-Custom")).toBeNull();
+  });
+
+  it("detects common canonical license text from uploaded files", () => {
+    expect(licenseIdFromText("MIT License\n\nPermission is hereby granted, free of charge")).toBe("mit");
+    expect(licenseIdFromText("Apache License\nVersion 2.0, January 2004")).toBe("apache-2.0");
+    expect(licenseIdFromText("Not a license")).toBeNull();
   });
 
   it("extracts bounded copyright notices from selected repository text", () => {
@@ -81,6 +89,81 @@ describe("Creator Rights repository import drafts", () => {
     expect(draft.fields.rightsHolderName.status).toBe("needs_review");
     expect(draft.fields.copyrightLicenseId.status).toBe("needs_review");
     expect(draft.warnings.join(" ")).toContain("file bytes stay in your browser");
+  });
+
+  it("detects uploaded LICENSE file contents without confirming them as the creator declaration", () => {
+    const hash = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+    const draft = buildUploadedFileDraft({
+      name: "LICENSE-conflict-apache",
+      size: 1200,
+      type: "",
+      sha256Hash: hash,
+      textContent: "MIT License\n\nPermission is hereby granted, free of charge, to any person obtaining a copy.",
+    });
+
+    expect(draft.fields.copyrightLicenseId.value).toBe("mit");
+    expect(draft.fields.copyrightLicenseId.source).toBe("uploaded_file");
+    expect(draft.fields.copyrightLicenseId.status).toBe("found");
+    expect(draft.fields.copyrightLicenseId.confirmedByUser).toBe(false);
+    expect(draft.summary.join(" ")).toContain("MIT License");
+  });
+
+  it("conflicting_license_sources_require_review", () => {
+    const hash = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+    const githubDraft = buildGitHubRepositoryDraft({
+      repositoryUrl: "https://github.com/SigilForge/veildaemon",
+      owner: "SigilForge",
+      name: "veildaemon",
+      defaultBranch: "main",
+      htmlUrl: "https://github.com/SigilForge/veildaemon",
+      licenseSpdxId: "Apache-2.0",
+      packageJson: { name: "@sigilforge/veildaemon" },
+    });
+    const fileDraft = buildUploadedFileDraft({
+      name: "LICENSE",
+      size: 1200,
+      type: "text/plain",
+      sha256Hash: hash,
+      textContent: "MIT License\n\nPermission is hereby granted, free of charge, to any person obtaining a copy.",
+    });
+
+    const reconciled = reconcileImportDrafts(githubDraft, fileDraft);
+    expect(reconciled.fields.copyrightLicenseId.value).toBeNull();
+    expect(reconciled.fields.copyrightLicenseId.status).toBe("needs_review");
+    expect(reconciled.fields.copyrightLicenseId.confidence).toBe("low");
+    expect(reconciled.fields.copyrightLicenseId.resolution).toBeNull();
+    expect(reconciled.fields.copyrightLicenseId.candidates).toEqual([
+      expect.objectContaining({ value: "apache-2.0", source: "repository" }),
+      expect.objectContaining({ value: "mit", source: "uploaded_file" }),
+    ]);
+    expect(reconciled.warnings[0]).toContain("Conflicting license evidence found");
+  });
+
+  it("matching license sources increase confidence without requiring conflict review", () => {
+    const hash = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+    const githubDraft = buildGitHubRepositoryDraft({
+      repositoryUrl: "https://github.com/SigilForge/veildaemon",
+      owner: "SigilForge",
+      name: "veildaemon",
+      defaultBranch: "main",
+      htmlUrl: "https://github.com/SigilForge/veildaemon",
+      licenseSpdxId: "MIT",
+      packageJson: { name: "@sigilforge/veildaemon" },
+    });
+    const fileDraft = buildUploadedFileDraft({
+      name: "LICENSE",
+      size: 1200,
+      type: "text/plain",
+      sha256Hash: hash,
+      textContent: "MIT License\n\nPermission is hereby granted, free of charge, to any person obtaining a copy.",
+    });
+
+    const reconciled = reconcileImportDrafts(githubDraft, fileDraft);
+    expect(reconciled.fields.copyrightLicenseId.value).toBe("mit");
+    expect(reconciled.fields.copyrightLicenseId.status).toBe("found");
+    expect(reconciled.fields.copyrightLicenseId.confidence).toBe("high");
+    expect(reconciled.fields.copyrightLicenseId.candidates).toHaveLength(2);
+    expect(reconciled.summary.join(" ")).toContain("Multiple sources agree");
   });
 
   it("infers common file work types without treating inference as confirmation", () => {

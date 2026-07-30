@@ -1509,6 +1509,34 @@ textarea {
   line-height: 1.4;
 }
 
+.draft-candidate-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.draft-candidate-list li {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.45rem;
+  border: 1px solid rgba(224, 122, 132, 0.28);
+  border-radius: var(--radius-sm);
+  background: rgba(224, 122, 132, 0.07);
+}
+
+.draft-candidate-list b {
+  color: var(--paper);
+  font-size: 0.82rem;
+}
+
+.draft-candidate-list span {
+  color: var(--text-faint);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
 .draft-status {
   display: inline-flex;
   width: fit-content;

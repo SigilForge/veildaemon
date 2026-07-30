@@ -10,6 +10,13 @@ export type DraftFieldSource = "uploaded_file" | "repository" | "metadata" | "us
 export type DraftFieldConfidence = "high" | "medium" | "low";
 export type DraftFieldStatus = "found" | "inferred" | "needs_review" | "confirmed";
 
+export type DraftFieldCandidate<T> = {
+  value: T;
+  source: DraftFieldSource;
+  evidence: string;
+  confidence: DraftFieldConfidence;
+};
+
 export type DraftField<T> = {
   value: T | null;
   source: DraftFieldSource;
@@ -17,6 +24,8 @@ export type DraftField<T> = {
   evidence?: string;
   confirmedByUser: boolean;
   status: DraftFieldStatus;
+  candidates?: DraftFieldCandidate<T>[];
+  resolution?: T | null;
 };
 
 export type CreatorRightsImportDraft = {
@@ -85,6 +94,7 @@ export type UploadedFileImportInput = {
   type?: string | null;
   lastModified?: number | null;
   sha256Hash: string;
+  textContent?: string | null;
 };
 
 type GitHubRepositoryRef = {
@@ -102,6 +112,7 @@ const BOOK_EXTENSIONS = new Set(["epub", "mobi", "azw3"]);
 const AUDIO_EXTENSIONS = new Set(["mp3", "wav", "flac", "ogg", "m4a", "aac"]);
 const VIDEO_EXTENSIONS = new Set(["mp4", "mov", "webm", "mkv", "avi"]);
 const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif", "tif", "tiff", "psd"]);
+const TEXT_LICENSE_EXTENSIONS = new Set(["txt", "md", "license", "copying"]);
 
 function field<T>(
   value: T | null,
@@ -160,6 +171,24 @@ function licenseIdFromPackageJson(packageJson: Record<string, unknown> | null | 
   return licenseIdForSpdx(license);
 }
 
+export function licenseIdFromText(text: string | null | undefined): CopyrightLicenseId | null {
+  const normalized = text?.toLowerCase().replace(/\s+/g, " ") || "";
+  if (!normalized) return null;
+  if (normalized.includes("apache license") && normalized.includes("version 2.0")) return "apache-2.0";
+  if (normalized.includes("mit license") || (normalized.includes("permission is hereby granted, free of charge") && normalized.includes("the software is provided \"as is\""))) return "mit";
+  if (normalized.includes("mozilla public license version 2.0")) return "mpl-2.0";
+  if (normalized.includes("gnu affero general public license") && normalized.includes("version 3")) return "agpl-3.0-only";
+  if (normalized.includes("gnu lesser general public license") && normalized.includes("version 3")) return "lgpl-3.0-only";
+  if (normalized.includes("gnu general public license") && normalized.includes("version 3")) return "gpl-3.0-only";
+  if (normalized.includes("bsd 3-clause license") || normalized.includes("neither the name of the copyright holder nor the names of its contributors")) return "bsd-3-clause";
+  if (normalized.includes("creative commons attribution 4.0")) return "cc-by-4.0";
+  if (normalized.includes("creative commons attribution-sharealike 4.0")) return "cc-by-sa-4.0";
+  if (normalized.includes("creative commons attribution-noncommercial 4.0")) return "cc-by-nc-4.0";
+  if (normalized.includes("creative commons zero") || normalized.includes("cc0 1.0")) return "cc0-1.0";
+  if (normalized.includes("the unlicense")) return "unlicense";
+  return null;
+}
+
 function packageName(packageJson: Record<string, unknown> | null | undefined) {
   const name = packageJson ? stringValue(packageJson.name) : "";
   if (!name) return "";
@@ -195,6 +224,12 @@ function titleCaseRepositoryName(name: string) {
 function extensionForFileName(name: string) {
   const match = /\.([a-z0-9]+)$/i.exec(name.trim());
   return match?.[1].toLowerCase() || "";
+}
+
+function isPotentialTextLicenseFile(name: string, mimeType: string) {
+  const normalized = name.trim().toLowerCase();
+  const extension = extensionForFileName(name);
+  return normalized.includes("license") || normalized.includes("copying") || TEXT_LICENSE_EXTENSIONS.has(extension) || mimeType.startsWith("text/");
 }
 
 function titleFromFileName(name: string) {
@@ -236,7 +271,9 @@ export function buildUploadedFileDraft(input: UploadedFileImportInput): CreatorR
   const mimeType = input.type?.trim() || "application/octet-stream";
   const title = titleFromFileName(input.name) || input.name;
   const inferred = inferFileWorkType(input.name, mimeType);
-  const licenseId = defaultLicenseIdForWorkType(inferred.workType) as CopyrightLicenseId;
+  const detectedLicenseId = isPotentialTextLicenseFile(input.name, mimeType) ? licenseIdFromText(input.textContent) : null;
+  const licenseId = detectedLicenseId || (defaultLicenseIdForWorkType(inferred.workType) as CopyrightLicenseId);
+  const selectedLicense = licenseById(licenseId);
   const formattedSize = String(input.size);
   const summary = [
     `We read the filename, MIME type, and file size from the selected artifact.`,
@@ -248,6 +285,8 @@ export function buildUploadedFileDraft(input: UploadedFileImportInput): CreatorR
     "The file bytes stay in your browser for this draft import; only the hash and metadata are added to the form.",
     "Creator name, rights holder, licensing contact, and rights statement still need creator review.",
   ];
+
+  if (detectedLicenseId) summary.push(`The uploaded file appears to contain ${selectedLicense.name}${selectedLicense.spdxId ? ` (${selectedLicense.spdxId})` : ""}.`);
 
   return {
     importKind: "uploaded_file",
@@ -277,11 +316,88 @@ export function buildUploadedFileDraft(input: UploadedFileImportInput): CreatorR
       mimeType: field(mimeType, "uploaded_file", mimeType === "application/octet-stream" ? "low" : "high", mimeType === "application/octet-stream" ? "needs_review" : "found", "Browser-provided MIME type."),
       sha256Hash: field(input.sha256Hash, "uploaded_file", "high", "found", "SHA-256 fingerprint calculated in the browser."),
       copyrightNotice: field("", "user", "low", "needs_review", "Basic browser metadata did not expose a copyright notice."),
-      copyrightLicenseId: field(licenseId, "metadata", "low", "needs_review", "No canonical license text was detected from this file import; the draft uses the conservative default."),
+      copyrightLicenseId: field(
+        licenseId,
+        detectedLicenseId ? "uploaded_file" : "metadata",
+        detectedLicenseId ? "high" : "low",
+        detectedLicenseId ? "found" : "needs_review",
+        detectedLicenseId ? "Detected from uploaded license-like file contents." : "No canonical license text was detected from this file import; the draft uses the conservative default.",
+      ),
       rightsStatement: field("", "user", "low", "needs_review", "The rights statement is the creator's declaration and must be written or accepted by the creator."),
     },
     summary,
     warnings,
+  };
+}
+
+function candidateFromField<T>(fieldValue: DraftField<T>): DraftFieldCandidate<T> | null {
+  if (!fieldValue.value) return null;
+  return {
+    value: fieldValue.value,
+    source: fieldValue.source,
+    evidence: fieldValue.evidence || "Imported field evidence.",
+    confidence: fieldValue.confidence,
+  };
+}
+
+function uniqueCandidates<T>(candidates: Array<DraftFieldCandidate<T> | null>) {
+  const seen = new Set<string>();
+  return candidates.filter((candidate): candidate is DraftFieldCandidate<T> => {
+    if (!candidate) return false;
+    const key = `${candidate.source}:${String(candidate.value)}:${candidate.evidence}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+export function reconcileImportDrafts(existing: CreatorRightsImportDraft | null, incoming: CreatorRightsImportDraft): CreatorRightsImportDraft {
+  if (!existing) return incoming;
+  const existingLicense = existing.fields.copyrightLicenseId;
+  const incomingLicense = incoming.fields.copyrightLicenseId;
+  if (!existingLicense.value || !incomingLicense.value || existingLicense.value === incomingLicense.value) {
+    if (existingLicense.value && incomingLicense.value && existingLicense.value === incomingLicense.value) {
+      return {
+        ...incoming,
+        sourceLabel: `${existing.sourceLabel} + ${incoming.sourceLabel}`,
+        summary: [...incoming.summary, "Multiple sources agree on the selected copyright license."],
+        warnings: [...incoming.warnings, ...existing.warnings],
+        fields: {
+          ...incoming.fields,
+          copyrightLicenseId: {
+            ...incomingLicense,
+            confidence: "high",
+            status: "found",
+            candidates: uniqueCandidates([candidateFromField(existingLicense), candidateFromField(incomingLicense)]),
+          },
+        },
+      };
+    }
+    return incoming;
+  }
+
+  return {
+    ...incoming,
+    sourceLabel: `${existing.sourceLabel} + ${incoming.sourceLabel}`,
+    summary: [...incoming.summary, "Conflicting license evidence found."],
+    warnings: [
+      "Conflicting license evidence found. Choose which license governs this work, or mark the record as custom.",
+      ...incoming.warnings,
+      ...existing.warnings,
+    ],
+    fields: {
+      ...incoming.fields,
+      copyrightLicenseId: {
+        value: null,
+        source: "metadata",
+        confidence: "low",
+        status: "needs_review",
+        evidence: "Multiple import sources disagreed about the copyright license.",
+        confirmedByUser: false,
+        candidates: uniqueCandidates([candidateFromField(existingLicense), candidateFromField(incomingLicense)]),
+        resolution: null,
+      },
+    },
   };
 }
 
