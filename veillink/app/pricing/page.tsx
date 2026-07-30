@@ -132,6 +132,7 @@ export default function PricingPage() {
             <li><strong>Machine-readable AI permissions</strong> for training, fine-tuning, retrieval, and commercial licensing</li>
             <li><strong>SHA-256 file fingerprinting</strong> &amp; branded QR verification assets</li>
             <li><strong>Creator Dossier export</strong> for publisher review, dispute intake, procurement, or archival delivery</li>
+            <li><strong>Portable by design</strong> — export a complete, self-contained Creator Dossier (ZIP package with JSON metadata, evidence manifests, and SHA-256 fingerprints) anytime so your evidence stays in your control independent of platform hosting</li>
             <li><strong>Free public Advisor</strong> available without an account to inspect files and compare SPDX licenses</li>
           </ul>
           <div className="dashboard-actions" style={{ marginTop: "1rem" }}>
@@ -147,7 +148,7 @@ export default function PricingPage() {
           </div>
         </article>
         <p className="note" style={{ marginTop: "1rem", fontSize: "0.8125rem" }}>
-          Registry fees support long-term record storage, verification infrastructure, maintenance, and the continued operation of this independent creator-focused service under the SigilForge Rights Framework. Each CRR is covered by a single one-time lifetime Registry license.
+          Registry fees support long-term record storage, verification infrastructure, maintenance, and the continued operation of this independent creator-focused service under the SigilForge Rights Framework. Your record is portable: export a complete Creator Dossier anytime so your evidence and provenance remain under your control.
         </p>
       </section>
 

@@ -39,3 +39,11 @@ VeilDaemon currently supports a small set of explicit runtime surfaces. Optional
 
 - `/play-report/` is a legacy route that sends customers to the debrief surface.
 - Browser tests should assert the visible supported destination and current copy, not old Studio inventory assumptions.
+
+## Portable Infrastructure Architecture
+
+VeilDaemon is built on standard technologies including Git, Next.js, PostgreSQL, open-source tooling, and plain-language RLS policies. Data ownership, vendor independence, and migration portability are first-class design invariants:
+
+- **No Proprietary Lock-In**: Runtime components map cleanly to standard primitives (GitHub for source/versioning, Vercel/Node for serverless routing, PostgreSQL/Supabase for storage and Auth).
+- **Self-Contained Portability**: Every Creator Rights Record (CRR) can be exported at any time as a self-contained Creator Dossier (ZIP package with JSON metadata, evidence manifests, SHA-256 fingerprints, and public declarations).
+- **Avoid Irreversible Dependencies**: Infrastructure choices should be replaceable rather than irreversible — data ownership and provenance remain under creator control regardless of platform provider.

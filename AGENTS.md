@@ -76,6 +76,7 @@
 - Document the command near the affected subsystem.
 
 ## Deploy Surfaces (Git vs Vercel)
+- **Canonical Unified Push Command**: Use `npm run push` (or `npm run ship` / `node scripts/unified-push.mjs`) to execute pre-flight validation, push to GitHub (`origin main`), deploy VeilLink to Vercel (`app.veildaemon.app`), and handle Relay/API Vercel deployments and Supabase verification sync in one command.
 - **GitHub Pages (`veildaemon.app`)** ships most static public/studio surfaces from `main`. That is the default after `git push origin main` (legacy Pages branch build; see `README_DEPLOY.md`).
 - **Vercel project `veildaemon`** (`api.veildaemon.app`) serves repo-root API functions (`api/*`, root `vercel.json`) used by reports, alerts, routing, etc.
 - **Static Host API Resolution**: Client-side JavaScript running on GitHub Pages (`veildaemon.app` or `www.veildaemon.app`) must resolve serverless API endpoints (`/api/*`) via `https://api.veildaemon.app`. Use relative `/api/*` paths only when `window.location.hostname` is `localhost`, `127.0.0.1`, or a non-production preview origin.

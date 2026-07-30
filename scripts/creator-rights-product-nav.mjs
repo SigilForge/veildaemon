@@ -18,11 +18,13 @@ export const CREATOR_RIGHTS_PRODUCT_NAV = {
   accountLabel: "Account",
   accountPath: "/account/rights",
   advisorPath: "/rights/advisor",
-  advisorLabel: "Open Advisor",
+  advisorLabel: "Try Free Advisor",
   appOrigin: "https://app.veildaemon.app",
   createPath: "/rights/create",
   createLabel: "Preserve record",
   registryPath: "/registry/",
+  resourcesPath: "/studio/creator-rights/resources/",
+  resourcesLabel: "Toolkit",
   studioOverview: "/studio/creator-rights/",
 };
 
@@ -36,7 +38,7 @@ export function rightsAccountAnchorHtml(className = "nav-cta") {
 }
 
 export function rightsStaticHeaderHtml() {
-  const { advisorPath, advisorLabel, createPath, createLabel, registryPath, studioOverview, appOrigin } =
+  const { advisorPath, advisorLabel, registryPath, resourcesPath, resourcesLabel, studioOverview, appOrigin } =
     CREATOR_RIGHTS_PRODUCT_NAV;
   return (
     `<header class="site-header" data-product="creator-rights">` +
@@ -46,26 +48,25 @@ export function rightsStaticHeaderHtml() {
     `<nav aria-label="Creator Rights">` +
     `<a href="${registryPath}">Registry</a>` +
     `<a href="${studioOverview}">Overview</a>` +
-    `<a href="${appOrigin}${createPath}" target="_blank" rel="noopener noreferrer">${createLabel}</a>` +
+    `<a href="${resourcesPath}">${resourcesLabel}</a>` +
+    `<a href="${rightsAccountHref()}" target="_blank" rel="noopener noreferrer">Account</a>` +
     `<a class="nav-cta" href="${appOrigin}${advisorPath}" target="_blank" rel="noopener noreferrer">${advisorLabel}</a>` +
     `</nav></header>`
   );
 }
 
 export function rightsStaticFooterHtml() {
-  const { appOrigin, advisorPath, advisorLabel, createPath, createLabel, studioOverview } = CREATOR_RIGHTS_PRODUCT_NAV;
-  return `
-  <footer class="site-footer" data-product="creator-rights">
-    <div class="footer-top">
-      <div class="footer-brand"><img src="/studio/assets/brand/sigilforge-emblem-256.webp?v=20260724-sigilforge1" alt="SigilForge Studios"><span><strong>SIGILFORGE STUDIOS</strong><small>Founder-operated creator rights registry and publishing infrastructure.</small></span></div>
-      <div class="footer-cols">
-        <nav aria-label="Creator Rights product"><strong>Creator Rights</strong><a href="/registry/">Registry</a><a href="${studioOverview}">Overview</a><a href="${appOrigin}${advisorPath}" target="_blank" rel="noopener noreferrer">${advisorLabel}</a><a href="${appOrigin}${createPath}" target="_blank" rel="noopener noreferrer">${createLabel}</a><a href="${rightsAccountHref()}" target="_blank" rel="noopener noreferrer">Account</a></nav>
-        <nav aria-label="Studio and legal"><strong>Studio</strong><a href="/studio/">Studio home</a><a href="/studio/shelf/">Shelf</a><a href="/studio/publishing/">Publishing</a><a href="/studio/copyright/">Copyright</a><a href="/studio/about/">Contact</a></nav>
-        <nav aria-label="Platform and code"><strong>Platform</strong><a href="/">VeilDaemon</a><a href="https://app.veildaemon.app/" target="_blank" rel="noopener noreferrer">VeilLink</a><a href="https://github.com/SigilForge/veildaemon" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer">Public wiki</a></nav>
-      </div>
-    </div>
-    <p class="footer-copy">© 2024–2026 J. Donavon Love, under the SigilForge Studios name</p>
-  </footer>`;
+  const { appOrigin, advisorPath, advisorLabel, createPath, createLabel, resourcesPath, studioOverview } = CREATOR_RIGHTS_PRODUCT_NAV;
+  return `<footer class="site-footer" data-product="creator-rights">` +
+    `<div class="footer-top">` +
+    `<div class="footer-brand"><img src="/studio/assets/brand/sigilforge-emblem-256.webp?v=20260724-sigilforge1" alt="SigilForge Studios"><span><strong>SIGILFORGE STUDIOS</strong><small>Founder-operated creator rights registry and publishing infrastructure.</small></span></div>` +
+    `<div class="footer-cols">` +
+    `<nav aria-label="Creator Rights product"><strong>Creator Rights</strong><a href="/registry/">Registry</a><a href="${studioOverview}">Overview</a><a href="${resourcesPath}">Creator Toolkit</a><a href="${appOrigin}${advisorPath}" target="_blank" rel="noopener noreferrer">${advisorLabel}</a><a href="${appOrigin}${createPath}" target="_blank" rel="noopener noreferrer">${createLabel}</a><a href="${rightsAccountHref()}" target="_blank" rel="noopener noreferrer">Account</a></nav>` +
+    `<nav aria-label="Studio and legal"><strong>Studio</strong><a href="/studio/">Studio home</a><a href="/studio/shelf/">Shelf</a><a href="/studio/publishing/">Publishing</a><a href="/studio/copyright/">Copyright</a><a href="/studio/about/">Contact</a></nav>` +
+    `<nav aria-label="Platform and code"><strong>Platform</strong><a href="/">VeilDaemon</a><a href="https://app.veildaemon.app/" target="_blank" rel="noopener noreferrer">VeilLink</a><a href="https://github.com/SigilForge/veildaemon" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer">Public wiki</a></nav>` +
+    `</div></div>` +
+    `<p class="footer-copy">© 2024–2026 J. Donavon Love, under the SigilForge Studios name</p>` +
+    `</footer>`;
 }
 
 function creatorRightsFooterBlock(html) {
@@ -107,6 +108,7 @@ function ensureStaticHeaders({ checkOnly = false } = {}) {
     } else {
       html = html.replace(/<body[^>]*>/, (open) => `${open}${header}`);
     }
+    html = html.split("\n").map((line) => line.trimEnd()).join("\n");
     fs.writeFileSync(file, html);
     updated += 1;
   }
@@ -130,6 +132,7 @@ function ensureStaticFooters({ checkOnly = false } = {}) {
     } else {
       html = html.replace(/\n<\/body>/, `${footer}\n</body>`);
     }
+    html = html.split("\n").map((line) => line.trimEnd()).join("\n");
     fs.writeFileSync(file, html);
     updated += 1;
   }
@@ -166,6 +169,7 @@ function ensureRegistryHeader({ checkOnly = false } = {}) {
   } else {
     html = html.replace(/<body[^>]*>/, (open) => `${open}${header}`);
   }
+  html = html.split("\n").map((line) => line.trimEnd()).join("\n");
   fs.writeFileSync(file, html);
   return { ok: true, updated: true };
 }
@@ -182,6 +186,7 @@ function ensureRegistryFooter({ checkOnly = false } = {}) {
   } else {
     html = html.replace(/\n<\/body>/, `${footer}\n</body>`);
   }
+  html = html.split("\n").map((line) => line.trimEnd()).join("\n");
   fs.writeFileSync(file, html);
   return { ok: true, updated: true };
 }

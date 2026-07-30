@@ -41,11 +41,11 @@ export default function CreatorRightsAdvisorPage() {
         Creator Rights Record before deciding whether to preserve it.
       </p>
       <div className="dashboard-actions">
+        <Link className="button" href="#advisor-form">
+          Analyze work now
+        </Link>
         <Link className="button secondary" href="/rights">
           Browse public records
-        </Link>
-        <Link className="button" href="/login?next=/rights/create">
-          Preserve this rights record
         </Link>
       </div>
       <p className="notice">
@@ -53,15 +53,17 @@ export default function CreatorRightsAdvisorPage() {
         resolves silently.
       </p>
 
-      <RightsCreateForm
-        mode="advisor"
-        email=""
-        workTypes={options(workTypes)}
-        categories={options(categoryValues)}
-        availabilityCategories={options(availabilityCategories)}
-        permissionValues={options(permissionValues)}
-        disclaimer={RIGHTS_DISCLAIMER}
-      />
+      <section id="advisor-form">
+        <RightsCreateForm
+          mode="advisor"
+          email=""
+          workTypes={options(workTypes)}
+          categories={options(categoryValues)}
+          availabilityCategories={options(availabilityCategories)}
+          permissionValues={options(permissionValues)}
+          disclaimer={RIGHTS_DISCLAIMER}
+        />
+      </section>
     </main>
   );
 }

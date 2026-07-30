@@ -860,7 +860,7 @@ footer {
   line-height: 1.55;
 }
 
-.legal-shell { max-width: 980px; }
+.legal-shell { width: 100%; max-width: 980px; margin-inline: auto; }
 .legal-terminal { padding: clamp(1rem, 3vw, 2rem); }
 .legal-copy { display: grid; gap: .6rem; margin-top: 1.25rem; }
 .legal-copy h2 { margin: 1rem 0 0; color: var(--cyan); font-size: 1rem; }

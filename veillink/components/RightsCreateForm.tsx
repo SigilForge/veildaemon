@@ -1038,7 +1038,7 @@ export function RightsCreateForm({ email = "", mode = "registry", workTypes, cat
               Sign in to create a permanent, timestamped Registry record, generate your Creator Dossier, and maintain versioned evidence over time.
             </p>
             <p className="muted" style={{ fontSize: "0.875rem", margin: "0.5rem 0 1rem" }}>
-              A single one-time Registry license covers the lifetime of this Creator Rights Record. There are no recurring subscription fees to keep your record active. Your purchase supports the long-term storage, verification infrastructure, and maintenance required to preserve your record and dossier.
+              A single one-time Registry license covers the lifetime of this Creator Rights Record. There are no recurring subscription fees to keep your record active. Portable by design: export a self-contained Creator Dossier anytime so your evidence package remains under your control independent of platform hosting.
             </p>
             <div className="dashboard-actions">
               <a className="button" href="/login?next=/rights/create" onClick={saveAdvisorDraft}>

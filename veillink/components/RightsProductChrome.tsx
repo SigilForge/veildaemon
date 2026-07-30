@@ -6,9 +6,10 @@ import { ProductAccountLink } from "@/components/ProductAccountLink";
 import {
   RIGHTS_PRODUCT_ADVISOR_LABEL,
   RIGHTS_PRODUCT_ADVISOR_PATH,
-  RIGHTS_PRODUCT_CREATE_LABEL,
   RIGHTS_PRODUCT_CREATE_PATH,
   RIGHTS_PRODUCT_REGISTRY_PATH,
+  RIGHTS_PRODUCT_RESOURCES_LABEL,
+  RIGHTS_PRODUCT_RESOURCES_PATH,
   RIGHTS_PRODUCT_STUDIO_OVERVIEW,
 } from "@/lib/rights/product-nav";
 
@@ -42,19 +43,15 @@ export function RightsProductChrome({ signedIn }: Props) {
           >
             Records
           </Link>
+          <a className="rights-product-link" href={RIGHTS_PRODUCT_RESOURCES_PATH} target="_blank" rel="noopener noreferrer">
+            {RIGHTS_PRODUCT_RESOURCES_LABEL}
+          </a>
           <ProductAccountLink
             product="rights"
             signedIn={signedIn}
             className="rights-product-link rights-product-account"
             returnTo={pathname}
           />
-          <Link
-            className="rights-product-link"
-            href={RIGHTS_PRODUCT_CREATE_PATH}
-            aria-current={pathname.startsWith("/rights/create") ? "page" : undefined}
-          >
-            {RIGHTS_PRODUCT_CREATE_LABEL}
-          </Link>
           <Link
             className="button rights-product-register"
             href={RIGHTS_PRODUCT_ADVISOR_PATH}

@@ -8,10 +8,12 @@ import { PRODUCTION_APP_URL, product } from "@/lib/config";
 export const RIGHTS_PRODUCT_ACCOUNT_LABEL = "Account";
 export const RIGHTS_PRODUCT_ACCOUNT_PATH = "/account/rights";
 export const RIGHTS_PRODUCT_ADVISOR_PATH = "/rights/advisor";
-export const RIGHTS_PRODUCT_ADVISOR_LABEL = "Open Advisor";
+export const RIGHTS_PRODUCT_ADVISOR_LABEL = "Try Free Advisor";
 export const RIGHTS_PRODUCT_CREATE_PATH = "/rights/create";
 export const RIGHTS_PRODUCT_CREATE_LABEL = "Preserve record";
 export const RIGHTS_PRODUCT_REGISTRY_PATH = "/rights";
+export const RIGHTS_PRODUCT_RESOURCES_PATH = "https://veildaemon.app/studio/creator-rights/resources/";
+export const RIGHTS_PRODUCT_RESOURCES_LABEL = "Toolkit";
 export const RIGHTS_PRODUCT_STUDIO_OVERVIEW = "https://veildaemon.app/studio/creator-rights/";
 
 /** App origin for absolute links from GitHub Pages / Studio. Never encode localhost into public chrome. */

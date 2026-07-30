@@ -1,6 +1,23 @@
 # VEILDAEMON.APP deploy notes
 
-This is a static GitHub Pages site. No Jekyll build step. `.nojekyll` is present at repo root.
+## Unified Push Command
+
+To run pre-flight checks, push to GitHub (`origin main`), deploy VeilLink to Vercel (`app.veildaemon.app`), and sync Supabase/Vercel state in one command:
+
+```bash
+npm run push
+# or
+npm run ship
+# or
+node scripts/unified-push.mjs
+```
+
+Options:
+- `--all-vercel`: Force deployment of all Vercel surfaces (VeilLink, Relay, Root API).
+- `--relay`: Include Relay Vercel deployment (`relay.veildaemon.app`).
+- `--root-api`: Include Root Vercel API deployment (`api.veildaemon.app`).
+- `--skip-checks`: Skip pre-flight unit tests and syntax checks.
+- `--dry-run`: Preview execution steps without running them.
 
 ## GitHub Pages source
 
