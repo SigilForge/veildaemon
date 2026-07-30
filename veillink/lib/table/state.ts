@@ -284,6 +284,82 @@ export function generateJoinCode(): string {
   return code;
 }
 
+/**
+ * Storage adapter for {@link applyStatePatch}. `read` returns the current row's
+ * live_state and a monotonic version stamp; `write` performs a compare-and-swap
+ * (e.g. `UPDATE ... WHERE state_version = expectedVersion`) and reports whether
+ * it won the race.
+ */
+export type StateStoreAdapter = {
+  read: () => Promise<{ liveState: Partial<LiveState>; version: number } | null>;
+  write: (input: {
+    liveState: LiveState;
+    expectedVersion: number;
+  }) => Promise<{ ok: true; version: number } | { ok: false }>;
+};
+
+export type AppliedStatePatch = {
+  before: LiveState;
+  after: LiveState;
+  diffs: ReturnType<typeof diffLiveState>;
+  version: number;
+  attempts: number;
+};
+
+/**
+ * Optimistic-concurrency patch apply.
+ *
+ * A plain read -> mergeLiveState -> write loses updates under concurrent
+ * writers: if a Handler and an Operator each PATCH near-simultaneously, the
+ * second request's `before` snapshot predates the first request's commit, so
+ * fields the second request never touched get written back to their stale
+ * value — silently reverting the first request's change even though the two
+ * patches touched different fields.
+ *
+ * This retries with a fresh read whenever the compare-and-swap write loses
+ * the race, reapplying only the caller's own filtered patch each time. Fields
+ * outside that patch always come from the freshest read, so a concurrent
+ * writer's change to an untouched field survives. A genuine same-field race
+ * (both sides patch e.g. `harm` within the race window) resolves
+ * deterministically: whichever attempt's compare-and-swap lands last wins for
+ * that field, because it reapplies its own explicit value on top of the
+ * other's already-committed row.
+ */
+export async function applyStatePatch(
+  kind: SyncKind | string,
+  patch: Partial<LiveState> | Record<string, unknown>,
+  adapter: StateStoreAdapter,
+  maxAttempts = 5,
+): Promise<AppliedStatePatch | null> {
+  const filtered = filterPatchForSyncKind(kind, patch);
+  let lastVersion = -1;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const current = await adapter.read();
+    if (!current) return null;
+    lastVersion = current.version;
+
+    const before = defaultLiveState(current.liveState);
+    const after = mergeLiveState(before, filtered);
+    const diffs = diffLiveState(before, after);
+    if (!diffs.length) {
+      return { before, after, diffs, version: current.version, attempts: attempt };
+    }
+
+    const result = await adapter.write({ liveState: after, expectedVersion: current.version });
+    if (result.ok) {
+      return { before, after, diffs, version: result.version, attempts: attempt };
+    }
+    // Lost the compare-and-swap race — someone else committed between our
+    // read and write. Loop and re-read the fresh row, then reapply only our
+    // own patch on top of it.
+  }
+
+  throw new Error(
+    `Could not apply session state patch after ${maxAttempts} concurrent attempts (last seen version ${lastVersion}).`,
+  );
+}
+
 /** Diff top-level and nested fields for mutation log. */
 export function diffLiveState(
   before: LiveState,

@@ -171,6 +171,7 @@ export type Database = {
           operator_profile_id: string;
           owner_user_id: string;
           live_state: Json;
+          state_version: number;
           joined_at: string;
           left_at: string | null;
           last_mutated_by: string | null;

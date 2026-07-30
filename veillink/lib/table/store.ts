@@ -1,15 +1,15 @@
 import { getSupabaseAdminClient } from "@/lib/supabase";
 import { publicError, requireUser } from "@/lib/store";
 import {
+  applyStatePatch,
   defaultLiveState,
-  diffLiveState,
-  filterPatchForSyncKind,
   generateJoinCode,
   isFrequency,
   mergeLiveState,
   normalizeBlindPetal,
   normalizeSyncKind,
   type LiveState,
+  type StateStoreAdapter,
 } from "@/lib/table/state";
 import type { Json } from "@/lib/database.types";
 
@@ -238,29 +238,58 @@ export async function patchSessionState(input: {
   const isOwner = row.owner_user_id === user.id;
   if (!isHandler && !isOwner) throw publicError("Not authorized.", 403);
 
-  const before = defaultLiveState((row.live_state || {}) as Partial<LiveState>);
   // Structural boundary: only fields allowed for this sync kind may change.
   // Lotus never enters via live PATCH (mergeLiveState also ignores lotus).
   const kind = normalizeSyncKind(input.syncKind || (isHandler ? "cell" : "operator_send"));
-  const filtered = filterPatchForSyncKind(kind, input.patch || {});
-  const after = mergeLiveState(before, filtered);
-  const diffs = diffLiveState(before, after);
-  if (!diffs.length) return { row, session, diffs: [], syncKind: kind, filtered };
-
   const role: "handler" | "operator" = isHandler ? "handler" : "operator";
+
+  // Optimistic-concurrency adapter: compare-and-swap on state_version so a
+  // concurrent writer's change to a field this patch never touched is never
+  // reverted to a stale snapshot. See applyStatePatch for the retry contract.
+  const adapter: StateStoreAdapter = {
+    async read() {
+      const { data, error } = await supabase
+        .from("session_operator_state")
+        .select("live_state, state_version, left_at")
+        .eq("id", row.id)
+        .single();
+      if (error || !data || data.left_at) return null;
+      return {
+        liveState: (data.live_state || {}) as Partial<LiveState>,
+        version: data.state_version ?? 1,
+      };
+    },
+    async write({ liveState, expectedVersion }) {
+      const { data, error } = await supabase
+        .from("session_operator_state")
+        .update({
+          live_state: liveState as unknown as Json,
+          state_version: expectedVersion + 1,
+          last_mutated_by: user.id,
+          last_mutated_at: new Date().toISOString(),
+        })
+        .eq("id", row.id)
+        .eq("state_version", expectedVersion)
+        .select("*")
+        .maybeSingle();
+      if (error) throw publicError(error.message, 500);
+      if (!data) return { ok: false };
+      return { ok: true, version: data.state_version };
+    },
+  };
+
+  const applied = await applyStatePatch(kind, input.patch || {}, adapter);
+  if (!applied) throw publicError("Operator has left the session.", 400);
+  if (!applied.diffs.length) return { row, session, diffs: [], syncKind: kind, filtered: {} };
+
   const { data: updated, error: updateError } = await supabase
     .from("session_operator_state")
-    .update({
-      live_state: after as unknown as Json,
-      last_mutated_by: user.id,
-      last_mutated_at: new Date().toISOString(),
-    })
-    .eq("id", row.id)
     .select("*")
+    .eq("id", row.id)
     .single();
-  if (updateError) throw publicError(updateError.message, 500);
+  if (updateError || !updated) throw publicError(updateError?.message || "Session operator not found.", 500);
 
-  const mutationRows = diffs.map((d) => ({
+  const mutationRows = applied.diffs.map((d) => ({
     session_id: session.id,
     session_operator_state_id: row.id,
     actor_user_id: user.id,
@@ -272,7 +301,7 @@ export async function patchSessionState(input: {
   const { error: mutError } = await supabase.from("session_mutations").insert(mutationRows);
   if (mutError) throw publicError(mutError.message, 500);
 
-  return { row: updated, session, diffs, role, syncKind: kind, filtered };
+  return { row: updated, session, diffs: applied.diffs, role, syncKind: kind, filtered: applied.after };
 }
 
 export async function leaveSession(sessionId: string, sessionOperatorStateId: string) {
