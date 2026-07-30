@@ -6,7 +6,7 @@ import {
 import { normalizeSlugInput } from "./create-form-helpers";
 import type { CategoryValue, CopyrightLicenseId, KnownWorkType } from "./schema";
 
-export type DraftFieldSource = "uploaded_file" | "repository" | "metadata" | "user";
+export type DraftFieldSource = "uploaded_file" | "repository" | "package_registry" | "publication_registry" | "store_listing" | "metadata" | "user";
 export type DraftFieldConfidence = "high" | "medium" | "low";
 export type DraftFieldStatus = "found" | "inferred" | "needs_review" | "confirmed";
 
@@ -29,7 +29,7 @@ export type DraftField<T> = {
 };
 
 export type CreatorRightsImportDraft = {
-  importKind: "github_repository" | "uploaded_file";
+  importKind: "github_repository" | "uploaded_file" | "npm_package" | "pypi_package" | "doi" | "isbn" | "steam_listing" | "itch_listing";
   sourceLabel: string;
   repository?: {
     owner: string;
@@ -44,6 +44,11 @@ export type CreatorRightsImportDraft = {
     mimeType: string;
     sha256Hash: string;
     lastModified: number | null;
+  };
+  externalSource?: {
+    type: CreatorRightsImportDraft["importKind"];
+    value: string;
+    url: string;
   };
   fields: {
     creatorName: DraftField<string>;
@@ -107,11 +112,13 @@ const GITHUB_NAME_PATTERN = /^[A-Za-z0-9_.-]{1,100}$/;
 const COPYRIGHT_NOTICE_PATTERN = /copyright\s*(?:\(c\)|©)?\s*(?:\d{4}(?:-\d{4})?\s*)?[^.\n\r]{2,180}/gi;
 const SOFTWARE_EXTENSIONS = new Set(["js", "jsx", "ts", "tsx", "py", "rb", "go", "rs", "java", "c", "cc", "cpp", "cs", "php", "swift", "kt", "mjs", "cjs", "html", "css"]);
 const DATA_EXTENSIONS = new Set(["csv", "tsv", "json", "jsonl", "xml", "parquet", "ndjson", "sqlite", "db"]);
-const DOCUMENT_EXTENSIONS = new Set(["pdf", "doc", "docx", "odt", "rtf", "txt", "md"]);
+const DOCUMENT_EXTENSIONS = new Set(["pdf", "doc", "docx", "odt", "rtf", "txt", "md", "ppt", "pptx", "xls", "xlsx", "pages", "key", "numbers"]);
 const BOOK_EXTENSIONS = new Set(["epub", "mobi", "azw3"]);
 const AUDIO_EXTENSIONS = new Set(["mp3", "wav", "flac", "ogg", "m4a", "aac"]);
 const VIDEO_EXTENSIONS = new Set(["mp4", "mov", "webm", "mkv", "avi"]);
 const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif", "tif", "tiff", "psd"]);
+const MODEL_EXTENSIONS = new Set(["blend", "fbx", "obj", "glb", "gltf", "stl", "dae"]);
+const UNITY_EXTENSIONS = new Set(["unity", "unitypackage", "prefab", "asset", "mat", "controller", "anim"]);
 const TEXT_LICENSE_EXTENSIONS = new Set(["txt", "md", "license", "copying"]);
 
 function field<T>(
@@ -258,6 +265,12 @@ function inferFileWorkType(name: string, mimeType: string): { workType: KnownWor
   if (DATA_EXTENSIONS.has(extension)) {
     return { workType: "dataset", category: "research", confidence: "medium", evidence: "Inferred from structured-data file extension." };
   }
+  if (MODEL_EXTENSIONS.has(extension)) {
+    return { workType: "3d_model", category: "other", confidence: "medium", evidence: "Inferred from 3D model file extension." };
+  }
+  if (UNITY_EXTENSIONS.has(extension)) {
+    return { workType: "game", category: "software", confidence: "medium", evidence: "Inferred from Unity project or asset file extension." };
+  }
   if (BOOK_EXTENSIONS.has(extension)) {
     return { workType: "book", category: "fiction", confidence: "low", evidence: "Inferred from ebook file extension. Confirm the category before publishing." };
   }
@@ -265,6 +278,68 @@ function inferFileWorkType(name: string, mimeType: string): { workType: KnownWor
     return { workType: "document", category: "other", confidence: "low", evidence: "Inferred from document MIME type or file extension. Confirm the work type before publishing." };
   }
   return { workType: "other", category: "other", confidence: "low", evidence: "File type was not specific enough to infer a stronger work type." };
+}
+
+type ExternalDraftInput = {
+  importKind: "npm_package" | "pypi_package" | "doi" | "isbn" | "steam_listing" | "itch_listing";
+  sourceLabel: string;
+  sourceValue: string;
+  sourceUrl: string;
+  source: DraftFieldSource;
+  title: string;
+  description: string;
+  workType: KnownWorkType;
+  category: CategoryValue;
+  externalIdentifier: string;
+  edition?: string;
+  publicDisplayName?: string;
+  publicationDate?: string;
+  licenseId?: CopyrightLicenseId | null;
+  licenseEvidence?: string;
+  warnings?: string[];
+  summary?: string[];
+};
+
+export function buildExternalSourceDraft(input: ExternalDraftInput): CreatorRightsImportDraft {
+  const licenseId = input.licenseId || defaultLicenseIdForWorkType(input.workType);
+  const licenseStatus: DraftFieldStatus = input.licenseId ? "found" : "needs_review";
+  const licenseConfidence: DraftFieldConfidence = input.licenseId ? "medium" : "low";
+  return {
+    importKind: input.importKind,
+    sourceLabel: input.sourceLabel,
+    externalSource: {
+      type: input.importKind,
+      value: input.sourceValue,
+      url: input.sourceUrl,
+    },
+    fields: {
+      creatorName: field<string>(null, input.source, "low", "needs_review", "Registry metadata does not prove the creator of the work."),
+      publicDisplayName: field(input.publicDisplayName || "", input.source, input.publicDisplayName ? "medium" : "low", input.publicDisplayName ? "inferred" : "needs_review", input.publicDisplayName ? "Publisher, author, maintainer, or owner metadata from the source." : "No public display name was available from the source."),
+      rightsHolderName: field<string>(null, input.source, "low", "needs_review", "Rights-holder identity must be confirmed by the creator."),
+      title: field(input.title, input.source, "high", "found", "Title or package name from the public source."),
+      slug: field(normalizeSlugInput(input.title), "metadata", "high", "inferred", "Generated from the imported title."),
+      workType: field(input.workType, input.source, "medium", "inferred", "Inferred from the selected source type."),
+      category: field(input.category, input.source, "medium", "inferred", "Inferred from the selected source type."),
+      availability: field("public", input.source, "medium", "inferred", "Public source metadata was readable at import time."),
+      description: field(input.description, input.source, input.description ? "high" : "low", input.description ? "found" : "needs_review", "Description from the public source metadata."),
+      sourceUrl: field(input.sourceUrl, input.source, "high", "found", "Canonical public source URL."),
+      externalIdentifier: field(input.externalIdentifier, input.source, "high", "found", "Public source identifier."),
+      edition: field(input.edition || "", input.source, input.edition ? "medium" : "low", input.edition ? "found" : "needs_review", "Version, publication date, or release identifier from source metadata."),
+      fileName: field("", input.source, "low", "needs_review", "This source import did not include a local artifact file."),
+      fileSize: field("", input.source, "low", "needs_review", "This source import did not include a local artifact file."),
+      mimeType: field("", input.source, "low", "needs_review", "This source import did not include a local artifact file."),
+      sha256Hash: field("", input.source, "low", "needs_review", "This source import did not include a local artifact file."),
+      copyrightNotice: field("", input.source, "low", "needs_review", "Copyright notice was not independently extracted from source metadata."),
+      copyrightLicenseId: field(licenseId as CopyrightLicenseId, input.source, licenseConfidence, licenseStatus, input.licenseEvidence || "License was not available or not mapped from this source."),
+      rightsStatement: field("", "user", "low", "needs_review", "The rights statement is the creator's declaration and must be written or accepted by the creator."),
+    },
+    summary: input.summary || [`We found public metadata for ${input.sourceLabel}.`],
+    warnings: [
+      `${input.sourceLabel} metadata is draft evidence, not verification.`,
+      "Rights holder, licensing contact, AI permissions, and rights statement still need creator review.",
+      ...(input.warnings || []),
+    ],
+  };
 }
 
 export function buildUploadedFileDraft(input: UploadedFileImportInput): CreatorRightsImportDraft {

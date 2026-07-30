@@ -173,6 +173,10 @@ describe("Creator Rights repository import drafts", () => {
     expect(buildUploadedFileDraft({ name: "cover.webp", size: 1, type: "image/webp", sha256Hash: hash }).fields.workType.value).toBe("artwork");
     expect(buildUploadedFileDraft({ name: "theme.mp3", size: 1, type: "audio/mpeg", sha256Hash: hash }).fields.workType.value).toBe("audio");
     expect(buildUploadedFileDraft({ name: "trailer.mp4", size: 1, type: "video/mp4", sha256Hash: hash }).fields.workType.value).toBe("video");
+    expect(buildUploadedFileDraft({ name: "novel.epub", size: 1, type: "application/epub+zip", sha256Hash: hash }).fields.workType.value).toBe("book");
+    expect(buildUploadedFileDraft({ name: "press-kit.docx", size: 1, type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", sha256Hash: hash }).fields.workType.value).toBe("document");
+    expect(buildUploadedFileDraft({ name: "official-round.blend", size: 1, type: "", sha256Hash: hash }).fields.workType.value).toBe("3d_model");
+    expect(buildUploadedFileDraft({ name: "prototype.unitypackage", size: 1, type: "", sha256Hash: hash }).fields.workType.value).toBe("game");
     expect(buildUploadedFileDraft({ name: "unknown.bin", size: 1, type: "", sha256Hash: hash }).fields.workType.status).toBe("inferred");
   });
 });

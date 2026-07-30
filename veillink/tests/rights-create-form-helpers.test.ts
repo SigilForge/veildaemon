@@ -82,12 +82,18 @@ describe("Creator Rights create form helpers", () => {
     expect(source).not.toContain("LICENSE_CATALOG.map");
   });
 
-  it("presents repository import as draft review instead of verification", async () => {
+  it("presents source import as one draft review surface instead of verification", async () => {
     const fs = await import("node:fs/promises");
     const formSource = await fs.readFile(new URL("../components/RightsCreateForm.tsx", import.meta.url), "utf8");
     const routeSource = await fs.readFile(new URL("../app/api/rights/import/github/route.ts", import.meta.url), "utf8");
-    expect(formSource).toContain("Import from artifact or GitHub");
+    expect(formSource).toContain("Import from artifact or source");
     expect(formSource).toContain("Upload work file");
+    expect(formSource).toContain("Supported files: EPUB, PDF, Office documents, Blender and 3D models, Unity assets");
+    expect(formSource).toContain("Source URL or identifier");
+    expect(formSource).toContain("Supported sources: GitHub, npm, PyPI, DOI, ISBN, Steam, and itch.io.");
+    expect(formSource).toContain("Import source");
+    expect(formSource).toContain("Use the uploaded file hash");
+    expect(formSource).toContain("Hash already calculated from the uploaded import file.");
     expect(formSource).toContain("buildUploadedFileDraft");
     expect(formSource).toContain("Found automatically");
     expect(formSource).toContain("Likely, please confirm");

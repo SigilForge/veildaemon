@@ -226,7 +226,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
   const [submitError, setSubmitError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [licenseIntent, setLicenseIntent] = useState<LicenseIntentId>("all_rights");
-  const [repositoryUrl, setRepositoryUrl] = useState("");
+  const [sourceValue, setSourceValue] = useState("");
   const [importStatus, setImportStatus] = useState<ImportStatus>("idle");
   const [importError, setImportError] = useState("");
   const [importDraft, setImportDraft] = useState<CreatorRightsImportDraft | null>(null);
@@ -241,6 +241,7 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
   const slugPreview = slugHelpText(form.title, form.slug);
   const publicContact = form.licensingContact || email || "Not specified";
   const hasFingerprint = fingerprintMode !== "skip" && Boolean(form.sha256Hash);
+  const hasImportedFileFingerprint = importDraft?.importKind === "uploaded_file" && Boolean(importDraft.fields.sha256Hash.value);
   const foundImportFields: Array<[string, DraftField<unknown>]> = importDraft?.importKind === "uploaded_file"
     ? [
         ["Filename", importDraft.fields.fileName],
@@ -378,25 +379,36 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
     applyImportDraft(reconciled);
   }
 
-  async function importRepositoryDraft() {
+  function isGitHubSource(value: string) {
+    try {
+      const parsed = new URL(value.trim());
+      return parsed.protocol === "https:" && parsed.hostname.toLowerCase() === "github.com";
+    } catch {
+      return false;
+    }
+  }
+
+  async function importSourceDraft() {
     setImportError("");
     setImportStatus("loading");
+    const trimmedSource = sourceValue.trim();
     try {
-      const response = await fetch("/api/rights/import/github", {
+      const isGitHub = isGitHubSource(trimmedSource);
+      const response = await fetch(isGitHub ? "/api/rights/import/github" : "/api/rights/import/source", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ repositoryUrl }),
+        body: JSON.stringify(isGitHub ? { repositoryUrl: trimmedSource } : { value: trimmedSource }),
       });
       const payload = (await response.json().catch(() => ({}))) as { ok?: boolean; error?: string; draft?: CreatorRightsImportDraft };
       if (!response.ok || !payload.draft) {
-        setImportError(payload.error || "The repository could not be imported. Check the URL and try again.");
+        setImportError(payload.error || "The source could not be imported. Check the URL or identifier and try again.");
         setImportStatus("idle");
         return;
       }
       setAndApplyImportDraft(payload.draft);
       setImportStatus("ready");
     } catch {
-      setImportError("Network error while importing the repository. You can still complete the form manually.");
+      setImportError("Network error while importing the source. You can still complete the form manually.");
       setImportStatus("idle");
     }
   }
@@ -492,7 +504,16 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
   function updateFingerprintMode(value: FingerprintMode) {
     setFingerprintMode(value);
     setHashError("");
-    setFileStatus("");
+    setFileStatus(value === "file" && hasImportedFileFingerprint ? "Hash already calculated from the uploaded import file." : "");
+    if (value === "file" && importDraft?.importKind === "uploaded_file") {
+      setForm((current) => ({
+        ...current,
+        fileName: importDraft.fields.fileName.value || current.fileName,
+        fileSize: importDraft.fields.fileSize.value || current.fileSize,
+        mimeType: importDraft.fields.mimeType.value || current.mimeType,
+        sha256Hash: importDraft.fields.sha256Hash.value || current.sha256Hash,
+      }));
+    }
     if (value === "skip") {
       setForm((current) => ({ ...current, fileName: "", fileSize: "", mimeType: "", sha256Hash: "" }));
     }
@@ -550,27 +571,33 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
       <section className="form-step import-source-panel full">
         <div className="form-step-head">
           <p className="eyebrow">Start from source</p>
-          <h2>Import from artifact or GitHub</h2>
+          <h2>Import from artifact or source</h2>
         </div>
         <p className="field-hint full">
-          Upload a file or paste a public repository URL to draft the record from source metadata. Imported data is a review queue, not a verified rights claim.
+          Upload a file or paste a supported public URL or identifier to draft the record from source metadata. Imported data is a review queue, not a verified rights claim.
         </p>
         <label className="source-file-field">
           <LabelText help="The selected file stays in your browser. The form stores the SHA-256 hash and metadata, not the file bytes.">Upload work file</LabelText>
           <input type="file" onChange={importUploadedFileDraft} />
         </label>
+        <p className="field-hint source-support-list">
+          Supported files: EPUB, PDF, Office documents, Blender and 3D models, Unity assets, images, audio, video, datasets, source files, and license text.
+        </p>
         <label className="source-url-field">
-          <LabelText help="Use a public repository URL such as https://github.com/SigilForge/veildaemon. The server fetches only constructed GitHub API URLs.">Repository URL</LabelText>
+          <LabelText help="Use one field for supported sources. For ambiguous package names, use prefixes such as npm:is-sorted or pypi:requests.">Source URL or identifier</LabelText>
           <input
             inputMode="url"
-            placeholder="https://github.com/owner/repository"
-            type="url"
-            value={repositoryUrl}
-            onChange={(event) => setRepositoryUrl(event.target.value)}
+            placeholder="GitHub URL, npm package, pypi:project, DOI, ISBN, Steam URL, or itch.io URL"
+            type="text"
+            value={sourceValue}
+            onChange={(event) => setSourceValue(event.target.value)}
           />
         </label>
-        <button className="button secondary import-button" disabled={importStatus === "loading"} onClick={importRepositoryDraft} type="button">
-          {importStatus === "loading" ? "Importing..." : "Import repository"}
+        <p className="field-hint source-support-list">
+          Supported sources: GitHub, npm, PyPI, DOI, ISBN, Steam, and itch.io.
+        </p>
+        <button className="button secondary import-button" disabled={importStatus === "loading" || !sourceValue.trim()} onClick={importSourceDraft} type="button">
+          {importStatus === "loading" ? "Importing..." : "Import source"}
         </button>
         {importError ? <p className="form-error full" role="alert">{importError}</p> : null}
         {importDraft ? (
@@ -834,10 +861,11 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
         </div>
         <p className="field-hint">
           SHA-256 is optional. It identifies one exact file version; it does not prove authorship or legal ownership.
+          {hasImportedFileFingerprint ? " A hash was already calculated from the uploaded source file." : ""}
         </p>
         <div className="segmented-choice" role="radiogroup" aria-label="Fingerprint option">
           {[
-            ["file", "I have a file to fingerprint"],
+            ["file", hasImportedFileFingerprint ? "Use the uploaded file hash" : "Calculate a file hash"],
             ["hash", "I already have a SHA-256 hash"],
             ["skip", "Skip fingerprinting"],
           ].map(([value, label]) => (
@@ -849,10 +877,16 @@ export function RightsCreateForm({ email, workTypes, categories, availabilityCat
         </div>
         {fingerprintMode === "file" ? (
           <div className="fingerprint-panel">
-            <label className="full">
-              <LabelText help="The file stays in your browser for hashing. The form sends the hash and metadata, not the file bytes.">File</LabelText>
-              <input type="file" onChange={onFileSelected} />
-            </label>
+            {hasImportedFileFingerprint ? (
+              <p className="field-hint full">
+                Using the SHA-256 fingerprint already calculated from {form.fileName || "the uploaded source file"}.
+              </p>
+            ) : (
+              <label className="full">
+                <LabelText help="The file stays in your browser for hashing. The form sends the hash and metadata, not the file bytes.">File</LabelText>
+                <input type="file" onChange={onFileSelected} />
+              </label>
+            )}
             {fileStatus ? <p className="field-hint">{fileStatus}</p> : null}
           </div>
         ) : null}
