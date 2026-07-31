@@ -2074,6 +2074,14 @@ fieldset.recovery-field.compact label {
     0 0 28px rgba(185,84,255,.18);
   pointer-events: none;
 }
+/* Decorative only — official Frequency Lotus art as an ambient backdrop behind
+   the functional pip-grid petals, which remain the actual interactive control. */
+.lotus-map {
+  background-image: url("../assets/lotus/frequency-lotus-color.webp");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: min(30rem, 78%) auto;
+}
 .lotus-map::after {
   content: "";
   position: absolute;
@@ -3537,5 +3545,146 @@ body.has-reports-drawer-open .surface-tabs {
   .operator-preview-drawer .drawer-actions .button {
     min-height: 2.55rem;
     padding: .55rem .68rem;
+  }
+}
+
+/* ==========================================================================
+   Print Sheet — dedicated print/PDF layout, not a reformat of the live shell.
+   ========================================================================== */
+
+.print-only { display: none; }
+
+@media print {
+  :root {
+    color-scheme: light;
+    --ps-paper: #f4f0df;
+    --ps-ink: #171611;
+  }
+
+  body { background: #fff; }
+  body > *:not(#print-sheet) { display: none !important; }
+
+  #print-sheet {
+    display: block;
+    width: 100%;
+    background: #fff;
+    color: var(--ps-ink, #171611);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 9.5px;
+    line-height: 1.35;
+  }
+
+  .ps-header {
+    text-align: center;
+    border-bottom: 2px solid #171611;
+    padding-bottom: .3rem;
+    margin-bottom: .4rem;
+  }
+  .ps-kicker {
+    margin: 0 0 .2rem;
+    font-family: Consolas, monospace;
+    font-size: .58rem;
+    letter-spacing: .08em;
+    color: #444;
+  }
+  .ps-header h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    letter-spacing: .06em;
+  }
+  .ps-subtitle {
+    margin: .1rem 0 0;
+    font-size: .8rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .ps-section {
+    border: 1px solid #333;
+    padding: .3rem .4rem;
+    margin-bottom: .3rem;
+    break-inside: avoid;
+  }
+  .ps-section h2 {
+    margin: 0 0 .25rem;
+    font-size: .68rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    background: #171611;
+    color: #f4f0df;
+    padding: .12rem .3rem;
+  }
+
+  .ps-columns { display: grid; grid-template-columns: 2fr 1fr; gap: .35rem; align-items: start; }
+  .ps-col-main, .ps-col-side { min-width: 0; }
+
+  .ps-field-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: .3rem; margin-bottom: .2rem; }
+  .ps-field { display: flex; flex-direction: column; gap: .05rem; }
+  .ps-field span { font-size: .56rem; letter-spacing: .04em; text-transform: uppercase; color: #555; }
+  .ps-field strong { font-size: .68rem; border-bottom: 1px solid #999; min-height: 1em; }
+  .ps-field-wide { grid-column: 1 / -1; }
+
+  .ps-group-label {
+    margin: .3rem 0 .15rem;
+    font-size: .58rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #555;
+  }
+  .ps-group-label:first-child { margin-top: 0; }
+
+  .ps-pip-row { display: flex; align-items: center; gap: .3rem; margin-bottom: .12rem; }
+  .ps-pip-row > span { flex: 0 0 5.2rem; font-size: .62rem; }
+  .ps-pips { display: flex; gap: .12rem; }
+  .ps-pip {
+    width: .5rem;
+    height: .5rem;
+    border-radius: 50%;
+    border: 1px solid #333;
+    display: inline-block;
+  }
+  .ps-pip.is-filled { background: #171611; }
+  .ps-pip-count { font-size: .55rem; color: #555; font-style: normal; margin-left: .15rem; }
+
+  .ps-lotus-figure {
+    margin: 0 0 .3rem;
+    text-align: center;
+  }
+  .ps-lotus-figure img {
+    width: 100%;
+    max-width: 260px;
+    filter: grayscale(1) contrast(1.15);
+  }
+
+  .ps-equipment-list, .ps-recovery-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .ps-equipment-list li {
+    font-size: .62rem;
+    border-bottom: 1px dotted #999;
+    padding: .12rem 0;
+  }
+  .ps-recovery-list { display: flex; flex-wrap: wrap; gap: .3rem; }
+  .ps-recovery-list li {
+    font-size: .6rem;
+    border: 1px solid #333;
+    padding: .1rem .3rem;
+  }
+  .ps-recovery-list li.is-checked { background: #171611; color: #f4f0df; }
+
+  .ps-notes { font-size: .64rem; white-space: pre-wrap; margin: 0; }
+  .ps-empty { font-size: .6rem; color: #666; margin: 0; font-style: italic; }
+
+  .ps-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: .4rem;
+    margin-top: .3rem;
+    padding-top: .2rem;
+    border-top: 1px solid #333;
+    font-size: .54rem;
+    color: #444;
   }
 }

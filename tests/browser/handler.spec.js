@@ -1134,3 +1134,82 @@ test("handler exports Operator authorization packets", async ({ page }) => {
   expect(payload.operatorName).toBe("June Rook");
   expect(payload.note).toContain("Sanguine Presentation, Void-Shard available for review");
 });
+
+async function seedHandlerState(page, patch) {
+  await page.evaluate((p) => {
+    const api = window.HandlerState;
+    const state = api.readState();
+    if (p.session) Object.assign(state.session, p.session);
+    if (p.sceneState) Object.assign(state.sceneState, p.sceneState);
+    if (p.primaryClock) Object.assign(state.primaryClock, p.primaryClock);
+    api.writeState(state);
+  }, patch);
+  await page.reload();
+}
+
+test("player view shows real scene state and a spoiler-safe clock label, not blank fields", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await seedHandlerState(page, {
+    sceneState: { current: "Breached" },
+    primaryClock: { name: "The Ritual Countdown", current: 4 }
+  });
+
+  const playerToggle = page.locator("#player-view-toggle");
+  await playerToggle.check();
+
+  const stateRow = page.locator("#player-view-state").locator("xpath=ancestor::div[1]");
+  const clockRow = page.locator("#player-view-clock").locator("xpath=ancestor::div[1]");
+  await expect(stateRow).toBeVisible();
+  await expect(clockRow).toBeVisible();
+  await expect(page.locator("#player-view-state")).toHaveText("Breached");
+  await expect(page.locator("#player-view-clock")).toHaveText("Pressure Clock 4/6");
+  // Never leak the Handler-authored clock name to the player-facing surface.
+  await expect(page.locator("#player-view-clock")).not.toContainText("The Ritual Countdown");
+});
+
+test("standalone player-view page shows safe fields and does not leak the real clock name", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await seedHandlerState(page, {
+    sceneState: { current: "Echoed" },
+    primaryClock: { name: "Neighbor Suspicion", current: 2 }
+  });
+
+  await page.goto("/handler/player-view/");
+  await expect(page.locator("#safe-state")).toHaveText("Echoed");
+  await expect(page.locator("#safe-clock")).toContainText("Pressure Clock 2/6");
+  await expect(page.locator("#module-clock")).toContainText("Pressure Clock 2/6");
+  await expect(page.locator("#safe-clock")).not.toContainText("Neighbor Suspicion");
+  await expect(page.locator("#module-clock")).not.toContainText("Neighbor Suspicion");
+});
+
+test("a Handler-only module page still shows the real clock name (not the player-safe label)", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await seedHandlerState(page, { primaryClock: { name: "Neighbor Suspicion", current: 2 } });
+
+  await page.goto("/handler/npcs/");
+  await expect(page.locator("#module-clock")).toContainText("Neighbor Suspicion 2/6");
+});
+
+test("print button populates a Handler-only Session Brief with real data", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+  await seedHandlerState(page, {
+    session: { caseTitle: "Cold Address Intake", location: "4402 Marrow St, Unit 3" },
+    sceneState: { current: "Breached" },
+    primaryClock: { name: "The Ritual Countdown", current: 4 }
+  });
+
+  const brief = page.locator("#session-brief");
+  await expect(brief).toBeHidden(); // display:none outside @media print
+
+  await page.getByRole("button", { name: "Print" }).click();
+
+  await expect(brief.locator(".sb-field", { hasText: "Case" }).locator("strong")).toHaveText("Cold Address Intake");
+  await expect(brief.locator(".sb-field", { hasText: "Location" }).locator("strong")).toHaveText("4402 Marrow St, Unit 3");
+  await expect(brief.locator(".sb-field", { hasText: "Scene State" }).locator("strong")).toHaveText("Breached");
+  // Handler-only surface — real clock name is expected here, unlike player view.
+  await expect(brief.locator(".sb-clock-line")).toContainText("The Ritual Countdown 4/6");
+});

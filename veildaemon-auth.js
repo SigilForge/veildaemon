@@ -389,6 +389,9 @@
         font-weight: 700;
         letter-spacing: 0.05em;
         color: #94a3b8;
+        white-space: nowrap;
+        overflow-wrap: normal;
+        word-break: normal;
       }
       .veil-auth-status .auth-user {
         color: #f8fafc;

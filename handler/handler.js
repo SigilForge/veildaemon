@@ -527,6 +527,133 @@
     return "Something ordinary answers before anyone explains it.";
   }
 
+  function sbField(label, value) {
+    const field = document.createElement("div");
+    field.className = "sb-field";
+    const span = document.createElement("span");
+    span.textContent = label;
+    const strong = document.createElement("strong");
+    strong.textContent = value || "—";
+    field.append(span, strong);
+    return field;
+  }
+
+  function sbFieldRow(...fields) {
+    const row = document.createElement("div");
+    row.className = "sb-field-row";
+    row.append(...fields);
+    return row;
+  }
+
+  function sbSection(numeral, title) {
+    const section = document.createElement("section");
+    section.className = "sb-section";
+    const h2 = document.createElement("h2");
+    h2.textContent = `${numeral}. ${title}`;
+    section.append(h2);
+    return section;
+  }
+
+  function sbClockLine(label, clock) {
+    if (!clock || !clock.segments) return null;
+    const line = document.createElement("p");
+    line.className = "sb-clock-line";
+    const name = clock.name || "Unnamed";
+    const warn = api.clockWarning(clock);
+    line.textContent = `${label}: ${name} ${clock.current}/${clock.segments}${warn ? ` — ${warn}` : ""}`;
+    return line;
+  }
+
+  /**
+   * Handler-only reference sheet for the table, replacing a naive shrink of
+   * the live interactive dashboard. Real clock names/events are fine here —
+   * this is not a player-safe surface (see renderPlayerView for that).
+   */
+  function renderSessionBrief() {
+    const host = document.getElementById("session-brief");
+    if (!host) return;
+    host.textContent = "";
+
+    const header = document.createElement("header");
+    header.className = "sb-header";
+    const kicker = document.createElement("p");
+    kicker.className = "sb-kicker";
+    kicker.textContent = "VEILCORP // HANDLER SESSION BRIEF // TABLE REFERENCE";
+    const h1 = document.createElement("h1");
+    h1.textContent = state.session.title || state.session.caseTitle || "Untitled Session";
+    header.append(kicker, h1);
+    host.append(header);
+
+    const sessionSection = sbSection("I", "SESSION");
+    sessionSection.append(
+      sbFieldRow(
+        sbField("Case", state.session.caseTitle),
+        sbField("Location", state.session.location),
+        sbField("Scene State", state.sceneState.current)
+      )
+    );
+    [sbClockLine("Primary Clock", state.primaryClock), sbClockLine("Secondary Clock", state.secondaryClock?.enabled ? state.secondaryClock : null)]
+      .filter(Boolean)
+      .forEach((line) => sessionSection.append(line));
+    host.append(sessionSection);
+
+    const operatorsSection = sbSection("II", "OPERATORS");
+    const players = Array.isArray(state.players) ? state.players : [];
+    if (players.length) {
+      const list = document.createElement("ul");
+      list.className = "sb-operator-list";
+      players.forEach((player) => {
+        const li = document.createElement("li");
+        const name = document.createElement("strong");
+        name.textContent = player.name || "Operator";
+        const detail = document.createElement("span");
+        detail.textContent = [
+          player.stability || `${player.stabilityBand || ""} (${player.stabilityPoints ?? "?"}/10)`,
+          player.harm || `Harm ${player.harmBoxes ?? 0}/5`,
+          player.misfire,
+          player.voidBreach
+        ].filter(Boolean).join(" · ");
+        li.append(name, detail);
+        list.append(li);
+      });
+      operatorsSection.append(list);
+    } else {
+      const empty = document.createElement("p");
+      empty.className = "sb-empty";
+      empty.textContent = "No Operators recorded.";
+      operatorsSection.append(empty);
+    }
+    host.append(operatorsSection);
+
+    const npcsSection = sbSection("III", "NPC ROSTER");
+    const npcs = (Array.isArray(state.npcs) ? state.npcs : []).filter((npc) => npc.name);
+    if (npcs.length) {
+      const list = document.createElement("ul");
+      list.className = "sb-npc-list";
+      npcs.forEach((npc) => {
+        const li = document.createElement("li");
+        const name = document.createElement("strong");
+        name.textContent = [npc.name, npc.role].filter(Boolean).join(" — ");
+        const detail = document.createElement("span");
+        detail.textContent = [npc.location, npc.pressure, npc.notes].filter(Boolean).join(" · ");
+        li.append(name, detail);
+        list.append(li);
+      });
+      npcsSection.append(list);
+    } else {
+      const empty = document.createElement("p");
+      empty.className = "sb-empty";
+      empty.textContent = "No NPCs staged.";
+      npcsSection.append(empty);
+    }
+    host.append(npcsSection);
+
+    const footer = document.createElement("footer");
+    footer.className = "sb-footer";
+    footer.textContent = `Generated ${new Date().toLocaleString()} — Handler-only. Not for player view.`;
+    host.append(footer);
+  }
+
   function renderPlayerView() {
     const panel = document.getElementById("player-view");
     if (!panel) return;
@@ -537,8 +664,8 @@
     setText("player-view-scene", payload.scene);
     setText("player-view-instruction", payload.instruction);
     setText("player-view-consequence", payload.consequence || "WATCH THE ROOM");
-    togglePlayerViewField("player-view-state", "");
-    togglePlayerViewField("player-view-clock", "");
+    togglePlayerViewField("player-view-state", payload.sceneState);
+    togglePlayerViewField("player-view-clock", payload.clockLabel);
     togglePlayerViewField("player-view-consequence-wrap", payload.consequence);
   }
 
@@ -666,7 +793,10 @@
     });
 
     const printButton = document.getElementById("print-dashboard");
-    if (printButton) printButton.addEventListener("click", () => window.print());
+    if (printButton) printButton.addEventListener("click", () => {
+      renderSessionBrief();
+      window.print();
+    });
 
     const rollButton = document.getElementById("roll-button");
     if (rollButton) rollButton.addEventListener("click", rollTest);

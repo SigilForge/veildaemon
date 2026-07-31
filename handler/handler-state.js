@@ -3696,6 +3696,18 @@
     return applyNeedlepointDeterministic(state, { scene: false, attention: true });
   }
 
+  /**
+   * Numbers-only clock label for player-safe surfaces. Deliberately omits
+   * clock.name / ticksWhen / midpointEvent / fullClockEvent — those are
+   * free-text Handler authoring that can carry spoilers. Handler-only
+   * surfaces should keep using publicClockLabel().
+   */
+  function playerSafeClockLabel(state) {
+    const clock = state.primaryClock;
+    if (!clock || !clock.segments) return "";
+    return `Pressure Clock ${clock.current}/${clock.segments}`;
+  }
+
   function playerViewPayload(state) {
     const needlepoint = state.activeNeedlepoint || {};
     const safeConsequence = safeString(needlepoint.player_view?.safe_consequence, 220);
@@ -3703,7 +3715,11 @@
       title: safeString(state.session.safeSceneLabel || state.session.caseTitle, 160) || "Scene active.",
       scene: safeString(state.session.safeSceneLabel, 160) || "Scene active.",
       consequence: safeConsequence,
-      instruction: "Stay real. Stay alive."
+      instruction: "Stay real. Stay alive.",
+      // sceneState values (Stable/Echoed/Recursive/Breached/Collapse) are narrative-neutral by
+      // design — safe to show verbatim, unlike the clock's free-text name/event fields.
+      sceneState: safeString(state.sceneState?.current, 40),
+      clockLabel: playerSafeClockLabel(state)
     };
   }
 
@@ -4632,6 +4648,7 @@
     resolveSceneStateCard,
     resolveAttentionAftermathConsequence,
     playerViewPayload,
+    playerSafeClockLabel,
     hasActiveNeedlepoint,
     fieldEditUnlocked,
     toggleFieldEditMode,

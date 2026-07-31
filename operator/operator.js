@@ -4987,11 +4987,243 @@
     });
   }
 
+  function psField(label, value) {
+    const field = document.createElement("div");
+    field.className = "ps-field";
+    const span = document.createElement("span");
+    span.textContent = label;
+    const strong = document.createElement("strong");
+    strong.textContent = value || "—";
+    field.append(span, strong);
+    return field;
+  }
+
+  function psFieldRow(...fields) {
+    const row = document.createElement("div");
+    row.className = "ps-field-row";
+    row.append(...fields);
+    return row;
+  }
+
+  function psPipRow(label, current, max) {
+    const row = document.createElement("div");
+    row.className = "ps-pip-row";
+    const span = document.createElement("span");
+    span.textContent = label;
+    const pips = document.createElement("div");
+    pips.className = "ps-pips";
+    for (let i = 1; i <= max; i += 1) {
+      const pip = document.createElement("i");
+      pip.className = i <= current ? "ps-pip is-filled" : "ps-pip";
+      pips.append(pip);
+    }
+    const count = document.createElement("em");
+    count.className = "ps-pip-count";
+    count.textContent = `${current}/${max}`;
+    row.append(span, pips, count);
+    return row;
+  }
+
+  function psSection(numeral, title) {
+    const section = document.createElement("section");
+    section.className = "ps-section";
+    const h2 = document.createElement("h2");
+    h2.textContent = `${numeral}. ${title}`;
+    section.append(h2);
+    return section;
+  }
+
+  function renderPrintSheet() {
+    const host = document.getElementById("print-sheet");
+    if (!host) return;
+    host.textContent = "";
+
+    const status = consoleState.operatorStatus;
+    const attrs = normalizeAttributes(status.attributes);
+    const skills = normalizeSkills(status.skills);
+    const operatorName = safeString(status.operatorName || operatorRecord?.designation || status.designation || "Unnamed Operator", 120);
+    const background = status.background ? backgroundEntry(backgroundKeyFromDisplayName(status.background))?.displayName || status.background : "";
+    const presentation = status.ontologyPresentation
+      ? presentationEntry(presentationKeyFromDisplayName(status.ontologyPresentation))?.displayName || status.ontologyPresentation
+      : "";
+
+    const header = document.createElement("header");
+    header.className = "ps-header";
+    const kicker = document.createElement("p");
+    kicker.className = "ps-kicker";
+    kicker.textContent = "VEILCORP / ARCHIVE // OPERATOR INTAKE // RESTRICTED";
+    const h1 = document.createElement("h1");
+    h1.textContent = "CRADLEPOINT";
+    const subtitle = document.createElement("p");
+    subtitle.className = "ps-subtitle";
+    subtitle.textContent = "OPERATOR FIELD SHEET";
+    header.append(kicker, h1, subtitle);
+    host.append(header);
+
+    const identity = psSection("I", "IDENTITY");
+    identity.append(
+      psFieldRow(
+        psField("Name", operatorName),
+        psField("Designation", status.designation),
+        psField("Role", status.role)
+      ),
+      psFieldRow(
+        psField("Background", background),
+        psField("Presentation", presentation),
+        psField("Blind Petal", status.blindPetal)
+      )
+    );
+    host.append(identity);
+
+    const columns = document.createElement("div");
+    columns.className = "ps-columns";
+    const main = document.createElement("div");
+    main.className = "ps-col-main";
+    const side = document.createElement("div");
+    side.className = "ps-col-side";
+
+    const attributesSection = psSection("II", "ATTRIBUTES");
+    attributeNames().forEach((name) => {
+      attributesSection.append(psPipRow(name, effectiveAttributeRank(attrs, name, status), 5));
+    });
+    main.append(attributesSection);
+
+    const skillGroups = [
+      ["PHYSICAL / FIELD", ["Athletics", "Melee", "Ranged", "Stealth", "Survival", "Medicine"]],
+      ["MENTAL / TECHNICAL", ["Investigation", "Hacking", "Engineering", "Academics", "Awareness", "Tactics"]],
+      ["SOCIAL / RESONANT", ["Empathy", "Deception", "Persuasion", "Intimidation", "Performance", "Ritual"]]
+    ];
+    const skillsSection = psSection("III", "SKILLS");
+    skillGroups.forEach(([groupLabel, names]) => {
+      const groupHeading = document.createElement("p");
+      groupHeading.className = "ps-group-label";
+      groupHeading.textContent = groupLabel;
+      skillsSection.append(groupHeading);
+      names.forEach((name) => {
+        skillsSection.append(psPipRow(name, effectiveSkillRank(skills, name, status), 5));
+      });
+    });
+    main.append(skillsSection);
+
+    const lotusSection = psSection("IV", "LOTUS ARRAY");
+    const lotusFigure = document.createElement("figure");
+    lotusFigure.className = "ps-lotus-figure";
+    const lotusImg = document.createElement("img");
+    lotusImg.src = "../assets/lotus/frequency-lotus-bw.webp";
+    lotusImg.alt = "Frequency Lotus";
+    lotusFigure.append(lotusImg);
+    lotusSection.append(lotusFigure);
+    const lotus = status.lotus || {};
+    frequencies().forEach((name) => {
+      const value = name === status.blindPetal ? 0 : Number(lotus[name] || 0);
+      lotusSection.append(psPipRow(name, value, 6));
+    });
+    main.append(lotusSection);
+
+    const presentationSection = psSection("VIII", "PRESENTATION TRACK");
+    presentationSection.append(
+      psFieldRow(
+        psField("Pressure", `${status.presentationPressure || 0}`),
+        psField("Anchor", status.anchorPerson),
+        psField("Totem", status.totemObject)
+      ),
+      psFieldRow(
+        psField("Grounding Line", status.groundingLine),
+        psField("Common Tell", status.commonTell),
+        psField("Misfire Flavor", status.misfireFlavor)
+      )
+    );
+    if (status.expressions) {
+      const expressionsField = psField("Known Expressions", status.expressions);
+      expressionsField.classList.add("ps-field-wide");
+      presentationSection.append(expressionsField);
+    }
+    main.append(presentationSection);
+
+    const equipmentSection = psSection("IX", "EQUIPMENT");
+    const equipment = Array.isArray(consoleState.equipment) ? consoleState.equipment : [];
+    if (equipment.length) {
+      const list = document.createElement("ul");
+      list.className = "ps-equipment-list";
+      equipment.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = [item.item, item.category, item.slot].filter(Boolean).join(" — ");
+        list.append(li);
+      });
+      equipmentSection.append(list);
+    } else {
+      const empty = document.createElement("p");
+      empty.className = "ps-empty";
+      empty.textContent = "No equipment recorded.";
+      equipmentSection.append(empty);
+    }
+    main.append(equipmentSection);
+
+    if (status.quickNotes) {
+      const notesSection = psSection("X", "NOTES");
+      const notes = document.createElement("p");
+      notes.className = "ps-notes";
+      notes.textContent = status.quickNotes;
+      notesSection.append(notes);
+      main.append(notesSection);
+    }
+
+    const trackersSection = psSection("V", "TRACKERS");
+    trackersSection.append(
+      psPipRow("Harm", Number(status.harmBoxes || 0), 5),
+      psPipRow("Stability", Number(status.stability || 0), 10),
+      psPipRow("Void", Number(status.voidMarks || 0), 13),
+      psPipRow("Breach", Number(status.breachPoints || 0), 20)
+    );
+    trackersSection.append(psField("Misfire", status.misfireSeverity || "None"));
+    side.append(trackersSection);
+
+    const attentionSection = psSection("VI", "ATTENTION");
+    attentionSection.append(psField("Current", status.attentionState || "Unseen"));
+    side.append(attentionSection);
+
+    const recoverySection = psSection("VII", "RECOVERY");
+    const recoveryList = document.createElement("ul");
+    recoveryList.className = "ps-recovery-list";
+    [
+      ["Ground", status.recoveryGround],
+      ["Breathe", status.recoveryBreathe],
+      ["Connect", status.recoveryConnect],
+      ["Leave", status.recoveryLeave],
+      ["Name It", status.recoveryNameIt]
+    ].forEach(([label, checked]) => {
+      const li = document.createElement("li");
+      li.className = checked ? "is-checked" : "";
+      li.textContent = label;
+      recoveryList.append(li);
+    });
+    recoverySection.append(recoveryList);
+    side.append(recoverySection);
+
+    columns.append(main, side);
+    host.append(columns);
+
+    const footer = document.createElement("footer");
+    footer.className = "ps-footer";
+    const archivalId = document.createElement("span");
+    archivalId.textContent = `VEILCORP ARCHIVAL ID: ${safeString(operatorRecord?.id || status.designation || operatorName, 60)}`;
+    const motto = document.createElement("span");
+    motto.textContent = "Roleplay becomes physics. Horror is the symptom. Emotional reality is the substrate.";
+    footer.append(archivalId, motto);
+    host.append(footer);
+  }
+
   function bindDataControls() {
     const exportOperatorFile = document.getElementById("export-operator-file");
     const exportButton = document.getElementById("export-console");
     const importInput = document.getElementById("import-console");
     const purgeButton = document.getElementById("purge-console");
+    const printSheetButton = document.getElementById("print-sheet-button");
+
+    if (printSheetButton) printSheetButton.addEventListener("click", () => {
+      renderPrintSheet();
+      window.print();
+    });
 
     if (exportOperatorFile) exportOperatorFile.addEventListener("click", () => {
       operatorRecord = readOperatorRecord();

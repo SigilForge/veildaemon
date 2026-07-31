@@ -644,6 +644,32 @@ test("burnout professional investigation inline rank buttons cap base at 3", asy
   await expect(page.getByRole("button", { name: "Increase Investigation rank" })).toBeEnabled();
 });
 
+test("print sheet button populates a print-only sheet from current build", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+  await page.getByLabel("Body 3").click();
+  await page.locator("#skill-picker").selectOption("Investigation");
+  await page.locator("#skill-rank").fill("3");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await page.getByLabel("Operator Name").fill("Cathy Holloway");
+
+  const printSheet = page.locator("#print-sheet");
+  await expect(printSheet).toBeHidden(); // display:none outside @media print, but DOM should populate on click
+
+  await page.getByRole("button", { name: "Print Sheet" }).click();
+
+  await expect(printSheet.locator(".ps-header h1")).toHaveText("CRADLEPOINT");
+  const nameField = printSheet.locator(".ps-field", { hasText: "Name" });
+  await expect(nameField.locator("strong")).toHaveText("Cathy Holloway");
+  const bodyRow = printSheet.locator(".ps-pip-row", { hasText: "Body" });
+  await expect(bodyRow.locator(".ps-pip-count")).toHaveText("3/5");
+  const investigationRow = printSheet.locator(".ps-pip-row", { hasText: "Investigation" });
+  await expect(investigationRow.locator(".ps-pip-count")).toHaveText("3/5");
+  await expect(printSheet.locator(".ps-lotus-figure img")).toHaveAttribute("src", /frequency-lotus-bw\.webp/);
+});
+
 test("legacy nerves skill entries are scrubbed from saved builds", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify({

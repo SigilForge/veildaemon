@@ -916,11 +916,13 @@
     text("safe-scene-detail", payload.scene, "Scene pending.");
     text("safe-instruction", payload.instruction, "Stay real. Stay alive.");
     text("safe-consequence", payload.consequence, "");
+    text("safe-state", payload.sceneState, "");
+    text("safe-clock", payload.clockLabel, "");
     const stateNode = document.getElementById("safe-state");
     const clockNode = document.getElementById("safe-clock");
     const consequenceNode = document.getElementById("safe-consequence");
-    if (stateNode) stateNode.closest("div").hidden = true;
-    if (clockNode) clockNode.closest("div").hidden = true;
+    if (stateNode) stateNode.closest("div").hidden = !payload.sceneState;
+    if (clockNode) clockNode.closest("div").hidden = !payload.clockLabel;
     if (consequenceNode) consequenceNode.closest("div").hidden = !payload.consequence;
   }
 
@@ -1048,7 +1050,10 @@
   function renderModuleContext() {
     text("module-case", state.session.caseTitle, "No case loaded");
     text("module-attention", state.attention.current, "Unseen");
-    text("module-clock", api.publicClockLabel(state), "0/6");
+    // player-view is the one player-safe module page in this list (cases/entities/npcs/etc.
+    // are Handler-only) — it must never show the clock's real, potentially spoiler-y name.
+    const clockLabel = moduleName === "player-view" ? api.playerSafeClockLabel(state) : api.publicClockLabel(state);
+    text("module-clock", clockLabel, "0/6");
     text("module-active-consequence", state.sceneState.sceneConsequence, "Set Scene State.");
     text("module-attention-aftermath", state.attention.aftermathConsequence, "Set Attention and Clock.");
     text("module-needlepoint-scaffold", state.activeNeedlepoint?.scaffold || state.caseFile.templates || "No active Needlepoint loaded.");
