@@ -795,14 +795,14 @@
         "type": "studio"
       },
       "copyrightLicense": {
-        "id": "mpl-2.0",
-        "name": "Mozilla Public License 2.0",
-        "shortName": "MPL 2.0",
-        "spdxId": "MPL-2.0",
-        "category": "open_source",
-        "url": "https://www.mozilla.org/en-US/MPL/2.0/",
-        "summary": "A file-level copyleft software license that requires changes to MPL-covered files to remain available under MPL.",
-        "requiresNotice": true
+        "id": "proprietary",
+        "name": "Proprietary / all rights reserved",
+        "shortName": "Proprietary",
+        "spdxId": null,
+        "category": "proprietary",
+        "url": "https://www.copyright.gov/help/faq/",
+        "summary": "No reuse rights are granted unless a separate notice, agreement, or license says otherwise.",
+        "requiresNotice": false
       },
       "registryFramework": {
         "id": "sfr",
