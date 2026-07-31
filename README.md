@@ -44,7 +44,7 @@ VeilDaemon uses a dual-layer licensing architecture harmonized with the **SigilF
 For details, component matrices, and architectural boundaries, see:
 - [LICENSE](LICENSE)
 - [LICENSE_SCOPE.md](LICENSE_SCOPE.md)
-- [docs/licensing.md](docs/licensing.md)
+- [Docs/licensing.md](Docs/licensing.md)
 
 ## VeilCorp QR Assets
 

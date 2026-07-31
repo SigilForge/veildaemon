@@ -696,14 +696,14 @@
         "type": "studio"
       },
       "copyrightLicense": {
-        "id": "proprietary",
-        "name": "Proprietary / all rights reserved",
-        "shortName": "Proprietary",
-        "spdxId": null,
-        "category": "proprietary",
-        "url": "https://www.copyright.gov/help/faq/",
-        "summary": "No reuse rights are granted unless a separate notice, agreement, or license says otherwise.",
-        "requiresNotice": false
+        "id": "apache-2.0",
+        "name": "Apache License 2.0",
+        "shortName": "Apache 2.0",
+        "spdxId": "Apache-2.0",
+        "category": "open_source",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0",
+        "summary": "A permissive open-source license covering VeilDaemon Core source. Hosted services, business logic, brand identity, and creative assets remain governed separately under the SigilForge Rights Framework (SFR); see LICENSE_SCOPE.md.",
+        "requiresNotice": true
       },
       "registryFramework": {
         "id": "sfr",
