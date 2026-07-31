@@ -2681,6 +2681,44 @@
     return ["Dream", "Hunger", "Silence", "Stillness", "Empyrean", "Becoming"];
   }
 
+  /**
+   * Pip center positions on the official Frequency Lotus art (assets/lotus/*),
+   * as fractions of image width/height, index 0 = innermost pip (rank 1) to
+   * index 5 = outermost/tip pip (rank 6). Extracted by thresholding the
+   * source B&W art for its white pip blobs and clustering by petal angle —
+   * see chat history for the one-off extraction script. The art bakes every
+   * pip in as filled; the print sheet masks out unearned ones over these
+   * coordinates rather than drawing a separate pip readout.
+   */
+  function lotusPipPositions() {
+    return {
+      Dream: [
+        { x: 0.3589, y: 0.4168 }, { x: 0.3319, y: 0.4009 }, { x: 0.2932, y: 0.3745 },
+        { x: 0.2658, y: 0.3575 }, { x: 0.2256, y: 0.328 }, { x: 0.196, y: 0.3076 }
+      ],
+      Hunger: [
+        { x: 0.4943, y: 0.3516 }, { x: 0.4942, y: 0.3185 }, { x: 0.4942, y: 0.2693 },
+        { x: 0.4941, y: 0.235 }, { x: 0.4942, y: 0.1875 }, { x: 0.4942, y: 0.1496 }
+      ],
+      Silence: [
+        { x: 0.4946, y: 0.6078 }, { x: 0.4948, y: 0.6413 }, { x: 0.4946, y: 0.6885 },
+        { x: 0.4946, y: 0.7207 }, { x: 0.4945, y: 0.768 }, { x: 0.4946, y: 0.8051 }
+      ],
+      Stillness: [
+        { x: 0.3605, y: 0.5488 }, { x: 0.3336, y: 0.567 }, { x: 0.295, y: 0.5941 },
+        { x: 0.2686, y: 0.6142 }, { x: 0.2255, y: 0.6418 }, { x: 0.1966, y: 0.6603 }
+      ],
+      Empyrean: [
+        { x: 0.6248, y: 0.4191 }, { x: 0.6521, y: 0.4037 }, { x: 0.691, y: 0.3756 },
+        { x: 0.7178, y: 0.3584 }, { x: 0.7578, y: 0.3298 }, { x: 0.7857, y: 0.3097 }
+      ],
+      Becoming: [
+        { x: 0.6241, y: 0.5493 }, { x: 0.6506, y: 0.5672 }, { x: 0.6891, y: 0.5936 },
+        { x: 0.716, y: 0.6117 }, { x: 0.757, y: 0.6402 }, { x: 0.7856, y: 0.6598 }
+      ]
+    };
+  }
+
   function normalizeFrequencyName(value) {
     return frequencies().includes(value) ? value : "";
   }
@@ -5108,16 +5146,39 @@
     const lotusSection = psSection("IV", "LOTUS ARRAY");
     const lotusFigure = document.createElement("figure");
     lotusFigure.className = "ps-lotus-figure";
+    const lotusFrame = document.createElement("div");
+    lotusFrame.className = "ps-lotus-frame";
     const lotusImg = document.createElement("img");
     lotusImg.src = "../assets/lotus/frequency-lotus-bw.webp";
     lotusImg.alt = "Frequency Lotus";
-    lotusFigure.append(lotusImg);
-    lotusSection.append(lotusFigure);
+    lotusFrame.append(lotusImg);
+
     const lotus = status.lotus || {};
+    const blindPetal = status.blindPetal || "";
+    const positions = lotusPipPositions();
     frequencies().forEach((name) => {
-      const value = name === status.blindPetal ? 0 : Number(lotus[name] || 0);
-      lotusSection.append(psPipRow(name, value, 6));
+      const value = name === blindPetal ? 0 : Number(lotus[name] || 0);
+      (positions[name] || []).forEach((pos, index) => {
+        const rank = index + 1;
+        if (rank <= value) return; // earned pip — leave the art's own glow showing through
+        const mask = document.createElement("i");
+        mask.className = "ps-lotus-mask";
+        mask.style.left = `${(pos.x * 100).toFixed(2)}%`;
+        mask.style.top = `${(pos.y * 100).toFixed(2)}%`;
+        lotusFrame.append(mask);
+      });
     });
+    lotusFigure.append(lotusFrame);
+    lotusSection.append(lotusFigure);
+
+    const caption = document.createElement("p");
+    caption.className = "ps-lotus-caption";
+    const cultivated = frequencies()
+      .filter((name) => name !== blindPetal)
+      .map((name) => `${name} ${Number(lotus[name] || 0)}/6`)
+      .join(" · ");
+    caption.textContent = blindPetal ? `${cultivated} — Blind: ${blindPetal}` : cultivated;
+    lotusSection.append(caption);
     main.append(lotusSection);
 
     const presentationSection = psSection("VIII", "PRESENTATION TRACK");

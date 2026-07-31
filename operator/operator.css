@@ -3647,13 +3647,34 @@ body.has-reports-drawer-open .surface-tabs {
   .ps-pip-count { font-size: .55rem; color: #555; font-style: normal; margin-left: .15rem; }
 
   .ps-lotus-figure {
-    margin: 0 0 .3rem;
+    margin: 0 0 .2rem;
     text-align: center;
   }
-  .ps-lotus-figure img {
+  .ps-lotus-frame {
+    position: relative;
+    display: inline-block;
     width: 100%;
     max-width: 260px;
+  }
+  .ps-lotus-frame img {
+    display: block;
+    width: 100%;
     filter: grayscale(1) contrast(1.15);
+  }
+  .ps-lotus-mask {
+    position: absolute;
+    width: 3.4%;
+    aspect-ratio: 1;
+    background: #000;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .ps-lotus-caption {
+    margin: 0;
+    text-align: center;
+    font-size: .58rem;
+    color: #555;
+    letter-spacing: .02em;
   }
 
   .ps-equipment-list, .ps-recovery-list {

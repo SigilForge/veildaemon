@@ -670,6 +670,33 @@ test("print sheet button populates a print-only sheet from current build", async
   await expect(printSheet.locator(".ps-lotus-figure img")).toHaveAttribute("src", /frequency-lotus-bw\.webp/);
 });
 
+test("print sheet masks unearned Lotus pips onto the official art instead of a text readout", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  await page.evaluate(() => {
+    const raw = JSON.parse(localStorage.getItem("veildaemon.operatorConsole.v1"));
+    raw.operatorStatus.lotus = { Dream: 3, Hunger: 0, Silence: 6, Stillness: 0, Empyrean: 2, Becoming: 5 };
+    raw.operatorStatus.blindPetal = "Stillness";
+    localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify(raw));
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Print Sheet" }).click();
+
+  // No more per-frequency pip rows under the art — one compact caption line instead.
+  await expect(page.locator("#print-sheet .ps-lotus-figure .ps-pip-row")).toHaveCount(0);
+  await expect(page.locator(".ps-lotus-caption")).toHaveText(
+    "Dream 3/6 · Hunger 0/6 · Silence 6/6 · Empyrean 2/6 · Becoming 5/6 — Blind: Stillness"
+  );
+
+  // Unearned (masked) pips per Frequency: Dream 6-3=3, Hunger 6-0=6, Silence 6-6=0,
+  // Stillness (blind, forced 0) = 6, Empyrean 6-2=4, Becoming 6-5=1. Total 20.
+  await expect(page.locator("#print-sheet .ps-lotus-mask")).toHaveCount(20);
+});
+
 test("legacy nerves skill entries are scrubbed from saved builds", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify({
