@@ -138,7 +138,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {email ? (
                 <>
                   <Link href="/dashboard">Dashboard</Link>
-                  <Link href="/live-link">Live-Link</Link>
                   <Link href="/billing">Billing</Link>
                   {/* Original QR / short-link product: shared Account control → /account */}
                   <ProductAccountLink product="qr" signedIn className="button secondary" />

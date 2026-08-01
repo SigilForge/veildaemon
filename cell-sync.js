@@ -1,8 +1,9 @@
 /**
- * Deliberate Cell sync bus (same-origin).
+ * Deliberate Cell sync bus (same-origin, same-device).
  * No polling. Handler End Pressure Round / Sync Cell / Archive Session
  * and Operator Send to Cell write here; the other role pulls on its button.
- * Multi-device sessions use VeilLink table live-link instead.
+ * Multi-device sessions go through cell-sync-remote.js instead, which mirrors this
+ * same bus shape over api.veildaemon.app/api/cell/* using VeilLink-issued identity.
  *
  * Authority (mid-round):
  * - Operator-submitted Harm and Stability remain authoritative when present.

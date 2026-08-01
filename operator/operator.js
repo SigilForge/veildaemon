@@ -5580,7 +5580,9 @@
   if (window.VeilDaemonCellSync?.onUpdate) {
     window.VeilDaemonCellSync.onUpdate(() => {
       // Auto-apply Handler projections when they push End Pressure Round / Sync Cell
-      // (same browser profile / BroadcastChannel). Multi-device uses VeilLink.
+      // (same browser profile / BroadcastChannel). Multi-device pulls deliberately
+      // instead (Pull Handler, or the auto-pull in restoreCellConnectionIfPossible)
+      // via cell-sync-remote.js rather than this same-origin storage event.
       pullHandlerCellIfAvailable();
     });
   }
