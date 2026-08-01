@@ -529,20 +529,32 @@
       });
     }
 
+    const ROLL_FEED_COLLAPSED_COUNT = 2;
+    let rollFeedExpanded = false;
+
     function renderRollFeed() {
+      const panel = document.querySelector(".roll-feed-panel");
       const container = document.getElementById("roll-feed-list");
       const badge = document.getElementById("roll-feed-badge");
+      const expandBtn = document.getElementById("roll-feed-expand-btn");
       if (!container) return;
       const rolls = window.VeilDaemonCellSync?.listRollFeed?.() || [];
       if (badge) {
         badge.textContent = `${rolls.length} ROLL${rolls.length === 1 ? "" : "S"}`;
+      }
+      if (panel) panel.classList.toggle("is-expanded", rollFeedExpanded);
+      if (expandBtn) {
+        const hasOverflow = rolls.length > ROLL_FEED_COLLAPSED_COUNT;
+        expandBtn.hidden = !hasOverflow;
+        expandBtn.textContent = rollFeedExpanded ? "Collapse" : `Expand (${rolls.length})`;
       }
       if (!rolls.length) {
         container.innerHTML = `<p class="roll-feed-empty">No Operator rolls recorded yet in this session.</p>`;
         return;
       }
       const reversed = rolls.slice().reverse();
-      container.innerHTML = reversed.map((item) => {
+      const visible = rollFeedExpanded ? reversed : reversed.slice(0, ROLL_FEED_COLLAPSED_COUNT);
+      container.innerHTML = visible.map((item) => {
         const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
         const diceStr = Array.isArray(item.keptDice) && item.keptDice.length ? item.keptDice.join("+") : (Array.isArray(item.dice) ? item.dice.join("+") : "");
         return `
@@ -562,6 +574,14 @@
           </article>
         `;
       }).join("");
+    }
+
+    const rollFeedExpandBtn = document.getElementById("roll-feed-expand-btn");
+    if (rollFeedExpandBtn) {
+      rollFeedExpandBtn.addEventListener("click", () => {
+        rollFeedExpanded = !rollFeedExpanded;
+        renderRollFeed();
+      });
     }
 
     const statusLine = document.getElementById("cell-sync-status");

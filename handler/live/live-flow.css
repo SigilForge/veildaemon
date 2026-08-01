@@ -193,6 +193,18 @@ body[data-handler-mode="live"] .live-pressure-better .trigger-button strong {
   body[data-handler-mode="live"] .live-center-column { grid-column: 2; }
   body[data-handler-mode="live"] .live-right-column { grid-column: 3; }
 
+  /* Roll audit feed docks as a floating sidecar instead of sitting in the
+     right column's flow -- it must never push the Operator Counterplay
+     panel below it down as rolls accumulate. */
+  body[data-handler-mode="live"] .roll-feed-panel {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    width: min(21rem, 26vw);
+    z-index: 30;
+    margin: 0;
+  }
+
   body[data-handler-mode="live"] .live-pressure-worse .panel-heading,
   body[data-handler-mode="live"] .live-pressure-better .panel-heading {
     margin-bottom: .55rem;

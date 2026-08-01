@@ -289,13 +289,16 @@
         </div>
 
         <div class="live-flow-column live-right-column">
-          <section class="panel roll-feed-panel" aria-label="Keep Honest Roll Feed" data-mode-panel="live">
+          <section class="panel roll-feed-panel no-print" aria-label="Keep Honest Roll Feed" data-mode-panel="live">
             <div class="panel-heading">
               <div class="panel-heading-copy">
                 <p class="kicker">KEEP HONEST // ROLL AUDIT FEED</p>
                 <h2>Live incoming Operator action rolls</h2>
               </div>
-              <span class="roll-feed-badge" id="roll-feed-badge">0 ROLLS</span>
+              <div class="roll-feed-heading-actions">
+                <span class="roll-feed-badge" id="roll-feed-badge">0 ROLLS</span>
+                <button class="button ghost small roll-feed-expand-btn" id="roll-feed-expand-btn" type="button" hidden>Expand</button>
+              </div>
             </div>
             <div class="roll-feed-list" id="roll-feed-list" aria-live="polite">
               <p class="roll-feed-empty">No Operator rolls recorded yet in this session.</p>
