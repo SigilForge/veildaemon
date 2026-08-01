@@ -817,18 +817,8 @@
     };
   }
 
-  function createButton(label, className, onClick) {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = className || "presentation-ability-btn";
-    button.textContent = label;
-    button.addEventListener("click", onClick);
-    return button;
-  }
-
-  function mountPresentationDriftReadout(body, view, runtime) {
+  function mountPresentationDriftReadout(body, view) {
     if (!body || !view) return;
-    const dispatch = typeof runtime?.dispatch === "function" ? runtime.dispatch : null;
 
     const block = document.createElement("div");
     block.className = `presentation-drift-readout presentation-drift-${view.presentationId}`;
@@ -884,21 +874,14 @@
       block.append(evolution);
     }
 
-    if (view.load >= 6 && dispatch) {
-      const collapseWrap = document.createElement("div");
-      collapseWrap.className = "presentation-drift-collapse";
-      const collapseCopy = document.createElement("p");
-      collapseCopy.className = "presentation-ability-meta";
-      collapseCopy.textContent = "Load 6 collapse resolved. Mark what the Presentation kept.";
-      collapseWrap.append(collapseCopy);
-      collapseWrap.append(createButton("Collapse Resolved — Mark Drift", "presentation-ability-btn", () => {
-        dispatch("collapse_drift_resolve");
-      }));
-      block.append(collapseWrap);
-    } else if (view.load >= 6) {
+    // Marking Drift is a Handler call, not an Operator self-service action --
+    // a Load 6 collapse is read-only here regardless of whether a dispatch
+    // function was supplied. There is no Operator-facing control that
+    // increments Drift; only the Handler side may authorize that.
+    if (view.load >= 6) {
       const pending = document.createElement("p");
       pending.className = "presentation-ability-meta presentation-ability-risk";
-      pending.textContent = "Load 6 collapse pending drift mark.";
+      pending.textContent = "Load 6 collapse resolved. Ask your Handler to confirm it and mark Drift.";
       block.append(pending);
     }
 

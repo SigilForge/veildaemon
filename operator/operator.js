@@ -794,22 +794,6 @@
     return api.normalizeSceneTimer(status).sceneTimer;
   }
 
-  function dispatchPresentationDriftAction(action) {
-    const api = presentationDriftApi();
-    if (!api?.applyCollapseDriftResolve || action !== "collapse_drift_resolve") return;
-    const result = api.applyCollapseDriftResolve(consoleState.operatorStatus, currentPresentationKey());
-    if (!result.ok) {
-      setStorageStatus(result.reason || "Could not mark Presentation Drift.", true);
-      return;
-    }
-    consoleState.operatorStatus = migrateOperatorStatus(result.status);
-    writeConsoleState();
-    renderTrackers();
-    renderStatusSummary();
-    const tierLabel = result.tier?.label || "Drift";
-    setStorageStatus(`Presentation Drift marked — ${tierLabel} (${result.value}).`);
-  }
-
   function dispatchPresentationAbilityAction(action, payload) {
     const api = presentationAbilitiesApi();
     if (!api?.applyPresentationAbilityAction) return;
@@ -3304,9 +3288,7 @@
     }
 
     if (driftView && driftApi?.mountPresentationDriftReadout) {
-      driftApi.mountPresentationDriftReadout(body, driftView, {
-        dispatch: dispatchPresentationDriftAction
-      });
+      driftApi.mountPresentationDriftReadout(body, driftView);
     }
 
     if (view.cue) {

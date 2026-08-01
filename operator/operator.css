@@ -3696,8 +3696,8 @@ body.has-reports-drawer-open .surface-tabs {
 
   .ps-section {
     border: 1px solid #333;
-    padding: .35rem .45rem .4rem;
-    margin-bottom: .35rem;
+    padding: .26rem .4rem .3rem;
+    margin-bottom: .26rem;
     break-inside: avoid;
   }
   /* Lists that grow with play (Frequency unlocks, Presentation abilities)
@@ -3713,7 +3713,7 @@ body.has-reports-drawer-open .surface-tabs {
   .ps-section h2 {
     display: flex;
     align-items: stretch;
-    margin: -.35rem -.45rem .3rem;
+    margin: -.26rem -.4rem .22rem;
     font-size: .68rem;
     letter-spacing: .06em;
     text-transform: uppercase;
@@ -3750,7 +3750,7 @@ body.has-reports-drawer-open .surface-tabs {
   .ps-skills-col { min-width: 0; }
 
   .ps-group-label {
-    margin: .35rem 0 .18rem;
+    margin: .24rem 0 .12rem;
     padding-left: .35rem;
     border-left: 3px solid var(--ps-accent);
     font-size: .58rem;
@@ -3761,7 +3761,7 @@ body.has-reports-drawer-open .surface-tabs {
   }
   .ps-group-label:first-child { margin-top: 0; }
 
-  .ps-pip-row { display: flex; align-items: flex-start; gap: .35rem; margin-bottom: .2rem; }
+  .ps-pip-row { display: flex; align-items: flex-start; gap: .35rem; margin-bottom: .14rem; }
   .ps-pip-label {
     flex: 0 0 5.4rem;
     font-size: .64rem;
@@ -3797,7 +3797,7 @@ body.has-reports-drawer-open .surface-tabs {
     position: relative;
     display: inline-block;
     width: 100%;
-    max-width: 230px;
+    max-width: 195px;
     box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--ps-ink);
   }
   .ps-lotus-frame img {
@@ -3812,16 +3812,16 @@ body.has-reports-drawer-open .surface-tabs {
     letter-spacing: .03em;
     color: var(--ps-ink);
   }
-  .ps-ability-block { margin-top: .4rem; }
+  .ps-ability-block { margin-top: .26rem; }
   .ps-ability-identity {
-    margin: 0 0 .3rem;
+    margin: 0 0 .2rem;
     font-size: .62rem;
     font-style: italic;
     color: #555;
   }
-  .ps-ability-group { margin-bottom: .3rem; break-inside: avoid; }
+  .ps-ability-group { margin-bottom: .2rem; break-inside: avoid; }
   .ps-ability-group-label {
-    margin: 0 0 .15rem;
+    margin: 0 0 .1rem;
     padding-bottom: .08rem;
     font-size: .62rem;
     font-weight: bold;
@@ -3831,9 +3831,9 @@ body.has-reports-drawer-open .surface-tabs {
     border-bottom: 1px solid #ccc;
   }
   .ps-ability-line {
-    margin: 0 0 .15rem;
+    margin: 0 0 .1rem;
     font-size: .62rem;
-    line-height: 1.32;
+    line-height: 1.24;
   }
   .ps-ability-line strong { color: var(--ps-ink); }
 
