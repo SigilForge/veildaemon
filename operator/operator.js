@@ -5531,38 +5531,10 @@
     recoverySection.append(recoveryList);
     page1.append(recoverySection);
 
-    // Whatever remains of page 1 is Notes: the player's already-written
-    // notes (if any) plus blank ruled lines for pencil, filling to the
-    // bottom of the page instead of leaving it empty.
-    if (status.quickNotes) {
-      const notesSection = nextSection("NOTES");
-      const notes = document.createElement("p");
-      notes.className = "ps-notes";
-      notes.textContent = status.quickNotes;
-      notesSection.append(notes);
-      page1.append(notesSection);
-    }
-
-    const fieldNotesSection = nextSection("FIELD NOTES");
-    fieldNotesSection.classList.add("ps-section-flow");
-    const fieldNotesLines = document.createElement("div");
-    fieldNotesLines.className = "ps-ruled-lines ps-ruled-lines-fill";
-    fieldNotesSection.append(fieldNotesLines);
-    page1.append(fieldNotesSection);
-
-    host.append(page1);
-
-    // =================================================================
-    // Page 2+ -- flows across as many pages as a developed character needs.
-    // Bounded content (Lotus art, Presentation identity, Equipment) comes
-    // first since it's always short. The two lists that grow with play --
-    // Frequency unlocks can run 20+ entries by end game, and Presentation
-    // abilities/thresholds/Drift grow too -- are listed last, so they're
-    // what spills onto extra trailing pages instead of anything else.
-    // =================================================================
-    const page2 = document.createElement("div");
-    page2.className = "ps-page";
-
+    // Lotus | Presentation side by side closes out page 1 -- this is the
+    // "what can I actually do" half of the operate page (build facts: art,
+    // unlocked petal names, Presentation identity/passive/active/thresholds),
+    // not exiled to a reference page the player has to flip to mid-scene.
     const introColumns = document.createElement("div");
     introColumns.className = "ps-columns ps-columns-balanced";
     const introMain = document.createElement("div");
@@ -5599,9 +5571,12 @@
     introMain.append(lotusSection);
 
     // Presentation section is built entirely from the selected Presentation's
-    // own data (passive/active/pressure track/band modifiers/collapse/drift)
-    // -- no shared generic Anchor/Totem/Grounding Line/Common Tell grid,
-    // since no Presentation contract actually defines those fields.
+    // own data (passive/active/pressure track/band modifiers/collapse) -- no
+    // shared generic Anchor/Totem/Grounding Line/Common Tell grid, since no
+    // Presentation contract actually defines those fields. Drift/Scars is
+    // its own section on page 2, not here -- Drift is a persistent record,
+    // not a live-play power list, and it belongs next to the reference
+    // material, not competing for space on the operate page.
     const presentationSection = nextSection("PRESENTATION");
     const abilitiesApi = presentationAbilitiesApi();
     const presentationView = abilitiesApi?.presentationAbilityView
@@ -5665,28 +5640,6 @@
           abilitiesBlock.append(line);
         }
       }
-      const driftApi = presentationDriftApi();
-      const driftView = driftApi?.presentationDriftView
-        ? driftApi.presentationDriftView(status, currentPresentationKey())
-        : null;
-      if (driftView && driftView.value > 0) {
-        const label = document.createElement("p");
-        label.className = "ps-ability-group-label";
-        label.textContent = `Drift ${driftView.value}`;
-        abilitiesBlock.append(label);
-        (driftView.accumulatedScars || []).forEach((scar) => {
-          const line = document.createElement("p");
-          line.className = "ps-ability-line";
-          const strong = document.createElement("strong");
-          strong.textContent = scar.label;
-          const bits = [
-            scar.benefit ? `Benefit: ${scar.benefit}` : "",
-            scar.cost ? `Cost: ${scar.cost}` : ""
-          ].filter(Boolean).join(". ");
-          line.append(strong, document.createTextNode(bits ? ` — ${bits}` : ""));
-          abilitiesBlock.append(line);
-        });
-      }
       presentationSection.append(abilitiesBlock);
     } else {
       const empty = document.createElement("p");
@@ -5697,7 +5650,18 @@
     introSide.append(presentationSection);
 
     introColumns.append(introMain, introSide);
-    page2.append(introColumns);
+    page1.append(introColumns);
+
+    host.append(page1);
+
+    // =================================================================
+    // Page 2 -- reference and record: Equipment, the full Frequency unlock
+    // list, Drift/Scars, and Notes filling whatever's left. The content
+    // decides the page count; Notes just inherits whatever paper remains
+    // rather than owning a fixed share of it.
+    // =================================================================
+    const page2 = document.createElement("div");
+    page2.className = "ps-page";
 
     const equipmentSection = nextSection("EQUIPMENT");
     const equipment = Array.isArray(consoleState.equipment) ? consoleState.equipment : [];
@@ -5747,6 +5711,57 @@
       page2.append(unlocksSection);
     }
 
+    // Drift/Scars: persistent record, not a scene-state snapshot -- Drift
+    // only increases when a Load 6 collapse is resolved and the table
+    // applies a lasting consequence ("Load is what is happening right now.
+    // Drift is what keeps happening to you."), so it's safe to print filled
+    // in, same as Lotus cultivation. Read-only here; awarding Drift and
+    // authorizing a scar is a Handler-side call, not something this sheet
+    // lets an Operator self-serve.
+    const driftApi = presentationDriftApi();
+    const driftView = presentationView && driftApi?.presentationDriftView
+      ? driftApi.presentationDriftView(status, currentPresentationKey())
+      : null;
+    if (driftView && driftView.value > 0) {
+      const driftSection = nextSection("DRIFT / SCARS");
+      driftSection.classList.add("ps-section-flow");
+      const driftLabel = document.createElement("p");
+      driftLabel.className = "ps-ability-name";
+      driftLabel.textContent = `Drift ${driftView.value} / 6`;
+      driftSection.append(driftLabel);
+      (driftView.accumulatedScars || []).forEach((scar) => {
+        const line = document.createElement("p");
+        line.className = "ps-ability-line";
+        const strong = document.createElement("strong");
+        strong.textContent = scar.label;
+        const bits = [
+          scar.benefit ? `Benefit: ${scar.benefit}` : "",
+          scar.cost ? `Cost: ${scar.cost}` : ""
+        ].filter(Boolean).join(". ");
+        line.append(strong, document.createTextNode(bits ? ` — ${bits}` : ""));
+        driftSection.append(line);
+      });
+      page2.append(driftSection);
+    }
+
+    // Whatever remains of the page is Notes: the player's already-written
+    // notes (if any) plus blank ruled lines for pencil, filling to the
+    // bottom instead of leaving it empty.
+    if (status.quickNotes) {
+      const notesSection = nextSection("NOTES");
+      const notes = document.createElement("p");
+      notes.className = "ps-notes";
+      notes.textContent = status.quickNotes;
+      notesSection.append(notes);
+      page2.append(notesSection);
+    }
+
+    const fieldNotesSection = nextSection("FIELD NOTES");
+    fieldNotesSection.classList.add("ps-section-flow");
+    const fieldNotesLines = document.createElement("div");
+    fieldNotesLines.className = "ps-ruled-lines ps-ruled-lines-fill";
+    fieldNotesSection.append(fieldNotesLines);
+    page2.append(fieldNotesSection);
 
     host.append(page2);
 
