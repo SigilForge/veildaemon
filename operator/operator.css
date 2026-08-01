@@ -3856,14 +3856,6 @@ body.has-reports-drawer-open .surface-tabs {
     width: 100%;
     filter: grayscale(1) contrast(1.15);
   }
-  .ps-lotus-caption {
-    margin: .3rem 0 0;
-    text-align: center;
-    font-size: .6rem;
-    color: #444;
-    letter-spacing: .02em;
-  }
-
   .ps-ability-block { margin-top: .4rem; }
   .ps-ability-identity {
     margin: 0 0 .3rem;

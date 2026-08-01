@@ -5392,17 +5392,6 @@
     lotusFigure.append(lotusFrame);
     lotusSection.append(lotusFigure);
 
-    const lotus = status.lotus || {};
-    const blindPetal = status.blindPetal || "";
-    const caption = document.createElement("p");
-    caption.className = "ps-lotus-caption";
-    const cultivated = frequencies()
-      .filter((name) => name !== blindPetal)
-      .map((name) => `${name} ${Number(lotus[name] || 0)}/6`)
-      .join(" · ");
-    caption.textContent = blindPetal ? `${cultivated} — Blind: ${blindPetal}` : cultivated;
-    lotusSection.append(caption);
-
     const unlockedEntries = unlockedLotusEntries();
     if (unlockedEntries.length) {
       const expressions = document.createElement("div");
@@ -5599,6 +5588,21 @@
     motto.textContent = "Roleplay becomes physics. Horror is the symptom. Emotional reality is the substrate.";
     footer.append(archivalId, motto);
     host.append(footer);
+    return lotusImg;
+  }
+
+  function waitForImageReady(img) {
+    if (!img) return Promise.resolve();
+    if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+    const ready = typeof img.decode === "function"
+      ? img.decode().catch(() => {})
+      : new Promise((resolve) => {
+        const done = () => resolve();
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+      });
+    const timeout = new Promise((resolve) => setTimeout(resolve, 1500));
+    return Promise.race([ready, timeout]);
   }
 
   function bindDataControls() {
@@ -5608,8 +5612,12 @@
     const purgeButton = document.getElementById("purge-console");
     const printSheetButton = document.getElementById("print-sheet-button");
 
-    if (printSheetButton) printSheetButton.addEventListener("click", () => {
-      renderPrintSheet();
+    if (printSheetButton) printSheetButton.addEventListener("click", async () => {
+      const lotusImg = renderPrintSheet();
+      // window.print() renders synchronously; a dynamically-inserted <img> that
+      // hasn't finished loading yet prints blank. Wait for it before printing,
+      // with a timeout so a stalled asset never leaves Print stuck.
+      await waitForImageReady(lotusImg);
       window.print();
     });
 
