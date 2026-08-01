@@ -5486,17 +5486,13 @@
     page1.append(trackersSection);
 
     // Recovery spans full width too, directly under Trackers.
+    // Two columns of two (Ground/Breathe, Connect/Name It) plus Leave
+    // centered underneath -- three visual rows instead of five stacked
+    // lines, buying back page-1 headroom the same way Attributes/Skills/
+    // Trackers already do.
     const recoverySection = nextSection("RECOVERY");
     const recoveryActions = presentationAbilitiesApi()?.RECOVERY_ACTIONS || {};
-    const recoveryList = document.createElement("ul");
-    recoveryList.className = "ps-recovery-list";
-    [
-      ["ground", "Ground", status.recoveryGround],
-      ["breathe", "Breathe", status.recoveryBreathe],
-      ["connect", "Connect", status.recoveryConnect],
-      ["leave", "Leave", status.recoveryLeave],
-      ["name_it", "Name It", status.recoveryNameIt]
-    ].forEach(([key, label, checked]) => {
+    const buildRecoveryItem = (key, label, checked) => {
       const li = document.createElement("li");
       li.className = checked ? "is-checked" : "";
       const box = document.createElement("i");
@@ -5508,9 +5504,24 @@
       const resolveLog = recoveryActions[key]?.resolveLog;
       if (resolveLog) text.append(document.createTextNode(` — ${resolveLog}.`));
       li.append(box, text);
-      recoveryList.append(li);
+      return li;
+    };
+    const recoveryColumns = document.createElement("div");
+    recoveryColumns.className = "ps-recovery-columns";
+    [
+      [["ground", "Ground", status.recoveryGround], ["breathe", "Breathe", status.recoveryBreathe]],
+      [["connect", "Connect", status.recoveryConnect], ["name_it", "Name It", status.recoveryNameIt]]
+    ].forEach((items) => {
+      const col = document.createElement("ul");
+      col.className = "ps-recovery-list";
+      items.forEach(([key, label, checked]) => col.append(buildRecoveryItem(key, label, checked)));
+      recoveryColumns.append(col);
     });
-    recoverySection.append(recoveryList);
+    recoverySection.append(recoveryColumns);
+    const recoveryLeave = document.createElement("ul");
+    recoveryLeave.className = "ps-recovery-list ps-recovery-leave";
+    recoveryLeave.append(buildRecoveryItem("leave", "Leave", status.recoveryLeave));
+    recoverySection.append(recoveryLeave);
     page1.append(recoverySection);
 
     // Lotus | Presentation side by side closes out page 1 -- this is the
