@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       mission: body.mission,
       maxOperators: body.maxOperators ?? body.max_operators ?? null,
     });
-    const joinUrl = `${product.appUrl}/table/join?code=${session.join_code}`;
+    const joinUrl = `${product.appUrl}/live-link/join?code=${session.join_code}`;
     return NextResponse.json({ session, joinUrl }, { status: 201 });
   } catch (error) {
     const status = Number((error as { status?: number }).status) || 500;

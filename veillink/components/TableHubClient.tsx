@@ -152,7 +152,7 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Join failed");
-      router.push(`/table/session/${data.session.id}`);
+      router.push(`/live-link/session/${data.session.id}`);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -222,8 +222,8 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
       </section>
 
       <section className="card table-card">
-        <p className="eyebrow">2 · Handler session</p>
-        <h2>Open a temporary table</h2>
+        <p className="eyebrow">2 · Open Cell</p>
+        <h2>Open a live Cell</h2>
         <p className="muted">Short code + QR. Operators join explicitly.</p>
         <form className="stack-form" onSubmit={createSession}>
           <label>
@@ -245,29 +245,29 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
               placeholder="Leave empty for no cap"
             />
           </label>
-          <p className="muted small">Only set if you want a fixed table size (e.g. 4 or 6). Empty = uncapped.</p>
+          <p className="muted small">Only set if you want a fixed Cell size (e.g. 4 or 6). Empty = uncapped.</p>
           <button className="button primary" type="submit" disabled={busy}>
-            Create Handler session
+            Open Cell
           </button>
         </form>
         {createdJoin ? (
           <div className="join-panel">
             <p className="join-code">{createdJoin.code}</p>
-            <p className="muted">Share this code or QR join URL with Operators.</p>
+            <p className="muted">Share this Cell Code or QR join URL with Operators.</p>
             <p className="mono small">{createdJoin.url}</p>
-            <Link className="button secondary" href={`/table/session/${createdJoin.id}`}>
-              Open Handler live view
+            <Link className="button secondary" href={`/live-link/session/${createdJoin.id}`}>
+              Open Handler Console
             </Link>
           </div>
         ) : null}
       </section>
 
       <section className="card table-card">
-        <p className="eyebrow">3 · Operator join</p>
-        <h2>Link file to session</h2>
+        <p className="eyebrow">3 · Join Cell</p>
+        <h2>Link file to Cell</h2>
         <form className="stack-form" onSubmit={joinAsOperator}>
           <label>
-            Join code
+            Cell Code
             <input
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
@@ -282,7 +282,7 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
             Selected file: {operators.find((o) => o.id === selectedOp)?.display_name || "none"}
           </p>
           <button className="button primary" type="submit" disabled={busy || !selectedOp}>
-            Join session
+            Join Cell
           </button>
         </form>
       </section>

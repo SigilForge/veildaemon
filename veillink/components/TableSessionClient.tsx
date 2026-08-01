@@ -91,7 +91,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
   const loadSession = useCallback(async () => {
     const res = await fetch(`/api/table/sessions/${sessionId}`);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Failed to load session");
+    if (!res.ok) throw new Error(data.error || "Failed to load Cell");
     setBundle(data as Bundle);
     const nextDrafts: Record<string, LiveState> = {};
     for (const seat of (data as Bundle).states || []) {
@@ -107,7 +107,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
       try {
         const res = await fetch(`/api/table/sessions/${sessionId}`);
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Failed to load session");
+        if (!res.ok) throw new Error(data.error || "Failed to load Cell");
         if (!active) return;
         setBundle(data as Bundle);
         const nextDrafts: Record<string, LiveState> = {};
@@ -257,7 +257,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
     setError("");
     try {
       if (bundle?.session?.status === "closed") {
-        setFlash("Archive already complete — session is closed.");
+        setFlash("Archive already complete — Cell is closed.");
         setTimeout(() => setFlash(""), 2800);
         setClosePanelOpen(false);
         return;
@@ -295,7 +295,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
       setClosePanelOpen(false);
       setFlash(
         count
-          ? `Archive Session complete. Reconciled ${count} Operator file(s). Download each Authorization Packet below to hand back to that player's Operator sheet.`
+          ? `Archive Operation complete. Reconciled ${count} Operator file(s). Download each Authorization Packet below to hand back to that player's Operator sheet.`
           : "Archive already complete — no additional bank reconciliation.",
       );
       await loadSession();
@@ -317,7 +317,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Leave failed");
-      window.location.href = "/table";
+      window.location.href = "/live-link";
     } catch (err) {
       setError((err as Error).message);
       setBusy(false);
@@ -326,7 +326,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
 
   const joinUrl = useMemo(() => {
     if (!bundle || typeof window === "undefined") return "";
-    return `${window.location.origin}/table/join?code=${bundle.session.join_code}`;
+    return `${window.location.origin}/live-link/join?code=${bundle.session.join_code}`;
   }, [bundle]);
 
   if (!bundle) {
@@ -356,7 +356,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
           {isHandler ? <p className="mono small">{joinUrl}</p> : null}
         </div>
         <div className="session-actions">
-          <Link className="button ghost" href="/table">
+          <Link className="button ghost" href="/live-link">
             Hub
           </Link>
         </div>
@@ -411,7 +411,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
               disabled={busy}
               onClick={() => setClosePanelOpen((open) => !open)}
             >
-              Archive Session…
+              Archive Operation…
             </button>
           </div>
         ) : null}
@@ -422,25 +422,25 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
             Stability, recovery notes.{" "}
             <strong>Sync Cell</strong> — same mid-round exchange <em>plus</em> Handler note; does not advance the
             round.{" "}
-            <strong>Archive Session</strong> — Void, Breach, unlocks (once). Lotus is between sessions and never
+            <strong>Archive Operation</strong> — Void, Breach, unlocks (once). Lotus is between operations and never
             mutates here.
           </p>
         ) : (
           <p className="muted small">
             Edit Harm / Stability / recovery notes locally. <strong>Send to Cell</strong> uploads only those fields.
-            Recovery resolves on your Operator sheet first. Lotus purchases are between sessions.
+            Recovery resolves on your Operator sheet first. Lotus purchases are between operations.
           </p>
         )}
 
         {isHandler && sessionOpen && closePanelOpen ? (
           <div className="card close-panel">
-            <p className="eyebrow">Archive Session — close options</p>
+            <p className="eyebrow">Archive Operation — close options</p>
             <label className="check-field">
               <input type="checkbox" checked={oneShot} onChange={(e) => setOneShot(e.target.checked)} />
-              One-shot (final session for these characters)
+              One-shot (final operation for these characters)
             </label>
             <fieldset className="stack-form">
-              <legend>Harm &amp; Stability for next session</legend>
+              <legend>Harm &amp; Stability for next operation</legend>
               <label className="check-field">
                 <input type="radio" name="reset-vitals" checked={!resetVitals} onChange={() => setResetVitals(false)} />
                 Carry current levels forward
@@ -517,7 +517,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
             ) : null}
             <div className="lobby-actions">
               <button className="button primary" type="button" disabled={busy} onClick={submitArchiveSession}>
-                Archive Session
+                Archive Operation
               </button>
               <button className="button ghost" type="button" disabled={busy} onClick={() => setClosePanelOpen(false)}>
                 Cancel
@@ -654,7 +654,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
                 ) : null}
 
                 <section className="lotus-block lotus-readonly">
-                  <p className="eyebrow">Lotus · between sessions · Blind: {state.blindPetal}</p>
+                  <p className="eyebrow">Lotus · between operations · Blind: {state.blindPetal}</p>
                   <div className="freq-grid">
                     {FREQUENCIES.map((f) => {
                       const blind = f === state.blindPetal;
@@ -669,7 +669,7 @@ export function TableSessionClient({ sessionId }: { sessionId: string }) {
                       );
                     })}
                   </div>
-                  <p className="muted small">Read-only. Petal purchases happen between sessions, not mid-table.</p>
+                  <p className="muted small">Read-only. Petal purchases happen between operations, not mid-Cell.</p>
                 </section>
               </article>
             );

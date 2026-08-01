@@ -86,9 +86,13 @@ Sending a full draft blob still cannot cultivate petals or smuggle mid-round ban
 
 | Path | Role |
 |------|------|
-| `/table` | Hub |
-| `/table/join?code=XXXXXX` | Operator join |
-| `/table/session/[id]` | Lobby + sheets |
+| `/live-link` | Hub |
+| `/live-link/join?code=XXXXXX` | Operator join |
+| `/live-link/session/[id]` | Lobby + sheets |
+
+Old `/table*` paths redirect to `/live-link*` (`next.config.ts`). Route folder, API paths
+(`/api/table/*`), and `lib/table/*` were left as-is — only the public-facing route and screen
+copy moved to the Cell/Operation vocabulary.
 
 ## API
 

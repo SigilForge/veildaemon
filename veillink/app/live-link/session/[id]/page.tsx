@@ -9,16 +9,16 @@ type Props = { params: Promise<{ id: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   return buildMetadata({
-    title: "Live session",
+    title: "Live Cell",
     description: "Handler ↔ Operator live state synchronization.",
-    path: `/table/session/${id}`,
+    path: `/live-link/session/${id}`,
     noIndex: true,
   });
 }
 
 export default async function TableSessionPage({ params }: Props) {
   const { id } = await params;
-  await requireUser().catch(() => redirect(`/login?next=/table/session/${id}`));
+  await requireUser().catch(() => redirect(`/login?next=/live-link/session/${id}`));
   return (
     <main className="page table-page">
       <TableSessionClient sessionId={id} />
