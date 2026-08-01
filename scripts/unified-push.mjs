@@ -1,8 +1,8 @@
 /**
  * Unified deployment script for VeilDaemon, VeilLink, RelayDaemon, and Supabase.
  *
- * Performs pre-flight checks, Git push, Vercel deployments, and Supabase verification sync
- * in one canonical command.
+ * Performs pre-flight checks, Supabase migrations, Git push, Vercel deployments,
+ * and Supabase verification sync in one canonical command.
  *
  * Usage:
  *   node scripts/unified-push.mjs [options]
@@ -10,13 +10,20 @@
  *   npm run push
  *
  * Options:
- *   --skip-checks    Skip unit tests and static syntax checks
- *   --skip-git       Skip git push origin main
- *   --skip-vercel    Skip Vercel deployments
- *   --all-vercel     Force deployment of all Vercel surfaces (veillink, relay, root api)
- *   --relay          Include Relay Vercel deployment
- *   --root-api       Include Root Vercel API deployment
- *   --dry-run        Print actions without executing them
+ *   --skip-checks              Skip unit tests and static syntax checks
+ *   --skip-supabase-migrations Skip `supabase db push` (schema migrations)
+ *   --skip-git                 Skip git push origin main
+ *   --skip-vercel              Skip Vercel deployments
+ *   --all-vercel                Force deployment of all Vercel surfaces (veillink, relay, root api)
+ *   --relay                    Include Relay Vercel deployment
+ *   --root-api                 Include Root Vercel API deployment
+ *   --dry-run                  Print actions without executing them
+ *
+ * Supabase migrations require SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF
+ * in the environment (see .env.example). Canonical migrations live in
+ * supabase/migrations/ at repo root — that is the one linked project
+ * (project_id "veildaemon" in supabase/config.toml). veillink/supabase/migrations/
+ * is a legacy, unmaintained duplicate; do not add new migrations there.
  */
 
 import { spawnSync } from "node:child_process";
@@ -29,6 +36,7 @@ const root = resolve(__dirname, "..");
 
 const args = process.argv.slice(2);
 const skipChecks = args.includes("--skip-checks");
+const skipSupabaseMigrations = args.includes("--skip-supabase-migrations");
 const skipGit = args.includes("--skip-git");
 const skipVercel = args.includes("--skip-vercel");
 const allVercel = args.includes("--all-vercel");
@@ -125,35 +133,61 @@ async function main() {
     logWarn("Supabase credentials not set in env; skipping live export (local verification projection used)");
   }
 
-  // 3. Git Push
+  // 3. Supabase Schema Migrations (canonical migrations live at repo root)
+  const supabaseAccessToken = process.env.SUPABASE_ACCESS_TOKEN;
+  const supabaseProjectRef = process.env.SUPABASE_PROJECT_REF;
+  const supabaseDbPassword = process.env.SUPABASE_DB_PASSWORD; // optional; some CLI versions need it for db push
+  if (skipSupabaseMigrations) {
+    logWarn("Skipping Supabase migrations (--skip-supabase-migrations)");
+  } else {
+    logStep("Phase 3: Apply Supabase Migrations (supabase/migrations/)");
+    if (!supabaseAccessToken || !supabaseProjectRef) {
+      logWarn(
+        "SUPABASE_ACCESS_TOKEN / SUPABASE_PROJECT_REF not set — skipping automated migration push. " +
+          "Apply supabase/migrations/ manually (`npx supabase db push`) before relying on new schema."
+      );
+    } else {
+      const supabaseEnv = { SUPABASE_ACCESS_TOKEN: supabaseAccessToken };
+      const passwordArgs = supabaseDbPassword ? ["--password", supabaseDbPassword] : [];
+      // Linking is idempotent locally but can fail noisily if already linked; that's harmless.
+      run("npx", ["supabase", "link", "--project-ref", supabaseProjectRef, "--yes", ...passwordArgs], {
+        env: supabaseEnv,
+        allowFailure: true,
+      });
+      run("npx", ["supabase", "db", "push", "--yes", ...passwordArgs], { env: supabaseEnv });
+      logOk("Supabase migrations applied to the linked project");
+    }
+  }
+
+  // 4. Git Push
   if (skipGit) {
     logWarn("Skipping Git push (--skip-git)");
   } else {
-    logStep("Phase 3: Push to GitHub (origin main)");
+    logStep("Phase 4: Push to GitHub (origin main)");
     run("git", ["push", "origin", "main"]);
     logOk("Pushed latest commits to origin main");
   }
 
-  // 4. Vercel Deployments
+  // 5. Vercel Deployments
   if (skipVercel) {
     logWarn("Skipping Vercel deployments (--skip-vercel)");
   } else {
-    logStep("Phase 4: Vercel Deployments");
+    logStep("Phase 5: Vercel Deployments");
 
-    // 4a. VeilLink App (app.veildaemon.app)
-    logStep("4a. Deploying VeilLink (app.veildaemon.app)...");
+    // 5a. VeilLink App (app.veildaemon.app)
+    logStep("5a. Deploying VeilLink (app.veildaemon.app)...");
     const veillinkDir = resolve(root, "veillink");
     if (existsSync(veillinkDir)) {
       run("vercel", ["--prod", "--yes"], { cwd: veillinkDir });
       logOk("VeilLink production build deployed to app.veildaemon.app");
     }
 
-    // 4b. RelayDaemon (relay.veildaemon.app) - run if Relay files changed or requested
+    // 5b. RelayDaemon (relay.veildaemon.app) - run if Relay files changed or requested
     const relayFilesChanged = changed.some(
       (f) => f.startsWith("studio/relay/") || f.startsWith("scripts/relay") || f.startsWith("api/character.js")
     );
     if (includeRelay || relayFilesChanged) {
-      logStep("4b. Deploying RelayDaemon (relay.veildaemon.app)...");
+      logStep("5b. Deploying RelayDaemon (relay.veildaemon.app)...");
       run("npm", ["run", "relay:vercel:prepare"]);
       const relayVercelDir = resolve(root, "_relay-vercel");
       if (existsSync(relayVercelDir)) {
@@ -167,10 +201,10 @@ async function main() {
       console.log("  └─ Skipping RelayDaemon deploy (no relay file changes detected; use --relay or --all-vercel to force)");
     }
 
-    // 4c. Main Vercel API (api.veildaemon.app) - run if api/ or vercel.json changed or requested
+    // 5c. Main Vercel API (api.veildaemon.app) - run if api/ or vercel.json changed or requested
     const apiFilesChanged = changed.some((f) => f.startsWith("api/") || f === "vercel.json");
     if (includeRootApi || apiFilesChanged) {
-      logStep("4c. Deploying Root Vercel API (api.veildaemon.app)...");
+      logStep("5c. Deploying Root Vercel API (api.veildaemon.app)...");
       run("vercel", ["--prod", "--yes"], { cwd: root });
       logOk("Root Vercel API deployed to api.veildaemon.app");
     } else {
@@ -178,8 +212,8 @@ async function main() {
     }
   }
 
-  // 5. Final Summary
-  logStep("Phase 5: Unified Deployment Summary");
+  // 6. Final Summary
+  logStep("Phase 6: Unified Deployment Summary");
   console.log(`
   \x1b[32m✔ Unified Push & Deployment Complete!\x1b[0m
 

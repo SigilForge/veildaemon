@@ -361,8 +361,9 @@
     style.textContent = `
       .veil-auth-status {
         display: inline-flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.25rem 0.5rem;
         font-family: monospace, monospace;
         font-size: 0.75rem;
         padding: 0.25rem 0.6rem;
@@ -370,8 +371,10 @@
         background: rgba(15, 23, 42, 0.8);
         border: 1px solid rgba(255, 255, 255, 0.12);
         color: #e2e8f0;
+        max-width: 100%;
       }
       .veil-auth-status .auth-dot {
+        flex: none;
         width: 7px;
         height: 7px;
         border-radius: 50%;
@@ -386,12 +389,18 @@
         box-shadow: 0 0 6px rgba(168, 85, 247, 0.6);
       }
       .veil-auth-status .auth-label {
+        flex: none;
         font-weight: 700;
         letter-spacing: 0.05em;
         color: #94a3b8;
+        white-space: nowrap;
+        overflow-wrap: normal;
+        word-break: normal;
       }
       .veil-auth-status .auth-user {
         color: #f8fafc;
+        flex: 0 1 140px;
+        min-width: 0;
         max-width: 140px;
         overflow: hidden;
         text-overflow: ellipsis;

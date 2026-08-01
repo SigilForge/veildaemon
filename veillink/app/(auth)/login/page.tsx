@@ -5,7 +5,7 @@ import { login } from "../actions";
 
 export const metadata: Metadata = buildMetadata({
   title: "Log in",
-  description: "Log in to VeilLink to manage short links, download QR codes, view scan counts, and update destinations.",
+  description: "Log in to VeilLink to manage account-backed ownership, Creator Rights records, and short links with editable QR codes.",
   path: "/login",
   keywords: ["VeilLink login", "QR code dashboard login"],
 });

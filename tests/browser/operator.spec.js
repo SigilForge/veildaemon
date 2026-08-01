@@ -615,6 +615,90 @@ test("burnout professional nerves bonus lands on attributes not skills", async (
   await expect(page.getByLabel("Nerves 5")).toBeDisabled();
 });
 
+test("burnout professional investigation inline rank buttons cap base at 3", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+  await page.locator('[name="background"]').selectOption("Burnout Professional");
+
+  const investigationRow = page.locator(".skill-summary-row", { hasText: "Investigation" });
+  await expect(investigationRow.locator(".skill-summary-rank")).toHaveText("+1");
+
+  // Base 0 -> 1 -> 2 -> 3, all free (within the 8-point skill budget)
+  await page.getByRole("button", { name: "Increase Investigation rank" }).click();
+  await expect(investigationRow.locator(".skill-summary-rank")).toHaveText("+2 (1+1)");
+  await expect(page.getByText("Creation: skills 1/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+
+  await page.getByRole("button", { name: "Increase Investigation rank" }).click();
+  await expect(investigationRow.locator(".skill-summary-rank")).toHaveText("+3 (2+1)");
+
+  await page.getByRole("button", { name: "Increase Investigation rank" }).click();
+  await expect(investigationRow.locator(".skill-summary-rank")).toHaveText("+4 (3+1)");
+  await expect(page.getByText("Creation: skills 3/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
+
+  // Base rank purchases cap at 3 even with a +1 background skill bonus in play
+  await expect(page.getByRole("button", { name: "Increase Investigation rank" })).toBeDisabled();
+  await expect(investigationRow.locator(".skill-summary-rank")).toHaveText("+4 (3+1)");
+
+  await page.getByRole("button", { name: "Decrease Investigation rank" }).click();
+  await expect(investigationRow.locator(".skill-summary-rank")).toHaveText("+3 (2+1)");
+  await expect(page.getByRole("button", { name: "Increase Investigation rank" })).toBeEnabled();
+});
+
+test("print sheet button populates a print-only sheet from current build", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+  await page.getByLabel("Body 3").click();
+  await page.locator("#skill-picker").selectOption("Investigation");
+  await page.locator("#skill-rank").fill("3");
+  await page.getByRole("button", { name: "Add Skill" }).click();
+  await page.getByLabel("Operator Name").fill("Cathy Holloway");
+
+  const printSheet = page.locator("#print-sheet");
+  await expect(printSheet).toBeHidden(); // display:none outside @media print, but DOM should populate on click
+
+  await page.getByRole("button", { name: "Print Sheet" }).click();
+
+  await expect(printSheet.locator(".ps-header h1")).toHaveText("CRADLEPOINT");
+  const nameField = printSheet.locator(".ps-field", { hasText: "Name" });
+  await expect(nameField.locator("strong")).toHaveText("Cathy Holloway");
+  const bodyRow = printSheet.locator(".ps-pip-row", { hasText: "Body" });
+  await expect(bodyRow.locator(".ps-pip-count")).toHaveText("3/5");
+  const investigationRow = printSheet.locator(".ps-pip-row", { hasText: "Investigation" });
+  await expect(investigationRow.locator(".ps-pip-count")).toHaveText("3/5");
+  await expect(printSheet.locator(".ps-lotus-figure img")).toHaveAttribute("src", /frequency-lotus-bw\.webp/);
+});
+
+test("print sheet masks unearned Lotus pips onto the official art instead of a text readout", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  await page.evaluate(() => {
+    const raw = JSON.parse(localStorage.getItem("veildaemon.operatorConsole.v1"));
+    raw.operatorStatus.lotus = { Dream: 3, Hunger: 0, Silence: 6, Stillness: 0, Empyrean: 2, Becoming: 5 };
+    raw.operatorStatus.blindPetal = "Stillness";
+    localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify(raw));
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Print Sheet" }).click();
+
+  // No more per-frequency pip rows under the art — one compact caption line instead.
+  await expect(page.locator("#print-sheet .ps-lotus-figure .ps-pip-row")).toHaveCount(0);
+  await expect(page.locator(".ps-lotus-caption")).toHaveText(
+    "Dream 3/6 · Hunger 0/6 · Silence 6/6 · Empyrean 2/6 · Becoming 5/6 — Blind: Stillness"
+  );
+
+  // Unearned (masked) pips per Frequency: Dream 6-3=3, Hunger 6-0=6, Silence 6-6=0,
+  // Stillness (blind, forced 0) = 6, Empyrean 6-2=4, Becoming 6-5=1. Total 20.
+  await expect(page.locator("#print-sheet .ps-lotus-mask")).toHaveCount(20);
+});
+
 test("legacy nerves skill entries are scrubbed from saved builds", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify({
@@ -737,6 +821,38 @@ test("creation mode guards attribute bonus breach spending", async ({ page }) =>
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("4");
 });
 
+test("authorization packet HARM_SET and STABILITY_SET override rather than add", async ({ page }) => {
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  await applyCoreStart(page);
+
+  // Baseline: Harm starts at 0, Stability at 10.
+  await expect(page.getByLabel("Harm 1")).not.toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 10")).toHaveClass(/is-filled/);
+
+  await importAuthorizationPacket(page, ["HARM_SET:3", "STABILITY_SET:6"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.getByLabel("Harm 3")).toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Harm 4")).not.toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 6")).toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 7")).not.toHaveClass(/is-filled/);
+
+  // A second packet with different values replaces the prior set instead of stacking.
+  await importAuthorizationPacket(page, ["HARM_SET:1", "STABILITY_SET:9"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.getByLabel("Harm 1")).toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Harm 2")).not.toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 9")).toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 10")).not.toHaveClass(/is-filled/);
+
+  // Out-of-range values clamp to the track's max instead of overflowing.
+  await importAuthorizationPacket(page, ["HARM_SET:9", "STABILITY_SET:99"]);
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await expect(page.getByLabel("Harm 5")).toHaveClass(/is-filled/);
+  await expect(page.getByLabel("Stability 10")).toHaveClass(/is-filled/);
+});
+
 test("creation skill spending after free budget and refunds", async ({ page }) => {
   await page.goto("/operator/");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
@@ -763,7 +879,7 @@ test("creation skill spending after free budget and refunds", async ({ page }) =
   await page.getByRole("button", { name: "Decrease Medicine rank" }).click();
   await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
 
-  // A2: Raising an existing Rank 2 Skill to Rank 3 costs 1 Bonus Breach (flat 1 Breach per rank step beyond 8)
+  // A2: Raising an existing Rank 2 Skill to Rank 3 after the free budget costs a flat 1 Bonus Breach
   await page.locator("#skill-picker").selectOption("Athletics");
   await page.locator("#skill-rank").fill("3");
   await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 1 Bonus Breach");
@@ -774,7 +890,7 @@ test("creation skill spending after free budget and refunds", async ({ page }) =
   await page.getByRole("button", { name: "Decrease Athletics rank" }).click();
   await expect(page.getByText("Creation: skills 8/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
 
-  // A3 & D3: Raising a Rank 1 Skill to Rank 2 after 8 free ranks costs 1 Bonus Breach, reducing 2->1 refunds 1
+  // A3 & D3: Raising a Rank 1 Skill to Rank 2 after 8 free ranks costs a flat 1 Bonus Breach, reducing 2->1 refunds 1
   await page.locator("#skill-picker").selectOption("Medicine");
   await page.locator("#skill-rank").fill("1");
   await page.getByRole("button", { name: "Add Skill" }).click(); // costs 1, breach = 2
@@ -828,7 +944,7 @@ test("creation background skill bonus cost delta after free budget", async ({ pa
   const invRowRank2 = page.locator(".skill-summary-row", { hasText: "Investigation" });
   await expect(invRowRank2.locator(".skill-summary-rank")).toHaveText("+2 (1+1)");
 
-  // Raising Investigation to effective 3 buys player Rank 2 and costs 1 Bonus Breach (flat 1 Breach per rank step beyond 8)
+  // Raising Investigation to effective 3 buys player Rank 2, after the free budget, costing a flat 1 Bonus Breach
   await page.locator("#skill-picker").selectOption("Investigation");
   await page.locator("#skill-rank").fill("3");
   await expect(page.locator("#skill-cost-preview")).toContainText("Creation cost: 1 Bonus Breach");

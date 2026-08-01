@@ -28,6 +28,38 @@
     if (out) out.textContent = message;
   }
 
+  /** Refreshes the local bus from the server before a deliberate sync click, when CONNECTED
+   * — syncKind() itself stays synchronous/unchanged, reading whatever this leaves in the bus. */
+  async function pullRemoteIfConnected() {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected()) return;
+    try {
+      await remote.pullState();
+    } catch (error) {
+      setStatus(error?.message || "Remote Cell pull failed", true);
+    }
+  }
+
+  /** Publishes this round's per-operator projections remotely, when CONNECTED — the local
+   * bus write already happened inside syncKind(), so a remote failure only affects
+   * cross-device Operators, never the Handler's own local state. */
+  async function pushRemoteIfConnected(result) {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected() || !result || result.rejected) return;
+    try {
+      await remote.pushHandlerProjections({
+        kind: result.kind,
+        round: result.round,
+        note: result.note,
+        archiveToken: result.archiveToken,
+        projections: result.projections,
+        actionEconomy: result.actionEconomy,
+      });
+    } catch (error) {
+      setStatus(error?.message || "Remote Cell publish failed", true);
+    }
+  }
+
   function pendingPrompts(state) {
     return (Array.isArray(state?.trackPromptQueue) ? state.trackPromptQueue : [])
       .filter((item) => item && item.status !== "Resolved");
@@ -52,6 +84,19 @@
       const status = player.operatorStatus;
       if (status.voidMarks !== undefined) out.voidMarks = Number(status.voidMarks) || 0;
       if (status.breachPoints !== undefined) out.breachPoints = Number(status.breachPoints) || 0;
+    }
+    // Presentation Load: Handler already computes this via the trigger/manual-pressure
+    // pipeline (misfireLoadDeltaForTrigger etc.) — put the player's current value on the
+    // wire so the Operator sheet's own meter actually moves instead of a toast-only note.
+    if (api?.playerLoadPresentation && api?.playerTrackLoad) {
+      const presentation = api.playerLoadPresentation(player);
+      const track = presentation ? window.PresentationPressure?.primaryTrack(presentation) : null;
+      if (track) {
+        const value = api.playerTrackLoad(player, presentation);
+        if (value !== null && value !== undefined) {
+          out.loadDeltas = [{ trackKind: track.kind, value }];
+        }
+      }
     }
     return out;
   }
@@ -200,7 +245,9 @@
       const bits = [];
       if (harmDelta) bits.push(`Harm ${harmDelta > 0 ? "+" : ""}${harmDelta}`);
       if (stabDelta) bits.push(`Stability ${stabDelta > 0 ? "+" : ""}${stabDelta}`);
-      if (send.recoveryDeclared) bits.push(`recovery ${send.recoveryDeclared}`);
+      if (send.recoveryDeclared) {
+        bits.push(send.recoveryResolution ? `recovery ${send.recoveryDeclared}: ${send.recoveryResolution}` : `recovery ${send.recoveryDeclared}`);
+      }
       if (includeBanks && (send.voidMarks !== undefined || send.breachPoints !== undefined)) {
         bits.push(`banks Void ${send.voidMarks ?? "—"} / Breach ${send.breachPoints ?? "—"}`);
       }
@@ -249,6 +296,23 @@
     const round = Number(session.pressureRound) || prevRound;
     state.session = session;
 
+    // Action economy: fresh Main/Move/Frequency/Reaction budgets for every known seat when
+    // a Pressure Round ends; otherwise carry the existing bus snapshot forward. Either way,
+    // apply any actionSpend this batch of Operator sends reported before publishing.
+    const economy = window.VeilDaemonPressureRoundEconomy;
+    let actionEconomy = economy
+      ? (kind === "pressure_round"
+        ? economy.resetBudgetsForRound(round, players.map((p) => p.sourceId || p.name).filter(Boolean))
+        : (cell.read().handler.actionEconomy || { round, budgets: {} }))
+      : undefined;
+    if (economy && actionEconomy) {
+      sends.forEach((send) => {
+        if (send.actionSpend?.slot) {
+          actionEconomy = economy.spendSlot(actionEconomy, send.operatorKey, send.actionSpend.slot);
+        }
+      });
+    }
+
     // 4) Publish Handler projections (Harm/Stability/notes; banks only on archive).
     //    Lotus is never mid-round — between-sessions only.
     const projections = players.map((player) => {
@@ -272,7 +336,8 @@
         round,
         pressureRound: round,
         note,
-        archiveToken: archiveToken || undefined
+        archiveToken: archiveToken || undefined,
+        actionEconomy
       });
     } catch (error) {
       setStatus(error.message || "Cell publish refused.", true);
@@ -320,7 +385,7 @@
     ].join(" // ");
     setStatus(lines.length ? `${summary}\n${lines.join("\n")}` : summary);
 
-    return { state, kind, lines, summary, publishResult };
+    return { state, kind, lines, summary, publishResult, projections, round, note, archiveToken };
   }
 
   function resolveLateSend(operatorKey, choice) {
@@ -426,9 +491,11 @@
     const cellBtn = document.getElementById("cell-sync-cell");
     const archiveBtn = document.getElementById("cell-sync-archive");
 
-    function run(kind) {
+    async function run(kind) {
+      await pullRemoteIfConnected();
       const result = syncKind(kind);
       if (result && onAfter) onAfter(result);
+      await pushRemoteIfConnected(result);
     }
 
     if (pressureBtn) {
@@ -438,7 +505,7 @@
       cellBtn.addEventListener("click", () => run("cell"));
     }
     if (archiveBtn) {
-      archiveBtn.addEventListener("click", () => {
+      archiveBtn.addEventListener("click", async () => {
         const state = api.readState();
         if (state.session?.cellArchiveToken) {
           setStatus(`ARCHIVE ALREADY COMPLETE · token ${state.session.cellArchiveToken}`);
@@ -447,7 +514,18 @@
         if (!window.confirm("Archive Session? Pull Operator banks (Void/Breach) once, reconcile Harm/Stability, clear Cell sends. Lotus stays between-sessions.")) {
           return;
         }
-        run("archive");
+        await run("archive");
+        // Reward-granting (Void/Breach bonuses, Ontology/Background/Case unlocks) has no
+        // Handler UI yet -- this closes the Cell with whatever final numbers the archive
+        // push above already carried, same as same-device play today.
+        const remote = window.VeilDaemonCellRemote;
+        if (remote?.isConnected()) {
+          try {
+            await remote.closeCell({ oneShot: state.activeNeedlepoint?.one_shot });
+          } catch (error) {
+            setStatus(error?.message || "Remote Cell close failed", true);
+          }
+        }
       });
     }
 

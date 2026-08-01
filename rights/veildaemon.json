@@ -36,7 +36,7 @@
     "attributionRequired": "license_required",
     "licenseRequired": "license_required"
   },
-  "permissionsSummary": "This software, service implementation, business logic, API surface, and related platform code may not be used for model training, fine-tuning, dataset redistribution, cloning, self-hosting, or commercial AI use without a separate written license.",
+  "permissionsSummary": "VeilDaemon Core source (client/server interface scripts and core utility controllers) is licensed under Apache License 2.0 and may be used under that license, with the SigilForge Rights Framework (SFR) supplementing it for provenance, verification, and rights declarations. The Creator Rights Registry service, trademarks and brand identity (SigilForge Studios, VeilDaemon, VeilCorp, CradlePoint, RelayDaemon, VeilLink, and related marks), hosted APIs and platform infrastructure, and business logic remain protected under SFR and are not licensed for reuse. Model training, fine-tuning, dataset redistribution, cloning, self-hosting, or commercial AI use should be reviewed against Apache License 2.0, SFR terms, file-specific notices, and any separately published product terms.",
   "licensing": {
     "availability": "paid_license",
     "commercialReadiness": "inquiry_only",
@@ -104,14 +104,14 @@
     ]
   },
   "copyrightLicense": {
-    "id": "proprietary",
-    "name": "Proprietary / all rights reserved",
-    "shortName": "Proprietary",
-    "spdxId": null,
-    "category": "proprietary",
-    "url": "https://www.copyright.gov/help/faq/",
-    "summary": "No reuse rights are granted unless a separate notice, agreement, or license says otherwise.",
-    "requiresNotice": false
+    "id": "apache-2.0",
+    "name": "Apache License 2.0",
+    "shortName": "Apache 2.0",
+    "spdxId": "Apache-2.0",
+    "category": "open_source",
+    "url": "https://www.apache.org/licenses/LICENSE-2.0",
+    "summary": "A permissive open-source license covering VeilDaemon Core source. Hosted services, business logic, brand identity, and creative assets remain governed separately under the SigilForge Rights Framework (SFR); see LICENSE_SCOPE.md.",
+    "requiresNotice": true
   },
   "registryFramework": {
     "id": "sfr",

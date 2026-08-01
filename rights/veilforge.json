@@ -7,8 +7,8 @@
   "workTypeLabel": "Software",
   "category": "software",
   "categoryLabel": "Software",
-  "availability": "public",
-  "availabilityLabel": "Public",
+  "availability": "restricted",
+  "availabilityLabel": "Restricted",
   "work": {
     "type": "software",
     "category": "software"
@@ -36,7 +36,7 @@
     "attributionRequired": "license_required",
     "licenseRequired": "license_required"
   },
-  "permissionsSummary": "VeilForge source covered by MPL 2.0 may be used under that license. Model training, fine-tuning, dataset redistribution, hosted cloning, enterprise deployment, trademark use, and commercial AI use should be reviewed against MPL 2.0, file-specific notices, and any separately published product terms.",
+  "permissionsSummary": "VeilForge is a proprietary enterprise local AI runtime. No reuse, modification, redistribution, cloning, self-hosting, or commercial deployment rights are granted unless a separate written license, notice, or agreement says otherwise. Model training, fine-tuning, dataset redistribution, hosted cloning, enterprise deployment, trademark use, and commercial AI use all require a separate written license.",
   "licensing": {
     "availability": "paid_license",
     "commercialReadiness": "inquiry_only",
@@ -71,14 +71,14 @@
     ]
   },
   "copyrightLicense": {
-    "id": "mpl-2.0",
-    "name": "Mozilla Public License 2.0",
-    "shortName": "MPL 2.0",
-    "spdxId": "MPL-2.0",
-    "category": "open_source",
-    "url": "https://www.mozilla.org/en-US/MPL/2.0/",
-    "summary": "A file-level copyleft software license that requires changes to MPL-covered files to remain available under MPL.",
-    "requiresNotice": true
+    "id": "proprietary",
+    "name": "Proprietary / all rights reserved",
+    "shortName": "Proprietary",
+    "spdxId": null,
+    "category": "proprietary",
+    "url": "https://www.copyright.gov/help/faq/",
+    "summary": "No reuse rights are granted unless a separate notice, agreement, or license says otherwise.",
+    "requiresNotice": false
   },
   "registryFramework": {
     "id": "sfr",

@@ -136,10 +136,42 @@
     const entity = state.activeEntity || {};
     const kind = api.safeString(entity.kind, 40) || "Zone";
     const name = api.safeString(entity.name, 120) || "Unnamed active Entity / Zone";
+    const currentStep = api.safeString(entity.currentStep, 20);
     node.textContent = "";
     const title = document.createElement("p");
     title.innerHTML = `<strong>Active ${kind}</strong><span>${name}</span>`;
     node.append(title);
+
+    const stepLine = document.createElement("p");
+    stepLine.className = "entity-loop-step-readout";
+    stepLine.textContent = currentStep ? `Loop step: ${currentStep}` : "Loop step: not started";
+    node.append(stepLine);
+
+    const advance = document.createElement("button");
+    advance.type = "button";
+    advance.className = "scene-timer-btn";
+    advance.textContent = currentStep ? `Advance Entity (-> ${api.nextEntityLoopStep(currentStep)})` : "Advance Entity (-> Need)";
+    advance.addEventListener("click", () => advanceEntityLoop());
+    node.append(advance);
+  }
+
+  function advanceEntityLoop() {
+    const nextStep = api.nextEntityLoopStep(state.activeEntity?.currentStep || "");
+    state = {
+      ...state,
+      activeEntity: { ...state.activeEntity, currentStep: nextStep }
+    };
+    writeState(`ENTITY LOOP -> ${nextStep}`);
+    renderActiveEntityReadout();
+
+    const target = api.entityLoopConsequenceTarget(state, nextStep);
+    if (!target) return;
+    const change = pressure().buildManualPressureChange(target.kind, target.before, target.after, {
+      clockName: target.clockName,
+      label: target.label,
+      hint: target.hint
+    });
+    requestPressurePreview(change);
   }
 
   function renderClock(trackId, clock, enabled = true) {
@@ -527,6 +559,133 @@
     return "Something ordinary answers before anyone explains it.";
   }
 
+  function sbField(label, value) {
+    const field = document.createElement("div");
+    field.className = "sb-field";
+    const span = document.createElement("span");
+    span.textContent = label;
+    const strong = document.createElement("strong");
+    strong.textContent = value || "—";
+    field.append(span, strong);
+    return field;
+  }
+
+  function sbFieldRow(...fields) {
+    const row = document.createElement("div");
+    row.className = "sb-field-row";
+    row.append(...fields);
+    return row;
+  }
+
+  function sbSection(numeral, title) {
+    const section = document.createElement("section");
+    section.className = "sb-section";
+    const h2 = document.createElement("h2");
+    h2.textContent = `${numeral}. ${title}`;
+    section.append(h2);
+    return section;
+  }
+
+  function sbClockLine(label, clock) {
+    if (!clock || !clock.segments) return null;
+    const line = document.createElement("p");
+    line.className = "sb-clock-line";
+    const name = clock.name || "Unnamed";
+    const warn = api.clockWarning(clock);
+    line.textContent = `${label}: ${name} ${clock.current}/${clock.segments}${warn ? ` — ${warn}` : ""}`;
+    return line;
+  }
+
+  /**
+   * Handler-only reference sheet for the table, replacing a naive shrink of
+   * the live interactive dashboard. Real clock names/events are fine here —
+   * this is not a player-safe surface (see renderPlayerView for that).
+   */
+  function renderSessionBrief() {
+    const host = document.getElementById("session-brief");
+    if (!host) return;
+    host.textContent = "";
+
+    const header = document.createElement("header");
+    header.className = "sb-header";
+    const kicker = document.createElement("p");
+    kicker.className = "sb-kicker";
+    kicker.textContent = "VEILCORP // HANDLER SESSION BRIEF // TABLE REFERENCE";
+    const h1 = document.createElement("h1");
+    h1.textContent = state.session.title || state.session.caseTitle || "Untitled Session";
+    header.append(kicker, h1);
+    host.append(header);
+
+    const sessionSection = sbSection("I", "SESSION");
+    sessionSection.append(
+      sbFieldRow(
+        sbField("Case", state.session.caseTitle),
+        sbField("Location", state.session.location),
+        sbField("Scene State", state.sceneState.current)
+      )
+    );
+    [sbClockLine("Primary Clock", state.primaryClock), sbClockLine("Secondary Clock", state.secondaryClock?.enabled ? state.secondaryClock : null)]
+      .filter(Boolean)
+      .forEach((line) => sessionSection.append(line));
+    host.append(sessionSection);
+
+    const operatorsSection = sbSection("II", "OPERATORS");
+    const players = Array.isArray(state.players) ? state.players : [];
+    if (players.length) {
+      const list = document.createElement("ul");
+      list.className = "sb-operator-list";
+      players.forEach((player) => {
+        const li = document.createElement("li");
+        const name = document.createElement("strong");
+        name.textContent = player.name || "Operator";
+        const detail = document.createElement("span");
+        detail.textContent = [
+          player.stability || `${player.stabilityBand || ""} (${player.stabilityPoints ?? "?"}/10)`,
+          player.harm || `Harm ${player.harmBoxes ?? 0}/5`,
+          player.misfire,
+          player.voidBreach
+        ].filter(Boolean).join(" · ");
+        li.append(name, detail);
+        list.append(li);
+      });
+      operatorsSection.append(list);
+    } else {
+      const empty = document.createElement("p");
+      empty.className = "sb-empty";
+      empty.textContent = "No Operators recorded.";
+      operatorsSection.append(empty);
+    }
+    host.append(operatorsSection);
+
+    const npcsSection = sbSection("III", "NPC ROSTER");
+    const npcs = (Array.isArray(state.npcs) ? state.npcs : []).filter((npc) => npc.name);
+    if (npcs.length) {
+      const list = document.createElement("ul");
+      list.className = "sb-npc-list";
+      npcs.forEach((npc) => {
+        const li = document.createElement("li");
+        const name = document.createElement("strong");
+        name.textContent = [npc.name, npc.role].filter(Boolean).join(" — ");
+        const detail = document.createElement("span");
+        detail.textContent = [npc.location, npc.pressure, npc.notes].filter(Boolean).join(" · ");
+        li.append(name, detail);
+        list.append(li);
+      });
+      npcsSection.append(list);
+    } else {
+      const empty = document.createElement("p");
+      empty.className = "sb-empty";
+      empty.textContent = "No NPCs staged.";
+      npcsSection.append(empty);
+    }
+    host.append(npcsSection);
+
+    const footer = document.createElement("footer");
+    footer.className = "sb-footer";
+    footer.textContent = `Generated ${new Date().toLocaleString()} — Handler-only. Not for player view.`;
+    host.append(footer);
+  }
+
   function renderPlayerView() {
     const panel = document.getElementById("player-view");
     if (!panel) return;
@@ -537,8 +696,8 @@
     setText("player-view-scene", payload.scene);
     setText("player-view-instruction", payload.instruction);
     setText("player-view-consequence", payload.consequence || "WATCH THE ROOM");
-    togglePlayerViewField("player-view-state", "");
-    togglePlayerViewField("player-view-clock", "");
+    togglePlayerViewField("player-view-state", payload.sceneState);
+    togglePlayerViewField("player-view-clock", payload.clockLabel);
     togglePlayerViewField("player-view-consequence-wrap", payload.consequence);
   }
 
@@ -666,7 +825,10 @@
     });
 
     const printButton = document.getElementById("print-dashboard");
-    if (printButton) printButton.addEventListener("click", () => window.print());
+    if (printButton) printButton.addEventListener("click", () => {
+      renderSessionBrief();
+      window.print();
+    });
 
     const rollButton = document.getElementById("roll-button");
     if (rollButton) rollButton.addEventListener("click", rollTest);
@@ -889,6 +1051,7 @@
     renderPlayers();
     renderNpcs();
     renderDynamic();
+    renderActionEconomyStrip();
     applyDashboardMode(dashboardMode);
     setStatus("LOCAL READY");
     if (window.HandlerNav) window.HandlerNav.render();
@@ -944,6 +1107,123 @@
     if (window.HandlerClueIntegrity) window.HandlerClueIntegrity.render();
   }
 
+  function renderActionEconomyStrip() {
+    const node = document.getElementById("action-economy-strip");
+    const cell = window.VeilDaemonCellSync;
+    const economy = window.VeilDaemonPressureRoundEconomy;
+    if (!node || !cell || !economy) return;
+    const bus = cell.read();
+    const snapshot = bus.handler?.actionEconomy || { round: 0, budgets: {} };
+    node.textContent = "";
+
+    const header = document.createElement("p");
+    header.className = "kicker";
+    header.textContent = `ACTION ECONOMY — ROUND ${snapshot.round || state.session?.pressureRound || 1}`;
+    node.append(header);
+
+    const players = Array.isArray(state.players) ? state.players : [];
+    if (!players.length) {
+      const empty = document.createElement("p");
+      empty.className = "panel-note";
+      empty.textContent = "No Operators seated yet.";
+      node.append(empty);
+      return;
+    }
+
+    const list = document.createElement("ul");
+    list.className = "action-economy-list";
+    players.forEach((player) => {
+      const key = player.sourceId || player.name;
+      const budget = economy.budgetFor(snapshot, key);
+      const item = document.createElement("li");
+      const slots = economy.SLOTS
+        .map((slot) => `${slot}${budget[slot] === false ? " (spent)" : ""}`)
+        .join(" · ");
+      item.textContent = `${api.safeString(player.name, 80) || "Operator"}: ${slots}`;
+      list.append(item);
+    });
+    node.append(list);
+  }
+
+  async function handlerCellConnectGetToken() {
+    const auth = window.VeilAuth;
+    if (!auth) return null;
+    if (!auth.getSession()) await auth.init();
+    return auth.getSession()?.access_token || null;
+  }
+
+  function renderCellConnectStatus(joinCode) {
+    const status = document.getElementById("cell-connect-status");
+    const openBtn = document.getElementById("cell-connect-open");
+    const leaveBtn = document.getElementById("cell-connect-leave");
+    if (!status) return;
+    const connected = Boolean(window.VeilDaemonCellRemote?.isConnected());
+    if (connected) {
+      status.textContent = joinCode
+        ? `CONNECTED — Cell Code ${joinCode}. Share this with Operators.`
+        : "CONNECTED — live with Operators.";
+    } else {
+      status.textContent = "LOCAL — same-device sync only.";
+    }
+    if (openBtn) openBtn.hidden = connected;
+    if (leaveBtn) leaveBtn.hidden = !connected;
+  }
+
+  function bindCellConnect() {
+    const openBtn = document.getElementById("cell-connect-open");
+    const leaveBtn = document.getElementById("cell-connect-leave");
+
+    if (openBtn) {
+      openBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        const auth = window.VeilAuth;
+        if (!remote || !auth) return;
+        if (!auth.getSession()) await auth.init();
+        if (!auth.getUser()) {
+          auth.showModal();
+          return;
+        }
+        openBtn.disabled = true;
+        try {
+          const session = await remote.createSession(handlerCellConnectGetToken, {
+            needlepoint: state.session?.title || state.session?.caseTitle || "",
+            mission: state.session?.location || "",
+            maxOperators: null,
+          });
+          renderCellConnectStatus(session.join_code);
+          setStatus(`Cell opened — Code ${session.join_code}`);
+        } catch (error) {
+          setStatus(error?.message || "Could not open Cell.", true);
+        } finally {
+          openBtn.disabled = false;
+        }
+      });
+    }
+
+    if (leaveBtn) {
+      leaveBtn.addEventListener("click", () => {
+        window.VeilDaemonCellRemote?.clearConnection();
+        renderCellConnectStatus();
+        setStatus("Cell connection closed on this device (session stays open for Operators until Archived).");
+      });
+    }
+
+    renderCellConnectStatus();
+    restoreCellConnectionIfPossible();
+  }
+
+  /** Re-establishes a Cell connection dropped by a page reload, when this browser was
+   * previously connected and VeilAuth still has (or can silently recover) a session. */
+  async function restoreCellConnectionIfPossible() {
+    const remote = window.VeilDaemonCellRemote;
+    const auth = window.VeilAuth;
+    if (!remote || !auth || remote.isConnected()) return;
+    if (!auth.getSession()) await auth.init();
+    if (!auth.getUser()) return;
+    const restored = remote.restoreConnection(handlerCellConnectGetToken);
+    if (restored) renderCellConnectStatus();
+  }
+
   function bindCellSync() {
     if (!window.HandlerCellSync?.bind) return;
     window.HandlerCellSync.bind({
@@ -954,6 +1234,7 @@
         renderPlayers();
         renderRiskStrip();
         renderTrackPromptQueue();
+        renderActionEconomyStrip();
         notifyPendingAlerts({ forceAlert: true });
         if (window.HandlerTriggers) window.HandlerTriggers.render(state);
         if (result?.summary) setStatus(result.summary.split("\n")[0] || result.summary);
@@ -971,6 +1252,7 @@
     bindCollapseBridge();
     bindClueBridge();
     bindCellSync();
+    bindCellConnect();
     renderAll();
     await hydrateClues(false);
   }

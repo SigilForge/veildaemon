@@ -1,8 +1,9 @@
 /**
- * Deliberate Cell sync bus (same-origin).
+ * Deliberate Cell sync bus (same-origin, same-device).
  * No polling. Handler End Pressure Round / Sync Cell / Archive Session
  * and Operator Send to Cell write here; the other role pulls on its button.
- * Multi-device sessions use VeilLink table live-link instead.
+ * Multi-device sessions go through cell-sync-remote.js instead, which mirrors this
+ * same bus shape over api.veildaemon.app/api/cell/* using VeilLink-issued identity.
  *
  * Authority (mid-round):
  * - Operator-submitted Harm and Stability remain authoritative when present.
@@ -41,7 +42,8 @@
         syncRevision: 0,
         note: "",
         archiveToken: "",
-        projections: []
+        projections: [],
+        actionEconomy: { round: 0, budgets: {} }
       },
       operators: {},
       rollFeed: []
@@ -89,7 +91,47 @@
     // Mid-round: no Lotus. Banks only appear when Handler marks archive on the projection pack.
     if (item.voidMarks !== undefined) out.voidMarks = clampInt(item.voidMarks, 0, 13, 0);
     if (item.breachPoints !== undefined) out.breachPoints = clampInt(item.breachPoints, 0, 99, 0);
+    // Handler-computed Presentation Load consequences (mid-round eligible, same as Harm/Stability).
+    // Values are absolute (0-6 Load band), not deltas, so a re-pull never double-applies.
+    if (Array.isArray(item.loadDeltas)) {
+      out.loadDeltas = item.loadDeltas
+        .map((delta) => normalizeLoadDelta(delta))
+        .filter(Boolean)
+        .slice(0, 8);
+    }
+    if (item.entityConsequenceNote) out.entityConsequenceNote = safeString(item.entityConsequenceNote, 300);
     return out;
+  }
+
+  function normalizeLoadDelta(item) {
+    if (!item || typeof item !== "object") return null;
+    const trackKind = safeString(item.trackKind, 40);
+    if (!trackKind) return null;
+    return { trackKind, value: clampInt(item.value, 0, 6, 0) };
+  }
+
+  function normalizeActionEconomyBudget(item) {
+    const raw = item && typeof item === "object" ? item : {};
+    return {
+      main: Boolean(raw.main),
+      move: Boolean(raw.move),
+      frequency: Boolean(raw.frequency),
+      reaction: Boolean(raw.reaction)
+    };
+  }
+
+  function normalizeActionEconomySnapshot(value) {
+    const raw = value && typeof value === "object" ? value : {};
+    const budgets = {};
+    const rawBudgets = raw.budgets && typeof raw.budgets === "object" ? raw.budgets : {};
+    Object.keys(rawBudgets).slice(0, MAX_OPERATORS).forEach((key) => {
+      const operatorKey = safeString(key, 120);
+      if (operatorKey) budgets[operatorKey] = normalizeActionEconomyBudget(rawBudgets[key]);
+    });
+    return {
+      round: clampInt(raw.round, 0, 999, 0),
+      budgets
+    };
   }
 
   function normalizeOperatorSend(item) {
@@ -120,6 +162,13 @@
     if (item.voidBreach) out.voidBreach = safeString(item.voidBreach, 180);
     if (item.misfire) out.misfire = safeString(item.misfire, 180);
     if (item.sceneLogLine) out.sceneLogLine = safeString(item.sceneLogLine, 200);
+    // Pressure Round action economy: which budget slot this send is reporting as spent.
+    if (item.actionSpend && typeof item.actionSpend === "object") {
+      const slot = safeString(item.actionSpend.slot, 20);
+      if (slot) out.actionSpend = { slot, round: clampInt(item.actionSpend.round, 0, 999, 0) };
+    }
+    // Report-only: the resolved effect of a declared Recovery move (Operator resolves it, Handler just sees it).
+    if (item.recoveryResolution) out.recoveryResolution = safeString(item.recoveryResolution, 180);
     return out;
   }
 
@@ -171,7 +220,8 @@
         syncRevision: clampInt(raw.handler?.syncRevision, 0, 1e9, 0),
         note: safeString(raw.handler?.note, 500),
         archiveToken: safeString(raw.handler?.archiveToken, 120),
-        projections
+        projections,
+        actionEconomy: normalizeActionEconomySnapshot(raw.handler?.actionEconomy)
       },
       operators,
       rollFeed
@@ -264,7 +314,12 @@
       syncRevision: nextRevision,
       note: safeString(payload?.note, 500),
       archiveToken,
-      projections
+      projections,
+      // Budgets carry forward untouched unless this push explicitly resets/updates them
+      // (End Pressure Round resets on the way in — see handler-cell-sync.js).
+      actionEconomy: payload?.actionEconomy
+        ? normalizeActionEconomySnapshot(payload.actionEconomy)
+        : bus.handler.actionEconomy
     };
 
     if (safeKind === "archive") {

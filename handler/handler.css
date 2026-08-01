@@ -2226,182 +2226,96 @@ body.is-player-view .private-panel {
   }
 }
 
+/* ==========================================================================
+   Session Brief — dedicated Handler-only print/PDF layout, not a reformat
+   of the live interactive dashboard.
+   ========================================================================== */
+
+.print-only { display: none; }
+
 @media print {
-  :root {
-    color-scheme: light;
-  }
+  :root { color-scheme: light; }
 
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-size: 9.5px;
-  }
+  body { background: #fff; }
+  body > *:not(#session-brief) { display: none !important; }
 
-  body::before,
-  .noise,
-  .no-print,
-  .secondary-panel:not(:has(input[name="secondaryClock.enabled"]:checked)),
-  .player-view {
-    display: none !important;
-  }
-
-  .handler-shell {
+  #session-brief {
+    /* handler.css:34 sets [hidden] { display: none !important; } globally —
+       this element carries the hidden attribute until print time, so its
+       override must also be !important to actually win. */
+    display: block !important;
     width: 100%;
-    padding: 0;
-  }
-
-  .handler-header,
-  .status-strip div,
-  .panel {
-    box-shadow: none;
-    background: #fffdf2;
+    background: #fff;
     color: var(--ink);
-    border-color: #333;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 9.5px;
+    line-height: 1.35;
   }
 
-  .handler-header {
-    grid-template-columns: auto 1fr;
-    padding: .35rem;
+  .sb-header {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: .3rem;
+    margin-bottom: .4rem;
   }
-
-  .seal-wrap {
-    width: 2.4rem;
-    border-color: #333;
-    box-shadow: none;
-  }
-
-  .seal {
-    width: 1.8rem;
-    height: 1.8rem;
-    filter: grayscale(1);
-  }
-
-  h1 {
-    font-size: 1.4rem;
-  }
-
-  h2 {
-    font-size: .72rem;
-  }
-
-  .kicker,
-  .status-strip span,
-  .panel label {
-    color: #111;
-    font-size: .52rem;
-  }
-
-  .status-strip {
-    grid-template-columns: repeat(4, 1fr);
-    gap: .22rem;
-    margin-top: .25rem;
-  }
-
-  .status-strip div,
-  .panel {
-    padding: .35rem;
-  }
-
-  .dashboard-form {
-    grid-template-columns: repeat(3, 1fr);
-    gap: .25rem;
-    margin-top: .25rem;
-  }
-
-  .case-panel,
-  .clock-panel,
-  .player-panel,
-  .notes-panel {
-    grid-column: 1 / -1;
-  }
-
-  .loop-panel,
-  .helper-panel {
-    grid-column: span 2;
-  }
-
-  .field-grid,
-  .field-grid.two,
-  .field-grid.three,
-  .field-grid.five,
-  .loop-grid,
-  .player-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: .22rem;
-  }
-
-  .loop-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-
-  input,
-  textarea,
-  select,
-  .roll-output,
-  .helper-copy {
-    min-height: auto;
-    padding: .22rem;
-    border-color: #555;
-    background: #fff;
-    color: #111;
+  .sb-kicker {
+    margin: 0 0 .2rem;
+    font-family: Consolas, monospace;
     font-size: .58rem;
+    letter-spacing: .08em;
+    color: #444;
+  }
+  .sb-header h1 {
+    margin: 0;
+    font-size: 1.3rem;
+    letter-spacing: .04em;
   }
 
-  textarea {
-    height: 2.7rem;
+  .sb-section {
+    border: 1px solid #333;
+    padding: .3rem .4rem;
+    margin-bottom: .3rem;
+    break-inside: avoid;
+  }
+  .sb-section h2 {
+    margin: 0 0 .25rem;
+    font-size: .68rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper);
+    padding: .12rem .3rem;
   }
 
-  .loop-grid textarea {
-    min-height: 3.3rem;
-  }
+  .sb-field-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: .3rem; margin-bottom: .2rem; }
+  .sb-field { display: flex; flex-direction: column; gap: .05rem; }
+  .sb-field span { font-size: .56rem; letter-spacing: .04em; text-transform: uppercase; color: #555; }
+  .sb-field strong { font-size: .68rem; border-bottom: 1px solid #999; min-height: 1em; }
 
-  .scene-state-row {
-    grid-template-columns: repeat(5, 1fr);
-    gap: .18rem;
-  }
+  .sb-clock-line { font-size: .62rem; margin: .15rem 0 0; }
 
-  .scene-state-button {
-    min-height: 2.9rem;
-    padding: .22rem;
-    border-color: #555;
-    background: #fff;
-    color: #111;
+  .sb-operator-list, .sb-npc-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
-
-  .scene-state-button span {
-    display: none;
+  .sb-operator-list li, .sb-npc-list li {
+    display: flex;
+    flex-direction: column;
+    gap: .05rem;
+    border-bottom: 1px dotted #999;
+    padding: .18rem 0;
+    font-size: .62rem;
   }
+  .sb-operator-list li span, .sb-npc-list li span { color: #444; font-size: .58rem; }
 
-  .scene-state-button strong {
-    color: #111;
-    font-size: .56rem;
-  }
+  .sb-empty { font-size: .6rem; color: #666; margin: 0; font-style: italic; }
 
-  .clock-track {
-    gap: .12rem;
-    margin: .22rem 0;
-  }
-
-  .clock-segment {
-    min-height: .72rem;
-    border-color: #555;
-    background: #fff;
-  }
-
-  .clock-segment.is-filled {
-    background: #111;
-    box-shadow: none;
-  }
-
-  .roll-panel,
-  .aftermath-roll {
-    display: none;
-  }
-
-  .player-card {
-    padding: .25rem;
-    border-color: #555;
-    background: #fff;
+  .sb-footer {
+    margin-top: .3rem;
+    padding-top: .2rem;
+    border-top: 1px solid #333;
+    font-size: .54rem;
+    color: #444;
   }
 }
 

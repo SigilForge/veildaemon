@@ -133,7 +133,6 @@ export type Database = {
           owner_user_id: string;
           display_name: string;
           designation: string;
-          persistent_state: Json;
           created_at: string;
           updated_at: string;
         };
@@ -153,6 +152,7 @@ export type Database = {
           needlepoint: string;
           mission: string;
           max_operators: number | null;
+          one_shot: boolean | null;
           created_at: string;
           closed_at: string | null;
           updated_at: string;
@@ -171,6 +171,7 @@ export type Database = {
           operator_profile_id: string;
           owner_user_id: string;
           live_state: Json;
+          state_version: number;
           joined_at: string;
           left_at: string | null;
           last_mutated_by: string | null;

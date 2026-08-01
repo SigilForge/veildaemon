@@ -124,7 +124,8 @@
       voidBreach: "",
       emotionalState: "",
       presentationAbilityState: {},
-      sceneTimer: { round: 1, timers: [] }
+      sceneTimer: { round: 1, timers: [] },
+      actionSpend: { round: 0, main: false, move: false, frequency: false, reaction: false }
     },
     anomalies: [],
     relationships: [],
@@ -769,7 +770,7 @@
 
   function normalizeUnlockType(value) {
     const type = safeString(value, 40).toLowerCase();
-    if (["ontology", "background", "case", "void", "breach", "archive"].includes(type)) return type;
+    if (["ontology", "background", "case", "void", "breach", "archive", "harm", "stability"].includes(type)) return type;
     return "";
   }
 
@@ -851,6 +852,31 @@
     return safeString(status.operatorName || record.designation || status.designation || "Operator", 80) || "Operator";
   }
 
+  const ACTION_ECONOMY_LABELS = { main: "Main Action", move: "Move", frequency: "Frequency Use", reaction: "Reaction" };
+
+  /** This round's local action-economy flags, self-resetting when the scene-timer round moves on. */
+  function localActionSpend(status) {
+    const round = Number(status.sceneTimer?.round) || 1;
+    const spend = status.actionSpend && typeof status.actionSpend === "object" ? status.actionSpend : {};
+    if (Number(spend.round) !== round) {
+      return { round, main: false, move: false, frequency: false, reaction: false };
+    }
+    return { round, main: Boolean(spend.main), move: Boolean(spend.move), frequency: Boolean(spend.frequency), reaction: Boolean(spend.reaction) };
+  }
+
+  /** Marks one action-economy slot spent for this round, saves locally, and reports it to Handler. */
+  function spendOperatorAction(slot) {
+    const economy = window.VeilDaemonPressureRoundEconomy;
+    if (!economy || !economy.SLOTS.includes(slot)) return;
+    const status = consoleState.operatorStatus;
+    const current = localActionSpend(status);
+    if (current[slot]) return;
+    status.actionSpend = { ...current, [slot]: true };
+    writeConsoleState();
+    renderSceneTimerStrip();
+    sendOperatorToCell({ skipAutosave: true, extra: { actionSpend: { slot, round: current.round } } });
+  }
+
   function buildOperatorCellSend(extra) {
     const status = consoleState.operatorStatus || {};
     return {
@@ -869,6 +895,11 @@
       round: Number(status.sceneTimer?.round) || 1,
       pressureRound: Number(status.sceneTimer?.round) || 1,
       sceneLogLine: safeString((status.sceneTimer?.log || [])[0], 200),
+      // Recovery resolves locally (applySceneTimerAction); Handler never re-runs heal rules.
+      // The resolved effect text is only known at the moment of resolution (see
+      // dispatchSceneTimerAction's `extra` override on the round-advance send) — a mid-round
+      // send with a still-checked, unresolved box has no resolution text yet.
+      recoveryResolution: "",
       sentAt: nowStamp(),
       ...(extra && typeof extra === "object" ? extra : {})
     };
@@ -926,10 +957,129 @@
           ? `Round advanced. Sent to Cell (Harm ${send.harmBoxes} / Stability ${send.stability}${recovery}).`
           : `Sent to Cell (Harm ${send.harmBoxes} / Stability ${send.stability}${recovery}). Waiting on Handler sync.`
       );
+      pushSendToRemoteIfConnected(send);
       return true;
     } catch (error) {
       markCellSendPending(error?.message || "Cell send failed");
       return false;
+    }
+  }
+
+  /** Fire-and-forget remote push when CONNECTED — the local bus write above already
+   * completed, so a remote failure only affects cross-device Handlers, never local play. */
+  async function pushSendToRemoteIfConnected(send) {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected()) return;
+    try {
+      await remote.pushOperatorSend(send);
+    } catch (error) {
+      markCellSendPending(error?.message || "Remote Cell send failed");
+    }
+  }
+
+  /** Refreshes the local bus from the server before a deliberate Pull Handler click,
+   * when CONNECTED — pullHandlerCellIfAvailable itself stays synchronous/unchanged. */
+  async function pullRemoteIfConnected() {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected()) return;
+    try {
+      await remote.pullState();
+    } catch (error) {
+      setStorageStatus(error?.message || "Remote Cell pull failed", true);
+    }
+  }
+
+  async function cellConnectGetToken() {
+    const auth = window.VeilAuth;
+    if (!auth) return null;
+    if (!auth.getSession()) await auth.init();
+    return auth.getSession()?.access_token || null;
+  }
+
+  function renderCellConnectStatus() {
+    const status = document.getElementById("cell-connect-status");
+    const joinBtn = document.getElementById("cell-connect-join");
+    const leaveBtn = document.getElementById("cell-connect-leave");
+    const codeInput = document.getElementById("cell-connect-code");
+    if (!status) return;
+    const connected = Boolean(window.VeilDaemonCellRemote?.isConnected());
+    status.textContent = connected ? "CONNECTED — live with Handler." : "LOCAL — not connected to a Cell.";
+    if (joinBtn) joinBtn.hidden = connected;
+    if (codeInput) codeInput.hidden = connected;
+    if (leaveBtn) leaveBtn.hidden = !connected;
+  }
+
+  function bindCellConnect() {
+    const joinBtn = document.getElementById("cell-connect-join");
+    const leaveBtn = document.getElementById("cell-connect-leave");
+    const codeInput = document.getElementById("cell-connect-code");
+
+    if (joinBtn) {
+      joinBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        const auth = window.VeilAuth;
+        if (!remote || !auth) return;
+        if (!auth.getSession()) await auth.init();
+        if (!auth.getUser()) {
+          auth.showModal();
+          return;
+        }
+        const code = (codeInput?.value || "").trim().toUpperCase();
+        if (code.length !== 6) {
+          setStorageStatus("Cell Code must be 6 characters.", true);
+          return;
+        }
+        joinBtn.disabled = true;
+        try {
+          await remote.joinCell(cellConnectGetToken, {
+            joinCode: code,
+            displayName: operatorDisplayName(),
+            designation: safeString(consoleState.operatorStatus.designation || (operatorRecord && operatorRecord.designation), 40)
+          });
+          setStorageStatus("Connected to Cell.");
+          renderCellConnectStatus();
+          await pullRemoteIfConnected();
+          pullHandlerCellIfAvailable({ force: true });
+        } catch (error) {
+          setStorageStatus(error?.message || "Could not connect to Cell.", true);
+        } finally {
+          joinBtn.disabled = false;
+        }
+      });
+    }
+
+    if (leaveBtn) {
+      leaveBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        if (!remote) return;
+        try {
+          await remote.leaveCell();
+        } catch (_error) {
+          // Best-effort — disconnect locally regardless.
+          remote.clearConnection();
+        }
+        renderCellConnectStatus();
+        setStorageStatus("Disconnected from Cell.");
+      });
+    }
+
+    renderCellConnectStatus();
+    restoreCellConnectionIfPossible();
+  }
+
+  /** Re-establishes a Cell connection dropped by a page reload, when this browser was
+   * previously connected and VeilAuth still has (or can silently recover) a session. */
+  async function restoreCellConnectionIfPossible() {
+    const remote = window.VeilDaemonCellRemote;
+    const auth = window.VeilAuth;
+    if (!remote || !auth || remote.isConnected()) return;
+    if (!auth.getSession()) await auth.init();
+    if (!auth.getUser()) return;
+    const restored = remote.restoreConnection(cellConnectGetToken);
+    if (restored) {
+      renderCellConnectStatus();
+      await pullRemoteIfConnected();
+      pullHandlerCellIfAvailable();
     }
   }
 
@@ -962,6 +1112,25 @@
       if (projection.breachPoints !== undefined) {
         status.breachPoints = String(normalizeNonNegative(projection.breachPoints));
         changed = true;
+      }
+    }
+    // Handler-computed Presentation Load consequences (mid-round eligible, like Harm/Stability).
+    // Values are absolute, matching how the same trackKind is written locally (setTrackerValue).
+    if (Array.isArray(projection.loadDeltas) && projection.loadDeltas.length) {
+      const pp = presentationPressureApi();
+      if (pp?.presentationForLoadTrackKind && pp.primaryTrack && pp.readTrackValue && pp.writeTrackValue) {
+        projection.loadDeltas.forEach((entry) => {
+          const presentation = pp.presentationForLoadTrackKind(entry.trackKind);
+          const track = presentation ? pp.primaryTrack(presentation) : null;
+          if (!track) return;
+          const nextValue = Number(entry.value);
+          if (!Number.isFinite(nextValue) || Number(pp.readTrackValue(status, track.id)) === nextValue) return;
+          const written = pp.writeTrackValue(status, track.id, nextValue);
+          status.presentationPressures = written.presentationPressures;
+          if (track.stateKey) status[track.stateKey] = written[track.stateKey];
+          if (track.id === "sanguine.blood_load") status.sanguineCoherence = deriveSanguineCoherence(status);
+          changed = true;
+        });
       }
     }
     const meta = cellSyncMeta();
@@ -1043,6 +1212,10 @@
     const api = presentationAbilitiesApi();
     if (!api?.applySceneTimerAction) return;
     const beforeRound = consoleState.operatorStatus.sceneTimer?.round || 1;
+    // applyRecoveryAction clears the declared checkbox as part of resolving it, so capture
+    // which move was declared *before* the call — buildOperatorCellSend would otherwise see
+    // an already-cleared flag and report nothing to Handler for the round that just resolved.
+    const recoveryKeyBeforeResolve = action === "next_round" ? declaredRecoveryKey() : "";
     consoleState.operatorStatus = migrateOperatorStatus(
       api.applySceneTimerAction(consoleState.operatorStatus, action, payload)
     );
@@ -1065,7 +1238,14 @@
         renderTrackers();
         renderRollSelectors();
         renderStatusSummary();
-        sendOperatorToCell({ afterRound: true, skipAutosave: true });
+        sendOperatorToCell({
+          afterRound: true,
+          skipAutosave: true,
+          extra: recoveryKeyBeforeResolve ? {
+            recoveryDeclared: recoveryKeyBeforeResolve,
+            recoveryResolution: safeString((status.sceneTimer?.log || [])[0], 180)
+          } : undefined
+        });
         return;
       }
     }
@@ -1537,7 +1717,7 @@
         ? packet.unlocks.map((item) => item.flag || `${String(item.type || "").toUpperCase()}_UNLOCK:${item.key || item.value || ""}`)
         : [];
     const source = rawFlags.length ? rawFlags.join("\n") : text;
-    const matches = Array.from(source.matchAll(/\b((?:ONTOLOGY|BACKGROUND|CASE|ARCHIVE)_UNLOCK|(?:VOID|BREACH)_REWARD)\s*:\s*([A-Z0-9_ -]+)/gi));
+    const matches = Array.from(source.matchAll(/\b((?:ONTOLOGY|BACKGROUND|CASE|ARCHIVE)_UNLOCK|(?:VOID|BREACH)_REWARD|(?:HARM|STABILITY)_SET)\s*:\s*([A-Z0-9_ -]+)/gi));
     return matches.map((match) => {
       const flagKind = match[1].toUpperCase();
       const type = flagKind.includes("_REWARD") ? flagKind.split("_")[0].toLowerCase() : flagKind.split("_")[0].toLowerCase();
@@ -1561,12 +1741,15 @@
     if (type === "background") return backgroundEntry(key).displayName;
     if (type === "void") return `${normalizeNonNegative(key)} Void`;
     if (type === "breach") return `${normalizeNonNegative(key)} Breach`;
+    if (type === "harm") return `Harm set to ${normalizeBoxValue(key, 5)}`;
+    if (type === "stability") return `Stability set to ${normalizeStabilityValue(key)}`;
     if (type === "case" && key === "NEEDLEPOINT_SURVIVOR") return "Needlepoint Survivor";
     return titleCaseKey(key);
   }
 
   function unlockFlag(unlock) {
     if (unlock.type === "void" || unlock.type === "breach") return `${unlock.type.toUpperCase()}_REWARD:${unlock.key}`;
+    if (unlock.type === "harm" || unlock.type === "stability") return `${unlock.type.toUpperCase()}_SET:${unlock.key}`;
     return `${unlock.type.toUpperCase()}_UNLOCK:${unlock.key}`;
   }
 
@@ -1574,6 +1757,21 @@
     let added = 0;
     unlocks.forEach((unlock) => {
       if (unlock.type === "void" || unlock.type === "breach") {
+        consoleState.unlocks.push(unlock);
+        added += 1;
+        return;
+      }
+      if (unlock.type === "harm" || unlock.type === "stability") {
+        // Absolute set, not a reward — a session only has one final Harm and one final Stability.
+        const existingSet = consoleState.unlocks.find((item) => item.type === unlock.type);
+        if (existingSet) {
+          existingSet.key = unlock.key;
+          existingSet.label = unlock.label;
+          existingSet.note = unlock.note || existingSet.note;
+          existingSet.importedAt = unlock.importedAt;
+          existingSet.applied = false;
+          return;
+        }
         consoleState.unlocks.push(unlock);
         added += 1;
         return;
@@ -1614,6 +1812,20 @@
         const current = Number(normalizeNonNegative(consoleState.operatorStatus.breachPoints));
         const amount = Number(normalizeNonNegative(unlock.key));
         consoleState.operatorStatus.breachPoints = String(Math.min(99, current + amount));
+        unlock.applied = true;
+        consoleState.appliedUnlocks.push(key);
+        return;
+      }
+      if (unlock.type === "harm") {
+        consoleState.operatorStatus.harmBoxes = normalizeBoxValue(unlock.key, 5);
+        unlock.applied = true;
+        consoleState.appliedUnlocks.push(key);
+        return;
+      }
+      if (unlock.type === "stability") {
+        const next = normalizeStabilityValue(unlock.key);
+        consoleState.operatorStatus.stability = next;
+        consoleState.operatorStatus.stabilityBand = bandFromLegacyStability(next);
         unlock.applied = true;
         consoleState.appliedUnlocks.push(key);
       }
@@ -2149,6 +2361,10 @@
     return 3;
   }
 
+  function creationSkillRankCap() {
+    return 3;
+  }
+
   function creationBonusBreachBudget() {
     return 3;
   }
@@ -2194,7 +2410,7 @@
   }
 
   function creationSkillBreachSpent(status) {
-    return Math.max(0, creationSkillRanksSpent(status) - creationSkillBudget());
+    return breachSpentFromRankSteps(creationSkillRankSteps(status), creationSkillBudget());
   }
 
   function selectedCoreFrequency() {
@@ -2363,23 +2579,21 @@
     return delta;
   }
 
-  function skillChangeAllowed(skills, skill, targetRank, isEffectiveRank = false, status = consoleState.operatorStatus) {
-    const derivedBonus = derivedSkillBonuses(status)[skill] || 0;
-    const targetNum = Number(normalizeBoxValue(targetRank, 5));
-
-    const targetBase = isEffectiveRank
-      ? Math.max(0, targetNum - derivedBonus)
-      : targetNum;
-
-    const targetEffective = isEffectiveRank
-      ? targetNum
-      : Math.min(5, targetBase + derivedBonus);
-
+  function skillChangeAllowed(skills, skill, targetRank, status = consoleState.operatorStatus) {
     if (creationActive()) {
-      if (targetBase > 3) {
+      const derivedBonus = derivedSkillBonuses(status)[skill] || 0;
+      const targetEffective = Number(
+        normalizeBoxValue(targetRank, 5)
+      );
+      const targetBase = Math.max(
+        0,
+        targetEffective - derivedBonus
+      );
+
+      if (targetBase > creationSkillRankCap()) {
         return {
           ok: false,
-          message: "Creation skill purchases cap at base Rank 3."
+          message: `Creation skill purchases cap at base Rank ${creationSkillRankCap()}.`
         };
       }
 
@@ -2390,13 +2604,11 @@
           skill,
           targetEffective
         ),
-        targetBase,
-        targetEffective
+        targetBase
       };
     }
-
     const oldRank = Number(normalizeSkills(skills)[skill] || 0);
-    return { ok: true, cost: advancementCost(oldRank, targetBase), targetBase, targetEffective };
+    return { ok: true, cost: advancementCost(oldRank, targetRank) };
   }
 
   function creationAttributeCostDelta(attributes, attribute, targetEffectiveRank, status = consoleState.operatorStatus) {
@@ -2653,6 +2865,44 @@
 
   function frequencies() {
     return ["Dream", "Hunger", "Silence", "Stillness", "Empyrean", "Becoming"];
+  }
+
+  /**
+   * Pip center positions on the official Frequency Lotus art (assets/lotus/*),
+   * as fractions of image width/height, index 0 = innermost pip (rank 1) to
+   * index 5 = outermost/tip pip (rank 6). Extracted by thresholding the
+   * source B&W art for its white pip blobs and clustering by petal angle —
+   * see chat history for the one-off extraction script. The art bakes every
+   * pip in as filled; the print sheet masks out unearned ones over these
+   * coordinates rather than drawing a separate pip readout.
+   */
+  function lotusPipPositions() {
+    return {
+      Dream: [
+        { x: 0.3589, y: 0.4168 }, { x: 0.3319, y: 0.4009 }, { x: 0.2932, y: 0.3745 },
+        { x: 0.2658, y: 0.3575 }, { x: 0.2256, y: 0.328 }, { x: 0.196, y: 0.3076 }
+      ],
+      Hunger: [
+        { x: 0.4943, y: 0.3516 }, { x: 0.4942, y: 0.3185 }, { x: 0.4942, y: 0.2693 },
+        { x: 0.4941, y: 0.235 }, { x: 0.4942, y: 0.1875 }, { x: 0.4942, y: 0.1496 }
+      ],
+      Silence: [
+        { x: 0.4946, y: 0.6078 }, { x: 0.4948, y: 0.6413 }, { x: 0.4946, y: 0.6885 },
+        { x: 0.4946, y: 0.7207 }, { x: 0.4945, y: 0.768 }, { x: 0.4946, y: 0.8051 }
+      ],
+      Stillness: [
+        { x: 0.3605, y: 0.5488 }, { x: 0.3336, y: 0.567 }, { x: 0.295, y: 0.5941 },
+        { x: 0.2686, y: 0.6142 }, { x: 0.2255, y: 0.6418 }, { x: 0.1966, y: 0.6603 }
+      ],
+      Empyrean: [
+        { x: 0.6248, y: 0.4191 }, { x: 0.6521, y: 0.4037 }, { x: 0.691, y: 0.3756 },
+        { x: 0.7178, y: 0.3584 }, { x: 0.7578, y: 0.3298 }, { x: 0.7857, y: 0.3097 }
+      ],
+      Becoming: [
+        { x: 0.6241, y: 0.5493 }, { x: 0.6506, y: 0.5672 }, { x: 0.6891, y: 0.5936 },
+        { x: 0.716, y: 0.6117 }, { x: 0.757, y: 0.6402 }, { x: 0.7856, y: 0.6598 }
+      ]
+    };
   }
 
   function normalizeFrequencyName(value) {
@@ -3205,7 +3455,8 @@
     pullCell.className = "scene-timer-btn ghost";
     pullCell.textContent = "Pull Handler";
     pullCell.title = "Apply Handler Harm/Stability only when the projection is newer than local edits.";
-    pullCell.addEventListener("click", () => {
+    pullCell.addEventListener("click", async () => {
+      await pullRemoteIfConnected();
       pullHandlerCellIfAvailable({ force: true });
     });
     const endScene = document.createElement("button");
@@ -3249,6 +3500,25 @@
     actions.append(nextRound, sendCell, pullCell, endScene);
     header.append(roundMeta, actions);
     strip.append(header);
+
+    const actionEconomy = window.VeilDaemonPressureRoundEconomy;
+    if (actionEconomy) {
+      const spend = localActionSpend(status);
+      const budgetRow = document.createElement("div");
+      budgetRow.className = "scene-timer-actions action-budget-row";
+      actionEconomy.SLOTS.forEach((slot) => {
+        const used = Boolean(spend[slot]);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = used ? "scene-timer-btn subtle" : "scene-timer-btn ghost";
+        button.textContent = used ? `${ACTION_ECONOMY_LABELS[slot]} (used)` : ACTION_ECONOMY_LABELS[slot];
+        button.disabled = used;
+        button.title = `Report ${ACTION_ECONOMY_LABELS[slot]} spent to Handler for Round ${spend.round}.`;
+        button.addEventListener("click", () => spendOperatorAction(slot));
+        budgetRow.append(button);
+      });
+      strip.append(budgetRow);
+    }
 
     const abilityView = api.presentationAbilityView
       ? api.presentationAbilityView(status, currentPresentationKey())
@@ -3414,9 +3684,12 @@
     renderRollSelectors();
   }
 
-  function applySkillRankChange(skills, name, targetRank) {
-    const nextRank = Number(normalizeBoxValue(targetRank, 5));
-    const allowed = skillChangeAllowed(skills, name, nextRank, false);
+  function applySkillRankChange(skills, name, targetBaseRank) {
+    const status = consoleState.operatorStatus;
+    const nextBase = Number(normalizeBoxValue(targetBaseRank, 5));
+    const bonus = derivedSkillBonuses(status)[name] || 0;
+    const requestRank = creationActive() ? Math.min(5, nextBase + bonus) : nextBase;
+    const allowed = skillChangeAllowed(skills, name, requestRank, status);
     if (!allowed.ok) {
       setStorageStatus(allowed.message, true);
       renderSkills();
@@ -3426,8 +3699,12 @@
       renderSkills();
       return false;
     }
-    skills[name] = String(allowed.targetBase);
-    if (skills[name] === "0") delete skills[name];
+    const resolvedBase = creationActive() ? allowed.targetBase : requestRank;
+    if (resolvedBase > 0) {
+      skills[name] = String(resolvedBase);
+    } else {
+      delete skills[name];
+    }
     consoleState.operatorStatus.skills = skills;
     writeConsoleState();
     renderSkills();
@@ -3518,7 +3795,7 @@
         increase.type = "button";
         increase.textContent = "+";
         increase.setAttribute("aria-label", `Increase ${name} rank`);
-        increase.disabled = numericBaseRank >= 5;
+        increase.disabled = numericBaseRank >= (creationActive() ? creationSkillRankCap() : 5);
         increase.addEventListener("click", (event) => {
           blockSummaryActivation(event);
           applySkillRankChange(skills, name, numericBaseRank + 1);
@@ -3572,7 +3849,7 @@
       if (meaning) meaning.textContent = "Select a skill to load rank meaning.";
       return;
     }
-    const allowed = skillChangeAllowed(skills, skill, targetRank, true);
+    const allowed = skillChangeAllowed(skills, skill, targetRank);
     if (!allowed.ok) {
       preview.textContent = allowed.message;
       if (meaning) meaning.textContent = `${skill} ${targetRank} // ${skillRankLabel(targetRank)}: ${skillRankDescription(skill, targetRank)}`;
@@ -4717,7 +4994,7 @@
       if (!skill) return;
       consoleState.operatorStatus.skills = normalizeSkills(consoleState.operatorStatus.skills);
       const targetRank = Number(normalizeBoxValue(rank && rank.value || 1, 5));
-      const allowed = skillChangeAllowed(consoleState.operatorStatus.skills, skill, targetRank, true);
+      const allowed = skillChangeAllowed(consoleState.operatorStatus.skills, skill, targetRank);
       if (!allowed.ok) {
         setStorageStatus(allowed.message, true);
         return;
@@ -4980,11 +5257,266 @@
     });
   }
 
+  function psField(label, value) {
+    const field = document.createElement("div");
+    field.className = "ps-field";
+    const span = document.createElement("span");
+    span.textContent = label;
+    const strong = document.createElement("strong");
+    strong.textContent = value || "—";
+    field.append(span, strong);
+    return field;
+  }
+
+  function psFieldRow(...fields) {
+    const row = document.createElement("div");
+    row.className = "ps-field-row";
+    row.append(...fields);
+    return row;
+  }
+
+  function psPipRow(label, current, max) {
+    const row = document.createElement("div");
+    row.className = "ps-pip-row";
+    const span = document.createElement("span");
+    span.textContent = label;
+    const pips = document.createElement("div");
+    pips.className = "ps-pips";
+    for (let i = 1; i <= max; i += 1) {
+      const pip = document.createElement("i");
+      pip.className = i <= current ? "ps-pip is-filled" : "ps-pip";
+      pips.append(pip);
+    }
+    const count = document.createElement("em");
+    count.className = "ps-pip-count";
+    count.textContent = `${current}/${max}`;
+    row.append(span, pips, count);
+    return row;
+  }
+
+  function psSection(numeral, title) {
+    const section = document.createElement("section");
+    section.className = "ps-section";
+    const h2 = document.createElement("h2");
+    h2.textContent = `${numeral}. ${title}`;
+    section.append(h2);
+    return section;
+  }
+
+  function renderPrintSheet() {
+    const host = document.getElementById("print-sheet");
+    if (!host) return;
+    host.textContent = "";
+
+    const status = consoleState.operatorStatus;
+    const attrs = normalizeAttributes(status.attributes);
+    const skills = normalizeSkills(status.skills);
+    const operatorName = safeString(status.operatorName || operatorRecord?.designation || status.designation || "Unnamed Operator", 120);
+    const background = status.background ? backgroundEntry(backgroundKeyFromDisplayName(status.background))?.displayName || status.background : "";
+    const presentation = status.ontologyPresentation
+      ? presentationEntry(presentationKeyFromDisplayName(status.ontologyPresentation))?.displayName || status.ontologyPresentation
+      : "";
+
+    const header = document.createElement("header");
+    header.className = "ps-header";
+    const kicker = document.createElement("p");
+    kicker.className = "ps-kicker";
+    kicker.textContent = "VEILCORP / ARCHIVE // OPERATOR INTAKE // RESTRICTED";
+    const h1 = document.createElement("h1");
+    h1.textContent = "CRADLEPOINT";
+    const subtitle = document.createElement("p");
+    subtitle.className = "ps-subtitle";
+    subtitle.textContent = "OPERATOR FIELD SHEET";
+    header.append(kicker, h1, subtitle);
+    host.append(header);
+
+    const identity = psSection("I", "IDENTITY");
+    identity.append(
+      psFieldRow(
+        psField("Name", operatorName),
+        psField("Designation", status.designation),
+        psField("Role", status.role)
+      ),
+      psFieldRow(
+        psField("Background", background),
+        psField("Presentation", presentation),
+        psField("Blind Petal", status.blindPetal)
+      )
+    );
+    host.append(identity);
+
+    const columns = document.createElement("div");
+    columns.className = "ps-columns";
+    const main = document.createElement("div");
+    main.className = "ps-col-main";
+    const side = document.createElement("div");
+    side.className = "ps-col-side";
+
+    const attributesSection = psSection("II", "ATTRIBUTES");
+    attributeNames().forEach((name) => {
+      attributesSection.append(psPipRow(name, effectiveAttributeRank(attrs, name, status), 5));
+    });
+    main.append(attributesSection);
+
+    const skillGroups = [
+      ["PHYSICAL / FIELD", ["Athletics", "Melee", "Ranged", "Stealth", "Survival", "Medicine"]],
+      ["MENTAL / TECHNICAL", ["Investigation", "Hacking", "Engineering", "Academics", "Awareness", "Tactics"]],
+      ["SOCIAL / RESONANT", ["Empathy", "Deception", "Persuasion", "Intimidation", "Performance", "Ritual"]]
+    ];
+    const skillsSection = psSection("III", "SKILLS");
+    skillGroups.forEach(([groupLabel, names]) => {
+      const groupHeading = document.createElement("p");
+      groupHeading.className = "ps-group-label";
+      groupHeading.textContent = groupLabel;
+      skillsSection.append(groupHeading);
+      names.forEach((name) => {
+        skillsSection.append(psPipRow(name, effectiveSkillRank(skills, name, status), 5));
+      });
+    });
+    main.append(skillsSection);
+
+    const lotusSection = psSection("IV", "LOTUS ARRAY");
+    const lotusFigure = document.createElement("figure");
+    lotusFigure.className = "ps-lotus-figure";
+    const lotusFrame = document.createElement("div");
+    lotusFrame.className = "ps-lotus-frame";
+    const lotusImg = document.createElement("img");
+    lotusImg.src = "../assets/lotus/frequency-lotus-bw.webp";
+    lotusImg.alt = "Frequency Lotus";
+    lotusFrame.append(lotusImg);
+
+    const lotus = status.lotus || {};
+    const blindPetal = status.blindPetal || "";
+    const positions = lotusPipPositions();
+    frequencies().forEach((name) => {
+      const value = name === blindPetal ? 0 : Number(lotus[name] || 0);
+      (positions[name] || []).forEach((pos, index) => {
+        const rank = index + 1;
+        if (rank <= value) return; // earned pip — leave the art's own glow showing through
+        const mask = document.createElement("i");
+        mask.className = "ps-lotus-mask";
+        mask.style.left = `${(pos.x * 100).toFixed(2)}%`;
+        mask.style.top = `${(pos.y * 100).toFixed(2)}%`;
+        lotusFrame.append(mask);
+      });
+    });
+    lotusFigure.append(lotusFrame);
+    lotusSection.append(lotusFigure);
+
+    const caption = document.createElement("p");
+    caption.className = "ps-lotus-caption";
+    const cultivated = frequencies()
+      .filter((name) => name !== blindPetal)
+      .map((name) => `${name} ${Number(lotus[name] || 0)}/6`)
+      .join(" · ");
+    caption.textContent = blindPetal ? `${cultivated} — Blind: ${blindPetal}` : cultivated;
+    lotusSection.append(caption);
+    main.append(lotusSection);
+
+    const presentationSection = psSection("VIII", "PRESENTATION TRACK");
+    presentationSection.append(
+      psFieldRow(
+        psField("Pressure", `${status.presentationPressure || 0}`),
+        psField("Anchor", status.anchorPerson),
+        psField("Totem", status.totemObject)
+      ),
+      psFieldRow(
+        psField("Grounding Line", status.groundingLine),
+        psField("Common Tell", status.commonTell),
+        psField("Misfire Flavor", status.misfireFlavor)
+      )
+    );
+    if (status.expressions) {
+      const expressionsField = psField("Known Expressions", status.expressions);
+      expressionsField.classList.add("ps-field-wide");
+      presentationSection.append(expressionsField);
+    }
+    main.append(presentationSection);
+
+    const equipmentSection = psSection("IX", "EQUIPMENT");
+    const equipment = Array.isArray(consoleState.equipment) ? consoleState.equipment : [];
+    if (equipment.length) {
+      const list = document.createElement("ul");
+      list.className = "ps-equipment-list";
+      equipment.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = [item.item, item.category, item.slot].filter(Boolean).join(" — ");
+        list.append(li);
+      });
+      equipmentSection.append(list);
+    } else {
+      const empty = document.createElement("p");
+      empty.className = "ps-empty";
+      empty.textContent = "No equipment recorded.";
+      equipmentSection.append(empty);
+    }
+    main.append(equipmentSection);
+
+    if (status.quickNotes) {
+      const notesSection = psSection("X", "NOTES");
+      const notes = document.createElement("p");
+      notes.className = "ps-notes";
+      notes.textContent = status.quickNotes;
+      notesSection.append(notes);
+      main.append(notesSection);
+    }
+
+    const trackersSection = psSection("V", "TRACKERS");
+    trackersSection.append(
+      psPipRow("Harm", Number(status.harmBoxes || 0), 5),
+      psPipRow("Stability", Number(status.stability || 0), 10),
+      psPipRow("Void", Number(status.voidMarks || 0), 13),
+      psPipRow("Breach", Number(status.breachPoints || 0), 20)
+    );
+    trackersSection.append(psField("Misfire", status.misfireSeverity || "None"));
+    side.append(trackersSection);
+
+    const attentionSection = psSection("VI", "ATTENTION");
+    attentionSection.append(psField("Current", status.attentionState || "Unseen"));
+    side.append(attentionSection);
+
+    const recoverySection = psSection("VII", "RECOVERY");
+    const recoveryList = document.createElement("ul");
+    recoveryList.className = "ps-recovery-list";
+    [
+      ["Ground", status.recoveryGround],
+      ["Breathe", status.recoveryBreathe],
+      ["Connect", status.recoveryConnect],
+      ["Leave", status.recoveryLeave],
+      ["Name It", status.recoveryNameIt]
+    ].forEach(([label, checked]) => {
+      const li = document.createElement("li");
+      li.className = checked ? "is-checked" : "";
+      li.textContent = label;
+      recoveryList.append(li);
+    });
+    recoverySection.append(recoveryList);
+    side.append(recoverySection);
+
+    columns.append(main, side);
+    host.append(columns);
+
+    const footer = document.createElement("footer");
+    footer.className = "ps-footer";
+    const archivalId = document.createElement("span");
+    archivalId.textContent = `VEILCORP ARCHIVAL ID: ${safeString(operatorRecord?.id || status.designation || operatorName, 60)}`;
+    const motto = document.createElement("span");
+    motto.textContent = "Roleplay becomes physics. Horror is the symptom. Emotional reality is the substrate.";
+    footer.append(archivalId, motto);
+    host.append(footer);
+  }
+
   function bindDataControls() {
     const exportOperatorFile = document.getElementById("export-operator-file");
     const exportButton = document.getElementById("export-console");
     const importInput = document.getElementById("import-console");
     const purgeButton = document.getElementById("purge-console");
+    const printSheetButton = document.getElementById("print-sheet-button");
+
+    if (printSheetButton) printSheetButton.addEventListener("click", () => {
+      renderPrintSheet();
+      window.print();
+    });
 
     if (exportOperatorFile) exportOperatorFile.addEventListener("click", () => {
       operatorRecord = readOperatorRecord();
@@ -5191,11 +5723,14 @@
   bindForms();
   bindDataControls();
   bindModeToggle();
+  bindCellConnect();
   renderAll();
   if (window.VeilDaemonCellSync?.onUpdate) {
     window.VeilDaemonCellSync.onUpdate(() => {
       // Auto-apply Handler projections when they push End Pressure Round / Sync Cell
-      // (same browser profile / BroadcastChannel). Multi-device uses VeilLink.
+      // (same browser profile / BroadcastChannel). Multi-device pulls deliberately
+      // instead (Pull Handler, or the auto-pull in restoreCellConnectionIfPossible)
+      // via cell-sync-remote.js rather than this same-origin storage event.
       pullHandlerCellIfAvailable();
     });
   }
