@@ -298,7 +298,9 @@
 
     // Action economy: fresh Main/Move/Frequency/Reaction budgets for every known seat when
     // a Pressure Round ends; otherwise carry the existing bus snapshot forward. Either way,
-    // apply any actionSpend this batch of Operator sends reported before publishing.
+    // apply any actionSpend/actionReset this batch of Operator sends reported before
+    // publishing. Each is an absolute state report (spend, restore, or full reset), not
+    // an append-only event, so a toggled-back or reset slot converges correctly here too.
     const economy = window.VeilDaemonPressureRoundEconomy;
     let actionEconomy = economy
       ? (kind === "pressure_round"
@@ -307,8 +309,10 @@
       : undefined;
     if (economy && actionEconomy) {
       sends.forEach((send) => {
-        if (send.actionSpend?.slot) {
-          actionEconomy = economy.spendSlot(actionEconomy, send.operatorKey, send.actionSpend.slot);
+        if (send.actionReset) {
+          actionEconomy = economy.resetSeatBudget(actionEconomy, send.operatorKey);
+        } else if (send.actionSpend?.slot) {
+          actionEconomy = economy.setSlotSpent(actionEconomy, send.operatorKey, send.actionSpend.slot, send.actionSpend.used !== false);
         }
       });
     }

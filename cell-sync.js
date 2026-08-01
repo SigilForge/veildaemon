@@ -162,10 +162,23 @@
     if (item.voidBreach) out.voidBreach = safeString(item.voidBreach, 180);
     if (item.misfire) out.misfire = safeString(item.misfire, 180);
     if (item.sceneLogLine) out.sceneLogLine = safeString(item.sceneLogLine, 200);
-    // Pressure Round action economy: which budget slot this send is reporting as spent.
+    // Pressure Round action economy: which budget slot this send is reporting as
+    // spent or restored -- an absolute state report, not an append-only event,
+    // so toggling a slot back to available propagates correctly.
     if (item.actionSpend && typeof item.actionSpend === "object") {
       const slot = safeString(item.actionSpend.slot, 20);
-      if (slot) out.actionSpend = { slot, round: clampInt(item.actionSpend.round, 0, 999, 0) };
+      if (slot) {
+        out.actionSpend = {
+          slot,
+          round: clampInt(item.actionSpend.round, 0, 999, 0),
+          used: item.actionSpend.used !== false
+        };
+      }
+    }
+    // Reset Current Turn: restores all of this Operator's action-economy slots
+    // to available for the given round without advancing the Pressure Round.
+    if (item.actionReset && typeof item.actionReset === "object") {
+      out.actionReset = { round: clampInt(item.actionReset.round, 0, 999, 0) };
     }
     // Report-only: the resolved effect of a declared Recovery move (Operator resolves it, Handler just sees it).
     if (item.recoveryResolution) out.recoveryResolution = safeString(item.recoveryResolution, 180);

@@ -26,14 +26,37 @@
     return { round: Math.max(0, Number(round) || 0), budgets };
   }
 
-  /** Returns a new snapshot with one slot marked spent for one seat. Never throws on an unknown slot/seat. */
-  function spendSlot(economy, operatorKey, slot) {
+  /** Sets one slot's spent/available state for one seat directly (absolute, not
+   *  append-only -- calling this again with the opposite value fully undoes it).
+   *  Never throws on an unknown slot/seat. */
+  function setSlotSpent(economy, operatorKey, slot, spent) {
     if (!SLOTS.includes(slot)) return economy;
     const key = safeKey(operatorKey);
     if (!key) return economy;
     const budgets = { ...(economy?.budgets || {}) };
     const current = budgets[key] || emptyBudget();
-    budgets[key] = { ...current, [slot]: false };
+    budgets[key] = { ...current, [slot]: !spent };
+    return { round: Number(economy?.round) || 0, budgets };
+  }
+
+  /** Returns a new snapshot with one slot marked spent for one seat. */
+  function spendSlot(economy, operatorKey, slot) {
+    return setSlotSpent(economy, operatorKey, slot, true);
+  }
+
+  /** Returns a new snapshot with one slot restored to available for one seat
+   *  -- undoes a spend, e.g. after a mistaken click or a revised declaration. */
+  function restoreSlot(economy, operatorKey, slot) {
+    return setSlotSpent(economy, operatorKey, slot, false);
+  }
+
+  /** Resets one seat's action-economy slots to fully available without
+   *  advancing the round or touching any other seat's budget. */
+  function resetSeatBudget(economy, operatorKey) {
+    const key = safeKey(operatorKey);
+    if (!key) return economy;
+    const budgets = { ...(economy?.budgets || {}) };
+    budgets[key] = emptyBudget();
     return { round: Number(economy?.round) || 0, budgets };
   }
 
@@ -55,7 +78,10 @@
     SLOTS,
     emptyBudget,
     resetBudgetsForRound,
+    setSlotSpent,
     spendSlot,
+    restoreSlot,
+    resetSeatBudget,
     isSlotAvailable,
     budgetFor
   };
