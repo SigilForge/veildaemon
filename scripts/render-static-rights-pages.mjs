@@ -387,6 +387,7 @@ function pageShell({ title, description, canonical, noindex = false, body }) {
   <meta name="twitter:image" content="${escapeHtml(ogImage)}">
   <meta name="theme-color" content="#070a0b">
   <link rel="stylesheet" href="/studio/studio.css?v=${styleVersion}">
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="S+lLE7cqoR0zD/Mvx39AJg" async></script>
 </head>
 <body class="subpage page-shell">
   <a class="skip-link" href="#main">Skip to content</a>
