@@ -665,14 +665,17 @@ test("print sheet button populates a print-only sheet from current build", async
   await expect(printSheet.locator(".ps-header h1")).toHaveText("CRADLEPOINT");
   const nameField = printSheet.locator(".ps-field", { hasText: "Name" });
   await expect(nameField.locator("strong")).toHaveText("Cathy Holloway");
+  // Pip rows show dots only, no "3/5" caption (redundant with the dots themselves).
   const bodyRow = printSheet.locator(".ps-pip-row", { hasText: "Body" });
-  await expect(bodyRow.locator(".ps-pip-count")).toHaveText("3/5");
+  await expect(bodyRow.locator(".ps-pip.is-filled")).toHaveCount(3);
   const investigationRow = printSheet.locator(".ps-pip-row", { hasText: "Investigation" });
-  await expect(investigationRow.locator(".ps-pip-count")).toHaveText("3/5");
+  await expect(investigationRow.locator(".ps-pip.is-filled")).toHaveCount(3);
+  // The real Lotus artwork is printed as-is -- no procedural pip-mask overlay.
   await expect(printSheet.locator(".ps-lotus-figure img")).toHaveAttribute("src", /frequency-lotus-bw\.webp/);
+  await expect(printSheet.locator(".ps-lotus-mask")).toHaveCount(0);
 });
 
-test("print sheet masks unearned Lotus pips onto the official art instead of a text readout", async ({ page }) => {
+test("print sheet lists cultivated Lotus pips as unlocked abilities, not a mask overlay", async ({ page }) => {
   await page.goto("/operator/");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
@@ -682,21 +685,26 @@ test("print sheet masks unearned Lotus pips onto the official art instead of a t
     const raw = JSON.parse(localStorage.getItem("veildaemon.operatorConsole.v1"));
     raw.operatorStatus.lotus = { Dream: 3, Hunger: 0, Silence: 6, Stillness: 0, Empyrean: 2, Becoming: 5 };
     raw.operatorStatus.blindPetal = "Stillness";
+    // Explicit empty, not relying on whatever default hint text Core Start left in the
+    // field -- this test is only about the pip-unlock list, not the misfire reference block.
+    raw.operatorStatus.misfireFlavor = "";
     localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify(raw));
   });
   await page.reload();
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Print Sheet" }).click();
 
-  // No more per-frequency pip rows under the art — one compact caption line instead.
-  await expect(page.locator("#print-sheet .ps-lotus-figure .ps-pip-row")).toHaveCount(0);
-  await expect(page.locator(".ps-lotus-caption")).toHaveText(
-    "Dream 3/6 · Hunger 0/6 · Silence 6/6 · Empyrean 2/6 · Becoming 5/6 — Blind: Stillness"
-  );
+  const lotusSection = page.locator("#print-sheet .ps-section", { hasText: "LOTUS ARRAY" });
+  // No mask overlay and no "3/6 · 0/6 ..." caption line -- the real art plus a
+  // per-Frequency list of what each cultivated pip actually unlocks instead.
+  await expect(lotusSection.locator(".ps-lotus-mask")).toHaveCount(0);
+  await expect(lotusSection.locator(".ps-lotus-caption")).toHaveCount(0);
 
-  // Unearned (masked) pips per Frequency: Dream 6-3=3, Hunger 6-0=6, Silence 6-6=0,
-  // Stillness (blind, forced 0) = 6, Empyrean 6-2=4, Becoming 6-5=1. Total 20.
-  await expect(page.locator("#print-sheet .ps-lotus-mask")).toHaveCount(20);
+  // Cultivated, non-blind Frequencies only: Dream(3), Silence(6), Empyrean(2), Becoming(5).
+  // Hunger(0) and blind Stillness are excluded.
+  const groupLabels = lotusSection.locator(".ps-ability-group-label");
+  await expect(groupLabels).toHaveText(["Dream", "Silence", "Empyrean", "Becoming"]);
+  await expect(lotusSection.locator(".ps-ability-line")).toHaveCount(3 + 6 + 2 + 5);
 });
 
 test("legacy nerves skill entries are scrubbed from saved builds", async ({ page }) => {

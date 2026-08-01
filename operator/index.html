@@ -109,32 +109,9 @@
         <p class="subhead">Initialize. Record. Operate. Local record only.</p>
       </div>
       <div class="header-right-controls">
-        <button type="button" class="button primary lobby-quick-btn" id="lobby-quick-btn" title="Quick join a Live Table session lobby">⚡ JOIN LOBBY</button>
-        <div class="mode-toggle-group" id="operator-mode-toggle" role="radiogroup" aria-label="Operation Mode">
-          <span class="mode-toggle-label">MODE:</span>
-          <button type="button" class="mode-toggle-btn is-active" data-mode="local" role="radio" aria-checked="true" title="Local browser storage. Everything stays in your browser. Works offline without login.">
-            <span class="mode-dot">●</span> LOCAL
-          </button>
-          <button type="button" class="mode-toggle-btn" data-mode="live" role="radio" aria-checked="false" title="Live Table mode. Connects to VeilLink for multi-device table sync.">
-            <span class="mode-dot">○</span> LIVE TABLE
-          </button>
-        </div>
         <div id="operator-auth-mount"></div>
       </div>
     </header>
-
-    <section class="live-session-bar" id="live-session-bar" hidden>
-      <div class="live-session-content">
-        <span class="live-session-badge" id="live-session-badge">● LIVE TABLE</span>
-        <span class="live-session-code" id="live-session-code-display" style="color:var(--muted);font-size:0.75rem;font-family:monospace">NO SESSION</span>
-        <form class="live-session-join-inline" id="live-session-join-form">
-          <input type="text" name="joinCode" id="live-join-code-input" class="join-code-input" placeholder="JOIN CODE" maxlength="6" aria-label="Join Code" />
-          <button type="submit" class="button primary small" style="min-height:1.8rem;padding:0 0.6rem">Connect</button>
-        </form>
-        <a class="button ghost small" href="https://app.veildaemon.app/table" target="_blank" rel="noopener noreferrer" style="min-height:1.8rem;padding:0 0.6rem;align-self:center">Open Table Hub ↗</a>
-        <button type="button" class="button ghost small" id="live-session-disconnect" style="min-height:1.8rem;padding:0 0.6rem" hidden>Disconnect</button>
-      </div>
-    </section>
 
     <section class="notice-panel" id="record-notice" aria-live="polite">
       <p><span class="prompt">&gt;</span> Console checks this browser for an operator record. Nothing here syncs upstream.</p>
@@ -230,12 +207,16 @@
               <div class="frequency-recovery-wrap">
                 <span class="readout-inline-label">Recovery</span>
                 <fieldset class="recovery-field compact frequency-recovery" aria-label="Recovery">
-                  <label><input name="recoveryGround" type="checkbox" /> Ground</label>
-                  <label><input name="recoveryBreathe" type="checkbox" /> Breathe</label>
-                  <label><input name="recoveryConnect" type="checkbox" /> Connect</label>
-                  <label><input name="recoveryLeave" type="checkbox" /> Leave</label>
-                  <label><input name="recoveryNameIt" type="checkbox" /> Name It</label>
+                  <label data-recovery-label="ground"><input name="recoveryGround" type="checkbox" /> Ground</label>
+                  <label data-recovery-label="breathe"><input name="recoveryBreathe" type="checkbox" /> Breathe</label>
+                  <label data-recovery-label="connect"><input name="recoveryConnect" type="checkbox" /> Connect</label>
+                  <label data-recovery-label="leave"><input name="recoveryLeave" type="checkbox" /> Leave</label>
+                  <label data-recovery-label="name_it"><input name="recoveryNameIt" type="checkbox" /> Name It</label>
                 </fieldset>
+                <details class="recovery-legend" id="recovery-legend">
+                  <summary>What do these do?</summary>
+                  <div class="recovery-legend-body" id="recovery-legend-body"></div>
+                </details>
               </div>
             </div>
           </article>
@@ -253,7 +234,6 @@
           <article class="sheet-card operator-roll-dock wide">
             <div class="operator-roll-heading">
               <p class="card-label">Action Roll</p>
-              <button type="button" class="button ghost small roll-dock-join-btn" id="roll-dock-join-btn">⚡ JOIN LOBBY</button>
               <details class="roll-guide-drawer">
                 <summary>Roll guide</summary>
                 <div class="roll-guide-body">
@@ -286,7 +266,7 @@
               <button type="button" class="button primary roll-button" id="roll-action">Roll 3D6</button>
             </div>
             <div class="roll-output" id="roll-output">Awaiting action.</div>
-            <div class="roll-sync-status" id="roll-sync-status" hidden><span class="sync-check">✓</span> Roll logged to Cell &amp; Live Table (Handler feed updated)</div>
+            <div class="roll-sync-status" id="roll-sync-status" hidden><span class="sync-check">✓</span> Roll logged to Cell (Handler feed updated)</div>
           </article>
 
           <div class="operator-live-grid live-lower-grid wide">

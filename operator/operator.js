@@ -676,8 +676,6 @@
       anomalies: normalizeArray(state.anomalies),
       relationships: normalizeArray(state.relationships),
       residue: normalizeArray(state.residue),
-      operationMode: state.operationMode === "live" ? "live" : "local",
-      activeLiveSession: safeString(state.activeLiveSession, 20),
       lastCellPullAt: safeString(state.lastCellPullAt, 40),
       cellSync: normalizeCellSyncMeta(state.cellSync || {
         lastAppliedRevision: 0,
@@ -864,17 +862,36 @@
     return { round, main: Boolean(spend.main), move: Boolean(spend.move), frequency: Boolean(spend.frequency), reaction: Boolean(spend.reaction) };
   }
 
-  /** Marks one action-economy slot spent for this round, saves locally, and reports it to Handler. */
-  function spendOperatorAction(slot) {
+  /** Toggles one action-economy slot for this round (available <-> used), saves
+   *  locally, and reports the resulting state to Handler. A declaration is
+   *  provisional until the table agrees it happened -- a mistaken click or a
+   *  revised declaration must be correctable by clicking the same slot again,
+   *  not by ending or restarting the round. */
+  function toggleOperatorAction(slot) {
     const economy = window.VeilDaemonPressureRoundEconomy;
     if (!economy || !economy.SLOTS.includes(slot)) return;
     const status = consoleState.operatorStatus;
     const current = localActionSpend(status);
-    if (current[slot]) return;
-    status.actionSpend = { ...current, [slot]: true };
+    const next = !current[slot];
+    status.actionSpend = { ...current, [slot]: next };
     writeConsoleState();
     renderSceneTimerStrip();
-    sendOperatorToCell({ skipAutosave: true, extra: { actionSpend: { slot, round: current.round } } });
+    sendOperatorToCell({ skipAutosave: true, extra: { actionSpend: { slot, round: current.round, used: next } } });
+  }
+
+  /** Resets only the current Operator's action-economy slots (Main/Move/
+   *  Frequency/Reaction) to available. Does not advance the Pressure Round,
+   *  touch Harm/Stability/Load/Void/Breach, erase Recovery, or close the
+   *  session -- it corrects a mistaken turn, nothing else. */
+  function resetOperatorTurn() {
+    const economy = window.VeilDaemonPressureRoundEconomy;
+    if (!economy) return;
+    const status = consoleState.operatorStatus;
+    const current = localActionSpend(status);
+    status.actionSpend = { round: current.round, main: false, move: false, frequency: false, reaction: false };
+    writeConsoleState();
+    renderSceneTimerStrip();
+    sendOperatorToCell({ skipAutosave: true, extra: { actionReset: { round: current.round } } });
   }
 
   function buildOperatorCellSend(extra) {
@@ -1282,6 +1299,39 @@
         renderTrackers();
       });
     });
+  }
+
+  /** Recovery checkbox tooltips/legend, read from the canonical RECOVERY_ACTIONS
+   *  data (presentation-abilities.js) so there is exactly one source of truth
+   *  for what each Recovery move does -- never a second hardcoded ruleset. */
+  function renderRecoveryLegend() {
+    const api = presentationAbilitiesApi();
+    const actions = api?.RECOVERY_ACTIONS;
+    if (!actions) return;
+    document.querySelectorAll("[data-recovery-label]").forEach((label) => {
+      const key = label.getAttribute("data-recovery-label");
+      const action = actions[key];
+      if (!action) return;
+      label.title = `${action.label}: ${action.resolveLog}.`;
+    });
+    const body = document.getElementById("recovery-legend-body");
+    if (!body) return;
+    body.textContent = "";
+    const order = ["ground", "breathe", "connect", "leave", "name_it"];
+    order.forEach((key) => {
+      const action = actions[key];
+      if (!action) return;
+      const line = document.createElement("p");
+      line.className = "recovery-legend-line";
+      const strong = document.createElement("strong");
+      strong.textContent = action.label;
+      line.append(strong, document.createTextNode(`: ${action.resolveLog}.`));
+      body.append(line);
+    });
+    const note = document.createElement("p");
+    note.className = "recovery-legend-note";
+    note.textContent = "Only one Recovery move may be declared per round.";
+    body.append(note);
   }
 
   function migratePresentationDrift(status) {
@@ -3483,11 +3533,20 @@
         button.type = "button";
         button.className = used ? "scene-timer-btn subtle" : "scene-timer-btn ghost";
         button.textContent = used ? `${ACTION_ECONOMY_LABELS[slot]} (used)` : ACTION_ECONOMY_LABELS[slot];
-        button.disabled = used;
-        button.title = `Report ${ACTION_ECONOMY_LABELS[slot]} spent to Handler for Round ${spend.round}.`;
-        button.addEventListener("click", () => spendOperatorAction(slot));
+        button.setAttribute("aria-pressed", used ? "true" : "false");
+        button.title = used
+          ? `${ACTION_ECONOMY_LABELS[slot]} is used for Round ${spend.round}. Click to restore it to available.`
+          : `Mark ${ACTION_ECONOMY_LABELS[slot]} used for Round ${spend.round}. Click again to undo.`;
+        button.addEventListener("click", () => toggleOperatorAction(slot));
         budgetRow.append(button);
       });
+      const resetButton = document.createElement("button");
+      resetButton.type = "button";
+      resetButton.className = "scene-timer-btn ghost action-budget-reset";
+      resetButton.textContent = "Reset Current Turn";
+      resetButton.title = "Restore Main Action, Move, Frequency Use, and Reaction to available for this round. Does not advance the round or change Harm/Stability/Load/Void/Breach.";
+      resetButton.addEventListener("click", () => resetOperatorTurn());
+      budgetRow.append(resetButton);
       strip.append(budgetRow);
     }
 
@@ -4649,12 +4708,7 @@
       ["Recovery opening", item.recoveryOpening]
     ]);
     renderAuthorization();
-    renderModeToggle();
-    setStorageStatus(
-      consoleState.operationMode === "live"
-        ? "Live Table mode active. Sheet syncs via VeilLink."
-        : "Local console record held in this browser."
-    );
+    setStorageStatus("Local console record held in this browser.");
   }
 
   function formatDate(value) {
@@ -4823,6 +4877,7 @@
 
   function bindForms() {
     bindRecoverySingleSelect();
+    renderRecoveryLegend();
     if (forms.cases) forms.cases.addEventListener("submit", (event) => {
       event.preventDefault();
       addEntry("cases", forms.cases);
@@ -5418,18 +5473,27 @@
     side1.append(trackersSection);
 
     const recoverySection = nextSection("RECOVERY");
+    const recoveryActions = presentationAbilitiesApi()?.RECOVERY_ACTIONS || {};
     const recoveryList = document.createElement("ul");
     recoveryList.className = "ps-recovery-list";
     [
-      ["Ground", status.recoveryGround],
-      ["Breathe", status.recoveryBreathe],
-      ["Connect", status.recoveryConnect],
-      ["Leave", status.recoveryLeave],
-      ["Name It", status.recoveryNameIt]
-    ].forEach(([label, checked]) => {
+      ["ground", "Ground", status.recoveryGround],
+      ["breathe", "Breathe", status.recoveryBreathe],
+      ["connect", "Connect", status.recoveryConnect],
+      ["leave", "Leave", status.recoveryLeave],
+      ["name_it", "Name It", status.recoveryNameIt]
+    ].forEach(([key, label, checked]) => {
       const li = document.createElement("li");
       li.className = checked ? "is-checked" : "";
-      li.textContent = label;
+      const box = document.createElement("i");
+      box.className = "ps-check";
+      const text = document.createElement("span");
+      const strong = document.createElement("strong");
+      strong.textContent = label;
+      text.append(strong);
+      const resolveLog = recoveryActions[key]?.resolveLog;
+      if (resolveLog) text.append(document.createTextNode(` — ${resolveLog}.`));
+      li.append(box, text);
       recoveryList.append(li);
     });
     recoverySection.append(recoveryList);
@@ -5462,7 +5526,7 @@
     page2.className = "ps-page";
 
     const columns2 = document.createElement("div");
-    columns2.className = "ps-columns";
+    columns2.className = "ps-columns ps-columns-balanced";
     const main2 = document.createElement("div");
     main2.className = "ps-col-main";
     const side2 = document.createElement("div");
@@ -5766,121 +5830,6 @@
     });
   }
 
-  function focusLobbyJoin() {
-    consoleState.operationMode = "live";
-    try { writeConsoleState(); } catch (_e) {}
-    renderModeToggle();
-    const bar = document.getElementById("live-session-bar");
-    const input = document.getElementById("live-join-code-input");
-    if (bar) bar.hidden = false;
-    if (input) {
-      input.focus();
-      input.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  }
-
-  function bindModeToggle() {
-    const quickBtn = document.getElementById("lobby-quick-btn");
-    if (quickBtn) quickBtn.addEventListener("click", focusLobbyJoin);
-
-    const dockBtn = document.getElementById("roll-dock-join-btn");
-    if (dockBtn) dockBtn.addEventListener("click", focusLobbyJoin);
-
-    const toggle = document.getElementById("operator-mode-toggle");
-    if (toggle) {
-      toggle.addEventListener("click", (event) => {
-        const btn = event.target && event.target.closest && event.target.closest("[data-mode]");
-        if (!btn) return;
-
-        const nextMode = btn.getAttribute("data-mode") === "live" ? "live" : "local";
-        consoleState.operationMode = nextMode;
-        try {
-          writeConsoleState();
-        } catch (_e) {
-          // best effort
-        }
-        renderModeToggle();
-      });
-    }
-
-    const joinForm = document.getElementById("live-session-join-form");
-    if (joinForm) {
-      joinForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const input = document.getElementById("live-join-code-input");
-        const code = input ? input.value.trim().toUpperCase() : "";
-        if (!code) return;
-        consoleState.activeLiveSession = code;
-        try {
-          writeConsoleState();
-        } catch (_e) {}
-        renderModeToggle();
-        setStorageStatus(`LIVE TABLE — Connected to session [${code}]. Live state sync active.`);
-      });
-    }
-
-    const disconnectBtn = document.getElementById("live-session-disconnect");
-    if (disconnectBtn) {
-      disconnectBtn.addEventListener("click", () => {
-        consoleState.activeLiveSession = "";
-        try {
-          writeConsoleState();
-        } catch (_e) {}
-        renderModeToggle();
-        setStorageStatus("LIVE TABLE — Disconnected. Reverted to Local browser storage.");
-      });
-    }
-  }
-
-  function renderModeToggle() {
-    const isLive = consoleState.operationMode === "live";
-    const code = consoleState.activeLiveSession || "";
-    const modeBtns = document.querySelectorAll("#operator-mode-toggle [data-mode]");
-    modeBtns.forEach((btn) => {
-      const mode = btn.getAttribute("data-mode");
-      const active = (mode === "live" && isLive) || (mode === "local" && !isLive);
-      btn.classList.toggle("is-active", active);
-      btn.setAttribute("aria-checked", active ? "true" : "false");
-    });
-
-    const quickBtn = document.getElementById("lobby-quick-btn");
-    if (quickBtn) {
-      quickBtn.textContent = (isLive && code) ? `🟢 LOBBY: ${code}` : "⚡ JOIN LOBBY";
-      quickBtn.classList.toggle("is-connected", Boolean(isLive && code));
-    }
-
-    const dockBtn = document.getElementById("roll-dock-join-btn");
-    if (dockBtn) {
-      dockBtn.textContent = (isLive && code) ? `🟢 LOBBY: ${code}` : "⚡ JOIN LOBBY";
-      dockBtn.classList.toggle("is-connected", Boolean(isLive && code));
-    }
-
-    const bar = document.getElementById("live-session-bar");
-    if (bar) {
-      bar.hidden = !isLive;
-    }
-
-    const noticeP = document.querySelector("#record-notice p");
-    const codeDisplay = document.getElementById("live-session-code-display");
-    const disconnectBtn = document.getElementById("live-session-disconnect");
-
-    if (isLive) {
-      if (codeDisplay) {
-        codeDisplay.textContent = code ? `SESSION: ${code}` : "NO SESSION — ENTER CODE";
-      }
-      if (disconnectBtn) {
-        disconnectBtn.hidden = !code;
-      }
-      if (noticeP) {
-        noticeP.innerHTML = `<span class="prompt">&gt;</span> Mode: <strong>LIVE TABLE</strong> — Sheet controls remain identical. State updates sync across devices via VeilLink ${code ? `[Session: ${code}]` : "(enter code to link)"}.`;
-      }
-    } else {
-      if (noticeP) {
-        noticeP.innerHTML = `<span class="prompt">&gt;</span> Mode: <strong>LOCAL (BROWSER)</strong> — All data is held in this browser's local storage. Offline ready. Like paper & pencil.`;
-      }
-    }
-  }
-
   consoleState = readConsoleState();
   operatorRecord = readOperatorRecord();
   artifactState = readArtifactState();
@@ -5888,7 +5837,6 @@
   bindTabs();
   bindForms();
   bindDataControls();
-  bindModeToggle();
   bindCellConnect();
   renderAll();
   if (window.VeilDaemonCellSync?.onUpdate) {
