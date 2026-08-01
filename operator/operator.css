@@ -3864,9 +3864,15 @@ body.has-reports-drawer-open .surface-tabs {
     letter-spacing: .02em;
   }
 
-  .ps-lotus-expressions { margin-top: .4rem; }
-  .ps-lotus-expr-group { margin-bottom: .3rem; break-inside: avoid; }
-  .ps-lotus-expr-freq {
+  .ps-ability-block { margin-top: .4rem; }
+  .ps-ability-identity {
+    margin: 0 0 .3rem;
+    font-size: .62rem;
+    font-style: italic;
+    color: #555;
+  }
+  .ps-ability-group { margin-bottom: .3rem; break-inside: avoid; }
+  .ps-ability-group-label {
     margin: 0 0 .15rem;
     padding-bottom: .08rem;
     font-size: .62rem;
@@ -3876,12 +3882,12 @@ body.has-reports-drawer-open .surface-tabs {
     color: var(--ps-accent);
     border-bottom: 1px solid #ccc;
   }
-  .ps-lotus-expr-line {
+  .ps-ability-line {
     margin: 0 0 .15rem;
     font-size: .62rem;
     line-height: 1.32;
   }
-  .ps-lotus-expr-line strong { color: var(--ps-ink); }
+  .ps-ability-line strong { color: var(--ps-ink); }
 
   .ps-equipment-list, .ps-recovery-list {
     margin: 0;

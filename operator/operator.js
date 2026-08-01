@@ -5400,19 +5400,19 @@
     const unlockedEntries = unlockedLotusEntries();
     if (unlockedEntries.length) {
       const expressions = document.createElement("div");
-      expressions.className = "ps-lotus-expressions";
+      expressions.className = "ps-ability-block";
       frequencies().forEach((name) => {
         const entries = unlockedEntries.filter((entry) => entry.frequency === name);
         if (!entries.length) return;
         const group = document.createElement("div");
-        group.className = "ps-lotus-expr-group";
+        group.className = "ps-ability-group";
         const heading = document.createElement("p");
-        heading.className = "ps-lotus-expr-freq";
+        heading.className = "ps-ability-group-label";
         heading.textContent = name;
         group.append(heading);
         entries.forEach((entry) => {
           const line = document.createElement("p");
-          line.className = "ps-lotus-expr-line";
+          line.className = "ps-ability-line";
           const strong = document.createElement("strong");
           strong.textContent = `${entry.pip}. ${entry.name}`;
           line.append(strong, document.createTextNode(` — ${entry.effect}`));
@@ -5441,6 +5441,66 @@
       const expressionsField = psField("Known Expressions", status.expressions);
       expressionsField.classList.add("ps-field-wide");
       presentationSection.append(expressionsField);
+    }
+    const abilitiesApi = presentationAbilitiesApi();
+    const presentationView = abilitiesApi?.presentationAbilityView
+      ? abilitiesApi.presentationAbilityView(status, currentPresentationKey())
+      : null;
+    if (presentationView) {
+      const abilitiesBlock = document.createElement("div");
+      abilitiesBlock.className = "ps-ability-block";
+      if (presentationView.identityLine) {
+        const identity = document.createElement("p");
+        identity.className = "ps-ability-identity";
+        identity.textContent = presentationView.identityLine;
+        abilitiesBlock.append(identity);
+      }
+      const appendAbilityGroup = (heading, entries, formatLabel) => {
+        if (!entries?.length) return;
+        const label = document.createElement("p");
+        label.className = "ps-ability-group-label";
+        label.textContent = heading;
+        abilitiesBlock.append(label);
+        entries.forEach((entry) => {
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = formatLabel(entry);
+          line.append(strong, document.createTextNode(` — ${entry.effect}`));
+          abilitiesBlock.append(line);
+        });
+      };
+      appendAbilityGroup("Passive", presentationView.passivePermissions, (entry) => entry.name);
+      appendAbilityGroup("Active", presentationView.activeAbilities, (entry) => {
+        const costBit = entry.cost || entry.cadence;
+        return `${entry.name}${costBit ? ` (${costBit})` : ""}`;
+      });
+      const trackLabel = presentationView.pressureTrack?.trackLabel || "Load";
+      if (presentationView.bandModifiers?.length || presentationView.collapseBehavior) {
+        const label = document.createElement("p");
+        label.className = "ps-ability-group-label";
+        label.textContent = `${trackLabel} thresholds`;
+        abilitiesBlock.append(label);
+        (presentationView.bandModifiers || []).forEach((entry) => {
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = `${trackLabel} ${entry.atLoad} — ${entry.bandLabel}`;
+          const bits = [entry.helps, entry.hurts].filter(Boolean).join("; ");
+          line.append(strong, document.createTextNode(` — ${bits}`));
+          abilitiesBlock.append(line);
+        });
+        if (presentationView.collapseBehavior) {
+          const collapse = presentationView.collapseBehavior;
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = `${trackLabel} ${collapse.atLoad} collapse — ${collapse.name}`;
+          line.append(strong, document.createTextNode(` — ${collapse.effect}`));
+          abilitiesBlock.append(line);
+        }
+      }
+      presentationSection.append(abilitiesBlock);
     }
     main.append(presentationSection);
 
