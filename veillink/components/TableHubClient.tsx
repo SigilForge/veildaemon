@@ -129,6 +129,7 @@ export function TableHubClient({ initialJoinCode = "" }: { initialJoinCode?: str
         url: data.joinUrl,
         id: data.session.id,
       });
+      setJoinCode(data.session.join_code);
     } catch (err) {
       setError((err as Error).message);
     } finally {
