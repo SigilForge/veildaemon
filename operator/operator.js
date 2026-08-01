@@ -2876,35 +2876,6 @@
    * pip in as filled; the print sheet masks out unearned ones over these
    * coordinates rather than drawing a separate pip readout.
    */
-  function lotusPipPositions() {
-    return {
-      Dream: [
-        { x: 0.3589, y: 0.4168 }, { x: 0.3319, y: 0.4009 }, { x: 0.2932, y: 0.3745 },
-        { x: 0.2658, y: 0.3575 }, { x: 0.2256, y: 0.328 }, { x: 0.196, y: 0.3076 }
-      ],
-      Hunger: [
-        { x: 0.4943, y: 0.3516 }, { x: 0.4942, y: 0.3185 }, { x: 0.4942, y: 0.2693 },
-        { x: 0.4941, y: 0.235 }, { x: 0.4942, y: 0.1875 }, { x: 0.4942, y: 0.1496 }
-      ],
-      Silence: [
-        { x: 0.4946, y: 0.6078 }, { x: 0.4948, y: 0.6413 }, { x: 0.4946, y: 0.6885 },
-        { x: 0.4946, y: 0.7207 }, { x: 0.4945, y: 0.768 }, { x: 0.4946, y: 0.8051 }
-      ],
-      Stillness: [
-        { x: 0.3605, y: 0.5488 }, { x: 0.3336, y: 0.567 }, { x: 0.295, y: 0.5941 },
-        { x: 0.2686, y: 0.6142 }, { x: 0.2255, y: 0.6418 }, { x: 0.1966, y: 0.6603 }
-      ],
-      Empyrean: [
-        { x: 0.6248, y: 0.4191 }, { x: 0.6521, y: 0.4037 }, { x: 0.691, y: 0.3756 },
-        { x: 0.7178, y: 0.3584 }, { x: 0.7578, y: 0.3298 }, { x: 0.7857, y: 0.3097 }
-      ],
-      Becoming: [
-        { x: 0.6241, y: 0.5493 }, { x: 0.6506, y: 0.5672 }, { x: 0.6891, y: 0.5936 },
-        { x: 0.716, y: 0.6117 }, { x: 0.757, y: 0.6402 }, { x: 0.7856, y: 0.6598 }
-      ]
-    };
-  }
-
   function normalizeFrequencyName(value) {
     return frequencies().includes(value) ? value : "";
   }
@@ -5292,6 +5263,23 @@
     return row;
   }
 
+  function psCheckRow(label, current, max) {
+    const row = document.createElement("div");
+    row.className = "ps-pip-row";
+    const labelWrap = document.createElement("span");
+    labelWrap.className = "ps-pip-label";
+    labelWrap.textContent = label;
+    const boxes = document.createElement("div");
+    boxes.className = "ps-pips";
+    for (let i = 1; i <= max; i += 1) {
+      const box = document.createElement("i");
+      box.className = i <= current ? "ps-check is-filled" : "ps-check";
+      boxes.append(box);
+    }
+    row.append(labelWrap, boxes);
+    return row;
+  }
+
   function psSection(numeral, title) {
     const section = document.createElement("section");
     section.className = "ps-section";
@@ -5395,25 +5383,11 @@
     lotusImg.src = "../assets/lotus/frequency-lotus-bw.webp";
     lotusImg.alt = "Frequency Lotus";
     lotusFrame.append(lotusImg);
-
-    const lotus = status.lotus || {};
-    const blindPetal = status.blindPetal || "";
-    const positions = lotusPipPositions();
-    frequencies().forEach((name) => {
-      const value = name === blindPetal ? 0 : Number(lotus[name] || 0);
-      (positions[name] || []).forEach((pos, index) => {
-        const rank = index + 1;
-        if (rank <= value) return; // earned pip — leave the art's own glow showing through
-        const mask = document.createElement("i");
-        mask.className = "ps-lotus-mask";
-        mask.style.left = `${(pos.x * 100).toFixed(2)}%`;
-        mask.style.top = `${(pos.y * 100).toFixed(2)}%`;
-        lotusFrame.append(mask);
-      });
-    });
     lotusFigure.append(lotusFrame);
     lotusSection.append(lotusFigure);
 
+    const lotus = status.lotus || {};
+    const blindPetal = status.blindPetal || "";
     const caption = document.createElement("p");
     caption.className = "ps-lotus-caption";
     const cultivated = frequencies()
@@ -5422,6 +5396,32 @@
       .join(" · ");
     caption.textContent = blindPetal ? `${cultivated} — Blind: ${blindPetal}` : cultivated;
     lotusSection.append(caption);
+
+    const unlockedEntries = unlockedLotusEntries();
+    if (unlockedEntries.length) {
+      const expressions = document.createElement("div");
+      expressions.className = "ps-lotus-expressions";
+      frequencies().forEach((name) => {
+        const entries = unlockedEntries.filter((entry) => entry.frequency === name);
+        if (!entries.length) return;
+        const group = document.createElement("div");
+        group.className = "ps-lotus-expr-group";
+        const heading = document.createElement("p");
+        heading.className = "ps-lotus-expr-freq";
+        heading.textContent = name;
+        group.append(heading);
+        entries.forEach((entry) => {
+          const line = document.createElement("p");
+          line.className = "ps-lotus-expr-line";
+          const strong = document.createElement("strong");
+          strong.textContent = `${entry.pip}. ${entry.name}`;
+          line.append(strong, document.createTextNode(` — ${entry.effect}`));
+          group.append(line);
+        });
+        expressions.append(group);
+      });
+      lotusSection.append(expressions);
+    }
     main.append(lotusSection);
 
     const presentationSection = psSection("VIII", "PRESENTATION TRACK");
@@ -5475,9 +5475,13 @@
     const trackersSection = psSection("V", "TRACKERS");
     trackersSection.append(
       psPipRow("Harm", Number(status.harmBoxes || 0), 5),
-      psPipRow("Stability", Number(status.stability || 0), 10),
-      psPipRow("Void", Number(status.voidMarks || 0), 13),
-      psPipRow("Breach", Number(status.breachPoints || 0), 20)
+      psCheckRow("Stability", Number(status.stability || 0), 10)
+    );
+    trackersSection.append(
+      psFieldRow(
+        psField("Void", `${Number(status.voidMarks || 0)}`),
+        psField("Breach", `${Number(status.breachPoints || 0)}`)
+      )
     );
     trackersSection.append(psField("Misfire", status.misfireSeverity || "None"));
     side.append(trackersSection);

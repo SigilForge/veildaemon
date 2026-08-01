@@ -3831,6 +3831,14 @@ body.has-reports-drawer-open .surface-tabs {
     display: inline-block;
   }
   .ps-pip.is-filled { background: var(--ps-accent); border-color: var(--ps-accent); }
+  .ps-check {
+    width: .68rem;
+    height: .68rem;
+    border-radius: 1px;
+    border: 1.5px solid var(--ps-ink);
+    display: inline-block;
+  }
+  .ps-check.is-filled { background: var(--ps-accent); border-color: var(--ps-accent); }
 
   .ps-lotus-figure {
     margin: 0 0 .25rem;
@@ -3848,14 +3856,6 @@ body.has-reports-drawer-open .surface-tabs {
     width: 100%;
     filter: grayscale(1) contrast(1.15);
   }
-  .ps-lotus-mask {
-    position: absolute;
-    width: 3.4%;
-    aspect-ratio: 1;
-    background: #000;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-  }
   .ps-lotus-caption {
     margin: .3rem 0 0;
     text-align: center;
@@ -3863,6 +3863,25 @@ body.has-reports-drawer-open .surface-tabs {
     color: #444;
     letter-spacing: .02em;
   }
+
+  .ps-lotus-expressions { margin-top: .4rem; }
+  .ps-lotus-expr-group { margin-bottom: .3rem; break-inside: avoid; }
+  .ps-lotus-expr-freq {
+    margin: 0 0 .15rem;
+    padding-bottom: .08rem;
+    font-size: .62rem;
+    font-weight: bold;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--ps-accent);
+    border-bottom: 1px solid #ccc;
+  }
+  .ps-lotus-expr-line {
+    margin: 0 0 .15rem;
+    font-size: .62rem;
+    line-height: 1.32;
+  }
+  .ps-lotus-expr-line strong { color: var(--ps-ink); }
 
   .ps-equipment-list, .ps-recovery-list {
     margin: 0;
