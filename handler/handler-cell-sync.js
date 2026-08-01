@@ -504,7 +504,7 @@
       cellBtn.addEventListener("click", () => run("cell"));
     }
     if (archiveBtn) {
-      archiveBtn.addEventListener("click", () => {
+      archiveBtn.addEventListener("click", async () => {
         const state = api.readState();
         if (state.session?.cellArchiveToken) {
           setStatus(`ARCHIVE ALREADY COMPLETE · token ${state.session.cellArchiveToken}`);
@@ -513,7 +513,18 @@
         if (!window.confirm("Archive Session? Pull Operator banks (Void/Breach) once, reconcile Harm/Stability, clear Cell sends. Lotus stays between-sessions.")) {
           return;
         }
-        run("archive");
+        await run("archive");
+        // Reward-granting (Void/Breach bonuses, Ontology/Background/Case unlocks) has no
+        // Handler UI yet -- this closes the Cell with whatever final numbers the archive
+        // push above already carried, same as same-device play today.
+        const remote = window.VeilDaemonCellRemote;
+        if (remote?.isConnected()) {
+          try {
+            await remote.closeCell({ oneShot: state.activeNeedlepoint?.one_shot });
+          } catch (error) {
+            setStatus(error?.message || "Remote Cell close failed", true);
+          }
+        }
       });
     }
 

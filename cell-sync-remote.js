@@ -88,6 +88,17 @@
     return data;
   }
 
+  /** Handler: closes the Cell server-side after Archive Session's local + push steps. */
+  async function closeCell({ oneShot } = {}) {
+    if (!connection || connection.role !== "handler") return null;
+    const data = await authedFetch("close", {
+      method: "POST",
+      body: { sessionId: connection.sessionId, oneShot: Boolean(oneShot) },
+    });
+    clearConnection();
+    return data;
+  }
+
   // --- Translation: server seats <-> local bus shape ---
 
   function seatOperatorKey(seat) {
@@ -195,6 +206,7 @@
     createSession,
     joinCell,
     leaveCell,
+    closeCell,
     pullState,
     pushOperatorSend,
     pushHandlerProjections,

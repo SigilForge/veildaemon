@@ -337,6 +337,54 @@ async function handleLeave(req, res) {
   return json(res, 200, { ok: true, seat: rows && rows[0] });
 }
 
+/**
+ * Handler-only: closes the Cell. Reward-granting (Void/Breach bonuses, Ontology/
+ * Background/Case unlocks) has no Handler UI yet even for same-device play -- this
+ * mirrors what End Pressure Round/Sync Cell/Archive Session already do today: the
+ * Handler's own console is the source of truth for each seat's final Harm/Stability/
+ * Void/Breach, sent as an ordinary "archive" publish (see handlePublish) before this
+ * call. close() itself only marks the session/seats closed -- it does not compute or
+ * invent award numbers.
+ */
+async function handleClose(req, res) {
+  if (req.method !== "POST") return fail(res, 405, "Use POST.");
+  const auth = await requireUser(req, res);
+  if (!auth) return;
+  const body = await readJsonBody(req);
+  const sessionId = String(body.sessionId || "").trim();
+  if (!sessionId) return fail(res, 400, "sessionId is required.");
+
+  const sessionRes = await restAsUser(
+    auth.token,
+    `/handler_sessions?id=eq.${sessionId}&handler_user_id=eq.${auth.user.id}&select=*`,
+  );
+  if (!sessionRes.ok) return fail(res, sessionRes.status, "Could not read Cell.");
+  const sessionRows = await restJson(sessionRes);
+  const session = sessionRows && sessionRows[0];
+  if (!session) return fail(res, 404, "Cell not found or not owned by this account.");
+  if (session.status === "closed") return json(res, 200, { ok: true, session, seats: [] });
+
+  const seatsRes = await restAsUser(auth.token, `/session_operator_state?session_id=eq.${sessionId}&left_at=is.null&select=*`);
+  const seats = seatsRes.ok ? (await restJson(seatsRes)) || [] : [];
+  const closedAt = new Date().toISOString();
+
+  for (const seat of seats) {
+    await restAsUser(auth.token, `/session_operator_state?id=eq.${seat.id}`, {
+      method: "PATCH",
+      prefer: "return=minimal",
+      body: { left_at: closedAt },
+    });
+  }
+
+  const closeRes = await restAsUser(auth.token, `/handler_sessions?id=eq.${sessionId}`, {
+    method: "PATCH",
+    body: { status: "closed", closed_at: closedAt, one_shot: Boolean(body.oneShot) },
+  });
+  if (!closeRes.ok) return fail(res, closeRes.status, "Could not close Cell.");
+  const closedRows = await restJson(closeRes);
+  return json(res, 200, { ok: true, session: closedRows && closedRows[0], seats });
+}
+
 module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") {
     res.setHeader("Allow", "GET, POST, OPTIONS");
@@ -349,6 +397,7 @@ module.exports = async function handler(req, res) {
     if (action === "state") return await handleState(req, res);
     if (action === "publish") return await handlePublish(req, res);
     if (action === "leave") return await handleLeave(req, res);
+    if (action === "close") return await handleClose(req, res);
     return fail(res, 404, "Unknown Cell route.");
   } catch (error) {
     return fail(res, error.statusCode || 500, error.message || "Cell sync request failed.");
