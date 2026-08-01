@@ -1058,6 +1058,23 @@
     }
 
     renderCellConnectStatus();
+    restoreCellConnectionIfPossible();
+  }
+
+  /** Re-establishes a Cell connection dropped by a page reload, when this browser was
+   * previously connected and VeilAuth still has (or can silently recover) a session. */
+  async function restoreCellConnectionIfPossible() {
+    const remote = window.VeilDaemonCellRemote;
+    const auth = window.VeilAuth;
+    if (!remote || !auth || remote.isConnected()) return;
+    if (!auth.getSession()) await auth.init();
+    if (!auth.getUser()) return;
+    const restored = remote.restoreConnection(cellConnectGetToken);
+    if (restored) {
+      renderCellConnectStatus();
+      await pullRemoteIfConnected();
+      pullHandlerCellIfAvailable();
+    }
   }
 
   function applyHandlerCellProjection(projection, publishMeta) {

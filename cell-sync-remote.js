@@ -14,6 +14,8 @@
  * local bus's own two-sided shape.
  */
 (function () {
+  const CONNECTION_STORAGE_KEY = "veildaemon.cellConnection.v1";
+
   function apiBase() {
     return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
       ? ""
@@ -22,12 +24,57 @@
 
   let connection = null; // { sessionId, role: "operator"|"handler", getToken }
 
+  /** Persists only the non-secret shape (sessionId/role/seatId) -- getToken is a live
+   * function (VeilAuth's own session, not a raw token) and is never serialized. */
+  function persistConnectionMeta(next) {
+    try {
+      if (next && next.sessionId && next.role) {
+        window.localStorage.setItem(
+          CONNECTION_STORAGE_KEY,
+          JSON.stringify({ sessionId: next.sessionId, role: next.role, seatId: next.seatId || "" }),
+        );
+      } else {
+        window.localStorage.removeItem(CONNECTION_STORAGE_KEY);
+      }
+    } catch (_error) {
+      // Best-effort — a failed persist just means reconnect-on-load won't work this session.
+    }
+  }
+
+  function readPersistedConnectionMeta() {
+    try {
+      const raw = window.localStorage.getItem(CONNECTION_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && parsed.sessionId && parsed.role ? parsed : null;
+    } catch (_error) {
+      return null;
+    }
+  }
+
   function setConnection(next) {
     connection = next && next.sessionId && next.role && typeof next.getToken === "function" ? next : null;
+    persistConnectionMeta(connection);
   }
 
   function clearConnection() {
     connection = null;
+    persistConnectionMeta(null);
+  }
+
+  /**
+   * Re-establishes a connection dropped by a page reload, using whatever sessionId/role/
+   * seatId was last persisted and the caller's own getToken function (VeilAuth's session
+   * survives reload on its own via Supabase's persistSession, so this just needs to exist
+   * for a signed-in user to pick back up). Returns the restored connection, or null if
+   * there was nothing to restore.
+   */
+  function restoreConnection(getToken) {
+    if (connection) return connection;
+    const meta = readPersistedConnectionMeta();
+    if (!meta || typeof getToken !== "function") return null;
+    setConnection({ sessionId: meta.sessionId, role: meta.role, seatId: meta.seatId || undefined, getToken });
+    return connection;
   }
 
   function isConnected() {
@@ -208,6 +255,7 @@
   window.VeilDaemonCellRemote = {
     setConnection,
     clearConnection,
+    restoreConnection,
     isConnected,
     currentConnection,
     createSession,
