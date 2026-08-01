@@ -2219,14 +2219,6 @@ fieldset.recovery-field.compact label {
     0 0 28px rgba(185,84,255,.18);
   pointer-events: none;
 }
-/* Decorative only — official Frequency Lotus art as an ambient backdrop behind
-   the functional pip-grid petals, which remain the actual interactive control. */
-.lotus-map {
-  background-image: url("../assets/lotus/frequency-lotus-color.webp");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: min(30rem, 78%) auto;
-}
 .lotus-map::after {
   content: "";
   position: absolute;
