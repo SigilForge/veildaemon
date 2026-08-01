@@ -53,6 +53,7 @@
         note: result.note,
         archiveToken: result.archiveToken,
         projections: result.projections,
+        actionEconomy: result.actionEconomy,
       });
     } catch (error) {
       setStatus(error?.message || "Remote Cell publish failed", true);

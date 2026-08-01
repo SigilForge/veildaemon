@@ -142,7 +142,9 @@
         note: projection.note || "",
         archiveToken: projection.archiveToken || "",
         projections: normalized ? [normalized] : [],
-        actionEconomy: bus.handler.actionEconomy,
+        // cell.write() below re-normalizes this via normalizeBus's own
+        // normalizeActionEconomySnapshot -- no need to duplicate that here.
+        actionEconomy: projection.actionEconomy || bus.handler.actionEconomy,
       };
       cell.write(bus);
     }
@@ -165,7 +167,7 @@
    * deliberate/manual and one extra round-trip to resolve seats is a fine trade for not
    * touching the player data model.
    */
-  async function pushHandlerProjections({ kind, round, note, archiveToken, projections }) {
+  async function pushHandlerProjections({ kind, round, note, archiveToken, projections, actionEconomy }) {
     if (!connection || connection.role !== "handler") return null;
     const data = await authedFetch(`state?session=${encodeURIComponent(connection.sessionId)}`, { method: "GET" });
     const seats = Array.isArray(data.seats) ? data.seats : [];
@@ -187,6 +189,11 @@
           round,
           note,
           archiveToken,
+          // Session-wide, not per-operator, but each seat only ever exposes its own
+          // handlerProjection to its Operator under RLS -- duplicating this snapshot
+          // into every seat is the simplest way for a connected Operator to see it
+          // without a new session-wide storage location.
+          actionEconomy,
           publishedAt: new Date().toISOString(),
         },
       });
