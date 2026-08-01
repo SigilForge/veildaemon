@@ -1145,6 +1145,72 @@
     node.append(list);
   }
 
+  async function handlerCellConnectGetToken() {
+    const auth = window.VeilAuth;
+    if (!auth) return null;
+    if (!auth.getSession()) await auth.init();
+    return auth.getSession()?.access_token || null;
+  }
+
+  function renderCellConnectStatus(joinCode) {
+    const status = document.getElementById("cell-connect-status");
+    const openBtn = document.getElementById("cell-connect-open");
+    const leaveBtn = document.getElementById("cell-connect-leave");
+    if (!status) return;
+    const connected = Boolean(window.VeilDaemonCellRemote?.isConnected());
+    if (connected) {
+      status.textContent = joinCode
+        ? `CONNECTED — Cell Code ${joinCode}. Share this with Operators.`
+        : "CONNECTED — live with Operators.";
+    } else {
+      status.textContent = "LOCAL — same-device sync only.";
+    }
+    if (openBtn) openBtn.hidden = connected;
+    if (leaveBtn) leaveBtn.hidden = !connected;
+  }
+
+  function bindCellConnect() {
+    const openBtn = document.getElementById("cell-connect-open");
+    const leaveBtn = document.getElementById("cell-connect-leave");
+
+    if (openBtn) {
+      openBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        const auth = window.VeilAuth;
+        if (!remote || !auth) return;
+        if (!auth.getSession()) await auth.init();
+        if (!auth.getUser()) {
+          auth.showModal();
+          return;
+        }
+        openBtn.disabled = true;
+        try {
+          const session = await remote.createSession(handlerCellConnectGetToken, {
+            needlepoint: state.session?.title || state.session?.caseTitle || "",
+            mission: state.session?.location || "",
+            maxOperators: null,
+          });
+          renderCellConnectStatus(session.join_code);
+          setStatus(`Cell opened — Code ${session.join_code}`);
+        } catch (error) {
+          setStatus(error?.message || "Could not open Cell.", true);
+        } finally {
+          openBtn.disabled = false;
+        }
+      });
+    }
+
+    if (leaveBtn) {
+      leaveBtn.addEventListener("click", () => {
+        window.VeilDaemonCellRemote?.clearConnection();
+        renderCellConnectStatus();
+        setStatus("Cell connection closed on this device (session stays open for Operators until Archived).");
+      });
+    }
+
+    renderCellConnectStatus();
+  }
+
   function bindCellSync() {
     if (!window.HandlerCellSync?.bind) return;
     window.HandlerCellSync.bind({
@@ -1173,6 +1239,7 @@
     bindCollapseBridge();
     bindClueBridge();
     bindCellSync();
+    bindCellConnect();
     renderAll();
     await hydrateClues(false);
   }

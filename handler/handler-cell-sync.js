@@ -28,6 +28,37 @@
     if (out) out.textContent = message;
   }
 
+  /** Refreshes the local bus from the server before a deliberate sync click, when CONNECTED
+   * — syncKind() itself stays synchronous/unchanged, reading whatever this leaves in the bus. */
+  async function pullRemoteIfConnected() {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected()) return;
+    try {
+      await remote.pullState();
+    } catch (error) {
+      setStatus(error?.message || "Remote Cell pull failed", true);
+    }
+  }
+
+  /** Publishes this round's per-operator projections remotely, when CONNECTED — the local
+   * bus write already happened inside syncKind(), so a remote failure only affects
+   * cross-device Operators, never the Handler's own local state. */
+  async function pushRemoteIfConnected(result) {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected() || !result || result.rejected) return;
+    try {
+      await remote.pushHandlerProjections({
+        kind: result.kind,
+        round: result.round,
+        note: result.note,
+        archiveToken: result.archiveToken,
+        projections: result.projections,
+      });
+    } catch (error) {
+      setStatus(error?.message || "Remote Cell publish failed", true);
+    }
+  }
+
   function pendingPrompts(state) {
     return (Array.isArray(state?.trackPromptQueue) ? state.trackPromptQueue : [])
       .filter((item) => item && item.status !== "Resolved");
@@ -353,7 +384,7 @@
     ].join(" // ");
     setStatus(lines.length ? `${summary}\n${lines.join("\n")}` : summary);
 
-    return { state, kind, lines, summary, publishResult };
+    return { state, kind, lines, summary, publishResult, projections, round, note, archiveToken };
   }
 
   function resolveLateSend(operatorKey, choice) {
@@ -459,9 +490,11 @@
     const cellBtn = document.getElementById("cell-sync-cell");
     const archiveBtn = document.getElementById("cell-sync-archive");
 
-    function run(kind) {
+    async function run(kind) {
+      await pullRemoteIfConnected();
       const result = syncKind(kind);
       if (result && onAfter) onAfter(result);
+      await pushRemoteIfConnected(result);
     }
 
     if (pressureBtn) {

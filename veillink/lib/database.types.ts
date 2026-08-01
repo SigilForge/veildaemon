@@ -133,8 +133,6 @@ export type Database = {
           owner_user_id: string;
           display_name: string;
           designation: string;
-          persistent_state: Json;
-          character_snapshot: Json;
           created_at: string;
           updated_at: string;
         };

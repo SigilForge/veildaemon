@@ -951,11 +951,113 @@
           ? `Round advanced. Sent to Cell (Harm ${send.harmBoxes} / Stability ${send.stability}${recovery}).`
           : `Sent to Cell (Harm ${send.harmBoxes} / Stability ${send.stability}${recovery}). Waiting on Handler sync.`
       );
+      pushSendToRemoteIfConnected(send);
       return true;
     } catch (error) {
       markCellSendPending(error?.message || "Cell send failed");
       return false;
     }
+  }
+
+  /** Fire-and-forget remote push when CONNECTED — the local bus write above already
+   * completed, so a remote failure only affects cross-device Handlers, never local play. */
+  async function pushSendToRemoteIfConnected(send) {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected()) return;
+    try {
+      await remote.pushOperatorSend(send);
+    } catch (error) {
+      markCellSendPending(error?.message || "Remote Cell send failed");
+    }
+  }
+
+  /** Refreshes the local bus from the server before a deliberate Pull Handler click,
+   * when CONNECTED — pullHandlerCellIfAvailable itself stays synchronous/unchanged. */
+  async function pullRemoteIfConnected() {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected()) return;
+    try {
+      await remote.pullState();
+    } catch (error) {
+      setStorageStatus(error?.message || "Remote Cell pull failed", true);
+    }
+  }
+
+  async function cellConnectGetToken() {
+    const auth = window.VeilAuth;
+    if (!auth) return null;
+    if (!auth.getSession()) await auth.init();
+    return auth.getSession()?.access_token || null;
+  }
+
+  function renderCellConnectStatus() {
+    const status = document.getElementById("cell-connect-status");
+    const joinBtn = document.getElementById("cell-connect-join");
+    const leaveBtn = document.getElementById("cell-connect-leave");
+    const codeInput = document.getElementById("cell-connect-code");
+    if (!status) return;
+    const connected = Boolean(window.VeilDaemonCellRemote?.isConnected());
+    status.textContent = connected ? "CONNECTED — live with Handler." : "LOCAL — not connected to a Cell.";
+    if (joinBtn) joinBtn.hidden = connected;
+    if (codeInput) codeInput.hidden = connected;
+    if (leaveBtn) leaveBtn.hidden = !connected;
+  }
+
+  function bindCellConnect() {
+    const joinBtn = document.getElementById("cell-connect-join");
+    const leaveBtn = document.getElementById("cell-connect-leave");
+    const codeInput = document.getElementById("cell-connect-code");
+
+    if (joinBtn) {
+      joinBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        const auth = window.VeilAuth;
+        if (!remote || !auth) return;
+        if (!auth.getSession()) await auth.init();
+        if (!auth.getUser()) {
+          auth.showModal();
+          return;
+        }
+        const code = (codeInput?.value || "").trim().toUpperCase();
+        if (code.length !== 6) {
+          setStorageStatus("Cell Code must be 6 characters.", true);
+          return;
+        }
+        joinBtn.disabled = true;
+        try {
+          await remote.joinCell(cellConnectGetToken, {
+            joinCode: code,
+            displayName: operatorDisplayName(),
+            designation: safeString(consoleState.operatorStatus.designation || (operatorRecord && operatorRecord.designation), 40)
+          });
+          setStorageStatus("Connected to Cell.");
+          renderCellConnectStatus();
+          await pullRemoteIfConnected();
+          pullHandlerCellIfAvailable({ force: true });
+        } catch (error) {
+          setStorageStatus(error?.message || "Could not connect to Cell.", true);
+        } finally {
+          joinBtn.disabled = false;
+        }
+      });
+    }
+
+    if (leaveBtn) {
+      leaveBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        if (!remote) return;
+        try {
+          await remote.leaveCell();
+        } catch (_error) {
+          // Best-effort — disconnect locally regardless.
+          remote.clearConnection();
+        }
+        renderCellConnectStatus();
+        setStorageStatus("Disconnected from Cell.");
+      });
+    }
+
+    renderCellConnectStatus();
   }
 
   function applyHandlerCellProjection(projection, publishMeta) {
@@ -3330,7 +3432,8 @@
     pullCell.className = "scene-timer-btn ghost";
     pullCell.textContent = "Pull Handler";
     pullCell.title = "Apply Handler Harm/Stability only when the projection is newer than local edits.";
-    pullCell.addEventListener("click", () => {
+    pullCell.addEventListener("click", async () => {
+      await pullRemoteIfConnected();
       pullHandlerCellIfAvailable({ force: true });
     });
     const endScene = document.createElement("button");
@@ -5455,6 +5558,7 @@
   bindTabs();
   bindForms();
   bindDataControls();
+  bindCellConnect();
   renderAll();
   if (window.VeilDaemonCellSync?.onUpdate) {
     window.VeilDaemonCellSync.onUpdate(() => {

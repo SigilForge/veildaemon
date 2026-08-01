@@ -32,6 +32,14 @@ export async function listMyOperators() {
   return data || [];
 }
 
+// NOTE: operator_profiles is identity + ownership only (owner_user_id, display_name,
+// designation) — it no longer carries persistent_state/character_snapshot. That was a
+// parallel, VeilLink-owned copy of the real static Operator sheet's character (the
+// "ferry" problem the Cell/Live-Link rearchitecture removes). This function, its
+// TableHubClient.tsx caller, and importOperator below are legacy V1 UI slated for
+// removal once the real Operator/Handler apps' own Connect UI (api/cell/*, root
+// cell-sync.js remote transport) replaces them — kept compiling in the interim, not
+// redesigned further.
 export async function createOperator(input: {
   displayName: string;
   designation?: string;
@@ -44,15 +52,12 @@ export async function createOperator(input: {
   if (input.blindPetal != null && input.blindPetal !== "" && !isFrequency(input.blindPetal)) {
     throw publicError("Blind Petal must be one of the six Frequencies.");
   }
-  const blindPetal = normalizeBlindPetal(input.blindPetal);
-  const state = defaultLiveState({ blindPetal });
   const { data, error } = await supabase
     .from("operator_profiles")
     .insert({
       owner_user_id: user.id,
       display_name: name,
       designation: String(input.designation || "").trim().slice(0, 40),
-      persistent_state: state as unknown as Json,
     })
     .select("*")
     .single();
@@ -64,22 +69,20 @@ export async function createOperator(input: {
  * Creates a new operator_profiles row from a static Operator sheet's
  * `cradlepoint.operator` export. Always creates a fresh row rather than
  * matching/overwriting an existing one (V1 scope — avoids ambiguous matching;
- * the caller picks the freshly-imported entry to join with).
+ * the caller picks the freshly-imported entry to join with). Only identity
+ * (display name / designation) survives the import now — see note above.
  */
 export async function importOperator(payload: unknown) {
   const { user, supabase } = await requireUser();
   const mapped = importFromOperatorExport(payload);
   if (!mapped.ok) throw publicError(mapped.error);
-  const { displayName, designation, blindPetal, liveState, snapshot } = mapped.result;
-  const state = defaultLiveState({ blindPetal, ...liveState });
+  const { displayName, designation } = mapped.result;
   const { data, error } = await supabase
     .from("operator_profiles")
     .insert({
       owner_user_id: user.id,
       display_name: displayName,
       designation,
-      persistent_state: state as unknown as Json,
-      character_snapshot: snapshot as unknown as Json,
     })
     .select("*")
     .single();
@@ -169,9 +172,9 @@ export async function joinSession(input: { joinCode: string; operatorProfileId: 
 
   const seatCap = normalizeSeatCap((session as { max_operators?: number | null }).max_operators);
 
-  const snapshot = defaultLiveState(
-    (profile.persistent_state || {}) as Partial<LiveState>,
-  );
+  // No persistent_state to seed from anymore -- a seat starts blank and fills in from
+  // the Operator's own deliberate sends once connected, same as the local Cell bus.
+  const snapshot = defaultLiveState({});
   snapshot.needlepoint = session.needlepoint || snapshot.needlepoint;
   snapshot.mission = session.mission || snapshot.mission;
 
@@ -423,11 +426,11 @@ export async function closeSession(sessionId: string, options: CloseSessionOptio
     const voidAwarded = groupVoid + clampAward(bonus.voidBonus);
     const breachAwarded = groupBreach + clampAward(bonus.breachBonus);
 
-    const persistent = defaultLiveState((profile.persistent_state || {}) as Partial<LiveState>);
-    // Archive reconcile: Harm/Stability (reset or carried per resetVitals) + Void/Breach (session's
-    // ending banks plus any group/per-operator award) + unlocks.
-    // Lotus is between-sessions — do not overwrite persistent petals from live session.
-    const next = mergeLiveState(persistent, {
+    // No operator_profiles.persistent_state to reconcile into anymore -- the packet's
+    // final numbers come straight from the session's own ending live state + awards.
+    // A connected Operator's real sheet gets these live at close (see api/cell/*); the
+    // packet below stays only for an Operator who was never connected this session.
+    const next = mergeLiveState(defaultLiveState({}), {
       harm: options.resetVitals ? 0 : live.harm,
       stability: options.resetVitals ? 10 : live.stability,
       breach: live.breach + breachAwarded,
@@ -435,10 +438,6 @@ export async function closeSession(sessionId: string, options: CloseSessionOptio
       conditions: live.conditions,
       unlocks: live.unlocks,
     });
-    await admin
-      .from("operator_profiles")
-      .update({ persistent_state: next as unknown as Json })
-      .eq("id", profile.id);
     await supabase
       .from("session_operator_state")
       .update({ left_at: new Date().toISOString() })

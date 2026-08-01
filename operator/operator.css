@@ -2997,6 +2997,13 @@ body.operator-record-sealed .authorization-import-handoff {
 .data-actions .button {
   flex: 1 1 10.5rem;
 }
+.cell-connect-form #cell-connect-code {
+  flex: 1 1 8rem;
+  min-width: 0;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-family: monospace, monospace;
+}
 .volunteer-row {
   display: flex;
   flex-wrap: wrap;

@@ -564,16 +564,20 @@
       </div>
       <div class="data-panel-groups">
         <section class="data-transfer-group" aria-label="Operator Handler handoff">
-          <p class="kicker">OPERATOR — HANDLER HANDOFF</p>
-          <p class="local-note">Handler packets are for table transfer.</p>
+          <p class="kicker">OPERATOR — CELL CONNECTION</p>
+          <p class="local-note" id="cell-connect-status">LOCAL — not connected to a Cell.</p>
+          <div class="data-actions cell-connect-form">
+            <input type="text" id="cell-connect-code" maxlength="6" placeholder="Cell Code" autocomplete="off" autocapitalize="characters" />
+            <button class="button primary" type="button" id="cell-connect-join">Connect to Cell</button>
+            <button class="button ghost" type="button" id="cell-connect-leave" hidden>Disconnect</button>
+          </div>
+          <p class="local-note">Send to Cell / Pull Handler above reach the Handler live once connected — no packet needed.</p>
+          <p class="kicker">OFFLINE FALLBACK</p>
+          <p class="local-note">Only needed if you were never connected when the Handler closed the operation.</p>
           <div class="data-actions">
             <button class="button" type="button" id="export-operator-file">Create Handler Packet</button>
             <label class="button file-button authorization-import-handoff">Import Authorization Packet<input id="import-authorization-handoff" type="file" accept=".json,.txt,text/plain,application/json" /></label>
             <label class="button file-button">Import Operator Record<input data-operator-file-import type="file" accept="application/json" /></label>
-          </div>
-          <p class="local-note">Playing across devices? Create a Handler Packet above, then import it at VeilLink's Live-Link.</p>
-          <div class="data-actions">
-            <a class="button" href="https://app.veildaemon.app/live-link" target="_blank" rel="noopener noreferrer">Open Live-Link</a>
           </div>
         </section>
         <section class="data-transfer-group" aria-label="Operator local backup">
@@ -606,6 +610,7 @@
   <script src="../presentation-drift.js?v=20260724-sigilforge1"></script>
   <script src="../cell-sync.js?v=20260724-sigilforge1"></script>
   <script src="../pressure-round.js?v=20260801-actioneconomy1"></script>
+  <script src="../cell-sync-remote.js?v=20260801-cellremote1"></script>
   <script src="../veildaemon-auth.js?v=20260731-auth2"></script>
   <script src="./operator.js?v=20260724-sigilforge1"></script>
 </body>
