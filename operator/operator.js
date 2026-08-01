@@ -5278,8 +5278,9 @@
   function psPipRow(label, current, max) {
     const row = document.createElement("div");
     row.className = "ps-pip-row";
-    const span = document.createElement("span");
-    span.textContent = label;
+    const labelWrap = document.createElement("span");
+    labelWrap.className = "ps-pip-label";
+    labelWrap.textContent = label;
     const pips = document.createElement("div");
     pips.className = "ps-pips";
     for (let i = 1; i <= max; i += 1) {
@@ -5287,10 +5288,7 @@
       pip.className = i <= current ? "ps-pip is-filled" : "ps-pip";
       pips.append(pip);
     }
-    const count = document.createElement("em");
-    count.className = "ps-pip-count";
-    count.textContent = `${current}/${max}`;
-    row.append(span, pips, count);
+    row.append(labelWrap, pips);
     return row;
   }
 
@@ -5298,7 +5296,13 @@
     const section = document.createElement("section");
     section.className = "ps-section";
     const h2 = document.createElement("h2");
-    h2.textContent = `${numeral}. ${title}`;
+    const num = document.createElement("span");
+    num.className = "ps-h2-num";
+    num.textContent = numeral;
+    const label = document.createElement("span");
+    label.className = "ps-h2-title";
+    label.textContent = title;
+    h2.append(num, label);
     section.append(h2);
     return section;
   }
@@ -5319,6 +5323,12 @@
 
     const header = document.createElement("header");
     header.className = "ps-header";
+    const crest = document.createElement("img");
+    crest.className = "ps-crest";
+    crest.src = "../assets/veilcorp-avatar.webp";
+    crest.alt = "";
+    const headerText = document.createElement("div");
+    headerText.className = "ps-header-text";
     const kicker = document.createElement("p");
     kicker.className = "ps-kicker";
     kicker.textContent = "VEILCORP / ARCHIVE // OPERATOR INTAKE // RESTRICTED";
@@ -5327,7 +5337,8 @@
     const subtitle = document.createElement("p");
     subtitle.className = "ps-subtitle";
     subtitle.textContent = "OPERATOR FIELD SHEET";
-    header.append(kicker, h1, subtitle);
+    headerText.append(kicker, h1, subtitle);
+    header.append(crest, headerText);
     host.append(header);
 
     const identity = psSection("I", "IDENTITY");
@@ -5492,6 +5503,12 @@
     });
     recoverySection.append(recoveryList);
     side.append(recoverySection);
+
+    const fieldNotesSection = psSection("XI", "FIELD NOTES");
+    const fieldNotesLines = document.createElement("div");
+    fieldNotesLines.className = "ps-ruled-lines";
+    fieldNotesSection.append(fieldNotesLines);
+    side.append(fieldNotesSection);
 
     columns.append(main, side);
     host.append(columns);
