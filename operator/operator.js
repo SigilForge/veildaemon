@@ -124,7 +124,8 @@
       voidBreach: "",
       emotionalState: "",
       presentationAbilityState: {},
-      sceneTimer: { round: 1, timers: [] }
+      sceneTimer: { round: 1, timers: [] },
+      actionSpend: { round: 0, main: false, move: false, frequency: false, reaction: false }
     },
     anomalies: [],
     relationships: [],
@@ -845,6 +846,31 @@
     return safeString(status.operatorName || record.designation || status.designation || "Operator", 80) || "Operator";
   }
 
+  const ACTION_ECONOMY_LABELS = { main: "Main Action", move: "Move", frequency: "Frequency Use", reaction: "Reaction" };
+
+  /** This round's local action-economy flags, self-resetting when the scene-timer round moves on. */
+  function localActionSpend(status) {
+    const round = Number(status.sceneTimer?.round) || 1;
+    const spend = status.actionSpend && typeof status.actionSpend === "object" ? status.actionSpend : {};
+    if (Number(spend.round) !== round) {
+      return { round, main: false, move: false, frequency: false, reaction: false };
+    }
+    return { round, main: Boolean(spend.main), move: Boolean(spend.move), frequency: Boolean(spend.frequency), reaction: Boolean(spend.reaction) };
+  }
+
+  /** Marks one action-economy slot spent for this round, saves locally, and reports it to Handler. */
+  function spendOperatorAction(slot) {
+    const economy = window.VeilDaemonPressureRoundEconomy;
+    if (!economy || !economy.SLOTS.includes(slot)) return;
+    const status = consoleState.operatorStatus;
+    const current = localActionSpend(status);
+    if (current[slot]) return;
+    status.actionSpend = { ...current, [slot]: true };
+    writeConsoleState();
+    renderSceneTimerStrip();
+    sendOperatorToCell({ skipAutosave: true, extra: { actionSpend: { slot, round: current.round } } });
+  }
+
   function buildOperatorCellSend(extra) {
     const status = consoleState.operatorStatus || {};
     return {
@@ -863,6 +889,11 @@
       round: Number(status.sceneTimer?.round) || 1,
       pressureRound: Number(status.sceneTimer?.round) || 1,
       sceneLogLine: safeString((status.sceneTimer?.log || [])[0], 200),
+      // Recovery resolves locally (applySceneTimerAction); Handler never re-runs heal rules.
+      // The resolved effect text is only known at the moment of resolution (see
+      // dispatchSceneTimerAction's `extra` override on the round-advance send) — a mid-round
+      // send with a still-checked, unresolved box has no resolution text yet.
+      recoveryResolution: "",
       sentAt: nowStamp(),
       ...(extra && typeof extra === "object" ? extra : {})
     };
@@ -958,6 +989,25 @@
         changed = true;
       }
     }
+    // Handler-computed Presentation Load consequences (mid-round eligible, like Harm/Stability).
+    // Values are absolute, matching how the same trackKind is written locally (setTrackerValue).
+    if (Array.isArray(projection.loadDeltas) && projection.loadDeltas.length) {
+      const pp = presentationPressureApi();
+      if (pp?.presentationForLoadTrackKind && pp.primaryTrack && pp.readTrackValue && pp.writeTrackValue) {
+        projection.loadDeltas.forEach((entry) => {
+          const presentation = pp.presentationForLoadTrackKind(entry.trackKind);
+          const track = presentation ? pp.primaryTrack(presentation) : null;
+          if (!track) return;
+          const nextValue = Number(entry.value);
+          if (!Number.isFinite(nextValue) || Number(pp.readTrackValue(status, track.id)) === nextValue) return;
+          const written = pp.writeTrackValue(status, track.id, nextValue);
+          status.presentationPressures = written.presentationPressures;
+          if (track.stateKey) status[track.stateKey] = written[track.stateKey];
+          if (track.id === "sanguine.blood_load") status.sanguineCoherence = deriveSanguineCoherence(status);
+          changed = true;
+        });
+      }
+    }
     const meta = cellSyncMeta();
     meta.lastAppliedRevision = Number(publishMeta?.syncRevision) || meta.lastAppliedRevision;
     meta.lastAppliedPublishedAt = safeString(publishMeta?.publishedAt, 40) || meta.lastAppliedPublishedAt;
@@ -1037,6 +1087,10 @@
     const api = presentationAbilitiesApi();
     if (!api?.applySceneTimerAction) return;
     const beforeRound = consoleState.operatorStatus.sceneTimer?.round || 1;
+    // applyRecoveryAction clears the declared checkbox as part of resolving it, so capture
+    // which move was declared *before* the call — buildOperatorCellSend would otherwise see
+    // an already-cleared flag and report nothing to Handler for the round that just resolved.
+    const recoveryKeyBeforeResolve = action === "next_round" ? declaredRecoveryKey() : "";
     consoleState.operatorStatus = migrateOperatorStatus(
       api.applySceneTimerAction(consoleState.operatorStatus, action, payload)
     );
@@ -1059,7 +1113,14 @@
         renderTrackers();
         renderRollSelectors();
         renderStatusSummary();
-        sendOperatorToCell({ afterRound: true, skipAutosave: true });
+        sendOperatorToCell({
+          afterRound: true,
+          skipAutosave: true,
+          extra: recoveryKeyBeforeResolve ? {
+            recoveryDeclared: recoveryKeyBeforeResolve,
+            recoveryResolution: safeString((status.sceneTimer?.log || [])[0], 180)
+          } : undefined
+        });
         return;
       }
     }
@@ -3313,6 +3374,25 @@
     actions.append(nextRound, sendCell, pullCell, endScene);
     header.append(roundMeta, actions);
     strip.append(header);
+
+    const actionEconomy = window.VeilDaemonPressureRoundEconomy;
+    if (actionEconomy) {
+      const spend = localActionSpend(status);
+      const budgetRow = document.createElement("div");
+      budgetRow.className = "scene-timer-actions action-budget-row";
+      actionEconomy.SLOTS.forEach((slot) => {
+        const used = Boolean(spend[slot]);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = used ? "scene-timer-btn subtle" : "scene-timer-btn ghost";
+        button.textContent = used ? `${ACTION_ECONOMY_LABELS[slot]} (used)` : ACTION_ECONOMY_LABELS[slot];
+        button.disabled = used;
+        button.title = `Report ${ACTION_ECONOMY_LABELS[slot]} spent to Handler for Round ${spend.round}.`;
+        button.addEventListener("click", () => spendOperatorAction(slot));
+        budgetRow.append(button);
+      });
+      strip.append(budgetRow);
+    }
 
     const abilityView = api.presentationAbilityView
       ? api.presentationAbilityView(status, currentPresentationKey())

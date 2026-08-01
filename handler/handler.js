@@ -136,10 +136,42 @@
     const entity = state.activeEntity || {};
     const kind = api.safeString(entity.kind, 40) || "Zone";
     const name = api.safeString(entity.name, 120) || "Unnamed active Entity / Zone";
+    const currentStep = api.safeString(entity.currentStep, 20);
     node.textContent = "";
     const title = document.createElement("p");
     title.innerHTML = `<strong>Active ${kind}</strong><span>${name}</span>`;
     node.append(title);
+
+    const stepLine = document.createElement("p");
+    stepLine.className = "entity-loop-step-readout";
+    stepLine.textContent = currentStep ? `Loop step: ${currentStep}` : "Loop step: not started";
+    node.append(stepLine);
+
+    const advance = document.createElement("button");
+    advance.type = "button";
+    advance.className = "scene-timer-btn";
+    advance.textContent = currentStep ? `Advance Entity (-> ${api.nextEntityLoopStep(currentStep)})` : "Advance Entity (-> Need)";
+    advance.addEventListener("click", () => advanceEntityLoop());
+    node.append(advance);
+  }
+
+  function advanceEntityLoop() {
+    const nextStep = api.nextEntityLoopStep(state.activeEntity?.currentStep || "");
+    state = {
+      ...state,
+      activeEntity: { ...state.activeEntity, currentStep: nextStep }
+    };
+    writeState(`ENTITY LOOP -> ${nextStep}`);
+    renderActiveEntityReadout();
+
+    const target = api.entityLoopConsequenceTarget(state, nextStep);
+    if (!target) return;
+    const change = pressure().buildManualPressureChange(target.kind, target.before, target.after, {
+      clockName: target.clockName,
+      label: target.label,
+      hint: target.hint
+    });
+    requestPressurePreview(change);
   }
 
   function renderClock(trackId, clock, enabled = true) {
@@ -1019,6 +1051,7 @@
     renderPlayers();
     renderNpcs();
     renderDynamic();
+    renderActionEconomyStrip();
     applyDashboardMode(dashboardMode);
     setStatus("LOCAL READY");
     if (window.HandlerNav) window.HandlerNav.render();
@@ -1074,6 +1107,44 @@
     if (window.HandlerClueIntegrity) window.HandlerClueIntegrity.render();
   }
 
+  function renderActionEconomyStrip() {
+    const node = document.getElementById("action-economy-strip");
+    const cell = window.VeilDaemonCellSync;
+    const economy = window.VeilDaemonPressureRoundEconomy;
+    if (!node || !cell || !economy) return;
+    const bus = cell.read();
+    const snapshot = bus.handler?.actionEconomy || { round: 0, budgets: {} };
+    node.textContent = "";
+
+    const header = document.createElement("p");
+    header.className = "kicker";
+    header.textContent = `ACTION ECONOMY — ROUND ${snapshot.round || state.session?.pressureRound || 1}`;
+    node.append(header);
+
+    const players = Array.isArray(state.players) ? state.players : [];
+    if (!players.length) {
+      const empty = document.createElement("p");
+      empty.className = "panel-note";
+      empty.textContent = "No Operators seated yet.";
+      node.append(empty);
+      return;
+    }
+
+    const list = document.createElement("ul");
+    list.className = "action-economy-list";
+    players.forEach((player) => {
+      const key = player.sourceId || player.name;
+      const budget = economy.budgetFor(snapshot, key);
+      const item = document.createElement("li");
+      const slots = economy.SLOTS
+        .map((slot) => `${slot}${budget[slot] === false ? " (spent)" : ""}`)
+        .join(" · ");
+      item.textContent = `${api.safeString(player.name, 80) || "Operator"}: ${slots}`;
+      list.append(item);
+    });
+    node.append(list);
+  }
+
   function bindCellSync() {
     if (!window.HandlerCellSync?.bind) return;
     window.HandlerCellSync.bind({
@@ -1084,6 +1155,7 @@
         renderPlayers();
         renderRiskStrip();
         renderTrackPromptQueue();
+        renderActionEconomyStrip();
         notifyPendingAlerts({ forceAlert: true });
         if (window.HandlerTriggers) window.HandlerTriggers.render(state);
         if (result?.summary) setStatus(result.summary.split("\n")[0] || result.summary);

@@ -5,9 +5,9 @@ import { login } from "../actions";
 
 export const metadata: Metadata = buildMetadata({
   title: "Log in",
-  description: "Log in to VeilLink to manage short links, download QR codes, view scan counts, and update destinations.",
+  description: "Log in to VeilLink to join a Cell, open a Handler console, link your Operator file for cross-device play, or manage short links and QR codes.",
   path: "/login",
-  keywords: ["VeilLink login", "QR code dashboard login"],
+  keywords: ["VeilLink login", "Cell login", "Live-Link login", "QR code dashboard login"],
 });
 
 export default async function LoginPage({

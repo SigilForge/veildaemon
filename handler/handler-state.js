@@ -1532,7 +1532,13 @@
       title: "",
       caseTitle: "",
       location: "",
-      safeSceneLabel: ""
+      safeSceneLabel: "",
+      pressureRound: 0,
+      cellId: "",
+      cellArchiveToken: "",
+      cellArchivedAt: "",
+      lastCellSyncRevision: 0,
+      lastCellPublishedAt: ""
     },
     sceneState: {
       current: "Stable",
@@ -1571,7 +1577,8 @@
       name: "",
       kind: "Zone",
       sceneState: "Stable",
-      notes: ""
+      notes: "",
+      currentStep: ""
     },
     entityLibrary: [],
     attention: {
@@ -3433,6 +3440,67 @@
     );
   }
 
+  /** Where in Need -> Lure -> Pressure -> Gift -> Violence -> Exit the active Entity/Zone sits next. */
+  function nextEntityLoopStep(current) {
+    const index = loopFields.indexOf(current);
+    if (index < 0) return loopFields[0];
+    return loopFields[Math.min(index + 1, loopFields.length - 1)];
+  }
+
+  /**
+   * Zone/Entity-aware consequence for advancing one Entity Loop step. Returns a
+   * {kind, before, after, clockName, label, hint} shape ready for
+   * HandlerPressureControls.buildManualPressureChange — the same manual-change
+   * pipeline scene-state buttons and clock segments already use — or null when the
+   * step is narrative only (Need has no mechanical consequence).
+   */
+  function entityLoopConsequenceTarget(state, step) {
+    if (!step || step === "Need") return null;
+    const isEntity = state.activeEntity?.kind === "Entity";
+    const clock = state.primaryClock || { current: 0, segments: 6, name: "" };
+    const calmScene = sceneStates[0]?.name || state.sceneState.current;
+    const nextAttention = attentionStates[
+      Math.min(attentionStates.length - 1, attentionIndex(state.attention?.current) + 1)
+    ];
+    const label = `Entity Loop -> ${step}`;
+    const hint = safeString(state.entityLoop?.[step], 240) || `Entity Loop: ${step}.`;
+
+    if (step === "Violence") {
+      return {
+        kind: "primary-clock",
+        before: clock.current,
+        after: Math.min(clock.segments, clock.current + 2),
+        clockName: clock.name || "Primary Clock",
+        label,
+        hint
+      };
+    }
+    if (step === "Gift" || step === "Exit") {
+      // Softening beat: rank-based delta goes to 0 (or negative, clamped to 0) when
+      // the target scene state is calmer than the current one — relief, not cost.
+      return { kind: "scene", before: state.sceneState.current, after: calmScene, label, hint };
+    }
+    if (step === "Lure") {
+      return { kind: "attention", before: state.attention?.current, after: nextAttention, label, hint };
+    }
+    if (step === "Pressure") {
+      // A Zone's presence builds structurally (its clock); an Entity's presence is
+      // noticed (Attention) — same step, different pressure axis per activeEntity.kind.
+      if (isEntity) {
+        return { kind: "attention", before: state.attention?.current, after: nextAttention, label, hint };
+      }
+      return {
+        kind: "primary-clock",
+        before: clock.current,
+        after: Math.min(clock.segments, clock.current + 1),
+        clockName: clock.name || "Primary Clock",
+        label,
+        hint
+      };
+    }
+    return null;
+  }
+
   function applyTableTrigger(state, triggerId, options = {}) {
     const trigger = findTableTrigger(state, triggerId);
     if (!trigger) return state;
@@ -3749,7 +3817,7 @@
       createdAt: safeString(merged.createdAt) || now,
       updatedAt: safeString(merged.updatedAt) || now,
       playerViewEnabled: Boolean(merged.playerViewEnabled),
-      session: normalizeTextObject(merged.session, defaultState.session),
+      session: normalizeSession(merged.session),
       sceneState: {
         current: normalizeChoice(merged.sceneState.current, sceneStates.map((item) => item.name), "Stable"),
         sceneConsequence: safeString(
@@ -3772,7 +3840,8 @@
         name: safeString(merged.activeEntity.name, 120),
         kind: normalizeChoice(merged.activeEntity.kind, ["Entity", "Zone"], "Zone"),
         sceneState: normalizeChoice(merged.activeEntity.sceneState, sceneStates.map((item) => item.name), merged.sceneState.current || "Stable"),
-        notes: safeString(merged.activeEntity.notes, 1000)
+        notes: safeString(merged.activeEntity.notes, 1000),
+        currentStep: normalizeChoice(merged.activeEntity.currentStep, ["", ...loopFields], "")
       },
       entityLibrary: normalizeEntityLibrary(merged.entityLibrary),
       attention: {
@@ -3813,6 +3882,22 @@
     };
     const withNeedlepoint = hasActiveNeedlepoint(withClues) ? applyNeedlepointDeterministic(withClues) : withClues;
     return syncCollapseRewriteStaging(withNeedlepoint);
+  }
+
+  function normalizeSession(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return {
+      title: safeString(source.title, 3000),
+      caseTitle: safeString(source.caseTitle, 3000),
+      location: safeString(source.location, 3000),
+      safeSceneLabel: safeString(source.safeSceneLabel, 3000),
+      pressureRound: safeNumber(source.pressureRound, 0, 999999, 0),
+      cellId: safeString(source.cellId, 80),
+      cellArchiveToken: safeString(source.cellArchiveToken, 120),
+      cellArchivedAt: safeString(source.cellArchivedAt, 40),
+      lastCellSyncRevision: safeNumber(source.lastCellSyncRevision, 0, 1e9, 0),
+      lastCellPublishedAt: safeString(source.lastCellPublishedAt, 40)
+    };
   }
 
   function normalizeTextObject(value, shape) {
@@ -4075,6 +4160,10 @@
 
   function presentationPressureApi() {
     return typeof window !== "undefined" ? window.PresentationPressure : null;
+  }
+
+  function presentationDriftApi() {
+    return typeof window !== "undefined" ? window.PresentationDrift : null;
   }
 
   function normalizeTrackPromptTrack(value) {
@@ -4659,6 +4748,10 @@
     previewTableTrigger,
     previewManualPressureChange,
     applyManualPressureChange,
+    nextEntityLoopStep,
+    entityLoopConsequenceTarget,
+    playerLoadPresentation,
+    playerTrackLoad,
     attentionStateRank,
     sceneStateRank,
     resolveTriggerStabilityCost,

@@ -1,8 +1,70 @@
 (function () {
   const api = window.HandlerState;
+  let lastNarrative = null;
 
   function mountNode() {
     return document.getElementById("collapse-rewrite-mount");
+  }
+
+  /**
+   * Runs a Collapse/Rewrite engine's scene-state `change` through the same
+   * manual-pressure-change preview pipeline Entity Loop advances use (handler-triggers.js's
+   * openManualPreview / handler.js's bindTriggerBridge commit it from there) so a resolution
+   * shows Handler a real diff before it lands, exactly like a table trigger would.
+   */
+  function applyEngineChange(change, narrative) {
+    const controls = window.HandlerPressureControls;
+    if (!controls) return;
+    lastNarrative = narrative || null;
+    const state = api.readState();
+    const built = controls.buildManualPressureChange(change.kind, change.before, change.after, {
+      clockName: change.clockName,
+      label: change.label,
+      hint: change.hint
+    });
+    if (built.delta > 0 && window.HandlerTriggers?.openManualPreview) {
+      window.HandlerTriggers.openManualPreview(built);
+      return;
+    }
+    const operatorIndices = (state.players || []).map((_, index) => index);
+    const next = api.applyManualPressureChange(state, built, { operatorIndices });
+    window.dispatchEvent(new CustomEvent("veildaemon:handler-trigger-applied", {
+      detail: { manualChange: built, state: next, tableCopy: next.triggerUndo?.tableCopy || "" }
+    }));
+    render(api.readState());
+  }
+
+  function resolveCollapseSeverity(severity) {
+    const engine = window.HandlerCollapseEngine;
+    if (!engine) return;
+    const plan = engine.planCollapseConsequence(api.readState(), { severity });
+    applyEngineChange(plan.change, plan.handlerOnlyNarrative);
+  }
+
+  function resolveRewriteOutcome(outcomeId) {
+    const engine = window.HandlerCollapseEngine;
+    if (!engine) return;
+    const plan = engine.planRewriteConsequence(api.readState(), { outcomeId });
+    applyEngineChange(plan.change, plan.handlerOnlyNarrative);
+  }
+
+  function renderNarrativeReadout(container) {
+    if (!lastNarrative) return;
+    const box = document.createElement("div");
+    box.className = "collapse-engine-narrative";
+    const title = document.createElement("p");
+    title.className = "staging-mode-title";
+    title.innerHTML = lastNarrative.severityLabel
+      ? `<strong>${lastNarrative.severityLabel} (Severity ${lastNarrative.severity}) — ${lastNarrative.stateKind}</strong>`
+      : `<strong>${lastNarrative.outcome}</strong>`;
+    box.append(title);
+    const body = document.createElement("p");
+    body.className = "panel-note";
+    body.textContent = lastNarrative.severityLabel
+      ? `${lastNarrative.severityEffects} Recovery: ${lastNarrative.severityRecovery} — ${lastNarrative.stateKind}: ${lastNarrative.stateEffects} (${lastNarrative.stateRecovery})`
+      : lastNarrative.description;
+    box.append(body);
+    container.append(box);
   }
 
   function shouldShow(state) {
@@ -174,6 +236,26 @@
         stagingField("Exit Condition", "collapse.exitCondition", collapse.exitCondition, 2)
       );
 
+      if (collapse.active && window.HandlerCollapseEngine) {
+        const engine = window.HandlerCollapseEngine;
+        const suggested = engine.suggestSeverity(current);
+        const severityRow = document.createElement("div");
+        severityRow.className = "staging-choice-grid";
+        severityRow.setAttribute("role", "group");
+        severityRow.setAttribute("aria-label", "Roll Collapse Severity");
+        engine.SEVERITY_TABLE.forEach((entry) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "staging-choice-button";
+          button.classList.toggle("is-active", entry.severity === suggested);
+          button.title = entry.effects;
+          button.textContent = `${entry.severity} — ${entry.label}`;
+          button.addEventListener("click", () => resolveCollapseSeverity(entry.severity));
+          severityRow.append(button);
+        });
+        mode.append(severityRow);
+      }
+
       const actions = document.createElement("div");
       actions.className = "staging-actions";
       if (collapse.active) {
@@ -238,6 +320,23 @@
           stagingField("Counteraction Window", "rewrite.counteractionWindow", rewrite.counteractionWindow, 2)
         );
 
+        if (rewrite.active && window.HandlerCollapseEngine) {
+          const outcomeRow = document.createElement("div");
+          outcomeRow.className = "staging-choice-grid";
+          outcomeRow.setAttribute("role", "group");
+          outcomeRow.setAttribute("aria-label", "Resolve Rewrite Outcome");
+          window.HandlerCollapseEngine.rewriteOutcomeOptions().forEach((outcome) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "staging-choice-button";
+            button.title = outcome.description;
+            button.textContent = outcome.label;
+            button.addEventListener("click", () => resolveRewriteOutcome(outcome.id));
+            outcomeRow.append(button);
+          });
+          mode.append(outcomeRow);
+        }
+
         const actions = document.createElement("div");
         actions.className = "staging-actions";
         if (!rewrite.active) {
@@ -254,6 +353,7 @@
       }
     }
 
+    renderNarrativeReadout(mount);
     bindStagingFieldEdits(mount);
     applyStagingFieldLock();
   }

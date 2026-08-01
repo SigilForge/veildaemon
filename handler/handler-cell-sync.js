@@ -53,6 +53,19 @@
       if (status.voidMarks !== undefined) out.voidMarks = Number(status.voidMarks) || 0;
       if (status.breachPoints !== undefined) out.breachPoints = Number(status.breachPoints) || 0;
     }
+    // Presentation Load: Handler already computes this via the trigger/manual-pressure
+    // pipeline (misfireLoadDeltaForTrigger etc.) — put the player's current value on the
+    // wire so the Operator sheet's own meter actually moves instead of a toast-only note.
+    if (api?.playerLoadPresentation && api?.playerTrackLoad) {
+      const presentation = api.playerLoadPresentation(player);
+      const track = presentation ? window.PresentationPressure?.primaryTrack(presentation) : null;
+      if (track) {
+        const value = api.playerTrackLoad(player, presentation);
+        if (value !== null && value !== undefined) {
+          out.loadDeltas = [{ trackKind: track.kind, value }];
+        }
+      }
+    }
     return out;
   }
 
@@ -200,7 +213,9 @@
       const bits = [];
       if (harmDelta) bits.push(`Harm ${harmDelta > 0 ? "+" : ""}${harmDelta}`);
       if (stabDelta) bits.push(`Stability ${stabDelta > 0 ? "+" : ""}${stabDelta}`);
-      if (send.recoveryDeclared) bits.push(`recovery ${send.recoveryDeclared}`);
+      if (send.recoveryDeclared) {
+        bits.push(send.recoveryResolution ? `recovery ${send.recoveryDeclared}: ${send.recoveryResolution}` : `recovery ${send.recoveryDeclared}`);
+      }
       if (includeBanks && (send.voidMarks !== undefined || send.breachPoints !== undefined)) {
         bits.push(`banks Void ${send.voidMarks ?? "—"} / Breach ${send.breachPoints ?? "—"}`);
       }
@@ -249,6 +264,23 @@
     const round = Number(session.pressureRound) || prevRound;
     state.session = session;
 
+    // Action economy: fresh Main/Move/Frequency/Reaction budgets for every known seat when
+    // a Pressure Round ends; otherwise carry the existing bus snapshot forward. Either way,
+    // apply any actionSpend this batch of Operator sends reported before publishing.
+    const economy = window.VeilDaemonPressureRoundEconomy;
+    let actionEconomy = economy
+      ? (kind === "pressure_round"
+        ? economy.resetBudgetsForRound(round, players.map((p) => p.sourceId || p.name).filter(Boolean))
+        : (cell.read().handler.actionEconomy || { round, budgets: {} }))
+      : undefined;
+    if (economy && actionEconomy) {
+      sends.forEach((send) => {
+        if (send.actionSpend?.slot) {
+          actionEconomy = economy.spendSlot(actionEconomy, send.operatorKey, send.actionSpend.slot);
+        }
+      });
+    }
+
     // 4) Publish Handler projections (Harm/Stability/notes; banks only on archive).
     //    Lotus is never mid-round — between-sessions only.
     const projections = players.map((player) => {
@@ -272,7 +304,8 @@
         round,
         pressureRound: round,
         note,
-        archiveToken: archiveToken || undefined
+        archiveToken: archiveToken || undefined,
+        actionEconomy
       });
     } catch (error) {
       setStatus(error.message || "Cell publish refused.", true);
