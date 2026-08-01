@@ -5331,7 +5331,7 @@
     labelWrap.className = "ps-pip-label";
     labelWrap.textContent = label;
     const boxes = document.createElement("div");
-    boxes.className = "ps-pips";
+    boxes.className = "ps-pips ps-pips-grid5";
     for (let i = 1; i <= max; i += 1) {
       const box = document.createElement("i");
       box.className = i <= current ? "ps-check is-filled" : "ps-check";
@@ -5379,6 +5379,16 @@
 
     const header = document.createElement("header");
     header.className = "ps-header";
+
+    // Void/Breach/Residue live in the header's own side margins instead of
+    // buried in Trackers -- they're the meta-currency that can influence the
+    // whole action-state at a glance, so they get a permanent, prominent spot.
+    const headerLeft = document.createElement("div");
+    headerLeft.className = "ps-header-meta";
+    headerLeft.append(psBlankField("Void"), psBlankField("Breach"));
+
+    const headerCenter = document.createElement("div");
+    headerCenter.className = "ps-header-center";
     const crest = document.createElement("img");
     crest.className = "ps-crest";
     crest.src = "../assets/veilcorp-avatar.webp";
@@ -5394,7 +5404,13 @@
     subtitle.className = "ps-subtitle";
     subtitle.textContent = "OPERATOR FIELD SHEET";
     headerText.append(kicker, h1, subtitle);
-    header.append(crest, headerText);
+    headerCenter.append(crest, headerText);
+
+    const headerRight = document.createElement("div");
+    headerRight.className = "ps-header-meta";
+    headerRight.append(psBlankField("Current Misfire / Residue"));
+
+    header.append(headerLeft, headerCenter, headerRight);
     host.append(header);
 
     // =================================================================
@@ -5418,60 +5434,76 @@
     );
     page1.append(identity);
 
-    const columns1 = document.createElement("div");
-    columns1.className = "ps-columns";
-    const main1 = document.createElement("div");
-    main1.className = "ps-col-main";
-    const side1 = document.createElement("div");
-    side1.className = "ps-col-side";
-
+    // Attributes span the full page width in three columns (two attributes
+    // each) instead of one narrow stack alone in a wide box -- six short
+    // rows with nothing beside them just read as empty formality.
     const attributesSection = nextSection("ATTRIBUTES");
-    attributeNames().forEach((name) => {
-      attributesSection.append(psPipRow(name, effectiveAttributeRank(attrs, name, status), 5));
-    });
-    main1.append(attributesSection);
+    const attributesColumns = document.createElement("div");
+    attributesColumns.className = "ps-skills-columns";
+    const attributeNamesList = attributeNames();
+    for (let i = 0; i < attributeNamesList.length; i += 2) {
+      const col = document.createElement("div");
+      col.className = "ps-skills-col";
+      attributeNamesList.slice(i, i + 2).forEach((name) => {
+        col.append(psPipRow(name, effectiveAttributeRank(attrs, name, status), 5));
+      });
+      attributesColumns.append(col);
+    }
+    attributesSection.append(attributesColumns);
+    page1.append(attributesSection);
 
+    // Skills span the full page width in three columns (Physical / Mental /
+    // Social) side by side instead of one cramped stacked column -- 17
+    // skills need real room to read at a glance.
     const skillGroups = [
       ["PHYSICAL / FIELD", ["Athletics", "Melee", "Ranged", "Stealth", "Survival", "Medicine"]],
       ["MENTAL / TECHNICAL", ["Investigation", "Hacking", "Engineering", "Academics", "Awareness", "Tactics"]],
       ["SOCIAL / RESONANT", ["Empathy", "Deception", "Persuasion", "Intimidation", "Performance", "Ritual"]]
     ];
     const skillsSection = nextSection("SKILLS");
+    const skillsColumns = document.createElement("div");
+    skillsColumns.className = "ps-skills-columns";
     skillGroups.forEach(([groupLabel, names]) => {
+      const col = document.createElement("div");
+      col.className = "ps-skills-col";
       const groupHeading = document.createElement("p");
       groupHeading.className = "ps-group-label";
       groupHeading.textContent = groupLabel;
-      skillsSection.append(groupHeading);
+      col.append(groupHeading);
       names.forEach((name) => {
-        skillsSection.append(psPipRow(name, effectiveSkillRank(skills, name, status), 5));
+        col.append(psPipRow(name, effectiveSkillRank(skills, name, status), 5));
       });
+      skillsColumns.append(col);
     });
-    main1.append(skillsSection);
+    skillsSection.append(skillsColumns);
+    page1.append(skillsSection);
 
     const presentationForTracker = presentationPressureApi()?.presentationForCatalogKey(currentPresentationKey());
     const loadTracker = presentationTrackerSpec(presentationForTracker);
 
-    // Harm, Stability, the Presentation's own pressure track, Void, Breach,
-    // and any current Misfire/Residue all move mid-scene -- a printed
-    // snapshot goes stale within minutes of play, so these always print
-    // blank for pencil, never today's app-state value.
+    // Harm, Stability, and the Presentation's own pressure track all move
+    // mid-scene -- a printed snapshot goes stale within minutes of play, so
+    // these always print blank for pencil, never today's app-state value.
+    // (Void/Breach/Residue live in the header margins now, not here.) Same
+    // multi-column spread as Attributes/Skills -- two or three short rows
+    // stacked alone in a full-width box is the same empty-altar problem.
     const trackersSection = nextSection("TRACKERS");
-    trackersSection.append(
+    const trackersColumns = document.createElement("div");
+    trackersColumns.className = "ps-skills-columns";
+    [
       psPipRow("Harm", 0, 5),
-      psCheckRow("Stability", 0, 10)
-    );
-    if (loadTracker) {
-      trackersSection.append(psPipRow(loadTracker.label, 0, loadTracker.max));
-    }
-    trackersSection.append(
-      psFieldRow(
-        psBlankField("Void"),
-        psBlankField("Breach")
-      )
-    );
-    trackersSection.append(psBlankField("Current Misfire / Residue"));
-    side1.append(trackersSection);
+      psCheckRow("Stability", 0, 10),
+      loadTracker ? psPipRow(loadTracker.label, 0, loadTracker.max) : null
+    ].filter(Boolean).forEach((row) => {
+      const col = document.createElement("div");
+      col.className = "ps-skills-col";
+      col.append(row);
+      trackersColumns.append(col);
+    });
+    trackersSection.append(trackersColumns);
+    page1.append(trackersSection);
 
+    // Recovery spans full width too, directly under Trackers.
     const recoverySection = nextSection("RECOVERY");
     const recoveryActions = presentationAbilitiesApi()?.RECOVERY_ACTIONS || {};
     const recoveryList = document.createElement("ul");
@@ -5497,40 +5529,46 @@
       recoveryList.append(li);
     });
     recoverySection.append(recoveryList);
-    side1.append(recoverySection);
+    page1.append(recoverySection);
 
+    // Whatever remains of page 1 is Notes: the player's already-written
+    // notes (if any) plus blank ruled lines for pencil, filling to the
+    // bottom of the page instead of leaving it empty.
     if (status.quickNotes) {
       const notesSection = nextSection("NOTES");
       const notes = document.createElement("p");
       notes.className = "ps-notes";
       notes.textContent = status.quickNotes;
       notesSection.append(notes);
-      side1.append(notesSection);
+      page1.append(notesSection);
     }
 
     const fieldNotesSection = nextSection("FIELD NOTES");
+    fieldNotesSection.classList.add("ps-section-flow");
     const fieldNotesLines = document.createElement("div");
-    fieldNotesLines.className = "ps-ruled-lines";
+    fieldNotesLines.className = "ps-ruled-lines ps-ruled-lines-fill";
     fieldNotesSection.append(fieldNotesLines);
-    side1.append(fieldNotesSection);
+    page1.append(fieldNotesSection);
 
-    columns1.append(main1, side1);
-    page1.append(columns1);
     host.append(page1);
 
     // =================================================================
-    // Page 2 -- Lotus/Frequency unlocks, the selected Presentation's own
-    // interface (not a shared generic grid), and Equipment.
+    // Page 2+ -- flows across as many pages as a developed character needs.
+    // Bounded content (Lotus art, Presentation identity, Equipment) comes
+    // first since it's always short. The two lists that grow with play --
+    // Frequency unlocks can run 20+ entries by end game, and Presentation
+    // abilities/thresholds/Drift grow too -- are listed last, so they're
+    // what spills onto extra trailing pages instead of anything else.
     // =================================================================
     const page2 = document.createElement("div");
     page2.className = "ps-page";
 
-    const columns2 = document.createElement("div");
-    columns2.className = "ps-columns ps-columns-balanced";
-    const main2 = document.createElement("div");
-    main2.className = "ps-col-main";
-    const side2 = document.createElement("div");
-    side2.className = "ps-col-side";
+    const introColumns = document.createElement("div");
+    introColumns.className = "ps-columns ps-columns-balanced";
+    const introMain = document.createElement("div");
+    introMain.className = "ps-col-main";
+    const introSide = document.createElement("div");
+    introSide.className = "ps-col-side";
 
     const lotusSection = nextSection("LOTUS ARRAY");
     const lotusFigure = document.createElement("figure");
@@ -5543,32 +5581,6 @@
     lotusFrame.append(lotusImg);
     lotusFigure.append(lotusFrame);
     lotusSection.append(lotusFigure);
-
-    const unlockedEntries = unlockedLotusEntries();
-    if (unlockedEntries.length) {
-      const expressions = document.createElement("div");
-      expressions.className = "ps-ability-block";
-      frequencies().forEach((name) => {
-        const entries = unlockedEntries.filter((entry) => entry.frequency === name);
-        if (!entries.length) return;
-        const group = document.createElement("div");
-        group.className = "ps-ability-group";
-        const heading = document.createElement("p");
-        heading.className = "ps-ability-group-label";
-        heading.textContent = name;
-        group.append(heading);
-        entries.forEach((entry) => {
-          const line = document.createElement("p");
-          line.className = "ps-ability-line";
-          const strong = document.createElement("strong");
-          strong.textContent = `${entry.pip}. ${entry.name}`;
-          line.append(strong, document.createTextNode(` — ${entry.effect}`));
-          group.append(line);
-        });
-        expressions.append(group);
-      });
-      lotusSection.append(expressions);
-    }
     // Misfire flavor is a Frequency reference, not Presentation data --
     // keep it here next to the Lotus, not inside the Presentation section.
     if (status.misfireFlavor) {
@@ -5584,12 +5596,12 @@
       refBlock.append(refLabel, refLine);
       lotusSection.append(refBlock);
     }
-    main2.append(lotusSection);
+    introMain.append(lotusSection);
 
-    // Presentation section is built entirely from the selected Presentation's
-    // own data (passive/active/pressure track/band modifiers/collapse/drift)
-    // -- no shared generic Anchor/Totem/Grounding Line/Common Tell grid,
-    // since no Presentation contract actually defines those fields.
+    // Presentation identity only here -- no shared generic Anchor/Totem/
+    // Grounding Line/Common Tell grid, since no Presentation contract
+    // actually defines those fields. Its abilities/thresholds/Drift are
+    // their own trailing section further down, since that list grows.
     const presentationSection = nextSection("PRESENTATION");
     const abilitiesApi = presentationAbilitiesApi();
     const presentationView = abilitiesApi?.presentationAbilityView
@@ -5606,86 +5618,16 @@
         identityLine.textContent = presentationView.identityLine;
         presentationSection.append(identityLine);
       }
-      const abilitiesBlock = document.createElement("div");
-      abilitiesBlock.className = "ps-ability-block";
-      const appendAbilityGroup = (heading, entries, formatLabel) => {
-        if (!entries?.length) return;
-        const label = document.createElement("p");
-        label.className = "ps-ability-group-label";
-        label.textContent = heading;
-        abilitiesBlock.append(label);
-        entries.forEach((entry) => {
-          const line = document.createElement("p");
-          line.className = "ps-ability-line";
-          const strong = document.createElement("strong");
-          strong.textContent = formatLabel(entry);
-          line.append(strong, document.createTextNode(` — ${entry.effect}`));
-          abilitiesBlock.append(line);
-        });
-      };
-      appendAbilityGroup("Passive", presentationView.passivePermissions, (entry) => entry.name);
-      appendAbilityGroup("Active", presentationView.activeAbilities, (entry) => {
-        const costBit = entry.cost || entry.cadence;
-        return `${entry.name}${costBit ? ` (${costBit})` : ""}`;
-      });
-      const trackLabel = presentationView.pressureTrack?.trackLabel || "Load";
-      if (presentationView.bandModifiers?.length || presentationView.collapseBehavior) {
-        const label = document.createElement("p");
-        label.className = "ps-ability-group-label";
-        label.textContent = `${trackLabel} thresholds`;
-        abilitiesBlock.append(label);
-        (presentationView.bandModifiers || []).forEach((entry) => {
-          const line = document.createElement("p");
-          line.className = "ps-ability-line";
-          const strong = document.createElement("strong");
-          strong.textContent = `${trackLabel} ${entry.atLoad} — ${entry.bandLabel}`;
-          const bits = [entry.helps, entry.hurts].filter(Boolean).join("; ");
-          line.append(strong, document.createTextNode(` — ${bits}`));
-          abilitiesBlock.append(line);
-        });
-        if (presentationView.collapseBehavior) {
-          const collapse = presentationView.collapseBehavior;
-          const line = document.createElement("p");
-          line.className = "ps-ability-line";
-          const strong = document.createElement("strong");
-          strong.textContent = `${trackLabel} ${collapse.atLoad} collapse — ${collapse.name}`;
-          line.append(strong, document.createTextNode(` — ${collapse.effect}`));
-          abilitiesBlock.append(line);
-        }
-      }
-      const driftApi = presentationDriftApi();
-      const driftView = driftApi?.presentationDriftView
-        ? driftApi.presentationDriftView(status, currentPresentationKey())
-        : null;
-      if (driftView && driftView.value > 0) {
-        const label = document.createElement("p");
-        label.className = "ps-ability-group-label";
-        label.textContent = `Drift ${driftView.value}`;
-        abilitiesBlock.append(label);
-        (driftView.accumulatedScars || []).forEach((scar) => {
-          const line = document.createElement("p");
-          line.className = "ps-ability-line";
-          const strong = document.createElement("strong");
-          strong.textContent = scar.label;
-          const bits = [
-            scar.benefit ? `Benefit: ${scar.benefit}` : "",
-            scar.cost ? `Cost: ${scar.cost}` : ""
-          ].filter(Boolean).join(". ");
-          line.append(strong, document.createTextNode(bits ? ` — ${bits}` : ""));
-          abilitiesBlock.append(line);
-        });
-      }
-      presentationSection.append(abilitiesBlock);
     } else {
       const empty = document.createElement("p");
       empty.className = "ps-empty";
       empty.textContent = "No Presentation selected.";
       presentationSection.append(empty);
     }
-    side2.append(presentationSection);
+    introSide.append(presentationSection);
 
-    columns2.append(main2, side2);
-    page2.append(columns2);
+    introColumns.append(introMain, introSide);
+    page2.append(introColumns);
 
     const equipmentSection = nextSection("EQUIPMENT");
     const equipment = Array.isArray(consoleState.equipment) ? consoleState.equipment : [];
@@ -5705,6 +5647,112 @@
       equipmentSection.append(empty);
     }
     page2.append(equipmentSection);
+
+    // Frequency unlocks: one entry per cultivated pip, per Frequency. Grows
+    // with play (up to 6 pips x 5 non-blind Frequencies by end game), so it
+    // gets its own section allowed to flow across as many pages as needed.
+    const unlockedEntries = unlockedLotusEntries();
+    if (unlockedEntries.length) {
+      const unlocksSection = nextSection("FREQUENCY UNLOCKS");
+      unlocksSection.classList.add("ps-section-flow");
+      frequencies().forEach((name) => {
+        const entries = unlockedEntries.filter((entry) => entry.frequency === name);
+        if (!entries.length) return;
+        const group = document.createElement("div");
+        group.className = "ps-ability-group";
+        const heading = document.createElement("p");
+        heading.className = "ps-ability-group-label";
+        heading.textContent = name;
+        group.append(heading);
+        entries.forEach((entry) => {
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = `${entry.pip}. ${entry.name}`;
+          line.append(strong, document.createTextNode(` — ${entry.effect}`));
+          group.append(line);
+        });
+        unlocksSection.append(group);
+      });
+      page2.append(unlocksSection);
+    }
+
+    // Presentation abilities/thresholds/Drift: also grows with play (more
+    // Drift scars accumulate over time), so it's the last section, flowing
+    // across as many trailing pages as a developed character needs.
+    if (presentationView) {
+      const abilitiesSection = nextSection("PRESENTATION ABILITIES");
+      abilitiesSection.classList.add("ps-section-flow");
+      const appendAbilityGroup = (heading, entries, formatLabel) => {
+        if (!entries?.length) return;
+        const label = document.createElement("p");
+        label.className = "ps-ability-group-label";
+        label.textContent = heading;
+        abilitiesSection.append(label);
+        entries.forEach((entry) => {
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = formatLabel(entry);
+          line.append(strong, document.createTextNode(` — ${entry.effect}`));
+          abilitiesSection.append(line);
+        });
+      };
+      appendAbilityGroup("Passive", presentationView.passivePermissions, (entry) => entry.name);
+      appendAbilityGroup("Active", presentationView.activeAbilities, (entry) => {
+        const costBit = entry.cost || entry.cadence;
+        return `${entry.name}${costBit ? ` (${costBit})` : ""}`;
+      });
+      const trackLabel = presentationView.pressureTrack?.trackLabel || "Load";
+      if (presentationView.bandModifiers?.length || presentationView.collapseBehavior) {
+        const label = document.createElement("p");
+        label.className = "ps-ability-group-label";
+        label.textContent = `${trackLabel} thresholds`;
+        abilitiesSection.append(label);
+        (presentationView.bandModifiers || []).forEach((entry) => {
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = `${trackLabel} ${entry.atLoad} — ${entry.bandLabel}`;
+          const bits = [entry.helps, entry.hurts].filter(Boolean).join("; ");
+          line.append(strong, document.createTextNode(` — ${bits}`));
+          abilitiesSection.append(line);
+        });
+        if (presentationView.collapseBehavior) {
+          const collapse = presentationView.collapseBehavior;
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = `${trackLabel} ${collapse.atLoad} collapse — ${collapse.name}`;
+          line.append(strong, document.createTextNode(` — ${collapse.effect}`));
+          abilitiesSection.append(line);
+        }
+      }
+      const driftApi = presentationDriftApi();
+      const driftView = driftApi?.presentationDriftView
+        ? driftApi.presentationDriftView(status, currentPresentationKey())
+        : null;
+      if (driftView && driftView.value > 0) {
+        const label = document.createElement("p");
+        label.className = "ps-ability-group-label";
+        label.textContent = `Drift ${driftView.value}`;
+        abilitiesSection.append(label);
+        (driftView.accumulatedScars || []).forEach((scar) => {
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = scar.label;
+          const bits = [
+            scar.benefit ? `Benefit: ${scar.benefit}` : "",
+            scar.cost ? `Cost: ${scar.cost}` : ""
+          ].filter(Boolean).join(". ");
+          line.append(strong, document.createTextNode(bits ? ` — ${bits}` : ""));
+          abilitiesSection.append(line);
+        });
+      }
+      page2.append(abilitiesSection);
+    }
+
     host.append(page2);
 
     const footer = document.createElement("footer");

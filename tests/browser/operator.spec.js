@@ -695,16 +695,19 @@ test("print sheet lists cultivated Lotus pips as unlocked abilities, not a mask 
   await page.getByRole("button", { name: "Print Sheet" }).click();
 
   const lotusSection = page.locator("#print-sheet .ps-section", { hasText: "LOTUS ARRAY" });
-  // No mask overlay and no "3/6 · 0/6 ..." caption line -- the real art plus a
-  // per-Frequency list of what each cultivated pip actually unlocks instead.
+  // No mask overlay and no "3/6 · 0/6 ..." caption line -- just the real art.
   await expect(lotusSection.locator(".ps-lotus-mask")).toHaveCount(0);
   await expect(lotusSection.locator(".ps-lotus-caption")).toHaveCount(0);
 
+  // The pip-unlock list is its own trailing "FREQUENCY UNLOCKS" section (it
+  // can grow to 20+ entries by end game, so it's kept separate and allowed
+  // to flow across pages rather than living inside the bounded Lotus Array box).
+  const unlocksSection = page.locator("#print-sheet .ps-section", { hasText: "FREQUENCY UNLOCKS" });
   // Cultivated, non-blind Frequencies only: Dream(3), Silence(6), Empyrean(2), Becoming(5).
   // Hunger(0) and blind Stillness are excluded.
-  const groupLabels = lotusSection.locator(".ps-ability-group-label");
+  const groupLabels = unlocksSection.locator(".ps-ability-group-label");
   await expect(groupLabels).toHaveText(["Dream", "Silence", "Empyrean", "Becoming"]);
-  await expect(lotusSection.locator(".ps-ability-line")).toHaveCount(3 + 6 + 2 + 5);
+  await expect(unlocksSection.locator(".ps-ability-line")).toHaveCount(3 + 6 + 2 + 5);
 });
 
 test("legacy nerves skill entries are scrubbed from saved builds", async ({ page }) => {

@@ -3644,13 +3644,26 @@ body.has-reports-drawer-open .surface-tabs {
   .ps-header {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: .55rem;
     border-bottom: 2px solid var(--ps-ink);
     box-shadow: 0 3px 0 -1px var(--ps-accent);
     padding-bottom: .35rem;
     margin-bottom: .5rem;
   }
+  .ps-header-center {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+  }
+  /* Void/Breach/Residue: the header's own side margins, otherwise unused. */
+  .ps-header-meta {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+    flex: 0 0 6.5rem;
+  }
+  .ps-header-meta .ps-field span { white-space: nowrap; }
   .ps-crest {
     width: 2.6rem;
     height: 2.6rem;
@@ -3686,6 +3699,16 @@ body.has-reports-drawer-open .surface-tabs {
     padding: .35rem .45rem .4rem;
     margin-bottom: .35rem;
     break-inside: avoid;
+  }
+  /* Lists that grow with play (Frequency unlocks, Presentation abilities)
+     can end up taller than a single page for a developed character --
+     forcing the whole section to avoid breaking would just strand it on
+     its own near-empty page. Let these flow across pages; the smaller
+     .ps-ability-group/.ps-recovery-list-item units inside still keep
+     break-inside: avoid so no single entry gets split mid-line. */
+  .ps-section-flow {
+    break-inside: auto;
+    page-break-inside: auto;
   }
   .ps-section h2 {
     display: flex;
@@ -3723,6 +3746,9 @@ body.has-reports-drawer-open .surface-tabs {
   .ps-field strong { font-size: .7rem; border-bottom: 1px solid #999; min-height: 1.15em; font-weight: bold; }
   .ps-field-wide { grid-column: 1 / -1; }
 
+  .ps-skills-columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 .6rem; align-items: start; }
+  .ps-skills-col { min-width: 0; }
+
   .ps-group-label {
     margin: .35rem 0 .18rem;
     padding-left: .35rem;
@@ -3742,6 +3768,10 @@ body.has-reports-drawer-open .surface-tabs {
     padding-top: .12rem;
   }
   .ps-pips { display: flex; flex-wrap: wrap; gap: .16rem; flex: 1 1 auto; min-width: 0; align-content: flex-start; }
+  /* A flex-wrap row breaks wherever the container width happens to run out,
+     which can orphan a single box on its own line. A fixed 5-column grid
+     always wraps at a clean, predictable point instead. */
+  .ps-pips-grid5 { display: grid; grid-template-columns: repeat(5, max-content); }
   .ps-pip {
     width: .68rem;
     height: .68rem;
