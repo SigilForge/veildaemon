@@ -5306,12 +5306,19 @@
     if (!host) return;
     host.textContent = "";
 
+    // Numbered sequentially as sections actually get appended, so a section
+    // skipped for having no applicable data (e.g. Notes when empty) doesn't
+    // leave a gap in the numbering.
+    const PRINT_NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+    let printSectionIndex = 0;
+    const nextSection = (title) => psSection(PRINT_NUMERALS[printSectionIndex++] || String(printSectionIndex), title);
+
     const status = consoleState.operatorStatus;
     const attrs = normalizeAttributes(status.attributes);
     const skills = normalizeSkills(status.skills);
     const operatorName = safeString(status.operatorName || operatorRecord?.designation || status.designation || "Unnamed Operator", 120);
     const background = status.background ? backgroundEntry(backgroundKeyFromDisplayName(status.background))?.displayName || status.background : "";
-    const presentation = status.ontologyPresentation
+    const presentationDisplayName = status.ontologyPresentation
       ? presentationEntry(presentationKeyFromDisplayName(status.ontologyPresentation))?.displayName || status.ontologyPresentation
       : "";
 
@@ -5335,7 +5342,13 @@
     header.append(crest, headerText);
     host.append(header);
 
-    const identity = psSection("I", "IDENTITY");
+    // =================================================================
+    // Page 1 -- Identity, build-time Attributes/Skills, scene trackers.
+    // =================================================================
+    const page1 = document.createElement("div");
+    page1.className = "ps-page";
+
+    const identity = nextSection("IDENTITY");
     identity.append(
       psFieldRow(
         psField("Name", operatorName),
@@ -5344,31 +5357,31 @@
       ),
       psFieldRow(
         psField("Background", background),
-        psField("Presentation", presentation),
+        psField("Presentation", presentationDisplayName),
         psField("Blind Petal", status.blindPetal)
       )
     );
-    host.append(identity);
+    page1.append(identity);
 
-    const columns = document.createElement("div");
-    columns.className = "ps-columns";
-    const main = document.createElement("div");
-    main.className = "ps-col-main";
-    const side = document.createElement("div");
-    side.className = "ps-col-side";
+    const columns1 = document.createElement("div");
+    columns1.className = "ps-columns";
+    const main1 = document.createElement("div");
+    main1.className = "ps-col-main";
+    const side1 = document.createElement("div");
+    side1.className = "ps-col-side";
 
-    const attributesSection = psSection("II", "ATTRIBUTES");
+    const attributesSection = nextSection("ATTRIBUTES");
     attributeNames().forEach((name) => {
       attributesSection.append(psPipRow(name, effectiveAttributeRank(attrs, name, status), 5));
     });
-    main.append(attributesSection);
+    main1.append(attributesSection);
 
     const skillGroups = [
       ["PHYSICAL / FIELD", ["Athletics", "Melee", "Ranged", "Stealth", "Survival", "Medicine"]],
       ["MENTAL / TECHNICAL", ["Investigation", "Hacking", "Engineering", "Academics", "Awareness", "Tactics"]],
       ["SOCIAL / RESONANT", ["Empathy", "Deception", "Persuasion", "Intimidation", "Performance", "Ritual"]]
     ];
-    const skillsSection = psSection("III", "SKILLS");
+    const skillsSection = nextSection("SKILLS");
     skillGroups.forEach(([groupLabel, names]) => {
       const groupHeading = document.createElement("p");
       groupHeading.className = "ps-group-label";
@@ -5378,9 +5391,84 @@
         skillsSection.append(psPipRow(name, effectiveSkillRank(skills, name, status), 5));
       });
     });
-    main.append(skillsSection);
+    main1.append(skillsSection);
 
-    const lotusSection = psSection("IV", "LOTUS ARRAY");
+    const presentationForTracker = presentationPressureApi()?.presentationForCatalogKey(currentPresentationKey());
+    const loadTracker = presentationTrackerSpec(presentationForTracker);
+
+    // Harm, Stability, the Presentation's own pressure track, Void, Breach,
+    // and any current Misfire/Residue all move mid-scene -- a printed
+    // snapshot goes stale within minutes of play, so these always print
+    // blank for pencil, never today's app-state value.
+    const trackersSection = nextSection("TRACKERS");
+    trackersSection.append(
+      psPipRow("Harm", 0, 5),
+      psCheckRow("Stability", 0, 10)
+    );
+    if (loadTracker) {
+      trackersSection.append(psPipRow(loadTracker.label, 0, loadTracker.max));
+    }
+    trackersSection.append(
+      psFieldRow(
+        psBlankField("Void"),
+        psBlankField("Breach")
+      )
+    );
+    trackersSection.append(psBlankField("Current Misfire / Residue"));
+    side1.append(trackersSection);
+
+    const recoverySection = nextSection("RECOVERY");
+    const recoveryList = document.createElement("ul");
+    recoveryList.className = "ps-recovery-list";
+    [
+      ["Ground", status.recoveryGround],
+      ["Breathe", status.recoveryBreathe],
+      ["Connect", status.recoveryConnect],
+      ["Leave", status.recoveryLeave],
+      ["Name It", status.recoveryNameIt]
+    ].forEach(([label, checked]) => {
+      const li = document.createElement("li");
+      li.className = checked ? "is-checked" : "";
+      li.textContent = label;
+      recoveryList.append(li);
+    });
+    recoverySection.append(recoveryList);
+    side1.append(recoverySection);
+
+    if (status.quickNotes) {
+      const notesSection = nextSection("NOTES");
+      const notes = document.createElement("p");
+      notes.className = "ps-notes";
+      notes.textContent = status.quickNotes;
+      notesSection.append(notes);
+      side1.append(notesSection);
+    }
+
+    const fieldNotesSection = nextSection("FIELD NOTES");
+    const fieldNotesLines = document.createElement("div");
+    fieldNotesLines.className = "ps-ruled-lines";
+    fieldNotesSection.append(fieldNotesLines);
+    side1.append(fieldNotesSection);
+
+    columns1.append(main1, side1);
+    page1.append(columns1);
+    host.append(page1);
+
+    // =================================================================
+    // Page 2 -- Lotus/Frequency unlocks, the selected Presentation's own
+    // interface (not a shared generic grid), and Equipment.
+    // =================================================================
+    const page2 = document.createElement("div");
+    page2.className = "ps-page";
+
+    const columns2 = document.createElement("div");
+    columns2.className = "ps-columns";
+    const main2 = document.createElement("div");
+    main2.className = "ps-col-main";
+    const side2 = document.createElement("div");
+    side2.className = "ps-col-side";
+
+    const lotusSection = nextSection("LOTUS ARRAY");
     const lotusFigure = document.createElement("figure");
     lotusFigure.className = "ps-lotus-figure";
     const lotusFrame = document.createElement("div");
@@ -5417,39 +5505,45 @@
       });
       lotusSection.append(expressions);
     }
-    main.append(lotusSection);
-
-    const presentationSection = psSection("VIII", "PRESENTATION TRACK");
-    presentationSection.append(
-      psFieldRow(
-        psField("Pressure", `${status.presentationPressure || 0}`),
-        psField("Anchor", status.anchorPerson),
-        psField("Totem", status.totemObject)
-      ),
-      psFieldRow(
-        psField("Grounding Line", status.groundingLine),
-        psField("Common Tell", status.commonTell),
-        psField("Misfire Flavor", status.misfireFlavor)
-      )
-    );
-    if (status.expressions) {
-      const expressionsField = psField("Known Expressions", status.expressions);
-      expressionsField.classList.add("ps-field-wide");
-      presentationSection.append(expressionsField);
+    // Misfire flavor is a Frequency reference, not Presentation data --
+    // keep it here next to the Lotus, not inside the Presentation section.
+    if (status.misfireFlavor) {
+      const freqName = safeString(operatorRecord?.primaryFrequency || status.selectedLotusPetal || "", 40);
+      const refBlock = document.createElement("div");
+      refBlock.className = "ps-ability-block";
+      const refLabel = document.createElement("p");
+      refLabel.className = "ps-ability-group-label";
+      refLabel.textContent = freqName ? `${freqName} misfire reference` : "Frequency misfire reference";
+      const refLine = document.createElement("p");
+      refLine.className = "ps-ability-line";
+      refLine.textContent = status.misfireFlavor;
+      refBlock.append(refLabel, refLine);
+      lotusSection.append(refBlock);
     }
+    main2.append(lotusSection);
+
+    // Presentation section is built entirely from the selected Presentation's
+    // own data (passive/active/pressure track/band modifiers/collapse/drift)
+    // -- no shared generic Anchor/Totem/Grounding Line/Common Tell grid,
+    // since no Presentation contract actually defines those fields.
+    const presentationSection = nextSection("PRESENTATION");
     const abilitiesApi = presentationAbilitiesApi();
     const presentationView = abilitiesApi?.presentationAbilityView
       ? abilitiesApi.presentationAbilityView(status, currentPresentationKey())
       : null;
     if (presentationView) {
+      const nameLine = document.createElement("p");
+      nameLine.className = "ps-ability-name";
+      nameLine.textContent = presentationView.displayLabel || presentationView.label;
+      presentationSection.append(nameLine);
+      if (presentationView.identityLine) {
+        const identityLine = document.createElement("p");
+        identityLine.className = "ps-ability-identity";
+        identityLine.textContent = presentationView.identityLine;
+        presentationSection.append(identityLine);
+      }
       const abilitiesBlock = document.createElement("div");
       abilitiesBlock.className = "ps-ability-block";
-      if (presentationView.identityLine) {
-        const identity = document.createElement("p");
-        identity.className = "ps-ability-identity";
-        identity.textContent = presentationView.identityLine;
-        abilitiesBlock.append(identity);
-      }
       const appendAbilityGroup = (heading, entries, formatLabel) => {
         if (!entries?.length) return;
         const label = document.createElement("p");
@@ -5495,11 +5589,41 @@
           abilitiesBlock.append(line);
         }
       }
+      const driftApi = presentationDriftApi();
+      const driftView = driftApi?.presentationDriftView
+        ? driftApi.presentationDriftView(status, currentPresentationKey())
+        : null;
+      if (driftView && driftView.value > 0) {
+        const label = document.createElement("p");
+        label.className = "ps-ability-group-label";
+        label.textContent = `Drift ${driftView.value}`;
+        abilitiesBlock.append(label);
+        (driftView.accumulatedScars || []).forEach((scar) => {
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = scar.label;
+          const bits = [
+            scar.benefit ? `Benefit: ${scar.benefit}` : "",
+            scar.cost ? `Cost: ${scar.cost}` : ""
+          ].filter(Boolean).join(". ");
+          line.append(strong, document.createTextNode(bits ? ` — ${bits}` : ""));
+          abilitiesBlock.append(line);
+        });
+      }
       presentationSection.append(abilitiesBlock);
+    } else {
+      const empty = document.createElement("p");
+      empty.className = "ps-empty";
+      empty.textContent = "No Presentation selected.";
+      presentationSection.append(empty);
     }
-    main.append(presentationSection);
+    side2.append(presentationSection);
 
-    const equipmentSection = psSection("IX", "EQUIPMENT");
+    columns2.append(main2, side2);
+    page2.append(columns2);
+
+    const equipmentSection = nextSection("EQUIPMENT");
     const equipment = Array.isArray(consoleState.equipment) ? consoleState.equipment : [];
     if (equipment.length) {
       const list = document.createElement("ul");
@@ -5516,69 +5640,8 @@
       empty.textContent = "No equipment recorded.";
       equipmentSection.append(empty);
     }
-    main.append(equipmentSection);
-
-    if (status.quickNotes) {
-      const notesSection = psSection("X", "NOTES");
-      const notes = document.createElement("p");
-      notes.className = "ps-notes";
-      notes.textContent = status.quickNotes;
-      notesSection.append(notes);
-      main.append(notesSection);
-    }
-
-    const presentationForTracker = presentationPressureApi()?.presentationForCatalogKey(currentPresentationKey());
-    const loadTracker = presentationTrackerSpec(presentationForTracker);
-
-    // These trackers move every scene -- a printed snapshot goes stale within
-    // minutes of play, so they always print blank for pencil, not today's value.
-    const trackersSection = psSection("V", "TRACKERS");
-    trackersSection.append(
-      psPipRow("Harm", 0, 5),
-      psCheckRow("Stability", 0, 10)
-    );
-    if (loadTracker) {
-      trackersSection.append(psPipRow(loadTracker.label, 0, loadTracker.max));
-    }
-    trackersSection.append(
-      psFieldRow(
-        psBlankField("Void"),
-        psBlankField("Breach")
-      )
-    );
-    trackersSection.append(psField("Misfire", status.misfireSeverity || "None"));
-    side.append(trackersSection);
-
-    const attentionSection = psSection("VI", "ATTENTION");
-    attentionSection.append(psField("Current", status.attentionState || "Unseen"));
-    side.append(attentionSection);
-
-    const recoverySection = psSection("VII", "RECOVERY");
-    const recoveryList = document.createElement("ul");
-    recoveryList.className = "ps-recovery-list";
-    [
-      ["Ground", status.recoveryGround],
-      ["Breathe", status.recoveryBreathe],
-      ["Connect", status.recoveryConnect],
-      ["Leave", status.recoveryLeave],
-      ["Name It", status.recoveryNameIt]
-    ].forEach(([label, checked]) => {
-      const li = document.createElement("li");
-      li.className = checked ? "is-checked" : "";
-      li.textContent = label;
-      recoveryList.append(li);
-    });
-    recoverySection.append(recoveryList);
-    side.append(recoverySection);
-
-    const fieldNotesSection = psSection("XI", "FIELD NOTES");
-    const fieldNotesLines = document.createElement("div");
-    fieldNotesLines.className = "ps-ruled-lines";
-    fieldNotesSection.append(fieldNotesLines);
-    side.append(fieldNotesSection);
-
-    columns.append(main, side);
-    host.append(columns);
+    page2.append(equipmentSection);
+    host.append(page2);
 
     const footer = document.createElement("footer");
     footer.className = "ps-footer";

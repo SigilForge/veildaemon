@@ -3795,6 +3795,11 @@ body.has-reports-drawer-open .surface-tabs {
     flex: 1;
   }
 
+  .ps-page + .ps-page {
+    break-before: page;
+    page-break-before: always;
+  }
+
   .ps-columns { display: grid; grid-template-columns: 2fr 1fr; gap: .4rem; align-items: start; }
   .ps-col-main, .ps-col-side { min-width: 0; }
 
@@ -3855,6 +3860,13 @@ body.has-reports-drawer-open .surface-tabs {
     display: block;
     width: 100%;
     filter: grayscale(1) contrast(1.15);
+  }
+  .ps-ability-name {
+    margin: 0;
+    font-size: .78rem;
+    font-weight: bold;
+    letter-spacing: .03em;
+    color: var(--ps-ink);
   }
   .ps-ability-block { margin-top: .4rem; }
   .ps-ability-identity {
