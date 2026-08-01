@@ -5239,6 +5239,12 @@
     return field;
   }
 
+  function psBlankField(label) {
+    const field = psField(label, "");
+    field.querySelector("strong").textContent = " ";
+    return field;
+  }
+
   function psFieldRow(...fields) {
     const row = document.createElement("div");
     row.className = "ps-field-row";
@@ -5532,15 +5538,23 @@
       main.append(notesSection);
     }
 
+    const presentationForTracker = presentationPressureApi()?.presentationForCatalogKey(currentPresentationKey());
+    const loadTracker = presentationTrackerSpec(presentationForTracker);
+
+    // These trackers move every scene -- a printed snapshot goes stale within
+    // minutes of play, so they always print blank for pencil, not today's value.
     const trackersSection = psSection("V", "TRACKERS");
     trackersSection.append(
-      psPipRow("Harm", Number(status.harmBoxes || 0), 5),
-      psCheckRow("Stability", Number(status.stability || 0), 10)
+      psPipRow("Harm", 0, 5),
+      psCheckRow("Stability", 0, 10)
     );
+    if (loadTracker) {
+      trackersSection.append(psPipRow(loadTracker.label, 0, loadTracker.max));
+    }
     trackersSection.append(
       psFieldRow(
-        psField("Void", `${Number(status.voidMarks || 0)}`),
-        psField("Breach", `${Number(status.breachPoints || 0)}`)
+        psBlankField("Void"),
+        psBlankField("Breach")
       )
     );
     trackersSection.append(psField("Misfire", status.misfireSeverity || "None"));
