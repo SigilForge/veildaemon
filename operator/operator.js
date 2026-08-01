@@ -5598,10 +5598,10 @@
     }
     introMain.append(lotusSection);
 
-    // Presentation identity only here -- no shared generic Anchor/Totem/
-    // Grounding Line/Common Tell grid, since no Presentation contract
-    // actually defines those fields. Its abilities/thresholds/Drift are
-    // their own trailing section further down, since that list grows.
+    // Presentation section is built entirely from the selected Presentation's
+    // own data (passive/active/pressure track/band modifiers/collapse/drift)
+    // -- no shared generic Anchor/Totem/Grounding Line/Common Tell grid,
+    // since no Presentation contract actually defines those fields.
     const presentationSection = nextSection("PRESENTATION");
     const abilitiesApi = presentationAbilitiesApi();
     const presentationView = abilitiesApi?.presentationAbilityView
@@ -5618,6 +5618,76 @@
         identityLine.textContent = presentationView.identityLine;
         presentationSection.append(identityLine);
       }
+      const abilitiesBlock = document.createElement("div");
+      abilitiesBlock.className = "ps-ability-block";
+      const appendAbilityGroup = (heading, entries, formatLabel) => {
+        if (!entries?.length) return;
+        const label = document.createElement("p");
+        label.className = "ps-ability-group-label";
+        label.textContent = heading;
+        abilitiesBlock.append(label);
+        entries.forEach((entry) => {
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = formatLabel(entry);
+          line.append(strong, document.createTextNode(` — ${entry.effect}`));
+          abilitiesBlock.append(line);
+        });
+      };
+      appendAbilityGroup("Passive", presentationView.passivePermissions, (entry) => entry.name);
+      appendAbilityGroup("Active", presentationView.activeAbilities, (entry) => {
+        const costBit = entry.cost || entry.cadence;
+        return `${entry.name}${costBit ? ` (${costBit})` : ""}`;
+      });
+      const trackLabel = presentationView.pressureTrack?.trackLabel || "Load";
+      if (presentationView.bandModifiers?.length || presentationView.collapseBehavior) {
+        const label = document.createElement("p");
+        label.className = "ps-ability-group-label";
+        label.textContent = `${trackLabel} thresholds`;
+        abilitiesBlock.append(label);
+        (presentationView.bandModifiers || []).forEach((entry) => {
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = `${trackLabel} ${entry.atLoad} — ${entry.bandLabel}`;
+          const bits = [entry.helps, entry.hurts].filter(Boolean).join("; ");
+          line.append(strong, document.createTextNode(` — ${bits}`));
+          abilitiesBlock.append(line);
+        });
+        if (presentationView.collapseBehavior) {
+          const collapse = presentationView.collapseBehavior;
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = `${trackLabel} ${collapse.atLoad} collapse — ${collapse.name}`;
+          line.append(strong, document.createTextNode(` — ${collapse.effect}`));
+          abilitiesBlock.append(line);
+        }
+      }
+      const driftApi = presentationDriftApi();
+      const driftView = driftApi?.presentationDriftView
+        ? driftApi.presentationDriftView(status, currentPresentationKey())
+        : null;
+      if (driftView && driftView.value > 0) {
+        const label = document.createElement("p");
+        label.className = "ps-ability-group-label";
+        label.textContent = `Drift ${driftView.value}`;
+        abilitiesBlock.append(label);
+        (driftView.accumulatedScars || []).forEach((scar) => {
+          const line = document.createElement("p");
+          line.className = "ps-ability-line";
+          const strong = document.createElement("strong");
+          strong.textContent = scar.label;
+          const bits = [
+            scar.benefit ? `Benefit: ${scar.benefit}` : "",
+            scar.cost ? `Cost: ${scar.cost}` : ""
+          ].filter(Boolean).join(". ");
+          line.append(strong, document.createTextNode(bits ? ` — ${bits}` : ""));
+          abilitiesBlock.append(line);
+        });
+      }
+      presentationSection.append(abilitiesBlock);
     } else {
       const empty = document.createElement("p");
       empty.className = "ps-empty";
@@ -5677,81 +5747,6 @@
       page2.append(unlocksSection);
     }
 
-    // Presentation abilities/thresholds/Drift: also grows with play (more
-    // Drift scars accumulate over time), so it's the last section, flowing
-    // across as many trailing pages as a developed character needs.
-    if (presentationView) {
-      const abilitiesSection = nextSection("PRESENTATION ABILITIES");
-      abilitiesSection.classList.add("ps-section-flow");
-      const appendAbilityGroup = (heading, entries, formatLabel) => {
-        if (!entries?.length) return;
-        const label = document.createElement("p");
-        label.className = "ps-ability-group-label";
-        label.textContent = heading;
-        abilitiesSection.append(label);
-        entries.forEach((entry) => {
-          const line = document.createElement("p");
-          line.className = "ps-ability-line";
-          const strong = document.createElement("strong");
-          strong.textContent = formatLabel(entry);
-          line.append(strong, document.createTextNode(` — ${entry.effect}`));
-          abilitiesSection.append(line);
-        });
-      };
-      appendAbilityGroup("Passive", presentationView.passivePermissions, (entry) => entry.name);
-      appendAbilityGroup("Active", presentationView.activeAbilities, (entry) => {
-        const costBit = entry.cost || entry.cadence;
-        return `${entry.name}${costBit ? ` (${costBit})` : ""}`;
-      });
-      const trackLabel = presentationView.pressureTrack?.trackLabel || "Load";
-      if (presentationView.bandModifiers?.length || presentationView.collapseBehavior) {
-        const label = document.createElement("p");
-        label.className = "ps-ability-group-label";
-        label.textContent = `${trackLabel} thresholds`;
-        abilitiesSection.append(label);
-        (presentationView.bandModifiers || []).forEach((entry) => {
-          const line = document.createElement("p");
-          line.className = "ps-ability-line";
-          const strong = document.createElement("strong");
-          strong.textContent = `${trackLabel} ${entry.atLoad} — ${entry.bandLabel}`;
-          const bits = [entry.helps, entry.hurts].filter(Boolean).join("; ");
-          line.append(strong, document.createTextNode(` — ${bits}`));
-          abilitiesSection.append(line);
-        });
-        if (presentationView.collapseBehavior) {
-          const collapse = presentationView.collapseBehavior;
-          const line = document.createElement("p");
-          line.className = "ps-ability-line";
-          const strong = document.createElement("strong");
-          strong.textContent = `${trackLabel} ${collapse.atLoad} collapse — ${collapse.name}`;
-          line.append(strong, document.createTextNode(` — ${collapse.effect}`));
-          abilitiesSection.append(line);
-        }
-      }
-      const driftApi = presentationDriftApi();
-      const driftView = driftApi?.presentationDriftView
-        ? driftApi.presentationDriftView(status, currentPresentationKey())
-        : null;
-      if (driftView && driftView.value > 0) {
-        const label = document.createElement("p");
-        label.className = "ps-ability-group-label";
-        label.textContent = `Drift ${driftView.value}`;
-        abilitiesSection.append(label);
-        (driftView.accumulatedScars || []).forEach((scar) => {
-          const line = document.createElement("p");
-          line.className = "ps-ability-line";
-          const strong = document.createElement("strong");
-          strong.textContent = scar.label;
-          const bits = [
-            scar.benefit ? `Benefit: ${scar.benefit}` : "",
-            scar.cost ? `Cost: ${scar.cost}` : ""
-          ].filter(Boolean).join(". ");
-          line.append(strong, document.createTextNode(bits ? ` — ${bits}` : ""));
-          abilitiesSection.append(line);
-        });
-      }
-      page2.append(abilitiesSection);
-    }
 
     host.append(page2);
 
