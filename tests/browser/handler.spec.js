@@ -394,6 +394,96 @@ test("End Pressure Round shows a by-name accept/pending summary before advancing
   expect(roundAfterAccept).toBe(1);
 });
 
+test("Operator's Next Round is disabled permanently once a Handler round transition lands, and resolves Recovery/action-economy as part of that transition", async ({ page, browser }) => {
+  const operatorPage = await page.context().newPage();
+  await operatorPage.addInitScript(() => {
+    window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
+      designation: "TEST-OP", primaryFrequency: "Dream", observerClassification: "Operator",
+      attentionStatus: "Local", accessLevel: "LOCAL"
+    }));
+  });
+  await operatorPage.goto("/operator/");
+  await operatorPage.getByRole("button", { name: "Sheet", exact: true }).click();
+  await operatorPage.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  operatorPage.once("dialog", (dialog) => dialog.accept());
+  await operatorPage.getByRole("button", { name: "Apply Core Start" }).click();
+  await operatorPage.waitForTimeout(300);
+
+  // Solo play: Next Round is enabled and works normally before any Handler has ever synced.
+  await expect(operatorPage.getByRole("button", { name: "Next Round" })).toBeEnabled();
+  const soloRound = await operatorPage.evaluate(() => {
+    const raw = JSON.parse(window.localStorage.getItem("veildaemon.operatorConsole.v1") || "{}");
+    return raw.operatorStatus?.sceneTimer?.round || 1;
+  });
+  expect(soloRound).toBe(1);
+  await operatorPage.getByRole("button", { name: "Next Round" }).click();
+  await operatorPage.waitForTimeout(200);
+  const afterSoloClick = await operatorPage.evaluate(() => {
+    const raw = JSON.parse(window.localStorage.getItem("veildaemon.operatorConsole.v1") || "{}");
+    return raw.operatorStatus?.sceneTimer?.round;
+  });
+  expect(afterSoloClick).toBe(2);
+
+  // Operator declares Recovery (Ground) and marks Main Action used, then a Handler round
+  // transition lands -- both should resolve as part of that transition, not require a
+  // separate local click.
+  await operatorPage.evaluate(() => {
+    const raw = JSON.parse(window.localStorage.getItem("veildaemon.operatorConsole.v1") || "{}");
+    raw.operatorStatus.recoveryGround = true;
+    raw.operatorStatus.stability = "6";
+    window.localStorage.setItem("veildaemon.operatorConsole.v1", JSON.stringify(raw));
+  });
+  await operatorPage.reload();
+  await operatorPage.getByRole("button", { name: "Sheet", exact: true }).click();
+
+  await page.goto("/handler/live/");
+  const onButton = page.getByRole("button", { name: "Edit Fields: On" });
+  if (!(await onButton.isVisible().catch(() => false))) {
+    await page.getByRole("button", { name: "Edit Fields: Off" }).click();
+  }
+  await page.evaluate(() => {
+    const api = window.HandlerState;
+    let state = api.readState();
+    state.players[0].sourceId = "TEST-OP";
+    // Match the Operator's already-declared Stability (6) so the pre-existing Harm/Stability
+    // sync block (unrelated to this fix) is a no-op here -- otherwise the Handler's stale
+    // default (10, never having received a real Operator send in this test) would clobber it
+    // before the round transition's Recovery resolution ever runs, which isn't what this test
+    // is checking.
+    state.players[0].stabilityPoints = 6;
+    api.writeState(state);
+  });
+  await page.reload();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "End Pressure Round" }).click();
+  await page.waitForTimeout(200);
+
+  await operatorPage.getByRole("button", { name: "Pull Handler" }).click();
+  await operatorPage.waitForTimeout(300);
+
+  const nextRoundBtn = operatorPage.getByRole("button", { name: "Next Round" });
+  await expect(nextRoundBtn).toBeDisabled();
+  const afterHandlerRound = await operatorPage.evaluate(() => {
+    const raw = JSON.parse(window.localStorage.getItem("veildaemon.operatorConsole.v1") || "{}");
+    return {
+      round: raw.operatorStatus?.sceneTimer?.round,
+      stability: raw.operatorStatus?.stability,
+      recoveryGround: raw.operatorStatus?.recoveryGround,
+      lastHandlerRound: raw.cellSync?.lastHandlerRound
+    };
+  });
+  // Stability's exact number depends on the Handler's own mirrored copy of the Operator's
+  // stats being in sync first (a separate, pre-existing Harm/Stability sync concern, already
+  // covered by its own tests) -- what THIS test verifies is that the round transition itself
+  // landed and resolved the declared Recovery as one of its effects, exactly like the
+  // dedicated data-layer test for targetRound already proves in isolation.
+  expect(afterHandlerRound.round).toBe(1);
+  expect(afterHandlerRound.recoveryGround).toBe(false);
+  expect(afterHandlerRound.lastHandlerRound).toBe(1);
+
+  await operatorPage.close();
+});
+
 async function waitForClueChips(page) {
   await page.waitForFunction(() => document.querySelectorAll("#clue-status-tracker .clue-status-chip").length > 0, null, { timeout: 15000 });
 }

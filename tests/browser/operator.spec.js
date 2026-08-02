@@ -121,7 +121,7 @@ test("operator sheet exposes at-table controls", async ({ page }) => {
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
   await expect(page.locator("#void-bank-readout")).toHaveText("0");
   await expect(page.locator("#breach-bank-readout")).toHaveText("3");
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await expect(page.getByLabel("Dream Void")).toHaveValue("1");
   await expect(page.getByLabel("Dream pip 1")).toBeEnabled();
   await expect(page.getByLabel("Dream pip 3")).toBeDisabled();
@@ -169,7 +169,7 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Creation Mode: On" }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await expect(page.getByText("Abilities, tells, grounding, and misfire language.")).toBeVisible();
   await expect(page.locator(".lotus-petal")).toHaveCount(6);
   await expect(page.locator("#lotus-tier")).toHaveText("Basic");
@@ -229,7 +229,7 @@ test("secondary material is separated into tabs", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Mark Blind" })).toHaveCount(0);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Creation Mode: Off" }).click();
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await expect(page.getByRole("button", { name: "Mark Blind" })).toHaveCount(5);
   await expect(page.getByText("Anchor memory")).toBeVisible();
 
@@ -268,7 +268,7 @@ test("frequency dossier stays selected while resonance profile summarizes the bu
   });
 
   await page.goto("/operator/");
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await expect(page.locator("#lotus-frequency")).toHaveText("Silence");
   await expect(page.locator("#lotus-tier")).toHaveText("Basic");
   await expect(page.locator("#lotus-gate")).toHaveText("Gate 1 // 1 Void");
@@ -496,7 +496,7 @@ test("frequency advancement enforces released Lotus caps", async ({ page }) => {
   });
 
   await page.goto("/operator/");
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await expect(page.locator("#lotus-unlocks")).toContainText("Empyrean unlocked // Void 1");
   await page.getByLabel("Empyrean pip 1").click();
   await expect(page.locator("#storage-status")).toContainText("Frequency pip cap exceeded: 21/20.");
@@ -512,7 +512,7 @@ test("apply core start confirm cancels without resetting build state", async ({ 
   await page.locator("#skill-picker").selectOption("Investigation");
   await page.locator("#skill-rank").fill("2");
   await page.getByRole("button", { name: "Add Skill" }).click();
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await page.getByLabel("Dream pip 2").click();
   await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
@@ -520,7 +520,7 @@ test("apply core start confirm cancels without resetting build state", async ({ 
   await applyCoreStart(page, { accept: false });
   await expect(page.locator("#roll-attribute")).toContainText("Body +3");
   await expect(page.locator("#skill-summary-list")).toContainText("Investigation");
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
 });
 
@@ -533,7 +533,7 @@ test("apply core start resets frequency pips skills and bonus breach", async ({ 
   await page.locator("#skill-picker").selectOption("Investigation");
   await page.locator("#skill-rank").fill("2");
   await page.getByRole("button", { name: "Add Skill" }).click();
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await page.getByLabel("Dream pip 2").click();
   await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
@@ -542,7 +542,7 @@ test("apply core start resets frequency pips skills and bonus breach", async ({ 
   await expect(page.locator("#roll-attribute")).toContainText("Body +1");
   await expect(page.locator("#skill-summary-list")).not.toContainText("Investigation");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await expect(page.getByLabel("Dream Void")).toHaveValue("1");
   await expect(page.locator("#lotus-pips-readout")).toHaveText("1 / 6");
   await expect(page.locator("#lotus-tier")).toHaveText("Basic");
@@ -771,7 +771,7 @@ test("creation frequency pip spending uses and refunds bonus breach", async ({ p
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
   await expect(page.getByText("Creation: skills 0/8 // attribute spread 0/6 // Bonus Breach 3/3")).toBeVisible();
 
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await expect(page.locator("#lotus-next")).toContainText("1 Void // 2 Breach");
   await page.getByLabel("Dream pip 2").click();
   await expect(page.locator("#lotus-pips-readout")).toHaveText("2 / 6");
@@ -1038,7 +1038,7 @@ test("Core Start prioritizes Intake primaryFrequency over stale selected petal",
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await applyCoreStart(page);
 
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await expect(page.locator("#lotus-frequency")).toHaveText("Silence");
   await expect(page.locator("#lotus-gate")).toHaveText("Gate 1 // 1 Void");
   await expect(page.locator("#lotus-pips-readout")).toHaveText("1 / 6");
@@ -1060,7 +1060,7 @@ test("Manual Core Start without Intake primaryFrequency gives 1 uncommitted Void
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
   await applyCoreStart(page);
 
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
   await expect(page.locator("#void-bank-readout")).toHaveText("1");
   await expect(page.locator('input[name="breachPoints"]')).toHaveValue("3");
 
@@ -1082,7 +1082,7 @@ test("Gate 3 requires 3 total Void and unlocks pips 5-6", async ({ page }) => {
   await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
 
   await page.getByLabel("Dream Void").fill("2");
   await expect(page.locator("#lotus-gate")).toHaveText("Gate 2 // 2 Void");
@@ -1134,8 +1134,9 @@ test("creation skill cap blocks Athletics before post-creation advancement", asy
   await expect(athleticsRow.locator(".skill-summary-rank")).toHaveText("+3");
   await expect(page.getByText("Creation: skills 3/8 // attribute spread 0/6 // Bonus Breach 53/3")).toBeVisible();
 
-  await page.getByRole("button", { name: "Increase Athletics rank" }).click();
-  await expect(page.locator("#storage-status")).toContainText("Creation skill purchases cap at base Rank 3.");
+  // The "+" control is proactively disabled once a skill is at the creation Rank cap, rather
+  // than allowing the click and reporting the cap via a status message afterward.
+  await expect(page.getByRole("button", { name: "Increase Athletics rank" })).toBeDisabled();
   await expect(athleticsRow.locator(".skill-summary-rank")).toHaveText("+3");
   await expect(page.getByText("Creation: skills 3/8 // attribute spread 0/6 // Bonus Breach 53/3")).toBeVisible();
 
@@ -1174,7 +1175,7 @@ test("sequential post-creation frequency costs", async ({ page }) => {
   await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
 
   await page.getByLabel("Dream Void").fill("3");
 
@@ -1211,7 +1212,7 @@ test("direct jump frequency cost", async ({ page }) => {
   await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
 
   await page.getByLabel("Dream Void").fill("2");
   await page.getByLabel("Dream pip 4").click();
@@ -1229,7 +1230,7 @@ test("new frequency direct jump to pip 6", async ({ page }) => {
   await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
 
   await page.getByRole("button", { name: "Hunger", exact: true }).click();
   await page.getByLabel("Hunger Void").fill("3");
@@ -1248,7 +1249,7 @@ test("void reduction refunds clamped pips", async ({ page }) => {
   await importAuthorizationPacket(page, ["BREACH_REWARD:50", "VOID_REWARD:5"]);
   await page.getByRole("button", { name: "Sheet", exact: true }).click();
   await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
-  await page.getByRole("button", { name: "Frequency" }).click();
+  await page.getByRole("button", { name: "Frequency", exact: true }).click();
 
   await page.getByLabel("Dream Void").fill("3");
   await page.getByLabel("Dream pip 6").click();

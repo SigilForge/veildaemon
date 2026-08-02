@@ -696,7 +696,15 @@
       localRevisedAt: safeString(raw.localRevisedAt, 40),
       sendPending: Boolean(raw.sendPending),
       lastSentAt: safeString(raw.lastSentAt, 40),
-      lastSendError: safeString(raw.lastSendError, 200)
+      lastSendError: safeString(raw.lastSendError, 200),
+      // null = LOCAL mode -- this character has never received an authoritative Handler
+      // round. Non-null = CONNECTED, permanently, for this character sheet: Handler owns the
+      // round number from here on, "Next Round" stops advancing it independently. A real
+      // digital session has a working connection; there is no graceful mid-session fallback
+      // to local round authority to engineer around here.
+      lastHandlerRound: Number.isFinite(Number(raw.lastHandlerRound)) && raw.lastHandlerRound !== null
+        ? Math.max(1, Math.floor(Number(raw.lastHandlerRound)))
+        : null
     };
   }
 
@@ -1086,7 +1094,7 @@
 
   function applyHandlerCellProjection(projection, publishMeta) {
     if (!projection) return false;
-    const status = consoleState.operatorStatus;
+    let status = consoleState.operatorStatus;
     let changed = false;
     // Mid-round projections: Harm, Stability, notes only. No Lotus.
     if (projection.harmBoxes !== undefined) {
@@ -1166,18 +1174,32 @@
         }
       });
     }
-    // Pressure Round: Handler-authoritative, mirrored the same way Load/Drift are above. A
-    // plain field correction, not a call into applySceneTimerAction -- Recovery/timer
-    // resolution stays a Next Round side effect on the Operator's own click, never
-    // retroactively re-triggered by a sync pull. Full mirror (not a max/clamp-upward
-    // comparison): if the Operator's local round drifted ahead of the Handler's (or behind
-    // it), this snaps to match exactly, closing the split-brain where the two counters never
-    // reconciled.
+    // Pressure Round: Handler-authoritative once connected. A Handler round landing here
+    // isn't just a display correction -- it's a real round transition, so it runs through
+    // applySceneTimerAction's "next_round" logic (via targetRound) to resolve declared
+    // Recovery and decrement timers exactly the way the Operator's own "Next Round" click
+    // would, just triggered by the Handler's round instead of a local +1. Strict > against
+    // lastHandlerRound (not the current displayed round) handles both required guards in one
+    // check: a repeated pull of the same round, and a stale/out-of-order lower round from the
+    // remote multi-device path, both no-op here -- neither reruns effects nor rolls anything
+    // backward.
     if (publishMeta?.pressureRound !== undefined && Number.isFinite(Number(publishMeta.pressureRound))) {
-      const nextRound = Math.max(1, Number(publishMeta.pressureRound));
-      status.sceneTimer = status.sceneTimer && typeof status.sceneTimer === "object" ? status.sceneTimer : {};
-      if (Number(status.sceneTimer.round) !== nextRound) {
-        status.sceneTimer.round = nextRound;
+      const incomingRound = Math.max(1, Number(publishMeta.pressureRound));
+      const roundMeta = cellSyncMeta();
+      const lastResolved = roundMeta.lastHandlerRound || 0;
+      if (incomingRound > lastResolved) {
+        const abilities = presentationAbilitiesApi();
+        if (abilities?.applySceneTimerAction) {
+          status = abilities.applySceneTimerAction(status, "next_round", {
+            catalogKey: currentPresentationKey(),
+            targetRound: incomingRound
+          });
+        } else {
+          status.sceneTimer = status.sceneTimer && typeof status.sceneTimer === "object" ? status.sceneTimer : {};
+          status.sceneTimer.round = incomingRound;
+        }
+        roundMeta.lastHandlerRound = incomingRound;
+        consoleState.cellSync = roundMeta;
         changed = true;
       }
     }
@@ -3546,6 +3568,13 @@
     nextRound.type = "button";
     nextRound.className = "scene-timer-btn";
     nextRound.textContent = "Next Round";
+    // Handler owns the round number once this character has ever received one -- a real
+    // digital session has a working connection, so there's no graceful "still kind of
+    // connected" fallback to preserve independent local advancement for.
+    nextRound.disabled = cellSyncMeta().lastHandlerRound !== null;
+    nextRound.title = nextRound.disabled
+      ? "Round is Handler-owned once connected to a Cell."
+      : "";
     nextRound.addEventListener("click", () => {
       autosaveStatus();
       dispatchSceneTimerAction("next_round", { catalogKey: currentPresentationKey() });

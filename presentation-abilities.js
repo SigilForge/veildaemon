@@ -2062,7 +2062,13 @@
       next = recovery.status;
       if (recovery.blocked) return next;
 
-      next.sceneTimer.round = (next.sceneTimer.round || 1) + 1;
+      // targetRound lets a Handler-driven round transition reuse this exact same effect
+      // logic (Recovery resolution, timer decrement below) without incrementing by 1 --
+      // Handler owns the round number once connected; this function only ever resolves what
+      // landing on a round means locally, never invents the number itself in that case.
+      next.sceneTimer.round = data.targetRound !== undefined
+        ? Math.max(1, Math.floor(Number(data.targetRound)) || 1)
+        : (next.sceneTimer.round || 1) + 1;
       next.sceneTimer.lastError = "";
       if (recovery.resolved) {
         next = appendSceneTimerLog(

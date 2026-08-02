@@ -853,6 +853,82 @@ test("recovery checkboxes resolve deterministically on next round", async ({ pag
   expect(summary.log).toContain("Stability +1");
 });
 
+test("next_round with targetRound lands on the given round instead of +1, resolving the same effects", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const abilities = window.PresentationAbilities;
+    const pressure = window.PresentationPressure;
+    let status = pressure.migrateOperatorStatus({
+      stability: "6",
+      harmBoxes: "2",
+      recoveryGround: true,
+      presentationPressures: { "sanguine.blood_load": 3 },
+      ontologyPresentation: "Sanguine"
+    });
+    status = abilities.applySceneTimerAction(status, "next_round", { catalogKey: "SANGUINE", targetRound: 5 });
+    return {
+      stability: status.stability,
+      round: status.sceneTimer.round,
+      recoveryGroundCleared: status.recoveryGround === false,
+      log: status.sceneTimer.log[0] || ""
+    };
+  });
+  expect(summary.stability).toBe("7");
+  expect(summary.round).toBe(5);
+  expect(summary.recoveryGroundCleared).toBe(true);
+  expect(summary.log).toContain("Ground resolved");
+  expect(summary.log).toContain("Stability +1");
+});
+
+test("Handler round transitions never rerun effects for the same round and never roll the round backward", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+    let status = pressure.migrateOperatorStatus({
+      stability: "6", recoveryGround: true, ontologyPresentation: "Sanguine"
+    });
+
+    // Mirrors operator.js's applyHandlerCellProjection pressure-round block exactly (that
+    // function is a page-internal closure, not exported for direct testing): strict > against
+    // lastHandlerRound, never the currently displayed round, gates whether the transition
+    // (and its Recovery/timer effects) runs at all.
+    function applyHandlerRound(currentStatus, lastHandlerRound, incomingRound) {
+      if (incomingRound <= (lastHandlerRound || 0)) {
+        return { status: currentStatus, lastHandlerRound, applied: false };
+      }
+      const next = abilities.applySceneTimerAction(currentStatus, "next_round", {
+        catalogKey: "SANGUINE", targetRound: incomingRound
+      });
+      return { status: next, lastHandlerRound: incomingRound, applied: true };
+    }
+
+    const first = applyHandlerRound(status, null, 3);
+    const stabilityAfterFirst = first.status.stability;
+
+    // Same round again -- must not re-resolve Recovery (already cleared) or change anything.
+    const second = applyHandlerRound(first.status, first.lastHandlerRound, 3);
+
+    // Stale/lower round (e.g. out-of-order remote delivery) -- must not roll round backward.
+    const third = applyHandlerRound(second.status, second.lastHandlerRound, 1);
+
+    return {
+      roundAfterFirst: first.status.sceneTimer.round,
+      stabilityAfterFirst,
+      secondApplied: second.applied,
+      roundAfterSecond: second.status.sceneTimer.round,
+      thirdApplied: third.applied,
+      roundAfterThird: third.status.sceneTimer.round
+    };
+  });
+  expect(summary.roundAfterFirst).toBe(3);
+  expect(summary.stabilityAfterFirst).toBe("7");
+  expect(summary.secondApplied).toBe(false);
+  expect(summary.roundAfterSecond).toBe(3);
+  expect(summary.thirdApplied).toBe(false);
+  expect(summary.roundAfterThird).toBe(3);
+});
+
 test("treat harm creates pending timer and resolves harm on next round", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
