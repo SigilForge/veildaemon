@@ -657,6 +657,77 @@ test("subscribeToSessionRolls filters by the current session and forwards each n
   expect(result.received[0]).toMatchObject({ id: "row-1" });
 });
 
+test("pullState's Handler branch reports a seatRoster distinguishing identity-stub-only seats from ones with a real send", async ({ page }) => {
+  // handleJoin now seeds live_state.operatorSend with an identity stub (sourceId/name/
+  // operatorKey, deliberately no sentAt) so the Handler's own seat-matching never depends
+  // on the Operator having sent anything first. seatRoster is the first-contact visibility
+  // this enables: every seat, whether or not it's ever had a real send.
+  await page.route("**/api/cell/state**", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      ok: true,
+      session: { id: "sess-1" },
+      seats: [
+        {
+          id: "seat-pending",
+          operator_profiles: { display_name: "Pending Op", designation: "PENDING-OP" },
+          live_state: { operatorSend: { sourceId: "PENDING-OP", name: "Pending Op", operatorKey: "PENDING-OP" } }
+        },
+        {
+          id: "seat-synced",
+          operator_profiles: { display_name: "Synced Op", designation: "SYNCED-OP" },
+          live_state: { operatorSend: { sourceId: "SYNCED-OP", name: "Synced Op", operatorKey: "SYNCED-OP", sentAt: "2026-08-02T00:00:00.000Z", harmBoxes: 0, stability: 10 } }
+        }
+      ]
+    })
+  }));
+  await page.goto("/operator/");
+  const seatRoster = await page.evaluate(async () => {
+    const remote = window.VeilDaemonCellRemote;
+    remote.setConnection({ sessionId: "sess-1", role: "handler", getToken: async () => "fake-token" });
+    const result = await remote.pullState();
+    return result.seatRoster;
+  });
+  expect(seatRoster).toHaveLength(2);
+  expect(seatRoster.find((s) => s.seatId === "seat-pending")).toMatchObject({ name: "Pending Op", hasRealSend: false });
+  expect(seatRoster.find((s) => s.seatId === "seat-synced")).toMatchObject({ name: "Synced Op", hasRealSend: true });
+});
+
+test("Handler live shows the seat roster with pending/synced status after opening a Cell", async ({ page }) => {
+  await page.route("**/api/cell/create-session", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ ok: true, session: { id: "sess-1", join_code: "ABC123" } })
+  }));
+  await page.route("**/api/cell/state**", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      ok: true,
+      session: { id: "sess-1" },
+      seats: [{
+        id: "seat-pending",
+        operator_profiles: { display_name: "Knoxmortis", designation: "KNOX" },
+        live_state: { operatorSend: { sourceId: "KNOX", name: "Knoxmortis", operatorKey: "KNOX" } }
+      }]
+    })
+  }));
+  await page.goto("/handler/live/");
+  await page.evaluate(() => {
+    window.VeilAuth = window.VeilAuth || {};
+    window.VeilAuth.getSession = () => ({ access_token: "fake-token" });
+    window.VeilAuth.getUser = () => ({ id: "handler-user-1" });
+    window.VeilAuth.init = async () => {};
+  });
+  await page.getByRole("button", { name: "Open Cell" }).click();
+  await page.waitForTimeout(500);
+  const roster = page.locator("#seat-roster-list");
+  await expect(roster).toBeVisible();
+  await expect(roster).toContainText("Knoxmortis");
+  await expect(roster).toContainText("Joined — no Operator state received yet");
+});
+
 async function waitForClueChips(page) {
   await page.waitForFunction(() => document.querySelectorAll("#clue-status-tracker .clue-status-chip").length > 0, null, { timeout: 15000 });
 }

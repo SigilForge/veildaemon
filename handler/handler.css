@@ -1412,6 +1412,39 @@ select:focus {
   min-width: min(100%, 8.5rem);
 }
 
+.seat-roster-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+.seat-roster-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .3rem .5rem;
+  border: 1px solid rgba(102,255,220,.16);
+  background: rgba(0,0,0,.25);
+  border-radius: 2px;
+  font-size: .68rem;
+}
+.seat-roster-item-name {
+  color: var(--text);
+}
+.seat-roster-item-status {
+  font-size: .62rem;
+  color: var(--muted);
+}
+.seat-roster-item-status.is-pending {
+  color: var(--purple);
+}
+.seat-roster-item-status.is-synced {
+  color: var(--cyan);
+}
+
 .cell-sync-status {
   margin: 0;
   font-size: .62rem;

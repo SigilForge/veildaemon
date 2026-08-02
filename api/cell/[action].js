@@ -165,10 +165,20 @@ async function handleJoin(req, res) {
     return json(res, 200, { ok: true, session, seat: existing, profile });
   }
 
+  // Identity stub, not a real send: sourceId/name/operatorKey only, deliberately no
+  // harmBoxes/stability/sentAt. This is what lets the Handler's seat-matching (matches by
+  // sourceId/name against a prior Operator send -- see pushHandlerProjections in
+  // cell-sync-remote.js) find this seat from the moment of joining, instead of silently
+  // finding nothing until the Operator's first deliberate Send to Cell. The absence of
+  // sentAt is also the signal the Handler-visible seat roster uses to distinguish "joined,
+  // no real state yet" from "has actually sent."
+  const identityKey = designation || displayName;
+  const joinIdentityStub = { operatorSend: { sourceId: identityKey, name: displayName, operatorKey: identityKey } };
+
   const seatRes = existing
     ? await restAsUser(auth.token, `/session_operator_state?id=eq.${existing.id}`, {
         method: "PATCH",
-        body: { left_at: null, live_state: {}, last_mutated_by: auth.user.id },
+        body: { left_at: null, live_state: joinIdentityStub, last_mutated_by: auth.user.id },
       })
     : await restAsUser(auth.token, "/session_operator_state", {
         method: "POST",
@@ -176,7 +186,7 @@ async function handleJoin(req, res) {
           session_id: session.id,
           operator_profile_id: profile.id,
           owner_user_id: auth.user.id,
-          live_state: {},
+          live_state: joinIdentityStub,
           last_mutated_by: auth.user.id,
         },
       });
@@ -203,10 +213,12 @@ async function handleState(req, res) {
   if (!session) return fail(res, 404, "Cell not found or not visible to this account.");
 
   // RLS naturally scopes this: the Handler's own token sees every active seat,
-  // an Operator's token only ever sees their own row.
+  // an Operator's token only ever sees their own row. Embeds operator_profiles so the
+  // Handler can see WHO has joined (display_name/designation) independent of whether
+  // live_state carries anything yet -- see 20260802070000's Handler-visibility policy.
   const seatsRes = await restAsUser(
     auth.token,
-    `/session_operator_state?session_id=eq.${sessionId}&left_at=is.null&select=*`,
+    `/session_operator_state?session_id=eq.${sessionId}&left_at=is.null&select=*,operator_profiles(display_name,designation)`,
   );
   if (!seatsRes.ok) return fail(res, seatsRes.status, "Could not read seats.");
   const seats = (await restJson(seatsRes)) || [];

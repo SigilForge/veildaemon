@@ -1229,6 +1229,32 @@
     }
   }
 
+  /** First-contact visibility: who has joined this Cell, and whether they've ever sent
+   * real sheet state -- distinct from "0 seats matched" silence. hasRealSend is false for
+   * the identity-only stub handleJoin seeds a seat with (see api/cell/[action].js), true
+   * once the Operator's first deliberate Send to Cell lands. */
+  function renderSeatRoster(seatRoster) {
+    const list = document.getElementById("seat-roster-list");
+    if (!list) return;
+    const roster = Array.isArray(seatRoster) ? seatRoster : [];
+    list.hidden = !roster.length;
+    list.innerHTML = roster.map((seat) => `
+      <li class="seat-roster-item">
+        <span class="seat-roster-item-name">${(seat.name || "Operator").replace(/[<>&]/g, "")}</span>
+        <span class="seat-roster-item-status ${seat.hasRealSend ? "is-synced" : "is-pending"}">
+          ${seat.hasRealSend ? "Synced" : "Joined — no Operator state received yet"}
+        </span>
+      </li>
+    `).join("");
+  }
+
+  async function refreshSeatRoster() {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected()) return;
+    const result = await remote.pullState().catch(() => null);
+    renderSeatRoster(result?.seatRoster || []);
+  }
+
   function bindCellConnect() {
     const openBtn = document.getElementById("cell-connect-open");
     const leaveBtn = document.getElementById("cell-connect-leave");
@@ -1252,6 +1278,7 @@
           });
           renderCellConnectStatus(session.join_code);
           subscribeLobbyRollsIfConnected();
+          refreshSeatRoster();
           setStatus(`Cell opened — Code ${session.join_code}`);
         } catch (error) {
           setStatus(error?.message || "Could not open Cell.", true);
@@ -1266,6 +1293,7 @@
         window.VeilDaemonCellRemote?.clearConnection();
         unsubscribeLobbyRollsIfAny();
         renderCellConnectStatus();
+        renderSeatRoster([]);
         setStatus("Cell connection closed on this device (session stays open for Operators until Archived).");
       });
     }
@@ -1286,6 +1314,7 @@
     if (restored) {
       renderCellConnectStatus();
       subscribeLobbyRollsIfConnected();
+      refreshSeatRoster();
     }
   }
 
@@ -1303,6 +1332,7 @@
         notifyPendingAlerts({ forceAlert: true });
         if (window.HandlerTriggers) window.HandlerTriggers.render(state);
         if (result?.summary) setStatus(result.summary.split("\n")[0] || result.summary);
+        refreshSeatRoster();
       }
     });
   }

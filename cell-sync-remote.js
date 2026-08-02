@@ -185,15 +185,25 @@
 
     if (connection.role === "handler") {
       const operators = {};
+      // Every seat, matched or not, real send or identity-stub-only (see handleJoin) --
+      // first-contact visibility so "nobody's here" and "someone's here but hasn't sent
+      // real state yet" are never silently indistinguishable to the Handler.
+      const seatRoster = [];
       seats.forEach((seat) => {
         const send = seat.live_state && seat.live_state.operatorSend;
+        const profile = seat.operator_profiles || {};
+        seatRoster.push({
+          seatId: seat.id,
+          name: profile.display_name || profile.designation || seatOperatorKey(seat) || "Operator",
+          hasRealSend: Boolean(send && send.sentAt),
+        });
         if (!send || !Object.keys(send).length) return;
         const normalized = cell.normalizeOperatorSend({ ...send, operatorKey: seatOperatorKey(seat) });
         if (normalized) operators[normalized.operatorKey] = normalized;
       });
       bus.operators = operators;
       cell.write(bus);
-      return { session: data.session, seats };
+      return { session: data.session, seats, seatRoster };
     }
 
     // Operator: RLS already scopes this to their own seat.
