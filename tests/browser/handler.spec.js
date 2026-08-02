@@ -318,6 +318,82 @@ test("presentation load writes -- manual resolve (both directions) and auto-appl
   expect(afterSync).toBeTruthy();
 });
 
+test("operator acknowledgment shows on the Track Prompt card independent of auto-resolve status", async ({ page }) => {
+  await page.goto("/handler/live/");
+  const onButton = page.getByRole("button", { name: "Edit Fields: On" });
+  if (!(await onButton.isVisible().catch(() => false))) {
+    await page.getByRole("button", { name: "Edit Fields: Off" }).click();
+  }
+  const promptId = await page.evaluate(() => {
+    const api = window.HandlerState;
+    let state = api.readState();
+    state.players[0].sourceId = "TEST-OP";
+    state = api.createTrackPrompt(state, {
+      operatorIndex: 0, track: "stability", delta: -1, source: "Manual", reason: "test seed"
+    });
+    api.writeState(state);
+    return state.trackPromptQueue[0].id;
+  });
+
+  // First sync auto-resolves the prompt -- status moves to Resolved immediately, before the
+  // Operator has necessarily seen anything. Confirm the card does NOT falsely claim confirmed.
+  await page.getByRole("button", { name: "Sync Cell" }).click();
+  await page.waitForTimeout(200);
+  const cardBeforeAck = page.locator(`[data-prompt-id="${promptId}"]`);
+  await expect(cardBeforeAck.locator(".track-prompt-status")).toHaveText("Resolved");
+  await expect(cardBeforeAck.locator(".track-prompt-acknowledged")).toHaveText("Operator has not confirmed yet");
+
+  // Operator sends an acknowledgment (same-origin Cell bus -- this page also loads cell-sync.js).
+  await page.evaluate((id) => {
+    window.VeilDaemonCellSync.publishOperatorSend({
+      operatorKey: "TEST-OP", sourceId: "TEST-OP", name: "Operator 1",
+      harmBoxes: 0, stability: 9, acknowledgedPromptIds: [id]
+    });
+  }, promptId);
+  await page.getByRole("button", { name: "Sync Cell" }).click();
+  await page.waitForTimeout(200);
+
+  await expect(cardBeforeAck.locator(".track-prompt-acknowledged")).toHaveText("✓ Operator confirmed");
+  const stillResolved = await page.evaluate(() => window.HandlerState.readState().trackPromptQueue[0].status);
+  expect(stillResolved).toBe("Resolved");
+});
+
+test("End Pressure Round shows a by-name accept/pending summary before advancing, and Handler can still advance anyway", async ({ page }) => {
+  await page.goto("/handler/live/");
+  const onButton = page.getByRole("button", { name: "Edit Fields: On" });
+  if (!(await onButton.isVisible().catch(() => false))) {
+    await page.getByRole("button", { name: "Edit Fields: Off" }).click();
+  }
+  await page.evaluate(() => {
+    const api = window.HandlerState;
+    let state = api.readState();
+    state.players[0].name = "Knoxmortis";
+    state.players[0].sourceId = "TEST-OP";
+    state = api.createTrackPrompt(state, {
+      operatorIndex: 0, track: "stability", delta: -1, source: "Manual", reason: "test seed"
+    });
+    api.writeState(state);
+  });
+
+  let dialogMessage = "";
+  page.once("dialog", (dialog) => {
+    dialogMessage = dialog.message();
+    dialog.dismiss();
+  });
+  await page.getByRole("button", { name: "End Pressure Round" }).click();
+  await page.waitForTimeout(200);
+  expect(dialogMessage).toContain("Knoxmortis: Pending");
+  expect(dialogMessage).toContain("Advance anyway?");
+  const roundAfterCancel = await page.evaluate(() => window.HandlerState.readState().session?.pressureRound || 0);
+  expect(roundAfterCancel).toBe(0);
+
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "End Pressure Round" }).click();
+  await page.waitForTimeout(200);
+  const roundAfterAccept = await page.evaluate(() => window.HandlerState.readState().session?.pressureRound || 0);
+  expect(roundAfterAccept).toBe(1);
+});
+
 async function waitForClueChips(page) {
   await page.waitForFunction(() => document.querySelectorAll("#clue-status-tracker .clue-status-chip").length > 0, null, { timeout: 15000 });
 }

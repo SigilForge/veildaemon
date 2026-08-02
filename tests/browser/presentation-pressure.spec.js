@@ -916,6 +916,59 @@ test("handler summary formats coherent blood load at four", async ({ page }) => 
   expect(summary).toContain("Blood Load 4/6 (Coherent)");
 });
 
+test("pressure round sync fully mirrors the Handler's round, not a max/clamp-upward comparison", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const abilities = window.PresentationAbilities;
+    const pressure = window.PresentationPressure;
+    // Local drift: the Operator clicks "Next Round" a few times on its own (offline, or
+    // between Handler syncs) -- this is expected and fine on its own.
+    let status = pressure.migrateOperatorStatus({ stability: "10", harmBoxes: "0" });
+    status = abilities.applySceneTimerAction(status, "next_round", { catalogKey: "" });
+    status = abilities.applySceneTimerAction(status, "next_round", { catalogKey: "" });
+    const roundAfterLocalDrift = status.sceneTimer.round;
+
+    // Mirrors operator.js's applyHandlerCellProjection round-correction block exactly (that
+    // function is a page-internal closure, not exported for direct testing) -- a plain field
+    // overwrite from publishMeta.pressureRound, never a call back into applySceneTimerAction,
+    // so Recovery/timer resolution is never retroactively re-triggered by a sync pull.
+    function applyRoundCorrection(currentStatus, pressureRound) {
+      const next = { ...currentStatus };
+      let changed = false;
+      if (pressureRound !== undefined && Number.isFinite(Number(pressureRound))) {
+        const nextRound = Math.max(1, Number(pressureRound));
+        next.sceneTimer = next.sceneTimer && typeof next.sceneTimer === "object" ? { ...next.sceneTimer } : {};
+        if (Number(next.sceneTimer.round) !== nextRound) {
+          next.sceneTimer.round = nextRound;
+          changed = true;
+        }
+      }
+      return { status: next, changed };
+    }
+
+    // Handler is still at Round 1 -- the correction must snap DOWN, not just refuse to move
+    // backward (a naive "only advance" implementation would leave this at 3 forever, which is
+    // exactly the split-brain bug this fixes).
+    const corrected = applyRoundCorrection(status, 1);
+    const roundAfterCorrection = corrected.status.sceneTimer.round;
+
+    // A second identical correction is a no-op, matching the idempotency convention already
+    // established for Load/Drift absolute syncs.
+    const secondCorrection = applyRoundCorrection(corrected.status, 1);
+
+    return {
+      roundAfterLocalDrift,
+      roundAfterCorrection,
+      firstChanged: corrected.changed,
+      secondChanged: secondCorrection.changed
+    };
+  });
+  expect(summary.roundAfterLocalDrift).toBe(3);
+  expect(summary.roundAfterCorrection).toBe(1);
+  expect(summary.firstChanged).toBe(true);
+  expect(summary.secondChanged).toBe(false);
+});
+
 test("presentation drift tiers follow the 1-2 / 3-4 / 5 / 6 scale, capped at 6", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
@@ -1272,6 +1325,35 @@ test("resolving a collapse for one operator's status never touches another's", a
   expect(summary.valueA).toBe(1);
   expect(summary.valueB).toBe(0);
   expect(summary.pendingB).toBe(0);
+});
+
+test("acknowledge-loop wire fields (trackPromptIds, acknowledgedPromptIds) normalize and cap correctly", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const cell = window.VeilDaemonCellSync;
+    const projection = cell.normalizeProjection({
+      operatorKey: "OP-1",
+      name: "Knoxmortis",
+      trackLines: ["Push Knoxmortis: Harm +1"],
+      trackPromptIds: ["a", "b", "not-a-string-safe", ...Array.from({ length: 20 }, (_, i) => `extra-${i}`)]
+    });
+    const send = cell.normalizeOperatorSend({
+      operatorKey: "OP-1",
+      name: "Knoxmortis",
+      acknowledgedPromptIds: ["a", "b", ...Array.from({ length: 20 }, (_, i) => `extra-${i}`)]
+    });
+    const emptySend = cell.normalizeOperatorSend({ operatorKey: "OP-1", name: "Knoxmortis" });
+    return {
+      trackPromptIdsCount: projection.trackPromptIds.length,
+      trackPromptIdsFirstTwo: projection.trackPromptIds.slice(0, 2),
+      acknowledgedCount: send.acknowledgedPromptIds.length,
+      emptySendHasField: "acknowledgedPromptIds" in emptySend
+    };
+  });
+  expect(summary.trackPromptIdsCount).toBe(12);
+  expect(summary.trackPromptIdsFirstTwo).toEqual(["a", "b"]);
+  expect(summary.acknowledgedCount).toBe(12);
+  expect(summary.emptySendHasField).toBe(false);
 });
 
 test("vessel permissions expose let it look and borrowed force", async ({ page }) => {

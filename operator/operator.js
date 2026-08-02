@@ -1166,6 +1166,21 @@
         }
       });
     }
+    // Pressure Round: Handler-authoritative, mirrored the same way Load/Drift are above. A
+    // plain field correction, not a call into applySceneTimerAction -- Recovery/timer
+    // resolution stays a Next Round side effect on the Operator's own click, never
+    // retroactively re-triggered by a sync pull. Full mirror (not a max/clamp-upward
+    // comparison): if the Operator's local round drifted ahead of the Handler's (or behind
+    // it), this snaps to match exactly, closing the split-brain where the two counters never
+    // reconciled.
+    if (publishMeta?.pressureRound !== undefined && Number.isFinite(Number(publishMeta.pressureRound))) {
+      const nextRound = Math.max(1, Number(publishMeta.pressureRound));
+      status.sceneTimer = status.sceneTimer && typeof status.sceneTimer === "object" ? status.sceneTimer : {};
+      if (Number(status.sceneTimer.round) !== nextRound) {
+        status.sceneTimer.round = nextRound;
+        changed = true;
+      }
+    }
     const meta = cellSyncMeta();
     meta.lastAppliedRevision = Number(publishMeta?.syncRevision) || meta.lastAppliedRevision;
     meta.lastAppliedPublishedAt = safeString(publishMeta?.publishedAt, 40) || meta.lastAppliedPublishedAt;
@@ -1186,9 +1201,68 @@
     setStorageStatus(
       lines.length
         ? `Handler Cell sync applied (rev ${meta.lastAppliedRevision}). ${lines.slice(0, 3).join(" · ")}`
-        : `Handler Cell sync applied (rev ${meta.lastAppliedRevision}) — Harm ${status.harmBoxes} / Stability ${status.stability}.`
+        : `Handler Cell sync applied (rev ${meta.lastAppliedRevision}) — Harm ${status.harmBoxes} / Stability ${status.stability} / Round ${status.sceneTimer?.round || 1}.`
     );
+    // Declare -> resolve -> distribute -> acknowledge -> advance: a Track Prompt landing here
+    // means the Handler pushed a real change onto this sheet. Queue it for an explicit
+    // Acknowledge click instead of leaving "did you see this" as a status-line toast nobody
+    // reads. Merge with anything already pending (Operator may not have acknowledged the last
+    // batch yet), dedupe by id.
+    if (Array.isArray(projection.trackPromptIds) && projection.trackPromptIds.length) {
+      const pending = consoleState.pendingAcknowledge && typeof consoleState.pendingAcknowledge === "object"
+        ? consoleState.pendingAcknowledge
+        : { ids: [], lines: [] };
+      const mergedIds = Array.from(new Set([...(pending.ids || []), ...projection.trackPromptIds])).slice(0, 24);
+      const mergedLines = Array.from(new Set([...(pending.lines || []), ...lines])).slice(0, 24);
+      consoleState.pendingAcknowledge = { ids: mergedIds, lines: mergedLines };
+      writeConsoleState();
+    }
+    renderHandlerUpdateBanner();
     return true;
+  }
+
+  /** HANDLER UPDATE event card: shows what Handler resolved and just pushed, with an explicit
+   * Acknowledge action -- the loop-closing step Cell-sync never had before. Purely a social/
+   * table-visibility confirmation; the data itself already applied above regardless of
+   * whether this gets acknowledged (Track Prompt deltas are visible immediately in Harm/
+   * Stability, same as always -- acknowledging just tells the Handler the table caught up). */
+  function renderHandlerUpdateBanner() {
+    const mount = document.getElementById("handler-update-mount");
+    if (!mount) return;
+    const pending = consoleState.pendingAcknowledge;
+    if (!pending || !Array.isArray(pending.ids) || !pending.ids.length) {
+      mount.hidden = true;
+      mount.textContent = "";
+      return;
+    }
+    mount.hidden = false;
+    mount.textContent = "";
+    const card = document.createElement("div");
+    card.className = "handler-update-card";
+    const heading = document.createElement("p");
+    heading.className = "handler-update-heading";
+    heading.textContent = "HANDLER UPDATE";
+    card.append(heading);
+    (pending.lines || []).slice(0, 6).forEach((line) => {
+      const p = document.createElement("p");
+      p.className = "handler-update-line";
+      p.textContent = line;
+      card.append(p);
+    });
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "button";
+    button.textContent = "Acknowledge";
+    button.addEventListener("click", () => {
+      button.disabled = true;
+      const ids = pending.ids.slice();
+      consoleState.pendingAcknowledge = { ids: [], lines: [] };
+      writeConsoleState();
+      renderHandlerUpdateBanner();
+      sendOperatorToCell({ skipAutosave: true, extra: { acknowledgedPromptIds: ids } });
+    });
+    card.append(button);
+    mount.append(card);
   }
 
   /**
@@ -1237,7 +1311,8 @@
     return applyHandlerCellProjection(match, {
       syncRevision: fresh.revision || handler.syncRevision,
       publishedAt: fresh.publishedAt || handler.publishedAt || handler.pushedAt,
-      kind: handler.kind
+      kind: handler.kind,
+      pressureRound: handler.pressureRound
     });
   }
 
@@ -3627,6 +3702,7 @@
     renderSceneTimerStrip();
     renderTrackerBoard(document.getElementById("tracker-board"), trackers);
     renderPresentationReadoutLayer(presentation);
+    renderHandlerUpdateBanner();
   }
 
   function renderAttributes() {

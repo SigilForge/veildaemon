@@ -106,6 +106,11 @@
     const wrap = document.createElement("div");
     wrap.className = "presentation-drift-resolve-form";
 
+    const readyHeading = document.createElement("p");
+    readyHeading.className = "kicker";
+    readyHeading.textContent = "COLLAPSE READY";
+    wrap.append(readyHeading);
+    wrap.append(noteLine(`${player.name || "Operator"} reached ${presentation.trackLabel || "Load"} 6.`));
     wrap.append(noteLine(`Resolving will raise Drift to ${nextValue} (${nextTier ? nextTier.label : "Unmarked"}).`));
 
     let chosenScarChoice = null;
@@ -253,7 +258,16 @@
         if (devResult.ok) nextStatus = devResult.status;
       }
 
-      options.onStateChange(playerIndex, nextStatus, "Drift recorded — Sync Cell to deliver it to the Operator.");
+      const chosenLabel = result.scarOutcome === "chosen"
+        ? drift.eligibleScarOptions(presentation.id, nextTier?.id).find((entry) => entry.id === chosenScarId)?.label
+        : null;
+      const resolvedLines = [
+        `COLLAPSE RESOLVED — Drift ${view.value} → ${result.value}`,
+        chosenLabel ? `Chosen Scar: ${chosenLabel}` : "",
+        `${presentation.trackLabel || "Load"} 6 → ${loadInput.value}`,
+        "Sync Cell to deliver it to the Operator."
+      ].filter(Boolean).join(" · ");
+      options.onStateChange(playerIndex, nextStatus, resolvedLines);
     });
     wrap.append(confirm);
 

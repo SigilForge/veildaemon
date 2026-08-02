@@ -65,13 +65,32 @@
       .filter((item) => item && item.status !== "Resolved");
   }
 
+  /** By-name readiness for "End Pressure Round" -- the visibility the table never had before:
+   * an Operator is "Accepted" once every Track Prompt addressed to them this round is
+   * Acknowledged or Resolved (or they simply have none queued); otherwise "Pending". Handler
+   * authority is never reduced by this -- it's a confirm summary, not a gate, so one AFK
+   * Operator can't freeze the table. */
+  function buildRoundAdvanceSummary(state) {
+    const players = Array.isArray(state?.players) ? state.players : [];
+    const queue = Array.isArray(state?.trackPromptQueue) ? state.trackPromptQueue : [];
+    return players.map((player, index) => {
+      const mine = queue.filter((item) => item && Number(item.operatorIndex) === index);
+      // Status alone isn't a reliable "caught up" signal: every Track Prompt auto-resolves
+      // on any sync (see the promptIds loop below), often before the Operator has even seen
+      // it -- so an item can be "Resolved" and still genuinely unacknowledged. acknowledgedAt
+      // is only ever set by a real incoming Operator confirmation, never by auto-resolve.
+      const outstanding = mine.some((item) => !item.acknowledgedAt);
+      return { name: player.name || "Operator", accepted: !outstanding };
+    });
+  }
+
   function isRoundTrack(track) {
     const t = String(track || "");
     // Mid-round: Harm, Stability, presentation load — not Lotus, Void, or Breach.
     return t === "harm" || t === "stability" || t.endsWith("_load");
   }
 
-  function projectionFromPlayer(player, trackLines, includeBanks) {
+  function projectionFromPlayer(player, trackLines, includeBanks, trackPromptIds) {
     const out = {
       operatorKey: player.sourceId || player.id || player.name,
       sourceId: player.sourceId || player.id || "",
@@ -80,6 +99,9 @@
       stability: player.stabilityPoints,
       trackLines: trackLines || []
     };
+    if (Array.isArray(trackPromptIds) && trackPromptIds.length) {
+      out.trackPromptIds = trackPromptIds;
+    }
     if (includeBanks && player.operatorStatus && typeof player.operatorStatus === "object") {
       const status = player.operatorStatus;
       if (status.voidMarks !== undefined) out.voidMarks = Number(status.voidMarks) || 0;
@@ -283,9 +305,23 @@
     recoveryNotes.forEach((note) => lines.push(note));
     state.players = players;
 
+    // 1b) Fold in anything the Operator has Acknowledged -- the loop-closing report from
+    // the declare -> resolve -> distribute -> acknowledge -> advance model. A report, not a
+    // request: Handler still decides when to advance regardless of what this shows.
+    sends.forEach((send) => {
+      if (!Array.isArray(send.acknowledgedPromptIds)) return;
+      send.acknowledgedPromptIds.forEach((id) => {
+        state = api.acknowledgeTrackPrompt(state, id);
+      });
+    });
+
     // 2) Seats without a send get Handler-queued Harm/Stability deltas.
     //    Seats that sent: Operator authority — clear queue without replaying deltas.
     players = Array.isArray(state.players) ? state.players.slice() : [];
+    // Which Track Prompt ids actually landed a Handler-queued change onto each seat this
+    // sync -- gives the Operator something concrete to Acknowledge. A "Hold" (the Operator's
+    // own send was authoritative) isn't included: nothing new was pushed onto them to confirm.
+    const pushedIdsByPlayerIndex = new Map();
     promptIds.forEach((id) => {
       const before = pendingPrompts(state).find((p) => p.id === id);
       if (before) {
@@ -302,6 +338,8 @@
         } else if (Number.isFinite(index) && players[index]) {
           players[index] = applyTrackDeltaToPlayer(players[index], before);
           lines.push(`Push ${before.operatorName || "Operator"}: ${track} ${sign}${delta}`);
+          if (!pushedIdsByPlayerIndex.has(index)) pushedIdsByPlayerIndex.set(index, []);
+          pushedIdsByPlayerIndex.get(index).push(id);
         }
       }
       state = { ...state, players };
@@ -341,9 +379,10 @@
 
     // 4) Publish Handler projections (Harm/Stability/notes; banks only on archive).
     //    Lotus is never mid-round — between-sessions only.
-    const projections = players.map((player) => {
+    const projections = players.map((player, index) => {
       const related = lines.filter((line) => line.includes(player.name || ""));
-      return projectionFromPlayer(player, related, includeBanks);
+      const relatedIds = pushedIdsByPlayerIndex.get(index) || [];
+      return projectionFromPlayer(player, related, includeBanks, relatedIds);
     });
     const note = kind === "pressure_round"
       ? "Pressure Round ended. Reactions refresh next round. Harm & Stability reconciled."
@@ -525,7 +564,21 @@
     }
 
     if (pressureBtn) {
-      pressureBtn.addEventListener("click", () => run("pressure_round"));
+      pressureBtn.addEventListener("click", () => {
+        // Confirm summary, not a gate: Handler authority to advance is never reduced, but the
+        // acknowledge state is finally visible by name instead of buried in an advisory
+        // status line -- exactly the "readable at a glance" the round loop needs.
+        const summary = buildRoundAdvanceSummary(api.readState());
+        if (summary.length) {
+          const lines = summary.map((entry) => `${entry.name}: ${entry.accepted ? "Accepted" : "Pending"}`);
+          const anyPending = summary.some((entry) => !entry.accepted);
+          const prompt = anyPending
+            ? `Advance Pressure Round?\n\n${lines.join("\n")}\n\nSome Operators are still Pending. Advance anyway?`
+            : `Advance Pressure Round?\n\n${lines.join("\n")}\n\nAll Operators Accepted.`;
+          if (!window.confirm(prompt)) return;
+        }
+        run("pressure_round");
+      });
     }
     if (cellBtn) {
       cellBtn.addEventListener("click", () => run("cell"));
@@ -639,8 +692,8 @@
     window.setInterval(refreshHint, 4000);
     window.VeilDaemonCellSync?.onUpdate?.(refreshHint);
 
-    window.HandlerCellSync = { syncKind, resolveLateSend, refreshHint, pendingPrompts };
+    window.HandlerCellSync = { syncKind, resolveLateSend, refreshHint, pendingPrompts, buildRoundAdvanceSummary };
   }
 
-  window.HandlerCellSync = { bind, syncKind, resolveLateSend, pendingPrompts };
+  window.HandlerCellSync = { bind, syncKind, resolveLateSend, pendingPrompts, buildRoundAdvanceSummary };
 }());

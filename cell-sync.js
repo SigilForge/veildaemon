@@ -87,6 +87,12 @@
     if (Array.isArray(item.trackLines)) {
       out.trackLines = item.trackLines.map((line) => safeString(line, 200)).filter(Boolean).slice(0, 12);
     }
+    // Ids of the Track Prompts these trackLines describe -- gives the Operator something
+    // concrete to Acknowledge against, rather than just a human-readable line they can't
+    // reference back to the Handler's queue.
+    if (Array.isArray(item.trackPromptIds)) {
+      out.trackPromptIds = item.trackPromptIds.map((id) => safeString(id, 80)).filter(Boolean).slice(0, 12);
+    }
     if (item.handlerNote) out.handlerNote = safeString(item.handlerNote, 500);
     // Mid-round: no Lotus. Banks only appear when Handler marks archive on the projection pack.
     if (item.voidMarks !== undefined) out.voidMarks = clampInt(item.voidMarks, 0, 13, 0);
@@ -242,6 +248,12 @@
     }
     // Report-only: the resolved effect of a declared Recovery move (Operator resolves it, Handler just sees it).
     if (item.recoveryResolution) out.recoveryResolution = safeString(item.recoveryResolution, 180);
+    // Track Prompt ids the Operator has confirmed seeing/applying -- closes the
+    // declare -> resolve -> distribute -> acknowledge loop. A report, not a request; Handler
+    // decides what to do with it (mark Acknowledged, still advance the round regardless).
+    if (Array.isArray(item.acknowledgedPromptIds)) {
+      out.acknowledgedPromptIds = item.acknowledgedPromptIds.map((id) => safeString(id, 80)).filter(Boolean).slice(0, 12);
+    }
     return out;
   }
 

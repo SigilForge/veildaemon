@@ -18,9 +18,11 @@
   }
 
   function promptLine(prompt) {
-    const status = prompt.status === "Announced"
-      ? "announced — waiting on Operator sheet update"
-      : "needs announcement at the table";
+    const status = prompt.status === "Acknowledged"
+      ? "Operator confirmed — ready to close out"
+      : prompt.status === "Announced"
+        ? "announced — waiting on Operator sheet update"
+        : "needs announcement at the table";
     return `${api.safeString(prompt.operatorName, 80)}: ${trackLabel(prompt.track)} ${deltaLabel(prompt.delta)} (${api.safeString(prompt.source, 80)}) — ${status}`;
   }
 

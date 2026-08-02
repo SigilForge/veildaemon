@@ -63,6 +63,15 @@
       <div><dt>After change</dt><dd>${afterChangeLabel(prompt)}</dd></div>
     `;
 
+    // acknowledgedAt is the real "did the Operator confirm" signal -- status alone moves to
+    // "Resolved" on the very next sync regardless of whether anyone's seen it, so this is
+    // shown independently of the status pill above, not instead of it.
+    const ackLine = document.createElement("p");
+    ackLine.className = "track-prompt-acknowledged";
+    ackLine.textContent = prompt.acknowledgedAt
+      ? "✓ Operator confirmed"
+      : "Operator has not confirmed yet";
+
     const copyBlock = document.createElement("pre");
     copyBlock.className = "track-prompt-copy";
     copyBlock.textContent = prompt.suggestedCopy || api.buildTrackPromptCopy(prompt);
@@ -111,7 +120,7 @@
     });
 
     actions.append(announce, markAnnounced, resolve, undo);
-    card.append(head, meta, copyBlock);
+    card.append(head, meta, ackLine, copyBlock);
     if (prompt.handlerNote) card.append(note);
     card.append(actions);
     return card;

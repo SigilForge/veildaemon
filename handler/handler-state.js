@@ -4120,7 +4120,7 @@
     return harm ? `${condition} (${harm}/5)` : condition;
   }
 
-  const trackPromptStatuses = ["Pending", "Announced", "Resolved"];
+  const trackPromptStatuses = ["Pending", "Announced", "Acknowledged", "Resolved"];
   const trackPromptSources = [
     "Failed defense",
     "Misfire",
@@ -4429,6 +4429,7 @@
         handlerNote: safeString(item.handlerNote, 300),
         status: normalizeTrackPromptStatus(item.status),
         announcedAt: safeString(item.announcedAt, 80),
+        acknowledgedAt: safeString(item.acknowledgedAt, 80),
         resolvedAt: safeString(item.resolvedAt, 80),
         appliedSummary: Boolean(item.appliedSummary),
         suggestedCopy: safeString(item.suggestedCopy, 1200) || buildTrackPromptCopy({
@@ -4499,6 +4500,22 @@
       const updated = { ...item, status: nextStatus };
       if (nextStatus === "Announced" && !updated.announcedAt) updated.announcedAt = stamp;
       if (nextStatus === "Resolved" && !updated.resolvedAt) updated.resolvedAt = stamp;
+      return updated;
+    });
+    return normalizeState(draft);
+  }
+
+  /** Operator confirmed seeing/applying this prompt -- the loop-closing step Handler-only
+   * "Announced" never had. Reports acknowledgedAt regardless of current status; only
+   * upgrades the status field itself when the Handler hasn't already closed the card out
+   * with "Resolved" (a stronger, later, Handler-only state this must never downgrade). */
+  function acknowledgeTrackPrompt(state, promptId) {
+    const draft = clone(normalizeState(state));
+    const stamp = nowStamp();
+    draft.trackPromptQueue = (draft.trackPromptQueue || []).map((item) => {
+      if (item.id !== promptId) return item;
+      const updated = { ...item, acknowledgedAt: item.acknowledgedAt || stamp };
+      if (updated.status !== "Resolved") updated.status = "Acknowledged";
       return updated;
     });
     return normalizeState(draft);
@@ -4799,6 +4816,7 @@
     buildTrackPromptCopy,
     createTrackPrompt,
     updateTrackPromptStatus,
+    acknowledgeTrackPrompt,
     resolveTrackPrompt,
     removeTrackPrompt,
     undoTrackPrompt,

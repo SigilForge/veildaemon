@@ -792,7 +792,13 @@ body.is-player-view .wind-down-panel {
 
 .track-prompt-status.is-pending { color: var(--purple); }
 .track-prompt-status.is-announced { color: var(--cyan); }
+.track-prompt-status.is-acknowledged { color: #6fe08a; }
 .track-prompt-status.is-resolved { color: var(--muted); }
+.track-prompt-acknowledged {
+  margin: .1rem 0 .35rem;
+  font-size: .68rem;
+  color: #6fe08a;
+}
 
 .track-prompt-meta {
   display: grid;
