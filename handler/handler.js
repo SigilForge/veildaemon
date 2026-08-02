@@ -1256,7 +1256,7 @@
     if (!remote || !auth || remote.isConnected()) return;
     if (!auth.getSession()) await auth.init();
     if (!auth.getUser()) return;
-    const restored = remote.restoreConnection(handlerCellConnectGetToken);
+    const restored = remote.restoreConnection(handlerCellConnectGetToken, "handler");
     if (restored) renderCellConnectStatus();
   }
 

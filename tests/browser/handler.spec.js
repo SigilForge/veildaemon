@@ -531,13 +531,60 @@ test("joining a Cell persists the connection so it survives a page reload", asyn
     });
     return {
       connectedRightAfterJoin: window.VeilDaemonCellRemote.isConnected(),
-      persisted: window.localStorage.getItem("veildaemon.cellConnection.v1")
+      persisted: window.localStorage.getItem("veildaemon.cellConnection.operator.v1")
     };
   });
   expect(result.connectedRightAfterJoin).toBe(true);
   expect(JSON.parse(result.persisted || "null")).toEqual({
     sessionId: "test-session-1", role: "operator", seatId: "test-seat-1"
   });
+});
+
+test("Operator and Handler connections persist under separate keys and don't clobber each other on the same browser/account", async ({ page }) => {
+  // A single shared storage key meant one person running both an Operator tab and a Handler
+  // tab (same browser, same account -- solo testing, or a legitimate one-person dual role)
+  // would have whichever role connected/reloaded most recently silently overwrite the other's
+  // persisted connection, so e.g. reloading the Operator tab could restore it as "handler".
+  // Two real tabs sharing one browser context (and therefore one localStorage) reproduces
+  // that faithfully, using an actual reload to reset each page's in-memory connection state
+  // rather than any test-only shortcut.
+  await page.route("**/api/cell/join", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ ok: true, session: { id: "op-session" }, seat: { id: "op-seat" } })
+  }));
+  const handlerPage = await page.context().newPage();
+  await handlerPage.route("**/api/cell/create-session", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ ok: true, session: { id: "handler-session", join_code: "ABC123" } })
+  }));
+
+  await page.goto("/operator/");
+  await page.evaluate(async () => {
+    await window.VeilDaemonCellRemote.joinCell(async () => "fake-token", {
+      joinCode: "ABCDEF", displayName: "Op", designation: "OP"
+    });
+  });
+
+  await handlerPage.goto("/operator/"); // any page that loads cell-sync-remote.js
+  await handlerPage.evaluate(async () => {
+    await window.VeilDaemonCellRemote.createSession(async () => "fake-token", {});
+  });
+
+  await page.reload();
+  const restoredAsOperator = await page.evaluate(() =>
+    window.VeilDaemonCellRemote.restoreConnection(async () => "fake-token", "operator")
+  );
+  await handlerPage.reload();
+  const restoredAsHandler = await handlerPage.evaluate(() =>
+    window.VeilDaemonCellRemote.restoreConnection(async () => "fake-token", "handler")
+  );
+
+  expect(restoredAsOperator).toMatchObject({ role: "operator", sessionId: "op-session" });
+  expect(restoredAsHandler).toMatchObject({ role: "handler", sessionId: "handler-session" });
+
+  await handlerPage.close();
 });
 
 async function waitForClueChips(page) {
