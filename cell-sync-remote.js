@@ -114,7 +114,10 @@
       method: "POST",
       body: { needlepoint, mission, maxOperators },
     });
-    connection = { sessionId: data.session.id, role: "handler", getToken };
+    // setConnection (not a raw assignment) so this survives a reload -- restoreConnection()
+    // only has something to restore if the connection was actually persisted the moment it
+    // was established, not left as an in-memory-only variable that a reload silently drops.
+    setConnection({ sessionId: data.session.id, role: "handler", getToken });
     return data.session;
   }
 
@@ -124,7 +127,8 @@
       method: "POST",
       body: { joinCode, displayName, designation },
     });
-    connection = { sessionId: data.session.id, role: "operator", getToken, seatId: data.seat.id };
+    // Same reasoning as createSession above: persist on success, don't just hold it in memory.
+    setConnection({ sessionId: data.session.id, role: "operator", getToken, seatId: data.seat.id });
     return data;
   }
 

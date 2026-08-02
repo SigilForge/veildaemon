@@ -513,6 +513,33 @@ test("Next Round disables the instant a Cell connection exists, even before any 
   await expect(page.getByRole("button", { name: "Next Round" })).toBeDisabled();
 });
 
+test("joining a Cell persists the connection so it survives a page reload", async ({ page }) => {
+  // joinCell/createSession used to assign the module-level `connection` variable directly,
+  // never calling setConnection()/persistConnectionMeta() -- meaning isConnected() was true
+  // for the rest of that page load, but a reload (which restoreConnection() is explicitly
+  // meant to recover from) always found nothing persisted and silently came back
+  // disconnected, re-opening every gap the connection-based lock was supposed to close.
+  await page.route("**/api/cell/join", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ ok: true, session: { id: "test-session-1" }, seat: { id: "test-seat-1" } })
+  }));
+  await page.goto("/operator/");
+  const result = await page.evaluate(async () => {
+    await window.VeilDaemonCellRemote.joinCell(async () => "fake-token", {
+      joinCode: "ABCDEF", displayName: "Test Operator", designation: "TEST-OP"
+    });
+    return {
+      connectedRightAfterJoin: window.VeilDaemonCellRemote.isConnected(),
+      persisted: window.localStorage.getItem("veildaemon.cellConnection.v1")
+    };
+  });
+  expect(result.connectedRightAfterJoin).toBe(true);
+  expect(JSON.parse(result.persisted || "null")).toEqual({
+    sessionId: "test-session-1", role: "operator", seatId: "test-seat-1"
+  });
+});
+
 async function waitForClueChips(page) {
   await page.waitForFunction(() => document.querySelectorAll("#clue-status-tracker .clue-status-chip").length > 0, null, { timeout: 15000 });
 }
