@@ -13,7 +13,7 @@ const LOAD_PRESENTATIONS = [
   { id: "void_shard", kind: "void_load", trackId: "void_shard.void_load", catalog: "VOID_SHARD", bands: ["Cold Shard", "Contained Contamination", "Contamination Bloom", "Breach Event"] }
 ];
 
-test("presentation pressure registry distinguishes presentation identities from support pressure modules", async ({ page }) => {
+test("presentation pressure registry exposes Presentation identities only", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const api = window.PresentationPressure;
@@ -23,8 +23,14 @@ test("presentation pressure registry distinguishes presentation identities from 
       loadCount: api.presentations.filter((item) => api.isLoadPresentation(item)).length,
       identityIds: api.presentationIdentities.map((item) => item.id),
       supportIds: api.pressureModules.filter((item) => !api.isPresentationIdentity(item)).map((item) => item.id),
-      dreamType: api.presentationById("dream").moduleType,
-      stillnessType: api.presentationById("stillness").moduleType,
+      dreamPresentation: api.presentationById("dream"),
+      stillnessPresentation: api.presentationById("stillness"),
+      dreamTrack: api.trackById("dream.lucidity_debt"),
+      stillnessTrack: api.trackById("stillness.inertia"),
+      migratedLegacyFrequencyPressure: api.migrateOperatorStatus({
+        dreamLucidityDebt: "5",
+        stillnessInertia: "4"
+      }),
       rawVoidResolvesTo: drift.resolvePresentationId("VOID"),
       voidShardResolvesTo: drift.resolvePresentationId("VOID_SHARD"),
       mythicEchoResolvesTo: drift.resolvePresentationId("MYTHIC_ECHO"),
@@ -41,10 +47,10 @@ test("presentation pressure registry distinguishes presentation identities from 
       voidBands: api.bandForTrack("void_shard.void_load", 0),
       echoBand: api.bandForTrack("echo.echo_load", 4),
       modifiers: api.LOAD_MODIFIERS,
-      maxRisk: api.formatBandLine(api.trackById("stillness.inertia"), 6)
+      maxRisk: api.formatBandLine(api.trackById("hollow_silence_altered.silence_load"), 6)
     };
   });
-  expect(summary.count).toBe(12);
+  expect(summary.count).toBe(10);
   expect(summary.loadCount).toBe(10);
   expect(summary.identityIds).toEqual([
     "sanguine",
@@ -58,9 +64,15 @@ test("presentation pressure registry distinguishes presentation identities from 
     "sensitive",
     "hollow_silence_altered"
   ]);
-  expect(summary.supportIds).toEqual(["dream", "stillness"]);
-  expect(summary.dreamType).toBe("frequency_pressure");
-  expect(summary.stillnessType).toBe("frequency_pressure");
+  expect(summary.supportIds).toEqual([]);
+  expect(summary.dreamPresentation).toBeNull();
+  expect(summary.stillnessPresentation).toBeNull();
+  expect(summary.dreamTrack).toBeNull();
+  expect(summary.stillnessTrack).toBeNull();
+  expect(summary.migratedLegacyFrequencyPressure.dreamLucidityDebt).toBeUndefined();
+  expect(summary.migratedLegacyFrequencyPressure.stillnessInertia).toBeUndefined();
+  expect(summary.migratedLegacyFrequencyPressure.presentationPressures["dream.lucidity_debt"]).toBeUndefined();
+  expect(summary.migratedLegacyFrequencyPressure.presentationPressures["stillness.inertia"]).toBeUndefined();
   expect(summary.rawVoidResolvesTo).toBe("");
   expect(summary.voidShardResolvesTo).toBe("void_shard");
   expect(summary.mythicEchoResolvesTo).toBe("echo");
@@ -79,7 +91,7 @@ test("presentation pressure registry distinguishes presentation identities from 
   expect(summary.echoBand).toBe("In Sequence");
   expect(summary.modifiers.edge.bonus).toBe(1);
   expect(summary.modifiers.collapse.penalty).toBe(-2);
-  expect(summary.maxRisk).toContain("Stasis Lock");
+  expect(summary.maxRisk).toContain("Erasure Risk");
 });
 
 test("presentation catalog proposal options exclude non-presentation ontology records", async ({ page }) => {

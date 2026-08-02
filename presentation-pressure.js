@@ -1,9 +1,12 @@
 (function () {
   /**
-   * Pressure modules cover Presentation identity tracks plus a few support
-   * pressure meters. Presentation identity is creature/form/adaptation surface.
-   * Void remains a bank/currency/cost outside that identity layer; Void-Shard is
-   * the Presentation whose malformed capacity makes that cost feed back into form.
+   * Presentation Pressure covers Presentation identity tracks only. Frequencies
+   * such as Dream, Hunger, Silence, and Stillness are emotional laws accessed
+   * through Lotus pips and expressed through their own ability text. Frequency
+   * powers may create pressure in the fiction, but they do not get a Load track
+   * merely because they are Frequencies. Void remains a bank/currency/cost
+   * outside this identity layer; Void-Shard is the Presentation whose malformed
+   * capacity makes that cost feed back into form.
    *
    * Three layers per module:
    *   1. Pressure Track — numeric load that rises and falls
@@ -63,7 +66,7 @@
       label: spec.label,
       cardLabel: spec.cardLabel || `${spec.label} Pressure`,
       catalogKeys,
-      moduleType: spec.moduleType || (catalogKeys.length ? "presentation" : "support_pressure"),
+      moduleType: spec.moduleType || "presentation",
       trackLabel: spec.trackLabel,
       trackId,
       range,
@@ -506,56 +509,6 @@
       misfireRule: "Misfire fills Echo Load when death, memory, grief, or observation carries loop-compatible resonance.",
       meterHelp: "0–1 Dislocated, 2–4 In Sequence, 5 Continuity Saturation, 6 Loop Risk.",
       maxRisk: "Repeats prior action unless interrupted by anchor or cost."
-    }),
-    presentationContract({
-      id: "dream",
-      label: "Dream",
-      cardLabel: "Dream Pressure",
-      moduleType: "frequency_pressure",
-      catalogKeys: [],
-      trackId: "dream.lucidity_debt",
-      trackLabel: "Lucidity Debt",
-      stateKey: "dreamLucidityDebt",
-      bands: [
-        { at: 0, label: "Rested", cue: "Waking facts and dream residue stay separated.", risk: "Sleep debt can still accumulate quietly." },
-        { at: 1, label: "Thin", cue: "Symbols leak into ordinary perception.", risk: "Small metaphors may answer too literally." },
-        { at: 2, label: "Smearing", cue: "Memory boundaries soften between scenes.", risk: "False familiarity may steer choices." },
-        { at: 3, label: "False Memory", cue: "The Operator trusts an invented continuity.", risk: "Shared witness may be required to correct course." },
-        { at: 4, label: "Dream Logic", cue: "Symbolic substitution starts winning function.", risk: "Practical tasks may fail in dream-consistent ways." },
-        { at: 5, label: "Debt Due", cue: "Waking function borrows against unslept symbolism.", risk: "Memory smear and false continuity threaten play." },
-        { at: 6, label: "Lost Thread", cue: "The waking route dissolves into dream continuity.", risk: "Memory smear and false continuity take over function." }
-      ],
-      maxRisk: "Memory smear and false continuity take over function.",
-      reliefActions: {
-        risesWhen: ["sleep debt", "dream logic accepted", "false continuity rewarded", "symbolic substitution"],
-        fallsWhen: ["grounding", "shared witness", "named waking fact", "rest with anchor"]
-      },
-      operatorCopy: { trackHeading: "Lucidity Debt" }
-    }),
-    presentationContract({
-      id: "stillness",
-      label: "Stillness",
-      cardLabel: "Stillness Pressure",
-      moduleType: "frequency_pressure",
-      catalogKeys: [],
-      trackId: "stillness.inertia",
-      trackLabel: "Inertia",
-      stateKey: "stillnessInertia",
-      bands: [
-        { at: 0, label: "Fluid", cue: "Motion, change, and refusal all remain available.", risk: "Grief-freeze may still wait beneath composure." },
-        { at: 1, label: "Heavy", cue: "Escalation and departure take extra weight.", risk: "Non-escalation may start feeling virtuous." },
-        { at: 2, label: "Stalled", cue: "The scene rewards staying exactly as you are.", risk: "Breaking pattern may require a jolt or cost." },
-        { at: 3, label: "Frozen", cue: "Change feels more dangerous than preservation.", risk: "Fleeing or transforming may need to break something." },
-        { at: 4, label: "Petrified", cue: "Stillness becomes the safest story in the room.", risk: "Momentum traps may spread to allies or terrain." },
-        { at: 5, label: "Cannot Move", cue: "Even urgent motion reads as betrayal of the freeze.", risk: "Cannot escalate, flee, or transform without breaking something." },
-        { at: 6, label: "Stasis Lock", cue: "Preservation hardens into refusal of all change.", risk: "Cannot escalate, flee, or transform without breaking something." }
-      ],
-      maxRisk: "Cannot escalate, flee, or transform without breaking something.",
-      reliefActions: {
-        risesWhen: ["refusal rewarded", "death-stasis contact", "non-escalation enforced", "grief freeze"],
-        fallsWhen: ["forced motion", "broken pattern", "anchor jolt", "accepted change"]
-      },
-      operatorCopy: { trackHeading: "Inertia" }
     }),
     universalLoadPresentation({
       id: "therian",
@@ -1704,8 +1657,6 @@
       echoLoad: "echo.echo_load",
       voidShardContamination: "void_shard.void_load",
       voidLoad: "void_shard.void_load",
-      dreamLucidityDebt: "dream.lucidity_debt",
-      stillnessInertia: "stillness.inertia",
       becomingInstinctSurge: "therian.instinct_load",
       instinctLoad: "therian.instinct_load",
       empyreanRadianceLoad: "sensitive.sensory_load",
@@ -1725,6 +1676,8 @@
       }
       next[stateKey] = String(readTrackValue({ ...next, presentationPressures: store }, track));
     });
+    delete next.dreamLucidityDebt;
+    delete next.stillnessInertia;
 
     if (!Object.prototype.hasOwnProperty.call(store, "sanguine.blood_load")) {
       let bloodLoad = 3;
