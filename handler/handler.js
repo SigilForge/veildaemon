@@ -437,10 +437,46 @@
     };
   }
 
+  function driftPanelOptions() {
+    return {
+      onStateChange: applyDriftState,
+      setStatusMessage: setStatus
+    };
+  }
+
+  /** Fold a Handler-resolved Drift/Scar update into one player's operatorStatus and persist --
+   * mirrors applyPromptState's shape, but Drift has no Track Prompt Queue equivalent since
+   * there's no Operator-facing self-entry point to reconcile against. */
+  function applyDriftState(playerIndex, nextOperatorStatus, message) {
+    const player = state.players[playerIndex];
+    if (!player) return;
+    player.operatorStatus = nextOperatorStatus;
+    writeState(message || "DRIFT UPDATED");
+    renderPresentationDriftQueue();
+  }
+
+  /** A Load 6 Collapse can become resolvable at the table mid-play (a table trigger/misfire
+   * just queued a Load-raising Track Prompt), so this lives alongside the Track Prompt Queue
+   * in "live" mode -- not inside the roster editor (#player-grid), which is deliberately
+   * hidden during live play so the Handler queues/resolves instead of silently editing. */
+  function renderPresentationDriftQueue() {
+    const mount = document.getElementById("presentation-drift-queue-mount");
+    if (!mount || !window.HandlerPresentationDrift) return;
+    mount.textContent = "";
+    state.players.forEach((player, index) => {
+      const card = document.createElement("article");
+      card.className = "presentation-drift-panel-card";
+      mount.append(card);
+      window.HandlerPresentationDrift.renderPanel(card, player, index, driftPanelOptions());
+    });
+  }
+
   function renderTrackPromptQueue() {
     const mount = document.getElementById("track-prompt-queue-mount");
-    if (!mount || !window.HandlerTrackPromptQueue) return;
-    window.HandlerTrackPromptQueue.renderQueue(mount, state, applyPromptState, setStatus);
+    if (mount && window.HandlerTrackPromptQueue) {
+      window.HandlerTrackPromptQueue.renderQueue(mount, state, applyPromptState, setStatus);
+    }
+    renderPresentationDriftQueue();
   }
 
   function renderRiskStrip() {

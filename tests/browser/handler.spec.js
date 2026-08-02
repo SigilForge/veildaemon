@@ -253,6 +253,71 @@ test("handler queues operator track prompts without silent sheet mutation", asyn
   await expect(page.locator("#operator-risk-strip")).toContainText("Band Strained");
 });
 
+test("presentation load writes -- manual resolve (both directions) and auto-apply-on-sync -- all route through the centralized mint/clear helper", async ({ page }) => {
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+
+  // Manual "Resolve" on a queued _load Track Prompt card is one of the three real Presentation
+  // Load write sites (handler-state.js's applyPromptToPlayerSummary) -- this must mint
+  // driftEligibleCollapseId via writeHandlerPresentationLoad, not a separate hand-wired path.
+  // Resolving a second, decreasing prompt through that SAME site (6 -> 5) must clear it --
+  // proving the site is wired for both directions. (undoTrackPrompt's own _load branch was
+  // rewritten identically in handler-state.js, but Track Prompt Queue's live re-projection
+  // recomputes a resolved prompt's currentValue from the player's current Load on every
+  // normalize pass -- a pre-existing property of every track kind, not introduced here -- so
+  // undo's revert-to-currentValue is not a reliable way to construct a controlled reverse
+  // transition in an integration test; the reverse-transition clear logic itself is already
+  // covered directly in presentation-pressure.spec.js.)
+  const result = await page.evaluate(() => {
+    const api = window.HandlerState;
+    let state = api.readState();
+    state.players[0].ontologyPresentationKey = "SANGUINE";
+    state.players[0].operatorStatus = { presentationPressures: { "sanguine.blood_load": 5 } };
+    state = api.createTrackPrompt(state, {
+      operatorIndex: 0, track: "blood_load", delta: 1, source: "Manual", reason: "test seed"
+    });
+    api.writeState(state);
+    const promptId = state.trackPromptQueue[0].id;
+    state = api.resolveTrackPrompt(api.readState(), promptId, { applySummary: true });
+    api.writeState(state);
+    const afterResolve = state.players[0].operatorStatus.presentationDrift.byPresentation.sanguine.driftEligibleCollapseId;
+
+    state = api.createTrackPrompt(api.readState(), {
+      operatorIndex: 0, track: "blood_load", delta: -1, source: "Manual", reason: "resolved back down"
+    });
+    api.writeState(state);
+    const secondPromptId = state.trackPromptQueue[0].id;
+    state = api.resolveTrackPrompt(api.readState(), secondPromptId, { applySummary: true });
+    api.writeState(state);
+    const afterDecreaseResolve = state.players[0].operatorStatus.presentationDrift.byPresentation.sanguine.driftEligibleCollapseId;
+
+    return { afterResolve, afterDecreaseResolve };
+  });
+  expect(result.afterResolve).toBeTruthy();
+  expect(result.afterDecreaseResolve).toBe("");
+
+  // Auto-apply-during-sync (End Pressure Round / Sync Cell reconciliation for a seat that
+  // didn't send its own update) is the third real write site -- handler-cell-sync.js's
+  // applyTrackDeltaToPlayer, a private module closure not exposed on window -- so this is
+  // exercised through the real Sync Cell button, matching how it actually fires in play.
+  await page.evaluate(() => {
+    const api = window.HandlerState;
+    let state = api.readState();
+    state.players[0].operatorStatus = { presentationPressures: { "sanguine.blood_load": 5 } };
+    state = api.createTrackPrompt(state, {
+      operatorIndex: 0, track: "blood_load", delta: 1, source: "Manual", reason: "auto-apply seed"
+    });
+    api.writeState(state);
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "Sync Cell" }).click();
+  const afterSync = await page.evaluate(() => {
+    const bucket = window.HandlerState.readState().players[0].operatorStatus?.presentationDrift?.byPresentation?.sanguine;
+    return bucket ? bucket.driftEligibleCollapseId : "";
+  });
+  expect(afterSync).toBeTruthy();
+});
+
 async function waitForClueChips(page) {
   await page.waitForFunction(() => document.querySelectorAll("#clue-status-tracker .clue-status-chip").length > 0, null, { timeout: 15000 });
 }

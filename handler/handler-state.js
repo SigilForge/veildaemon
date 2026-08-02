@@ -4166,6 +4166,36 @@
     return typeof window !== "undefined" ? window.PresentationDrift : null;
   }
 
+  /**
+   * The ONLY place a Presentation Load track should ever be written on the Handler side.
+   * Every real write site -- applyPromptToPlayerSummary (manual "Resolve"), undoTrackPrompt's
+   * _load branch, and handler-cell-sync.js's applyTrackDeltaToPlayer (auto-apply during
+   * End Pressure Round / Sync Cell reconciliation) -- calls this instead of
+   * PresentationPressure.writeTrackValue directly, so a Load transition into or out of >=6
+   * always notifies PresentationDrift's mint/clear logic exactly once. Centralized here
+   * (rather than hand-wiring notePresentationLoadTransition at each site) so a future fourth
+   * write site inherits correct Collapse-eligibility behavior automatically instead of
+   * depending on someone remembering to bolt it on.
+   */
+  function writeHandlerPresentationLoad(operatorStatus, presentationId, nextLoad) {
+    const pp = presentationPressureApi();
+    const drift = presentationDriftApi();
+    if (!pp) return operatorStatus;
+    const presentation = pp.presentationById(presentationId);
+    const track = presentation ? pp.primaryTrack(presentation) : null;
+    if (!track) return operatorStatus;
+    const previousLoad = pp.readTrackValue(operatorStatus, track.id);
+    let next = pp.writeTrackValue(operatorStatus, track.id, nextLoad);
+    if (track.stateKey) next[track.stateKey] = String(nextLoad);
+    if (presentation.id === "sanguine") {
+      next.sanguineCoherence = pp.presentationLoadBand("sanguine", nextLoad);
+    }
+    if (drift?.notePresentationLoadTransition) {
+      next = drift.notePresentationLoadTransition(next, presentation.id, previousLoad, nextLoad);
+    }
+    return next;
+  }
+
   function normalizeTrackPromptTrack(value) {
     const track = safeString(value, 40).toLowerCase().replace(/-/g, "_");
     if (track === "harm") return "harm";
@@ -4485,16 +4515,11 @@
     if (prompt.track.endsWith("_load")) {
       const pp = presentationPressureApi();
       const presentation = pp ? pp.presentationForLoadTrackKind(prompt.track) : null;
-      const track = presentation ? pp.primaryTrack(presentation) : null;
-      if (!pp || !track) return;
+      if (!pp || !presentation) return;
       if (!player.operatorStatus || typeof player.operatorStatus !== "object") {
         player.operatorStatus = { presentationPressures: {} };
       }
-      player.operatorStatus = pp.writeTrackValue(player.operatorStatus, track.id, prompt.projectedValue);
-      if (track.stateKey) player.operatorStatus[track.stateKey] = String(prompt.projectedValue);
-      if (presentation.id === "sanguine") {
-        player.operatorStatus.sanguineCoherence = pp.presentationLoadBand("sanguine", prompt.projectedValue);
-      }
+      player.operatorStatus = writeHandlerPresentationLoad(player.operatorStatus, presentation.id, prompt.projectedValue);
       return;
     }
     player.harmBoxes = prompt.projectedValue;
@@ -4543,16 +4568,11 @@
         } else if (prompt.track.endsWith("_load")) {
           const pp = presentationPressureApi();
           const presentation = pp ? pp.presentationForLoadTrackKind(prompt.track) : null;
-          const track = presentation ? pp.primaryTrack(presentation) : null;
-          if (pp && track) {
+          if (pp && presentation) {
             if (!player.operatorStatus || typeof player.operatorStatus !== "object") {
               player.operatorStatus = { presentationPressures: {} };
             }
-            player.operatorStatus = pp.writeTrackValue(player.operatorStatus, track.id, prompt.currentValue);
-            if (track.stateKey) player.operatorStatus[track.stateKey] = String(prompt.currentValue);
-            if (presentation.id === "sanguine") {
-              player.operatorStatus.sanguineCoherence = pp.presentationLoadBand("sanguine", prompt.currentValue);
-            }
+            player.operatorStatus = writeHandlerPresentationLoad(player.operatorStatus, presentation.id, prompt.currentValue);
           }
         } else {
           player.harmBoxes = prompt.currentValue;
@@ -4783,6 +4803,7 @@
     removeTrackPrompt,
     undoTrackPrompt,
     findTrackPrompt,
+    writeHandlerPresentationLoad,
     collapseBreakTypes,
     rewriteOverwriteTypes,
     syncCollapseRewriteStaging,

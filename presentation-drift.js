@@ -18,12 +18,58 @@
       id: "deep_drift",
       label: "Deep Drift",
       min: 5,
-      max: null,
+      max: 5,
       summary: "Permanent aspect, vulnerability, altered recovery need, or evolution gate."
+    },
+    {
+      id: "threshold_state",
+      label: "Threshold State",
+      min: 6,
+      max: 6,
+      summary: "The Presentation is becoming load-bearing to identity. Further advancement requires Handler approval, Operator consent, and a campaign-level decision."
     }
   ];
 
+  const THRESHOLD_DECISIONS = [
+    {
+      id: "integrate",
+      label: "Integrate",
+      description: "The Operator accepts the Presentation as part of identity. One existing Deep Drift permission stabilizes, but its complication becomes permanent."
+    },
+    {
+      id: "contain",
+      label: "Contain",
+      description: "The Operator builds a dependency, ritual, Anchor, medical regime, device, or relationship structure that holds further change back."
+    },
+    {
+      id: "evolve",
+      label: "Evolve",
+      description: "Open a Presentation-specific advanced path, lineage, archive, or posthuman form. Handler approval required."
+    },
+    {
+      id: "rewrite",
+      label: "Rewrite",
+      description: "Attempt to alter, seal, split, transfer, or replace the Presentation. This becomes a major operation, not a menu click."
+    },
+    {
+      id: "fail_forward",
+      label: "Fail Forward",
+      description: "The Operator remains playable, but consensus life can no longer fully classify them. Their Presentation becomes a campaign-level fact."
+    }
+  ];
+
+  // Stamped onto every Scar/Scar Development snapshot so a future catalog edit can never
+  // silently change the meaning of an already-recorded, already-printed Scar.
+  const DRIFT_CATALOG_VERSION = 1;
+
+  const SCAR_CHANGE_TYPES = ["benefit", "complication", "new_tell", "new_interface"];
+
   const COLLAPSE_DRIFT_TRIGGER = "load_6_collapse_resolved";
+
+  function makeId(prefix) {
+    const rand = Math.random().toString(16).slice(2, 10);
+    return `${prefix || "cd"}-${Date.now().toString(16)}-${rand}`;
+  }
 
   function scar(spec) {
     return {
@@ -612,88 +658,144 @@
     }
   };
 
+  function clampDrift(value) {
+    return Math.max(0, Math.min(6, Math.floor(Number(value)) || 0));
+  }
+
   function driftTierForValue(value) {
-    const numeric = Math.max(0, Number(value) || 0);
+    const numeric = clampDrift(value);
     if (numeric <= 0) return null;
-    if (numeric <= 2) return DRIFT_THRESHOLDS.find((entry) => entry.id === "surface_tell") || null;
-    if (numeric <= 4) return DRIFT_THRESHOLDS.find((entry) => entry.id === "persistent_scar") || null;
-    return DRIFT_THRESHOLDS.find((entry) => entry.id === "deep_drift") || null;
+    return DRIFT_THRESHOLDS.find((entry) => numeric >= entry.min && numeric <= entry.max) || null;
   }
 
-  function tierForScar(scarEntry) {
-    return DRIFT_THRESHOLDS.find((entry) => entry.id === scarEntry.tier) || null;
-  }
-
-  function activeScarsForValue(presentationId, value) {
+  function eligibleScarOptions(presentationId, tier) {
     const pack = DRIFT_PRESENTATIONS[presentationId];
-    if (!pack) return [];
-    const numeric = Math.max(0, Number(value) || 0);
-    if (numeric <= 0) return [];
-    return pack.scars.filter((entry) => {
-      if (entry.tier === "surface_tell") return numeric >= 1 && numeric <= 2;
-      if (entry.tier === "persistent_scar") return numeric >= 3 && numeric <= 4;
-      if (entry.tier === "deep_drift") return numeric >= 5;
-      return numeric >= entry.minDrift;
+    if (!pack || !tier) return [];
+    return pack.scars.filter((entry) => entry.tier === tier);
+  }
+
+  function normalizeScarEntry(entry) {
+    if (!entry || typeof entry !== "object" || !entry.scarId) return null;
+    return {
+      scarId: String(entry.scarId),
+      tier: String(entry.tier || ""),
+      label: String(entry.label || ""),
+      benefit: String(entry.benefit || ""),
+      cost: String(entry.cost || ""),
+      archiveUnlock: String(entry.archiveUnlock || ""),
+      handlerApproval: Boolean(entry.handlerApproval),
+      catalogVersion: Number(entry.catalogVersion) || DRIFT_CATALOG_VERSION,
+      chosenAt: String(entry.chosenAt || "")
+    };
+  }
+
+  // Snapshot a raw catalog scar (shape: {id, label, tier, benefit, cost, archiveUnlock, ...})
+  // into the stored/synced scar shape at the moment it's chosen -- copies text, not a live
+  // lookup, so a later catalog edit can never change what was already recorded and printed.
+  function snapshotCatalogScar(candidate, chosenAt) {
+    return normalizeScarEntry({
+      scarId: candidate.id,
+      tier: candidate.tier,
+      label: candidate.label,
+      benefit: candidate.benefit,
+      cost: candidate.cost,
+      archiveUnlock: candidate.archiveUnlock,
+      handlerApproval: candidate.handlerApproval,
+      catalogVersion: DRIFT_CATALOG_VERSION,
+      chosenAt
     });
   }
 
-  function accumulatedScarsForValue(presentationId, value) {
-    const pack = DRIFT_PRESENTATIONS[presentationId];
-    if (!pack) return [];
-    const numeric = Math.max(0, Number(value) || 0);
-    if (numeric <= 0) return [];
-    return pack.scars.filter((entry) => numeric >= entry.minDrift);
+  function normalizePendingEntry(entry) {
+    if (!entry || typeof entry !== "object" || !entry.tier) return null;
+    return {
+      id: String(entry.id || makeId("pending")),
+      tier: String(entry.tier),
+      unlockedAtDrift: clampDrift(entry.unlockedAtDrift),
+      collapseId: String(entry.collapseId || ""),
+      status: entry.status === "refused" ? "refused" : "deferred",
+      deferredAt: String(entry.deferredAt || "")
+    };
   }
 
-  function normalizeDriftLog(entries) {
-    if (!Array.isArray(entries)) return [];
-    return entries.slice(0, 24).map((entry) => ({
-      at: String(entry?.at || "").slice(0, 32),
-      trigger: String(entry?.trigger || COLLAPSE_DRIFT_TRIGGER).slice(0, 40),
-      load: Math.max(0, Math.min(6, Number(entry?.load) || 6)),
-      valueAfter: Math.max(0, Number(entry?.valueAfter) || 0)
-    }));
+  function normalizeDevelopmentEntry(entry) {
+    if (!entry || typeof entry !== "object") return null;
+    return {
+      scarId: entry.scarId ? String(entry.scarId) : null,
+      tier: entry.tier ? String(entry.tier) : null,
+      driftValue: clampDrift(entry.driftValue),
+      changeType: SCAR_CHANGE_TYPES.includes(entry.changeType) ? entry.changeType : "benefit",
+      note: String(entry.note || ""),
+      catalogVersion: Number(entry.catalogVersion) || DRIFT_CATALOG_VERSION,
+      chosenAt: String(entry.chosenAt || "")
+    };
+  }
+
+  function normalizeThresholdDecision(entry) {
+    if (!entry || typeof entry !== "object" || !entry.id) return null;
+    if (!THRESHOLD_DECISIONS.some((decision) => decision.id === entry.id)) return null;
+    return {
+      id: String(entry.id),
+      label: String(entry.label || ""),
+      note: String(entry.note || ""),
+      chosenAt: String(entry.chosenAt || "")
+    };
+  }
+
+  function normalizeCollapseRecord(entry) {
+    if (!entry || typeof entry !== "object") return null;
+    return {
+      collapseId: String(entry.collapseId || ""),
+      presentationId: String(entry.presentationId || ""),
+      loadBefore: 6,
+      loadAfter: Number.isFinite(Number(entry.loadAfter)) ? Math.max(0, Math.min(5, Number(entry.loadAfter))) : 0,
+      driftBefore: clampDrift(entry.driftBefore),
+      driftAfter: clampDrift(entry.driftAfter),
+      resolvedAt: String(entry.resolvedAt || ""),
+      recoveredFromLegacyState: Boolean(entry.recoveredFromLegacyState)
+    };
+  }
+
+  // "transition" -- minted by notePresentationLoadTransition off a real Load crossing.
+  // "legacy_recovery" -- minted once by recognizeExistingCollapse for a pre-existing save
+  // that reached Load 6 before this workflow existed. Read at resolve time to stamp the
+  // Collapse Record's recoveredFromLegacyState flag honestly, without parsing the id string.
+  function normalizeDriftBucket(bucket) {
+    const source = bucket && typeof bucket === "object" ? bucket : {};
+    const collapseId = String(source.driftEligibleCollapseId || "");
+    const source_ = collapseId
+      ? (source.driftEligibleCollapseSource === "legacy_recovery" ? "legacy_recovery" : "transition")
+      : "";
+    return {
+      value: clampDrift(source.value),
+      scars: Array.isArray(source.scars) ? source.scars.map(normalizeScarEntry).filter(Boolean).slice(0, 12) : [],
+      pendingScarChoices: Array.isArray(source.pendingScarChoices)
+        ? source.pendingScarChoices.map(normalizePendingEntry).filter(Boolean).slice(0, 12)
+        : [],
+      scarDevelopments: Array.isArray(source.scarDevelopments)
+        ? source.scarDevelopments.map(normalizeDevelopmentEntry).filter(Boolean).slice(0, 24)
+        : [],
+      thresholdDecision: normalizeThresholdDecision(source.thresholdDecision),
+      driftEligibleCollapseId: collapseId,
+      driftEligibleCollapseSource: source_,
+      log: Array.isArray(source.log) ? source.log.map(normalizeCollapseRecord).filter(Boolean).slice(0, 40) : []
+    };
   }
 
   function normalizePresentationDriftStore(store) {
     const source = store && typeof store === "object" ? store : {};
     const values = {};
     Object.keys(DRIFT_PRESENTATIONS).forEach((presentationId) => {
-      const current = source[presentationId];
-      if (current && typeof current === "object") {
-        values[presentationId] = {
-          value: Math.max(0, Number(current.value) || 0),
-          log: normalizeDriftLog(current.log)
-        };
-      } else if (current !== undefined && current !== null && current !== "") {
-        values[presentationId] = {
-          value: Math.max(0, Number(current) || 0),
-          log: []
-        };
-      } else {
-        values[presentationId] = { value: 0, log: [] };
-      }
+      values[presentationId] = normalizeDriftBucket(source[presentationId]);
     });
     return values;
   }
 
   function normalizePresentationDrift(status) {
     const next = { ...(status || {}) };
-    if (next.presentationDrift && typeof next.presentationDrift.value === "number" && !next.presentationDrift.byPresentation) {
-      const legacyValue = Math.max(0, Number(next.presentationDrift.value) || 0);
-      const legacyId = String(next.presentationDrift.presentationId || "").trim();
-      next.presentationDrift = {
-        byPresentation: normalizePresentationDriftStore(
-          legacyId && DRIFT_PRESENTATIONS[legacyId]
-            ? { [legacyId]: { value: legacyValue, log: next.presentationDrift.log } }
-            : {}
-        )
-      };
-    } else {
-      next.presentationDrift = {
-        byPresentation: normalizePresentationDriftStore(next.presentationDrift?.byPresentation)
-      };
-    }
+    next.presentationDrift = {
+      byPresentation: normalizePresentationDriftStore(next.presentationDrift?.byPresentation)
+    };
     return next;
   }
 
@@ -745,75 +847,278 @@
     return pressure.readTrackValue(status, track.id);
   }
 
+  // Eligibility is a pure read of whatever driftEligibleCollapseId is already stored -- it
+  // never mints one. Minting only ever happens in notePresentationLoadTransition (a real Load
+  // write) or recognizeExistingCollapse (an explicit one-time Handler recovery action).
   function collapseDriftEligibility(status, catalogKeyOrId) {
     const presentationId = resolvePresentationId(catalogKeyOrId);
     const pack = presentationPack(presentationId);
     if (!pack) {
       return { ok: false, presentationId, reason: "This presentation does not accumulate drift." };
     }
-    const load = readTrackLoad(status, presentationId);
-    if (load < 6) {
+    const normalized = normalizePresentationDrift(status);
+    const bucket = normalized.presentationDrift.byPresentation[presentationId];
+    const load = readTrackLoad(normalized, presentationId);
+    if (!bucket.driftEligibleCollapseId) {
       return {
         ok: false,
         presentationId,
-        reason: "Resolve a Load 6 collapse before marking Presentation Drift."
+        load,
+        reason: load >= 6
+          ? "This Load 6 state has no eligible Collapse ID -- if this is a pre-existing save, use Recognize Existing Unresolved Collapse."
+          : "Resolve a Load 6 collapse before marking Presentation Drift."
       };
     }
-    return { ok: true, presentationId, load };
+    return { ok: true, presentationId, load, collapseId: bucket.driftEligibleCollapseId };
   }
 
-  function applyCollapseDriftResolve(status, catalogKeyOrId) {
-    const eligibility = collapseDriftEligibility(status, catalogKeyOrId);
-    if (!eligibility.ok) {
-      return { status: normalizePresentationDrift(status), ok: false, reason: eligibility.reason };
+  // Called from the Handler-only writeHandlerPresentationLoad helper (handler/handler-state.js)
+  // right after every real Load write -- never from a render or normalization pass. Mints
+  // driftEligibleCollapseId on a genuine <6 -> >=6 crossing; clears a still-unresolved one on
+  // the reverse crossing (an undone Track Prompt), so a stale "eligible" state never survives
+  // a Load change that walked back below 6. Stays pure -- returns a new operatorStatus.
+  function notePresentationLoadTransition(operatorStatus, presentationId, previousLoad, nextLoad) {
+    const pack = presentationPack(presentationId);
+    if (!pack) return operatorStatus;
+    const normalized = normalizePresentationDrift(operatorStatus);
+    const bucket = normalized.presentationDrift.byPresentation[presentationId];
+    const prev = Math.max(0, Number(previousLoad) || 0);
+    const next = Math.max(0, Number(nextLoad) || 0);
+    if (prev < 6 && next >= 6 && !bucket.driftEligibleCollapseId) {
+      bucket.driftEligibleCollapseId = makeId("collapse");
+      bucket.driftEligibleCollapseSource = "transition";
+    } else if (prev >= 6 && next < 6 && bucket.driftEligibleCollapseId) {
+      bucket.driftEligibleCollapseId = "";
+      bucket.driftEligibleCollapseSource = "";
     }
-    const next = normalizePresentationDrift(status);
-    const bucket = next.presentationDrift.byPresentation[eligibility.presentationId];
-    const nextValue = bucket.value + 1;
-    bucket.value = nextValue;
-    bucket.log = [
-      {
-        at: new Date().toISOString(),
-        trigger: COLLAPSE_DRIFT_TRIGGER,
-        load: eligibility.load,
-        valueAfter: nextValue
-      },
-      ...bucket.log
-    ].slice(0, 24);
-    return {
-      status: next,
-      ok: true,
-      presentationId: eligibility.presentationId,
-      value: nextValue,
-      tier: driftTierForValue(nextValue)
-    };
+    return normalized;
   }
 
+  // Legacy-migration escape hatch: a save that reached Load 6 before this workflow existed
+  // has no driftEligibleCollapseId (nothing ever minted one for it) and would otherwise be
+  // permanently stuck. Handler-only, one-time -- mints the id exactly once via the same field
+  // notePresentationLoadTransition uses, flagged so the eventual Collapse Record can honestly
+  // record recoveredFromLegacyState instead of pretending it came from a tracked transition.
+  function recognizeExistingCollapse(status, catalogKeyOrId) {
+    const presentationId = resolvePresentationId(catalogKeyOrId);
+    const pack = presentationPack(presentationId);
+    const normalized = normalizePresentationDrift(status);
+    if (!pack) {
+      return { status: normalized, ok: false, reason: "This presentation does not accumulate drift." };
+    }
+    const bucket = normalized.presentationDrift.byPresentation[presentationId];
+    const load = readTrackLoad(normalized, presentationId);
+    if (load < 6) {
+      return { status: normalized, ok: false, reason: "Load is below 6 -- nothing to recognize." };
+    }
+    if (bucket.driftEligibleCollapseId) {
+      return { status: normalized, ok: false, reason: "A Collapse is already eligible for resolution." };
+    }
+    bucket.driftEligibleCollapseId = makeId("collapse");
+    bucket.driftEligibleCollapseSource = "legacy_recovery";
+    return { status: normalized, ok: true, presentationId, collapseId: bucket.driftEligibleCollapseId };
+  }
+
+  // One Collapse creates at most one Drift: requires and consumes driftEligibleCollapseId in
+  // the same call that increments Drift and resets Load, so a double-click or a reload always
+  // finds it already cleared. loadAfter is validated to 0-5 -- a resolved Collapse must always
+  // end strictly below the threshold it just consumed, or the Operator is left wedged at Load
+  // 6 with the id already spent and nothing left to resolve it again.
+  function applyCollapseDriftResolve(status, catalogKeyOrId, options = {}) {
+    const presentationId = resolvePresentationId(catalogKeyOrId);
+    const pack = presentationPack(presentationId);
+    const normalized = normalizePresentationDrift(status);
+    if (!pack) {
+      return { status: normalized, ok: false, reason: "This presentation does not accumulate drift." };
+    }
+    const bucket = normalized.presentationDrift.byPresentation[presentationId];
+    if (!bucket.driftEligibleCollapseId) {
+      return { status: normalized, ok: false, reason: "No eligible Collapse to resolve." };
+    }
+    const loadAfter = Number(options.loadAfter);
+    if (!Number.isFinite(loadAfter) || loadAfter < 0 || loadAfter >= 6) {
+      return {
+        status: normalized,
+        ok: false,
+        reason: "loadAfter must be between 0 and 5 -- a resolved Collapse must end below the Collapse threshold."
+      };
+    }
+    const driftBefore = bucket.value;
+    const driftAfter = clampDrift(driftBefore + 1);
+    const isScarThreshold = driftAfter === 1 || driftAfter === 3 || driftAfter === 5;
+    const thresholdDecisionId = driftAfter === 6 ? String(options.thresholdDecisionId || "") : "";
+    const decision = thresholdDecisionId
+      ? THRESHOLD_DECISIONS.find((entry) => entry.id === thresholdDecisionId)
+      : null;
+    if (driftAfter === 6 && !decision) {
+      return {
+        status: normalized,
+        ok: false,
+        reason: "Drift 6 requires a Threshold Decision before resolution can complete."
+      };
+    }
+
+    const collapseId = bucket.driftEligibleCollapseId;
+    const recoveredFromLegacyState = bucket.driftEligibleCollapseSource === "legacy_recovery";
+    const resolvedAt = new Date().toISOString();
+
+    // Atomic Load reset -- the other half of "one Collapse creates at most one Drift". Without
+    // actually writing Load back down here, in the same call that consumes the collapse id,
+    // Load would stay at 6 and a fresh notePresentationLoadTransition/Recognize path could
+    // make this same Collapse resolvable again.
+    const pressure = window.PresentationPressure;
+    const presentationForLoad = pressure?.presentationById?.(presentationId);
+    const loadTrack = presentationForLoad ? pressure.primaryTrack(presentationForLoad) : null;
+    if (pressure && loadTrack) {
+      const written = pressure.writeTrackValue(normalized, loadTrack.id, loadAfter);
+      normalized.presentationPressures = written.presentationPressures;
+      if (loadTrack.stateKey) normalized[loadTrack.stateKey] = written[loadTrack.stateKey];
+      if (presentationId === "sanguine" && pressure.presentationLoadBand) {
+        normalized.sanguineCoherence = pressure.presentationLoadBand("sanguine", loadAfter);
+      }
+    }
+
+    bucket.value = driftAfter;
+    bucket.driftEligibleCollapseId = "";
+    bucket.driftEligibleCollapseSource = "";
+    bucket.log = [
+      normalizeCollapseRecord({
+        collapseId, presentationId, loadBefore: 6, loadAfter, driftBefore, driftAfter,
+        resolvedAt, recoveredFromLegacyState
+      }),
+      ...bucket.log
+    ].slice(0, 40);
+
+    const tier = driftTierForValue(driftAfter);
+    let scarOutcome = null;
+    if (isScarThreshold) {
+      const choice = options.chosenScarId;
+      if (choice === "refuse" || choice === "defer") {
+        bucket.pendingScarChoices.push(normalizePendingEntry({
+          tier: tier?.id, unlockedAtDrift: driftAfter, collapseId,
+          status: choice === "refuse" ? "refused" : "deferred", deferredAt: resolvedAt
+        }));
+        scarOutcome = choice === "refuse" ? "refused" : "deferred";
+      } else {
+        const candidate = eligibleScarOptions(presentationId, tier?.id).find((entry) => entry.id === choice);
+        if (candidate) {
+          bucket.scars.push(snapshotCatalogScar(candidate, resolvedAt));
+          scarOutcome = "chosen";
+        } else {
+          bucket.pendingScarChoices.push(normalizePendingEntry({
+            tier: tier?.id, unlockedAtDrift: driftAfter, collapseId,
+            status: "deferred", deferredAt: resolvedAt
+          }));
+          scarOutcome = "deferred";
+        }
+      }
+    }
+
+    if (decision) {
+      bucket.thresholdDecision = normalizeThresholdDecision({
+        id: decision.id, label: decision.label, note: String(options.consequenceNote || ""), chosenAt: resolvedAt
+      });
+    }
+
+    return { status: normalized, ok: true, presentationId, value: driftAfter, tier, scarOutcome, collapseId };
+  }
+
+  // Independent of Resolve Collapse entirely: does not touch value, does not require Load 6,
+  // does not create a Collapse Record. Only ever offered for "deferred" entries -- a "refused"
+  // entry is a conscious, permanent decision the table already made, not an open task.
+  function resolveDeferredScar(status, catalogKeyOrId, pendingId, chosenScarId) {
+    const presentationId = resolvePresentationId(catalogKeyOrId);
+    const pack = presentationPack(presentationId);
+    const normalized = normalizePresentationDrift(status);
+    if (!pack) {
+      return { status: normalized, ok: false, reason: "This presentation does not accumulate drift." };
+    }
+    const bucket = normalized.presentationDrift.byPresentation[presentationId];
+    const index = bucket.pendingScarChoices.findIndex((entry) => entry.id === pendingId && entry.status === "deferred");
+    if (index === -1) {
+      return { status: normalized, ok: false, reason: "No deferred Scar choice found for that id." };
+    }
+    const pending = bucket.pendingScarChoices[index];
+    const candidate = eligibleScarOptions(presentationId, pending.tier).find((entry) => entry.id === chosenScarId);
+    if (!candidate) {
+      return { status: normalized, ok: false, reason: "Unrecognized Scar option for that tier." };
+    }
+    bucket.scars.push(snapshotCatalogScar(candidate, new Date().toISOString()));
+    bucket.pendingScarChoices.splice(index, 1);
+    // Any Scar Development that was attached to this tier generically (scarId null, because
+    // no Scar existed yet to attach to) now has a home -- re-parent it so it displays under
+    // the actual Scar instead of staying an orphaned "General Adaptation" line forever.
+    bucket.scarDevelopments = bucket.scarDevelopments.map((entry) => (
+      entry.scarId === null && entry.tier === pending.tier
+        ? { ...entry, scarId: candidate.id }
+        : entry
+    ));
+    return { status: normalized, ok: true, presentationId, scarId: candidate.id };
+  }
+
+  // Drift 2/4 (Scar Development): structural, not free-text-only, and must not deadlock when
+  // the relevant tier's Scar was deferred or refused -- develop an existing Scar (scarId set),
+  // attach to a still-open pending tier (scarId null, tier set), or record a standalone
+  // adaptation note (both null).
+  function applyScarDevelopment(status, catalogKeyOrId, options = {}) {
+    const presentationId = resolvePresentationId(catalogKeyOrId);
+    const pack = presentationPack(presentationId);
+    const normalized = normalizePresentationDrift(status);
+    if (!pack) {
+      return { status: normalized, ok: false, reason: "This presentation does not accumulate drift." };
+    }
+    const bucket = normalized.presentationDrift.byPresentation[presentationId];
+    const scarId = options.scarId ? String(options.scarId) : null;
+    if (scarId && !bucket.scars.some((entry) => entry.scarId === scarId)) {
+      return { status: normalized, ok: false, reason: "No matching chosen Scar to develop." };
+    }
+    bucket.scarDevelopments.push(normalizeDevelopmentEntry({
+      scarId,
+      tier: options.tier || null,
+      driftValue: options.driftValue,
+      changeType: options.changeType,
+      note: options.note,
+      catalogVersion: DRIFT_CATALOG_VERSION,
+      chosenAt: new Date().toISOString()
+    }));
+    return { status: normalized, ok: true, presentationId };
+  }
+
+  function presentationDriftLog(status, catalogKeyOrId) {
+    const presentationId = resolvePresentationId(catalogKeyOrId);
+    const normalized = normalizePresentationDrift(status);
+    return normalized.presentationDrift.byPresentation[presentationId]?.log || [];
+  }
+
+  // Deliberately omits pendingScarChoices' collapseId internals and the Collapse Record log
+  // from anything Operator-facing renders -- log stays Handler-only (use
+  // presentationDriftLog for that), and pendingScarChoices is exposed here only so a Handler
+  // panel can list them; mountPresentationDriftReadout below never renders it.
   function presentationDriftView(status, catalogKeyOrId) {
     const presentationId = resolvePresentationId(catalogKeyOrId);
     const pack = presentationPack(presentationId);
     if (!pack) return null;
     const normalized = normalizePresentationDrift(status);
-    const value = readDriftValue(normalized, presentationId);
-    const tier = driftTierForValue(value);
-    const activeScars = activeScarsForValue(presentationId, value);
-    const accumulatedScars = accumulatedScarsForValue(presentationId, value);
+    const bucket = normalized.presentationDrift.byPresentation[presentationId];
+    const tier = driftTierForValue(bucket.value);
     const eligibility = collapseDriftEligibility(normalized, presentationId);
     const load = readTrackLoad(normalized, presentationId);
     return {
       presentationId,
       label: pack.label,
       tagline: pack.tagline,
-      value,
+      value: bucket.value,
       tier,
       thresholds: DRIFT_THRESHOLDS.slice(),
-      activeScars,
-      accumulatedScars,
+      scars: bucket.scars.slice(),
+      pendingScarChoices: bucket.pendingScarChoices.slice(),
+      scarDevelopments: bucket.scarDevelopments.slice(),
+      thresholdDecision: bucket.thresholdDecision,
       collapseEligible: eligibility.ok,
       collapseReason: eligibility.reason || "",
+      driftEligibleCollapseId: bucket.driftEligibleCollapseId,
       load,
-      trigger: COLLAPSE_DRIFT_TRIGGER,
-      log: normalized.presentationDrift.byPresentation[presentationId]?.log || []
+      trigger: COLLAPSE_DRIFT_TRIGGER
     };
   }
 
@@ -853,42 +1158,35 @@
       block.append(tagline);
     }
 
-    if (view.presentationId === "vessel" && view.value >= 5) {
-      const evolution = document.createElement("p");
-      evolution.className = "presentation-ability-meta presentation-ability-risk";
-      evolution.textContent = "Deep Drift: subtype evolution warning — Handler Approval required before archive unlock.";
-      block.append(evolution);
-    }
-
-    if (view.presentationId === "construct" && view.value >= 5) {
-      const evolution = document.createElement("p");
-      evolution.className = "presentation-ability-meta presentation-ability-risk";
-      evolution.textContent = "Deep Drift: Construct Lineage evolution warning — Handler Approval required before Machine Archive unlock.";
-      block.append(evolution);
-    }
-
-    if (view.presentationId === "void_shard" && view.value >= 5) {
-      const evolution = document.createElement("p");
-      evolution.className = "presentation-ability-meta presentation-ability-risk";
-      evolution.textContent = "Deep Drift: Deep Void Archive evolution warning — Handler Approval required before archive unlock.";
-      block.append(evolution);
-    }
-
-    // Marking Drift is a Handler call, not an Operator self-service action --
-    // a Load 6 collapse is read-only here regardless of whether a dispatch
-    // function was supplied. There is no Operator-facing control that
-    // increments Drift; only the Handler side may authorize that.
-    if (view.load >= 6) {
+    // Marking Drift is a Handler call, not an Operator self-service action -- a Load 6
+    // collapse is read-only here regardless of eligibility. There is no Operator-facing
+    // control that increments Drift; only the Handler side may authorize that.
+    if (view.collapseEligible) {
       const pending = document.createElement("p");
       pending.className = "presentation-ability-meta presentation-ability-risk";
       pending.textContent = "Load 6 collapse resolved. Ask your Handler to confirm it and mark Drift.";
       block.append(pending);
     }
 
-    if (view.accumulatedScars.length) {
+    if (view.thresholdDecision) {
+      const decision = document.createElement("p");
+      decision.className = "presentation-ability-meta presentation-ability-risk";
+      const decisionMeta = THRESHOLD_DECISIONS.find((entry) => entry.id === view.thresholdDecision.id);
+      decision.textContent = `Threshold Decision: ${view.thresholdDecision.label.toUpperCase()} — ${decisionMeta?.description || ""}`;
+      block.append(decision);
+    }
+
+    function developmentLine(entry) {
+      const line = document.createElement("p");
+      line.className = "presentation-ability-meta";
+      line.textContent = `Drift ${entry.driftValue} (${entry.changeType.replace("_", " ")}): ${entry.note}`;
+      return line;
+    }
+
+    if (view.scars.length) {
       const groups = DRIFT_THRESHOLDS.map((threshold) => ({
         threshold,
-        scars: view.accumulatedScars.filter((entry) => entry.tier === threshold.id)
+        scars: view.scars.filter((entry) => entry.tier === threshold.id)
       })).filter((group) => group.scars.length);
 
       groups.forEach((group) => {
@@ -921,9 +1219,14 @@
           if (entry.archiveUnlock) {
             const archive = document.createElement("p");
             archive.className = "presentation-ability-meta";
-            archive.textContent = `Archive unlock: ${entry.archiveUnlock}`;
+            archive.textContent = entry.handlerApproval
+              ? `Archive unlock: ${entry.archiveUnlock} — Handler Approval required.`
+              : `Archive unlock: ${entry.archiveUnlock}`;
             card.append(archive);
           }
+          view.scarDevelopments
+            .filter((development) => development.scarId === entry.scarId)
+            .forEach((development) => card.append(developmentLine(development)));
           groupWrap.append(card);
         });
         block.append(groupWrap);
@@ -935,21 +1238,30 @@
       block.append(empty);
     }
 
-    if (view.log.length) {
-      const logWrap = document.createElement("div");
-      logWrap.className = "presentation-drift-log";
-      const logTitle = document.createElement("p");
-      logTitle.className = "presentation-ability-group-label";
-      logTitle.textContent = "Drift Log";
-      logWrap.append(logTitle);
-      view.log.slice(0, 6).forEach((entry) => {
-        const line = document.createElement("p");
-        line.className = "presentation-ability-meta";
-        const stamp = entry.at ? entry.at.replace("T", " ").slice(0, 16) : "—";
-        line.textContent = `${stamp} — Load ${entry.load} collapse → Drift ${entry.valueAfter}`;
-        logWrap.append(line);
-      });
-      block.append(logWrap);
+    const generalDevelopments = view.scarDevelopments.filter((entry) => !entry.scarId && entry.tier);
+    DRIFT_THRESHOLDS.forEach((threshold) => {
+      const entries = generalDevelopments.filter((entry) => entry.tier === threshold.id);
+      if (!entries.length) return;
+      const wrap = document.createElement("div");
+      wrap.className = "presentation-drift-general-adaptation";
+      const label = document.createElement("p");
+      label.className = "presentation-ability-group-label";
+      label.textContent = `General Adaptation — ${threshold.label}`;
+      wrap.append(label);
+      entries.forEach((entry) => wrap.append(developmentLine(entry)));
+      block.append(wrap);
+    });
+
+    const standaloneDevelopments = view.scarDevelopments.filter((entry) => !entry.scarId && !entry.tier);
+    if (standaloneDevelopments.length) {
+      const wrap = document.createElement("div");
+      wrap.className = "presentation-drift-general-adaptation";
+      const label = document.createElement("p");
+      label.className = "presentation-ability-group-label";
+      label.textContent = "Adaptation";
+      wrap.append(label);
+      standaloneDevelopments.forEach((entry) => wrap.append(developmentLine(entry)));
+      block.append(wrap);
     }
 
     body.append(block);
@@ -957,18 +1269,26 @@
 
   window.PresentationDrift = {
     DRIFT_THRESHOLDS,
+    THRESHOLD_DECISIONS,
     DRIFT_PRESENTATIONS,
+    DRIFT_CATALOG_VERSION,
+    SCAR_CHANGE_TYPES,
     COLLAPSE_DRIFT_TRIGGER,
     driftTierForValue,
-    activeScarsForValue,
-    accumulatedScarsForValue,
+    eligibleScarOptions,
     normalizePresentationDrift,
     presentationPack,
     resolvePresentationId,
     readDriftValue,
+    readTrackLoad,
     collapseDriftEligibility,
+    notePresentationLoadTransition,
+    recognizeExistingCollapse,
     applyCollapseDriftResolve,
+    resolveDeferredScar,
+    applyScarDevelopment,
     presentationDriftView,
+    presentationDriftLog,
     mountPresentationDriftReadout
   };
 }());

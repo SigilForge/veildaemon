@@ -100,6 +100,66 @@
         .slice(0, 8);
     }
     if (item.entityConsequenceNote) out.entityConsequenceNote = safeString(item.entityConsequenceNote, 300);
+    // Handler-authored Presentation Drift/Scar award. Absolute state snapshot -- a re-pull
+    // overwrites rather than re-awards, same convention as loadDeltas. Deliberately excludes
+    // pendingScarChoices and the Collapse Record log: those stay Handler-only.
+    if (Array.isArray(item.presentationDriftState)) {
+      out.presentationDriftState = item.presentationDriftState
+        .map((entry) => normalizePresentationDriftStateEntry(entry))
+        .filter(Boolean)
+        .slice(0, 8);
+    }
+    return out;
+  }
+
+  function normalizeDriftScarEntry(entry) {
+    if (!entry || typeof entry !== "object" || !entry.scarId) return null;
+    return {
+      scarId: safeString(entry.scarId, 80),
+      tier: safeString(entry.tier, 40),
+      label: safeString(entry.label, 160),
+      benefit: safeString(entry.benefit, 240),
+      cost: safeString(entry.cost, 240),
+      archiveUnlock: safeString(entry.archiveUnlock, 120),
+      handlerApproval: Boolean(entry.handlerApproval),
+      catalogVersion: clampInt(entry.catalogVersion, 0, 999, 1),
+      chosenAt: safeString(entry.chosenAt, 32)
+    };
+  }
+
+  function normalizeDriftDevelopmentEntry(entry) {
+    if (!entry || typeof entry !== "object") return null;
+    return {
+      scarId: entry.scarId ? safeString(entry.scarId, 80) : null,
+      tier: entry.tier ? safeString(entry.tier, 40) : null,
+      driftValue: clampInt(entry.driftValue, 0, 6, 0),
+      changeType: safeString(entry.changeType, 40),
+      note: safeString(entry.note, 300),
+      catalogVersion: clampInt(entry.catalogVersion, 0, 999, 1),
+      chosenAt: safeString(entry.chosenAt, 32)
+    };
+  }
+
+  function normalizePresentationDriftStateEntry(entry) {
+    if (!entry || typeof entry !== "object" || !entry.presentationId) return null;
+    const out = {
+      presentationId: safeString(entry.presentationId, 40),
+      value: clampInt(entry.value, 0, 6, 0),
+      catalogVersion: clampInt(entry.catalogVersion, 0, 999, 1),
+      scars: Array.isArray(entry.scars) ? entry.scars.map(normalizeDriftScarEntry).filter(Boolean).slice(0, 12) : [],
+      scarDevelopments: Array.isArray(entry.scarDevelopments)
+        ? entry.scarDevelopments.map(normalizeDriftDevelopmentEntry).filter(Boolean).slice(0, 24)
+        : [],
+      thresholdDecision: null
+    };
+    if (entry.thresholdDecision && typeof entry.thresholdDecision === "object" && entry.thresholdDecision.id) {
+      out.thresholdDecision = {
+        id: safeString(entry.thresholdDecision.id, 40),
+        label: safeString(entry.thresholdDecision.label, 80),
+        note: safeString(entry.thresholdDecision.note, 300),
+        chosenAt: safeString(entry.thresholdDecision.chosenAt, 32)
+      };
+    }
     return out;
   }
 

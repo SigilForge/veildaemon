@@ -1134,6 +1134,38 @@
         });
       }
     }
+    // Handler-authored Presentation Drift/Scar award. Absolute state snapshot, like loadDeltas
+    // above -- a re-pull replaces the bucket wholesale rather than re-applying it, so a
+    // duplicate Sync Cell is a no-op instead of double-awarding anything. There is no
+    // Operator-facing self-entry point for Drift at all, so this Cell-sync path is the only
+    // way it can ever change here.
+    if (Array.isArray(projection.presentationDriftState) && projection.presentationDriftState.length) {
+      status.presentationDrift = status.presentationDrift && typeof status.presentationDrift === "object"
+        ? status.presentationDrift
+        : { byPresentation: {} };
+      status.presentationDrift.byPresentation = status.presentationDrift.byPresentation && typeof status.presentationDrift.byPresentation === "object"
+        ? status.presentationDrift.byPresentation
+        : {};
+      projection.presentationDriftState.forEach((entry) => {
+        if (!entry?.presentationId) return;
+        const current = status.presentationDrift.byPresentation[entry.presentationId];
+        const nextBucket = {
+          value: entry.value,
+          scars: entry.scars || [],
+          scarDevelopments: entry.scarDevelopments || [],
+          thresholdDecision: entry.thresholdDecision || null
+        };
+        if (JSON.stringify({
+          value: current?.value, scars: current?.scars, scarDevelopments: current?.scarDevelopments, thresholdDecision: current?.thresholdDecision
+        }) !== JSON.stringify(nextBucket)) {
+          status.presentationDrift.byPresentation[entry.presentationId] = {
+            ...(current || {}),
+            ...nextBucket
+          };
+          changed = true;
+        }
+      });
+    }
     const meta = cellSyncMeta();
     meta.lastAppliedRevision = Number(publishMeta?.syncRevision) || meta.lastAppliedRevision;
     meta.lastAppliedPublishedAt = safeString(publishMeta?.publishedAt, 40) || meta.lastAppliedPublishedAt;
@@ -5722,7 +5754,9 @@
       driftLabel.className = "ps-ability-name";
       driftLabel.textContent = `Drift ${driftView.value} / 6`;
       driftSection.append(driftLabel);
-      (driftView.accumulatedScars || []).forEach((scar) => {
+      // Only acquired (Handler-awarded, table-consented) Scars print -- never the full
+      // catalog, never a deferred/refused choice still awaiting the table.
+      (driftView.scars || []).forEach((scar) => {
         const line = document.createElement("p");
         line.className = "ps-ability-line";
         const strong = document.createElement("strong");
@@ -5733,7 +5767,26 @@
         ].filter(Boolean).join(". ");
         line.append(strong, document.createTextNode(bits ? ` — ${bits}` : ""));
         driftSection.append(line);
+        (driftView.scarDevelopments || [])
+          .filter((development) => development.scarId === scar.scarId)
+          .forEach((development) => {
+            const devLine = document.createElement("p");
+            devLine.className = "ps-ability-line";
+            devLine.textContent = `Drift ${development.driftValue}: ${development.note}`;
+            driftSection.append(devLine);
+          });
       });
+      if (driftView.thresholdDecision) {
+        const decisionLine = document.createElement("p");
+        decisionLine.className = "ps-ability-line";
+        const strong = document.createElement("strong");
+        strong.textContent = `Threshold Decision: ${driftView.thresholdDecision.label.toUpperCase()}`;
+        decisionLine.append(strong);
+        if (driftView.thresholdDecision.note) {
+          decisionLine.append(document.createTextNode(` — ${driftView.thresholdDecision.note}`));
+        }
+        driftSection.append(decisionLine);
+      }
       page2.append(driftSection);
     }
 

@@ -88,14 +88,33 @@
     // Presentation Load: Handler already computes this via the trigger/manual-pressure
     // pipeline (misfireLoadDeltaForTrigger etc.) — put the player's current value on the
     // wire so the Operator sheet's own meter actually moves instead of a toast-only note.
+    let presentationForDrift = null;
     if (api?.playerLoadPresentation && api?.playerTrackLoad) {
       const presentation = api.playerLoadPresentation(player);
+      presentationForDrift = presentation;
       const track = presentation ? window.PresentationPressure?.primaryTrack(presentation) : null;
       if (track) {
         const value = api.playerTrackLoad(player, presentation);
         if (value !== null && value !== undefined) {
           out.loadDeltas = [{ trackKind: track.kind, value }];
         }
+      }
+    }
+    // Handler-authored Drift/Scar award -- absolute snapshot, not Load-gated (a scar can be
+    // developed or a deferred choice resolved with Load already back below 6). Deliberately
+    // excludes pendingScarChoices and the Collapse Record log; those stay Handler-only.
+    const drift = window.PresentationDrift;
+    if (drift?.presentationDriftView && presentationForDrift && player.operatorStatus) {
+      const view = drift.presentationDriftView(player.operatorStatus, presentationForDrift.id);
+      if (view && (view.value > 0 || view.scars.length || view.scarDevelopments.length)) {
+        out.presentationDriftState = [{
+          presentationId: view.presentationId,
+          value: view.value,
+          catalogVersion: drift.DRIFT_CATALOG_VERSION,
+          scars: view.scars,
+          scarDevelopments: view.scarDevelopments,
+          thresholdDecision: view.thresholdDecision
+        }];
       }
     }
     return out;
@@ -158,8 +177,11 @@
       }
       const current = Number(pp.readTrackValue?.(next.operatorStatus, track.id) ?? 0);
       const value = Math.max(0, Math.min(6, current + delta));
-      next.operatorStatus = pp.writeTrackValue(next.operatorStatus, track.id, value);
-      if (track.stateKey) next.operatorStatus[track.stateKey] = String(value);
+      // Routed through the same centralized helper the Handler's manual Resolve/Undo use
+      // (handler-state.js) so this auto-apply-during-sync path also notifies
+      // PresentationDrift's Load-transition mint/clear logic -- this is one of the three
+      // real Presentation Load write sites, not a separate one that could forget it.
+      next.operatorStatus = api.writeHandlerPresentationLoad(next.operatorStatus, presentation.id, value);
       return next;
     }
     if (prompt.track === "harm") {

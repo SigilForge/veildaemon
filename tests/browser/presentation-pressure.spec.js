@@ -916,84 +916,362 @@ test("handler summary formats coherent blood load at four", async ({ page }) => 
   expect(summary).toContain("Blood Load 4/6 (Coherent)");
 });
 
-test("presentation drift tiers follow the universal 1-2, 3-4, 5+ scale", async ({ page }) => {
+test("presentation drift tiers follow the 1-2 / 3-4 / 5 / 6 scale, capped at 6", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const drift = window.PresentationDrift;
     return {
       surface: drift.driftTierForValue(2)?.id,
       scar: drift.driftTierForValue(4)?.id,
-      deep: drift.driftTierForValue(6)?.id,
+      deep: drift.driftTierForValue(5)?.id,
+      threshold: drift.driftTierForValue(6)?.id,
+      capped: drift.driftTierForValue(99)?.id,
       zero: drift.driftTierForValue(0)
     };
   });
   expect(summary.surface).toBe("surface_tell");
   expect(summary.scar).toBe("persistent_scar");
   expect(summary.deep).toBe("deep_drift");
+  expect(summary.threshold).toBe("threshold_state");
+  expect(summary.capped).toBe("threshold_state");
   expect(summary.zero).toBeNull();
 });
 
-test("collapse drift resolve increments only at load 6", async ({ page }) => {
+test("collapse identity mints only on a real load transition, and resolve consumes it exactly once", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const pressure = window.PresentationPressure;
     const drift = window.PresentationDrift;
-    const atFive = pressure.migrateOperatorStatus({
-      presentationPressures: { "sanguine.blood_load": 5 }
-    });
-    const blocked = drift.applyCollapseDriftResolve(atFive, "SANGUINE");
-    const atSix = pressure.migrateOperatorStatus({
-      presentationPressures: { "sanguine.blood_load": 6 }
-    });
-    const resolved = drift.applyCollapseDriftResolve(atSix, "SANGUINE");
+    let status = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } });
+
+    status = drift.notePresentationLoadTransition(status, "sanguine", 5, 6);
+    const idAfterFirstTransition = status.presentationDrift.byPresentation.sanguine.driftEligibleCollapseId;
+    // A repeated call with no real before/after change must not mint a second id.
+    status = drift.notePresentationLoadTransition(status, "sanguine", 6, 6);
+    const idAfterNoOpTransition = status.presentationDrift.byPresentation.sanguine.driftEligibleCollapseId;
+
+    const resolved = drift.applyCollapseDriftResolve(status, "SANGUINE", { loadAfter: 0, chosenScarId: "defer" });
+    const idAfterResolve = resolved.status.presentationDrift.byPresentation.sanguine.driftEligibleCollapseId;
+    // The Collapse Record recording loadAfter is not enough on its own -- the Load track
+    // itself must actually be written back down in the same call, or eligibility staying
+    // true (Load still 6) could let a fresh mint make this same Collapse resolvable again.
+    const loadAfterResolveWrite = pressure.readTrackValue(resolved.status, "sanguine.blood_load");
+
+    const reloaded = drift.normalizePresentationDrift(resolved.status);
+    const eligibilityAfterReload = drift.collapseDriftEligibility(reloaded, "SANGUINE");
+    const secondResolveAttempt = drift.applyCollapseDriftResolve(resolved.status, "SANGUINE", { loadAfter: 0, chosenScarId: "defer" });
+
+    const log = drift.presentationDriftLog(reloaded, "SANGUINE");
+
     return {
-      blocked: blocked.ok,
-      blockedReason: blocked.reason,
-      value: drift.readDriftValue(resolved.status, "sanguine"),
+      idAfterFirstTransition,
+      idAfterNoOpTransition,
+      idAfterResolve,
+      resolvedOk: resolved.ok,
+      value: resolved.value,
       tier: resolved.tier?.label,
-      tagline: drift.presentationDriftView(resolved.status, "SANGUINE")?.tagline
+      tagline: drift.presentationDriftView(resolved.status, "SANGUINE")?.tagline,
+      driftBefore: log[0]?.driftBefore,
+      driftAfter: log[0]?.driftAfter,
+      loadAfterRecorded: log[0]?.loadAfter,
+      loadAfterResolveWrite,
+      eligibilityAfterReload: eligibilityAfterReload.ok,
+      secondResolveOk: secondResolveAttempt.ok,
+      secondResolveReason: secondResolveAttempt.reason
     };
   });
-  expect(summary.blocked).toBe(false);
-  expect(summary.blockedReason).toContain("Load 6");
+  expect(summary.idAfterFirstTransition).toBeTruthy();
+  expect(summary.idAfterNoOpTransition).toBe(summary.idAfterFirstTransition);
+  expect(summary.idAfterResolve).toBe("");
+  expect(summary.resolvedOk).toBe(true);
   expect(summary.value).toBe(1);
   expect(summary.tier).toBe("Surface Tell");
   expect(summary.tagline).toContain("body remembers hunger");
+  expect(summary.driftBefore).toBe(0);
+  expect(summary.driftAfter).toBe(1);
+  expect(summary.loadAfterRecorded).toBe(0);
+  expect(summary.loadAfterResolveWrite).toBe(0);
+  expect(summary.eligibilityAfterReload).toBe(false);
+  expect(summary.secondResolveOk).toBe(false);
+  expect(summary.secondResolveReason).toContain("No eligible Collapse");
 });
 
-test("sanguine drift exposes cumulative scars by tier", async ({ page }) => {
+test("a reverse load transition clears a still-unresolved eligible collapse id", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const drift = window.PresentationDrift;
+    let status = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } });
+    status = drift.notePresentationLoadTransition(status, "sanguine", 5, 6);
+    const idAfterMint = status.presentationDrift.byPresentation.sanguine.driftEligibleCollapseId;
+    // Undo: Load walks back down below 6 before the Collapse was ever resolved.
+    status = drift.notePresentationLoadTransition(status, "sanguine", 6, 5);
+    const idAfterUndo = status.presentationDrift.byPresentation.sanguine.driftEligibleCollapseId;
+    const eligibility = drift.collapseDriftEligibility(status, "SANGUINE");
+    return { idAfterMint, idAfterUndo, eligibilityOk: eligibility.ok };
+  });
+  expect(summary.idAfterMint).toBeTruthy();
+  expect(summary.idAfterUndo).toBe("");
+  expect(summary.eligibilityOk).toBe(false);
+});
+
+test("loadAfter must be between 0 and 5 -- a resolved collapse cannot land back on 6", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const drift = window.PresentationDrift;
+    let status = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } });
+    status = drift.notePresentationLoadTransition(status, "sanguine", 5, 6);
+    const tooHigh = drift.applyCollapseDriftResolve(status, "SANGUINE", { loadAfter: 6, chosenScarId: "defer" });
+    const tooLow = drift.applyCollapseDriftResolve(status, "SANGUINE", { loadAfter: -1, chosenScarId: "defer" });
+    const valid = drift.applyCollapseDriftResolve(status, "SANGUINE", { loadAfter: 5, chosenScarId: "defer" });
+    return { tooHighOk: tooHigh.ok, tooLowOk: tooLow.ok, validOk: valid.ok };
+  });
+  expect(summary.tooHighOk).toBe(false);
+  expect(summary.tooLowOk).toBe(false);
+  expect(summary.validOk).toBe(true);
+});
+
+test("recognize existing unresolved collapse mints exactly once for a pre-existing load-6 save", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const drift = window.PresentationDrift;
+    // Simulates a save that reached Load 6 before this workflow existed -- no transition was
+    // ever recorded, so no driftEligibleCollapseId exists despite Load already being 6.
+    const legacyStatus = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 6 } });
+    const eligibilityBeforeRecognize = drift.collapseDriftEligibility(legacyStatus, "SANGUINE");
+    // A normal read/normalize pass must never mint one on its own.
+    const reloaded = drift.normalizePresentationDrift(legacyStatus);
+    const stillNoId = reloaded.presentationDrift.byPresentation.sanguine.driftEligibleCollapseId;
+
+    const recognized = drift.recognizeExistingCollapse(legacyStatus, "SANGUINE");
+    const secondRecognizeAttempt = drift.recognizeExistingCollapse(recognized.status, "SANGUINE");
+    const resolved = drift.applyCollapseDriftResolve(recognized.status, "SANGUINE", { loadAfter: 0, chosenScarId: "defer" });
+    const log = drift.presentationDriftLog(resolved.status, "SANGUINE");
+
+    return {
+      eligibilityBeforeRecognize: eligibilityBeforeRecognize.ok,
+      stillNoId,
+      recognizedOk: recognized.ok,
+      secondRecognizeOk: secondRecognizeAttempt.ok,
+      resolvedOk: resolved.ok,
+      recoveredFlag: log[0]?.recoveredFromLegacyState
+    };
+  });
+  expect(summary.eligibilityBeforeRecognize).toBe(false);
+  expect(summary.stillNoId).toBe("");
+  expect(summary.recognizedOk).toBe(true);
+  expect(summary.secondRecognizeOk).toBe(false);
+  expect(summary.resolvedOk).toBe(true);
+  expect(summary.recoveredFlag).toBe(true);
+});
+
+test("scar choices distinguish defer, refuse, and chosen -- deferred ones resolve independently without another collapse", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const drift = window.PresentationDrift;
+    const chosenOptions = drift.eligibleScarOptions("sanguine", "surface_tell");
+
+    let chosenStatus = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } });
+    chosenStatus = drift.notePresentationLoadTransition(chosenStatus, "sanguine", 5, 6);
+    const chosenResult = drift.applyCollapseDriftResolve(chosenStatus, "SANGUINE", { loadAfter: 0, chosenScarId: chosenOptions[0].id });
+    const chosenView = drift.presentationDriftView(chosenResult.status, "SANGUINE");
+
+    let deferredStatus = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } });
+    deferredStatus = drift.notePresentationLoadTransition(deferredStatus, "sanguine", 5, 6);
+    const deferredResult = drift.applyCollapseDriftResolve(deferredStatus, "SANGUINE", { loadAfter: 0, chosenScarId: "defer" });
+    const deferredView = drift.presentationDriftView(deferredResult.status, "SANGUINE");
+    const deferredPending = deferredView.pendingScarChoices[0];
+    const resolvedDeferred = drift.resolveDeferredScar(deferredResult.status, "SANGUINE", deferredPending.id, chosenOptions[1].id);
+    const resolvedDeferredView = drift.presentationDriftView(resolvedDeferred.status, "SANGUINE");
+
+    let refusedStatus = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } });
+    refusedStatus = drift.notePresentationLoadTransition(refusedStatus, "sanguine", 5, 6);
+    const refusedResult = drift.applyCollapseDriftResolve(refusedStatus, "SANGUINE", { loadAfter: 0, chosenScarId: "refuse" });
+    const refusedView = drift.presentationDriftView(refusedResult.status, "SANGUINE");
+    const refusedPending = refusedView.pendingScarChoices[0];
+    // A refused entry is a conscious, permanent decision -- resolving it must be rejected.
+    const refusedResolveAttempt = drift.resolveDeferredScar(refusedResult.status, "SANGUINE", refusedPending.id, chosenOptions[0].id);
+
+    return {
+      chosenScarId: chosenView.scars[0]?.scarId,
+      chosenExpected: chosenOptions[0].id,
+      deferredPendingStatus: deferredPending.status,
+      deferredResolvedOk: resolvedDeferred.ok,
+      deferredResolvedDriftUnchanged: resolvedDeferredView.value === deferredView.value,
+      deferredResolvedScarId: resolvedDeferredView.scars[0]?.scarId,
+      deferredResolvedExpected: chosenOptions[1].id,
+      deferredResolvedPendingCleared: resolvedDeferredView.pendingScarChoices.length === 0,
+      refusedPendingStatus: refusedPending.status,
+      refusedResolveOk: refusedResolveAttempt.ok
+    };
+  });
+  expect(summary.chosenScarId).toBe(summary.chosenExpected);
+  expect(summary.deferredPendingStatus).toBe("deferred");
+  expect(summary.deferredResolvedOk).toBe(true);
+  expect(summary.deferredResolvedDriftUnchanged).toBe(true);
+  expect(summary.deferredResolvedScarId).toBe(summary.deferredResolvedExpected);
+  expect(summary.deferredResolvedPendingCleared).toBe(true);
+  expect(summary.refusedPendingStatus).toBe("refused");
+  expect(summary.refusedResolveOk).toBe(false);
+});
+
+test("drift 2/4 scar development attaches to an existing scar, a still-deferred tier, or stands alone", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const drift = window.PresentationDrift;
+    const options1 = drift.eligibleScarOptions("sanguine", "surface_tell");
+
+    // Drift 1's scar CHOSEN -- a Drift 2 development can attach directly to it.
+    let status = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } });
+    status = drift.notePresentationLoadTransition(status, "sanguine", 5, 6);
+    const r1 = drift.applyCollapseDriftResolve(status, "SANGUINE", { loadAfter: 5, chosenScarId: options1[0].id });
+    let atTwo = drift.notePresentationLoadTransition(r1.status, "sanguine", 5, 6);
+    const r2 = drift.applyCollapseDriftResolve(atTwo, "SANGUINE", { loadAfter: 0 });
+    const devResult = drift.applyScarDevelopment(r2.status, "SANGUINE", {
+      scarId: options1[0].id, driftValue: 2, changeType: "benefit", note: "Deepened benefit."
+    });
+
+    // Drift 1's scar DEFERRED -- Drift 2's development must attach to the pending tier
+    // instead, without deadlocking on a Scar that doesn't exist yet.
+    let deferStatus = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } });
+    deferStatus = drift.notePresentationLoadTransition(deferStatus, "sanguine", 5, 6);
+    const rd1 = drift.applyCollapseDriftResolve(deferStatus, "SANGUINE", { loadAfter: 5, chosenScarId: "defer" });
+    const atTwoDeferred = drift.notePresentationLoadTransition(rd1.status, "sanguine", 5, 6);
+    const rd2 = drift.applyCollapseDriftResolve(atTwoDeferred, "SANGUINE", { loadAfter: 0 });
+    const pendingTier = drift.presentationDriftView(rd2.status, "SANGUINE").pendingScarChoices[0].tier;
+    const devPendingResult = drift.applyScarDevelopment(rd2.status, "SANGUINE", {
+      tier: pendingTier, driftValue: 2, changeType: "new_tell", note: "A related tell without a Scar yet."
+    });
+
+    // Neither applies -- a standalone adaptation note.
+    const devStandaloneResult = drift.applyScarDevelopment(rd2.status, "SANGUINE", {
+      driftValue: 2, changeType: "complication", note: "Just an adaptation note."
+    });
+
+    return {
+      devOk: devResult.ok,
+      devEntry: drift.presentationDriftView(devResult.status, "SANGUINE").scarDevelopments[0],
+      devPendingOk: devPendingResult.ok,
+      devPendingEntry: drift.presentationDriftView(devPendingResult.status, "SANGUINE").scarDevelopments[0],
+      devStandaloneOk: devStandaloneResult.ok,
+      devStandaloneEntry: drift.presentationDriftView(devStandaloneResult.status, "SANGUINE").scarDevelopments[0]
+    };
+  });
+  expect(summary.devOk).toBe(true);
+  expect(summary.devEntry.scarId).toBeTruthy();
+  expect(summary.devPendingOk).toBe(true);
+  expect(summary.devPendingEntry.scarId).toBeNull();
+  expect(summary.devPendingEntry.tier).toBe("surface_tell");
+  expect(summary.devStandaloneOk).toBe(true);
+  expect(summary.devStandaloneEntry.scarId).toBeNull();
+  expect(summary.devStandaloneEntry.tier).toBeNull();
+});
+
+test("presentationDriftState projection applies to Operator status wholesale -- twice is a no-op", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const drift = window.PresentationDrift;
-    const atTwo = drift.presentationDriftView(
-      drift.normalizePresentationDrift({
-        presentationDrift: { byPresentation: { sanguine: { value: 2, log: [] } } }
-      }),
-      "SANGUINE"
-    );
-    const atFour = drift.presentationDriftView(
-      drift.normalizePresentationDrift({
-        presentationDrift: { byPresentation: { sanguine: { value: 4, log: [] } } }
-      }),
-      "SANGUINE"
-    );
-    const atFive = drift.presentationDriftView(
-      drift.normalizePresentationDrift({
-        presentationDrift: { byPresentation: { sanguine: { value: 5, log: [] } } }
-      }),
-      "SANGUINE"
-    );
+    const status = window.PresentationPressure.migrateOperatorStatus({});
+    const projectionEntry = {
+      presentationId: "sanguine",
+      value: 3,
+      catalogVersion: drift.DRIFT_CATALOG_VERSION,
+      scars: [{ scarId: "too_warm_skin", tier: "surface_tell", label: "Too-warm skin", benefit: "b", cost: "c" }],
+      scarDevelopments: [],
+      thresholdDecision: null
+    };
+    // Mirrors applyHandlerCellProjection's presentationDriftState branch in operator.js
+    // (that function is a page-internal closure, not exported for direct testing) -- an
+    // absolute snapshot applied wholesale, diffed before writing so a duplicate Sync Cell
+    // never spams a change.
+    function applyProjection(currentStatus) {
+      const next = { ...currentStatus };
+      next.presentationDrift = next.presentationDrift && typeof next.presentationDrift === "object"
+        ? next.presentationDrift : { byPresentation: {} };
+      next.presentationDrift.byPresentation = { ...next.presentationDrift.byPresentation };
+      const current = next.presentationDrift.byPresentation[projectionEntry.presentationId];
+      const nextBucket = {
+        value: projectionEntry.value, scars: projectionEntry.scars,
+        scarDevelopments: projectionEntry.scarDevelopments, thresholdDecision: projectionEntry.thresholdDecision
+      };
+      const changed = JSON.stringify({
+        value: current?.value, scars: current?.scars, scarDevelopments: current?.scarDevelopments, thresholdDecision: current?.thresholdDecision
+      }) !== JSON.stringify(nextBucket);
+      if (changed) {
+        next.presentationDrift.byPresentation[projectionEntry.presentationId] = { ...(current || {}), ...nextBucket };
+      }
+      return { status: next, changed };
+    }
+    const first = applyProjection(status);
+    const second = applyProjection(first.status);
+    const view = drift.presentationDriftView(first.status, "sanguine");
+    return { firstChanged: first.changed, secondChanged: second.changed, value: view.value, scarLabel: view.scars[0]?.label };
+  });
+  expect(summary.firstChanged).toBe(true);
+  expect(summary.secondChanged).toBe(false);
+  expect(summary.value).toBe(3);
+  expect(summary.scarLabel).toBe("Too-warm skin");
+});
+
+test("drift 6 requires a threshold decision, and it persists through a fresh normalize pass", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const drift = window.PresentationDrift;
+    let status = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } });
+    for (let i = 0; i < 5; i += 1) {
+      status = drift.notePresentationLoadTransition(status, "sanguine", 5, 6);
+      const result = drift.applyCollapseDriftResolve(status, "SANGUINE", { loadAfter: 5, chosenScarId: "defer" });
+      status = result.status;
+    }
+    const valueBeforeSix = drift.readDriftValue(status, "sanguine");
+    status = drift.notePresentationLoadTransition(status, "sanguine", 5, 6);
+    const withoutDecision = drift.applyCollapseDriftResolve(status, "SANGUINE", { loadAfter: 0 });
+    const withDecision = drift.applyCollapseDriftResolve(status, "SANGUINE", {
+      loadAfter: 0, thresholdDecisionId: "integrate", consequenceNote: "Accepted."
+    });
+    const reloaded = drift.normalizePresentationDrift(withDecision.status);
+    const view = drift.presentationDriftView(reloaded, "SANGUINE");
     return {
-      twoCount: atTwo.accumulatedScars.length,
-      fourCount: atFour.accumulatedScars.length,
-      fiveHasEvolution: atFive.accumulatedScars.some((entry) => entry.id === "sanguine_evolution"),
-      fiveTier: atFive.tier?.id
+      valueBeforeSix,
+      withoutDecisionOk: withoutDecision.ok,
+      withoutDecisionReason: withoutDecision.reason,
+      withDecisionOk: withDecision.ok,
+      value: view.value,
+      decisionId: view.thresholdDecision?.id,
+      decisionNote: view.thresholdDecision?.note
     };
   });
-  expect(summary.twoCount).toBe(2);
-  expect(summary.fourCount).toBe(4);
-  expect(summary.fiveHasEvolution).toBe(true);
-  expect(summary.fiveTier).toBe("deep_drift");
+  expect(summary.valueBeforeSix).toBe(5);
+  expect(summary.withoutDecisionOk).toBe(false);
+  expect(summary.withoutDecisionReason).toContain("Threshold Decision");
+  expect(summary.withDecisionOk).toBe(true);
+  expect(summary.value).toBe(6);
+  expect(summary.decisionId).toBe("integrate");
+  expect(summary.decisionNote).toBe("Accepted.");
+});
+
+test("resolving a collapse for one operator's status never touches another's", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const drift = window.PresentationDrift;
+    let statusA = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } });
+    statusA = drift.notePresentationLoadTransition(statusA, "sanguine", 5, 6);
+    const resolvedA = drift.applyCollapseDriftResolve(statusA, "SANGUINE", { loadAfter: 0, chosenScarId: "defer" });
+
+    const statusB = pressure.migrateOperatorStatus({ presentationPressures: { "sanguine.blood_load": 5 } });
+    const viewB = drift.presentationDriftView(statusB, "SANGUINE");
+
+    return { valueA: drift.readDriftValue(resolvedA.status, "sanguine"), valueB: viewB.value, pendingB: viewB.pendingScarChoices.length };
+  });
+  expect(summary.valueA).toBe(1);
+  expect(summary.valueB).toBe(0);
+  expect(summary.pendingB).toBe(0);
 });
 
 test("vessel permissions expose let it look and borrowed force", async ({ page }) => {
@@ -1066,29 +1344,37 @@ test("borrowed force spend reduces containment load and arms roll tag", async ({
   expect(summary.cleared).toBe(0);
 });
 
-test("vessel drift resolves from load 6 collapse", async ({ page }) => {
+test("vessel drift resolves from load 6 collapse and can choose an evolution scar at deep drift", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const pressure = window.PresentationPressure;
     const drift = window.PresentationDrift;
-    const resolved = drift.applyCollapseDriftResolve(
-      pressure.migrateOperatorStatus({ presentationPressures: { "vessel.containment_load": 6 } }),
-      "VESSEL"
-    );
+    let status = pressure.migrateOperatorStatus({ presentationPressures: { "vessel.containment_load": 5 } });
+    status = drift.notePresentationLoadTransition(status, "vessel", 5, 6);
+    const resolved = drift.applyCollapseDriftResolve(status, "VESSEL", { loadAfter: 0, chosenScarId: "defer" });
+
+    // Seeded straight to Drift 4 to exercise choosing the deep_drift evolution scar without
+    // resolving four intermediate collapses -- this is a data-model check, not a playthrough.
+    let atFour = drift.normalizePresentationDrift({
+      presentationPressures: { "vessel.containment_load": 5 },
+      presentationDrift: { byPresentation: { vessel: { value: 4 } } }
+    });
+    atFour = drift.notePresentationLoadTransition(atFour, "vessel", 5, 6);
+    const evolutionOption = drift.eligibleScarOptions("vessel", "deep_drift").find((entry) => entry.id === "vessel_evolution");
+    const evolutionResolved = drift.applyCollapseDriftResolve(atFour, "VESSEL", { loadAfter: 0, chosenScarId: evolutionOption.id });
+    const evolutionView = drift.presentationDriftView(evolutionResolved.status, "VESSEL");
+
     return {
       value: drift.readDriftValue(resolved.status, "vessel"),
       tagline: drift.presentationDriftView(resolved.status, "VESSEL")?.tagline,
-      evolutionWarning: drift.presentationDriftView(
-        drift.normalizePresentationDrift({
-          presentationDrift: { byPresentation: { vessel: { value: 5, log: [] } } }
-        }),
-        "VESSEL"
-      )?.value
+      evolutionValue: evolutionView.value,
+      evolutionScarId: evolutionView.scars.find((entry) => entry.scarId === "vessel_evolution")?.scarId
     };
   });
   expect(summary.value).toBe(1);
   expect(summary.tagline).toContain("door is");
-  expect(summary.evolutionWarning).toBe(5);
+  expect(summary.evolutionValue).toBe(5);
+  expect(summary.evolutionScarId).toBe("vessel_evolution");
 });
 
 test("construct permissions expose execute directive and function surge", async ({ page }) => {
@@ -1157,29 +1443,35 @@ test("function surge spend reduces function load and arms roll tag", async ({ pa
   expect(summary.cleared).toBe(0);
 });
 
-test("construct drift resolves from load 6 collapse", async ({ page }) => {
+test("construct drift resolves from load 6 collapse and can choose an evolution scar at deep drift", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const pressure = window.PresentationPressure;
     const drift = window.PresentationDrift;
-    const resolved = drift.applyCollapseDriftResolve(
-      pressure.migrateOperatorStatus({ presentationPressures: { "construct.function_load": 6 } }),
-      "CONSTRUCT"
-    );
+    let status = pressure.migrateOperatorStatus({ presentationPressures: { "construct.function_load": 5 } });
+    status = drift.notePresentationLoadTransition(status, "construct", 5, 6);
+    const resolved = drift.applyCollapseDriftResolve(status, "CONSTRUCT", { loadAfter: 0, chosenScarId: "defer" });
+
+    let atFour = drift.normalizePresentationDrift({
+      presentationPressures: { "construct.function_load": 5 },
+      presentationDrift: { byPresentation: { construct: { value: 4 } } }
+    });
+    atFour = drift.notePresentationLoadTransition(atFour, "construct", 5, 6);
+    const evolutionOption = drift.eligibleScarOptions("construct", "deep_drift").find((entry) => entry.id === "construct_evolution");
+    const evolutionResolved = drift.applyCollapseDriftResolve(atFour, "CONSTRUCT", { loadAfter: 0, chosenScarId: evolutionOption.id });
+    const evolutionView = drift.presentationDriftView(evolutionResolved.status, "CONSTRUCT");
+
     return {
       value: drift.readDriftValue(resolved.status, "construct"),
       tagline: drift.presentationDriftView(resolved.status, "CONSTRUCT")?.tagline,
-      evolution: drift.presentationDriftView(
-        drift.normalizePresentationDrift({
-          presentationDrift: { byPresentation: { construct: { value: 5, log: [] } } }
-        }),
-        "CONSTRUCT"
-      )?.accumulatedScars.some((entry) => entry.id === "construct_evolution")
+      evolutionValue: evolutionView.value,
+      evolutionScarId: evolutionView.scars.find((entry) => entry.scarId === "construct_evolution")?.scarId
     };
   });
   expect(summary.value).toBe(1);
   expect(summary.tagline).toContain("purpose found");
-  expect(summary.evolution).toBe(true);
+  expect(summary.evolutionValue).toBe(5);
+  expect(summary.evolutionScarId).toBe("construct_evolution");
 });
 
 test("void-shard permissions expose break pattern and anomaly push", async ({ page }) => {
@@ -1248,27 +1540,33 @@ test("anomaly push spend reduces void load and arms roll tag", async ({ page }) 
   expect(summary.cleared).toBe(0);
 });
 
-test("void-shard drift resolves from load 6 collapse", async ({ page }) => {
+test("void-shard drift resolves from load 6 collapse and can choose an evolution scar at deep drift", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const pressure = window.PresentationPressure;
     const drift = window.PresentationDrift;
-    const resolved = drift.applyCollapseDriftResolve(
-      pressure.migrateOperatorStatus({ presentationPressures: { "void_shard.void_load": 6 } }),
-      "VOID_SHARD"
-    );
+    let status = pressure.migrateOperatorStatus({ presentationPressures: { "void_shard.void_load": 5 } });
+    status = drift.notePresentationLoadTransition(status, "void_shard", 5, 6);
+    const resolved = drift.applyCollapseDriftResolve(status, "VOID_SHARD", { loadAfter: 0, chosenScarId: "defer" });
+
+    let atFour = drift.normalizePresentationDrift({
+      presentationPressures: { "void_shard.void_load": 5 },
+      presentationDrift: { byPresentation: { void_shard: { value: 4 } } }
+    });
+    atFour = drift.notePresentationLoadTransition(atFour, "void_shard", 5, 6);
+    const evolutionOption = drift.eligibleScarOptions("void_shard", "deep_drift").find((entry) => entry.id === "void_shard_evolution");
+    const evolutionResolved = drift.applyCollapseDriftResolve(atFour, "VOID_SHARD", { loadAfter: 0, chosenScarId: evolutionOption.id });
+    const evolutionView = drift.presentationDriftView(evolutionResolved.status, "VOID_SHARD");
+
     return {
       value: drift.readDriftValue(resolved.status, "void_shard"),
       tagline: drift.presentationDriftView(resolved.status, "VOID_SHARD")?.tagline,
-      evolution: drift.presentationDriftView(
-        drift.normalizePresentationDrift({
-          presentationDrift: { byPresentation: { void_shard: { value: 5, log: [] } } }
-        }),
-        "VOID_SHARD"
-      )?.accumulatedScars.some((entry) => entry.id === "void_shard_evolution")
+      evolutionValue: evolutionView.value,
+      evolutionScarId: evolutionView.scars.find((entry) => entry.scarId === "void_shard_evolution")?.scarId
     };
   });
   expect(summary.value).toBe(1);
   expect(summary.tagline).toContain("wound learned");
-  expect(summary.evolution).toBe(true);
+  expect(summary.evolutionValue).toBe(5);
+  expect(summary.evolutionScarId).toBe("void_shard_evolution");
 });
