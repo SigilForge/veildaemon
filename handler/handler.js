@@ -1205,6 +1205,30 @@
     if (leaveBtn) leaveBtn.hidden = !connected;
   }
 
+  // Lobby-wide, real-time roll feed (community vibe): merges each broadcast roll into the
+  // SAME local rollFeed bus the existing roll-feed UI (renderRollFeed / refreshHint in
+  // handler-cell-sync.js) already reads from, so that UI needs no changes of its own to show
+  // cross-device rolls -- only where they come from (Realtime, not the same-device bus) is new.
+  let unsubscribeLobbyRolls = null;
+
+  function subscribeLobbyRollsIfConnected() {
+    if (unsubscribeLobbyRolls) return;
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected() || !remote.subscribeToSessionRolls) return;
+    unsubscribeLobbyRolls = remote.subscribeToSessionRolls((row) => {
+      const roll = row && row.roll && typeof row.roll === "object" ? row.roll : row;
+      if (window.VeilDaemonCellSync?.publishOperatorRoll) window.VeilDaemonCellSync.publishOperatorRoll(roll);
+      window.HandlerCellSync?.refreshHint?.();
+    });
+  }
+
+  function unsubscribeLobbyRollsIfAny() {
+    if (unsubscribeLobbyRolls) {
+      unsubscribeLobbyRolls();
+      unsubscribeLobbyRolls = null;
+    }
+  }
+
   function bindCellConnect() {
     const openBtn = document.getElementById("cell-connect-open");
     const leaveBtn = document.getElementById("cell-connect-leave");
@@ -1227,6 +1251,7 @@
             maxOperators: null,
           });
           renderCellConnectStatus(session.join_code);
+          subscribeLobbyRollsIfConnected();
           setStatus(`Cell opened — Code ${session.join_code}`);
         } catch (error) {
           setStatus(error?.message || "Could not open Cell.", true);
@@ -1239,6 +1264,7 @@
     if (leaveBtn) {
       leaveBtn.addEventListener("click", () => {
         window.VeilDaemonCellRemote?.clearConnection();
+        unsubscribeLobbyRollsIfAny();
         renderCellConnectStatus();
         setStatus("Cell connection closed on this device (session stays open for Operators until Archived).");
       });
@@ -1257,7 +1283,10 @@
     if (!auth.getSession()) await auth.init();
     if (!auth.getUser()) return;
     const restored = remote.restoreConnection(handlerCellConnectGetToken, "handler");
-    if (restored) renderCellConnectStatus();
+    if (restored) {
+      renderCellConnectStatus();
+      subscribeLobbyRollsIfConnected();
+    }
   }
 
   function bindCellSync() {

@@ -507,6 +507,10 @@
     init();
   }
 
+  function getClient() {
+    return clientInstance;
+  }
+
   global.VeilAuth = {
     init,
     signInWithPassword,
@@ -517,5 +521,6 @@
     onChange,
     mountAuthWidget,
     showModal,
+    getClient,
   };
 })(typeof window !== "undefined" ? window : this);

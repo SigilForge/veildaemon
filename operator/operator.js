@@ -986,18 +986,16 @@
     }
   }
 
-  /** Fire-and-forget remote push of a single roll, when CONNECTED -- the local rollFeed
-   * write already happened via publishOperatorRoll, so a remote failure only affects
-   * whether a cross-device Handler sees it. Unlike pushSendToRemoteIfConnected, a failure
-   * here never trips CELL SEND PENDING: rolls are a lightweight, frequent, informational
-   * broadcast, not a durable fact the Handler must reconcile Harm/Stability from, and each
-   * push carries this Operator's full recent-rolls snapshot (not just the new one), so the
-   * next successful roll push self-heals anything a remote Handler missed in between. */
+  /** Fire-and-forget broadcast of a single roll to the whole lobby (every seated Operator
+   * and the Handler), when CONNECTED -- the local rollFeed write already happened via
+   * publishOperatorRoll, so a broadcast failure only affects whether the rest of the lobby
+   * sees it live. Never trips CELL SEND PENDING: rolls are a lightweight, informational
+   * broadcast for table vibe, not a durable fact anyone reconciles Harm/Stability from. */
   async function pushRollToRemoteIfConnected(roll) {
     const remote = window.VeilDaemonCellRemote;
     if (!remote?.isConnected()) return;
     try {
-      await remote.pushOperatorRoll(roll);
+      await remote.publishSessionRoll(roll);
     } catch (_error) {
       // Best-effort -- see comment above.
     }
@@ -1035,6 +1033,62 @@
     if (leaveBtn) leaveBtn.hidden = !connected;
   }
 
+  // Lobby-wide, real-time roll feed (community vibe): every seated Operator and the Handler
+  // subscribe to the same session_rolls feed via Supabase Realtime -- distinct from this
+  // Operator's own local rollFeed writes (publishOperatorRoll), which stay same-device only.
+  let lobbyRolls = [];
+  let unsubscribeLobbyRolls = null;
+
+  function renderLobbyRolls() {
+    const drawer = document.getElementById("lobby-rolls-drawer");
+    const list = document.getElementById("lobby-rolls-list");
+    const badge = document.getElementById("lobby-rolls-badge");
+    if (!drawer || !list) return;
+    const connected = Boolean(window.VeilDaemonCellRemote?.isConnected());
+    drawer.hidden = !connected;
+    if (!connected) return;
+    if (badge) badge.textContent = String(lobbyRolls.length);
+    if (!lobbyRolls.length) {
+      list.innerHTML = `<p class="lobby-rolls-empty">No rolls broadcast yet this session.</p>`;
+      return;
+    }
+    const visible = lobbyRolls.slice().reverse().slice(0, 8);
+    list.innerHTML = visible.map((item) => {
+      const rollData = item.roll && typeof item.roll === "object" ? item.roll : item;
+      const timeStr = rollData.timestamp ? new Date(rollData.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "";
+      return `
+        <article class="lobby-roll-card">
+          <div class="lobby-roll-header">
+            <strong class="lobby-roll-name">${safeString(item.operator_name || rollData.name, 80)}</strong>
+            <span class="lobby-roll-total">TOTAL ${safeString(rollData.total, 10)}</span>
+            <time class="lobby-roll-time">${timeStr}</time>
+          </div>
+          <p class="lobby-roll-summary">${safeString(rollData.summary, 300)}</p>
+        </article>
+      `;
+    }).join("");
+  }
+
+  function subscribeLobbyRollsIfConnected() {
+    if (unsubscribeLobbyRolls) return;
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected() || !remote.subscribeToSessionRolls) return;
+    unsubscribeLobbyRolls = remote.subscribeToSessionRolls((roll) => {
+      lobbyRolls = [...lobbyRolls, roll].slice(-50);
+      renderLobbyRolls();
+    });
+    renderLobbyRolls();
+  }
+
+  function unsubscribeLobbyRollsIfAny() {
+    if (unsubscribeLobbyRolls) {
+      unsubscribeLobbyRolls();
+      unsubscribeLobbyRolls = null;
+    }
+    lobbyRolls = [];
+    renderLobbyRolls();
+  }
+
   function bindCellConnect() {
     const joinBtn = document.getElementById("cell-connect-join");
     const leaveBtn = document.getElementById("cell-connect-leave");
@@ -1065,6 +1119,7 @@
           setStorageStatus("Connected to Cell.");
           renderCellConnectStatus();
           renderSceneTimerStrip();
+          subscribeLobbyRollsIfConnected();
           await pullRemoteIfConnected();
           pullHandlerCellIfAvailable({ force: true });
         } catch (error) {
@@ -1085,6 +1140,7 @@
           // Best-effort — disconnect locally regardless.
           remote.clearConnection();
         }
+        unsubscribeLobbyRollsIfAny();
         renderCellConnectStatus();
         renderSceneTimerStrip();
         setStorageStatus("Disconnected from Cell.");
@@ -1107,6 +1163,7 @@
     if (restored) {
       renderCellConnectStatus();
       renderSceneTimerStrip();
+      subscribeLobbyRollsIfConnected();
       await pullRemoteIfConnected();
       pullHandlerCellIfAvailable();
     }

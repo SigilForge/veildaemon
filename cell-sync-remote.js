@@ -185,33 +185,13 @@
 
     if (connection.role === "handler") {
       const operators = {};
-      // Rolls travel inside the same operatorSend patch (see pushOperatorRoll below) as a
-      // "rolls" field that normalizeOperatorSend deliberately doesn't preserve -- rolls
-      // belong in the session-wide rollFeed, not the per-operator snapshot. Merged into the
-      // SAME bus object as the operators loop below (one read, one write) rather than via
-      // cell.publishOperatorRoll()'s own internal read/write cycle, which would race against
-      // this function's own read-once/write-once bus and silently drop whichever wrote last.
-      const existingRollIds = new Set((bus.rollFeed || []).map((item) => item.id));
-      const newRolls = [];
       seats.forEach((seat) => {
         const send = seat.live_state && seat.live_state.operatorSend;
         if (!send || !Object.keys(send).length) return;
         const normalized = cell.normalizeOperatorSend({ ...send, operatorKey: seatOperatorKey(seat) });
         if (normalized) operators[normalized.operatorKey] = normalized;
-        (Array.isArray(send.rolls) ? send.rolls : []).forEach((raw) => {
-          const rollNormalized = cell.normalizeRollFeedItem ? cell.normalizeRollFeedItem(raw) : null;
-          if (rollNormalized && !existingRollIds.has(rollNormalized.id)) {
-            newRolls.push(rollNormalized);
-            existingRollIds.add(rollNormalized.id);
-          }
-        });
       });
       bus.operators = operators;
-      if (newRolls.length) {
-        bus.rollFeed = Array.isArray(bus.rollFeed) ? bus.rollFeed.slice() : [];
-        bus.rollFeed.push(...newRolls);
-        if (bus.rollFeed.length > 50) bus.rollFeed = bus.rollFeed.slice(-50);
-      }
       cell.write(bus);
       return { session: data.session, seats };
     }
@@ -249,24 +229,63 @@
   }
 
   /**
-   * Operator: publish a roll remotely. Sends this Operator's own full recent-rolls
-   * snapshot (from the local same-device rollFeed, filtered to their own operatorKey and
-   * capped smaller), not just the new one -- casPatchSeat's merge replaces the "rolls" key
-   * wholesale each call, so a delta-only push would erase whatever the Handler hadn't
-   * pulled yet instead of adding to it. Sending the full snapshot also means a later
-   * successful push self-heals any roll a remote Handler missed while an earlier push
-   * failed, with no retry logic needed.
+   * Session-wide, real-time roll feed: the one deliberately lobby-wide piece of this module
+   * (everything else here is scoped to one seat and only ever updates on a deliberate
+   * pull/push). Every seated Operator and the session's Handler read the SAME feed via
+   * Supabase Realtime (session_rolls table, see the 20260802060000 migration) instead of the
+   * Bearer-token /api/cell/* transport the rest of this file uses -- Realtime needs a direct
+   * Supabase client connection (window.VeilAuth already loads one for auth), and there is no
+   * per-seat authority question to resolve here the way there is for Harm/Stability/rounds.
    */
-  async function pushOperatorRoll(roll) {
+  function sessionRollsClient() {
+    return window.VeilAuth && window.VeilAuth.getClient ? window.VeilAuth.getClient() : null;
+  }
+
+  /** Broadcasts one roll to the whole lobby for the current connection's session. Requires
+   * a live Supabase client session (not just a Cell connection) since the insert goes
+   * straight to Supabase, not through api.veildaemon.app. */
+  async function publishSessionRoll(roll) {
     if (!connection || connection.role !== "operator") return null;
-    const cell = window.VeilDaemonCellSync;
-    const recent = (cell?.listRollFeed() || [])
-      .filter((item) => item.operatorKey === roll.operatorKey)
-      .slice(-10);
-    return authedFetch("publish", {
-      method: "POST",
-      body: { sessionId: connection.sessionId, patch: { rolls: recent } },
-    });
+    const client = sessionRollsClient();
+    const user = window.VeilAuth && window.VeilAuth.getUser ? window.VeilAuth.getUser() : null;
+    if (!client || !user) return null;
+    const { data, error } = await client
+      .from("session_rolls")
+      .insert({
+        session_id: connection.sessionId,
+        owner_user_id: user.id,
+        operator_key: roll.operatorKey || "OP-LOCAL",
+        operator_name: roll.name || "Operator",
+        roll,
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message || "Roll broadcast failed.");
+    return data;
+  }
+
+  /**
+   * Subscribes to every new roll for the current connection's session, Operator or Handler
+   * alike (matches the shared/lobby-wide read policy). Returns an unsubscribe function;
+   * callers own the subscription's lifetime (e.g. unsubscribe on leaveCell/page teardown).
+   */
+  function subscribeToSessionRolls(onRoll) {
+    if (!connection) return () => {};
+    const client = sessionRollsClient();
+    if (!client) return () => {};
+    const channel = client
+      .channel(`session-rolls-${connection.sessionId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "session_rolls", filter: `session_id=eq.${connection.sessionId}` },
+        (payload) => {
+          if (payload && payload.new) onRoll(payload.new);
+        },
+      )
+      .subscribe();
+    return () => {
+      client.removeChannel(channel);
+    };
   }
 
   /**
@@ -326,7 +345,8 @@
     closeCell,
     pullState,
     pushOperatorSend,
-    pushOperatorRoll,
+    publishSessionRoll,
+    subscribeToSessionRolls,
     pushHandlerProjections,
   };
 }());

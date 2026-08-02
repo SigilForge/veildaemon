@@ -587,66 +587,74 @@ test("Operator and Handler connections persist under separate keys and don't clo
   await handlerPage.close();
 });
 
-test("pullState merges a remote Operator's rolls into the Handler's local rollFeed, deduping on repeat pulls", async ({ page }) => {
-  // Rolls travel inside the operatorSend patch as a "rolls" field, separately from the
-  // normalizeOperatorSend-covered fields (harmBoxes/stability/etc) -- pullState's Handler
-  // branch is responsible for lifting them into the same rollFeed the local same-device
-  // path writes to, so handler-cell-sync.js's existing listRollFeed()-based UI shows
-  // cross-device rolls with no changes of its own.
-  let pullCount = 0;
-  await page.route("**/api/cell/state**", (route) => {
-    pullCount += 1;
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        ok: true,
-        session: { id: "test-session" },
-        seats: [{
-          id: "seat-1",
-          live_state: {
-            operatorSend: {
-              sourceId: "OP-1", name: "Op One", harmBoxes: 0, stability: 10,
-              rolls: [{ id: "roll-a", operatorKey: "OP-1", name: "Op One", total: 9, summary: "roll a" }]
-            }
-          }
-        }]
-      })
-    });
-  });
+test("publishSessionRoll inserts into session_rolls via the Supabase client, scoped to the current connection's session and user", async ({ page }) => {
+  // The lobby roll feed bypasses api.veildaemon.app entirely -- it talks straight to
+  // Supabase (insert + Realtime subscribe) via the client window.VeilAuth already loads for
+  // auth, since Realtime needs a direct client connection the Bearer-token REST transport
+  // the rest of cell-sync-remote.js uses doesn't provide.
   await page.goto("/operator/");
-  const result = await page.evaluate(async () => {
-    const remote = window.VeilDaemonCellRemote;
-    remote.setConnection({ sessionId: "test-session", role: "handler", getToken: async () => "fake-token" });
-    await remote.pullState();
-    await remote.pullState(); // repeat pull -- must not duplicate the same roll
-    return window.VeilDaemonCellSync.listRollFeed();
+  const captured = await page.evaluate(async () => {
+    let capturedTable = null;
+    let capturedRow = null;
+    window.VeilAuth.getClient = () => ({
+      from: (table) => {
+        capturedTable = table;
+        return {
+          insert: (row) => {
+            capturedRow = row;
+            return { select: () => ({ single: async () => ({ data: { ...row, id: "roll-row-1" }, error: null }) }) };
+          }
+        };
+      }
+    });
+    window.VeilAuth.getUser = () => ({ id: "user-1" });
+    window.VeilDaemonCellRemote.setConnection({ sessionId: "sess-1", role: "operator", getToken: async () => "fake-token" });
+    const result = await window.VeilDaemonCellRemote.publishSessionRoll({ operatorKey: "OP-1", name: "Op One", total: 12, summary: "mine" });
+    return { capturedTable, capturedRow, result };
   });
-  expect(pullCount).toBe(2);
-  expect(result).toHaveLength(1);
-  expect(result[0]).toMatchObject({ id: "roll-a", operatorKey: "OP-1", total: 9 });
+  expect(captured.capturedTable).toBe("session_rolls");
+  expect(captured.capturedRow).toMatchObject({
+    session_id: "sess-1", owner_user_id: "user-1", operator_key: "OP-1", operator_name: "Op One"
+  });
+  expect(captured.capturedRow.roll).toMatchObject({ operatorKey: "OP-1", total: 12 });
+  expect(captured.result).toMatchObject({ id: "roll-row-1" });
 });
 
-test("pushOperatorRoll sends this Operator's own recent rolls, capped, without touching other operatorSend fields server-side", async ({ page }) => {
-  let capturedBody = null;
-  await page.route("**/api/cell/publish", (route) => {
-    capturedBody = route.request().postDataJSON();
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, seat: {} }) });
-  });
+test("subscribeToSessionRolls filters by the current session and forwards each new row to the callback", async ({ page }) => {
   await page.goto("/operator/");
-  await page.evaluate(async () => {
-    const cell = window.VeilDaemonCellSync;
-    const remote = window.VeilDaemonCellRemote;
-    remote.setConnection({ sessionId: "test-session", role: "operator", getToken: async () => "fake-token" });
-    // Two different operators' rolls in the local bus (e.g. same-device multi-seat testing)
-    // -- pushOperatorRoll must only ever send THIS operator's own rolls, never someone else's.
-    cell.publishOperatorRoll({ operatorKey: "OTHER-OP", name: "Other", total: 1, summary: "not mine" });
-    const mine = cell.publishOperatorRoll({ operatorKey: "OP-1", name: "Op One", total: 12, summary: "mine" });
-    await remote.pushOperatorRoll(mine.roll);
+  const result = await page.evaluate(async () => {
+    let capturedChannelName = null;
+    let capturedFilterConfig = null;
+    let registeredCallback = null;
+    const fakeChannel = {
+      on: (event, config, cb) => {
+        capturedFilterConfig = config;
+        registeredCallback = cb;
+        return fakeChannel;
+      },
+      subscribe: () => fakeChannel
+    };
+    window.VeilAuth.getClient = () => ({
+      channel: (name) => {
+        capturedChannelName = name;
+        return fakeChannel;
+      },
+      removeChannel: () => {}
+    });
+    window.VeilDaemonCellRemote.setConnection({ sessionId: "sess-1", role: "handler", getToken: async () => "fake-token" });
+    const received = [];
+    const unsubscribe = window.VeilDaemonCellRemote.subscribeToSessionRolls((roll) => received.push(roll));
+    // Simulate Supabase Realtime delivering an INSERT event.
+    registeredCallback({ new: { id: "row-1", roll: { total: 7 } } });
+    unsubscribe();
+    return { capturedChannelName, capturedFilterConfig, received };
   });
-  expect(capturedBody.sessionId).toBe("test-session");
-  expect(capturedBody.patch.rolls).toHaveLength(1);
-  expect(capturedBody.patch.rolls[0]).toMatchObject({ operatorKey: "OP-1", total: 12 });
+  expect(result.capturedChannelName).toBe("session-rolls-sess-1");
+  expect(result.capturedFilterConfig).toMatchObject({
+    event: "INSERT", schema: "public", table: "session_rolls", filter: "session_id=eq.sess-1"
+  });
+  expect(result.received).toHaveLength(1);
+  expect(result.received[0]).toMatchObject({ id: "row-1" });
 });
 
 async function waitForClueChips(page) {

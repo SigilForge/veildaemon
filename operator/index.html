@@ -268,6 +268,10 @@
             </div>
             <div class="roll-output" id="roll-output">Awaiting action.</div>
             <div class="roll-sync-status" id="roll-sync-status" hidden><span class="sync-check">✓</span> Roll logged to Cell (Handler feed updated)</div>
+            <details class="lobby-rolls-drawer" id="lobby-rolls-drawer" hidden>
+              <summary>Lobby Rolls <span class="lobby-rolls-badge" id="lobby-rolls-badge">0</span></summary>
+              <div class="lobby-rolls-list" id="lobby-rolls-list"></div>
+            </details>
           </article>
 
           <div class="operator-live-grid live-lower-grid wide">
@@ -620,7 +624,7 @@
   <script src="../cell-sync.js?v=20260802-rollsync1"></script>
   <script src="../pressure-round.js?v=20260801-actioneconomy1"></script>
   <script src="../cell-sync-remote.js?v=20260802-rollsync1"></script>
-  <script src="../veildaemon-auth.js?v=20260731-auth2"></script>
+  <script src="../veildaemon-auth.js?v=20260802-auth3"></script>
   <script src="./operator.js?v=20260802-rollsync1"></script>
 </body>
 </html>

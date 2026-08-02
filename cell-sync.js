@@ -594,7 +594,6 @@
     stampMs,
     makeId,
     normalizeProjection,
-    normalizeOperatorSend,
-    normalizeRollFeedItem
+    normalizeOperatorSend
   };
 }());

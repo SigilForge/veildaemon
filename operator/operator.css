@@ -1573,6 +1573,87 @@ select.is-locked {
   margin-top: .18rem;
 }
 
+.lobby-rolls-drawer {
+  width: 100%;
+  margin: .5rem 0 0;
+  padding: 0;
+  border: 1px solid rgba(185,84,255,.22);
+  background: rgba(0,0,0,.18);
+}
+.lobby-rolls-drawer summary {
+  padding: .3rem .5rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1.35;
+  list-style: none;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.lobby-rolls-drawer summary::-webkit-details-marker {
+  display: none;
+}
+.lobby-rolls-drawer[open] summary {
+  color: var(--purple);
+  border-bottom: 1px solid rgba(185,84,255,.16);
+}
+.lobby-rolls-badge {
+  font-size: .6rem;
+  color: var(--cyan);
+  background: rgba(102,255,220,.1);
+  padding: .05rem .35rem;
+  border-radius: 2px;
+}
+.lobby-rolls-list {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  padding: .45rem .55rem .55rem;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+.lobby-rolls-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: .64rem;
+}
+.lobby-roll-card {
+  padding: .4rem .5rem;
+  border: 1px solid rgba(102,255,220,.18);
+  background: rgba(0,0,0,.3);
+  border-radius: 2px;
+}
+.lobby-roll-header {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+.lobby-roll-name {
+  font-size: .66rem;
+  color: var(--text);
+}
+.lobby-roll-total {
+  font-size: .64rem;
+  font-weight: 700;
+  color: var(--cyan);
+}
+.lobby-roll-time {
+  font-size: .6rem;
+  color: var(--muted);
+  margin-left: auto;
+}
+.lobby-roll-summary {
+  margin: .25rem 0 0;
+  font-size: .62rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .operator-live-grid,
 .live-lower-grid {
   display: grid;
