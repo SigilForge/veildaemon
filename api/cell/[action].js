@@ -385,17 +385,18 @@ async function handleClose(req, res) {
   if (!session) return fail(res, 404, "Cell not found or not owned by this account.");
   if (session.status === "closed") return json(res, 200, { ok: true, session, seats: [] });
 
+  // left_at means "this participant actually left the lobby" -- a fact about ONE seat,
+  // decided by that Operator (or the Handler removing them). Closing the session is a fact
+  // about the GAME (no more declarations, no more mechanical mutations, round advancement
+  // stops) and must never be forced onto every seat's left_at just because the mechanics
+  // stopped accepting input. Conflating them was the actual bug: a just-closed seat looked
+  // identical to one whose Operator had genuinely departed, so the very next read of it (an
+  // Operator retrieving their own final archive projection) got treated as gone. Everyone
+  // stays in the lobby -- seeing table history, chat, acknowledgements, reward review -- the
+  // mission ending does not evict them from the room.
   const seatsRes = await restAsUser(auth.token, `/session_operator_state?session_id=eq.${sessionId}&left_at=is.null&select=*`);
   const seats = seatsRes.ok ? (await restJson(seatsRes)) || [] : [];
   const closedAt = new Date().toISOString();
-
-  for (const seat of seats) {
-    await restAsUser(auth.token, `/session_operator_state?id=eq.${seat.id}`, {
-      method: "PATCH",
-      prefer: "return=minimal",
-      body: { left_at: closedAt },
-    });
-  }
 
   const closeRes = await restAsUser(auth.token, `/handler_sessions?id=eq.${sessionId}`, {
     method: "PATCH",
