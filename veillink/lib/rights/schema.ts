@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 export const RIGHTS_SCHEMA_VERSION = "1.1";
-export const RIGHTS_PRICE_CENTS = 999;
+export const RIGHTS_PRICE_CENTS = 199;
+export const RIGHTS_PRICE_LABEL = "Founders price";
 export const RIGHTS_DISCLAIMER =
   "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.";
 

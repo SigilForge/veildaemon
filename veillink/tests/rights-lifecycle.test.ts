@@ -80,21 +80,21 @@ const paidWebhook = {
   checkoutSessionId: "cs_live_123",
   paymentIntentId: "pi_123",
   paymentStatus: "paid" as const,
-  amountPaid: 999,
+  amountPaid: 199,
   currency: "usd",
   confirmedAt: "2026-07-27T01:00:00.000Z",
 };
 
 const expectedCheckout = {
   priceId: "price_rights",
-  amount: 999,
+  amount: 199,
   currency: "usd",
 };
 
 function paidSession(overrides: Record<string, unknown> = {}) {
   return {
     id: "cs_live_123",
-    amount_total: 999,
+    amount_total: 199,
     currency: "usd",
     customer: "cus_123",
     metadata: {
@@ -301,7 +301,7 @@ describe("Creator Rights lifecycle", () => {
   it("rejects unpaid or mismatched Checkout Sessions", () => {
     const record = rightsRecord({ record_status: "pending_payment", stripe_checkout_session_id: "cs_live_123" });
     expect(() => validateRightsCheckoutSession(record, paidSession({ payment_status: "unpaid" }), rightsLineItems, expectedCheckout)).toThrow(/not paid/);
-    expect(() => validateRightsCheckoutSession(record, paidSession({ amount_total: 1999 }), rightsLineItems, expectedCheckout)).toThrow(/amount/);
+    expect(() => validateRightsCheckoutSession(record, paidSession({ amount_total: 999 }), rightsLineItems, expectedCheckout)).toThrow(/amount/);
     expect(() => validateRightsCheckoutSession(record, paidSession({ currency: "eur" }), rightsLineItems, expectedCheckout)).toThrow(/currency/);
     expect(() => validateRightsCheckoutSession(record, paidSession(), [{ price: { id: "price_other" } }], expectedCheckout)).toThrow(/configured Creator Rights price/);
   });

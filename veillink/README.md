@@ -99,7 +99,7 @@ Billing is Stripe-ready but not live until configured. The live Stripe catalog w
 
 Book One uses a separate price/product configuration on the root API claim path (`BOOK_ONE_STRIPE_PRICE_ID` and related env on the VeilDaemon Vercel project).
 
-Creator Rights Records use a separate one-time Stripe Price. The application expects `$9.99 USD`; the code validates the configured Price ID, `amount_total = 999`, `currency = usd`, metadata, and `payment_status = paid` before calling the service-role Supabase publication function. Browser success redirects never publish records.
+Creator Rights Records use a separate one-time Stripe Price. The application expects the `$1.99 USD` Founders price (`price_1TzpmbFht6uPr4mzfE0KcB0H`); the code validates the configured Price ID, `amount_total = 199`, `currency = usd`, metadata, and `payment_status = paid` before calling the service-role Supabase publication function. Browser success redirects never publish records.
 
 1. Create Stripe products for Pro and Business.
 2. Create monthly and yearly recurring prices.

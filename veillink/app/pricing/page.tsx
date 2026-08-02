@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { plans } from "@/lib/config";
-import { RIGHTS_PRICE_CENTS } from "@/lib/rights/schema";
+import { RIGHTS_PRICE_CENTS, RIGHTS_PRICE_LABEL } from "@/lib/rights/schema";
 import { buildMetadata, pricingJsonLd, siteConfig } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Pricing — Dynamic Redirects & SigilForge Rights (SFR)",
-  description: `${siteConfig.name} pricing: free plan with 3 active redirects, Pro at $7/mo, Business at $19/mo, plus one-time Creator Rights Records ($9.99 lifetime Registry license) under the SigilForge Rights Framework (SFR).`,
+  description: `${siteConfig.name} pricing: free plan with 3 active redirects, Pro at $7/mo, Business at $19/mo, plus one-time Creator Rights Records ($1.99 Founders lifetime Registry license) under the SigilForge Rights Framework (SFR).`,
   path: "/pricing",
   keywords: [
     "dynamic QR code pricing",
@@ -117,14 +117,14 @@ export default function PricingPage() {
         </p>
 
         <article className="price-card featured" style={{ maxWidth: "100%", width: "100%" }}>
-          <span className="price-badge">One-Time Lifetime License</span>
+          <span className="price-badge">{RIGHTS_PRICE_LABEL} · One-Time Lifetime License</span>
           <p className="panel-kicker">SigilForge Rights Registry</p>
           <p className="amount">
             {money(RIGHTS_PRICE_CENTS)}
             <span style={{ fontSize: "0.875rem", fontWeight: 400, color: "var(--muted)" }}> / one-time per record</span>
           </p>
           <p className="muted">
-            Each CRR includes permanent hosting of the record, public verification page, Creator Dossier generation, and future access. Zero recurring subscription fees required.
+            Founders pricing covers each CRR with permanent hosting of the record, public verification page, Creator Dossier generation, and future access. Zero recurring subscription fees required.
           </p>
           <ul style={{ margin: "1.25rem 0" }}>
             <li><strong>One-time payment</strong> — no recurring monthly or annual subscription fees to keep your record active</li>

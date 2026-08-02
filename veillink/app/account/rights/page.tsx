@@ -8,7 +8,7 @@ import { requireUser } from "@/lib/store";
 import { canCreateCheckout } from "@/lib/rights/lifecycle";
 import { canEditRightsRecord, canGenerateRightsQrAssets, entitlementLabel, entitlementStatusOf } from "@/lib/rights/entitlement";
 import { listOwnedRightsRecords, recordUrl } from "@/lib/rights/records";
-import { RIGHTS_PRICE_CENTS, availabilityLabel, workTypeLabel } from "@/lib/rights/schema";
+import { RIGHTS_PRICE_CENTS, RIGHTS_PRICE_LABEL, availabilityLabel, workTypeLabel } from "@/lib/rights/schema";
 import type { RightsQrPreferences } from "@/lib/rights/qr-options";
 import { effectiveVerification } from "@/lib/rights/verification";
 import { listVerificationState } from "@/lib/rights/verification-store";
@@ -80,7 +80,7 @@ export default async function AccountRightsPage({
 
       {created ? (
         <p className="notice">
-          Draft saved. Review it below, then publish ({money(RIGHTS_PRICE_CENTS)}) to issue the permanent Rights Record. Registry fees support long-term record storage, verification infrastructure, maintenance, and the continued operation of this independent creator-focused service. Each record is covered by a single one-time lifetime Registry license with no recurring subscription fees.
+          Draft saved. Review it below, then publish at the {RIGHTS_PRICE_LABEL} ({money(RIGHTS_PRICE_CENTS)}) to issue the permanent Rights Record. Registry fees support long-term record storage, verification infrastructure, maintenance, and the continued operation of this independent creator-focused service. Each record is covered by a single one-time lifetime Registry license with no recurring subscription fees.
         </p>
       ) : null}
       {checkout === "success" ? (
@@ -167,7 +167,7 @@ export default async function AccountRightsPage({
                           <form action="/api/rights/checkout" method="post">
                             <input type="hidden" name="recordId" value={record.id} />
                             <button className="button" type="submit">
-                              Publish · {money(RIGHTS_PRICE_CENTS)}
+                              Publish · {money(RIGHTS_PRICE_CENTS)} Founders
                             </button>
                           </form>
                           <p className="muted" style={{ fontSize: "0.75rem", marginTop: "0.25rem" }}>

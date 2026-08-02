@@ -95,8 +95,8 @@ Creator Rights Records use a separate payment-governed publication boundary:
   - `checkout.session.completed`
   - `checkout.session.expired`
 - Store the endpoint signing secret in `RIGHTS_STRIPE_WEBHOOK_SECRET`, or use `STRIPE_WEBHOOK_SECRET` only if the same Stripe endpoint is intentionally shared.
-- Configure `RIGHTS_STRIPE_PRICE_ID` to a one-time `$9.99 USD` Price in the same Stripe mode as `STRIPE_SECRET_KEY`.
-- The webhook validates the configured Price ID, `amount_total=999`, `currency=usd`, `payment_status=paid`, stable metadata, and the database-owned pending Checkout Session before publishing.
+- Configure `RIGHTS_STRIPE_PRICE_ID=price_1TzpmbFht6uPr4mzfE0KcB0H` for the one-time `$1.99 USD` Founders Price in the same Stripe mode as `STRIPE_SECRET_KEY`.
+- The webhook validates the configured Price ID, `amount_total=199`, `currency=usd`, `payment_status=paid`, stable metadata, and the database-owned pending Checkout Session before publishing.
 - Successful publish sets durable fields: `payment_status=paid`, `entitlement_status=active`, permanent `record_id`, `slug`, and `qr_asset_version >= 1`.
 - Branded QR GET/POST `/api/rights/:id/qr` requires owner session **and** `entitlement_status=active`. Browser Checkout success alone never unlocks assets.
 - Controlled QR customization only (colors, center mark presets, frame, labels, format). Server enforces ECC H, quiet zone, contrast ≥ 4.5, max center obstruction, and post-generation decode verification.
