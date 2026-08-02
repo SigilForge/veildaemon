@@ -305,6 +305,11 @@
     return "";
   }
 
+  function isPresentationAssignable(entry) {
+    if (typeof catalogs.isPresentationAssignable === "function") return catalogs.isPresentationAssignable(entry);
+    return Boolean(entry && !entry.legacyAlias && entry.category === "presentation");
+  }
+
   function archiveLabelForKey(key) {
     if (typeof catalogs.archiveLabelForKey === "function") return catalogs.archiveLabelForKey(key);
     return titleCaseKey(key);
@@ -2528,7 +2533,7 @@
         .filter((unlock) => unlock.type === "ontology")
         .forEach((unlock) => {
           const entry = entryFor(unlock.key);
-          if (!entry || entry.legacyAlias) return;
+          if (!isPresentationAssignable(entry)) return;
           allowed.push({ value: entry.displayName, label: entry.displayName });
         });
     }

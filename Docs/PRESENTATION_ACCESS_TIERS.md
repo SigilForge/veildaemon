@@ -65,9 +65,10 @@ They do not appear in the sealed archive grid.
 |---------|----------------|
 | **Sheet → Presentation dropdown** | Open core picks only, plus anything the Handler already unlocked via `ONTOLOGY_UNLOCK` or `ARCHIVE_UNLOCK` |
 | **Authorized Unlocks** | Imported unlock list + expansion vault index (locked cards, no rules) |
-| **Handler → Operators** | Full catalog for granting packets; Handler Approval labels visible to Handler only |
+| **Handler → Operators** | Assignable Presentation catalog for granting packets; Handler Approval labels visible to Handler only |
 
 Do **not** list Handler Approval or Expansion Locked presentations on the Sheet until unlocked.
+Do **not** treat generic categories such as Ghost or Frequency Distortion as assignable Presentations. Advanced playable ontology records such as Mythic Echo may grant abilities and pressure without becoming Frequency, law, or currency records.
 
 ## Implementation map
 

@@ -1,7 +1,9 @@
 (function () {
   /**
-   * Presentation Pressure = live metabolic / ontological load inside a human-scale
-   * Operator. Not a status picker, damage track, or charge bar.
+   * Pressure modules cover Presentation identity tracks plus a few support
+   * pressure meters. Presentation identity is creature/form/adaptation surface.
+   * Void remains a bank/currency/cost outside that identity layer; Void-Shard is
+   * the Presentation whose malformed capacity makes that cost feed back into form.
    *
    * Three layers per module:
    *   1. Pressure Track — numeric load that rises and falls
@@ -54,12 +56,14 @@
       max: Number(spec.range?.max ?? 6)
     };
     const bands = Array.isArray(spec.bands) ? spec.bands.slice() : [];
+    const catalogKeys = Array.isArray(spec.catalogKeys) ? spec.catalogKeys.slice() : [];
     const trackId = spec.trackId || `${spec.id}.track`;
     const module = {
       id: spec.id,
       label: spec.label,
       cardLabel: spec.cardLabel || `${spec.label} Pressure`,
-      catalogKeys: Array.isArray(spec.catalogKeys) ? spec.catalogKeys.slice() : [],
+      catalogKeys,
+      moduleType: spec.moduleType || (catalogKeys.length ? "presentation" : "support_pressure"),
       trackLabel: spec.trackLabel,
       trackId,
       range,
@@ -507,6 +511,7 @@
       id: "dream",
       label: "Dream",
       cardLabel: "Dream Pressure",
+      moduleType: "frequency_pressure",
       catalogKeys: [],
       trackId: "dream.lucidity_debt",
       trackLabel: "Lucidity Debt",
@@ -531,6 +536,7 @@
       id: "stillness",
       label: "Stillness",
       cardLabel: "Stillness Pressure",
+      moduleType: "frequency_pressure",
       catalogKeys: [],
       trackId: "stillness.inertia",
       trackLabel: "Inertia",
@@ -1371,6 +1377,10 @@
     return Boolean(presentation.misfireEffects && track && (track.kind || "").endsWith("_load"));
   }
 
+  function isPresentationIdentity(presentation) {
+    return Boolean(presentation && presentation.moduleType === "presentation");
+  }
+
   function presentationLoadBand(presentationId, value) {
     const presentation = presentationById[presentationId] || null;
     if (!presentation?.trackId) return "";
@@ -1807,6 +1817,8 @@
     LOAD_MODIFIERS,
     LOAD_MODIFIER_RULE,
     presentations: PRESENTATIONS,
+    pressureModules: PRESENTATIONS,
+    presentationIdentities: PRESENTATIONS.filter(isPresentationIdentity),
     trackContract,
     presentationContract,
     presentationForCatalogKey,
@@ -1841,6 +1853,7 @@
     essenceLoadMisfireFlavor,
     isWraithCatalogKey,
     isLoadPresentation,
+    isPresentationIdentity,
     presentationLoadBand,
     bloodLoadBand,
     essenceLoadBand,

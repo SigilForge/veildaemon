@@ -552,7 +552,7 @@
     }),
     presentationAbilityContract({
       id: "technomancer",
-      catalogKeys: ["TECHNOMANCER_DAEMON_ALIGNED"],
+      catalogKeys: ["TECHNOMANCER_DAEMON_ALIGNED", "TECHNOMANCER"],
       label: "Technomancer / Daemon-Aligned",
       displayLabel: "Technomancer / Daemon-Aligned",
       accessTier: "open",

@@ -28,10 +28,14 @@
   }
 
   function presentationOptionList() {
-    const catalog = api.presentationCatalog || {};
-    return Object.keys(catalog).map((key) => ({
-      key,
-      label: catalog[key]?.displayName || catalog[key]?.label || key
+    const options = typeof api.presentationAssignableOptions === "function"
+      ? api.presentationAssignableOptions()
+      : Object.entries(api.presentationCatalog || {})
+        .map(([key, entry]) => ({ key, ...entry }))
+        .filter((entry) => entry.category === "presentation" && !entry.legacyAlias);
+    return options.map((entry) => ({
+      key: entry.key,
+      label: entry.displayName || entry.label || entry.key
     }));
   }
 

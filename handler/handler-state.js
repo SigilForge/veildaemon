@@ -4909,6 +4909,7 @@
     presentationCatalog: catalogs.presentationCatalog || {},
     backgroundCatalog: catalogs.backgroundCatalog || {},
     presentationOptions: catalogs.presentationOptions || (() => []),
+    presentationAssignableOptions: catalogs.presentationAssignableOptions || catalogs.presentationOptions || (() => []),
     backgroundOptions: catalogs.backgroundOptions || (() => []),
     presentationEntry: catalogs.presentationEntry || ((key) => ({ label: safeString(key), displayName: safeString(key), access: "unknown" })),
     backgroundEntry: catalogs.backgroundEntry || ((key) => ({ label: safeString(key), displayName: safeString(key), access: "unknown" })),

@@ -888,7 +888,10 @@
     const background = document.querySelector('[name="background"]');
     if (ontology) {
       ontology.textContent = "";
-      api.presentationOptions().forEach((entry) => {
+      const presentationOptions = typeof api.presentationAssignableOptions === "function"
+        ? api.presentationAssignableOptions()
+        : api.presentationOptions();
+      presentationOptions.forEach((entry) => {
         if (entry.access === "archive" || entry.legacyAlias) return;
         const option = document.createElement("option");
         option.value = entry.key;

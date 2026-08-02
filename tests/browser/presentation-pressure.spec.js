@@ -13,13 +13,29 @@ const LOAD_PRESENTATIONS = [
   { id: "void_shard", kind: "void_load", trackId: "void_shard.void_load", catalog: "VOID_SHARD", bands: ["Cold Shard", "Contained Contamination", "Contamination Bloom", "Breach Event"] }
 ];
 
-test("presentation pressure registry exposes eleven ontology modules", async ({ page }) => {
+test("presentation pressure registry distinguishes presentation identities from support pressure modules", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
     const api = window.PresentationPressure;
+    const drift = window.PresentationDrift;
     return {
       count: api.presentations.length,
       loadCount: api.presentations.filter((item) => api.isLoadPresentation(item)).length,
+      identityIds: api.presentationIdentities.map((item) => item.id),
+      supportIds: api.pressureModules.filter((item) => !api.isPresentationIdentity(item)).map((item) => item.id),
+      dreamType: api.presentationById("dream").moduleType,
+      stillnessType: api.presentationById("stillness").moduleType,
+      rawVoidResolvesTo: drift.resolvePresentationId("VOID"),
+      voidShardResolvesTo: drift.resolvePresentationId("VOID_SHARD"),
+      mythicEchoResolvesTo: drift.resolvePresentationId("MYTHIC_ECHO"),
+      wraithOntologyResolvesTo: drift.resolvePresentationId("WRAITH"),
+      technomancerOntologyResolvesTo: drift.resolvePresentationId("TECHNOMANCER"),
+      echoAlteredResolvesTo: drift.resolvePresentationId("ECHO_ALTERED"),
+      wraithTouchedResolvesTo: drift.resolvePresentationId("WRAITH_TOUCHED_ANCHOR_BOUND"),
+      technomancerPresentationResolvesTo: drift.resolvePresentationId("TECHNOMANCER_DAEMON_ALIGNED"),
+      mythicEchoHeadline: window.PresentationAbilities.presentationAbilityView({}, "MYTHIC_ECHO")?.headlineAbility?.name,
+      technomancerHeadline: window.PresentationAbilities.presentationAbilityView({}, "TECHNOMANCER")?.headlineAbility?.name,
+      wraithActiveNames: window.PresentationAbilities.presentationAbilityView({}, "WRAITH")?.activeAbilities?.map((entry) => entry.name) || [],
       sanguine: api.trackById("sanguine.blood_load").label,
       voidShard: api.presentationById("void_shard").trackLabel,
       voidBands: api.bandForTrack("void_shard.void_load", 0),
@@ -30,6 +46,33 @@ test("presentation pressure registry exposes eleven ontology modules", async ({ 
   });
   expect(summary.count).toBe(12);
   expect(summary.loadCount).toBe(10);
+  expect(summary.identityIds).toEqual([
+    "sanguine",
+    "void_shard",
+    "wraith",
+    "echo",
+    "therian",
+    "technomancer",
+    "construct",
+    "vessel",
+    "sensitive",
+    "hollow_silence_altered"
+  ]);
+  expect(summary.supportIds).toEqual(["dream", "stillness"]);
+  expect(summary.dreamType).toBe("frequency_pressure");
+  expect(summary.stillnessType).toBe("frequency_pressure");
+  expect(summary.rawVoidResolvesTo).toBe("");
+  expect(summary.voidShardResolvesTo).toBe("void_shard");
+  expect(summary.mythicEchoResolvesTo).toBe("echo");
+  expect(summary.wraithOntologyResolvesTo).toBe("wraith");
+  expect(summary.technomancerOntologyResolvesTo).toBe("technomancer");
+  expect(summary.echoAlteredResolvesTo).toBe("echo");
+  expect(summary.wraithTouchedResolvesTo).toBe("wraith");
+  expect(summary.technomancerPresentationResolvesTo).toBe("technomancer");
+  expect(summary.mythicEchoHeadline).toBe("Replay Slip");
+  expect(summary.technomancerHeadline).toBe("Soft Override");
+  expect(summary.wraithActiveNames).toContain("Poltergeist Touch");
+  expect(summary.wraithActiveNames).toContain("Anchor Pull");
   expect(summary.sanguine).toBe("Blood Load");
   expect(summary.voidShard).toBe("Void Load");
   expect(summary.voidBands).toBe("Cold Shard");
@@ -37,6 +80,27 @@ test("presentation pressure registry exposes eleven ontology modules", async ({ 
   expect(summary.modifiers.edge.bonus).toBe(1);
   expect(summary.modifiers.collapse.penalty).toBe(-2);
   expect(summary.maxRisk).toContain("Stasis Lock");
+});
+
+test("presentation catalog proposal options exclude non-presentation ontology records", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const catalogs = window.CradlepointCatalogs;
+    const options = catalogs.presentationAssignableOptions();
+    return {
+      keys: options.map((entry) => entry.key),
+      hungerLabel: catalogs.presentationEntry("HUNGER_ADJACENT").displayName,
+      voidShardLabel: catalogs.presentationEntry("VOID_SHARD").displayName
+    };
+  });
+  expect(summary.keys).toContain("VOID_SHARD");
+  expect(summary.keys).toContain("VOID_SHARD_VARIANT");
+  expect(summary.keys).toContain("HUNGER_ADJACENT");
+  expect(summary.keys).toContain("MYTHIC_ECHO");
+  expect(summary.keys).not.toContain("GHOST");
+  expect(summary.keys).not.toContain("FREQUENCY_DISTORTION");
+  expect(summary.hungerLabel).toBe("Hunger-Adjacent Entity-Touched");
+  expect(summary.voidShardLabel).toBe("Void-Shard");
 });
 
 test("universal load presentations share the 0-6 safe-middle grammar", async ({ page }) => {

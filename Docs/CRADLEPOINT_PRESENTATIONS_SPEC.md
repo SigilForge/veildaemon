@@ -196,13 +196,13 @@ This document is a generated codebase implementation reference for all **Cradlep
 
 ## <a id="silence"></a>Hollow / Silence-Altered
 
-- **ID:** `silence` | **Catalog Keys:** `HOLLOW_SILENCE_ALTERED`
+- **ID:** `hollow_silence_altered` | **Catalog Keys:** `HOLLOW_SILENCE_ALTERED`
 - **Access Tier:** `open` (Open Core)
 - **Identity:** *Too quiet, too hard to hold, too easy to miss, too close to gone.*
 
 ### Pressure Track: Silence Load
 
-- **Track ID:** `silence.silence_load` (Range: 0–6)
+- **Track ID:** `hollow_silence_altered.silence_load` (Range: 0–6)
 
 #### Load Bands
 
@@ -494,6 +494,8 @@ Contained Entity Types: Unknown, Angelic / Divine / Sainted, Demon / Infernal / 
 - **Access Tier:** `handler_approval` (Handler Approval Recommended/Required)
 - **Identity:** *Too contaminated, too compatible with wrongness, too useful near the impossible, too dangerous to stand beside.*
 
+> **Void Boundary:** `VOID_SHARD` is the Presentation. Plain `VOID` is not a Presentation key; Void remains a bank/currency/cost outside the Presentation identity layer.
+
 ### Pressure Track: Void Load
 
 - **Track ID:** `void_shard.void_load` (Range: 0–6)
@@ -618,4 +620,3 @@ Default Haunt Range: *Full in/through Locus. Limited through Tethers.*
 | **Drift 5** | Wraith evolution marker | `deep_drift` | Opens Death Archive path | Handler Approval required |
 
 ---
-

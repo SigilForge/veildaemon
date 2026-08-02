@@ -832,7 +832,6 @@
       VESSEL: "vessel",
       CONSTRUCT: "construct",
       CONSTRUCT_VESSEL: "construct",
-      VOID: "void_shard",
       VOID_SHARD: "void_shard"
     };
     return alias[normalized] || "";

@@ -142,11 +142,12 @@
       displayName: "Mythic Echo",
       category: "ontology",
       access: "advanced",
+      assignablePresentation: true,
       grants: {}
     },
     GHOST: { label: "Ghost", displayName: "Ghost", category: "ontology", access: "advanced", grants: {} },
-    WRAITH: { label: "Wraith", displayName: "Wraith", category: "ontology", access: "advanced", grants: {} },
-    TECHNOMANCER: { label: "Technomancer", displayName: "Technomancer", category: "ontology", access: "advanced", grants: {} },
+    WRAITH: { label: "Wraith", displayName: "Wraith", category: "ontology", access: "advanced", assignablePresentation: true, grants: {} },
+    TECHNOMANCER: { label: "Technomancer", displayName: "Technomancer", category: "ontology", access: "advanced", assignablePresentation: true, grants: {} },
     MYTH_TECH_SYMBIOTE: { label: "Myth-Tech Symbiote", displayName: "Myth-Tech Symbiote", category: "ontology", access: "advanced", grants: {} },
     VEILWALKER: { label: "Veilwalker", displayName: "Veilwalker", category: "ontology", access: "advanced", grants: {} },
     DOMAIN_TOUCHED: { label: "Domain-Touched", displayName: "Domain-Touched", category: "ontology", access: "advanced", grants: {} },
@@ -171,8 +172,8 @@
       grants: {}
     },
     HUNGER_ADJACENT: {
-      label: "Hunger-Adjacent Entity",
-      displayName: "Hunger-Adjacent Entity",
+      label: "Hunger-Adjacent Entity-Touched",
+      displayName: "Hunger-Adjacent Entity-Touched",
       category: "presentation",
       access: "archive",
       archive: "PREDATORY_ARCHIVE",
@@ -523,23 +524,33 @@
   function presentationVaultOptions() {
     return Object.entries(presentationCatalog)
       .map(([key, entry]) => ({ key, ...entry }))
-      .filter((entry) => entry.access === "archive" && entry.locked);
+      .filter((entry) => entry.category === "presentation" && entry.access === "archive" && entry.locked);
+  }
+
+  function isPresentationAssignable(entry) {
+    return Boolean(entry && !entry.legacyAlias && (entry.category === "presentation" || entry.assignablePresentation));
   }
 
   function presentationOpenOptions() {
     return Object.entries(presentationCatalog)
       .map(([key, entry]) => ({ key, ...entry }))
-      .filter((entry) => entry.access === "open" || entry.access === "starter");
+      .filter((entry) => entry.category === "presentation" && (entry.access === "open" || entry.access === "starter"));
   }
 
   function presentationHandlerApprovalOptions() {
     return Object.entries(presentationCatalog)
       .map(([key, entry]) => ({ key, ...entry }))
-      .filter((entry) => entry.access === "handler" && !entry.legacyAlias);
+      .filter((entry) => entry.category === "presentation" && entry.access === "handler" && !entry.legacyAlias);
   }
 
   function presentationCoreCatalogOptions() {
     return [...presentationOpenOptions(), ...presentationHandlerApprovalOptions()];
+  }
+
+  function presentationAssignableOptions() {
+    return Object.entries(presentationCatalog)
+      .map(([key, entry]) => ({ key, ...entry }))
+      .filter(isPresentationAssignable);
   }
 
   function archiveLabelForKey(archiveKey) {
@@ -557,6 +568,7 @@
     if (entry.access === "archive") {
       return `Archive Locked: ${archiveLabelForKey(entry.archive)}`;
     }
+    if (entry.assignablePresentation && entry.access === "advanced") return "Playable Ontology";
     return "";
   }
 
@@ -577,6 +589,8 @@
     presentationOpenOptions,
     presentationHandlerApprovalOptions,
     presentationCoreCatalogOptions,
+    presentationAssignableOptions,
+    isPresentationAssignable,
     presentationAccessLabel,
     archiveLabelForKey,
     presentationEntry: (key) => catalogEntry(presentationCatalog, key),
