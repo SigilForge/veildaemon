@@ -2216,6 +2216,166 @@
     return { activeClueId, clues };
   }
 
+  // Handler's own draft/decision record for Needlepoint session-end rewards (scar,
+  // recovered clue, trust/distrust), one entry per player, resolved before Archive Session
+  // is allowed to actually run (see archiveRewardsResolved). Kept entirely separate from
+  // clueIntegrity (the real per-clue state machine, which sessionRewardActions.recoverClue
+  // drives directly rather than duplicating) and from the Operator's own sessionRewards
+  // bucket (the Cell-sync delivery target once a decision here is "awarded").
+  const sessionRewardStatuses = ["pending", "awarded", "declined", "na"];
+
+  function normalizeSessionRewardStatus(value) {
+    return sessionRewardStatuses.includes(value) ? value : "pending";
+  }
+
+  function normalizeOntologyGrantDraft(value) {
+    if (!value || typeof value !== "object") return null;
+    const presentationKey = safeString(value.presentationKey, 60);
+    if (!presentationKey) return null;
+    return {
+      presentationKey,
+      startingDrift: Math.max(0, Math.min(6, Math.floor(Number(value.startingDrift) || 0))),
+      justification: safeString(value.justification, 400)
+    };
+  }
+
+  function normalizeSessionRewardDecision(value) {
+    const source = value && typeof value === "object" ? value : {};
+    const mark = source.mark && typeof source.mark === "object" ? source.mark : {};
+    const clue = source.clue && typeof source.clue === "object" ? source.clue : {};
+    const trust = source.trust && typeof source.trust === "object" ? source.trust : {};
+    return {
+      // kind: "scar" (ontology-eligible -- awarded through the REAL Presentation Drift
+      // panel; this record is a confirmation, not a second delivery mechanism) vs "mark"
+      // (baseline Operator, Handler-authored label/benefit/cost, optionally proposing an
+      // ontology grant). Computed from the player's own presentation at render time, not
+      // stored here as a free choice.
+      mark: {
+        status: normalizeSessionRewardStatus(mark.status),
+        label: safeString(mark.label, 120),
+        benefit: safeString(mark.benefit, 300),
+        cost: safeString(mark.cost, 300),
+        ontologyGrant: normalizeOntologyGrantDraft(mark.ontologyGrant)
+      },
+      clue: {
+        status: normalizeSessionRewardStatus(clue.status),
+        clueId: safeString(clue.clueId, 120)
+      },
+      trust: {
+        status: normalizeSessionRewardStatus(trust.status),
+        target: safeString(trust.target, 120),
+        stance: safeString(trust.stance, 20).toLowerCase() === "distrust" ? "distrust" : "trust",
+        note: safeString(trust.note, 400),
+        source: safeString(trust.source, 200)
+      }
+    };
+  }
+
+  function normalizeSessionRewardDecisions(value, players) {
+    const source = value && typeof value === "object" ? value : {};
+    const next = {};
+    (Array.isArray(players) ? players : []).forEach((player) => {
+      const id = safeString(player?.id, 120);
+      if (!id) return;
+      next[id] = normalizeSessionRewardDecision(source[id]);
+    });
+    return next;
+  }
+
+  /** True once every category (mark/clue/trust) for every current player is anything other
+   *  than "pending" -- awarded, declined, and not-applicable all count as resolved. Archive
+   *  Session is gated on this so "session complete" can't be claimed while a reward this
+   *  Needlepoint promised is just sitting unresolved. */
+  function sessionRewardsResolved(state) {
+    const players = Array.isArray(state?.players) ? state.players : [];
+    const decisions = state?.sessionRewardDecisions || {};
+    return players.every((player) => {
+      const id = safeString(player?.id, 120);
+      const decision = decisions[id];
+      if (!decision) return false;
+      return decision.mark.status !== "pending"
+        && decision.clue.status !== "pending"
+        && decision.trust.status !== "pending";
+    });
+  }
+
+  function unresolvedSessionRewardPlayerNames(state) {
+    const players = Array.isArray(state?.players) ? state.players : [];
+    const decisions = state?.sessionRewardDecisions || {};
+    return players.filter((player) => {
+      const id = safeString(player?.id, 120);
+      const decision = decisions[id];
+      if (!decision) return true;
+      return decision.mark.status === "pending" || decision.clue.status === "pending" || decision.trust.status === "pending";
+    }).map((player) => player.name || "Operator");
+  }
+
+  function setSessionRewardDecision(state, playerId, category, patch) {
+    const next = clone(normalizeState(state));
+    const decisions = { ...(next.sessionRewardDecisions || {}) };
+    const current = decisions[playerId] || normalizeSessionRewardDecision(null);
+    decisions[playerId] = { ...current, [category]: { ...current[category], ...patch } };
+    next.sessionRewardDecisions = decisions;
+    return normalizeState(next);
+  }
+
+  /** kind is caller-supplied (derived from playerLoadPresentation at render time, not
+   *  stored) so the Handler UI can distinguish "confirm the real Drift Scar already
+   *  happened" from "author a baseline Mark" without this function needing to know about
+   *  ontology eligibility itself. ontologyGrant is optional and only ever meaningful for
+   *  kind "mark" -- it stays a proposal until the Operator accepts it client-side. */
+  function awardSessionRewardMark(state, playerId, { label, benefit, cost, ontologyGrant } = {}) {
+    return setSessionRewardDecision(state, playerId, "mark", {
+      status: "awarded",
+      label: safeString(label, 120),
+      benefit: safeString(benefit, 300),
+      cost: safeString(cost, 300),
+      ontologyGrant: normalizeOntologyGrantDraft(ontologyGrant)
+    });
+  }
+
+  /** Recovering a clue reward walks the REAL clueIntegrity state machine (discover -> secure)
+   *  rather than inventing a parallel "recovered" flag -- see applyClueAction. Idempotent: a
+   *  clue already at secured/archived/contaminated/rerouted is left as-is. */
+  function recoverSessionRewardClue(state, playerId, clueId) {
+    const findClue = (s) => (s.clueIntegrity?.clues || []).find((item) => item.id === clueId);
+    let current = normalizeState(state);
+    const initial = findClue(current);
+    if (!initial) return { state: current, ok: false, message: "Clue not found." };
+    if (initial.state === "unknown") {
+      const discovered = applyClueAction(current, clueId, "discover");
+      if (!discovered.ok) return { state: current, ok: false, message: discovered.message };
+      current = discovered.state;
+    }
+    const afterDiscover = findClue(current);
+    if (afterDiscover && ["discovered", "contaminated", "rerouted"].includes(afterDiscover.state)) {
+      const secured = applyClueAction(current, clueId, "secure");
+      if (!secured.ok) return { state: current, ok: false, message: secured.message };
+      current = secured.state;
+    }
+    const finalClue = findClue(current);
+    const withDecision = setSessionRewardDecision(current, playerId, "clue", { status: "awarded", clueId });
+    return { state: withDecision, ok: true, message: `Recovered: ${finalClue?.clue || ""}` };
+  }
+
+  function recordSessionRewardTrust(state, playerId, { target, stance, note, source } = {}) {
+    return setSessionRewardDecision(state, playerId, "trust", {
+      status: "awarded",
+      target: safeString(target, 120),
+      stance: safeString(stance, 20).toLowerCase() === "distrust" ? "distrust" : "trust",
+      note: safeString(note, 400),
+      source: safeString(source, 200)
+    });
+  }
+
+  function declineSessionReward(state, playerId, category) {
+    return setSessionRewardDecision(state, playerId, category, { status: "declined" });
+  }
+
+  function markSessionRewardNotApplicable(state, playerId, category) {
+    return setSessionRewardDecision(state, playerId, category, { status: "na" });
+  }
+
   function clueIntegrityStateLabel(stateId) {
     const labels = {
       unknown: "Unknown",
@@ -3878,7 +4038,8 @@
     const withClues = {
       ...next,
       activeNeedlepoint,
-      clueIntegrity: normalizeClueIntegrity(merged.clueIntegrity, activeNeedlepoint.core_clues, { reseed: false })
+      clueIntegrity: normalizeClueIntegrity(merged.clueIntegrity, activeNeedlepoint.core_clues, { reseed: false }),
+      sessionRewardDecisions: normalizeSessionRewardDecisions(merged.sessionRewardDecisions, next.players)
     };
     const withNeedlepoint = hasActiveNeedlepoint(withClues) ? applyNeedlepointDeterministic(withClues) : withClues;
     return syncCollapseRewriteStaging(withNeedlepoint);
@@ -4842,6 +5003,14 @@
     previewClueAction,
     applyClueAction,
     advanceClueState,
-    hydrateClueIntegrity
+    hydrateClueIntegrity,
+    sessionRewardsResolved,
+    unresolvedSessionRewardPlayerNames,
+    awardSessionRewardMark,
+    recoverSessionRewardClue,
+    recordSessionRewardTrust,
+    declineSessionReward,
+    markSessionRewardNotApplicable,
+    nowStamp
   };
 }());

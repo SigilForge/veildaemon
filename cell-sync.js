@@ -115,7 +115,71 @@
         .filter(Boolean)
         .slice(0, 8);
     }
+    // Session-end rewards (Archive Session only) -- same explicit-field convention as
+    // everything else in this normalizer; each has its own mirrored shape check below since
+    // this file's whitelist is independent of operator.js's own (see
+    // applyHandlerCellProjection / normalizeSessionRewards there).
+    if (item.sessionMarkAward) {
+      const mark = normalizeSessionMarkAwardEntry(item.sessionMarkAward);
+      if (mark) out.sessionMarkAward = mark;
+    }
+    if (item.recoveredClue) {
+      const clue = normalizeRecoveredClueEntry(item.recoveredClue);
+      if (clue) out.recoveredClue = clue;
+    }
+    if (item.trustRecord) {
+      const trust = normalizeTrustRecordEntry(item.trustRecord);
+      if (trust) out.trustRecord = trust;
+    }
     return out;
+  }
+
+  function normalizeSessionMarkAwardEntry(entry) {
+    if (!entry || typeof entry !== "object" || !entry.id) return null;
+    const grant = entry.ontologyGrant && typeof entry.ontologyGrant === "object" && entry.ontologyGrant.presentationKey
+      ? {
+          presentationKey: safeString(entry.ontologyGrant.presentationKey, 60),
+          startingDrift: clampInt(entry.ontologyGrant.startingDrift, 0, 6, 0),
+          justification: safeString(entry.ontologyGrant.justification, 400),
+          status: "proposed"
+        }
+      : null;
+    return {
+      id: safeString(entry.id, 120),
+      label: safeString(entry.label, 120),
+      benefit: safeString(entry.benefit, 300),
+      cost: safeString(entry.cost, 300),
+      needlepointId: safeString(entry.needlepointId, 80),
+      needlepointTitle: safeString(entry.needlepointTitle, 120),
+      awardedAt: safeString(entry.awardedAt, 40),
+      ontologyGrant: grant
+    };
+  }
+
+  function normalizeRecoveredClueEntry(entry) {
+    if (!entry || typeof entry !== "object" || !entry.id) return null;
+    return {
+      id: safeString(entry.id, 120),
+      clueId: safeString(entry.clueId, 120),
+      clue: safeString(entry.clue, 400),
+      needlepointId: safeString(entry.needlepointId, 80),
+      needlepointTitle: safeString(entry.needlepointTitle, 120),
+      awardedAt: safeString(entry.awardedAt, 40)
+    };
+  }
+
+  function normalizeTrustRecordEntry(entry) {
+    if (!entry || typeof entry !== "object" || !entry.id) return null;
+    const stance = safeString(entry.stance, 20).toLowerCase();
+    return {
+      id: safeString(entry.id, 120),
+      target: safeString(entry.target, 120),
+      stance: stance === "distrust" ? "distrust" : "trust",
+      note: safeString(entry.note, 400),
+      source: safeString(entry.source, 200),
+      sessionReference: safeString(entry.sessionReference, 120),
+      awardedAt: safeString(entry.awardedAt, 40)
+    };
   }
 
   function normalizeDriftScarEntry(entry) {

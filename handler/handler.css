@@ -2469,3 +2469,88 @@ body.is-player-view .private-panel {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.session-rewards-panel .panel-heading h2 {
+  font-size: .78rem;
+}
+.session-reward-player-card {
+  margin-top: .9rem;
+  padding: .75rem;
+  border: 1px solid rgba(102, 255, 220, .2);
+  background: rgba(0, 0, 0, .3);
+  border-radius: 3px;
+}
+.session-reward-player-card h3 {
+  margin: 0 0 .5rem;
+  font-size: .82rem;
+  color: #fff;
+}
+.session-reward-category {
+  padding: .6rem 0;
+  border-top: 1px solid rgba(102, 255, 220, .12);
+  display: grid;
+  gap: .4rem;
+}
+.session-reward-category:first-of-type {
+  border-top: none;
+}
+.session-reward-category-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+.session-reward-category-heading h4 {
+  margin: 0;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--cyan);
+}
+.session-reward-status {
+  font-size: .62rem;
+  padding: .1rem .45rem;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+.session-reward-status.is-pending { color: var(--purple); background: rgba(185, 84, 255, .12); }
+.session-reward-status.is-awarded { color: var(--cyan); background: rgba(102, 255, 220, .12); }
+.session-reward-status.is-declined,
+.session-reward-status.is-na { color: var(--muted); background: rgba(255, 255, 255, .06); }
+.session-reward-field {
+  display: grid;
+  gap: .25rem;
+  font-size: .72rem;
+  color: var(--muted);
+}
+.session-reward-field input,
+.session-reward-field select,
+.session-reward-field textarea {
+  font: inherit;
+  padding: .4rem .5rem;
+  background: rgba(0, 0, 0, .3);
+  border: 1px solid rgba(102, 255, 220, .2);
+  color: var(--text);
+}
+.session-reward-ontology-toggle {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .7rem;
+  color: var(--muted);
+}
+.session-reward-ontology-fields {
+  display: grid;
+  gap: .4rem;
+  padding-left: .6rem;
+  border-left: 2px solid rgba(185, 84, 255, .3);
+}
+.session-reward-actions {
+  display: flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+.session-reward-empty {
+  color: var(--muted);
+  font-size: .72rem;
+}

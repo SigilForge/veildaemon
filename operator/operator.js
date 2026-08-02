@@ -676,6 +676,13 @@
       anomalies: normalizeArray(state.anomalies),
       relationships: normalizeArray(state.relationships),
       residue: normalizeArray(state.residue),
+      // Handler-delivered, Operator-received-read-only session-end rewards (Needlepoint
+      // scar/recovered-clue/trust-distrust) -- same shape as Drift/Scars: the Handler
+      // proposes and confirms, the Operator has no self-entry point, delivery is only ever
+      // via the absolute Cell-sync projection (see applyHandlerCellProjection). Kept
+      // separate from the free-text, Operator-authored relationships/residue arrays above
+      // rather than mixed into them, since these are awarded facts, not self-written notes.
+      sessionRewards: normalizeSessionRewards(state.sessionRewards),
       lastCellPullAt: safeString(state.lastCellPullAt, 40),
       cellSync: normalizeCellSyncMeta(state.cellSync || {
         lastAppliedRevision: 0,
@@ -686,6 +693,132 @@
         lastSendError: ""
       })
     };
+  }
+
+  /** A "mark" is the baseline session-end persistent consequence -- reserved for Operators
+   *  with no eligible Presentation (an ontology-eligible Operator's Scar goes through the
+   *  real Presentation Drift system instead; see the sessionRewardDecisions.mark.kind
+   *  distinction on the Handler side). ontologyGrant is optional: a mark MAY propose that
+   *  this consequence is the event that classifies a previously-baseline Operator into a
+   *  specific ontology for the first time ("survived by becoming absent from notice" ->
+   *  Hollow, etc.) -- but it stays a PROPOSAL (status "proposed") until the Operator
+   *  themselves accepts it. Only on accept does it ever touch ontologyPresentation or seed
+   *  a real presentationDrift bucket; a Handler pushing this can never assign an ontology
+   *  unilaterally, matching Operator-local character authority. */
+  function normalizeOntologyGrant(value) {
+    if (!value || typeof value !== "object") return null;
+    const presentationKey = safeString(value.presentationKey, 60);
+    if (!presentationKey) return null;
+    const status = safeString(value.status, 20).toLowerCase();
+    return {
+      presentationKey,
+      startingDrift: Math.max(0, Math.min(6, Math.floor(Number(value.startingDrift) || 0))),
+      justification: safeString(value.justification, 400),
+      status: ["accepted", "declined"].includes(status) ? status : "proposed"
+    };
+  }
+
+  function normalizeSessionRewardMark(value) {
+    const raw = value && typeof value === "object" ? value : {};
+    const id = safeString(raw.id, 120);
+    if (!id) return null;
+    return {
+      id,
+      label: safeString(raw.label, 120),
+      benefit: safeString(raw.benefit, 300),
+      cost: safeString(raw.cost, 300),
+      needlepointId: safeString(raw.needlepointId, 80),
+      needlepointTitle: safeString(raw.needlepointTitle, 120),
+      awardedAt: safeString(raw.awardedAt, 40),
+      ontologyGrant: normalizeOntologyGrant(raw.ontologyGrant)
+    };
+  }
+
+  function normalizeSessionRewardClue(value) {
+    const raw = value && typeof value === "object" ? value : {};
+    const id = safeString(raw.id, 120);
+    if (!id) return null;
+    return {
+      id,
+      clueId: safeString(raw.clueId, 120),
+      clue: safeString(raw.clue, 400),
+      needlepointId: safeString(raw.needlepointId, 80),
+      needlepointTitle: safeString(raw.needlepointTitle, 120),
+      awardedAt: safeString(raw.awardedAt, 40)
+    };
+  }
+
+  function normalizeSessionRewardTrust(value) {
+    const raw = value && typeof value === "object" ? value : {};
+    const id = safeString(raw.id, 120);
+    if (!id) return null;
+    const stance = safeString(raw.stance, 20).toLowerCase();
+    return {
+      id,
+      target: safeString(raw.target, 120),
+      stance: stance === "distrust" ? "distrust" : "trust",
+      note: safeString(raw.note, 400),
+      source: safeString(raw.source, 200),
+      sessionReference: safeString(raw.sessionReference, 120),
+      awardedAt: safeString(raw.awardedAt, 40)
+    };
+  }
+
+  /** Handler-delivered-only session-end rewards -- capped small (a table finishes very few
+   *  Needlepoints per character), deduped by id so a repeated Cell pull after Archive never
+   *  double-applies the same award. */
+  function normalizeSessionRewards(value) {
+    const raw = value && typeof value === "object" ? value : {};
+    return {
+      marks: (Array.isArray(raw.marks) ? raw.marks : []).map(normalizeSessionRewardMark).filter(Boolean).slice(0, 20),
+      recoveredClues: (Array.isArray(raw.recoveredClues) ? raw.recoveredClues : []).map(normalizeSessionRewardClue).filter(Boolean).slice(0, 40),
+      trustRecords: (Array.isArray(raw.trustRecords) ? raw.trustRecords : []).map(normalizeSessionRewardTrust).filter(Boolean).slice(0, 40)
+    };
+  }
+
+  /** The one Operator-facing self-entry point this session-reward system has: accepting or
+   *  declining a proposed ontology grant on an already-delivered mark. Everything else about
+   *  marks/clues/trust arrives read-only; this is deliberately the sole exception, and it can
+   *  only ever move a grant from "proposed" to "accepted"/"declined" -- never invent or
+   *  reassign one. Accepting is the only path that touches ontologyPresentation or seeds a
+   *  presentationDrift bucket from this flow, matching Operator-local character authority:
+   *  the Handler can propose ontology acquisition, never assign it. */
+  function findSessionRewardMark(markId) {
+    return (consoleState.sessionRewards?.marks || []).find((mark) => mark.id === markId) || null;
+  }
+
+  function acceptOntologyGrant(markId) {
+    const mark = findSessionRewardMark(markId);
+    if (!mark?.ontologyGrant || mark.ontologyGrant.status !== "proposed") return false;
+    const catalogs = window.CradlepointCatalogs;
+    const entry = catalogs?.presentationEntry ? catalogs.presentationEntry(mark.ontologyGrant.presentationKey) : null;
+    const displayName = entry?.displayName || entry?.label || "";
+    if (!displayName) return false;
+    const status = consoleState.operatorStatus;
+    status.ontologyPresentation = displayName;
+    status.presentationDrift = status.presentationDrift && typeof status.presentationDrift === "object"
+      ? status.presentationDrift
+      : { byPresentation: {} };
+    status.presentationDrift.byPresentation = status.presentationDrift.byPresentation && typeof status.presentationDrift.byPresentation === "object"
+      ? status.presentationDrift.byPresentation
+      : {};
+    const key = mark.ontologyGrant.presentationKey;
+    const existingBucket = status.presentationDrift.byPresentation[key];
+    status.presentationDrift.byPresentation[key] = {
+      value: existingBucket?.value ?? mark.ontologyGrant.startingDrift,
+      scars: existingBucket?.scars || [],
+      scarDevelopments: existingBucket?.scarDevelopments || [],
+      thresholdDecision: existingBucket?.thresholdDecision || null
+    };
+    mark.ontologyGrant.status = "accepted";
+    return true;
+  }
+
+  function declineOntologyGrant(markId) {
+    const mark = findSessionRewardMark(markId);
+    if (!mark?.ontologyGrant || mark.ontologyGrant.status !== "proposed") return false;
+    mark.ontologyGrant.status = "declined";
+    return true;
   }
 
   function normalizeCellSyncMeta(value) {
@@ -1251,6 +1384,39 @@
         }
       });
     }
+    // Handler-awarded session-end rewards (Needlepoint mark / recovered clue / trust-distrust
+    // record) -- delivered only as part of an Archive Session push (see projectionFromPlayer),
+    // same one-way "Handler proposes, Operator has no self-entry point" precedent as Drift
+    // above. Appended (not replaced) since a character can accumulate these across many
+    // Needlepoints over a campaign; deduped by id so a repeated pull after Archive never
+    // double-awards the same reward. A mark's optional ontologyGrant stays a PROPOSAL until
+    // the Operator explicitly accepts it (see acceptOntologyGrant) -- pushing it here never
+    // assigns an ontology unilaterally.
+    consoleState.sessionRewards = normalizeSessionRewards(consoleState.sessionRewards);
+    if (projection.sessionMarkAward && safeString(projection.sessionMarkAward.id, 120)) {
+      const id = safeString(projection.sessionMarkAward.id, 120);
+      if (!consoleState.sessionRewards.marks.some((entry) => entry.id === id)) {
+        consoleState.sessionRewards.marks = [...consoleState.sessionRewards.marks, projection.sessionMarkAward];
+        consoleState.sessionRewards = normalizeSessionRewards(consoleState.sessionRewards);
+        changed = true;
+      }
+    }
+    if (projection.recoveredClue && safeString(projection.recoveredClue.id, 120)) {
+      const id = safeString(projection.recoveredClue.id, 120);
+      if (!consoleState.sessionRewards.recoveredClues.some((entry) => entry.id === id)) {
+        consoleState.sessionRewards.recoveredClues = [...consoleState.sessionRewards.recoveredClues, projection.recoveredClue];
+        consoleState.sessionRewards = normalizeSessionRewards(consoleState.sessionRewards);
+        changed = true;
+      }
+    }
+    if (projection.trustRecord && safeString(projection.trustRecord.id, 120)) {
+      const id = safeString(projection.trustRecord.id, 120);
+      if (!consoleState.sessionRewards.trustRecords.some((entry) => entry.id === id)) {
+        consoleState.sessionRewards.trustRecords = [...consoleState.sessionRewards.trustRecords, projection.trustRecord];
+        consoleState.sessionRewards = normalizeSessionRewards(consoleState.sessionRewards);
+        changed = true;
+      }
+    }
     // Pressure Round: Handler-authoritative once connected. A Handler round landing here
     // isn't just a display correction -- it's a real round transition, so it runs through
     // applySceneTimerAction's "next_round" logic (via targetRound) to resolve declared
@@ -1296,6 +1462,7 @@
     writeConsoleState();
     renderTrackers();
     renderStatusSummary();
+    renderSessionRewards();
     const lines = Array.isArray(projection.trackLines) ? projection.trackLines.filter(Boolean) : [];
     setStorageStatus(
       lines.length
@@ -1683,6 +1850,111 @@
 
     const unlocked = Array.isArray(artifactState.unlocked) ? artifactState.unlocked.length : 0;
     notice.innerHTML = `<p><span class="prompt">&gt;</span> Local record detected: ${safeString(operatorRecord.designation, 80)}. Artifact cache reports ${unlocked} recovered item${unlocked === 1 ? "" : "s"}.</p>`;
+  }
+
+  /** Session rewards render read-only (no Remove button, unlike entry()) -- they're
+   *  Handler-delivered facts, not self-authored notes. The one interactive exception is
+   *  Accept/Decline on a pending ontology grant, which only ever moves that grant from
+   *  "proposed" toward a terminal state; it can never edit or remove the mark itself. */
+  function rewardCard(title, rows) {
+    const article = document.createElement("article");
+    article.className = "console-entry session-reward-card";
+    const header = document.createElement("div");
+    header.className = "entry-header";
+    const h3 = document.createElement("h3");
+    h3.textContent = title || "SESSION REWARD";
+    header.append(h3);
+    article.append(header);
+    rows.filter((row) => row[1]).forEach(([label, value]) => {
+      const line = document.createElement("p");
+      const strong = document.createElement("strong");
+      strong.textContent = `${label}:`;
+      line.append(strong, ` ${safeString(value, 1200)}`);
+      article.append(line);
+    });
+    return article;
+  }
+
+  function renderSessionRewards() {
+    const container = document.getElementById("session-rewards-list");
+    if (!container) return;
+    const rewards = consoleState.sessionRewards || normalizeSessionRewards(null);
+    container.textContent = "";
+    const cards = [];
+
+    rewards.marks.forEach((mark) => {
+      const card = rewardCard(mark.label || "Lasting Mark", [
+        ["Benefit", mark.benefit],
+        ["Cost", mark.cost],
+        ["From", mark.needlepointTitle],
+        ["Awarded", formatDate(mark.awardedAt)]
+      ]);
+      const grant = mark.ontologyGrant;
+      if (grant) {
+        const grantNote = document.createElement("p");
+        grantNote.className = "tracker-note";
+        if (grant.status === "proposed") {
+          grantNote.textContent = `Proposed ontology: ${grant.presentationKey} (starting Drift ${grant.startingDrift}) -- ${grant.justification}`;
+          card.append(grantNote);
+          const actions = document.createElement("div");
+          actions.className = "session-reward-ontology-actions";
+          const acceptBtn = document.createElement("button");
+          acceptBtn.type = "button";
+          acceptBtn.className = "button primary";
+          acceptBtn.textContent = "Accept Ontology";
+          acceptBtn.addEventListener("click", () => {
+            if (acceptOntologyGrant(mark.id)) {
+              writeConsoleState();
+              renderAll();
+              setStorageStatus(`Ontology acquired: ${grant.presentationKey}.`);
+            }
+          });
+          const declineBtn = document.createElement("button");
+          declineBtn.type = "button";
+          declineBtn.className = "button ghost";
+          declineBtn.textContent = "Decline";
+          declineBtn.addEventListener("click", () => {
+            if (declineOntologyGrant(mark.id)) {
+              writeConsoleState();
+              renderAll();
+              setStorageStatus("Ontology grant declined.");
+            }
+          });
+          actions.append(acceptBtn, declineBtn);
+          card.append(actions);
+        } else {
+          grantNote.textContent = `Ontology grant ${grant.status}: ${grant.presentationKey}.`;
+          card.append(grantNote);
+        }
+      }
+      cards.push(card);
+    });
+
+    rewards.recoveredClues.forEach((clue) => {
+      cards.push(rewardCard("Recovered Clue", [
+        ["Clue", clue.clue],
+        ["From", clue.needlepointTitle],
+        ["Awarded", formatDate(clue.awardedAt)]
+      ]));
+    });
+
+    rewards.trustRecords.forEach((trustRecord) => {
+      cards.push(rewardCard(`${trustRecord.stance === "distrust" ? "Distrust" : "Trust"}: ${trustRecord.target}`, [
+        ["Note", trustRecord.note],
+        ["Source", trustRecord.source],
+        ["Session", trustRecord.sessionReference],
+        ["Awarded", formatDate(trustRecord.awardedAt)]
+      ]));
+    });
+
+    if (!cards.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-line";
+      empty.textContent = "No session rewards recorded yet.";
+      container.append(empty);
+      return;
+    }
+    cards.forEach((card) => container.append(card));
   }
 
   function entry(title, rows, collection, id) {
@@ -4906,6 +5178,7 @@
       ["Mundane record", item.mundaneRecord],
       ["Recovery opening", item.recoveryOpening]
     ]);
+    renderSessionRewards();
     renderAuthorization();
     setStorageStatus("Local console record held in this browser.");
   }
@@ -5974,6 +6247,49 @@
         driftSection.append(decisionLine);
       }
       page2.append(driftSection);
+    }
+
+    // Session-end rewards (Handler-delivered, read-only) -- marks/scars-confirmed-elsewhere,
+    // recovered clues, trust/distrust records accumulated across completed Needlepoints.
+    const sessionRewards = consoleState.sessionRewards;
+    if (sessionRewards && (sessionRewards.marks.length || sessionRewards.recoveredClues.length || sessionRewards.trustRecords.length)) {
+      const rewardsSection = nextSection("SESSION REWARDS");
+      rewardsSection.classList.add("ps-section-flow");
+      sessionRewards.marks.forEach((mark) => {
+        const line = document.createElement("p");
+        line.className = "ps-ability-line";
+        const strong = document.createElement("strong");
+        strong.textContent = mark.label || "Lasting Mark";
+        const bits = [
+          mark.benefit ? `Benefit: ${mark.benefit}` : "",
+          mark.cost ? `Cost: ${mark.cost}` : ""
+        ].filter(Boolean).join(". ");
+        line.append(strong, document.createTextNode(bits ? ` — ${bits}` : ""));
+        rewardsSection.append(line);
+        if (mark.ontologyGrant?.status === "accepted") {
+          const grantLine = document.createElement("p");
+          grantLine.className = "ps-ability-line";
+          grantLine.textContent = `Ontology acquired: ${mark.ontologyGrant.presentationKey}`;
+          rewardsSection.append(grantLine);
+        }
+      });
+      sessionRewards.recoveredClues.forEach((clue) => {
+        const line = document.createElement("p");
+        line.className = "ps-ability-line";
+        const strong = document.createElement("strong");
+        strong.textContent = "Recovered Clue:";
+        line.append(strong, document.createTextNode(` ${clue.clue}`));
+        rewardsSection.append(line);
+      });
+      sessionRewards.trustRecords.forEach((trustRecord) => {
+        const line = document.createElement("p");
+        line.className = "ps-ability-line";
+        const strong = document.createElement("strong");
+        strong.textContent = `${trustRecord.stance === "distrust" ? "Distrust" : "Trust"}: ${trustRecord.target}`;
+        line.append(strong, document.createTextNode(trustRecord.note ? ` — ${trustRecord.note}` : ""));
+        rewardsSection.append(line);
+      });
+      page2.append(rewardsSection);
     }
 
     // Whatever remains of the page is Notes: the player's already-written

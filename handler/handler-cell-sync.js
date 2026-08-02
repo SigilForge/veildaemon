@@ -90,7 +90,7 @@
     return t === "harm" || t === "stability" || t.endsWith("_load");
   }
 
-  function projectionFromPlayer(player, trackLines, includeBanks, trackPromptIds) {
+  function projectionFromPlayer(player, trackLines, includeBanks, trackPromptIds, archiveState) {
     const out = {
       operatorKey: player.sourceId || player.id || player.name,
       sourceId: player.sourceId || player.id || "",
@@ -99,6 +99,52 @@
       stability: player.stabilityPoints,
       trackLines: trackLines || []
     };
+    // Session-end rewards: only on the archive push, and only for whatever this player's
+    // decision record actually resolved to "awarded" -- declined/na/pending deliver nothing.
+    // The Scar case is NOT included here: a real ontology-eligible Scar already reaches the
+    // Operator through the existing presentationDriftState field below; this reward system
+    // only confirms it happened, it never delivers a second one.
+    if (archiveState) {
+      const decision = archiveState.sessionRewardDecisions?.[player.id];
+      const needlepoint = archiveState.activeNeedlepoint || {};
+      const stamp = api.nowStamp();
+      if (decision?.mark?.status === "awarded" && !api.playerLoadPresentation?.(player)) {
+        out.sessionMarkAward = {
+          id: `mark-${player.id}-${archiveState.session?.cellId || stamp}`,
+          label: decision.mark.label,
+          benefit: decision.mark.benefit,
+          cost: decision.mark.cost,
+          needlepointId: needlepoint.id || "",
+          needlepointTitle: archiveState.session?.caseTitle || needlepoint.id || "",
+          awardedAt: stamp,
+          ontologyGrant: decision.mark.ontologyGrant ? { ...decision.mark.ontologyGrant, status: "proposed" } : null
+        };
+      }
+      if (decision?.clue?.status === "awarded" && decision.clue.clueId) {
+        const clue = archiveState.clueIntegrity?.clues?.find((item) => item.id === decision.clue.clueId);
+        if (clue) {
+          out.recoveredClue = {
+            id: `clue-${player.id}-${decision.clue.clueId}`,
+            clueId: clue.id,
+            clue: clue.clue,
+            needlepointId: needlepoint.id || "",
+            needlepointTitle: archiveState.session?.caseTitle || needlepoint.id || "",
+            awardedAt: stamp
+          };
+        }
+      }
+      if (decision?.trust?.status === "awarded" && decision.trust.target) {
+        out.trustRecord = {
+          id: `trust-${player.id}-${archiveState.session?.cellId || stamp}`,
+          target: decision.trust.target,
+          stance: decision.trust.stance,
+          note: decision.trust.note,
+          source: decision.trust.source,
+          sessionReference: archiveState.session?.caseTitle || needlepoint.id || "",
+          awardedAt: stamp
+        };
+      }
+    }
     if (Array.isArray(trackPromptIds) && trackPromptIds.length) {
       out.trackPromptIds = trackPromptIds;
     }
@@ -382,7 +428,7 @@
     const projections = players.map((player, index) => {
       const related = lines.filter((line) => line.includes(player.name || ""));
       const relatedIds = pushedIdsByPlayerIndex.get(index) || [];
-      return projectionFromPlayer(player, related, includeBanks, relatedIds);
+      return projectionFromPlayer(player, related, includeBanks, relatedIds, kind === "archive" ? state : null);
     });
     const note = kind === "pressure_round"
       ? "Pressure Round ended. Reactions refresh next round. Harm & Stability reconciled."
@@ -590,13 +636,19 @@
           setStatus(`ARCHIVE ALREADY COMPLETE · token ${state.session.cellArchiveToken}`);
           return;
         }
+        // Refuse to claim "session complete" while a reward this session promised (Mark/
+        // Scar, recovered clue, trust/distrust) is still sitting unresolved for any seated
+        // Operator -- awarded, declined, and not-applicable all count as resolved; only
+        // "pending" blocks. See handler-session-rewards.js for where these get set.
+        if (api.sessionRewardsResolved && !api.sessionRewardsResolved(state)) {
+          const names = api.unresolvedSessionRewardPlayerNames(state).join(", ");
+          setStatus(`Resolve session-end rewards (Mark/Scar, clue, trust) for: ${names}`, true);
+          return;
+        }
         if (!window.confirm("Archive Session? Pull Operator banks (Void/Breach) once, reconcile Harm/Stability, clear Cell sends. Lotus stays between-sessions.")) {
           return;
         }
         await run("archive");
-        // Reward-granting (Void/Breach bonuses, Ontology/Background/Case unlocks) has no
-        // Handler UI yet -- this closes the Cell with whatever final numbers the archive
-        // push above already carried, same as same-device play today.
         const remote = window.VeilDaemonCellRemote;
         if (remote?.isConnected()) {
           try {

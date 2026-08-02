@@ -3121,6 +3121,16 @@ body.operator-record-sealed .authorization-import-handoff {
   line-height: 1.4;
   white-space: pre-wrap;
 }
+
+.session-rewards-heading {
+  margin-top: 1.4rem;
+}
+.session-reward-ontology-actions {
+  display: flex;
+  gap: .5rem;
+  margin-top: .6rem;
+  flex-wrap: wrap;
+}
 .data-panel {
   display: grid;
   grid-template-columns: 1fr;

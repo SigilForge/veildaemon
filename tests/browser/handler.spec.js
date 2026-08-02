@@ -1647,6 +1647,147 @@ test("handler exports Operator authorization packets", async ({ page }) => {
   expect(payload.note).toContain("Sanguine Presentation, Void-Shard available for review");
 });
 
+test("session-end rewards: mark, recovered clue, and trust/distrust gate Archive Session and deliver via Cell-sync projection", async ({ page }) => {
+  await page.route("**/api/cell/**", (route) => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false }) }));
+  await page.goto("/handler/live/");
+  await enableHandlerFieldEdit(page);
+
+  const setup = await page.evaluate(() => {
+    const api = window.HandlerState;
+    let state = api.readState();
+    state.activeNeedlepoint = {
+      id: "NP-001",
+      core_clues: [{ clue: "VeilCorp is emergency scaffolding, not a stable agency." }]
+    };
+    state.players = [{ ...state.players[0], id: "operator-1", name: "Rowan", sourceId: "ROWAN" }];
+    api.writeState(state);
+    state = api.readState();
+    return { clueId: state.clueIntegrity.clues[0]?.id };
+  });
+  expect(setup.clueId).toBeTruthy();
+
+  await page.reload();
+  await enableHandlerFieldEdit(page);
+
+  // Everything is still pending -- Archive Session must refuse, not silently proceed.
+  await page.getByRole("button", { name: "Archive Session" }).click();
+  await expect(page.locator("#storage-status")).toContainText("Resolve session-end rewards");
+  const archivedAfterBlock = await page.evaluate(() => Boolean(window.HandlerState.readState().session?.cellArchiveToken));
+  expect(archivedAfterBlock).toBe(false);
+
+  const afterResolve = await page.evaluate((clueId) => {
+    const api = window.HandlerState;
+    let state = api.readState();
+    const playerId = state.players[0].id;
+    state = api.awardSessionRewardMark(state, playerId, {
+      label: "Absent From Notice", benefit: "Once per scene, go unremarked.", cost: "Familiar faces hesitate before recognizing you.",
+      ontologyGrant: { presentationKey: "HOLLOW", startingDrift: 1, justification: "Survived the mirror chamber by refusing to be seen." }
+    });
+    // recoverSessionRewardClue has real failure modes (bad clueId, blocked clue-state
+    // transition) so it returns {state, ok, message} rather than a plain state, unlike the
+    // other reward functions -- the real UI's commit() unwraps both shapes; this must too.
+    const clueResult = api.recoverSessionRewardClue(state, playerId, clueId);
+    if (!clueResult.ok) throw new Error(`recoverSessionRewardClue failed: ${clueResult.message}`);
+    state = clueResult.state;
+    state = api.recordSessionRewardTrust(state, playerId, {
+      target: "VeilCorp", stance: "distrust", note: "Shade recorded emotional tells without consent.", source: "Session aftermath"
+    });
+    api.writeState(state);
+    return { resolved: api.sessionRewardsResolved(api.readState()) };
+  }, setup.clueId);
+  expect(afterResolve.resolved).toBe(true);
+
+  // The real clue-integrity state machine actually advanced, not a parallel flag.
+  const clueState = await page.evaluate((clueId) => {
+    return window.HandlerState.readState().clueIntegrity.clues.find((c) => c.id === clueId)?.state;
+  }, setup.clueId);
+  expect(clueState).toBe("secured");
+
+  // Now Archive Session should proceed (mock the remote publish/close calls so this stays local-only).
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Archive Session" }).click();
+  await page.waitForTimeout(500);
+  const archiveToken = await page.evaluate(() => window.HandlerState.readState().session?.cellArchiveToken);
+  expect(archiveToken).toBeTruthy();
+
+  // Simulate what the remote projection would have carried, exercising the Operator-side
+  // consumption path directly (same shape projectionFromPlayer would produce on kind="archive").
+  await page.goto("/operator/");
+  await page.evaluate((clueId) => {
+    window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
+      designation: "ROWAN", primaryFrequency: "Dream", observerClassification: "Operator",
+      attentionStatus: "Local", accessLevel: "LOCAL"
+    }));
+  }, setup.clueId);
+  await page.reload();
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Apply Core Start" }).click();
+  await page.waitForTimeout(300);
+
+  const applied = await page.evaluate((clueId) => {
+    const bus = window.VeilDaemonCellSync.read();
+    // Directly invoke the same page-internal projection-application path a real Pull Handler
+    // would, since applyHandlerCellProjection is a closure not exported for direct testing --
+    // matching the established pattern for this file (see the round-authority guard test).
+    window.VeilDaemonCellSync.publishHandlerPush("archive", {
+      projections: [{
+        operatorKey: "ROWAN", sourceId: "ROWAN", name: "Rowan", harmBoxes: 0, stability: 10,
+        sessionMarkAward: {
+          id: "mark-1", label: "Absent From Notice", benefit: "Once per scene, go unremarked.",
+          cost: "Familiar faces hesitate before recognizing you.", needlepointId: "NP-001", needlepointTitle: "VeilCorp Intake",
+          awardedAt: new Date().toISOString(),
+          ontologyGrant: { presentationKey: "HOLLOW", startingDrift: 1, justification: "Survived by refusing to be seen.", status: "proposed" }
+        },
+        recoveredClue: { id: "clue-1", clueId, clue: "VeilCorp is emergency scaffolding, not a stable agency.", needlepointId: "NP-001", needlepointTitle: "VeilCorp Intake", awardedAt: new Date().toISOString() },
+        trustRecord: { id: "trust-1", target: "VeilCorp", stance: "distrust", note: "Shade recorded emotional tells without consent.", source: "Session aftermath", sessionReference: "VeilCorp Intake", awardedAt: new Date().toISOString() }
+      }],
+      round: 1
+    });
+    return true;
+  }, setup.clueId);
+  expect(applied).toBe(true);
+
+  await page.getByRole("button", { name: "Pull Handler" }).click();
+  await page.waitForTimeout(500);
+
+  const rewards = await page.evaluate(() => {
+    const raw = JSON.parse(window.localStorage.getItem("veildaemon.operatorConsole.v1") || "{}");
+    return raw.sessionRewards;
+  });
+  expect(rewards.marks).toHaveLength(1);
+  expect(rewards.marks[0]).toMatchObject({ label: "Absent From Notice" });
+  expect(rewards.marks[0].ontologyGrant).toMatchObject({ presentationKey: "HOLLOW", status: "proposed" });
+  expect(rewards.recoveredClues).toHaveLength(1);
+  expect(rewards.recoveredClues[0].clue).toContain("emergency scaffolding");
+  expect(rewards.trustRecords).toHaveLength(1);
+  expect(rewards.trustRecords[0]).toMatchObject({ target: "VeilCorp", stance: "distrust" });
+
+  // Ontology grant is a PROPOSAL until the Operator explicitly accepts it -- ontologyPresentation
+  // must not be touched yet.
+  const beforeAccept = await page.evaluate(() => {
+    const raw = JSON.parse(window.localStorage.getItem("veildaemon.operatorConsole.v1") || "{}");
+    return raw.operatorStatus.ontologyPresentation;
+  });
+  expect(beforeAccept).toBe("");
+
+  await page.getByRole("button", { name: "Relationships", exact: true }).click(); // session rewards render in this tab
+  await page.getByRole("button", { name: "Accept Ontology" }).click();
+  await page.waitForTimeout(300);
+  const afterAccept = await page.evaluate(() => {
+    const raw = JSON.parse(window.localStorage.getItem("veildaemon.operatorConsole.v1") || "{}");
+    return {
+      ontologyPresentation: raw.operatorStatus.ontologyPresentation,
+      driftValue: raw.operatorStatus.presentationDrift?.byPresentation?.HOLLOW?.value,
+      grantStatus: raw.sessionRewards.marks[0].ontologyGrant.status
+    };
+  });
+  expect(afterAccept.ontologyPresentation).toBeTruthy();
+  expect(afterAccept.driftValue).toBe(1);
+  expect(afterAccept.grantStatus).toBe("accepted");
+});
+
 async function seedHandlerState(page, patch) {
   await page.evaluate((p) => {
     const api = window.HandlerState;
