@@ -4,11 +4,11 @@ import { redirect } from "next/navigation";
 import { RightsCreateForm } from "@/components/RightsCreateForm";
 import { buildMetadata } from "@/lib/seo";
 import { requireUser } from "@/lib/store";
-import { RIGHTS_DISCLAIMER, availabilityCategories, categoryValues, permissionValues, workTypes } from "@/lib/rights/schema";
+import { RIGHTS_DISCLAIMER, RIGHTS_PRICE_CENTS, RIGHTS_PRICE_LABEL, availabilityCategories, categoryValues, permissionValues, workTypes } from "@/lib/rights/schema";
 
 export const metadata: Metadata = buildMetadata({
   title: "Preserve a Creator Rights Record",
-  description: "Sign in to preserve and publish a durable Creator Rights Registry record with version history, QR verification, dossier export, AI permissions, and optional SHA-256 fingerprint metadata.",
+  description: "Sign in to preserve and publish a durable Creator Rights Registry record at the $1.99 Founders price with version history, QR verification, dossier export, AI permissions, and optional SHA-256 fingerprint metadata.",
   path: "/rights/create",
   image: "https://veildaemon.app/assets/social/creator-rights-record-og.webp",
   imageAlt: "Creator Rights Record verification card from SigilForge Studios",
@@ -34,6 +34,10 @@ function options(values: readonly string[]) {
   return values.map((value) => ({ value, label: optionLabel(value) }));
 }
 
+function money(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
 export default async function CreateRightsRecordPage() {
   const { user } = await requireUser().catch(() => redirect("/login?next=/rights/create"));
 
@@ -43,9 +47,18 @@ export default async function CreateRightsRecordPage() {
       <h1 className="page-title">Preserve a Creator Rights Record</h1>
       <p className="lede">
         This authenticated Registry flow creates the durable record: permanent URL, Registry ID, version history, QR
-        verification, Creator Dossier export, and long-term provenance management. A single one-time Registry license
+        verification, Creator Dossier export, and long-term provenance management. The {RIGHTS_PRICE_LABEL} is {money(RIGHTS_PRICE_CENTS)} one time per record. A single one-time Registry license
         covers the lifetime of this Creator Rights Record with no recurring subscription fees.
       </p>
+      <section className="panel" aria-label="Creator Rights preservation offer">
+        <p className="panel-kicker">What preservation creates</p>
+        <ul style={{ marginBottom: 0 }}>
+          <li>Permanent public rights record and Registry ID</li>
+          <li>Timestamped verification page with QR verification link</li>
+          <li>Version history and long-term provenance management</li>
+          <li>Downloadable Creator Dossier evidence package</li>
+        </ul>
+      </section>
       <div className="dashboard-actions">
         <Link className="button secondary" href="/rights/advisor">
           Open public Advisor

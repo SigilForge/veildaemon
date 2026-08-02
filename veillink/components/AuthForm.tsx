@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RIGHTS_PRICE_CENTS, RIGHTS_PRICE_LABEL } from "@/lib/rights/schema";
 
 type Props = {
   title: string;
@@ -14,8 +15,13 @@ type Props = {
   next?: string;
 };
 
+function money(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
 export function AuthForm({ title, action, submit, error, sent, verified, email, reset, signup, updatePassword, next }: Props) {
   const rightsPreservation = next === "/rights/create" || next === "/account/rights";
+  const rightsPrice = `${money(RIGHTS_PRICE_CENTS)} ${RIGHTS_PRICE_LABEL}`;
 
   return (
     <main className="page">
@@ -24,14 +30,14 @@ export function AuthForm({ title, action, submit, error, sent, verified, email, 
       <p className="lede">
         {signup
           ? rightsPreservation
-            ? "Create a free account to generate your Creator Dossier, maintain versioned evidence over time, and preserve permanent, timestamped Registry records. Authentication unlocks permanence for your Creator Rights Records."
+            ? `Create a free account to preserve permanent, timestamped Registry records at the ${rightsPrice}. Authentication unlocks Creator Dossier generation, versioned evidence, and long-term record management.`
             : "Create a free account to issue short links and editable QR codes."
           : reset
             ? "We will email a reset link if the address is on file."
             : updatePassword
               ? "Choose a new password for this account."
               : rightsPreservation
-                ? "Sign in to create a permanent, timestamped Registry record, generate your Creator Dossier, and maintain versioned evidence over time. A single one-time Registry license covers the lifetime of this Creator Rights Record with no recurring subscription fees."
+                ? `Sign in to preserve a permanent, timestamped Registry record at the ${rightsPrice}, generate your Creator Dossier, and maintain versioned evidence over time. A single one-time Registry license covers the lifetime of this Creator Rights Record with no recurring subscription fees.`
                 : "Sign in to manage redirects, downloads, and billing."}
       </p>
       {verified ? (

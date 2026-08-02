@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { RightsCreateForm } from "@/components/RightsCreateForm";
 import { buildMetadata } from "@/lib/seo";
-import { RIGHTS_DISCLAIMER, availabilityCategories, categoryValues, permissionValues, workTypes } from "@/lib/rights/schema";
+import { RIGHTS_DISCLAIMER, RIGHTS_PRICE_CENTS, RIGHTS_PRICE_LABEL, availabilityCategories, categoryValues, permissionValues, workTypes } from "@/lib/rights/schema";
 
 export const metadata: Metadata = buildMetadata({
   title: "Creator Rights Advisor",
-  description: "Use the free Creator Rights Advisor to import a source or file, extract draft evidence, compare license options, generate SHA-256 metadata, and prepare a reviewable Creator Rights draft without an account.",
+  description: "Use the free Creator Rights Advisor to import a source or file, extract draft evidence, compare license options, generate SHA-256 metadata, and prepare a reviewable Creator Rights draft before choosing the $1.99 Founders Registry preservation option.",
   path: "/rights/advisor",
   image: "https://veildaemon.app/assets/social/creator-rights-record-og.webp",
   imageAlt: "Creator Rights Record verification card from SigilForge Studios",
@@ -28,6 +28,10 @@ function optionLabel(value: string) {
 
 function options(values: readonly string[]) {
   return values.map((value) => ({ value, label: optionLabel(value) }));
+}
+
+function money(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`;
 }
 
 export default function CreatorRightsAdvisorPage() {
@@ -52,6 +56,15 @@ export default function CreatorRightsAdvisorPage() {
         Artifact first. Draft, not fact. Agreement increases confidence. Disagreement lowers confidence. Conflict never
         resolves silently.
       </p>
+      <section className="panel" aria-label="Creator Rights price and preservation offer">
+        <p className="panel-kicker">Free Advisor · Paid preservation</p>
+        <h2>{RIGHTS_PRICE_LABEL}: {money(RIGHTS_PRICE_CENTS)} one time</h2>
+        <p className="muted">
+          You can build and review the draft here for free. Sign in and preserve only when you want a permanent public
+          rights record, timestamped verification page, QR verification link, version history, and downloadable Creator
+          Dossier.
+        </p>
+      </section>
 
       <section id="advisor-form">
         <RightsCreateForm

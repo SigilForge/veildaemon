@@ -135,7 +135,8 @@ describe("Creator Rights create form helpers", () => {
     const source = await import("node:fs/promises").then((fs) => fs.readFile(new URL("../components/AuthForm.tsx", import.meta.url), "utf8"));
     expect(source).toContain("Create account to preserve a record");
     expect(source).toContain("/signup?next=");
-    expect(source).toContain("Create a free account to generate your Creator Dossier, maintain versioned evidence over time, and preserve permanent, timestamped Registry records.");
+    expect(source).toContain("Create a free account to preserve permanent, timestamped Registry records at the");
+    expect(source).toContain("Authentication unlocks Creator Dossier generation, versioned evidence, and long-term record management.");
   });
 
   it("keeps the public Creator Rights overview aligned with artifact-first intake", async () => {
@@ -143,9 +144,13 @@ describe("Creator Rights create form helpers", () => {
     expect(source).toContain("License guidance");
     expect(source).toContain("Creator Rights Advisor and Registry");
     expect(source).toContain("Free, no account required.");
-    expect(source).toContain("Sign in only when you choose to preserve");
-    expect(source).toContain("permanent hosted records, public verification pages, Registry IDs, QR verification, version history");
-    expect(source).toContain("Create something → open Creator Rights Advisor");
+    expect(source).toContain("Founders Price: $1.99 one time.");
+    expect(source).toContain("The free Advisor helps you understand what to do before you pay.");
+    expect(source).toContain("Free preview");
+    expect(source).toContain("$1.99 Founders");
+    expect(source).toContain("permanent hosted record, timestamped public verification page, Registry ID, QR verification, version history");
+    expect(source).toContain("Create something → open Creator Rights Advisor for free");
+    expect(source).toContain("optionally sign in and pay the $1.99 Founders price to preserve it");
     expect(source).toContain("Not sure which license fits your project?");
     expect(source).toContain("Answer a few plain-language questions");
     expect(source).toContain("The software can guide, compare, and prefill.");

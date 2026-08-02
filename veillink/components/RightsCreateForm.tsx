@@ -26,10 +26,14 @@ import {
   licenseWorkTypeWarning,
 } from "@/lib/rights/license-catalog";
 import { buildUploadedFileDraft, reconcileImportDrafts, type CreatorRightsImportDraft, type DraftField, type DraftFieldStatus } from "@/lib/rights/import-draft";
-import type { AiPermissionBlock, PermissionValue } from "@/lib/rights/schema";
+import { RIGHTS_PRICE_CENTS, RIGHTS_PRICE_LABEL, type AiPermissionBlock, type PermissionValue } from "@/lib/rights/schema";
 
 type SelectOption = { value: string; label: string };
 type PermissionField = { name: keyof AiPermissionBlock; label: string; help: string };
+
+function money(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`;
+}
 
 type FormState = {
   creatorName: string;
@@ -1033,12 +1037,12 @@ export function RightsCreateForm({ email = "", mode = "registry", workTypes, cat
         {isAdvisor ? (
           <div className="rights-preserve-card panel" style={{ marginTop: "1.5rem", marginBottom: "1.5rem" }}>
             <p className="panel-kicker">Permanence &amp; Registry License</p>
-            <h3 style={{ margin: "0.25rem 0 0.5rem" }}>Preserve this rights record</h3>
+            <h3 style={{ margin: "0.25rem 0 0.5rem" }}>Preserve this rights record · {money(RIGHTS_PRICE_CENTS)} Founders</h3>
             <p style={{ fontWeight: 500 }}>
               Sign in to create a permanent, timestamped Registry record, generate your Creator Dossier, and maintain versioned evidence over time.
             </p>
             <p className="muted" style={{ fontSize: "0.875rem", margin: "0.5rem 0 1rem" }}>
-              A single one-time Registry license covers the lifetime of this Creator Rights Record. There are no recurring subscription fees to keep your record active. Portable by design: export a self-contained Creator Dossier anytime so your evidence package remains under your control independent of platform hosting.
+              The Advisor draft is free. The {RIGHTS_PRICE_LABEL} is a single one-time Registry license for the lifetime of this Creator Rights Record. There are no recurring subscription fees to keep your record active. Portable by design: export a self-contained Creator Dossier anytime so your evidence package remains under your control independent of platform hosting.
             </p>
             <div className="dashboard-actions">
               <a className="button" href="/login?next=/rights/create" onClick={saveAdvisorDraft}>
