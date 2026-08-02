@@ -484,6 +484,35 @@ test("Operator's Next Round is disabled permanently once a Handler round transit
   await operatorPage.close();
 });
 
+test("Next Round disables the instant a Cell connection exists, even before any Handler round has landed", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("veildaemon.operatorRecord.v2", JSON.stringify({
+      designation: "TEST-OP", primaryFrequency: "Dream", observerClassification: "Operator",
+      attentionStatus: "Local", accessLevel: "LOCAL"
+    }));
+    // Intercept cell-sync-remote.js's real module assignment so every other method (join,
+    // pull, leave) stays genuine, but isConnected() reports true the instant it's assigned --
+    // simulating a live Cell connection that exists before any Handler projection has ever
+    // been pushed. That's the exact gap this fix closes: lastHandlerRound alone stays null
+    // until the Handler's first sync, but the Operator should already be locked out of
+    // independent round advancement the moment a real connection exists.
+    let real;
+    Object.defineProperty(window, "VeilDaemonCellRemote", {
+      configurable: true,
+      get() { return real ? { ...real, isConnected: () => true } : undefined; },
+      set(value) { real = value; }
+    });
+  });
+  await page.goto("/operator/");
+  await page.getByRole("button", { name: "Sheet", exact: true }).click();
+  await page.getByRole("button", { name: "Edit Sheet: Off" }).click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Apply Core Start" }).click();
+  await page.waitForTimeout(300);
+
+  await expect(page.getByRole("button", { name: "Next Round" })).toBeDisabled();
+});
+
 async function waitForClueChips(page) {
   await page.waitForFunction(() => document.querySelectorAll("#clue-status-tracker .clue-status-chip").length > 0, null, { timeout: 15000 });
 }

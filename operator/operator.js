@@ -1047,6 +1047,7 @@
           });
           setStorageStatus("Connected to Cell.");
           renderCellConnectStatus();
+          renderSceneTimerStrip();
           await pullRemoteIfConnected();
           pullHandlerCellIfAvailable({ force: true });
         } catch (error) {
@@ -1068,6 +1069,7 @@
           remote.clearConnection();
         }
         renderCellConnectStatus();
+        renderSceneTimerStrip();
         setStorageStatus("Disconnected from Cell.");
       });
     }
@@ -1087,6 +1089,7 @@
     const restored = remote.restoreConnection(cellConnectGetToken);
     if (restored) {
       renderCellConnectStatus();
+      renderSceneTimerStrip();
       await pullRemoteIfConnected();
       pullHandlerCellIfAvailable();
     }
@@ -3568,10 +3571,13 @@
     nextRound.type = "button";
     nextRound.className = "scene-timer-btn";
     nextRound.textContent = "Next Round";
-    // Handler owns the round number once this character has ever received one -- a real
-    // digital session has a working connection, so there's no graceful "still kind of
-    // connected" fallback to preserve independent local advancement for.
-    nextRound.disabled = cellSyncMeta().lastHandlerRound !== null;
+    // Handler owns the round number once this character has ever received one, OR as soon as
+    // a live Cell connection exists at all -- lastHandlerRound alone leaves a gap right after
+    // joining a Cell, before the Handler's first sync has landed, where the Operator could
+    // still free-run the clock. Checking isConnected() too closes that window immediately on
+    // join, without waiting for the first round to actually arrive.
+    const remoteConnected = Boolean(window.VeilDaemonCellRemote?.isConnected());
+    nextRound.disabled = cellSyncMeta().lastHandlerRound !== null || remoteConnected;
     nextRound.title = nextRound.disabled
       ? "Round is Handler-owned once connected to a Cell."
       : "";
