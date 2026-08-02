@@ -728,6 +728,43 @@ test("Handler live shows the seat roster with pending/synced status after openin
   await expect(roster).toContainText("Joined — no Operator state received yet");
 });
 
+test("Reset Local drops an active Cell connection so a stale round can't silently resend", async ({ page }) => {
+  // Reset Local only wiped HandlerState's own storage -- session.pressureRound went back to
+  // 0, but a still-active remote connection pointed at the SAME session row an Operator may
+  // already have lastHandlerRound recorded against. The next End Pressure Round would
+  // recompute round 1 and push it again, which the Operator's strict must-be-greater guard
+  // then silently drops as a repeat. Reset must also drop the connection.
+  await page.route("**/api/cell/create-session", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ ok: true, session: { id: "sess-1", join_code: "ABC123" } })
+  }));
+  await page.route("**/api/cell/state**", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ ok: true, session: { id: "sess-1" }, seats: [] })
+  }));
+  await page.goto("/handler/live/");
+  await page.evaluate(() => {
+    window.VeilAuth = window.VeilAuth || {};
+    window.VeilAuth.getSession = () => ({ access_token: "fake-token" });
+    window.VeilAuth.getUser = () => ({ id: "handler-user-1" });
+    window.VeilAuth.init = async () => {};
+  });
+  await page.getByRole("button", { name: "Open Cell" }).click();
+  await page.waitForFunction(() => /CONNECTED/.test(document.getElementById("cell-connect-status")?.textContent || ""), null, { timeout: 15000 });
+
+  await page.getByRole("button", { name: "PREP" }).click(); // Reset Local lives in the prep/archive mode panel
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Reset Local" }).click();
+  await page.waitForTimeout(300);
+
+  const stillConnected = await page.evaluate(() => window.VeilDaemonCellRemote.isConnected());
+  expect(stillConnected).toBe(false);
+  await expect(page.locator("#cell-connect-status")).toHaveText("LOCAL — same-device sync only.");
+  await expect(page.locator("#seat-roster-list")).toBeHidden();
+});
+
 async function waitForClueChips(page) {
   await page.waitForFunction(() => document.querySelectorAll("#clue-status-tracker .clue-status-chip").length > 0, null, { timeout: 15000 });
 }

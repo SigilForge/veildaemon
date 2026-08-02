@@ -945,6 +945,17 @@
       } catch (error) {
         // Local cleanup is best effort.
       }
+      // A local reset zeroes session.pressureRound back to 0, but a still-active remote
+      // Cell connection points at the SAME session row an Operator may already have
+      // lastHandlerRound recorded against -- the next "End Pressure Round" would recompute
+      // round 1 and push it again, which the Operator's strict must-be-greater guard then
+      // silently drops as a repeat, not a new round. Dropping the connection here (same as
+      // Close Connection) forces a genuinely new Cell to be opened instead of resuming a
+      // stale one under a freshly-zeroed local counter.
+      window.VeilDaemonCellRemote?.clearConnection();
+      unsubscribeLobbyRollsIfAny();
+      renderCellConnectStatus();
+      renderSeatRoster([]);
       renderAll();
       setStatus("LOCAL RESET");
     });
