@@ -76,9 +76,14 @@ Do **not** list Handler Approval or Expansion Locked presentations on the Sheet 
 | `Veildaemon/catalogs.js` | Tier definitions, vault stubs, access labels |
 | `Veildaemon/operator/operator.js` | Sheet dropdown gating; vault index only on Authorized Unlocks |
 | `Veildaemon/handler/handler-modules.js` | Handler grant UI with approval labels |
-| `Veildaemon/presentation-pressure.js` | Load mechanics (only for implemented presentations) |
+| `Veildaemon/presentation-pressure.js` | Load mechanics, tracks, and band thresholds |
+| `Veildaemon/presentation-abilities.js` | Passive permissions, active abilities, headline roll surge triggers |
+| `Veildaemon/presentation-drift.js` | Surface tells, persistent scars, deep drift, archive evolution markers |
+
+> For the generated codebase implementation reference matching executable presentation modules, see [CRADLEPOINT_PRESENTATIONS_SPEC.md](file:///home/nox/projects/veildaemon/Docs/CRADLEPOINT_PRESENTATIONS_SPEC.md). Canon and release authority remain in the Cradlepoint Core System books.
 
 ## Decision log
 
 - **Decision A (archive vault):** Expansion-only locked index cards + `ARCHIVE_UNLOCK` keys.
 - **Decision F (this doc):** Core split into Open vs Handler Approval; do not treat all nine load playables as open.
+- **Decision G (executable alignment):** Presentation abilities, active surge triggers, passive permissions, and drift scars in code modules (`presentation-abilities.js`, `presentation-drift.js`, `presentation-pressure.js`) provide the executable implementation matching the canonical rules in Cradlepoint Core System books.
