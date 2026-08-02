@@ -929,6 +929,56 @@ test("Handler round transitions never rerun effects for the same round and never
   expect(summary.roundAfterThird).toBe(3);
 });
 
+test("a fresh Cell connection adopts the Handler's round outright, even when the Operator's own local round is already ahead from solo play", async ({ page }) => {
+  await page.goto("/operator/");
+  const summary = await page.evaluate(() => {
+    const pressure = window.PresentationPressure;
+    const abilities = window.PresentationAbilities;
+
+    function applyHandlerRound(currentStatus, lastHandlerRound, incomingRound) {
+      if (incomingRound <= (lastHandlerRound || 0)) {
+        return { status: currentStatus, lastHandlerRound, applied: false };
+      }
+      const next = abilities.applySceneTimerAction(currentStatus, "next_round", {
+        catalogKey: "SANGUINE", targetRound: incomingRound
+      });
+      return { status: next, lastHandlerRound: incomingRound, applied: true };
+    }
+
+    // Solo play already ran the local round up to 5 (repeated Next Round clicks) before any
+    // Cell connection ever existed -- lastHandlerRound is still null the whole time.
+    let status = pressure.migrateOperatorStatus({ ontologyPresentation: "Sanguine" });
+    for (let i = 0; i < 4; i += 1) {
+      status = abilities.applySceneTimerAction(status, "next_round", { catalogKey: "SANGUINE" });
+    }
+    const localRoundBeforeConnect = status.sceneTimer.round;
+
+    // Joining a brand-new session (Handler round 1): the guard compares against
+    // lastHandlerRound (null -> 0), never the Operator's own stale round, so the first real
+    // Handler round always lands outright -- resetting a higher local round down is exactly
+    // as valid as advancing a lower one.
+    const freshJoin = applyHandlerRound(status, null, 1);
+
+    // Joining an already-active session instead (Handler round 5, table mid-session): same
+    // guard, same outcome shape -- the incoming round is adopted outright regardless of
+    // direction relative to the Operator's own local round.
+    const activeJoin = applyHandlerRound(status, null, 5);
+
+    return {
+      localRoundBeforeConnect,
+      freshJoinApplied: freshJoin.applied,
+      roundAfterFreshJoin: freshJoin.status.sceneTimer.round,
+      activeJoinApplied: activeJoin.applied,
+      roundAfterActiveJoin: activeJoin.status.sceneTimer.round
+    };
+  });
+  expect(summary.localRoundBeforeConnect).toBe(5);
+  expect(summary.freshJoinApplied).toBe(true);
+  expect(summary.roundAfterFreshJoin).toBe(1);
+  expect(summary.activeJoinApplied).toBe(true);
+  expect(summary.roundAfterActiveJoin).toBe(5);
+});
+
 test("treat harm creates pending timer and resolves harm on next round", async ({ page }) => {
   await page.goto("/operator/");
   const summary = await page.evaluate(() => {
