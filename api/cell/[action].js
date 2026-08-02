@@ -216,9 +216,18 @@ async function handleState(req, res) {
   // an Operator's token only ever sees their own row. Embeds operator_profiles so the
   // Handler can see WHO has joined (display_name/designation) independent of whether
   // live_state carries anything yet -- see 20260802070000's Handler-visibility policy.
+  //
+  // left_at=is.null only applies for the Handler's own multi-seat roster view (so departed
+  // Operators drop out of the live list) -- an Operator reading their OWN seat must see it
+  // regardless of left_at. Archive Session's handleClose sets left_at on every seat as part
+  // of closing the Cell, in the SAME action that delivers the final archive projection
+  // (session-end rewards among them); filtering those out here would mean an Operator's
+  // very next Pull Handler -- the one that's supposed to retrieve exactly that delivery --
+  // finds zero seats and silently never receives it.
+  const isHandler = session.handler_user_id === auth.user.id;
   const seatsRes = await restAsUser(
     auth.token,
-    `/session_operator_state?session_id=eq.${sessionId}&left_at=is.null&select=*,operator_profiles(display_name,designation)`,
+    `/session_operator_state?session_id=eq.${sessionId}${isHandler ? "&left_at=is.null" : ""}&select=*,operator_profiles(display_name,designation)`,
   );
   if (!seatsRes.ok) return fail(res, seatsRes.status, "Could not read seats.");
   const seats = (await restJson(seatsRes)) || [];
