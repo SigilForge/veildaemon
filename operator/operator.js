@@ -792,7 +792,20 @@
     if (!mark?.ontologyGrant || mark.ontologyGrant.status !== "proposed") return false;
     const catalogs = window.CradlepointCatalogs;
     const entry = catalogs?.presentationEntry ? catalogs.presentationEntry(mark.ontologyGrant.presentationKey) : null;
-    const displayName = entry?.displayName || entry?.label || "";
+    const drift = window.PresentationDrift;
+    const pressure = window.PresentationPressure;
+    const key = drift?.resolvePresentationId
+      ? drift.resolvePresentationId(mark.ontologyGrant.presentationKey)
+      : "";
+    const presentation = !key && pressure?.presentationForCatalogKey
+      ? pressure.presentationForCatalogKey(mark.ontologyGrant.presentationKey)
+      : null;
+    const runtimeKey = key || presentation?.id || "";
+    if (!runtimeKey) return false;
+    const runtimePresentation = presentation || pressure?.presentationById?.(runtimeKey) || null;
+    const displayName = entry?.access !== "unknown"
+      ? (entry?.displayName || entry?.label || runtimePresentation?.label || "")
+      : (runtimePresentation?.label || entry?.displayName || entry?.label || "");
     if (!displayName) return false;
     const status = consoleState.operatorStatus;
     status.ontologyPresentation = displayName;
@@ -802,14 +815,23 @@
     status.presentationDrift.byPresentation = status.presentationDrift.byPresentation && typeof status.presentationDrift.byPresentation === "object"
       ? status.presentationDrift.byPresentation
       : {};
-    const key = mark.ontologyGrant.presentationKey;
-    const existingBucket = status.presentationDrift.byPresentation[key];
-    status.presentationDrift.byPresentation[key] = {
-      value: existingBucket?.value ?? mark.ontologyGrant.startingDrift,
-      scars: existingBucket?.scars || [],
-      scarDevelopments: existingBucket?.scarDevelopments || [],
-      thresholdDecision: existingBucket?.thresholdDecision || null
+    const legacyKey = mark.ontologyGrant.presentationKey;
+    const existingBucket = status.presentationDrift.byPresentation[runtimeKey];
+    const legacyBucket = legacyKey && legacyKey !== runtimeKey
+      ? status.presentationDrift.byPresentation[legacyKey]
+      : null;
+    const existingValue = Math.max(0, Math.floor(Number(existingBucket?.value) || 0));
+    const legacyValue = Math.max(0, Math.floor(Number(legacyBucket?.value) || 0));
+    const grantValue = Math.max(0, Math.min(6, Math.floor(Number(mark.ontologyGrant.startingDrift) || 0)));
+    status.presentationDrift.byPresentation[runtimeKey] = {
+      ...(legacyBucket || {}),
+      ...(existingBucket || {}),
+      value: Math.max(existingValue, legacyValue, grantValue),
+      scars: existingBucket?.scars || legacyBucket?.scars || [],
+      scarDevelopments: existingBucket?.scarDevelopments || legacyBucket?.scarDevelopments || [],
+      thresholdDecision: existingBucket?.thresholdDecision || legacyBucket?.thresholdDecision || null
     };
+    if (legacyKey && legacyKey !== runtimeKey) delete status.presentationDrift.byPresentation[legacyKey];
     mark.ontologyGrant.status = "accepted";
     return true;
   }

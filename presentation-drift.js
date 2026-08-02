@@ -817,15 +817,21 @@
       SANGUINE: "sanguine",
       WRAITH: "wraith",
       WRAITH_TOUCHED_ANCHOR_BOUND: "wraith",
+      SENSITIVE: "sensitive",
       RESONANT_SENSITIVE: "sensitive",
       ECHO_ALTERED: "echo",
       MYTHIC_ECHO: "echo",
+      HOLLOW: "silence",
+      SILENCE_ALTERED: "silence",
       HOLLOW_SILENCE_ALTERED: "silence",
+      TECHNOMANCER: "technomancer",
       TECHNOMANCER_DAEMON_ALIGNED: "technomancer",
+      THERIAN: "therian",
       THERIAN_ADAPTATION: "therian",
       VESSEL: "vessel",
       CONSTRUCT: "construct",
       CONSTRUCT_VESSEL: "construct",
+      VOID: "void_shard",
       VOID_SHARD: "void_shard"
     };
     return alias[normalized] || "";
