@@ -587,6 +587,68 @@ test("Operator and Handler connections persist under separate keys and don't clo
   await handlerPage.close();
 });
 
+test("pullState merges a remote Operator's rolls into the Handler's local rollFeed, deduping on repeat pulls", async ({ page }) => {
+  // Rolls travel inside the operatorSend patch as a "rolls" field, separately from the
+  // normalizeOperatorSend-covered fields (harmBoxes/stability/etc) -- pullState's Handler
+  // branch is responsible for lifting them into the same rollFeed the local same-device
+  // path writes to, so handler-cell-sync.js's existing listRollFeed()-based UI shows
+  // cross-device rolls with no changes of its own.
+  let pullCount = 0;
+  await page.route("**/api/cell/state**", (route) => {
+    pullCount += 1;
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        session: { id: "test-session" },
+        seats: [{
+          id: "seat-1",
+          live_state: {
+            operatorSend: {
+              sourceId: "OP-1", name: "Op One", harmBoxes: 0, stability: 10,
+              rolls: [{ id: "roll-a", operatorKey: "OP-1", name: "Op One", total: 9, summary: "roll a" }]
+            }
+          }
+        }]
+      })
+    });
+  });
+  await page.goto("/operator/");
+  const result = await page.evaluate(async () => {
+    const remote = window.VeilDaemonCellRemote;
+    remote.setConnection({ sessionId: "test-session", role: "handler", getToken: async () => "fake-token" });
+    await remote.pullState();
+    await remote.pullState(); // repeat pull -- must not duplicate the same roll
+    return window.VeilDaemonCellSync.listRollFeed();
+  });
+  expect(pullCount).toBe(2);
+  expect(result).toHaveLength(1);
+  expect(result[0]).toMatchObject({ id: "roll-a", operatorKey: "OP-1", total: 9 });
+});
+
+test("pushOperatorRoll sends this Operator's own recent rolls, capped, without touching other operatorSend fields server-side", async ({ page }) => {
+  let capturedBody = null;
+  await page.route("**/api/cell/publish", (route) => {
+    capturedBody = route.request().postDataJSON();
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, seat: {} }) });
+  });
+  await page.goto("/operator/");
+  await page.evaluate(async () => {
+    const cell = window.VeilDaemonCellSync;
+    const remote = window.VeilDaemonCellRemote;
+    remote.setConnection({ sessionId: "test-session", role: "operator", getToken: async () => "fake-token" });
+    // Two different operators' rolls in the local bus (e.g. same-device multi-seat testing)
+    // -- pushOperatorRoll must only ever send THIS operator's own rolls, never someone else's.
+    cell.publishOperatorRoll({ operatorKey: "OTHER-OP", name: "Other", total: 1, summary: "not mine" });
+    const mine = cell.publishOperatorRoll({ operatorKey: "OP-1", name: "Op One", total: 12, summary: "mine" });
+    await remote.pushOperatorRoll(mine.roll);
+  });
+  expect(capturedBody.sessionId).toBe("test-session");
+  expect(capturedBody.patch.rolls).toHaveLength(1);
+  expect(capturedBody.patch.rolls[0]).toMatchObject({ operatorKey: "OP-1", total: 12 });
+});
+
 async function waitForClueChips(page) {
   await page.waitForFunction(() => document.querySelectorAll("#clue-status-tracker .clue-status-chip").length > 0, null, { timeout: 15000 });
 }

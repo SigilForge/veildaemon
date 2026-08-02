@@ -986,6 +986,23 @@
     }
   }
 
+  /** Fire-and-forget remote push of a single roll, when CONNECTED -- the local rollFeed
+   * write already happened via publishOperatorRoll, so a remote failure only affects
+   * whether a cross-device Handler sees it. Unlike pushSendToRemoteIfConnected, a failure
+   * here never trips CELL SEND PENDING: rolls are a lightweight, frequent, informational
+   * broadcast, not a durable fact the Handler must reconcile Harm/Stability from, and each
+   * push carries this Operator's full recent-rolls snapshot (not just the new one), so the
+   * next successful roll push self-heals anything a remote Handler missed in between. */
+  async function pushRollToRemoteIfConnected(roll) {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected()) return;
+    try {
+      await remote.pushOperatorRoll(roll);
+    } catch (_error) {
+      // Best-effort -- see comment above.
+    }
+  }
+
   /** Refreshes the local bus from the server before a deliberate Pull Handler click,
    * when CONNECTED — pullHandlerCellIfAvailable itself stays synchronous/unchanged. */
   async function pullRemoteIfConnected() {
@@ -5301,7 +5318,7 @@
       output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${surgeText}${resonantText}${secondPassText}${slipNoticeText}${daemonPushText}${feralDriveText}${borrowedForceText}${functionSurgeText}${anomalyPushText}${namedText}${loadText} = ${total}`;
 
       if (window.VeilDaemonCellSync?.publishOperatorRoll) {
-        window.VeilDaemonCellSync.publishOperatorRoll({
+        const published = window.VeilDaemonCellSync.publishOperatorRoll({
           operatorKey: operatorRecord ? (operatorRecord.designation || "OP-LOCAL") : "OP-LOCAL",
           name: operatorRecord ? (operatorRecord.designation || "Operator") : "Operator",
           rollType: `${attrKey} + ${skillKey || "Untrained"}`,
@@ -5314,6 +5331,7 @@
           summary: output.textContent,
           timestamp: new Date().toISOString()
         });
+        if (published?.roll) pushRollToRemoteIfConnected(published.roll);
       }
       const syncStatus = document.getElementById("roll-sync-status");
       if (syncStatus) {
