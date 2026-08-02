@@ -1779,7 +1779,7 @@ test("session-end rewards: mark, recovered clue, and trust/distrust gate Archive
     const raw = JSON.parse(window.localStorage.getItem("veildaemon.operatorConsole.v1") || "{}");
     return {
       ontologyPresentation: raw.operatorStatus.ontologyPresentation,
-      driftValue: raw.operatorStatus.presentationDrift?.byPresentation?.silence?.value,
+      driftValue: raw.operatorStatus.presentationDrift?.byPresentation?.hollow_silence_altered?.value,
       orphanCatalogBucket: raw.operatorStatus.presentationDrift?.byPresentation?.HOLLOW,
       grantStatus: raw.sessionRewards.marks[0].ontologyGrant.status
     };

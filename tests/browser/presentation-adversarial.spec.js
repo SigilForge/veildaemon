@@ -4,7 +4,7 @@ const LOAD_PRESENTATIONS = [
   "sanguine.blood_load",
   "wraith.essence_load",
   "echo.echo_load",
-  "silence.silence_load",
+  "hollow_silence_altered.silence_load",
   "therian.instinct_load",
   "technomancer.signal_load",
   "construct.function_load",

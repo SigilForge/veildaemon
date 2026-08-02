@@ -52,7 +52,7 @@
       riskAction: "second_pass_risk",
       clearAction: "second_pass_clear"
     },
-    silence: {
+    hollow_silence_altered: {
       stateKey: "slipNotice",
       label: "Slip Notice",
       prompt: "Spend or risk Silence Load?",
@@ -479,14 +479,14 @@
       }
     }),
     presentationAbilityContract({
-      id: "silence",
+      id: "hollow_silence_altered",
       catalogKeys: ["HOLLOW_SILENCE_ALTERED"],
       label: "Hollow / Silence-Altered",
       displayLabel: "Hollow / Silence-Altered",
       accessTier: "open",
       identityLine: "Too quiet, too hard to hold, too easy to miss, too close to gone.",
       pressureTrack: {
-        trackId: "silence.silence_load",
+        trackId: "hollow_silence_altered.silence_load",
         trackLabel: "Silence Load"
       },
       passivePermissions: [
@@ -1358,7 +1358,7 @@
         sceneUses: {}
       };
     }
-    if (presentationId === "silence") {
+    if (presentationId === "hollow_silence_altered") {
       return {
         slipNotice: { active: false, mode: "", riskQueued: false },
         sceneUses: {}
@@ -1460,7 +1460,7 @@
           },
           sceneUses: current.sceneUses && typeof current.sceneUses === "object" ? { ...current.sceneUses } : {}
         };
-      } else if (entry.id === "silence") {
+      } else if (entry.id === "hollow_silence_altered") {
         store[entry.id] = {
           ...base,
           ...current,
@@ -1661,7 +1661,7 @@
   }
 
   function slipNoticeAppliesToRoll(status, attrKey) {
-    const state = presentationState(status, "silence");
+    const state = presentationState(status, "hollow_silence_altered");
     if (!state.slipNotice?.active) return false;
     return SLIP_NOTICE_ATTRS.includes(String(attrKey || "").trim());
   }
@@ -1672,11 +1672,11 @@
 
   function consumeSlipNoticeOnRoll(status) {
     const normalized = normalizePresentationAbilityState(status);
-    const state = normalized.presentationAbilityState.silence;
+    const state = normalized.presentationAbilityState.hollow_silence_altered;
     if (!state?.slipNotice?.active) return normalized;
     state.slipNotice.active = false;
     state.slipNotice.mode = "";
-    normalized.presentationAbilityState.silence = state;
+    normalized.presentationAbilityState.hollow_silence_altered = state;
     return normalized;
   }
 
@@ -1897,7 +1897,7 @@
         sceneFlag: true
       });
     }
-    const silence = normalized.presentationAbilityState.silence;
+    const silence = normalized.presentationAbilityState.hollow_silence_altered;
     if (silence?.slipNotice?.active) {
       entries.push({
         id: "scene-tag-slip_notice",
@@ -2000,8 +2000,8 @@
         riskQueued: false
       };
     }
-    if (next.presentationAbilityState.silence?.slipNotice?.active) {
-      next.presentationAbilityState.silence.slipNotice = {
+    if (next.presentationAbilityState.hollow_silence_altered?.slipNotice?.active) {
+      next.presentationAbilityState.hollow_silence_altered.slipNotice = {
         active: false,
         mode: "",
         riskQueued: false
@@ -2251,9 +2251,9 @@
 
     if (action === "slip_notice_spend") {
       if (pressure) {
-        next = pressure.adjustTrackLoad(next, "silence.silence_load", -1);
+        next = pressure.adjustTrackLoad(next, "hollow_silence_altered.silence_load", -1);
       }
-      next.presentationAbilityState.silence.slipNotice = {
+      next.presentationAbilityState.hollow_silence_altered.slipNotice = {
         active: true,
         mode: "spend",
         riskQueued: false
@@ -2262,7 +2262,7 @@
     }
 
     if (action === "slip_notice_risk") {
-      next.presentationAbilityState.silence.slipNotice = {
+      next.presentationAbilityState.hollow_silence_altered.slipNotice = {
         active: true,
         mode: "risk",
         riskQueued: true
@@ -2271,7 +2271,7 @@
     }
 
     if (action === "slip_notice_clear") {
-      next.presentationAbilityState.silence.slipNotice = {
+      next.presentationAbilityState.hollow_silence_altered.slipNotice = {
         active: false,
         mode: "",
         riskQueued: false

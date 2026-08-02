@@ -313,8 +313,8 @@
         })
       ]
     },
-    silence: {
-      id: "silence",
+    hollow_silence_altered: {
+      id: "hollow_silence_altered",
       label: "Hollow / Silence-Altered",
       tagline: "The world got better at not keeping them.",
       scars: [
@@ -786,7 +786,8 @@
     const source = store && typeof store === "object" ? store : {};
     const values = {};
     Object.keys(DRIFT_PRESENTATIONS).forEach((presentationId) => {
-      values[presentationId] = normalizeDriftBucket(source[presentationId]);
+      const currentBucket = source[presentationId];
+      values[presentationId] = normalizeDriftBucket(currentBucket);
     });
     return values;
   }
@@ -821,9 +822,9 @@
       RESONANT_SENSITIVE: "sensitive",
       ECHO_ALTERED: "echo",
       MYTHIC_ECHO: "echo",
-      HOLLOW: "silence",
-      SILENCE_ALTERED: "silence",
-      HOLLOW_SILENCE_ALTERED: "silence",
+      HOLLOW: "hollow_silence_altered",
+      SILENCE_ALTERED: "hollow_silence_altered",
+      HOLLOW_SILENCE_ALTERED: "hollow_silence_altered",
       TECHNOMANCER: "technomancer",
       TECHNOMANCER_DAEMON_ALIGNED: "technomancer",
       THERIAN: "therian",

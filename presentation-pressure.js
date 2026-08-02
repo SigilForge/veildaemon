@@ -787,11 +787,11 @@
       maxRisk: "Signal flood, overwhelm, or uncontained resonance bleed."
     }),
     universalLoadPresentation({
-      id: "silence",
-      label: "Hollow / Silence",
+      id: "hollow_silence_altered",
+      label: "Hollow / Silence-Altered",
       cardLabel: "Silence Pressure",
       catalogKeys: ["HOLLOW_SILENCE_ALTERED"],
-      trackId: "silence.silence_load",
+      trackId: "hollow_silence_altered.silence_load",
       trackLabel: "Silence Load",
       stateKey: "silenceLoad",
       kind: "silence_load",
@@ -1393,7 +1393,7 @@
         "Continuity Saturation": "The next move wants to be the last move again.",
         "Loop Risk": "The loop closes. Novel action may require anchor interruption or cost."
       },
-      silence: {
+      hollow_silence_altered: {
         "Negative Space": "Omission starts eating adjacent memory and testimony.",
         "Erasure Risk": "Signal, record, and emotional trace collapse together."
       },
@@ -1678,7 +1678,6 @@
 
     const trackAliasMap = {
       "echo.drift": "echo.echo_load",
-      "silence.suppression": "silence.silence_load",
       "becoming.instinct_surge": "therian.instinct_load",
       "empyrean.radiance_load": "sensitive.sensory_load",
       "void_shard.contamination": "void_shard.void_load"
@@ -1704,8 +1703,8 @@
       signalLoad: "technomancer.signal_load",
       functionLoad: "construct.function_load",
       containmentLoad: "vessel.containment_load",
-      silenceSuppression: "silence.silence_load",
-      silenceLoad: "silence.silence_load"
+      silenceSuppression: "hollow_silence_altered.silence_load",
+      silenceLoad: "hollow_silence_altered.silence_load"
     };
 
     Object.entries(legacyMap).forEach(([stateKey, trackId]) => {

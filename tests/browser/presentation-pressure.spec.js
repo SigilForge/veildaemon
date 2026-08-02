@@ -4,7 +4,7 @@ const LOAD_PRESENTATIONS = [
   { id: "sanguine", kind: "blood_load", trackId: "sanguine.blood_load", catalog: "SANGUINE", bands: ["Starving", "Coherent", "Predatory Saturation", "Collapse Risk"] },
   { id: "wraith", kind: "essence_load", trackId: "wraith.essence_load", catalog: "WRAITH", bands: ["Fading", "Anchored", "Possessive Saturation", "Haunting Risk"] },
   { id: "echo", kind: "echo_load", trackId: "echo.echo_load", catalog: "ECHO_ALTERED", bands: ["Dislocated", "In Sequence", "Continuity Saturation", "Loop Risk"] },
-  { id: "silence", kind: "silence_load", trackId: "silence.silence_load", catalog: "HOLLOW_SILENCE_ALTERED", bands: ["Overexposed", "Present Enough", "Negative Space", "Erasure Risk"] },
+  { id: "hollow_silence_altered", kind: "silence_load", trackId: "hollow_silence_altered.silence_load", catalog: "HOLLOW_SILENCE_ALTERED", bands: ["Overexposed", "Present Enough", "Negative Space", "Erasure Risk"] },
   { id: "therian", kind: "instinct_load", trackId: "therian.instinct_load", catalog: "THERIAN_ADAPTATION", bands: ["Leashed", "Integrated", "Hunting Pitch", "Feral Break"] },
   { id: "technomancer", kind: "signal_load", trackId: "technomancer.signal_load", catalog: "TECHNOMANCER_DAEMON_ALIGNED", bands: ["Desynced", "Linked", "Overclocked Link", "System Breach"] },
   { id: "construct", kind: "function_load", trackId: "construct.function_load", catalog: "CONSTRUCT", bands: ["Degraded", "Operational", "Purpose Lock", "Directive Override"] },
@@ -510,15 +510,15 @@ test("hollow silence-altered permissions expose leave a blank and slip notice", 
     const pressure = window.PresentationPressure;
     const abilities = window.PresentationAbilities;
     const tuned = abilities.presentationAbilityView(
-      pressure.migrateOperatorStatus({ presentationPressures: { "silence.silence_load": 3 } }),
+      pressure.migrateOperatorStatus({ presentationPressures: { "hollow_silence_altered.silence_load": 3 } }),
       "HOLLOW_SILENCE_ALTERED"
     );
     const edge = abilities.presentationAbilityView(
-      pressure.migrateOperatorStatus({ presentationPressures: { "silence.silence_load": 5 } }),
+      pressure.migrateOperatorStatus({ presentationPressures: { "hollow_silence_altered.silence_load": 5 } }),
       "HOLLOW_SILENCE_ALTERED"
     );
     const collapse = abilities.presentationAbilityView(
-      pressure.migrateOperatorStatus({ presentationPressures: { "silence.silence_load": 6 } }),
+      pressure.migrateOperatorStatus({ presentationPressures: { "hollow_silence_altered.silence_load": 6 } }),
       "HOLLOW_SILENCE_ALTERED"
     );
     return {
@@ -552,12 +552,12 @@ test("slip notice spend reduces silence load and arms roll tag", async ({ page }
     const pressure = window.PresentationPressure;
     const abilities = window.PresentationAbilities;
     const status = pressure.migrateOperatorStatus({
-      presentationPressures: { "silence.silence_load": 4 }
+      presentationPressures: { "hollow_silence_altered.silence_load": 4 }
     });
     const spent = abilities.applyPresentationAbilityAction(status, "slip_notice_spend");
     return {
-      load: pressure.readTrackValue(spent, "silence.silence_load"),
-      active: spent.presentationAbilityState.silence.slipNotice.active,
+      load: pressure.readTrackValue(spent, "hollow_silence_altered.silence_load"),
+      active: spent.presentationAbilityState.hollow_silence_altered.slipNotice.active,
       bonus: abilities.slipNoticeRollBonus(spent, "Agility"),
       cleared: abilities.slipNoticeRollBonus(abilities.consumeSlipNoticeOnRoll(spent), "Agility")
     };
