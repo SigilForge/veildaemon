@@ -186,12 +186,41 @@ h2 {
 .handler-module-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: .4rem;
-  align-items: center;
+  gap: .7rem;
+  align-items: flex-start;
   margin-top: .75rem;
-  padding: .5rem;
+  padding: .5rem .6rem;
   border: 1px solid rgba(137,255,218,.18);
   background: rgba(0,0,0,.24);
+}
+
+.handler-module-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  padding-right: .7rem;
+  border-right: 1px solid rgba(137,255,218,.12);
+}
+
+.handler-module-nav-group:last-of-type {
+  border-right: 0;
+  padding-right: 0;
+}
+
+.handler-module-nav-group-label {
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: .7;
+}
+
+.handler-module-nav-group-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  align-items: center;
 }
 
 .handler-module-nav .module-link {
@@ -1395,6 +1424,73 @@ select:focus {
   border-top: 1px solid rgba(137, 255, 218, .16);
   display: grid;
   gap: .45rem;
+}
+
+/* Cell/Operation administration: setup + between-scene actions, de-emphasized
+   and placed after all live game-state (see the panel's own DOM position in
+   handler/live/index.html). Docks lay out as a grid instead of the single
+   stacked column they used when nested inside the Quick Roll panel. */
+.cell-admin-panel {
+  margin-top: 1rem;
+  border-color: rgba(137, 255, 218, .12);
+  background: rgba(0, 0, 0, .12);
+}
+
+.cell-admin-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 720px) {
+  .cell-admin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1101px) {
+  .cell-admin-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.cell-admin-grid .cell-sync-dock {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* Generic closed-by-default drawer for bulky live-surface content (Enemy
+   Opportunities' trigger tray, Entity/Zone Loop's textarea grid) that a
+   Handler needs occasionally, not every scene. */
+.panel-collapse-drawer {
+  margin-top: .55rem;
+  border: 1px solid rgba(137, 255, 218, .16);
+  background: rgba(0, 0, 0, .2);
+}
+
+.panel-collapse-drawer > summary {
+  padding: .45rem .6rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  list-style: none;
+}
+
+.panel-collapse-drawer > summary::-webkit-details-marker {
+  display: none;
+}
+
+.panel-collapse-drawer[open] > summary {
+  color: var(--cyan);
+  border-bottom: 1px solid rgba(137, 255, 218, .14);
+}
+
+.panel-collapse-drawer > *:not(summary) {
+  padding: .6rem;
 }
 
 .cell-sync-dock .kicker {

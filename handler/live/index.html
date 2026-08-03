@@ -10,9 +10,9 @@
   <link rel="icon" href="../../favicon.ico?v=20260711-cradlepoint1" sizes="any" />
   <link rel="icon" type="image/png" href="../../cradlepoint-studio-mark-512.png?v=20260711-cradlepoint1" />
   <link rel="preload" href="../../assets/background.webp" as="image" />
-  <link rel="stylesheet" href="../handler.css?v=20260803-lobbymodel1" />
+  <link rel="stylesheet" href="../handler.css?v=20260803-uxaudit1" />
   <link rel="stylesheet" href="../handler-clue-integrity.css?v=20260630-cluereveal2" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260701-cellsync2" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260803-uxaudit1" />
   <script src="https://analytics.ahrefs.com/analytics.js" data-key="S+lLE7cqoR0zD/Mvx39AJg" async></script>
 </head>
 <body class="handler-surface live-surface">
@@ -85,27 +85,30 @@
                 <h2>Table event. Clock, Attention, and Scene State update visibly.</h2>
               </div>
             </div>
-            <div class="pressure-tray" id="trigger-rail" role="group" aria-label="Table triggers"></div>
-            <div class="trigger-undo-banner" id="trigger-undo-banner" hidden>
-              <p class="trigger-undo-label" id="trigger-undo-label"></p>
-              <pre class="trigger-table-copy" id="trigger-table-copy"></pre>
-              <button class="button danger ghost" id="trigger-undo" type="button">Undo Last Trigger</button>
-            </div>
-            <div class="trigger-preview-panel" id="trigger-preview-panel" hidden>
-              <p class="trigger-preview-title">Apply Trigger?</p>
-              <div class="trigger-operator-picker" id="trigger-operator-picker" hidden>
-                <p class="trigger-stability-announce" id="trigger-stability-announce"></p>
-                <pre class="trigger-stability-breakdown" id="trigger-stability-breakdown" hidden></pre>
-                <p class="trigger-operator-helper">Selected = in area. Tap to exclude.</p>
-                <div class="trigger-operator-chips" id="trigger-operator-chips" role="group"></div>
+            <details class="panel-collapse-drawer" id="trigger-panel-drawer">
+              <summary>Show trigger tiles</summary>
+              <div class="pressure-tray" id="trigger-rail" role="group" aria-label="Table triggers"></div>
+              <div class="trigger-undo-banner" id="trigger-undo-banner" hidden>
+                <p class="trigger-undo-label" id="trigger-undo-label"></p>
+                <pre class="trigger-table-copy" id="trigger-table-copy"></pre>
+                <button class="button danger ghost" id="trigger-undo" type="button">Undo Last Trigger</button>
               </div>
-              <p class="panel-note">This will:</p>
-              <ul class="trigger-preview-lines"></ul>
-              <div class="trigger-preview-actions">
-                <button class="button primary" id="trigger-apply" type="button">Apply</button>
-                <button class="button ghost" id="trigger-cancel" type="button">Cancel</button>
+              <div class="trigger-preview-panel" id="trigger-preview-panel" hidden>
+                <p class="trigger-preview-title">Apply Trigger?</p>
+                <div class="trigger-operator-picker" id="trigger-operator-picker" hidden>
+                  <p class="trigger-stability-announce" id="trigger-stability-announce"></p>
+                  <pre class="trigger-stability-breakdown" id="trigger-stability-breakdown" hidden></pre>
+                  <p class="trigger-operator-helper">Selected = in area. Tap to exclude.</p>
+                  <div class="trigger-operator-chips" id="trigger-operator-chips" role="group"></div>
+                </div>
+                <p class="panel-note">This will:</p>
+                <ul class="trigger-preview-lines"></ul>
+                <div class="trigger-preview-actions">
+                  <button class="button primary" id="trigger-apply" type="button">Apply</button>
+                  <button class="button ghost" id="trigger-cancel" type="button">Cancel</button>
+                </div>
               </div>
-            </div>
+            </details>
           </section>
 
           <section class="panel scene-panel" aria-label="Active scene state" data-mode-panel="live">
@@ -185,78 +188,6 @@
               </fieldset>
             </div>
             <output class="roll-output" id="roll-output">Awaiting Operator test.</output>
-            <div class="cell-sync-dock" id="cell-connect-dock" data-live-control-zone aria-label="Cell connection">
-              <p class="kicker">CELL CONNECTION</p>
-              <p class="panel-note" id="cell-connect-status">LOCAL — same-device sync only.</p>
-              <div class="cell-sync-actions" role="group" aria-label="Cell connection controls">
-                <button class="button primary" id="cell-connect-open" type="button">Open Cell</button>
-                <button class="button ghost" id="cell-connect-leave" type="button" hidden>Close Connection</button>
-              </div>
-              <ul class="seat-roster-list" id="seat-roster-list" hidden aria-label="Seated Operators"></ul>
-            </div>
-            <div class="cell-sync-dock" id="cell-sync-dock" data-live-control-zone aria-label="Cell sync">
-              <p class="kicker">CELL SYNC</p>
-              <div class="cell-sync-actions" role="group" aria-label="Deliberate sync moments">
-                <button class="button primary" id="cell-sync-pressure-round" type="button">End Pressure Round</button>
-                <button class="button" id="cell-sync-cell" type="button">Sync Cell</button>
-                <button class="button ghost" id="cell-sync-archive" type="button">Archive Session</button>
-              </div>
-              <p class="panel-note cell-sync-status" id="cell-sync-status">Operator send is authority when present. Mid-round: Harm, Stability, notes. Lotus between sessions. Void &amp; Breach on Archive (once).</p>
-              <output class="cell-sync-output" id="cell-sync-output" aria-live="polite"></output>
-              <div class="action-economy-strip" id="action-economy-strip" aria-label="Pressure Round action economy"></div>
-            </div>
-
-            <!-- Cradlepoint Cell Lobby Model: Cell lifecycle (this Cell persists across
-            Operations) is a SEPARATE dock from Operation lifecycle (one game inside it) and
-            from the Sync dock above (mid-play reconciliation) -- no control here may ever
-            silently cascade into another layer's transition. See cell-sync-remote.js's
-            startOperation/suspendOperation/resumeOperation/archiveOperation/closeCell. -->
-            <div class="cell-sync-dock" id="cell-operation-dock" data-live-control-zone aria-label="Operation lifecycle">
-              <p class="kicker">OPERATION LIFECYCLE</p>
-              <p class="panel-note" id="cell-operation-status">No Operation started in this Cell yet.</p>
-              <p class="panel-note" id="cell-operation-needlepoint-empty" hidden>No Needlepoints yet -- <a id="cell-operation-weave-link" href="../weave/">create one on the Weave dashboard</a> before starting an Operation.</p>
-              <div class="cell-sync-actions" id="cell-operation-needlepoint-picker" role="group" aria-label="Needlepoint picker" hidden>
-                <select id="cell-operation-needlepoint-select"></select>
-              </div>
-              <div class="cell-sync-actions" role="group" aria-label="Operation lifecycle controls">
-                <button class="button primary" id="cell-operation-start" type="button">Start Operation</button>
-                <button class="button" id="cell-operation-suspend" type="button" hidden>Suspend Operation</button>
-                <button class="button" id="cell-operation-resume" type="button" hidden>Resume Operation</button>
-              </div>
-            </div>
-            <details class="cell-sync-dock" id="cell-weave-dock" data-live-control-zone hidden open>
-              <summary class="kicker">WEAVE &amp; THREADS</summary>
-              <p class="panel-note" id="cell-weave-summary"></p>
-              <div class="cell-sync-actions" role="group" aria-label="Pull in a Thread">
-                <select id="cell-weave-thread-picker"><option value="">-- pull in a Thread --</option></select>
-                <button class="button ghost small" type="button" id="cell-weave-thread-link">Link</button>
-              </div>
-              <p class="kicker">KNOWN THREADS (this Operation)</p>
-              <ul class="cells-list" id="cell-weave-threads-list"></ul>
-              <p class="kicker">PUBLISHED CLUES (reference)</p>
-              <ul class="cells-list" id="cell-weave-clues-list"></ul>
-            </details>
-            <div class="cell-sync-dock" id="cell-lifecycle-dock" data-live-control-zone aria-label="Cell lifecycle">
-              <p class="kicker">CELL LIFECYCLE</p>
-              <p class="panel-note">Closing the Cell ends the lobby for everyone. Archiving an Operation does not -- these are separate actions, on purpose.</p>
-              <div class="cell-sync-actions" role="group" aria-label="Cell lifecycle controls">
-                <button class="button" id="cell-lifecycle-save" type="button">Save Cell</button>
-                <button class="button" id="cell-lifecycle-export" type="button">Export Snapshot</button>
-                <button class="button ghost" id="cell-lifecycle-close" type="button">Close Cell</button>
-              </div>
-              <output class="cell-sync-output" id="cell-lifecycle-output" aria-live="polite"></output>
-            </div>
-            <div class="cell-sync-dock" id="cell-chat-dock" data-live-control-zone aria-label="Cell chat">
-              <p class="kicker">CELL CHAT</p>
-              <div class="cell-chat-list" id="cell-chat-list" aria-live="polite"></div>
-              <!-- Not a <form>: this whole page is already inside #handler-form, and HTML
-              does not permit nested forms (the parser silently drops an inner <form> tag,
-              stripping it from the DOM entirely rather than raising an error). -->
-              <div class="cell-chat-form" id="cell-chat-form">
-                <input type="text" id="cell-chat-input" maxlength="2000" placeholder="Message the table..." autocomplete="off" />
-                <button class="button" type="button" id="cell-chat-send">Send</button>
-              </div>
-            </div>
           </section>
 
           <section class="panel clock-panel" aria-label="Primary clock" data-mode-panel="live">
@@ -332,7 +263,10 @@
               <h2>Need -> Lure -> Pressure -> Gift -> Violence -> Exit</h2>
             </div>
             <div class="entity-active-readout" id="entity-active-readout" aria-live="polite"></div>
-            <div class="loop-grid" id="entity-loop-grid"></div>
+            <details class="panel-collapse-drawer">
+              <summary>Show Entity/Zone Loop fields</summary>
+              <div class="loop-grid" id="entity-loop-grid"></div>
+            </details>
           </section>
 
           <section class="panel helper-panel" aria-label="The Room Answers helper" data-mode-panel="live">
@@ -415,6 +349,91 @@
         </div>
       </div>
 
+      <!-- Cell/Operation administration used to live inside the Quick Roll panel above --
+      moved here, below all live game-state, and visually de-emphasized (see
+      .cell-admin-panel in handler.css) since these are setup/lifecycle actions a Handler
+      touches a few times a session, not every scene. -->
+      <section class="panel cell-admin-panel no-print" aria-label="Cell and Operation administration" data-mode-panel="live prep">
+        <div class="panel-heading">
+          <p class="kicker">CELL &amp; OPERATION ADMINISTRATION</p>
+          <h2>Connection, sync, lifecycle, and chat. Setup and between-scene actions, not live game state.</h2>
+        </div>
+        <div class="cell-admin-grid">
+          <div class="cell-sync-dock" id="cell-connect-dock" data-live-control-zone aria-label="Cell connection">
+            <p class="kicker">CELL CONNECTION</p>
+            <p class="panel-note" id="cell-connect-status">LOCAL — same-device sync only.</p>
+            <div class="cell-sync-actions" role="group" aria-label="Cell connection controls">
+              <button class="button primary" id="cell-connect-open" type="button">Open Cell</button>
+              <button class="button ghost" id="cell-connect-leave" type="button" hidden>Close Connection</button>
+            </div>
+            <ul class="seat-roster-list" id="seat-roster-list" hidden aria-label="Seated Operators"></ul>
+          </div>
+          <div class="cell-sync-dock" id="cell-sync-dock" data-live-control-zone aria-label="Cell sync">
+            <p class="kicker">CELL SYNC</p>
+            <div class="cell-sync-actions" role="group" aria-label="Deliberate sync moments">
+              <button class="button primary" id="cell-sync-pressure-round" type="button">End Pressure Round</button>
+              <button class="button" id="cell-sync-cell" type="button">Sync Cell</button>
+              <button class="button ghost" id="cell-sync-archive" type="button">Archive Session</button>
+            </div>
+            <p class="panel-note cell-sync-status" id="cell-sync-status">Operator send is authority when present. Mid-round: Harm, Stability, notes. Lotus between sessions. Void &amp; Breach on Archive (once).</p>
+            <output class="cell-sync-output" id="cell-sync-output" aria-live="polite"></output>
+            <div class="action-economy-strip" id="action-economy-strip" aria-label="Pressure Round action economy"></div>
+          </div>
+
+          <!-- Cradlepoint Cell Lobby Model: Cell lifecycle (this Cell persists across
+          Operations) is a SEPARATE dock from Operation lifecycle (one game inside it) and
+          from the Sync dock above (mid-play reconciliation) -- no control here may ever
+          silently cascade into another layer's transition. See cell-sync-remote.js's
+          startOperation/suspendOperation/resumeOperation/archiveOperation/closeCell. -->
+          <div class="cell-sync-dock" id="cell-operation-dock" data-live-control-zone aria-label="Operation lifecycle">
+            <p class="kicker">OPERATION LIFECYCLE</p>
+            <p class="panel-note" id="cell-operation-status">No Operation started in this Cell yet.</p>
+            <p class="panel-note" id="cell-operation-needlepoint-empty" hidden>No Needlepoints yet -- <a id="cell-operation-weave-link" href="../weave/">create one on the Weave dashboard</a> before starting an Operation.</p>
+            <div class="cell-sync-actions" id="cell-operation-needlepoint-picker" role="group" aria-label="Needlepoint picker" hidden>
+              <select id="cell-operation-needlepoint-select"></select>
+            </div>
+            <div class="cell-sync-actions" role="group" aria-label="Operation lifecycle controls">
+              <button class="button primary" id="cell-operation-start" type="button">Start Operation</button>
+              <button class="button" id="cell-operation-suspend" type="button" hidden>Suspend Operation</button>
+              <button class="button" id="cell-operation-resume" type="button" hidden>Resume Operation</button>
+            </div>
+          </div>
+          <details class="cell-sync-dock" id="cell-weave-dock" data-live-control-zone hidden open>
+            <summary class="kicker">WEAVE &amp; THREADS</summary>
+            <p class="panel-note" id="cell-weave-summary"></p>
+            <div class="cell-sync-actions" role="group" aria-label="Pull in a Thread">
+              <select id="cell-weave-thread-picker"><option value="">-- pull in a Thread --</option></select>
+              <button class="button ghost small" type="button" id="cell-weave-thread-link">Link</button>
+            </div>
+            <p class="kicker">KNOWN THREADS (this Operation)</p>
+            <ul class="cells-list" id="cell-weave-threads-list"></ul>
+            <p class="kicker">PUBLISHED CLUES (reference)</p>
+            <ul class="cells-list" id="cell-weave-clues-list"></ul>
+          </details>
+          <div class="cell-sync-dock" id="cell-lifecycle-dock" data-live-control-zone aria-label="Cell lifecycle">
+            <p class="kicker">CELL LIFECYCLE</p>
+            <p class="panel-note">Closing the Cell ends the lobby for everyone. Archiving an Operation does not -- these are separate actions, on purpose.</p>
+            <div class="cell-sync-actions" role="group" aria-label="Cell lifecycle controls">
+              <button class="button" id="cell-lifecycle-save" type="button">Save Cell</button>
+              <button class="button" id="cell-lifecycle-export" type="button">Export Snapshot</button>
+              <button class="button ghost" id="cell-lifecycle-close" type="button">Close Cell</button>
+            </div>
+            <output class="cell-sync-output" id="cell-lifecycle-output" aria-live="polite"></output>
+          </div>
+          <div class="cell-sync-dock" id="cell-chat-dock" data-live-control-zone aria-label="Cell chat">
+            <p class="kicker">CELL CHAT</p>
+            <div class="cell-chat-list" id="cell-chat-list" aria-live="polite"></div>
+            <!-- Not a <form>: this whole page is already inside #handler-form, and HTML
+            does not permit nested forms (the parser silently drops an inner <form> tag,
+            stripping it from the DOM entirely rather than raising an error). -->
+            <div class="cell-chat-form" id="cell-chat-form">
+              <input type="text" id="cell-chat-input" maxlength="2000" placeholder="Message the table..." autocomplete="off" />
+              <button class="button" type="button" id="cell-chat-send">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="panel notes-panel private-panel" aria-label="Handler notes" data-mode-panel="archive">
         <div class="panel-heading">
           <p class="kicker">PRIVATE HANDLER NOTES</p>
@@ -462,7 +481,7 @@
   <script src="../../pressure-round.js?v=20260801-actioneconomy1"></script>
   <script src="../../cell-sync-remote.js?v=20260803-lobbymodel1"></script>
   <script src="../handler-state.js?v=20260802-sessionrewards1"></script>
-  <script src="../handler-nav.js?v=20260802-authclient1"></script>
+  <script src="../handler-nav.js?v=20260803-uxaudit1"></script>
   <script src="../handler-pressure-controls.js?v=20260701-pressureunify1"></script>
   <script src="../handler-pending-alerts.js?v=20260802-roundloop1"></script>
   <script src="../handler-track-prompt-queue.js?v=20260802-roundloop1"></script>

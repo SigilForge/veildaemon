@@ -16,7 +16,7 @@
   <link rel="icon" href="../favicon.ico?v=20260711-cradlepoint1" sizes="any" />
   <link rel="icon" type="image/png" href="../cradlepoint-studio-mark-512.png?v=20260711-cradlepoint1" />
   <link rel="preload" href="../assets/background.webp" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260803-lobbymodel1" />
+  <link rel="stylesheet" href="./operator.css?v=20260803-uxaudit1" />
   <script src="https://analytics.ahrefs.com/analytics.js" data-key="S+lLE7cqoR0zD/Mvx39AJg" async></script>
 </head>
 <body class="operator-surface">
@@ -137,16 +137,20 @@
       <p class="local-note">Handler authorization packets can be imported before intake completes.</p>
     </section>
 
+    <!-- data-tab-group clusters these into Play / Reference / Records purely as a visual
+    cue (border separator, see .module-tab[data-tab-group-start] in operator.css) -- it
+    changes nothing about which tab is active or how module-panel switching works. Order
+    mirrors the grouping so each cluster stays visually contiguous. -->
     <nav class="console-nav" aria-label="Console modules">
-      <button type="button" class="module-tab is-active" data-module-tab="anomalies">Anomaly Log</button>
-      <button type="button" class="module-tab" data-module-tab="sheet">Sheet</button>
-      <button type="button" class="module-tab" data-module-tab="equipment">Equipment</button>
-      <button type="button" class="module-tab" data-module-tab="authorizations">Authorized Unlocks</button>
-      <button type="button" class="module-tab locked-tab" data-module-tab="background" data-unlock-tab="background" hidden>Background</button>
-      <button type="button" class="module-tab locked-tab" data-module-tab="ontology" data-unlock-tab="ontology" hidden>Ontology</button>
-      <button type="button" class="module-tab" data-module-tab="frequency">Frequency</button>
-      <button type="button" class="module-tab" data-module-tab="relationships">Relationships</button>
-      <button type="button" class="module-tab" data-module-tab="archive">Archive</button>
+      <button type="button" class="module-tab is-active" data-module-tab="anomalies" data-tab-group="play" data-tab-group-start>Anomaly Log</button>
+      <button type="button" class="module-tab" data-module-tab="sheet" data-tab-group="play">Sheet</button>
+      <button type="button" class="module-tab" data-module-tab="frequency" data-tab-group="play">Frequency</button>
+      <button type="button" class="module-tab" data-module-tab="equipment" data-tab-group="reference" data-tab-group-start>Equipment</button>
+      <button type="button" class="module-tab" data-module-tab="authorizations" data-tab-group="reference">Authorized Unlocks</button>
+      <button type="button" class="module-tab locked-tab" data-module-tab="background" data-unlock-tab="background" data-tab-group="reference" hidden>Background</button>
+      <button type="button" class="module-tab locked-tab" data-module-tab="ontology" data-unlock-tab="ontology" data-tab-group="reference" hidden>Ontology</button>
+      <button type="button" class="module-tab" data-module-tab="relationships" data-tab-group="reference">Relationships</button>
+      <button type="button" class="module-tab" data-module-tab="archive" data-tab-group="records" data-tab-group-start>Archive</button>
     </nav>
 
     <section class="module-panel sheet-panel" id="module-sheet" data-module-panel="sheet" aria-label="Operator sheet">
@@ -611,23 +615,28 @@
             <label class="button file-button">Import Operator Record<input data-operator-file-import type="file" accept="application/json" /></label>
           </div>
         </section>
-        <section class="data-transfer-group" aria-label="Operator local backup">
-          <p class="kicker">OPERATOR — LOCAL BACKUP</p>
-          <p class="local-note">Local backups restore this browser's full local node.</p>
-          <div class="data-actions">
-            <button class="button" type="button" id="export-console">Export Local Backup</button>
-            <label class="button file-button">Restore Local Backup<input id="import-console" type="file" accept="application/json" /></label>
-            <button class="button danger" type="button" id="purge-console">Purge Local Console</button>
+        <details class="data-panel-admin-drawer" aria-label="Backup, print, and account controls">
+          <summary class="kicker">BACKUP, PRINT &amp; ACCOUNT</summary>
+          <div class="data-panel-admin-body">
+            <section class="data-transfer-group" aria-label="Operator local backup">
+              <p class="kicker">OPERATOR — LOCAL BACKUP</p>
+              <p class="local-note">Local backups restore this browser's full local node.</p>
+              <div class="data-actions">
+                <button class="button" type="button" id="export-console">Export Local Backup</button>
+                <label class="button file-button">Restore Local Backup<input id="import-console" type="file" accept="application/json" /></label>
+                <button class="button danger" type="button" id="purge-console">Purge Local Console</button>
+              </div>
+            </section>
+            <section class="data-transfer-group" aria-label="Operator print sheet">
+              <p class="kicker">OPERATOR — PRINT</p>
+              <p class="local-note">Opens your browser's print dialog. Choose "Save as PDF" for a file.</p>
+              <div class="data-actions">
+                <button class="button" type="button" id="print-sheet-button">Print Sheet</button>
+              </div>
+            </section>
+            <a class="button ghost" href="../">Return to Intake</a>
           </div>
-        </section>
-        <section class="data-transfer-group" aria-label="Operator print sheet">
-          <p class="kicker">OPERATOR — PRINT</p>
-          <p class="local-note">Opens your browser's print dialog. Choose "Save as PDF" for a file.</p>
-          <div class="data-actions">
-            <button class="button" type="button" id="print-sheet-button">Print Sheet</button>
-          </div>
-        </section>
-        <a class="button ghost" href="../">Return to Intake</a>
+        </details>
       </div>
     </section>
   </main>

@@ -193,17 +193,14 @@ body[data-handler-mode="live"] .live-pressure-better .trigger-button strong {
   body[data-handler-mode="live"] .live-center-column { grid-column: 2; }
   body[data-handler-mode="live"] .live-right-column { grid-column: 3; }
 
-  /* Roll audit feed docks as a floating sidecar instead of sitting in the
-     right column's flow -- it must never push the Operator Counterplay
-     panel below it down as rolls accumulate. */
-  body[data-handler-mode="live"] .roll-feed-panel {
-    position: fixed;
-    right: 1rem;
-    bottom: 1rem;
-    width: min(21rem, 26vw);
-    z-index: 30;
-    margin: 0;
-  }
+  /* Roll audit feed used to dock as a position:fixed sidecar here so it would
+     never push the Operator Counterplay panel below it down as rolls
+     accumulate -- but .roll-feed-list already caps its own growth via
+     max-height + overflow-y:auto (see handler.css), so the fixed positioning
+     was redundant and, worse, floated the panel over whatever sat beneath it
+     in the right column once the page was scrolled to the bottom (a real
+     unreachable-content bug, not just a layout choice). Normal flow relies on
+     that same internal scroll cap to keep this panel from growing unbounded. */
 
   body[data-handler-mode="live"] .live-pressure-worse .panel-heading,
   body[data-handler-mode="live"] .live-pressure-better .panel-heading {
@@ -402,48 +399,73 @@ body[data-handler-mode="live"] .live-pressure-better .trigger-button strong {
     display: contents;
   }
 
+  /* Intent-based mobile order, not DOM order: highest-frequency live-play
+     controls first, admin/prep content last. Every panel inside
+     .live-flow-grid needs an explicit value here -- an unlisted panel
+     defaults to order:0 and silently jumps ahead of order:1, which is
+     exactly the bug that used to bury Quick Roll under Track Prompts /
+     Presentation Drift / Secondary Clock / the Roll Audit feed (none of
+     which had a value before). Cell administration no longer lives in this
+     grid at all -- see .cell-admin-panel, which now sits after it in normal
+     document flow on every viewport width. */
   body[data-handler-mode="live"] .roll-panel {
     order: 1;
   }
 
-  body[data-handler-mode="live"] .trigger-panel {
+  body[data-handler-mode="live"] .clock-panel {
     order: 2;
   }
 
-  body[data-handler-mode="live"] .clock-panel {
+  body[data-handler-mode="live"] .secondary-panel {
     order: 3;
   }
 
-  body[data-handler-mode="live"] .wind-down-panel {
+  body[data-handler-mode="live"] .scene-panel {
     order: 4;
   }
 
-  body[data-handler-mode="live"] .scene-panel {
+  body[data-handler-mode="live"] .aftermath-panel {
     order: 5;
   }
 
-  body[data-handler-mode="live"] .aftermath-panel {
+  body[data-handler-mode="live"] .clue-integrity-panel {
     order: 6;
   }
 
-  body[data-handler-mode="live"] .clue-integrity-panel {
+  body[data-handler-mode="live"] .player-panel {
     order: 7;
   }
 
-  body[data-handler-mode="live"] .loop-panel {
+  body[data-handler-mode="live"] .npc-panel {
     order: 8;
   }
 
-  body[data-handler-mode="live"] .helper-panel {
+  body[data-handler-mode="live"] .trigger-panel {
     order: 9;
   }
 
-  body[data-handler-mode="live"] .player-panel {
+  body[data-handler-mode="live"] .wind-down-panel {
     order: 10;
   }
 
-  body[data-handler-mode="live"] .npc-panel {
+  body[data-handler-mode="live"] .loop-panel {
     order: 11;
+  }
+
+  body[data-handler-mode="live"] .helper-panel {
+    order: 12;
+  }
+
+  body[data-handler-mode="live"] .track-prompt-panel {
+    order: 13;
+  }
+
+  body[data-handler-mode="live"] .presentation-drift-queue-panel {
+    order: 14;
+  }
+
+  body[data-handler-mode="live"] .roll-feed-panel {
+    order: 15;
   }
 
   body[data-handler-mode="live"] .pressure-tray {

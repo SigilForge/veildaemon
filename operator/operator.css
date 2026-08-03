@@ -249,6 +249,15 @@ h3 {
   text-transform: uppercase;
   text-decoration: none;
 }
+/* Visual grouping cue for console-nav's Play/Reference/Records clusters --
+   see the data-tab-group-start comment in operator/index.html. Kept to a
+   border + margin nudge (not a wrapper element) so the existing
+   grid-template-columns math and the ≤900px horizontal-scroll behavior stay
+   exactly as tuned. */
+.module-tab[data-tab-group-start] {
+  margin-left: .5rem;
+  border-left: 2px solid rgba(102,255,220,.32);
+}
 .module-tab.is-active,
 .button.primary {
   border-color: rgba(185,84,255,.7);
@@ -3220,6 +3229,35 @@ body.operator-record-sealed .authorization-import-handoff {
   flex-wrap: wrap;
   gap: .55rem;
   justify-content: end;
+}
+/* Local Backup / Print / Return-to-Intake are rarely-needed admin actions
+   (including a destructive purge) that don't need full height on every tab
+   visit -- collapsed by default, unlike Cell Connection/Chat above it which
+   stays open since it's plausibly live-relevant. */
+.data-panel-admin-drawer {
+  border: 1px solid rgba(137,255,218,.16);
+  background: rgba(0,0,0,.14);
+  padding: .7rem .85rem;
+}
+.data-panel-admin-drawer summary {
+  cursor: pointer;
+  list-style: none;
+  color: var(--muted);
+}
+.data-panel-admin-drawer summary::-webkit-details-marker { display: none; }
+.data-panel-admin-drawer summary::before {
+  content: "▸ ";
+}
+.data-panel-admin-drawer[open] summary::before {
+  content: "▾ ";
+}
+.data-panel-admin-drawer[open] summary {
+  color: var(--text);
+  margin-bottom: .7rem;
+}
+.data-panel-admin-body {
+  display: grid;
+  gap: 1rem;
 }
 .data-actions .button {
   flex: 1 1 10.5rem;

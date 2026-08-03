@@ -16,20 +16,28 @@
 (function () {
   const api = window.HandlerState;
 
+  /* `group` sorts the flat 12-route list into labeled clusters purely for nav
+   * display -- it changes nothing about routing/ownership, only teaches the
+   * account-vs-prep-vs-live-vs-reference taxonomy the data layer already
+   * enforces (Cell/Weave are account-scoped and Handler-only; the rest are
+   * Cell-scoped). No route is added, removed, or merged. */
   const ROUTES = [
-    { key: "cells", label: "Cells", segment: "cells" },
-    { key: "weave", label: "Weave", segment: "weave" },
-    { key: "overview", label: "Overview", segment: "" },
-    { key: "live", label: "Live", segment: "live" },
-    { key: "cases", label: "Cases", segment: "cases" },
-    { key: "clues", label: "Clues", segment: "clues" },
-    { key: "clocks", label: "Clocks", segment: "clocks" },
-    { key: "entities", label: "Entities", segment: "entities" },
-    { key: "npcs", label: "NPCs", segment: "npcs" },
-    { key: "operators", label: "Operators", segment: "operators" },
-    { key: "residue", label: "Residue", segment: "residue" },
-    { key: "player-view", label: "Player View", segment: "player-view" }
+    { key: "cells", label: "Cells", segment: "cells", group: "account" },
+    { key: "weave", label: "Weave", segment: "weave", group: "account" },
+    { key: "overview", label: "Overview", segment: "", group: "prep" },
+    { key: "cases", label: "Cases", segment: "cases", group: "prep" },
+    { key: "clues", label: "Clues", segment: "clues", group: "prep" },
+    { key: "clocks", label: "Clocks", segment: "clocks", group: "prep" },
+    { key: "entities", label: "Entities", segment: "entities", group: "prep" },
+    { key: "npcs", label: "NPCs", segment: "npcs", group: "prep" },
+    { key: "residue", label: "Residue", segment: "residue", group: "prep" },
+    { key: "live", label: "Live", segment: "live", group: "live" },
+    { key: "operators", label: "Operators", segment: "operators", group: "reference" },
+    { key: "player-view", label: "Player View", segment: "player-view", group: "reference" }
   ];
+
+  const GROUP_LABELS = { account: "Account", prep: "Prep", live: "Live", reference: "Reference" };
+  const GROUP_ORDER = ["account", "prep", "live", "reference"];
 
   function currentModuleKey() {
     if (document.body.classList.contains("overview-surface")) return "overview";
@@ -112,14 +120,32 @@
     const active = currentModuleKey();
     nav.textContent = "";
 
-    ROUTES.forEach((route) => {
-      const link = document.createElement("a");
-      link.className = "module-link";
-      link.href = hrefFor(route.segment);
-      link.textContent = route.label;
-      if (route.key === active) link.classList.add("is-active");
-      link.setAttribute("aria-current", route.key === active ? "page" : "false");
-      nav.append(link);
+    GROUP_ORDER.forEach((groupKey) => {
+      const routes = ROUTES.filter((route) => route.group === groupKey);
+      if (!routes.length) return;
+
+      const group = document.createElement("div");
+      group.className = "handler-module-nav-group";
+      group.dataset.navGroup = groupKey;
+
+      const label = document.createElement("span");
+      label.className = "handler-module-nav-group-label";
+      label.textContent = GROUP_LABELS[groupKey] || groupKey;
+      group.append(label);
+
+      const links = document.createElement("div");
+      links.className = "handler-module-nav-group-links";
+      routes.forEach((route) => {
+        const link = document.createElement("a");
+        link.className = "module-link";
+        link.href = hrefFor(route.segment);
+        link.textContent = route.label;
+        if (route.key === active) link.classList.add("is-active");
+        link.setAttribute("aria-current", route.key === active ? "page" : "false");
+        links.append(link);
+      });
+      group.append(links);
+      nav.append(group);
     });
 
     const home = document.createElement("a");
