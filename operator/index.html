@@ -16,7 +16,7 @@
   <link rel="icon" href="../favicon.ico?v=20260711-cradlepoint1" sizes="any" />
   <link rel="icon" type="image/png" href="../cradlepoint-studio-mark-512.png?v=20260711-cradlepoint1" />
   <link rel="preload" href="../assets/background.webp" as="image" />
-  <link rel="stylesheet" href="./operator.css?v=20260802-sessionrewards1" />
+  <link rel="stylesheet" href="./operator.css?v=20260803-lobbymodel1" />
   <script src="https://analytics.ahrefs.com/analytics.js" data-key="S+lLE7cqoR0zD/Mvx39AJg" async></script>
 </head>
 <body class="operator-surface">
@@ -591,6 +591,18 @@
             <button class="button ghost" type="button" id="cell-connect-leave" hidden>Disconnect</button>
           </div>
           <p class="local-note">Send to Cell / Pull Handler above reach the Handler live once connected — no packet needed.</p>
+          <div class="cell-chat-panel" id="cell-chat-panel" hidden aria-label="Cell chat">
+            <p class="kicker">CELL CHAT</p>
+            <div class="cell-chat-list" id="cell-chat-list" aria-live="polite"></div>
+            <form class="cell-chat-form" id="cell-chat-form">
+              <input type="text" id="cell-chat-input" maxlength="2000" placeholder="Message the table..." autocomplete="off" />
+              <button class="button" type="submit">Send</button>
+            </form>
+          </div>
+          <div class="cell-chat-panel" id="cell-clues-panel" hidden aria-label="Case clues">
+            <p class="kicker">CASE CLUES</p>
+            <div class="cell-chat-list" id="cell-clues-list" aria-live="polite"></div>
+          </div>
           <p class="kicker">OFFLINE FALLBACK</p>
           <p class="local-note">Only needed if you were never connected when the Handler closed the operation.</p>
           <div class="data-actions">
@@ -627,10 +639,10 @@
   <script src="../presentation-pressure.js?v=20260724-sigilforge1"></script>
   <script src="../presentation-abilities.js?v=20260802-roundauthority1"></script>
   <script src="../presentation-drift.js?v=20260801-driftaward1"></script>
-  <script src="../cell-sync.js?v=20260802-rollsync1"></script>
+  <script src="../cell-sync.js?v=20260803-lobbymodel1"></script>
   <script src="../pressure-round.js?v=20260801-actioneconomy1"></script>
-  <script src="../cell-sync-remote.js?v=20260802-identitybind1"></script>
+  <script src="../cell-sync-remote.js?v=20260803-lobbymodel1"></script>
   <script src="../veildaemon-auth.js?v=20260802-auth3"></script>
-  <script src="./operator.js?v=20260802-sessionrewards3"></script>
+  <script src="./operator.js?v=20260803-lobbymodel2"></script>
 </body>
 </html>

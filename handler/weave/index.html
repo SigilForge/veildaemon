@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VEILDAEMON // Handler Weaves</title>
+  <meta name="description" content="Campaign continuity for one Cell -- story arcs, Needlepoints, Threads, and published Clues." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#050709" />
+  <link rel="icon" href="../../favicon.ico?v=20260711-cradlepoint1" sizes="any" />
+  <link rel="icon" type="image/png" href="../../cradlepoint-studio-mark-512.png?v=20260711-cradlepoint1" />
+  <link rel="stylesheet" href="../handler.css?v=20260803-weave1" />
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="S+lLE7cqoR0zD/Mvx39AJg" async></script>
+</head>
+<body class="handler-surface module-surface" data-handler-module="weave">
+  <div class="noise" aria-hidden="true"></div>
+  <main class="handler-shell" aria-label="Handler Weave dashboard">
+    <header class="handler-header">
+      <div class="seal-wrap"><img src="../../assets/veilcorp-avatar.webp" alt="VeilCorp sigil" class="seal" /></div>
+      <div>
+        <p class="kicker" id="weave-cell-kicker">HANDLER CONSOLE // WEAVE</p>
+        <h1 id="weave-cell-title">CAMPAIGN CONTINUITY</h1>
+        <p class="subhead">Story arcs, Needlepoints, and the Threads/Clues that carry knowledge between them -- never inherited automatically.</p>
+      </div>
+    </header>
+    <section class="status-strip" aria-label="Weave status"></section>
+    <p class="panel-note" id="weave-page-status"></p>
+
+    <section class="panel weaves-list-panel" id="weaves-list-view">
+      <div class="panel-heading"><p class="kicker">STORY ARCS</p><h2>Create a Weave</h2></div>
+      <form id="weave-create-form" class="field-grid three" data-live-control-zone>
+        <label>Title<input type="text" id="weave-create-title" maxlength="120" placeholder="The Wren Institute Arc" required /></label>
+        <label>Summary<input type="text" id="weave-create-summary" maxlength="2000" placeholder="Optional throughline notes" /></label>
+        <button class="button primary" type="submit">Create Weave</button>
+      </form>
+      <div class="panel-heading"><p class="kicker">WEAVES</p><h2 id="weaves-list-heading">Loading...</h2></div>
+      <ul class="cells-list" id="weaves-list"></ul>
+    </section>
+
+    <section class="panel" id="weave-detail-view" hidden>
+      <div class="panel-heading">
+        <p class="kicker">WEAVE</p>
+        <h2 id="weave-detail-title">Weave</h2>
+        <button class="button ghost small" type="button" id="weave-detail-back">&larr; All Weaves</button>
+      </div>
+      <form id="weave-edit-form" class="field-grid three" data-live-control-zone>
+        <label>Title<input type="text" id="weave-edit-title" maxlength="120" required /></label>
+        <label>Summary<input type="text" id="weave-edit-summary" maxlength="2000" /></label>
+        <label>Status
+          <select id="weave-edit-status">
+            <option value="planned">Planned</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="archived">Archived</option>
+          </select>
+        </label>
+        <button class="button" type="submit">Save Weave</button>
+      </form>
+
+      <div class="panel-heading"><p class="kicker">NEEDLEPOINTS</p><h2>Cases in this arc</h2></div>
+      <form id="needlepoint-create-form" class="field-grid three" data-live-control-zone>
+        <label>Title<input type="text" id="needlepoint-create-title" maxlength="160" placeholder="Session 1: The Wren Signal" required /></label>
+        <label>Template id<input type="text" id="needlepoint-create-template" maxlength="120" placeholder="Optional -- static scaffold id" /></label>
+        <button class="button" type="submit">Create Needlepoint</button>
+      </form>
+      <ul class="cells-list" id="needlepoints-list"></ul>
+
+      <div class="panel-heading"><p class="kicker">THREADS</p><h2>Campaign continuity (Handler-only)</h2></div>
+      <form id="thread-create-form" class="field-grid three" data-live-control-zone>
+        <label>Title<input type="text" id="thread-create-title" maxlength="120" required /></label>
+        <label>Kind
+          <select id="thread-create-kind">
+            <option value="clue">Clue</option>
+            <option value="npc_entity">NPC / Entity</option>
+            <option value="faction_pressure">Faction Pressure</option>
+            <option value="consequence">Consequence</option>
+            <option value="evidence">Evidence</option>
+            <option value="discovery">Discovery</option>
+            <option value="question">Unresolved Question</option>
+          </select>
+        </label>
+        <label>Cell Entity (optional)
+          <select id="thread-create-entity"><option value="">-- none --</option></select>
+        </label>
+        <label class="wide">Notes<textarea id="thread-create-notes" rows="2" maxlength="4000"></textarea></label>
+        <button class="button" type="submit">Promote Thread</button>
+      </form>
+      <ul class="cells-list" id="threads-list"></ul>
+
+      <div class="panel-heading"><p class="kicker">CLUES</p><h2>Published to Operators</h2></div>
+      <ul class="cells-list" id="clues-list"></ul>
+    </section>
+
+    <section class="panel" id="cell-entities-panel">
+      <div class="panel-heading"><p class="kicker">CELL ENTITIES</p><h2>Durable NPC / Entity / Zone roster (Handler-only)</h2></div>
+      <form id="entity-create-form" class="field-grid three" data-live-control-zone>
+        <label>Name<input type="text" id="entity-create-name" maxlength="120" placeholder="Mara Chen" required /></label>
+        <label>Kind
+          <select id="entity-create-kind">
+            <option value="npc">NPC</option>
+            <option value="entity">Entity</option>
+            <option value="zone">Zone</option>
+          </select>
+        </label>
+        <label class="wide">Description<textarea id="entity-create-description" rows="2" maxlength="2000"></textarea></label>
+        <button class="button" type="submit">Create Cell Entity</button>
+      </form>
+      <ul class="cells-list" id="entities-list"></ul>
+    </section>
+
+    <dialog id="clue-publish-dialog" class="cells-history-dialog">
+      <p class="kicker">PUBLISH CLUE</p>
+      <h2>From: <span id="clue-publish-thread-title"></span></h2>
+      <form id="clue-publish-form" data-live-control-zone>
+        <label>Title<input type="text" id="clue-publish-title" maxlength="120" required /></label>
+        <label>Player-safe text<textarea id="clue-publish-body" rows="4" maxlength="4000" required></textarea></label>
+        <div class="cells-list-item-actions">
+          <button class="button" type="submit" data-publish="false">Save Draft</button>
+          <button class="button primary" type="submit" data-publish="true">Publish Now</button>
+          <button class="button ghost" type="button" id="clue-publish-close">Cancel</button>
+        </div>
+      </form>
+    </dialog>
+  </main>
+  <script src="../../cell-sync.js?v=20260803-weave1"></script>
+  <script src="../../cell-sync-remote.js?v=20260803-weave1"></script>
+  <script src="../handler-state.js?v=20260803-weave1"></script>
+  <script src="../handler-nav.js?v=20260802-authclient1"></script>
+  <script src="../handler-weave.js?v=20260803-weave1"></script>
+</body>
+</html>

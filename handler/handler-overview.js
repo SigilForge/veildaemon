@@ -191,7 +191,7 @@
     if (resetButton) resetButton.addEventListener("click", () => {
       if (!window.confirm("Reset the local Handler case record in this browser?")) return;
       try {
-        window.localStorage.removeItem(api.storageKey);
+        window.localStorage.removeItem(api.getStorageKey());
       } catch (error) {
         // Local cleanup is best effort.
       }

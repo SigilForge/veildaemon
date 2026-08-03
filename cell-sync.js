@@ -321,6 +321,31 @@
     return out;
   }
 
+  /** Cell-scoped typed event feed (chat + ROLL/ACTION_DECLARED/HANDLER_UPDATE/ACKNOWLEDGED/
+   * ROUND_ADVANCED/OPERATION_ARCHIVED) -- see cell_events (migration 20260802140000) and
+   * cell-sync-remote.js's subscribeToCellEvents/sendChatMessage. Deliberately a remote-only
+   * concept (same-device play has no chat), so unlike the rest of this file's normalizers
+   * there's no local-bus field for it -- this normalizer exists here anyway to keep every
+   * shape-validation function in one place, matching this file's existing convention. */
+  function normalizeCellEventItem(item) {
+    if (!item || typeof item !== "object") return null;
+    const id = safeString(item.id, 80);
+    if (!id) return null;
+    const eventType = safeString(item.event_type || item.eventType, 40);
+    if (!eventType) return null;
+    const operationId = item.operation_id || item.operationId;
+    return {
+      id,
+      cellId: safeString(item.cell_id || item.cellId, 80),
+      operationId: operationId ? safeString(operationId, 80) : null,
+      eventType,
+      actorRole: safeString(item.actor_role || item.actorRole, 20),
+      senderName: safeString(item.sender_name || item.senderName, 80) || "Operator",
+      body: item.body && typeof item.body === "object" ? item.body : {},
+      createdAt: safeString(item.created_at || item.createdAt, 40)
+    };
+  }
+
   function normalizeRollFeedItem(item) {
     if (!item || typeof item !== "object") return null;
     const operatorKey = safeString(item.operatorKey || item.sourceId || item.id || item.name, 120);
@@ -658,6 +683,7 @@
     stampMs,
     makeId,
     normalizeProjection,
-    normalizeOperatorSend
+    normalizeOperatorSend,
+    normalizeCellEventItem
   };
 }());

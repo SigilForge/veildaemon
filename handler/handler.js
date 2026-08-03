@@ -280,6 +280,7 @@
       card.innerHTML = `
         <div class="player-head">
           <label>Name<input data-npc="${index}" data-field="name" maxlength="100" /></label>
+          <button class="button ghost small no-print" type="button" data-promote-npc="${index}" hidden>Promote to Thread</button>
           <button class="entry-remove no-print" type="button" data-remove-npc="${index}">Remove</button>
         </div>
         <div class="field-grid three">
@@ -347,6 +348,30 @@
         renderNpcs();
       });
     });
+
+    // Only shown where a live Weave-tagged Operation actually exists to promote INTO -- see
+    // handler-clue-integrity.js's own promote button for the same reasoning (silently absent
+    // rather than erroring on click when disconnected).
+    const canPromote = Boolean(window.HandlerWeavePromote && window.VeilDaemonCellRemote?.isConnected?.());
+    grid.querySelectorAll("[data-promote-npc]").forEach((button) => {
+      button.hidden = !canPromote;
+      if (!canPromote) return;
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.promoteNpc);
+        const npc = state.npcs[index];
+        if (!npc) return;
+        const notes = [npc.role && `Role: ${npc.role}`, npc.pressure && `Pressure: ${npc.pressure}`, npc.location && `Location: ${npc.location}`, npc.notes]
+          .filter(Boolean).join("\n");
+        window.HandlerWeavePromote.open({
+          kind: "npc_entity",
+          title: npc.name || "Unnamed NPC",
+          notes,
+          sourceRef: `npc-${index}`,
+          sourceOperationId: window.HandlerCellSync?.getLatestOperation?.()?.id || null,
+          onDone: () => window.HandlerWeaveLivePanel?.refresh?.(),
+        });
+      });
+    });
   }
 
   function renderNpcSummary() {
@@ -374,6 +399,29 @@
           renderNpcSummary();
           renderDynamic();
         });
+      }
+      // The summary card, not the full edit grid (#npc-grid), is what's actually visible
+      // during live play (body[data-handler-mode="live"] hides .npc-grid) -- this is the
+      // real entry point a Handler reaches for mid-session, matching the one in renderNpcs()
+      // for prep-mode editing.
+      if (window.HandlerWeavePromote && window.VeilDaemonCellRemote?.isConnected?.()) {
+        const promoteButton = document.createElement("button");
+        promoteButton.type = "button";
+        promoteButton.className = "button ghost small no-print";
+        promoteButton.textContent = "Promote to Thread";
+        promoteButton.addEventListener("click", () => {
+          const notes = [npc.role && `Role: ${npc.role}`, npc.pressure && `Pressure: ${npc.pressure}`, npc.location && `Location: ${npc.location}`, npc.notes]
+            .filter(Boolean).join("\n");
+          window.HandlerWeavePromote.open({
+            kind: "npc_entity",
+            title: npc.name || "Unnamed NPC",
+            notes,
+            sourceRef: `npc-${index}`,
+            sourceOperationId: window.HandlerCellSync?.getLatestOperation?.()?.id || null,
+            onDone: () => window.HandlerWeaveLivePanel?.refresh?.(),
+          });
+        });
+        card.append(promoteButton);
       }
       summary.append(card);
     });
@@ -941,7 +989,7 @@
       if (!window.confirm("Reset the local Handler dashboard in this browser?")) return;
       state = api.normalizeState(null);
       try {
-        window.localStorage.removeItem(api.storageKey);
+        window.localStorage.removeItem(api.getStorageKey());
       } catch (error) {
         // Local cleanup is best effort.
       }
@@ -1199,6 +1247,25 @@
     return auth.getSession()?.access_token || null;
   }
 
+  /** Resolves the signed-in Handler's own account id and registers it with the active-
+   * context engine (cell-sync-remote.js) -- unrelated to any Cell, but namespaces local
+   * storage alongside cellId (handler-state.js's setActiveStorageScope) so two different
+   * Handler accounts sharing a browser can never read each other's dashboard state. */
+  async function ensureActiveHandlerId() {
+    const auth = window.VeilAuth;
+    const remote = window.VeilDaemonCellRemote;
+    if (!auth || !remote) return null;
+    if (!auth.getSession()) await auth.init();
+    const user = auth.getUser();
+    if (user?.id) {
+      remote.setActiveHandlerId(user.id);
+      // One-time, per-account: copy the pre-Multi-Cell global blob (if any) into whichever
+      // Cell it actually belonged to, before anything reads/writes a namespaced key.
+      window.HandlerState?.migrateLegacyGlobalStateIfNeeded?.(user.id);
+    }
+    return user?.id || null;
+  }
+
   function renderCellConnectStatus(joinCode) {
     const status = document.getElementById("cell-connect-status");
     const openBtn = document.getElementById("cell-connect-open");
@@ -1240,29 +1307,103 @@
     }
   }
 
+  // Cell-scoped typed event feed (chat, round_advanced, operation_archived, ...) -- same
+  // one-subscription-per-connection pattern as the roll feed above, just a different table.
+  let unsubscribeCellEvents = null;
+  function subscribeCellEventsIfConnected() {
+    if (unsubscribeCellEvents) return;
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected() || !remote.subscribeToCellEvents) return;
+    unsubscribeCellEvents = remote.subscribeToCellEvents(() => {
+      window.HandlerCellSync?.renderChat?.();
+    });
+  }
+  function unsubscribeCellEventsIfAny() {
+    if (unsubscribeCellEvents) {
+      unsubscribeCellEvents();
+      unsubscribeCellEvents = null;
+    }
+  }
+
+  // Live CONNECTED/DISCONNECTED presence -- purely client-derived, never written to
+  // Postgres. Joining/leaving this channel never touches seat_status.
+  let leavePresence = null;
+  function joinPresenceIfConnected() {
+    if (leavePresence) return;
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected() || !remote.joinPresence) return;
+    leavePresence = remote.joinPresence();
+  }
+  function leavePresenceIfAny() {
+    if (leavePresence) {
+      leavePresence();
+      leavePresence = null;
+    }
+  }
+
   /** First-contact visibility: who has joined this Cell, and whether they've ever sent
    * real sheet state -- distinct from "0 seats matched" silence. hasRealSend is false for
    * the identity-only stub handleJoin seeds a seat with (see api/cell/[action].js), true
-   * once the Operator's first deliberate Send to Cell lands. */
+   * once the Operator's first deliberate Send to Cell lands. seatStatus (JOINED/LEFT/
+   * REMOVED, durable) and the live Presence-derived connected dot are two SEPARATE facts --
+   * never collapse them into one badge, that's exactly the conflation this pass exists to
+   * undo. */
   function renderSeatRoster(seatRoster) {
     const list = document.getElementById("seat-roster-list");
     if (!list) return;
     const roster = Array.isArray(seatRoster) ? seatRoster : [];
     list.hidden = !roster.length;
-    list.innerHTML = roster.map((seat) => `
-      <li class="seat-roster-item">
+    const remote = window.VeilDaemonCellRemote;
+    list.innerHTML = roster.map((seat) => {
+      const connected = remote?.isSeatConnected ? remote.isSeatConnected(seat.seatId) : false;
+      const seatStatus = seat.seatStatus || "joined";
+      return `
+      <li class="seat-roster-item" data-seat-id="${seat.seatId}">
         <span class="seat-roster-item-name">${(seat.name || "Operator").replace(/[<>&]/g, "")}</span>
         <span class="seat-roster-item-status ${seat.hasRealSend ? "is-synced" : "is-pending"}">
           ${seat.hasRealSend ? "Synced" : "Joined — no Operator state received yet"}
         </span>
+        <span class="seat-roster-presence-dot ${connected ? "is-connected" : "is-disconnected"}" title="${connected ? "Connected" : "Disconnected (seat retained)"}"></span>
+        <span class="seat-roster-seat-status is-${seatStatus}">${seatStatus.toUpperCase()}</span>
+        <button class="button ghost small seat-roster-inspect" type="button" data-seat-id="${seat.seatId}">Inspect Sheet</button>
       </li>
-    `).join("");
+    `;
+    }).join("");
+    list.querySelectorAll(".seat-roster-inspect").forEach((btn) => {
+      btn.addEventListener("click", () => inspectSeatBaseline(btn.getAttribute("data-seat-id")));
+    });
+  }
+
+  /** Handler inspects a seated Operator's complete, immutable legal sheet baseline for the
+   * current Operation -- a plain database read that works whether that Operator is
+   * connected, disconnected, or has left, since none of it depends on a live connection. */
+  async function inspectSeatBaseline(seatId) {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected()) return;
+    const pulled = await remote.pullState().catch(() => null);
+    const operationId = pulled?.operation?.id;
+    if (!operationId) {
+      window.alert("No Operation has started in this Cell yet -- there is no baseline to inspect.");
+      return;
+    }
+    try {
+      const data = await remote.getOperationBaseline(operationId, seatId);
+      const sheet = data?.baseline?.sheet || {};
+      window.alert(`Operation ${pulled.operation.sequence} baseline (read-only, published ${data.baseline.published_at}):\n\n${JSON.stringify(sheet, null, 2).slice(0, 4000)}`);
+    } catch (error) {
+      window.alert(error?.message || "No baseline published for this seat yet.");
+    }
   }
 
   async function refreshSeatRoster() {
     const remote = window.VeilDaemonCellRemote;
     if (!remote?.isConnected()) return;
     const result = await remote.pullState().catch(() => null);
+    // Keeps the active-context Operation id in sync with the server's authoritative value on
+    // every pull (not just switchToCell's own explicit set) -- chat's topic is computed from
+    // this at subscribe time, so a stale/missing id here would silently leave a reconnecting
+    // client subscribed to the wrong (or "lobby") topic for an already-active Operation.
+    remote.setActiveOperationId?.(result?.operation?.id || null);
     renderSeatRoster(result?.seatRoster || []);
   }
 
@@ -1289,6 +1430,9 @@
           });
           renderCellConnectStatus(session.join_code);
           subscribeLobbyRollsIfConnected();
+          subscribeCellEventsIfConnected();
+          joinPresenceIfConnected();
+          window.HandlerCellSync?.subscribeChatIfConnected?.();
           refreshSeatRoster();
           setStatus(`Cell opened — Code ${session.join_code}`);
         } catch (error) {
@@ -1303,6 +1447,10 @@
       leaveBtn.addEventListener("click", () => {
         window.VeilDaemonCellRemote?.clearConnection();
         unsubscribeLobbyRollsIfAny();
+        unsubscribeCellEventsIfAny();
+        window.HandlerCellSync?.unsubscribeChatIfAny?.();
+        window.HandlerCellSync?.clearChatBuffer?.();
+        leavePresenceIfAny();
         renderCellConnectStatus();
         renderSeatRoster([]);
         setStatus("Cell connection closed on this device (session stays open for Operators until Archived).");
@@ -1310,24 +1458,182 @@
     }
 
     renderCellConnectStatus();
-    restoreCellConnectionIfPossible();
+    bootstrapCellFromUrlOrPointer();
   }
 
-  /** Re-establishes a Cell connection dropped by a page reload, when this browser was
-   * previously connected and VeilAuth still has (or can silently recover) a session. */
-  async function restoreCellConnectionIfPossible() {
+  /** Shows a blocking failure state in the Connect dock -- deliberately never a toast that
+   * disappears, since silently falling back to "just click Open Cell" would hide that a
+   * specific, intended Cell couldn't be reached. Includes a link back to the Cells dashboard,
+   * the only other place a Handler can find their Cells from. */
+  function renderDeepLinkFailure(message) {
+    const status = document.getElementById("cell-connect-status");
+    if (status) {
+      status.textContent = message;
+      status.classList.add("is-error");
+    }
+    const dock = document.getElementById("cell-connect-dock");
+    if (dock && !document.getElementById("cell-connect-dashboard-link")) {
+      const link = document.createElement("a");
+      link.id = "cell-connect-dashboard-link";
+      link.className = "button ghost small";
+      link.href = "../cells/";
+      link.textContent = "Back to Cells dashboard";
+      dock.append(link);
+    }
+    setStatus(message, true);
+  }
+
+  /** Multi-Cell entry point for the Live page on every load: a `?cell=<id>` URL param always
+   * wins and is always attempted, regardless of what's stored locally. Only when no param is
+   * present does this fall back to the per-Handler "last active Cell" pointer (written only
+   * after a previous successful attach -- see persistActiveCellPointer). Fails closed: if the
+   * target Cell can't be attached (not found, not owned), this shows a blocking error and
+   * NEVER falls back to another source -- never silently retries the pointer after a failed
+   * param, never auto-creates, never auto-redirects. As a last-resort compatibility path for
+   * browsers that had a Cell connected before this pointer existed, falls back to the old
+   * role-scoped restoreConnection() -- best-effort only, since that path was never ownership-
+   * verified to begin with. */
+  async function bootstrapCellFromUrlOrPointer() {
     const remote = window.VeilDaemonCellRemote;
-    const auth = window.VeilAuth;
-    if (!remote || !auth || remote.isConnected()) return;
-    if (!auth.getSession()) await auth.init();
-    if (!auth.getUser()) return;
+    if (!remote || remote.isConnected()) return;
+    const handlerId = await ensureActiveHandlerId();
+    if (!handlerId) return; // not signed in yet -- the Open Cell button's own click handler gates sign-in
+    const params = new URLSearchParams(window.location.search);
+    const paramCellId = (params.get("cell") || "").trim();
+    const targetCellId = paramCellId || readActiveCellPointer(handlerId);
+    if (!targetCellId) {
+      restoreLegacyConnectionIfPossible();
+      return;
+    }
+    const result = await switchToCell(targetCellId);
+    if (!result.ok) {
+      renderDeepLinkFailure(paramCellId
+        ? `CELL NOT FOUND OR NOT YOURS — the link for this Cell no longer works.`
+        : `COULD NOT REOPEN YOUR LAST CELL — ${result.error || "it may have been closed."}`);
+    }
+  }
+
+  /** Best-effort pickup of a pre-Multi-Cell role-scoped connection (see cell-sync-remote.js's
+   * restoreConnection) -- never ownership-verified, unlike attachToCell/switchToCell, so this
+   * is only reached when neither a `?cell=` param nor the new per-Handler pointer exists. */
+  async function restoreLegacyConnectionIfPossible() {
+    const remote = window.VeilDaemonCellRemote;
     const restored = remote.restoreConnection(handlerCellConnectGetToken, "handler");
     if (restored) {
       renderCellConnectStatus();
       subscribeLobbyRollsIfConnected();
-      refreshSeatRoster();
+      subscribeCellEventsIfConnected();
+      joinPresenceIfConnected();
+      // Chat's topic is scoped by (cellId, operationId); refreshSeatRoster's pull is what
+      // learns the restored Cell's actual active Operation (setActiveOperationId as a side
+      // effect) -- must resolve before subscribing chat, or a reconnect into an already-
+      // active Operation would subscribe the wrong ("lobby") topic.
+      await refreshSeatRoster();
+      window.HandlerCellSync?.subscribeChatIfConnected?.();
     }
   }
+
+  // Guards against two overlapping switchToCell calls (e.g. a fast double-click on two
+  // different "Resume" cards): incremented at the START of every call, independent of the
+  // active-context generation (which only bumps once a call's OWN attachToCell actually
+  // succeeds). If a newer switchToCell has started by the time this call's attach resolves,
+  // this call abandons its own steps 7-9 rather than clobbering the newer call's result --
+  // the newer call owns rendering/subscribing from that point on.
+  let latestSwitchAttempt = 0;
+
+  /**
+   * Multi-Cell switch orchestration -- sequential, single-focus: the Handler views one Cell
+   * at a time (like browser tabs), never two simultaneously. Ordered exactly as the Multi-
+   * Cell Handler Management plan specifies: flush A's pending sync, unsubscribe A's Realtime/
+   * Presence, clear A's transient UI, point local storage at B's namespace, attach to B
+   * (fails closed on ownership failure -- and it's this attach's own setConnection call that
+   * atomically bumps the active-context generation the instant Cell B is confirmed, so
+   * there's never a window where `connection` points at B but the generation still reflects
+   * A or vice versa), subscribe B's Realtime/Presence, render B.
+   *
+   * Returns { ok, error? } rather than throwing -- callers (the Cells dashboard, the ?cell=
+   * deep-link bootstrap) always need to render a failure state inline, not catch an exception.
+   */
+  async function switchToCell(cellId) {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote || !cellId) return { ok: false, error: "cellId is required." };
+    const myAttempt = (latestSwitchAttempt += 1);
+    const handlerId = await ensureActiveHandlerId();
+    if (!handlerId) return { ok: false, error: "Not signed in." };
+    if (myAttempt !== latestSwitchAttempt) return { ok: false, error: "Superseded by a later switch." };
+
+    // 1. Flush Cell A's pending sync (no-op if nothing was connected).
+    if (remote.isConnected() && window.HandlerCellSync?.flushOperationSync) {
+      await window.HandlerCellSync.flushOperationSync();
+    }
+    if (myAttempt !== latestSwitchAttempt) return { ok: false, error: "Superseded by a later switch." };
+
+    // 2. Unsubscribe Cell A's Realtime/Presence.
+    unsubscribeLobbyRollsIfAny();
+    unsubscribeCellEventsIfAny();
+    window.HandlerCellSync?.unsubscribeChatIfAny?.();
+    leavePresenceIfAny();
+    // 3. Clear Cell A's transient UI.
+    remote.clearCellEvents?.();
+    window.HandlerCellSync?.clearChatBuffer?.();
+    renderSeatRoster([]);
+
+    // 4. Point local storage at Cell B's namespace before any local read/write on it.
+    if (window.HandlerState?.setActiveStorageScope) {
+      window.HandlerState.setActiveStorageScope(handlerId, cellId);
+    }
+
+    // 5. Attach to Cell B -- fails closed; never leaves an unowned/nonexistent Cell live.
+    let attached;
+    try {
+      attached = await remote.attachToCell(handlerCellConnectGetToken, { cellId });
+    } catch (error) {
+      if (myAttempt === latestSwitchAttempt) renderCellConnectStatus();
+      return { ok: false, error: error?.message || "Could not open that Cell (not found, or not yours)." };
+    }
+    if (myAttempt !== latestSwitchAttempt) return { ok: false, error: "Superseded by a later switch." };
+
+    remote.setActiveOperationId?.(attached?.operation ? attached.operation.id : null);
+    persistActiveCellPointer(handlerId, cellId);
+
+    // 6-7. Subscribe Cell B's Realtime/Presence, then render.
+    renderCellConnectStatus(attached?.session?.join_code);
+    subscribeLobbyRollsIfConnected();
+    subscribeCellEventsIfConnected();
+    joinPresenceIfConnected();
+    window.HandlerCellSync?.subscribeChatIfConnected?.();
+    await refreshSeatRoster();
+    if (window.HandlerCellSync?.renderOperationLifecycle) await window.HandlerCellSync.renderOperationLifecycle();
+    if (window.HandlerCellSync?.renderChat) window.HandlerCellSync.renderChat();
+
+    return { ok: true, session: attached?.session, operation: attached?.operation };
+  }
+
+  /** Cell-scoped "last active Cell" pointer -- separate from the role-scoped connection-
+   * restore key, and only ever written AFTER a successful attach (never optimistically),
+   * so a failed deep-link attempt can never corrupt what a future no-`?cell=`-param load
+   * falls back to. */
+  function activeCellPointerKey(handlerId) {
+    return `veildaemon.handlerActiveCell.${handlerId}.v1`;
+  }
+  function persistActiveCellPointer(handlerId, cellId) {
+    try {
+      window.localStorage.setItem(activeCellPointerKey(handlerId), cellId);
+    } catch (_error) {
+      // Best-effort.
+    }
+  }
+  function readActiveCellPointer(handlerId) {
+    try {
+      return window.localStorage.getItem(activeCellPointerKey(handlerId)) || "";
+    } catch (_error) {
+      return "";
+    }
+  }
+
+  // Exposed for the Cells dashboard's deep-link navigation target (handler/live/?cell=<id>)
+  // and its own bootstrap logic, and for direct test access.
+  window.HandlerCellLifecycle = { switchToCell, ensureActiveHandlerId, readActiveCellPointer };
 
   function bindCellSync() {
     if (!window.HandlerCellSync?.bind) return;

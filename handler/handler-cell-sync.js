@@ -596,6 +596,167 @@
     });
   }
 
+  /**
+   * Reconciles every authoritative Handler mutation into cell_operations, debounced.
+   *
+   * writeState() (handler-state.js) is the single canonical write path for the entire
+   * Handler dashboard -- every mutation of any kind (Scene State, Clocks, NPC roster, Entity/
+   * Zone Loop, Clue Integrity, Track Prompt queue, session-end reward decisions, round
+   * advancement) already funnels through it and fires "veildaemon:handler-state-updated"
+   * synchronously on every call. That is the one hook this needs; no new call sites had to be
+   * threaded through the ~30 places that mutate Handler state.
+   *
+   * Debouncing/batching: a rapid burst of mutations (typing in a textarea, dragging a clock
+   * tick, resolving several Track Prompts in a row) collapses into ONE push after
+   * IDLE_DELAY_MS of quiet, or is force-flushed after MAX_WAIT_MS of continuous activity so a
+   * long unbroken editing session still checkpoints periodically. Always sends the FULL
+   * current snapshot read at actual send time (api.readState()), not whatever was live when
+   * the timer started -- there is no per-field diffing to get subtly wrong.
+   *
+   * Revision checks: the server's own CAS retry loop (state_version, see handleSyncOperation
+   * in api/cell/[action].js) is the actual protection against lost updates from concurrent
+   * writers. The client-side contribution is simpler and just as load-bearing: never have two
+   * pushes in flight at once. inFlight + flushAgainAfter guarantee that a mutation arriving
+   * mid-push schedules exactly one follow-up flush (reading fresh state at that later send
+   * time) rather than racing a second overlapping request against the first.
+   *
+   * One-shot effect safety: this pipeline only ever WRITES cell_operations; it never reads
+   * data back into local Handler state or triggers any Operator-facing effect on its own (that
+   * remains the existing, separate, explicit publish/archive flow). So there is nothing here
+   * that could replay a Track Prompt resolution, a Recovery resolution, or an Entity Loop step
+   * twice -- the synced snapshot is inert until an actual Resume/reconnect reads it back, and
+   * whatever "already resolved" flags a mutation set (acknowledgedAt, resolvedAt, etc.) travel
+   * with it exactly once, encoded in the state itself, not as a separate event log this engine
+   * could double-fire.
+   *
+   * Multi-Cell correctness: a debounce timer fires LATER than it's scheduled, and the active
+   * Cell can change in between (switchToCell). The target connection AND generation are
+   * therefore captured at SCHEDULE time, not flush time, and threaded through explicitly
+   * (targetConnection/targetGeneration below) rather than re-reading the live `connection` var
+   * when the timer fires -- a scheduled push whose generation has since moved on becomes an
+   * inert no-op (no network call at all), instead of writing possibly-stale data into
+   * whichever Cell happens to be connected by the time the timer goes off. This is the fix
+   * for a confirmed real bleed path (see the Multi-Cell Handler Management architecture plan).
+   */
+  const OPERATION_SYNC_IDLE_DELAY_MS = 1500;
+  const OPERATION_SYNC_MAX_WAIT_MS = 8000;
+  let operationSyncTimer = null;
+  let operationSyncFirstDirtyAt = 0;
+  // A promise chain, not a busy-flag: every push (whether from the debounce timer or a forced
+  // caller like Archive/Suspend/Close) appends onto this chain, so "await flushOperationSync()"
+  // always genuinely waits for every push already queued ahead of it to finish AND for one
+  // more push reading the truly-current state, rather than racing an in-flight request or
+  // silently no-op'ing because one happened to already be running.
+  let operationSyncChain = Promise.resolve();
+
+  function buildOperationStatePatch(state) {
+    return {
+      round: Number(state.session?.pressureRound) || 0,
+      sceneState: {
+        sceneState: state.sceneState,
+        primaryClock: state.primaryClock,
+        secondaryClock: state.secondaryClock,
+        entityLoop: state.entityLoop,
+        activeEntity: state.activeEntity,
+        entityLibrary: state.entityLibrary,
+        attention: state.attention,
+        roomAnswer: state.roomAnswer,
+        unresolvedConsequences: state.unresolvedConsequences,
+        trackPromptQueue: state.trackPromptQueue
+      },
+      clueState: { clueIntegrity: state.clueIntegrity },
+      npcState: { npcs: state.npcs },
+      rewardState: state.sessionRewardDecisions || {}
+    };
+  }
+
+  function operationSyncEligible() {
+    const remote = window.VeilDaemonCellRemote;
+    return Boolean(remote?.isConnected() && remote.currentConnection()?.role === "handler");
+  }
+
+  /** Pushes to the EXPLICIT target connection captured at schedule/flush time -- never re-reads
+   * the live `connection` var, so a stale scheduled push can never land on whichever Cell
+   * happens to be active by the time it actually fires. */
+  async function pushOperationSyncNow(targetConnection, targetGeneration) {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote || !remote.isCurrentGeneration(targetGeneration)) return; // stale -- silent no-op
+    if (!targetConnection || targetConnection.role !== "handler") return;
+    try {
+      const state = api.readState();
+      await remote.syncOperationFor(targetConnection, buildOperationStatePatch(state));
+    } catch (_error) {
+      // Best-effort, silent: local Handler state is never at risk -- only the server-side
+      // mirror lags behind until the next successful flush (next mutation, or the periodic
+      // refreshHint tick already running independently).
+    }
+  }
+
+  /** Cancels any pending debounce timer and pushes the CURRENT (live, right-now) state
+   * immediately, chained behind any push already in flight. Callers that need the server to
+   * be caught up before proceeding (Archive/Suspend/Close/a Cell switch) must `await` this
+   * rather than firing it and moving on -- this is a forced, immediate flush, not a scheduled
+   * one, so it intentionally reads the live connection/generation rather than a snapshot. */
+  function flushOperationSync() {
+    if (operationSyncTimer) {
+      window.clearTimeout(operationSyncTimer);
+      operationSyncTimer = null;
+    }
+    operationSyncFirstDirtyAt = 0;
+    const remote = window.VeilDaemonCellRemote;
+    const targetConnection = remote ? remote.currentConnection() : null;
+    const targetGeneration = remote ? remote.currentGeneration() : -1;
+    operationSyncChain = operationSyncChain.then(() => pushOperationSyncNow(targetConnection, targetGeneration));
+    return operationSyncChain;
+  }
+
+  function scheduleOperationSync() {
+    if (!operationSyncEligible()) return;
+    if (!operationSyncFirstDirtyAt) operationSyncFirstDirtyAt = Date.now();
+    if (operationSyncTimer) window.clearTimeout(operationSyncTimer);
+    const elapsed = Date.now() - operationSyncFirstDirtyAt;
+    const delay = elapsed >= OPERATION_SYNC_MAX_WAIT_MS ? 0 : OPERATION_SYNC_IDLE_DELAY_MS;
+    // Snapshot NOW (schedule time), not when the timer callback runs -- see the doc comment
+    // above for why this is the actual fix, not just a convenience.
+    const remote = window.VeilDaemonCellRemote;
+    const targetConnection = remote.currentConnection();
+    const targetGeneration = remote.currentGeneration();
+    operationSyncTimer = window.setTimeout(() => {
+      operationSyncTimer = null;
+      operationSyncFirstDirtyAt = 0;
+      operationSyncChain = operationSyncChain.then(() => pushOperationSyncNow(targetConnection, targetGeneration));
+    }, delay);
+  }
+
+  window.addEventListener("veildaemon:handler-state-updated", scheduleOperationSync);
+
+  /** Best-effort flush of a still-pending debounced push when the page is about to unload --
+   * navigating to another Cell (Resume link, deep-link, the Cells dashboard) or simply
+   * closing the tab. Without this, a mutation still sitting inside the 1.5s idle-delay window
+   * at the moment of navigation would be silently lost: the in-memory setTimeout never fires,
+   * a fresh page load has no memory of it, and there is no other trigger that would ever push
+   * it. `keepalive` is required for the fetch to have any real chance of completing after the
+   * page starts unloading -- without it, `pagehide` naturally cancels the request. */
+  window.addEventListener("pagehide", () => {
+    if (!operationSyncTimer && !operationSyncFirstDirtyAt) return; // nothing pending
+    if (operationSyncTimer) {
+      window.clearTimeout(operationSyncTimer);
+      operationSyncTimer = null;
+    }
+    operationSyncFirstDirtyAt = 0;
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote || !remote.isConnected() || remote.currentConnection()?.role !== "handler") return;
+    const targetConnection = remote.currentConnection();
+    const targetGeneration = remote.currentGeneration();
+    if (!remote.isCurrentGeneration(targetGeneration)) return;
+    try {
+      const state = api.readState();
+      remote.syncOperationFor(targetConnection, buildOperationStatePatch(state), { keepalive: true });
+    } catch (_error) {
+      // Best-effort, same trust level as every other push in this engine.
+    }
+  });
+
   function bind(hooks) {
     const onAfter = typeof hooks?.onAfter === "function" ? hooks.onAfter : null;
     const pressureBtn = document.getElementById("cell-sync-pressure-round");
@@ -649,15 +810,327 @@
           return;
         }
         await run("archive");
+        // "OPERATION ARCHIVED / Lobby remains open" -- this marks the Cell's own Operation
+        // record archived server-side (checkpoint, Cell -> POST_OPERATION) and is a
+        // completely separate call from closing the Cell (see cell-lifecycle-close below).
+        // It NEVER disconnects or evicts a seat, on purpose.
         const remote = window.VeilDaemonCellRemote;
         if (remote?.isConnected()) {
           try {
-            await remote.closeCell({ oneShot: state.activeNeedlepoint?.one_shot });
+            // Archive must never race the debounced reconciliation engine: the server's own
+            // reward-gate check on archive-operation reads whatever is CURRENTLY in
+            // cell_operations.reward_state, and a just-resolved reward decision (e.g. marking
+            // not-applicable moments before clicking Archive) may not have flushed yet. Force
+            // a synchronous flush first so Archive always sees the true current state, not a
+            // stale pre-decision snapshot.
+            await flushOperationSync();
+            await remote.archiveOperation({ oneShot: state.activeNeedlepoint?.one_shot });
+            setStatus("OPERATION ARCHIVED — lobby remains open. Chat, reward review, and character maintenance are still available.");
           } catch (error) {
-            setStatus(error?.message || "Remote Cell close failed", true);
+            setStatus(error?.message || "Remote Operation archive failed", true);
           }
+          renderOperationLifecycle();
         }
       });
+    }
+
+    // --- Operation lifecycle: a SEPARATE dock from Cell lifecycle below. Start/Suspend/
+    // Resume Operation only ever touch cell_operations server-side -- never a seat row,
+    // never handler_sessions.status beyond the OPEN<->ACTIVE_OPERATION<->POST_OPERATION
+    // reflection the server itself computes. ---
+    const operationStatusNote = document.getElementById("cell-operation-status");
+    const startOperationBtn = document.getElementById("cell-operation-start");
+    const suspendOperationBtn = document.getElementById("cell-operation-suspend");
+    const resumeOperationBtn = document.getElementById("cell-operation-resume");
+    const needlepointEmptyNote = document.getElementById("cell-operation-needlepoint-empty");
+    const needlepointWeaveLink = document.getElementById("cell-operation-weave-link");
+    const needlepointPicker = document.getElementById("cell-operation-needlepoint-picker");
+    const needlepointSelect = document.getElementById("cell-operation-needlepoint-select");
+    let latestOperation = null;
+    let latestCellStatus = "";
+
+    async function weaveGetToken() {
+      const auth = window.VeilAuth;
+      if (!auth) return null;
+      if (!auth.getSession()) await auth.init();
+      return auth.getSession()?.access_token || null;
+    }
+
+    /** Needlepoints are Weave-scoped and there's no "list every Needlepoint for a Cell"
+     * endpoint (see api/weave/[action].js) -- weaves are Handler-only and typically few per
+     * Cell, so this just fetches each Weave's own Needlepoints and flattens them for the
+     * picker, labeled "Weave title -- Needlepoint title" so a Handler running several arcs
+     * can tell them apart. */
+    async function loadStartableNeedlepoints(cellId) {
+      const remote = window.VeilDaemonCellRemote;
+      const weavesRes = await remote.listWeaves(weaveGetToken, { cellId }).catch(() => null);
+      const weaves = (weavesRes && weavesRes.weaves) || [];
+      const entries = [];
+      for (const weave of weaves) {
+        const npRes = await remote.listNeedlepoints(weaveGetToken, { cellId, weaveId: weave.id }).catch(() => null);
+        const needlepoints = (npRes && npRes.needlepoints) || [];
+        needlepoints.forEach((np) => entries.push({ id: np.id, label: `${weave.title || "Untitled Weave"} — ${np.title}` }));
+      }
+      return entries;
+    }
+
+    async function renderOperationLifecycle() {
+      const remote = window.VeilDaemonCellRemote;
+      if (!remote?.isConnected() || remote.currentConnection()?.role !== "handler") {
+        if (operationStatusNote) operationStatusNote.textContent = "Connect a Cell to manage Operations.";
+        if (startOperationBtn) startOperationBtn.hidden = true;
+        if (suspendOperationBtn) suspendOperationBtn.hidden = true;
+        if (resumeOperationBtn) resumeOperationBtn.hidden = true;
+        if (needlepointEmptyNote) needlepointEmptyNote.hidden = true;
+        if (needlepointPicker) needlepointPicker.hidden = true;
+        window.HandlerWeaveLivePanel?.render?.(null);
+        return;
+      }
+      let pulled;
+      try {
+        pulled = await remote.pullState();
+      } catch (error) {
+        setStatus(error?.message || "Could not read Cell/Operation state.", true);
+        return;
+      }
+      latestOperation = pulled?.operation || null;
+      latestCellStatus = pulled?.session?.status || "";
+      const status = latestOperation?.status;
+      if (operationStatusNote) {
+        operationStatusNote.textContent = latestOperation
+          ? `Operation ${latestOperation.sequence} · ${status.toUpperCase()} · Round ${latestOperation.round}`
+          : `Cell is ${latestCellStatus.toUpperCase() || "OPEN"} — no Operation started yet.`;
+      }
+      const canStart = !status || status === "archived";
+      if (startOperationBtn) startOperationBtn.hidden = !canStart;
+      if (suspendOperationBtn) suspendOperationBtn.hidden = !(status === "active" || status === "resolving");
+      if (resumeOperationBtn) resumeOperationBtn.hidden = status !== "suspended";
+
+      // Every Operation now requires a durable Needlepoint (see
+      // 20260803140000_cell_operations_needlepoint_id.sql) -- the free-text case field this
+      // used to be is retired. Populate the picker only while Start Operation is actually
+      // reachable, so this never fires an extra round trip mid-play.
+      if (canStart && needlepointPicker && needlepointSelect) {
+        const cellId = remote.currentConnection()?.sessionId;
+        if (needlepointWeaveLink) needlepointWeaveLink.href = `../weave/?cell=${encodeURIComponent(cellId || "")}`;
+        const entries = cellId ? await loadStartableNeedlepoints(cellId) : [];
+        if (entries.length) {
+          needlepointSelect.innerHTML = entries.map((e) => `<option value="${e.id}">${api.safeString(e.label, 200)}</option>`).join("");
+          needlepointPicker.hidden = false;
+          if (needlepointEmptyNote) needlepointEmptyNote.hidden = true;
+          if (startOperationBtn) startOperationBtn.disabled = false;
+        } else {
+          needlepointPicker.hidden = true;
+          if (needlepointEmptyNote) needlepointEmptyNote.hidden = false;
+          if (startOperationBtn) startOperationBtn.disabled = true;
+        }
+      } else {
+        if (needlepointPicker) needlepointPicker.hidden = true;
+        if (needlepointEmptyNote) needlepointEmptyNote.hidden = true;
+      }
+
+      // Weave dock: Known Threads / pull-in / published-Clues reference for whatever
+      // Operation is now current. Passed the operation object directly (already has its own
+      // needlepoint.weave_id embed from this same pull) rather than making the panel
+      // re-fetch it itself.
+      window.HandlerWeaveLivePanel?.render?.(latestOperation);
+    }
+
+    if (startOperationBtn) {
+      startOperationBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        if (!remote?.isConnected()) return;
+        const needlepointId = needlepointSelect?.value || "";
+        if (!needlepointId) {
+          setStatus("Choose a Needlepoint before starting an Operation.", true);
+          return;
+        }
+        let state = api.readState();
+        try {
+          const response = await remote.startOperation({
+            needlepointId,
+            mission: state.session?.location || "",
+          });
+          // Reset per-Operation local state (round, live scene/attention, Track Prompt
+          // queue, reward decisions, archive token) and carry forward Cell-scoped campaign
+          // material (NPCs, entity library, notes, clue integrity) -- see
+          // transitionToNewOperation's own doc comment for the exact split and rationale.
+          state = window.HandlerState.transitionToNewOperation(api.readState(), response?.operation?.id);
+          state = api.writeState(state, "New Operation started.");
+          remote.setActiveOperationId?.(response?.operation?.id || null);
+          // Chat is scoped by (cellId, operationId) -- a new Operation means a new topic, so
+          // the prior Operation's (or lobby's) buffer must never leak into this one. Same
+          // unsubscribe -> clear -> resubscribe sequence switchToCell uses for a full Cell
+          // switch, just triggered by an Operation change within the same Cell.
+          unsubscribeChatIfAny();
+          clearChatBuffer();
+          subscribeChatIfConnected();
+          setStatus("Operation started.");
+        } catch (error) {
+          setStatus(error?.message || "Could not start Operation.", true);
+        }
+        renderOperationLifecycle();
+      });
+    }
+    if (suspendOperationBtn) {
+      suspendOperationBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        if (!remote?.isConnected()) return;
+        if (!window.confirm("Suspend Operation? Writes a checkpoint and leaves the Cell intact -- pick up again later with Resume Operation.")) return;
+        try {
+          // Same reasoning as Archive: the checkpoint must capture the truly-current state,
+          // not whatever happened to have already reconciled before the debounce settled.
+          await flushOperationSync();
+          await remote.suspendOperation();
+          setStatus("Operation suspended. Round advancement and declarations are paused; lobby, chat, and reward review stay open.");
+        } catch (error) {
+          setStatus(error?.message || "Could not suspend Operation.", true);
+        }
+        renderOperationLifecycle();
+      });
+    }
+    if (resumeOperationBtn) {
+      resumeOperationBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        if (!remote?.isConnected()) return;
+        try {
+          await remote.resumeOperation();
+          setStatus("Operation resumed.");
+        } catch (error) {
+          setStatus(error?.message || "Could not resume Operation.", true);
+        }
+        renderOperationLifecycle();
+      });
+    }
+
+    // --- Cell lifecycle: Save / Export / Close. Close is its OWN control, deliberately not
+    // reachable from the Archive Session button above -- the server itself refuses close-cell
+    // while a non-archived Operation exists, but the UI shouldn't even invite the mistake. ---
+    const lifecycleOutput = document.getElementById("cell-lifecycle-output");
+    const saveCellBtn = document.getElementById("cell-lifecycle-save");
+    const exportSnapshotBtn = document.getElementById("cell-lifecycle-export");
+    const closeCellBtn = document.getElementById("cell-lifecycle-close");
+
+    function setLifecycleOutput(message, isError) {
+      if (lifecycleOutput) {
+        lifecycleOutput.textContent = message;
+        lifecycleOutput.classList.toggle("is-error", Boolean(isError));
+      }
+    }
+
+    if (saveCellBtn) {
+      saveCellBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        if (!remote?.isConnected()) return setLifecycleOutput("Connect a Cell first.", true);
+        try {
+          const data = await remote.saveCell();
+          setLifecycleOutput(`Checkpoint saved · revision ${data.checkpoint.revision}.`);
+        } catch (error) {
+          setLifecycleOutput(error?.message || "Could not save Cell.", true);
+        }
+      });
+    }
+    if (exportSnapshotBtn) {
+      exportSnapshotBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        if (!remote?.isConnected()) return setLifecycleOutput("Connect a Cell first.", true);
+        try {
+          const snapshot = await remote.exportSnapshot();
+          const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `veildaemon-cell-${snapshot.cellId}-rev${snapshot.revision}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          setLifecycleOutput(`Snapshot exported · revision ${snapshot.revision} · checksum ${snapshot.checksum.slice(0, 12)}…`);
+        } catch (error) {
+          setLifecycleOutput(error?.message || "Could not export snapshot.", true);
+        }
+      });
+    }
+    if (closeCellBtn) {
+      closeCellBtn.addEventListener("click", async () => {
+        const remote = window.VeilDaemonCellRemote;
+        if (!remote?.isConnected()) return setLifecycleOutput("Connect a Cell first.", true);
+        if (!window.confirm("CELL CLOSED -- Lobby ended. This is separate from archiving an Operation and cannot be undone. Continue?")) return;
+        try {
+          await remote.closeCell();
+          setLifecycleOutput("CELL CLOSED — lobby ended.");
+        } catch (error) {
+          setLifecycleOutput(error?.message || "Could not close Cell (archive the current Operation first if one is active).", true);
+        }
+        renderOperationLifecycle();
+      });
+    }
+
+    // --- Cell-scoped chat --- (a <div>, not a <form>: this whole page is already inside
+    // #handler-form, and a nested <form> would be silently dropped by the HTML parser)
+    // Ephemeral to the current Cell+Operation -- delivered via Realtime Broadcast, never a
+    // cell_events row (see cell-sync-remote.js's chat section and handleSendChat's own
+    // comment). unsubscribeChatIfAny/clearChatBuffer/subscribeChatIfConnected are exposed on
+    // window.HandlerCellSync below for handler.js's switchToCell (full Cell switch) and the
+    // Operation-lifecycle handlers here (start/archive -- same topic-scoping rule applies
+    // within one Cell, since the topic includes operationId) to call at the exact points they
+    // already discard/re-establish every other Cell-scoped transient subscription.
+    const chatList = document.getElementById("cell-chat-list");
+    const chatSendBtn = document.getElementById("cell-chat-send");
+    const chatInput = document.getElementById("cell-chat-input");
+    let unsubscribeChat = null;
+
+    function renderChat() {
+      if (!chatList) return;
+      const remote = window.VeilDaemonCellRemote;
+      const messages = remote?.listChatMessages ? remote.listChatMessages() : [];
+      if (!messages.length) {
+        chatList.innerHTML = `<p class="cell-chat-empty">No messages yet.</p>`;
+        return;
+      }
+      chatList.innerHTML = messages.slice(-100).map((message) => {
+        const time = message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+        return `<div class="cell-chat-line"><strong>${api.safeString(message.senderName, 80)}</strong> <time>${time}</time><p>${api.safeString(message.text, 2000)}</p></div>`;
+      }).join("");
+      chatList.scrollTop = chatList.scrollHeight;
+    }
+
+    async function sendChat() {
+      const remote = window.VeilDaemonCellRemote;
+      const text = (chatInput?.value || "").trim();
+      if (!text || !remote?.isConnected()) return;
+      try {
+        await remote.sendChatMessage(text);
+        if (chatInput) chatInput.value = "";
+        renderChat();
+      } catch (error) {
+        setStatus(error?.message || "Chat message failed to send.", true);
+      }
+    }
+    if (chatSendBtn) chatSendBtn.addEventListener("click", sendChat);
+    if (chatInput) {
+      chatInput.addEventListener("keydown", (evt) => {
+        if (evt.key === "Enter") {
+          evt.preventDefault();
+          sendChat();
+        }
+      });
+    }
+
+    function subscribeChatIfConnected() {
+      if (unsubscribeChat) return;
+      const remote = window.VeilDaemonCellRemote;
+      if (!remote?.isConnected() || !remote.subscribeToChat) return;
+      unsubscribeChat = remote.subscribeToChat(() => renderChat());
+      renderChat();
+    }
+    function unsubscribeChatIfAny() {
+      if (unsubscribeChat) {
+        unsubscribeChat();
+        unsubscribeChat = null;
+      }
+    }
+    function clearChatBuffer() {
+      window.VeilDaemonCellRemote?.clearChatBuffer?.();
+      renderChat();
     }
 
     const ROLL_FEED_COLLAPSED_COUNT = 2;
@@ -741,11 +1214,23 @@
       renderLateSendReview(lateSends, round);
     }
     refreshHint();
+    renderOperationLifecycle();
+    renderChat();
     window.setInterval(refreshHint, 4000);
+    window.setInterval(renderOperationLifecycle, 6000);
     window.VeilDaemonCellSync?.onUpdate?.(refreshHint);
 
-    window.HandlerCellSync = { syncKind, resolveLateSend, refreshHint, pendingPrompts, buildRoundAdvanceSummary };
+    window.HandlerCellSync = {
+      syncKind, resolveLateSend, refreshHint, pendingPrompts, buildRoundAdvanceSummary,
+      renderOperationLifecycle, renderChat, flushOperationSync, buildOperationStatePatch,
+      subscribeChatIfConnected, unsubscribeChatIfAny, clearChatBuffer,
+      getLatestOperation: () => latestOperation,
+    };
   }
 
-  window.HandlerCellSync = { bind, syncKind, resolveLateSend, pendingPrompts, buildRoundAdvanceSummary };
+  window.HandlerCellSync = {
+    bind, syncKind, resolveLateSend, pendingPrompts, buildRoundAdvanceSummary,
+    flushOperationSync, buildOperationStatePatch,
+    getLatestOperation: () => null,
+  };
 }());

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VEILDAEMON // Handler Cells</title>
+  <meta name="description" content="Every Cell the signed-in Handler owns -- create, resume, rename, and manage independently." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#050709" />
+  <link rel="icon" href="../../favicon.ico?v=20260711-cradlepoint1" sizes="any" />
+  <link rel="icon" type="image/png" href="../../cradlepoint-studio-mark-512.png?v=20260711-cradlepoint1" />
+  <link rel="stylesheet" href="../handler.css?v=20260803-multicell1" />
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="S+lLE7cqoR0zD/Mvx39AJg" async></script>
+</head>
+<body class="handler-surface module-surface" data-handler-module="cells">
+  <div class="noise" aria-hidden="true"></div>
+  <main class="handler-shell" aria-label="Handler Cells dashboard">
+    <header class="handler-header">
+      <div class="seal-wrap"><img src="../../assets/veilcorp-avatar.webp" alt="VeilCorp sigil" class="seal" /></div>
+      <div>
+        <p class="kicker">HANDLER CONSOLE // CELLS</p>
+        <h1>YOUR CELLS</h1>
+        <p class="subhead">Every table you run, kept fully separate. Same Handler, different Cell, different reality.</p>
+      </div>
+    </header>
+    <section class="status-strip" aria-label="Cells status"></section>
+
+    <section class="panel cells-create-panel">
+      <div class="panel-heading"><p class="kicker">CREATE A CELL</p><h2>Start a new, independent table</h2></div>
+      <form id="cells-create-form" class="field-grid three" data-live-control-zone>
+        <label>Cell Name<input type="text" id="cells-create-name" maxlength="120" placeholder="Monday Group" required /></label>
+        <label>Campaign / Table Label<input type="text" id="cells-create-mission" maxlength="200" placeholder="Optional" /></label>
+        <label>Needlepoint<input type="text" id="cells-create-needlepoint" maxlength="120" placeholder="Optional" /></label>
+        <button class="button primary" type="submit">Create Cell</button>
+      </form>
+      <p class="panel-note" id="cells-create-status"></p>
+    </section>
+
+    <section class="panel cells-list-panel">
+      <div class="panel-heading"><p class="kicker">CELLS</p><h2 id="cells-list-heading">Loading your Cells...</h2></div>
+      <ul class="cells-list" id="cells-list"></ul>
+      <p class="panel-note" id="cells-list-status"></p>
+    </section>
+
+    <dialog id="cells-history-dialog" class="cells-history-dialog">
+      <p class="kicker">PRIOR OPERATIONS</p>
+      <h2 id="cells-history-title">Cell</h2>
+      <div id="cells-history-list"></div>
+      <button class="button ghost" type="button" id="cells-history-close">Close</button>
+    </dialog>
+  </main>
+  <script src="../../cell-sync.js?v=20260803-multicell1"></script>
+  <script src="../../cell-sync-remote.js?v=20260803-multicell1"></script>
+  <script src="../handler-state.js?v=20260803-multicell1"></script>
+  <script src="../handler-nav.js?v=20260802-authclient1"></script>
+  <script src="../handler-cells.js?v=20260803-multicell1"></script>
+</body>
+</html>

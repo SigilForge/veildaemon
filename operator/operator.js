@@ -686,6 +686,10 @@
       // separate from the free-text, Operator-authored relationships/residue arrays above
       // rather than mixed into them, since these are awarded facts, not self-written notes.
       sessionRewards: normalizeSessionRewards(state.sessionRewards),
+      // Local-only convenience copy of this Operator's own sheet at each Operation's start --
+      // never transmitted server-side beyond the one deliberate publishOperationBaseline call
+      // (see applyCellOperationState). Not the Handler-inspectable legal record.
+      operationBaselines: normalizeOperationBaselines(state.operationBaselines),
       lastCellPullAt: safeString(state.lastCellPullAt, 40),
       cellSync: normalizeCellSyncMeta(state.cellSync || {
         lastAppliedRevision: 0,
@@ -717,7 +721,7 @@
       presentationKey,
       startingDrift: Math.max(0, Math.min(6, Math.floor(Number(value.startingDrift) || 0))),
       justification: safeString(value.justification, 400),
-      status: ["accepted", "declined"].includes(status) ? status : "proposed"
+      status: ["accepted", "declined", "deferred"].includes(status) ? status : "proposed"
     };
   }
 
@@ -792,7 +796,7 @@
 
   function acceptOntologyGrant(markId) {
     const mark = findSessionRewardMark(markId);
-    if (!mark?.ontologyGrant || mark.ontologyGrant.status !== "proposed") return false;
+    if (!mark?.ontologyGrant || !["proposed", "deferred"].includes(mark.ontologyGrant.status)) return false;
     const catalogs = window.CradlepointCatalogs;
     const entry = catalogs?.presentationEntry ? catalogs.presentationEntry(mark.ontologyGrant.presentationKey) : null;
     const drift = window.PresentationDrift;
@@ -841,8 +845,19 @@
 
   function declineOntologyGrant(markId) {
     const mark = findSessionRewardMark(markId);
-    if (!mark?.ontologyGrant || mark.ontologyGrant.status !== "proposed") return false;
+    if (!mark?.ontologyGrant || !["proposed", "deferred"].includes(mark.ontologyGrant.status)) return false;
     mark.ontologyGrant.status = "declined";
+    return true;
+  }
+
+  /** "I acknowledge this proposal but want to decide later" -- a real third response, not a
+   * synonym for decline. Deferred proposals stay visible (still "proposed" in spirit) but are
+   * flagged so the Operator's own future self and the Handler both know it's still open,
+   * without being forced to a binary accept/decline right now. */
+  function deferOntologyGrant(markId) {
+    const mark = findSessionRewardMark(markId);
+    if (!mark?.ontologyGrant || !["proposed", "deferred"].includes(mark.ontologyGrant.status)) return false;
+    mark.ontologyGrant.status = "deferred";
     return true;
   }
 
@@ -862,7 +877,13 @@
       // to local round authority to engineer around here.
       lastHandlerRound: Number.isFinite(Number(raw.lastHandlerRound)) && raw.lastHandlerRound !== null
         ? Math.max(1, Math.floor(Number(raw.lastHandlerRound)))
-        : null
+        : null,
+      // Cell/Operation lifecycle, refreshed on every state pull -- see
+      // applyCellOperationState. Empty string = never pulled / not connected.
+      cellStatus: safeString(raw.cellStatus, 20),
+      operationStatus: safeString(raw.operationStatus, 20),
+      lastOperationId: safeString(raw.lastOperationId, 80),
+      cellId: safeString(raw.cellId, 80)
     };
   }
 
@@ -871,6 +892,21 @@
       consoleState.cellSync = normalizeCellSyncMeta(null);
     }
     return consoleState.cellSync;
+  }
+
+  /** Gates advancement-spend/purchase/equipment-change controls -- NOT the reward accept/
+   * decline/defer controls, which stay available throughout an active Operation (see
+   * RESOLVING/pre-Archive in the architecture plan). Enabled in POST_OPERATION or OPEN, or
+   * for an Operator who has never connected (LOCAL solo play, ungated exactly as today).
+   * Disabled only while cellStatus is literally 'active_operation' -- "Archive freezes the
+   * Operation, not the characters" means this unlocks the moment Archive succeeds, without
+   * waiting for anything else. Character CREATION (creationActive()) is a separate concept
+   * entirely and is never gated by this -- initial setup isn't "advancement between
+   * Operations." */
+  function canAdvanceCharacter() {
+    const meta = cellSyncMeta();
+    if (!meta.cellStatus) return true;
+    return meta.cellStatus !== "active_operation";
   }
 
   function markLocalSheetRevised() {
@@ -1159,13 +1195,170 @@
     }
   }
 
+  /** Captures a LOCAL-ONLY copy of the Operator's current complete sheet as this Operation's
+   * baseline for their own future reference (print-sheet deltas, "what changed this
+   * Operation") -- never transmitted anywhere beyond the one deliberate publish call below.
+   * Deduped by operationId, capped like sessionRewards. This is deliberately NOT the same
+   * thing as the server-side cell_operation_baselines row: that one is the Handler's
+   * inspectable legal record; this one is the Operator's own convenience copy. Keeping them
+   * as two separate writes (one local, one a single POST) is what keeps this from ever
+   * becoming a second mutable server-owned character record. */
+  function normalizeOperationBaselines(value) {
+    return (Array.isArray(value) ? value : [])
+      .filter((entry) => entry && typeof entry === "object" && entry.operationId)
+      .slice(-20);
+  }
+
+  function captureLocalOperationBaseline(operationId) {
+    const list = Array.isArray(consoleState.operationBaselines) ? consoleState.operationBaselines : [];
+    if (list.some((entry) => entry.operationId === operationId)) return;
+    const snapshot = {
+      operationId: safeString(operationId, 80),
+      cellId: safeString(cellSyncMeta().cellId, 80),
+      capturedAt: nowStamp(),
+      snapshot: JSON.parse(JSON.stringify(consoleState.operatorStatus || {}))
+    };
+    consoleState.operationBaselines = normalizeOperationBaselines([...list, snapshot]);
+  }
+
+  /** Publishes the Operator's complete sheet to the server as this Operation's immutable,
+   * Handler-inspectable legal baseline -- one-shot per Operation; the server rejects a
+   * duplicate outright, so a 409 here just means it's already on record (nothing to retry).
+   *
+   * Confirmed, not accidental: unlike the live handlerProjection (where Presentation Load/
+   * Drift only ever appear once the HANDLER has classified this seat via their own
+   * player.ontologyPresentationKey -- see playerLoadPresentation in handler-state.js), this
+   * baseline includes the Operator's real ontologyPresentation/Load/Drift unconditionally.
+   * It's a legal/dispute-prevention record, not a table-facing reveal -- full disclosure here
+   * is the point, independent of whatever the Handler's roster currently has this seat down
+   * as. */
+  async function publishOperationBaselineIfNeeded(operationId) {
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected() || remote.currentConnection()?.role !== "operator" || !operationId) return;
+    const sheet = {
+      operatorStatus: consoleState.operatorStatus,
+      equipment: consoleState.equipment,
+      anomalies: consoleState.anomalies,
+      relationships: consoleState.relationships,
+      residue: consoleState.residue
+    };
+    try {
+      await remote.publishOperationBaseline(operationId, sheet);
+    } catch (error) {
+      // A 409 here means a baseline is already on record for this Operation -- expected on a
+      // second device/reload, not an error worth surfacing.
+      if (error?.status !== 409) setStorageStatus(error?.message || "Could not publish Operation baseline.", true);
+    }
+  }
+
+  /** Renders the four exact UI-law transition banners at the moment cellStatus/
+   * operationStatus actually change -- never a generic toast, each names its own
+   * transition. */
+  function renderCellLifecycleBanner(message) {
+    let banner = document.getElementById("cell-lifecycle-banner");
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.id = "cell-lifecycle-banner";
+      banner.className = "cell-lifecycle-banner";
+      const host = document.getElementById("cell-connect-status")?.closest(".cell-sync-dock") || document.body;
+      host.prepend(banner);
+    }
+    banner.textContent = message;
+    banner.hidden = false;
+    window.clearTimeout(renderCellLifecycleBanner._timer);
+    renderCellLifecycleBanner._timer = window.setTimeout(() => { banner.hidden = true; }, 12000);
+  }
+
+  /** Merges a fresh state pull's Cell/Operation facts into local cellSync meta, detects the
+   * lifecycle-edge transitions that need one of the four exact UI-law banners, and (on
+   * detecting a genuinely new Operation) captures + publishes this Operator's baseline. */
+  function applyCellOperationState(result) {
+    if (!result) return;
+    const meta = cellSyncMeta();
+    const prevCellStatus = meta.cellStatus;
+    const prevOperationStatus = meta.operationStatus;
+    const nextCellStatus = safeString(result.session?.status, 20);
+    const nextOperationStatus = safeString(result.operation?.status, 20);
+    const nextOperationId = safeString(result.operation?.id, 80);
+
+    if (nextOperationStatus === "archived" && prevOperationStatus !== "archived") {
+      renderCellLifecycleBanner("OPERATION ARCHIVED — Lobby remains open.");
+    }
+    if (nextCellStatus === "closed" && prevCellStatus !== "closed") {
+      renderCellLifecycleBanner("CELL CLOSED — Lobby ended.");
+    }
+
+    if (nextOperationId && nextOperationId !== meta.lastOperationId) {
+      captureLocalOperationBaseline(nextOperationId);
+      publishOperationBaselineIfNeeded(nextOperationId);
+      // Chat is scoped by (cellId, operationId) -- a genuinely new Operation (detected here
+      // the same way the baseline capture above already is, since Operators learn about a
+      // Handler-started Operation only through this pull, never a local action of their own)
+      // means a new topic. Unsubscribe -> clear -> resubscribe so the prior Operation's (or
+      // lobby's) buffer never leaks into this one.
+      const remote = window.VeilDaemonCellRemote;
+      remote?.setActiveOperationId?.(nextOperationId);
+      unsubscribeChatIfAny();
+      clearChatBufferAndRender();
+      subscribeChatIfConnected();
+    }
+
+    meta.cellStatus = nextCellStatus;
+    meta.operationStatus = nextOperationStatus;
+    meta.cellId = safeString(result.session?.id, 80);
+    if (nextOperationId) meta.lastOperationId = nextOperationId;
+    consoleState.cellSync = meta;
+    try {
+      writeConsoleState();
+    } catch (_error) {
+      // Best-effort -- this is bookkeeping, never blocks the rest of the pull.
+    }
+    renderSceneTimerStrip();
+    renderCellChat();
+    refreshCaseClues(result.operation?.needlepoint?.weave_id || "");
+  }
+
+  // Read-only "Case Clues" panel -- Weave-published, player-safe evidence. Sourced from the
+  // current Operation's Needlepoint -> Weave (embedded in GET state's own response once the
+  // Handler has published that Needlepoint -- see handleState's comment in api/cell/
+  // [action].js; before publish, `needlepoint` embeds as null and this panel just stays
+  // hidden, same as it would for a Cell that never adopted the Weave feature at all).
+  let lastCaseCluesWeaveId = "";
+  async function refreshCaseClues(weaveId) {
+    const panel = document.getElementById("cell-clues-panel");
+    const list = document.getElementById("cell-clues-list");
+    if (!panel || !list) return;
+    const remote = window.VeilDaemonCellRemote;
+    const cellId = cellSyncMeta().cellId;
+    if (!weaveId || !cellId || !remote?.listClues) {
+      panel.hidden = true;
+      list.innerHTML = "";
+      lastCaseCluesWeaveId = "";
+      return;
+    }
+    panel.hidden = false;
+    if (weaveId === lastCaseCluesWeaveId && list.childElementCount) return; // no need to re-fetch on every pull
+    lastCaseCluesWeaveId = weaveId;
+    try {
+      const getToken = async () => (window.VeilAuth?.getSession()?.access_token || null);
+      const data = await remote.listClues(getToken, { cellId, weaveId });
+      const clues = Array.isArray(data?.clues) ? data.clues : [];
+      list.innerHTML = clues.length
+        ? clues.map((clue) => `<div class="cell-chat-line"><strong>${safeString(clue.title, 120)}</strong><p>${safeString(clue.body, 4000)}</p></div>`).join("")
+        : `<p class="cell-chat-empty">No Clues published yet.</p>`;
+    } catch (_error) {
+      // Best-effort -- a failed Clue fetch never blocks the rest of the state pull.
+    }
+  }
+
   /** Refreshes the local bus from the server before a deliberate Pull Handler click,
    * when CONNECTED — pullHandlerCellIfAvailable itself stays synchronous/unchanged. */
   async function pullRemoteIfConnected() {
     const remote = window.VeilDaemonCellRemote;
     if (!remote?.isConnected()) return;
     try {
-      await remote.pullState();
+      const result = await remote.pullState();
+      applyCellOperationState(result);
     } catch (error) {
       setStorageStatus(error?.message || "Remote Cell pull failed", true);
     }
@@ -1247,6 +1440,124 @@
     renderLobbyRolls();
   }
 
+  // Cell-scoped typed event feed (round_advanced, operation_archived, ...) -- audit-only for
+  // most types now that chat has its own transport below (lifecycle banners come from
+  // applyCellOperationState's own pullState reads, not this live feed). The one type this
+  // DOES react to live is handler_update/body.kind="operation_started": an Operator never
+  // calls start-operation themselves and otherwise has no live signal that a new Operation
+  // (and therefore a new chat topic, since chat is scoped by (cellId, operationId)) just
+  // began -- without this they'd keep listening to the old topic until their next deliberate
+  // Pull Handler action. See handleStartOperation's own comment for why this reuses
+  // cell_events rather than a separate lifecycle broadcast channel.
+  let unsubscribeCellEvents = null;
+
+  function subscribeCellEventsIfConnected() {
+    if (unsubscribeCellEvents) return;
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected() || !remote.subscribeToCellEvents) return;
+    unsubscribeCellEvents = remote.subscribeToCellEvents((event) => {
+      if (event?.eventType !== "handler_update" || event.body?.kind !== "operation_started") return;
+      const newOperationId = safeString(event.body?.operationId || event.operationId, 80);
+      if (!newOperationId) return;
+      cellSyncMeta().lastOperationId = newOperationId;
+      remote.setActiveOperationId?.(newOperationId);
+      unsubscribeChatIfAny();
+      clearChatBufferAndRender();
+      subscribeChatIfConnected();
+    });
+  }
+
+  // Cell-scoped chat -- ephemeral to the current Operation, delivered via Realtime Broadcast
+  // on a topic scoped by (cellId, operationId), never a cell_events row (see
+  // cell-sync-remote.js's chat section). Available OPEN/ACTIVE_OPERATION/POST_OPERATION,
+  // read-only once CLOSED (server enforces this too; the input is just disabled here to
+  // match).
+  let unsubscribeChat = null;
+
+  function renderCellChat() {
+    const panel = document.getElementById("cell-chat-panel");
+    const list = document.getElementById("cell-chat-list");
+    const form = document.getElementById("cell-chat-form");
+    const input = document.getElementById("cell-chat-input");
+    const remote = window.VeilDaemonCellRemote;
+    const connected = Boolean(remote?.isConnected());
+    if (panel) panel.hidden = !connected;
+    if (!connected || !list) return;
+    const messages = remote.listChatMessages ? remote.listChatMessages() : [];
+    const closed = cellSyncMeta().cellStatus === "closed";
+    if (input) input.disabled = closed;
+    if (form) form.querySelector("button")?.toggleAttribute("disabled", closed);
+    if (!messages.length) {
+      list.innerHTML = `<p class="cell-chat-empty">No messages yet.</p>`;
+      return;
+    }
+    list.innerHTML = messages.slice(-100).map((message) => {
+      const time = message.createdAt ? new Date(message.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+      return `<div class="cell-chat-line"><strong>${safeString(message.senderName, 80)}</strong> <time>${time}</time><p>${safeString(message.text, 2000)}</p></div>`;
+    }).join("");
+    list.scrollTop = list.scrollHeight;
+  }
+
+  function subscribeChatIfConnected() {
+    if (unsubscribeChat) return;
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected() || !remote.subscribeToChat) return;
+    unsubscribeChat = remote.subscribeToChat(() => renderCellChat());
+    renderCellChat();
+  }
+  function unsubscribeChatIfAny() {
+    if (unsubscribeChat) {
+      unsubscribeChat();
+      unsubscribeChat = null;
+    }
+  }
+  function clearChatBufferAndRender() {
+    window.VeilDaemonCellRemote?.clearChatBuffer?.();
+    renderCellChat();
+  }
+
+  function unsubscribeCellEventsIfAny() {
+    if (unsubscribeCellEvents) {
+      unsubscribeCellEvents();
+      unsubscribeCellEvents = null;
+    }
+  }
+
+  // Live CONNECTED/DISCONNECTED presence -- purely client-derived, never written to
+  // Postgres. Joining/leaving this channel never touches seat_status.
+  let leavePresence = null;
+  function joinPresenceIfConnected() {
+    if (leavePresence) return;
+    const remote = window.VeilDaemonCellRemote;
+    if (!remote?.isConnected() || !remote.joinPresence) return;
+    leavePresence = remote.joinPresence();
+  }
+  function leavePresenceIfAny() {
+    if (leavePresence) {
+      leavePresence();
+      leavePresence = null;
+    }
+  }
+
+  function bindCellChat() {
+    const form = document.getElementById("cell-chat-form");
+    const input = document.getElementById("cell-chat-input");
+    if (!form) return;
+    form.addEventListener("submit", async (evt) => {
+      evt.preventDefault();
+      const remote = window.VeilDaemonCellRemote;
+      const text = (input?.value || "").trim();
+      if (!text || !remote?.isConnected()) return;
+      try {
+        await remote.sendChatMessage(text);
+        if (input) input.value = "";
+        renderCellChat();
+      } catch (error) {
+        setStorageStatus(error?.message || "Chat message failed to send.", true);
+      }
+    });
+  }
+
   function bindCellConnect() {
     const joinBtn = document.getElementById("cell-connect-join");
     const leaveBtn = document.getElementById("cell-connect-leave");
@@ -1278,6 +1589,9 @@
           renderCellConnectStatus();
           renderSceneTimerStrip();
           subscribeLobbyRollsIfConnected();
+          subscribeCellEventsIfConnected();
+          joinPresenceIfConnected();
+          subscribeChatIfConnected();
           await pullRemoteIfConnected();
           pullHandlerCellIfAvailable({ force: true });
         } catch (error) {
@@ -1299,13 +1613,18 @@
           remote.clearConnection();
         }
         unsubscribeLobbyRollsIfAny();
+        unsubscribeCellEventsIfAny();
+        unsubscribeChatIfAny();
+        leavePresenceIfAny();
         renderCellConnectStatus();
         renderSceneTimerStrip();
+        clearChatBufferAndRender();
         setStorageStatus("Disconnected from Cell.");
       });
     }
 
     renderCellConnectStatus();
+    bindCellChat();
     restoreCellConnectionIfPossible();
   }
 
@@ -1322,6 +1641,9 @@
       renderCellConnectStatus();
       renderSceneTimerStrip();
       subscribeLobbyRollsIfConnected();
+      subscribeCellEventsIfConnected();
+      joinPresenceIfConnected();
+      subscribeChatIfConnected();
       await pullRemoteIfConnected();
       pullHandlerCellIfAvailable();
     }
@@ -1916,8 +2238,10 @@
       if (grant) {
         const grantNote = document.createElement("p");
         grantNote.className = "tracker-note";
-        if (grant.status === "proposed") {
-          grantNote.textContent = `Proposed ontology: ${grant.presentationKey} (starting Drift ${grant.startingDrift}) -- ${grant.justification}`;
+        if (grant.status === "proposed" || grant.status === "deferred") {
+          grantNote.textContent = grant.status === "deferred"
+            ? `Deferred ontology proposal: ${grant.presentationKey} (starting Drift ${grant.startingDrift}) -- ${grant.justification}. Still open -- decide any time.`
+            : `Proposed ontology: ${grant.presentationKey} (starting Drift ${grant.startingDrift}) -- ${grant.justification}`;
           card.append(grantNote);
           const actions = document.createElement("div");
           actions.className = "session-reward-ontology-actions";
@@ -1932,6 +2256,18 @@
               setStorageStatus(`Ontology acquired: ${grant.presentationKey}.`);
             }
           });
+          const deferBtn = document.createElement("button");
+          deferBtn.type = "button";
+          deferBtn.className = "button ghost";
+          deferBtn.textContent = "Defer";
+          deferBtn.title = "Acknowledge this proposal but decide later -- it stays on record, still open.";
+          deferBtn.addEventListener("click", () => {
+            if (deferOntologyGrant(mark.id)) {
+              writeConsoleState();
+              renderAll();
+              setStorageStatus("Ontology grant deferred -- still open, decide any time.");
+            }
+          });
           const declineBtn = document.createElement("button");
           declineBtn.type = "button";
           declineBtn.className = "button ghost";
@@ -1943,7 +2279,7 @@
               setStorageStatus("Ontology grant declined.");
             }
           });
-          actions.append(acceptBtn, declineBtn);
+          actions.append(acceptBtn, deferBtn, declineBtn);
           card.append(actions);
         } else {
           grantNote.textContent = `Ontology grant ${grant.status}: ${grant.presentationKey}.`;
@@ -4149,6 +4485,10 @@
         if (isBonusPip) pip.title = "Background attribute bonus";
         pip.setAttribute("aria-label", isBonusPip ? `${name} background bonus ${index}` : `${name} ${index}`);
         pip.addEventListener("click", () => {
+          if (!creationActive() && !canAdvanceCharacter()) {
+            setStorageStatus("Character advancement is locked while an Operation is active. Available again once it's archived.", true);
+            return;
+          }
           const allowed = attributeChangeAllowed(attrs, name, index);
           if (!allowed.ok) {
             if (allowed.message) setStorageStatus(allowed.message, true);
@@ -4213,6 +4553,11 @@
     const nextBase = Number(normalizeBoxValue(targetBaseRank, 5));
     const bonus = derivedSkillBonuses(status)[name] || 0;
     const requestRank = creationActive() ? Math.min(5, nextBase + bonus) : nextBase;
+    if (!creationActive() && !canAdvanceCharacter()) {
+      setStorageStatus("Character advancement is locked while an Operation is active. Available again once it's archived.", true);
+      renderSkills();
+      return false;
+    }
     const allowed = skillChangeAllowed(skills, name, requestRank, status);
     if (!allowed.ok) {
       setStorageStatus(allowed.message, true);
@@ -5058,6 +5403,10 @@
         }
         pip.addEventListener("click", () => {
           if (frequency === status.blindPetal) return;
+          if (!creationActive() && !canAdvanceCharacter()) {
+            setStorageStatus("Frequency advancement is locked while an Operation is active. Available again once it's archived.", true);
+            return;
+          }
           const targetLevel = index === level ? index - 1 : index;
           const allowed = frequencyChangeAllowed(status.lotus, frequency, targetLevel);
           if (!allowed.ok) {

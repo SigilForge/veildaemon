@@ -1,5 +1,16 @@
 (function () {
-  const storageKey = "veildaemon.handlerDashboard.v1";
+  // The pre-Multi-Cell single global key. Never deleted by the migration below -- left as an
+  // inert safety net once its contents (if any) have been copied forward exactly once.
+  const GLOBAL_LEGACY_STORAGE_KEY = "veildaemon.handlerDashboard.v1";
+  const LEGACY_MIGRATION_DONE_PREFIX = "veildaemon.handlerDashboardMigrationDone.";
+  const UNASSIGNED_CELL_SCOPE = "__unassigned__";
+
+  // Mutable, not const: namespaced per (handlerId, cellId) once a Cell is actually attached
+  // to (see setActiveStorageScope, called from handler.js's switchToCell). Starts pointed at
+  // the legacy global key so pages that never touch multi-Cell machinery at all (Overview,
+  // Clues, NPCs, ... -- the 8 pages with no Cell-connection awareness) keep working exactly
+  // as before, reading/writing the one blob they've always used.
+  let storageKey = GLOBAL_LEGACY_STORAGE_KEY;
   const fieldEditStorageKey = "veildaemon.handlerFieldEdit.v1";
 
   const canonTerminology = {
@@ -1535,6 +1546,7 @@
       safeSceneLabel: "",
       pressureRound: 0,
       cellId: "",
+      operationId: "",
       cellArchiveToken: "",
       cellArchivedAt: "",
       lastCellSyncRevision: 0,
@@ -4054,6 +4066,12 @@
       safeSceneLabel: safeString(source.safeSceneLabel, 3000),
       pressureRound: safeNumber(source.pressureRound, 0, 999999, 0),
       cellId: safeString(source.cellId, 80),
+      // Which Operation the CURRENT scene/clock/npc/etc. working state is for -- tracked as a
+      // field inside the one per-(handler,cell) local blob, not a separate storage key (see
+      // handler-state.js's setActiveStorageScope doc comment: the server already resets each
+      // new Operation's cell_operations row to blank, so local storage only needs to know
+      // which Operation it's currently staging a push for, via transitionToNewOperation).
+      operationId: safeString(source.operationId, 80),
       cellArchiveToken: safeString(source.cellArchiveToken, 120),
       cellArchivedAt: safeString(source.cellArchivedAt, 40),
       lastCellSyncRevision: safeNumber(source.lastCellSyncRevision, 0, 1e9, 0),
@@ -4839,6 +4857,116 @@
     return next;
   }
 
+  function getStorageKey() {
+    return storageKey;
+  }
+
+  /** One-time copy of the pre-Multi-Cell global blob into whichever Cell's namespaced key it
+   * actually belongs to (per its own recorded session.cellId), or a sentinel "unassigned"
+   * scope if it was never connected to any Cell (pure local/offline use). Runs at most once
+   * per Handler account (a "done" marker prevents re-running), and NEVER deletes or mutates
+   * the legacy key -- it stays present as an inert safety net. Called once, early, from
+   * handler.js's ensureActiveHandlerId -- independent of which specific Cell the Handler
+   * happens to be switching to right now, since the legacy blob's own cellId (if any) decides
+   * its target, not the current navigation. */
+  function migrateLegacyGlobalStateIfNeeded(handlerId) {
+    if (!handlerId) return;
+    const doneKey = `${LEGACY_MIGRATION_DONE_PREFIX}${handlerId}`;
+    try {
+      if (window.localStorage.getItem(doneKey) === "1") return;
+      const legacyRaw = window.localStorage.getItem(GLOBAL_LEGACY_STORAGE_KEY);
+      if (!legacyRaw) {
+        window.localStorage.setItem(doneKey, "1");
+        return;
+      }
+      const legacy = JSON.parse(legacyRaw);
+      const targetCellId = safeString(legacy?.session?.cellId, 80) || UNASSIGNED_CELL_SCOPE;
+      const targetKey = `veildaemon.handlerDashboard.${handlerId}.${targetCellId}.v1`;
+      // Never overwrite a target that already has its own data -- idempotency guard on top
+      // of the "done" marker, in case the marker write below is ever interrupted.
+      if (!window.localStorage.getItem(targetKey)) {
+        window.localStorage.setItem(targetKey, JSON.stringify({ ...legacy, migratedFrom: "v1-global" }));
+      }
+      window.localStorage.setItem(doneKey, "1");
+      if (targetCellId === UNASSIGNED_CELL_SCOPE) {
+        window.dispatchEvent(new CustomEvent("veildaemon:handler-legacy-state-unassigned", { detail: { targetKey } }));
+      }
+    } catch (_error) {
+      // Best-effort -- a failed migration just means starting fresh for this Cell; the
+      // legacy key is untouched either way, so nothing is lost, only not yet copied forward.
+    }
+  }
+
+  /** Points local reads/writes at the namespaced blob for (handlerId, cellId) -- called by
+   * handler.js's switchToCell BEFORE any local read/write on the newly attached Cell. Does
+   * not itself touch localStorage; readState()/writeState() pick up the new key on their next
+   * call, same as every other caller of the ~30 call sites that already call them with zero
+   * parameters. */
+  function setActiveStorageScope(handlerId, cellId) {
+    if (!handlerId || !cellId) return;
+    storageKey = `veildaemon.handlerDashboard.${handlerId}.${cellId}.v1`;
+  }
+
+  /**
+   * Resets the fields that are genuinely per-Operation (round, live scene/attention state,
+   * the Track Prompt queue, unresolved consequences, session-end reward decisions, the active
+   * Entity/Zone pointer, the Room Answers prompt, NPC roster, entity library, and clue
+   * integrity) and carries forward only the fields that are truly free-text Handler working
+   * notes with no narrative-state bleed risk (handlerNotes, caseFile, session title/case
+   * title). Mirrors the server: cell_operations already gives every NEW Operation genuinely
+   * blank scene_state/clue_state/npc_state columns; this function keeps the LOCAL staging
+   * blob consistent with that reset -- called whenever start-operation/archive-operation
+   * lands, from handler-cell-sync.js.
+   *
+   * Resolves this codebase's previously-flagged "single most debatable choice": npcs,
+   * entityLibrary, and clueIntegrity used to carry forward automatically across Operations
+   * within a Cell. As of the Weave feature, they no longer do -- continuity is now a
+   * deliberate Handler act (Promote to Thread, from the Live page or the Weave dashboard),
+   * never an implicit side effect of starting a new Operation.
+   */
+  function transitionToNewOperation(state, newOperationId) {
+    const next = normalizeState(state);
+    return {
+      ...next,
+      session: {
+        ...next.session,
+        pressureRound: 0,
+        operationId: safeString(newOperationId, 80),
+        // cellArchiveToken/cellArchivedAt are a per-OPERATION fact, not a per-CELL one -- a
+        // new Operation must be archivable again even though a prior Operation in this same
+        // Cell already used its own token. Without this reset, the existing local
+        // reconciliation engine's idempotency check (syncKind("archive")) would see the stale
+        // token and report "ARCHIVE ALREADY COMPLETE" for an Operation that was never
+        // archived, permanently blocking Close Cell for the new Operation.
+        cellArchiveToken: "",
+        cellArchivedAt: ""
+      },
+      primaryClock: { ...next.primaryClock, current: 0 },
+      secondaryClock: { ...next.secondaryClock, current: 0 },
+      attention: { ...next.attention, current: "Unseen" },
+      trackPromptQueue: [],
+      unresolvedConsequences: "",
+      sessionRewardDecisions: {},
+      activeEntity: { name: "", kind: "Zone", sceneState: next.sceneState?.current || "Stable", notes: "", currentStep: "" },
+      roomAnswer: { object: "", emotionalInput: "", consequence: "" },
+      // Genuinely blank on every new Operation, matching the server (cell_operations gives
+      // every new row blank npc_state/clue_state columns) -- continuity now flows ONLY
+      // through deliberate Weave/Thread promotion (see handler-weave-promote.js) plus the
+      // Handler manually re-adding anything they pulled forward. npcs/entityLibrary reset to
+      // their defaultState shape; clueIntegrity force-reseeds from whatever Needlepoint the
+      // new Operation uses (mirrors hydrateClueIntegrity's own reseed:true path), rather than
+      // merging forward the prior Operation's clue states by position -- positional ids like
+      // "core-clue-1" are not stable across different Needlepoints, so a merge here could
+      // silently inherit a stale state/handlerNote onto an unrelated clue.
+      npcs: clone(defaultState.npcs),
+      entityLibrary: [],
+      clueIntegrity: normalizeClueIntegrity(null, next.activeNeedlepoint?.core_clues || [], { reseed: true })
+      // Carried forward, deliberately untouched: handlerNotes, caseFile,
+      // session.caseTitle/session.title -- free-text Handler working notes with no narrative-
+      // state bleed risk, unlike the fields reset above.
+    };
+  }
+
   function getPath(source, path) {
     return path.split(".").reduce((value, key) => value && value[key], source);
   }
@@ -4893,7 +5021,10 @@
   }
 
   window.HandlerState = {
-    storageKey,
+    getStorageKey,
+    setActiveStorageScope,
+    migrateLegacyGlobalStateIfNeeded,
+    transitionToNewOperation,
     canonTerminology,
     sceneStates,
     attentionStates,

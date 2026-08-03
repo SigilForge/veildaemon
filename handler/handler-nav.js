@@ -17,6 +17,8 @@
   const api = window.HandlerState;
 
   const ROUTES = [
+    { key: "cells", label: "Cells", segment: "cells" },
+    { key: "weave", label: "Weave", segment: "weave" },
     { key: "overview", label: "Overview", segment: "" },
     { key: "live", label: "Live", segment: "live" },
     { key: "cases", label: "Cases", segment: "cases" },
@@ -41,16 +43,33 @@
     return "module";
   }
 
+  /** Weave is the one Cell-scoped entry among otherwise-unparametrized ROUTES -- it needs a
+   * ?cell=<id> appended, sourced from whatever Cell is currently attached in this browser
+   * (matching the same activeContext the Cells dashboard and Live page's own deep-link
+   * bootstrap already read). Falls back to the Cells dashboard itself if nothing's attached,
+   * since there's nothing Weave-scoped to show yet. */
+  function weaveHref(base) {
+    const remote = window.VeilDaemonCellRemote;
+    const cellId = remote?.getActiveContext?.().activeCellId || remote?.currentConnection?.()?.sessionId || "";
+    if (!cellId) return pageDepth() === "overview" ? "./cells/" : (pageDepth() === "live" ? "../cells/" : "../cells/");
+    return `${base}?cell=${encodeURIComponent(cellId)}`;
+  }
+
   function hrefFor(segment) {
     const depth = pageDepth();
-    if (depth === "overview") return segment ? `./${segment}/` : "./";
+    if (depth === "overview") {
+      if (segment === "weave") return weaveHref("./weave/");
+      return segment ? `./${segment}/` : "./";
+    }
     if (depth === "live") {
       if (!segment) return "../";
       if (segment === "live") return "./";
+      if (segment === "weave") return weaveHref("../weave/");
       return `../${segment}/`;
     }
     if (!segment) return "../";
     if (segment === "live") return "../live/";
+    if (segment === "weave" && document.body.dataset.handlerModule !== "weave") return weaveHref("../weave/");
     if (segment === document.body.dataset.handlerModule) return "./";
     return `../${segment}/`;
   }

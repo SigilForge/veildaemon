@@ -153,6 +153,35 @@
       button.addEventListener("click", () => openPreview(clue.id, action.id));
       actions.append(button);
     });
+
+    // Only appears where a live Weave-tagged Operation actually exists to promote INTO --
+    // silently absent on the standalone Clues page (which never loads cell-sync-remote.js/
+    // handler-weave-promote.js at all) and on the Live page before a Cell is attached, rather
+    // than rendering a button that would just error on click.
+    if (window.HandlerWeavePromote && window.VeilDaemonCellRemote?.isConnected?.()) {
+      const promoteButton = document.createElement("button");
+      promoteButton.type = "button";
+      promoteButton.className = "button ghost";
+      promoteButton.textContent = "Promote to Thread";
+      promoteButton.addEventListener("click", () => {
+        const notes = [
+          clue.firstRoute && `First Route: ${clue.firstRoute}`,
+          clue.alternateRoute && `Alternate Route: ${clue.alternateRoute}`,
+          clue.failureCost && `Failure Cost: ${clue.failureCost}`,
+          clue.tableEffect && `Table Effect: ${clue.tableEffect}`,
+          clue.handlerNote && `Handler Note: ${clue.handlerNote}`,
+        ].filter(Boolean).join("\n");
+        window.HandlerWeavePromote.open({
+          kind: "clue",
+          title: clue.clue,
+          notes,
+          sourceRef: clue.id,
+          sourceOperationId: window.HandlerCellSync?.getLatestOperation?.()?.id || null,
+          onDone: () => window.HandlerWeaveLivePanel?.refresh?.(),
+        });
+      });
+      actions.append(promoteButton);
+    }
   }
 
   function renderStatus(message) {

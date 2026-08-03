@@ -1654,6 +1654,69 @@ select.is-locked {
   line-height: 1.4;
 }
 
+/* Cell-scoped chat -- seated-only, sender name never email (server-resolved). */
+.cell-chat-panel {
+  width: 100%;
+  margin: .5rem 0 0;
+  padding: .45rem .55rem .55rem;
+  border: 1px solid rgba(102,255,220,.18);
+  background: rgba(0,0,0,.18);
+}
+.cell-chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  max-height: 12rem;
+  overflow-y: auto;
+  margin-top: .35rem;
+}
+.cell-chat-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: .64rem;
+}
+.cell-chat-line {
+  font-size: .66rem;
+  line-height: 1.4;
+}
+.cell-chat-line strong {
+  color: var(--cyan);
+}
+.cell-chat-line time {
+  color: var(--muted);
+  font-size: .58rem;
+  margin-left: .35rem;
+}
+.cell-chat-line p {
+  margin: .1rem 0 0;
+  color: var(--text);
+}
+.cell-chat-form {
+  display: flex;
+  gap: .4rem;
+  margin-top: .4rem;
+}
+.cell-chat-form input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Cell/Operation lifecycle transition banners -- each names its own exact transition,
+ * never a generic toast/color variant. */
+.cell-lifecycle-banner {
+  margin: 0 0 .5rem;
+  padding: .5rem .6rem;
+  border: 1px solid rgba(185,84,255,.35);
+  background: rgba(185,84,255,.08);
+  color: var(--purple);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+.cell-lifecycle-banner[hidden] {
+  display: none;
+}
+
 .operator-live-grid,
 .live-lower-grid {
   display: grid;
