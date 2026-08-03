@@ -212,12 +212,14 @@
     return authedFetchForRoute("cell", connectionSnapshot, path, options);
   }
 
-  /** Weave/Thread/Clue account-level actions (api/weave/[action].js) -- these never need a
-   * live Cell `connection`, only a getToken function, so callers pass a bare `{ getToken }`
-   * stand-in exactly the way listCells/renameCell/operationsHistory already do for
-   * api/cell/[action].js's own account-level actions. */
+  /** Weave/Thread/Clue actions -- originally api/weave/[action].js, merged into
+   * api/cell/[action].js on 2026-08-03 (Vercel Hobby's 12-Serverless-Function-per-deployment
+   * cap; see that file's header comment). These never need a live Cell `connection`, only a
+   * getToken function, so callers pass a bare `{ getToken }` stand-in exactly the way
+   * listCells/renameCell/operationsHistory already do for api/cell/[action].js's own
+   * account-level actions. */
   async function authedFetchForWeave(connectionSnapshot, path, options = {}) {
-    return authedFetchForRoute("weave", connectionSnapshot, path, options);
+    return authedFetchForRoute("cell", connectionSnapshot, path, options);
   }
 
   /** Parametrized twin of syncOperation -- see authedFetchFor's comment. `keepalive` is for
@@ -264,7 +266,8 @@
   }
 
   // --- Weave / Needlepoint / Cell Entity / Thread / Clue -- the campaign-continuity layer
-  // (api/weave/[action].js). Same account-level shape as the Cell actions just above: no live
+  // (api/cell/[action].js, merged in from the former api/weave/[action].js). Same
+  // account-level shape as the Cell actions just above: no live
   // `connection` required, just `getToken`. Weaves/Threads/Cell Entities are Handler-only end
   // to end (an Operator-role connection's calls would just come back empty via RLS, never a
   // hard error); Needlepoints/Clues are Handler-only until explicitly published. See the

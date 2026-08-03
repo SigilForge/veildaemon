@@ -857,7 +857,7 @@
     }
 
     /** Needlepoints are Weave-scoped and there's no "list every Needlepoint for a Cell"
-     * endpoint (see api/weave/[action].js) -- weaves are Handler-only and typically few per
+     * endpoint (see handleListNeedlepoints in api/cell/[action].js) -- weaves are Handler-only and typically few per
      * Cell, so this just fetches each Weave's own Needlepoints and flattens them for the
      * picker, labeled "Weave title -- Needlepoint title" so a Handler running several arcs
      * can tell them apart. */
