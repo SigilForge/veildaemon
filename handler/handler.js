@@ -1007,6 +1007,27 @@
       renderAll();
       setStatus("LOCAL RESET");
     });
+
+    const freshStartButton = document.getElementById("fresh-start-operation");
+    if (freshStartButton) freshStartButton.addEventListener("click", () => {
+      // For a connected Cell, "Start Operation" is the correct fresh-start path -- it resets
+      // this same set of fields (see transitionToNewOperation) AND opens a new server-side
+      // Operation row, which is what keeps a still-connected Operator's own round guard from
+      // silently dropping the next "End Pressure Round" (see reset-dashboard's handler above
+      // for the exact failure mode a local-only reset would hit here instead).
+      if (window.VeilDaemonCellRemote?.isConnected?.()) {
+        setStatus("Connected to a Cell -- use Start Operation (Operation Lifecycle) for a fresh start instead.", true);
+        return;
+      }
+      if (!window.confirm(
+        "Fresh Start (Round 1)?\n\n"
+        + "Resets: pressure round, clocks, Attention, Track Prompt queue, active Entity, Room Answer, session-end reward decisions, NPC roster, Entity library, and Clue Integrity (reseeded from the active Needlepoint).\n\n"
+        + "Kept as-is: case title, Needlepoint choice, Handler notes, and case file."
+      )) return;
+      state = api.transitionToNewOperation(state, state.session?.operationId || "");
+      writeState("Fresh start -- Round 1.");
+      renderAll();
+    });
   }
 
   function readDashboardMode() {
