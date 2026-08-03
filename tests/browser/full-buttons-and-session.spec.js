@@ -111,6 +111,8 @@ test.describe("Exhaustive Button, Creation Point-Spending, & Live Table Session 
     await handlerPage.goto("/handler/live/");
 
     // Verify incoming operator rolls appear in Handler Keep Honest Roll Feed
+    // (lives in the REFERENCE live-view tab -- see Docs/DESIGN_CONSTRAINTS.md)
+    await handlerPage.locator('.live-view-switch [data-live-toggle="reference"]').click();
     await expect(handlerPage.locator("#roll-feed-list")).toBeVisible();
     await expect(handlerPage.locator("#roll-feed-list")).toContainText("EXHAUSTIVE-OP-42");
     await expect(handlerPage.locator("#roll-feed-list")).toContainText("Hacking");

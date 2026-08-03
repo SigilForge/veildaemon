@@ -79,6 +79,10 @@
   }
 
   function scrollToQueue() {
+    // Track Prompts lives in the PRESSURE live-view tab (see handler.js /
+    // Docs/DESIGN_CONSTRAINTS.md) -- switch there first or the mount stays
+    // display:none and scrollIntoView is a silent no-op on the Live screen.
+    window.HandlerLiveView?.setLiveView?.("pressure");
     const mount = document.getElementById("track-prompt-queue-mount");
     if (mount) mount.scrollIntoView({ behavior: "smooth", block: "start" });
   }

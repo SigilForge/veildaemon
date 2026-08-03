@@ -7,6 +7,18 @@ async function enableHandlerFieldEdit(page) {
   await expect(onButton).toBeVisible();
 }
 
+// Live screen focus mode (RUN / PRESSURE / REFERENCE, see handler.js and
+// Docs/DESIGN_CONSTRAINTS.md). Only meaningful on /handler/live/ while dashboard
+// mode is "live" -- the switch itself is hidden in PREP/ARCHIVE, where every
+// panel's visibility is still decided by data-mode-panel alone.
+async function switchLiveView(page, view) {
+  const button = page.locator(`.live-view-switch [data-live-toggle="${view}"]`);
+  // No-op off the Live screen (or outside LIVE MODE, where the switch is itself hidden) --
+  // callers that are shared across live and non-live pages, like selectClueChip below,
+  // rely on this being safe to call unconditionally.
+  if (await button.isVisible().catch(() => false)) await button.click();
+}
+
 async function setPrimaryClockForCollapseStaging(page, value = 6) {
   await page.evaluate((clockValue) => {
     const api = window.HandlerState;
@@ -105,14 +117,21 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.getByLabel("Primary clock segments")).toBeVisible();
   await expect(page.locator(".status-strip").getByText("Handler", { exact: true })).toBeVisible();
   await expect(page.getByText("Handler Exterior")).toHaveCount(0);
+
+  // Entity/Zone Loop and The Room Answers live in the REFERENCE live-view tab.
+  await switchLiveView(page, "reference");
   await expect(page.getByText("Need -> Lure -> Pressure -> Gift -> Violence -> Exit")).toBeVisible();
   await expect(page.getByText("THE ROOM ANSWERS", { exact: true })).toBeVisible();
+
+  // Quick Roll (misfire guide, roll dock) and the rest of RUN.
+  await switchLiveView(page, "run");
   await expect(page.getByText("Misfire / target guide")).toBeVisible();
   await expect(page.locator("#operator-risk-strip")).toBeVisible();
   await expect(page.getByText("NPC / ROSTER")).toBeVisible();
   await expect(page.getByText("PRIVATE HANDLER NOTES")).toBeHidden();
   await expect(page.getByLabel("Template")).toBeHidden();
 
+  await switchLiveView(page, "reference");
   const layoutMetrics = await page.evaluate(() => {
     const widths = (selector) => Array.from(document.querySelectorAll(selector)).map((node) => node.getBoundingClientRect().width);
     return {
@@ -134,6 +153,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.locator("#room-answer-preview")).toContainText("Make mirror answer refused self by revealing the reflected version answers first.");
   await expect(page.locator("#room-answer-preview")).toContainText("The mirror changes first.");
 
+  await switchLiveView(page, "run");
   const rollMetrics = await page.evaluate(() => {
     const box = (selector) => {
       const rect = document.querySelector(selector)?.getBoundingClientRect();
@@ -183,10 +203,12 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
   await expect(page.locator('[name="primaryClock.name"]')).toHaveValue("Audience Before Clock");
   await page.getByRole("button", { name: "LIVE MODE" }).click();
   await expect(page.locator('[name="attention.residue"]')).toHaveValue("Screens hesitate before showing the Operator's reflection.");
+  await switchLiveView(page, "pressure"); // Current Attention lives in PRESSURE (Attention/Aftermath).
   await page.getByLabel("Current Attention").selectOption("Unseen");
   await expect(page.locator('[name="attention.residue"]')).toHaveValue("A comment arrives before anyone types it.");
   await expect(page.locator('[name="sceneState.sceneConsequence"]')).toHaveValue("The lobby still pretends to be ordinary. Cameras watch, but have not answered yet.");
   await expect(page.locator('[name="attention.aftermathConsequence"]')).toHaveValue("Minor tell only. No penalty; warning only.");
+  await switchLiveView(page, "run"); // Quick Roll lives in RUN.
   await page.locator('[name="roll.attribute"]').fill("3");
   await page.locator('[name="roll.skill"]').fill("2");
   await page.getByRole("button", { name: "Roll 3d6" }).click();
@@ -215,6 +237,7 @@ test("handler live dashboard exposes at-table controls", async ({ page }) => {
 test("handler queues operator track prompts without silent sheet mutation", async ({ page }) => {
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
+  await switchLiveView(page, "pressure"); // Track Prompts lives in PRESSURE.
 
   await expect(page.getByText("OPERATOR TRACK PROMPTS")).toBeVisible();
   await expect(page.locator(".track-prompt-empty")).toBeVisible();
@@ -770,6 +793,7 @@ async function waitForClueChips(page) {
 }
 
 async function selectClueChip(page, namePattern) {
+  await switchLiveView(page, "pressure"); // Clue Integrity lives in PRESSURE; no-op off /handler/live/.
   await waitForClueChips(page);
   const tracker = page.getByRole("group", { name: "Clue status tracker" });
   const chip = tracker.getByRole("button", { name: namePattern });
@@ -799,6 +823,7 @@ test("handler live clue integrity tracks core clue state flow", async ({ page })
   await page.goto("/handler/live/");
   await enableHandlerFieldEdit(page);
   await applyHandlerTemplate(page, "viridian-house");
+  await switchLiveView(page, "pressure");
 
   await expect(page.getByLabel("Clue Integrity")).toBeVisible();
   await expect(page.getByRole("group", { name: "Clue status tracker" })).toBeVisible();
@@ -1588,6 +1613,7 @@ test("handler live scene and attention consequences stay independent", async ({ 
   await expect(attentionAftermath).toHaveValue(attentionBeforeSceneChange);
 
   const sceneBeforeAttentionChange = await sceneConsequence.inputValue();
+  await switchLiveView(page, "pressure"); // Current Attention lives in PRESSURE.
   await page.getByLabel("Current Attention").selectOption("Focused");
   await page.getByRole("button", { name: "Apply" }).click();
   await expect(attentionAftermath).not.toHaveValue("");

@@ -249,16 +249,31 @@
     if (!strip || !api) return;
 
     const state = api.readState();
-    const needlepoint = state.activeNeedlepoint?.id
-      ? api.safeString(state.activeNeedlepoint.id, 80)
-      : "Manual / no scaffold";
 
-    const rows = [
-      ["Case", state.session.caseTitle || "No case loaded"],
-      ["Attention", state.attention.current || "Unseen"],
-      ["Clock", api.publicClockLabel(state)],
-      ["Needlepoint", needlepoint]
-    ];
+    // On the Live screen, this strip is the one thing that stays pinned across
+    // RUN / PRESSURE / REFERENCE focus modes (see handler.js's applyLiveViewFilter
+    // and live-flow.css's sticky rule) -- so it shows the four things a Handler
+    // should never have to hunt for, not the general case/needlepoint context
+    // every other module page shows here. Round mirrors the same "0 internally,
+    // Round 1 displayed" fallback used by the action-economy strip.
+    const rows = document.body.classList.contains("live-surface")
+      ? [
+          ["Scene", state.sceneState.current || "Unset"],
+          ["Round", String(state.session?.pressureRound || 1)],
+          ["Clock", api.publicClockLabel(state)],
+          ["Attention", state.attention.current || "Unseen"]
+        ]
+      : [
+          ["Case", state.session.caseTitle || "No case loaded"],
+          ["Attention", state.attention.current || "Unseen"],
+          ["Clock", api.publicClockLabel(state)],
+          [
+            "Needlepoint",
+            state.activeNeedlepoint?.id
+              ? api.safeString(state.activeNeedlepoint.id, 80)
+              : "Manual / no scaffold"
+          ]
+        ];
 
     strip.textContent = "";
     rows.forEach(([label, value]) => {

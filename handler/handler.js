@@ -1,8 +1,10 @@
 (function () {
   const api = window.HandlerState;
   const modeStorageKey = "veildaemon.handlerLiveMode.v1";
+  const liveViewStorageKey = "veildaemon.handlerLiveView.v1";
   let state = api.readState();
   let dashboardMode = readDashboardMode();
+  let liveView = readLiveView();
 
   function setStatus(message, isError) {
     const node = document.getElementById("storage-status");
@@ -1058,6 +1060,7 @@
       panel.hidden = modes.length > 0 && !modes.includes(dashboardMode);
     });
     renderSecondaryClockPanel();
+    applyLiveViewFilter();
     writeDashboardMode(dashboardMode);
   }
 
@@ -1066,6 +1069,63 @@
       button.addEventListener("click", () => applyDashboardMode(button.dataset.dashboardMode));
     });
   }
+
+  /* Live focus mode: RUN / PRESSURE / REFERENCE. A second, narrower visibility
+   * layer that only applies inside dashboardMode "live" -- it never decides
+   * whether a panel exists in prep/archive (data-mode-panel above stays sole
+   * authority for that). It only decides, among panels already shown for
+   * "live", which the Handler is looking at right now. Every applyDashboardMode()
+   * call recomputes data-mode-panel visibility fresh and then layers this
+   * filter on top, so panels hidden by a previous live-view selection are
+   * correctly un-hidden the moment dashboardMode changes away from "live".
+   * See Docs/DESIGN_CONSTRAINTS.md "Handler live constraints" and the
+   * 2026-08-03 live-focus-modes pass. */
+  function readLiveView() {
+    try {
+      const value = window.localStorage.getItem(liveViewStorageKey);
+      return ["run", "pressure", "reference"].includes(value) ? value : "run";
+    } catch (error) {
+      return "run";
+    }
+  }
+
+  function writeLiveView(view) {
+    try {
+      window.localStorage.setItem(liveViewStorageKey, view);
+    } catch (error) {
+      // Live-view persistence is convenience only.
+    }
+  }
+
+  function applyLiveViewFilter() {
+    document.body.dataset.liveView = liveView;
+    document.querySelectorAll("[data-live-toggle]").forEach((button) => {
+      button.classList.toggle("is-active", button.dataset.liveToggle === liveView);
+    });
+    if (dashboardMode !== "live") return;
+    document.querySelectorAll("[data-live-view]").forEach((panel) => {
+      if (panel.hidden) return;
+      const views = String(panel.dataset.liveView || "").split(/\s+/).filter(Boolean);
+      if (views.length > 0 && !views.includes(liveView)) panel.hidden = true;
+    });
+  }
+
+  function setLiveView(view) {
+    liveView = ["run", "pressure", "reference"].includes(view) ? view : "run";
+    writeLiveView(liveView);
+    applyDashboardMode(dashboardMode);
+  }
+
+  function bindLiveView() {
+    document.querySelectorAll("[data-live-toggle]").forEach((button) => {
+      button.addEventListener("click", () => setLiveView(button.dataset.liveToggle));
+    });
+  }
+
+  // Exposed so handler-pending-alerts.js's "Open Operator Queue" jump can switch into
+  // PRESSURE before it scrolls -- Track Prompts lives there, and scrollIntoView on a
+  // display:none panel is a silent no-op.
+  window.HandlerLiveView = { setLiveView };
 
   function rollTest() {
     collectForm();
@@ -1680,6 +1740,7 @@
     bindForm();
     bindDataControls();
     bindDashboardMode();
+    bindLiveView();
     bindTriggerBridge();
     bindWindDownBridge();
     bindCollapseBridge();

@@ -12,7 +12,7 @@
   <link rel="preload" href="../../assets/background.webp" as="image" />
   <link rel="stylesheet" href="../handler.css?v=20260803-uxaudit1" />
   <link rel="stylesheet" href="../handler-clue-integrity.css?v=20260630-cluereveal2" />
-  <link rel="stylesheet" href="./live-flow.css?v=20260803-uxaudit1" />
+  <link rel="stylesheet" href="./live-flow.css?v=20260803-livefocus1" />
   <script src="https://analytics.ahrefs.com/analytics.js" data-key="S+lLE7cqoR0zD/Mvx39AJg" async></script>
 </head>
 <body class="handler-surface live-surface">
@@ -50,6 +50,12 @@
       <button class="mode-button is-active" data-dashboard-mode="live" type="button">LIVE MODE</button>
       <button class="mode-button" data-dashboard-mode="prep" type="button">PREP</button>
       <button class="mode-button" data-dashboard-mode="archive" type="button">ARCHIVE</button>
+    </section>
+
+    <section class="mode-switch live-view-switch no-print" aria-label="Live focus" data-mode-panel="live">
+      <button class="mode-button is-active" data-live-toggle="run" type="button">RUN</button>
+      <button class="mode-button" data-live-toggle="pressure" type="button">PRESSURE</button>
+      <button class="mode-button" data-live-toggle="reference" type="button">REFERENCE</button>
     </section>
 
     <section class="control-bar no-print" aria-label="Dashboard controls" data-mode-panel="prep archive">
@@ -112,7 +118,7 @@
             </details>
           </section>
 
-          <section class="panel scene-panel" aria-label="Active scene state" data-mode-panel="live">
+          <section class="panel scene-panel" aria-label="Active scene state" data-mode-panel="live" data-live-view="run">
             <div class="panel-heading">
               <p class="kicker">SCENE STATE</p>
               <h2>Track the room, not the ontology.</h2>
@@ -123,7 +129,7 @@
             <div id="collapse-rewrite-mount" class="collapse-rewrite-mount private-panel no-print" hidden aria-label="Collapse and Rewrite staging"></div>
           </section>
 
-          <section class="panel track-prompt-panel" aria-label="Operator track prompt queue" data-mode-panel="live">
+          <section class="panel track-prompt-panel" aria-label="Operator track prompt queue" data-mode-panel="live" data-live-view="pressure">
             <div class="panel-heading">
               <p class="kicker">OPERATOR TRACK PROMPTS</p>
               <h2>Auto-queued from table triggers. Operators update their own sheets and Acknowledge when caught up.</h2>
@@ -131,7 +137,7 @@
             <div id="track-prompt-queue-mount" data-live-control-zone></div>
           </section>
 
-          <section class="panel presentation-drift-queue-panel" aria-label="Presentation Drift and Scars" data-mode-panel="live">
+          <section class="panel presentation-drift-queue-panel" aria-label="Presentation Drift and Scars" data-mode-panel="live" data-live-view="pressure">
             <div class="panel-heading">
               <p class="kicker">PRESENTATION DRIFT</p>
               <h2>Resolve a Load 6 Collapse. Sync Cell delivers it to the Operator's sheet.</h2>
@@ -139,7 +145,7 @@
             <div id="presentation-drift-queue-mount" data-live-control-zone></div>
           </section>
 
-          <section class="panel player-panel" aria-label="Operator Risk Strip" data-mode-panel="live prep">
+          <section class="panel player-panel" aria-label="Operator Risk Strip" data-mode-panel="live prep" data-live-view="run">
             <div class="panel-heading">
               <p class="kicker">OPERATOR SUMMARY</p>
               <h2>Read-only mirrors. Queue +/- changes — do not silently edit Operator sheets.</h2>
@@ -154,7 +160,7 @@
         </div>
 
         <div class="live-flow-column live-center-column">
-          <section class="panel roll-panel" aria-label="Quick roll helper" data-mode-panel="live" data-live-control-zone>
+          <section class="panel roll-panel" aria-label="Quick roll helper" data-mode-panel="live" data-live-view="run" data-live-control-zone>
             <div class="panel-heading roll-panel-heading">
               <div>
                 <p class="kicker">QUICK ROLL</p>
@@ -191,7 +197,7 @@
             <output class="roll-output" id="roll-output">Awaiting Operator test.</output>
           </section>
 
-          <section class="panel clock-panel" aria-label="Primary clock" data-mode-panel="live">
+          <section class="panel clock-panel" aria-label="Primary clock" data-mode-panel="live" data-live-view="run">
             <div class="panel-heading">
               <p class="kicker">PRIMARY CLOCK</p>
               <h2>What is ticking right now?</h2>
@@ -213,7 +219,7 @@
             </details>
           </section>
 
-          <section class="panel clock-panel secondary-panel no-print" id="secondary-clock-panel" aria-label="Secondary clock" data-mode-panel="live prep">
+          <section class="panel clock-panel secondary-panel no-print" id="secondary-clock-panel" aria-label="Secondary clock" data-mode-panel="live prep" data-live-view="pressure">
             <div class="panel-heading secondary-clock-live-only">
               <p class="kicker">SECONDARY CLOCK</p>
               <h2>What decision is ticking?</h2>
@@ -231,7 +237,7 @@
             </details>
           </section>
 
-          <section class="panel clue-integrity-panel" aria-label="Clue Integrity" data-mode-panel="live" data-live-control-zone>
+          <section class="panel clue-integrity-panel" aria-label="Clue Integrity" data-mode-panel="live" data-live-view="pressure" data-live-control-zone>
             <div class="panel-heading">
               <div class="panel-heading-copy">
                 <p class="kicker">Clue Integrity</p>
@@ -258,7 +264,7 @@
             <output class="clue-integrity-status" id="clue-integrity-status" aria-live="polite">Select a core clue chip to open detail and actions.</output>
           </section>
 
-          <section class="panel loop-panel" aria-label="Entity or Zone Loop" data-mode-panel="live">
+          <section class="panel loop-panel" aria-label="Entity or Zone Loop" data-mode-panel="live" data-live-view="reference">
             <div class="panel-heading">
               <p class="kicker">ENTITY / ZONE LOOP</p>
               <h2>Need -> Lure -> Pressure -> Gift -> Violence -> Exit</h2>
@@ -270,7 +276,7 @@
             </details>
           </section>
 
-          <section class="panel helper-panel" aria-label="The Room Answers helper" data-mode-panel="live">
+          <section class="panel helper-panel" aria-label="The Room Answers helper" data-mode-panel="live" data-live-view="reference">
             <div class="panel-heading">
               <p class="kicker">THE ROOM ANSWERS</p>
               <h2>Ordinary object. Emotional input. Consequence.</h2>
@@ -285,7 +291,7 @@
         </div>
 
         <div class="live-flow-column live-right-column">
-          <section class="panel roll-feed-panel no-print" aria-label="Keep Honest Roll Feed" data-mode-panel="live">
+          <section class="panel roll-feed-panel no-print" aria-label="Keep Honest Roll Feed" data-mode-panel="live" data-live-view="reference">
             <div class="panel-heading">
               <div class="panel-heading-copy">
                 <p class="kicker">KEEP HONEST // ROLL AUDIT FEED</p>
@@ -308,6 +314,13 @@
                 <h2>Wind down only when leverage is actually removed.</h2>
               </div>
             </div>
+            <!-- Not gated by RUN/PRESSURE/REFERENCE and not tucked into a drawer:
+            #wind-down-preview-panel is the shared confirmation surface any RUN action
+            (scene click, clock tick, Entity Loop advance) can pop open when a pressure
+            change resolves "better", exactly like #trigger-preview-panel does for "worse" --
+            see requestPressurePreview() in handler.js. Hiding this panel, or the rail
+            leading into it, would block that confirmation whenever the Handler wasn't
+            already looking at Operator Counterplay. -->
             <div class="pressure-tray" id="wind-down-rail" role="group" aria-label="Wind down moves"></div>
             <div class="trigger-preview-panel wind-down-preview-panel" id="wind-down-preview-panel" hidden>
               <p class="trigger-preview-title">Apply Wind Down?</p>
@@ -321,7 +334,7 @@
             <output class="wind-down-status" id="wind-down-status" aria-live="polite">Awaiting stabilization.</output>
           </section>
 
-          <section class="panel aftermath-panel" aria-label="Attention and aftermath" data-mode-panel="live archive">
+          <section class="panel aftermath-panel" aria-label="Attention and aftermath" data-mode-panel="live archive" data-live-view="pressure">
             <div class="panel-heading">
               <p class="kicker">ATTENTION / AFTERMATH</p>
               <h2>What follows them home?</h2>
@@ -335,7 +348,7 @@
             <p class="panel-note" id="attention-deterministic-hint" hidden>Residue, follows-home, and attention aftermath sync from the active Needlepoint when Attention, Clock, or a table trigger changes. Scene consequence stays independent.</p>
           </section>
 
-          <section class="panel npc-panel" aria-label="NPC Roster" data-mode-panel="live prep">
+          <section class="panel npc-panel" aria-label="NPC Roster" data-mode-panel="live prep" data-live-view="run">
             <div class="panel-heading">
               <p class="kicker">NPC / ROSTER</p>
               <h2>Active people, pressure, location, flags.</h2>
@@ -480,11 +493,11 @@
   <script src="../../presentation-drift.js?v=20260801-driftaward1"></script>
   <script src="../../cell-sync.js?v=20260803-lobbymodel1"></script>
   <script src="../../pressure-round.js?v=20260801-actioneconomy1"></script>
-  <script src="../../cell-sync-remote.js?v=20260803-lobbymodel1"></script>
+  <script src="../../cell-sync-remote.js?v=20260803-weavemerge1"></script>
   <script src="../handler-state.js?v=20260802-sessionrewards1"></script>
-  <script src="../handler-nav.js?v=20260803-uxaudit1"></script>
+  <script src="../handler-nav.js?v=20260803-livefocus1"></script>
   <script src="../handler-pressure-controls.js?v=20260701-pressureunify1"></script>
-  <script src="../handler-pending-alerts.js?v=20260802-roundloop1"></script>
+  <script src="../handler-pending-alerts.js?v=20260803-livefocus1"></script>
   <script src="../handler-track-prompt-queue.js?v=20260802-roundloop1"></script>
   <script src="../handler-operator-trackers.js?v=20260701-triggerstab1"></script>
   <script src="../handler-npc-anchor.js?v=20260630-anchoridle1"></script>
@@ -495,9 +508,9 @@
   <script src="../handler-weave-promote.js?v=20260803-weavelive1"></script>
   <script src="../handler-weave-live-panel.js?v=20260803-weavelive1"></script>
   <script src="../handler-clue-integrity.js?v=20260630-cluereveal2"></script>
-  <script src="../handler-cell-sync.js?v=20260803-lobbymodel2"></script>
+  <script src="../handler-cell-sync.js?v=20260803-weavemerge1"></script>
   <script src="../handler-presentation-drift.js?v=20260802-roundloop1"></script>
   <script src="../handler-session-rewards.js?v=20260802-sessionrewards1"></script>
-  <script src="../handler.js?v=20260803-freshstart1"></script>
+  <script src="../handler.js?v=20260803-livefocus1"></script>
 </body>
 </html>

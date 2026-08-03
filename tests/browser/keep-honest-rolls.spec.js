@@ -60,6 +60,8 @@ test.describe("Operator Quick Lobby Join & Handler Keep-Honest Roll Sync", () =>
     await handlerPage.goto("/handler/live/");
 
     // Verify Keep Honest Roll Feed displays the operator roll
+    // (lives in the REFERENCE live-view tab -- see Docs/DESIGN_CONSTRAINTS.md)
+    await handlerPage.locator('.live-view-switch [data-live-toggle="reference"]').click();
     await expect(handlerPage.locator("#roll-feed-list")).toBeVisible();
     await expect(handlerPage.locator("#roll-feed-list")).toContainText("HONEST-OP-01");
     await expect(handlerPage.locator("#roll-feed-list")).toContainText("TOTAL");

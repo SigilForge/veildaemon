@@ -1,4 +1,27 @@
 /* Live dashboard flow overrides: keep the surface columnar and packed. */
+
+/* Pinned context strip (Scene / Round / Clock / Attention, rendered by
+   handler-nav.js) -- stays on screen while the Handler swaps between RUN /
+   PRESSURE / REFERENCE below, per the 2026-08-03 live-focus-modes pass.
+   Solid background is required, not decorative: without it, panel content
+   scrolling underneath would show through the gaps between strip cells. */
+body.live-surface .handler-session-strip {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding-top: .35rem;
+  padding-bottom: .35rem;
+  background: var(--bg);
+}
+
+/* RUN / PRESSURE / REFERENCE reuses .mode-switch/.mode-button (same shape as
+   LIVE/PREP/ARCHIVE above it) but gets its own active-state accent so the two
+   switches read as distinct controls, not one four-way toggle. */
+.live-view-switch .mode-button.is-active {
+  border-color: rgba(185, 84, 255, .72);
+  box-shadow: inset 0 0 22px rgba(185, 84, 255, .12), 0 0 18px rgba(185, 84, 255, .1);
+}
+
 body[data-handler-mode="live"] .dashboard-form,
 body[data-handler-mode="prep"] .dashboard-form,
 body[data-handler-mode="archive"] .dashboard-form {
