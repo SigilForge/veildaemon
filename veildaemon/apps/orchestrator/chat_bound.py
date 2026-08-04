@@ -81,9 +81,9 @@ class ChatBoundUI:
     def _insert(self, role: str, msg: str) -> None:
         self.chat_log.configure(state="normal")
         prefix = "You: " if role == "user" else "Daemon: "
-        self.chat_log.insert(tk.END, prefix + msg + "\n")
+        self.chat_log.insert(self._tk.END, prefix + msg + "\n")
         self.chat_log.configure(state="disabled")
-        self.chat_log.see(tk.END)
+        self.chat_log.see(self._tk.END)
 
     def send_message(self, event=None) -> None:
         text = self.entry_var.get().strip()
