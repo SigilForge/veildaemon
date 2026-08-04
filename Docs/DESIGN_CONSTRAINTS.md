@@ -20,21 +20,39 @@ Canon and release authority live in Cradlepoint Core System books. Shared presen
 | Admin | `/admin/` | `admin/style.css` | Internal tooling; grid background variant |
 | Stream overlays | `/stream/**` | per-route CSS | Transparent OBS layers; `noindex` |
 
-Shared chrome: monospace stack, dark `#050709` base, cyan accent, scanline/noise overlay, `min-width: 0` + `overflow-wrap: anywhere` on interactive nodes.
+Shared chrome: three-tier type system (display/UI/mono, see below), dark `#0a0a0d` base, cyan accent, scanline/noise overlay, `min-width: 0` + `overflow-wrap: anywhere` on interactive nodes.
+
+All game-side surfaces (root intake, Operator, Handler, Debrief) now share one token source, `tokens.css` (repo root), imported via `@import url("tokens.css")` (or `../tokens.css` from a subdirectory) at the top of `styles.css`/`operator/operator.css`/`handler/handler.css`. It replaced three independently hand-copied `:root` blocks that had already drifted (`--line-hot` vs `--line-strong`, `--red` vs `--danger`). Each file keeps a small local `:root` only for genuinely surface-specific fill opacities (`--panel`, `--panel-hard`, `--panel-soft`, `--dossier*`, `--paper`/`--ink`) — brand color/font/effect tokens live in `tokens.css` only.
 
 ---
 
 ## Visual tokens (do not invent new palettes per feature)
 
 ```css
---bg: #050709
---text: #e6fff7 / #e7fff8
---muted: #8ca7a1 / #94aaa5
---cyan: #66ffdc          /* labels, kickers, active chrome */
---purple: #b954ff        /* hot emphasis, lotus, seals */
---danger / --red         /* harm, undo, destructive */
---line: rgba(137–138, 255, 218, .14–.32)
+--bg: #0a0a0d
+--text: #e7fff8
+--muted: #94aaa5
+--cyan: #4df3dc          /* labels, kickers, active chrome */
+--purple: #ab49ff        /* hot emphasis, lotus, seals */
+--danger / --red         /* harm, undo, destructive (aliased to one value) */
+--line: rgba(137, 255, 218, .28)
+--line-hot / --line-strong  /* aliased to one value */
 ```
+
+Values are a deliberate, subtle nudge toward the VeilCorp Design System's canonical hexes (`Marketing/VeilCorp Art/Concept Decks/VeilCorp Design System.zip`) as of 2026-08-03 — not a full jump to them. The semantic roles below are unchanged.
+
+### Typography (three roles, `tokens.css`)
+
+```css
+--font-display: 'Orbitron', ...   /* h1-h4 only */
+--font-ui: 'Rajdhani', ...        /* .button, .module-tab, .mode-button, nav-tab labels only */
+--font-mono / --font: 'IBM Plex Mono', ...  /* everything else -- body copy, tracker
+                                                labels/pips/derived-band, roll output, form
+                                                fields, notes. Never swap tracker-facing text
+                                                to a display/UI font. */
+```
+
+Additive-only, effects-layer tokens are also in `tokens.css` (`--radius-sm/md`, `--clip-notch`, `--glow-accent/-strong/-data/-alert`, `--scanlines`, `--interference-grid`, `--gold`) — none of these replace or rename an existing token, and none are applied to `.line-tracker`/`.tracker-board`/`.pip-*` in this pass.
 
 - **Cyan filled pips** = stability / neutral charge / default fill.
 - **Purple fills** = lotus / mythic emphasis.

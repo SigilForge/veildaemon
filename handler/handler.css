@@ -1,18 +1,12 @@
+@import url("../tokens.css");
 :root {
-  color-scheme: dark;
-  --bg: #050709;
+  /* Surface-specific tokens -- stay local, see tokens.css's own header comment. Brand
+     colors/fonts (--bg/--text/--muted/--cyan/--purple/--danger/--line/--line-hot/--font)
+     now come from tokens.css. */
   --panel: rgba(7, 10, 12, .92);
   --panel-soft: rgba(0, 0, 0, .28);
-  --line: rgba(137, 255, 218, .24);
-  --line-hot: rgba(185, 84, 255, .48);
-  --text: #e7fff8;
-  --muted: #94aaa5;
-  --cyan: #66ffdc;
-  --purple: #b954ff;
-  --danger: #ff5c8a;
   --paper: #f4f0df;
   --ink: #171611;
-  --font: "Courier New", Courier, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -138,6 +132,11 @@ p {
   margin-top: 0;
 }
 
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+}
+
 h1 {
   margin-bottom: .2rem;
   font-size: clamp(1.8rem, 5vw, 3.6rem);
@@ -230,6 +229,7 @@ h2 {
   padding: .35rem .65rem;
   border: 1px solid rgba(137,255,218,.14);
   color: var(--muted);
+  font-family: var(--font-ui);
   font-size: .68rem;
   font-weight: 700;
   letter-spacing: .06em;
@@ -940,8 +940,9 @@ body.is-player-view .wind-down-panel {
   color: var(--muted);
   cursor: pointer;
   font: inherit;
+  font-family: var(--font-ui);
   font-size: .72rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: .1em;
   text-transform: uppercase;
 }
@@ -969,8 +970,9 @@ body.is-player-view .wind-down-panel {
   color: var(--text);
   cursor: pointer;
   font: inherit;
+  font-family: var(--font-ui);
   font-size: .7rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: .08em;
   text-align: center;
   text-decoration: none;

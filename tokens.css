@@ -1,0 +1,68 @@
+/* VeilDaemon — shared game-side design tokens (public intake, Operator, Handler, Debrief).
+   Consolidates what used to be three hand-copied, independently-drifted :root blocks
+   (styles.css, operator/operator.css, handler/handler.css — confirmed disagreeing on
+   --line-hot vs --line-strong, --red vs --danger, and near-duplicate greys) into one
+   source. Semantic names are unchanged from what those files already used everywhere, so
+   every existing rule keeps working — only the values now live in one place.
+
+   Palette values are a deliberate, subtle nudge toward the VeilCorp Design System's
+   canonical hexes (see Marketing/VeilCorp Art/Concept Decks/VeilCorp Design System.zip),
+   not a full jump to them -- DESIGN_CONSTRAINTS.md's cyan=stability/purple=mythic-emphasis/
+   danger=harm semantics are unchanged, only the exact shade moved.
+
+   Studio-only tokens (dossier/paper print surfaces, gold accent, radius/glow/texture/notch)
+   are additive -- nothing here removes or renames a token any existing game-side rule reads. */
+
+/* @import must be the first rule in the file (CSS spec) -- a rule before it makes the
+   browser silently ignore it, no error, fonts just never load. */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&display=swap');
+
+:root {
+  color-scheme: dark;
+
+  /* --- brand core (was drifted across 3 files, now one value each) --- */
+  --bg: #0a0a0d;
+  --text: #e7fff8;
+  --muted: #94aaa5;
+  --cyan: #4df3dc;
+  --purple: #ab49ff;
+  --danger: #ff5c8a;
+  --red: var(--danger);            /* styles.css used --red; operator/handler used --danger for the same role */
+  --line: rgba(137, 255, 218, .28);
+  --line-hot: rgba(185, 84, 255, .48);
+  --line-strong: var(--line-hot);  /* operator.css's own name for the same accent-line role */
+
+  /* --- typography: three roles, per the VeilCorp system's display/UI/data split --- */
+  --font-display: 'Orbitron', ui-sans-serif, system-ui, sans-serif;
+  --font-ui: 'Rajdhani', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font: var(--font-mono);        /* back-compat: operator.css/handler.css already reference var(--font) everywhere */
+  --weight-display: 700;
+  --weight-ui-bold: 600;
+  --track-display: .10em;
+  --track-ui: .06em;
+
+  /* --- radius: current usage is already in this range, this just names the scale --- */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+
+  /* --- corner notch (opt-in; not applied to existing panel classes this pass) --- */
+  --bevel: 8px;
+  --clip-notch: polygon(var(--bevel) 0, 100% 0, 100% calc(100% - var(--bevel)), calc(100% - var(--bevel)) 100%, 0 100%, 0 var(--bevel));
+
+  /* --- glow: use sparingly, matches the nudged --purple/--cyan/--danger above --- */
+  --glow-accent: 0 0 8px rgba(171, 73, 255, .5);
+  --glow-accent-strong: 0 0 4px rgba(171, 73, 255, .85), 0 0 18px rgba(171, 73, 255, .4);
+  --glow-data: 0 0 6px rgba(77, 243, 220, .4);
+  --glow-alert: 0 0 8px rgba(255, 92, 138, .5);
+
+  /* --- texture: CSS-gradient overlays, for unifying the 3 divergent .noise implementations --- */
+  --scanlines: repeating-linear-gradient(180deg, rgba(255, 255, 255, .035) 0 1px, transparent 1px 3px);
+  --interference-grid:
+    linear-gradient(rgba(171, 73, 255, .08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(171, 73, 255, .08) 1px, transparent 1px);
+  --grid-size: 24px 24px;
+
+  /* --- situational accent: new, does not replace cyan/purple primacy --- */
+  --gold: #ffb400;
+}

@@ -1,14 +1,11 @@
+@import url("tokens.css");
 :root {
-  --bg: #050709;
+  /* Surface-specific fill opacities -- genuinely different per surface (root's page
+     background differs from Operator/Handler's), so these stay local rather than moving
+     into the shared token file. Brand colors (--bg/--text/--muted/--cyan/--purple/--red/
+     --line/--line-hot) now come from tokens.css. */
   --panel: rgba(5, 8, 11, 0.78);
   --panel-hard: rgba(3, 5, 7, 0.92);
-  --line: rgba(138, 255, 219, 0.32);
-  --line-hot: rgba(191, 72, 255, 0.55);
-  --text: #e6fff7;
-  --muted: #8ca7a1;
-  --cyan: #66ffdc;
-  --purple: #b954ff;
-  --red: #ff355f;
   --dossier: #171d1a;
   --dossier-edge: #4b5650;
   --dossier-paper: rgba(12, 16, 15, .97);
@@ -54,7 +51,7 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--text);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: var(--font-mono);
   background:
     linear-gradient(90deg, rgba(5,7,9,.62), rgba(5,7,9,.16), rgba(5,7,9,.62)),
     url("assets/background.webp") center top / cover no-repeat fixed;
@@ -100,8 +97,11 @@ body.surface-subpage {
   inset: 0;
   pointer-events: none;
   opacity: .08;
-  background-image: radial-gradient(circle at 20% 20%, white 0 1px, transparent 1px), radial-gradient(circle at 70% 50%, white 0 1px, transparent 1px);
-  background-size: 19px 23px, 31px 37px;
+  /* Unified onto the shared texture tokens (tokens.css) -- was a one-off radial-dot
+     pattern; this is the first of the three .noise implementations (root/operator/
+     handler) to move onto it, per the visual-pilot scope of this pass. */
+  background-image: var(--scanlines), var(--interference-grid);
+  background-size: auto, var(--grid-size);
 }
 .shell {
   min-height: 100vh;
@@ -113,7 +113,7 @@ body.surface-subpage {
   width: min(980px, 100%);
   border: 1px solid var(--line);
   background: linear-gradient(180deg, var(--panel), rgba(2,4,7,.88));
-  box-shadow: 0 0 0 1px rgba(185,84,255,.11), 0 24px 80px rgba(0,0,0,.76);
+  box-shadow: 0 0 0 1px rgba(171,73,255,.11), 0 24px 80px rgba(0,0,0,.76);
   backdrop-filter: blur(10px) saturate(115%);
   padding: clamp(1rem, 2.6vw, 2.35rem);
   position: relative;
@@ -123,7 +123,7 @@ body.surface-subpage {
   content: "";
   position: absolute;
   inset: .65rem;
-  border: 1px solid rgba(185,84,255,.18);
+  border: 1px solid rgba(171,73,255,.18);
   pointer-events: none;
 }
 .terminal::after {
@@ -162,10 +162,18 @@ body.surface-subpage {
   letter-spacing: .18em;
   font-size: clamp(.68rem, 1.6vw, .82rem);
 }
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+}
 h1 {
   margin: 0;
-  font-size: clamp(2.7rem, 8.5vw, 6.4rem);
-  letter-spacing: .07em;
+  /* Orbitron's glyphs run noticeably wider than the monospace face this replaced --
+     trimmed letter-spacing and the size clamp so "VEILDAEMON" fits one line at typical
+     viewport widths instead of wrapping mid-word (Orbitron is already wide/geometric,
+     doesn't need extra tracking to read as a display face). */
+  font-size: clamp(1.9rem, 7.4vw, 5.6rem);
+  letter-spacing: .01em;
   line-height: .92;
   text-shadow: 0 0 22px rgba(102,255,220,.18), 2px 0 rgba(185,84,255,.4), -1px 0 rgba(255,53,95,.35);
 }
@@ -344,6 +352,8 @@ h1 {
   transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, background .16s ease;
   cursor: pointer;
   font: inherit;
+  font-family: var(--font-ui);
+  font-weight: var(--weight-ui-bold);
   animation: buttonIdle 4.8s ease-in-out infinite;
 }
 .button span {
@@ -933,7 +943,9 @@ footer {
   .report-form fieldset,
   .form-grid,
   .report-stats { grid-template-columns: 1fr; }
-  h1 { font-size: clamp(2.25rem, 14vw, 4rem); }
+  /* Orbitron runs wider than the monospace face this used to be -- trimmed so
+     "VEILDAEMON" has a better chance of fitting one line at narrow widths too. */
+  h1 { font-size: clamp(1.7rem, 11.5vw, 4rem); }
 }
 
 .intake {

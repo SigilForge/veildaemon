@@ -1,15 +1,9 @@
+@import url("../tokens.css");
 :root {
-  color-scheme: dark;
-  --bg: #050709;
+  /* Surface-specific fill opacity -- stays local, see tokens.css's own header comment.
+     Brand colors/fonts (--bg/--text/--muted/--cyan/--purple/--danger/--line/--line-strong/
+     --font) now come from tokens.css. */
   --panel: rgba(8, 12, 14, .9);
-  --line: rgba(137, 255, 218, .24);
-  --line-strong: rgba(185, 84, 255, .42);
-  --text: #e7fff8;
-  --muted: #92aaa4;
-  --purple: #b954ff;
-  --cyan: #66ffdc;
-  --danger: #ff5c8a;
-  --font: "Courier New", Courier, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -149,6 +143,10 @@ h3,
 p {
   margin-top: 0;
 }
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+}
 h1 {
   margin-bottom: .35rem;
   font-size: clamp(1.7rem, 5vw, 3.2rem);
@@ -242,8 +240,9 @@ h3 {
   color: var(--text);
   cursor: pointer;
   font: inherit;
+  font-family: var(--font-ui);
   font-size: .72rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: .08em;
   white-space: normal;
   text-transform: uppercase;
