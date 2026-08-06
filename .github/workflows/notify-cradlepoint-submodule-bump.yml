@@ -1,0 +1,24 @@
+name: Notify Cradlepoint Submodule Bump
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Send repository_dispatch to Cradlepoint-TTRPG
+        env:
+          TOKEN: ${{ secrets.CRADLEPOINT_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::warning::CRADLEPOINT_DISPATCH_TOKEN secret is not set; skipping dispatch. Cradlepoint-TTRPG's periodic fallback will pick this up instead."
+            exit 0
+          fi
+          curl -sSf -X POST \
+            -H "Authorization: token ${TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/SigilForge/Cradlepoint-TTRPG/dispatches \
+            -d '{"event_type":"veildaemon-updated"}'
