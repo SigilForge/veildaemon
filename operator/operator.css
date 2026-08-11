@@ -132,7 +132,8 @@ body:has(#operator-preview:target) {
 .kicker {
   margin: 0;
   color: var(--cyan);
-  font-size: .68rem;
+  font-family: var(--font-ui);
+  font-size: .72rem;
   font-weight: 800;
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -257,6 +258,34 @@ h3 {
   margin-left: .5rem;
   border-left: 2px solid rgba(102,255,220,.32);
 }
+/* Per-tab icon keyed off the existing data-module-tab attribute -- no HTML/JS change.
+   Real VeilCorp Design System icons reused where function genuinely matches; the three
+   with no honest match (Sheet, Equipment, Relationships) get small plain utility glyphs,
+   visually subordinate (thinner, no crosshair/grid flourish) to the real ones. */
+.module-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  padding: .5rem .6rem;
+}
+.module-tab::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: .8;
+}
+.module-tab[data-module-tab="anomalies"]::before { background-image: url("../assets/icons/observe.webp"); }
+.module-tab[data-module-tab="authorizations"]::before { background-image: url("../assets/icons/access.webp"); }
+.module-tab[data-module-tab="frequency"]::before { background-image: url("../assets/icons/signal.webp"); }
+.module-tab[data-module-tab="archive"]::before { background-image: url("../assets/icons/archive.webp"); }
+.module-tab[data-module-tab="sheet"]::before { background-image: url("../assets/icons/util-id.svg"); opacity: .55; }
+.module-tab[data-module-tab="equipment"]::before { background-image: url("../assets/icons/util-wrench.svg"); opacity: .55; }
+.module-tab[data-module-tab="relationships"]::before { background-image: url("../assets/icons/protocol.webp"); }
 .module-tab.is-active,
 .button.primary {
   border-color: rgba(185,84,255,.7);
@@ -266,7 +295,9 @@ h3 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: .72rem .9rem;
+  padding: .78rem .95rem;
+  border-radius: var(--radius-sm);
+  transition: border-color .15s ease, box-shadow .15s ease, transform .1s ease, background .15s ease;
 }
 .button.ghost {
   color: var(--cyan);
@@ -274,6 +305,37 @@ h3 {
 .button.danger {
   border-color: rgba(255,92,138,.44);
   color: #ffd8e4;
+}
+/* Real interaction states -- previously .button had none (hover/active/disabled all
+   rendered identically to idle). Module tabs share this via the .module-tab, .button
+   selector group above. */
+.button:hover,
+.module-tab:hover {
+  border-color: rgba(185,84,255,.55);
+  background: rgba(185,84,255,.1);
+}
+.button:active,
+.module-tab:active {
+  transform: translateY(1px);
+  background: rgba(185,84,255,.16);
+}
+.button:focus-visible,
+.module-tab:focus-visible {
+  outline: none;
+  border-color: rgba(185,84,255,.75);
+  box-shadow: var(--glow-accent);
+}
+.button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+  transform: none;
+}
+.button.danger:hover {
+  border-color: rgba(255,92,138,.68);
+  background: rgba(255,92,138,.12);
+}
+.button.primary:hover {
+  box-shadow: 0 0 26px rgba(185,84,255,.22), inset 0 0 24px rgba(185,84,255,.14);
 }
 
 /* Header Right Controls */
@@ -351,6 +413,23 @@ body.operator-record-sealed #module-authorizations.is-active {
   gap: 1rem;
   margin-bottom: 1rem;
 }
+/* VeilCorp seal as a real structural mark on the primary at-table heading -- not page
+   background wallpaper, an actual letterhead-style anchor for this specific section. */
+.sheet-panel .module-heading {
+  position: relative;
+  padding-right: 3.6rem;
+}
+.sheet-panel .module-heading::after {
+  content: "";
+  position: absolute;
+  top: -.3rem;
+  right: 0;
+  width: 3rem;
+  height: 3rem;
+  background: url("../assets/icons/seal-ocp.webp") center / contain no-repeat;
+  opacity: .5;
+  pointer-events: none;
+}
 .console-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -363,9 +442,10 @@ body.operator-record-sealed #module-authorizations.is-active {
   display: grid;
   gap: .35rem;
   color: var(--cyan);
-  font-size: .67rem;
-  font-weight: 800;
-  letter-spacing: .12em;
+  font-family: var(--font-ui);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .1em;
   text-transform: uppercase;
 }
 .console-form label:has(textarea),
@@ -392,15 +472,53 @@ body.operator-record-sealed #module-authorizations.is-active {
 .sheet-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: .9rem;
+  gap: 1.05rem;
   align-items: start;
 }
 .sheet-card {
   min-width: 0;
-  padding: .9rem;
+  padding: 1rem;
   border: 1px solid rgba(137,255,218,.2);
+  border-left: 3px solid rgba(137,255,218,.22);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   background: rgba(0,0,0,.24);
 }
+/* Marks the seam between the primary at-table zone (Identity through Action Roll) and
+   the secondary detail zone (Attributes/Misfire/Skills/Notes) -- tonal separation, not
+   another bordered card, so the long Sheet tab reads as distinct screens. */
+.sheet-section-break {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  margin: 1.6rem 0 .4rem;
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.sheet-section-break::before,
+.sheet-section-break::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(137,255,218,.28), transparent);
+}
+.sheet-section-break span {
+  flex: 0 0 auto;
+}
+/* Mechanic-family identity: each card family gets its own accent color, matching the
+   line-tracker treatment above, instead of one uniform panel grammar for Identity,
+   Frequency, Attributes, Misfire, and Notes alike. */
+.operator-case-strip { border-left-color: var(--gold); }
+.active-frequency-strip { border-left-color: var(--cyan); }
+.active-misfire-card { border-left-color: var(--caution); }
+.operator-notes { border-left-color: rgba(148,170,165,.4); }
+.attributes-card,
+.skill-summary-card { border-left-color: rgba(77,243,220,.5); }
+.operator-case-strip > .card-label { color: var(--gold); }
+.active-misfire-card .card-label { color: var(--caution); }
 .sheet-grid > .wide {
   grid-column: 1 / -1;
 }
@@ -560,6 +678,24 @@ select.is-locked {
 .frequency-recovery-wrap .recovery-field.compact {
   margin-top: .35rem;
 }
+/* Treat Harm renders here (via JS, see renderTrackerBoard) instead of inline in the Harm
+   row -- it's a per-round declared action resolved by the same "Next Round" click as
+   Ground/Breathe/Connect/Leave/Name It, so it reads as one more item in that same set. */
+#treat-harm-mount:empty {
+  display: none;
+}
+#treat-harm-mount .harm-treat-wrap {
+  margin-top: .35rem;
+  padding-top: .35rem;
+  border-top: 1px solid rgba(137,255,218,.14);
+}
+#treat-harm-mount .harm-treat-btn {
+  min-height: 2.5rem;
+  padding: .2rem .85rem;
+  border-color: rgba(137,255,218,.18);
+  background: rgba(0,0,0,.24);
+  font-size: .68rem;
+}
 .recovery-legend {
   margin-top: .4rem;
   font-size: .68rem;
@@ -625,9 +761,10 @@ select.is-locked {
 .card-label {
   margin: 0 0 .7rem;
   color: var(--cyan);
-  font-size: .65rem;
+  font-family: var(--font-ui);
+  font-size: .68rem;
   font-weight: 800;
-  letter-spacing: .14em;
+  letter-spacing: .12em;
   text-transform: uppercase;
 }
 .readout-block {
@@ -640,9 +777,10 @@ select.is-locked {
 }
 .readout-block span {
   color: var(--cyan);
-  font-size: .62rem;
-  font-weight: 800;
-  letter-spacing: .12em;
+  font-family: var(--font-ui);
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .1em;
   text-transform: uppercase;
 }
 .readout-block strong {
@@ -656,6 +794,13 @@ select.is-locked {
   padding: .85rem;
   border: 1px solid rgba(137,255,218,.2);
   background: rgba(0,0,0,.2);
+}
+/* Harm & Stability reads as one instrument cluster, not three identical boxes -- the three
+   .line-tracker rows inside already carry their own kind color (accent bar/icon/status
+   word); this just frames the cluster itself a touch more confidently. */
+.operator-harm-stability {
+  border-color: rgba(137,255,218,.3);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
 }
 .pressure-readout-drawer {
   margin-top: .55rem;
@@ -908,6 +1053,20 @@ select.is-locked {
   border: 1px solid rgba(137,255,218,.14);
   background: rgba(0,0,0,.16);
 }
+/* Recovery is the per-round action the timer strip above actually resolves on "Next
+   Round" -- fused to it as one continuous instrument (shared border/background, no gap)
+   instead of living in the unrelated Frequency card it used to sit in. */
+.operator-harm-stability .scene-timer-strip {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+.operator-harm-stability .frequency-recovery-wrap {
+  margin: 0 0 .5rem;
+  padding: .5rem .55rem .55rem;
+  border: 1px solid rgba(137,255,218,.14);
+  border-top: 1px dashed rgba(137,255,218,.2);
+  background: rgba(0,0,0,.16);
+}
 .scene-timer-header {
   display: flex;
   flex-wrap: wrap;
@@ -1072,51 +1231,84 @@ select.is-locked {
 .tracker-board {
   display: grid;
   grid-template-columns: 1fr;
-  gap: .45rem;
+  gap: .6rem;
   align-items: start;
 }
+/* Redesigned as distinct instrument rows, not identical boxes: each tracker kind gets its
+   own left accent bar + header icon (via .pip-header::before, kind-scoped background-image
+   below) and a prominent, color-matched status word on the right -- .pip-derived already
+   carried that text (renderTrackerBoard, operator.js), this only changes how it's displayed.
+   Pip counts, grid-template-columns per kind, mutation handlers, and every presentation
+   ontology's own gradient palette (the _load rules below this block) are untouched. */
 .line-tracker {
   display: grid;
-  grid-template-columns: minmax(5.2rem, auto) max-content minmax(4.8rem, 1fr);
+  grid-template-columns: minmax(6.4rem, auto) max-content minmax(4.8rem, 1fr);
   grid-template-areas: "header pips derived";
-  gap: .35rem .45rem;
+  gap: .4rem .6rem;
   align-items: center;
-  min-height: 2.8rem;
-  padding: .3rem .45rem;
-  background: rgba(0,0,0,.18);
+  min-height: 3.5rem;
+  padding: .6rem .75rem;
+  border-left: 3px solid rgba(137,255,218,.4);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: rgba(0,0,0,.22);
+  transition: border-color .18s ease, background .18s ease;
 }
+.line-tracker.harm { border-left-color: var(--danger); }
+.line-tracker.stability { border-left-color: var(--cyan); }
+.line-tracker.fill-meter { border-left-color: var(--purple); }
 .pip-header {
   grid-area: header;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: 1.2rem minmax(0, 1fr) auto;
   align-items: center;
-  gap: .35rem;
+  gap: .45rem;
   min-width: 0;
 }
-.pip-header strong,
-.pip-header span {
-  font-size: .64rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
+.pip-header::before {
+  content: "";
+  width: 1.2rem;
+  height: 1.2rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: .88;
 }
+.line-tracker.harm .pip-header::before { background-image: url("../assets/icons/contain.webp"); }
+.line-tracker.stability .pip-header::before { background-image: url("../assets/icons/protect.webp"); }
+.line-tracker.fill-meter .pip-header::before { background-image: url("../assets/icons/presentation-pulse.svg"); }
 .pip-header strong {
+  font-family: var(--font-ui);
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .pip-header span {
   color: var(--muted);
+  font-size: .64rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
   white-space: nowrap;
 }
 .pip-derived {
   grid-area: derived;
   margin: 0;
   color: var(--muted);
-  font-size: .62rem;
-  line-height: 1.35;
+  font-family: var(--font-ui);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  line-height: 1.3;
   text-align: right;
   text-transform: uppercase;
   min-width: 0;
 }
+.line-tracker.harm .pip-derived { color: var(--danger); text-shadow: var(--glow-alert); }
+.line-tracker.stability .pip-derived { color: var(--cyan); text-shadow: var(--glow-data); }
+.line-tracker.fill-meter .pip-derived { color: var(--purple); text-shadow: var(--glow-accent); }
 .line-pips {
   grid-area: pips;
   display: grid;
@@ -1143,11 +1335,12 @@ select.is-locked {
 .line-tracker .pip {
   width: 100%;
   min-width: 0;
-  min-height: .7rem;
+  min-height: .95rem;
   height: auto;
   padding: 0;
   margin: 0;
-  aspect-ratio: 2.2 / 1;
+  aspect-ratio: 1.9 / 1;
+  border-radius: var(--radius-sm);
   display: block;
   position: relative;
   isolation: isolate;
@@ -1407,7 +1600,7 @@ select.is-locked {
 }
 .line-tracker .pip.is-filled {
   background: var(--cyan);
-  box-shadow: inset 0 0 0 1px rgba(102,255,220,.42);
+  box-shadow: inset 0 0 0 1px rgba(102,255,220,.42), var(--glow-data);
 }
 .pip.is-filled {
   background: var(--cyan);
@@ -1420,7 +1613,7 @@ select.is-locked {
 .line-tracker.harm .pip.is-filled,
 .line-tracker.danger .pip.is-filled {
   background: var(--danger);
-  box-shadow: inset 0 0 0 1px rgba(255,92,138,.42);
+  box-shadow: inset 0 0 0 1px rgba(255,92,138,.42), var(--glow-alert);
 }
 .line-tracker.lotus .pip.is-filled {
   background: var(--purple);
@@ -1504,10 +1697,11 @@ select.is-locked {
   color: var(--text);
   box-shadow: inset 0 0 20px rgba(185,84,255,.12), 0 0 18px rgba(185,84,255,.12);
 }
-.line-tracker.stability .pip.is-filled {
-  background: var(--purple);
-  box-shadow: inset 0 0 0 1px rgba(185,84,255,.42);
-}
+/* Stability intentionally has no override here -- it falls back to the generic
+   .line-tracker .pip.is-filled cyan rule above, matching DESIGN_CONSTRAINTS.md's
+   documented "cyan = stability / default fill" and removing a color collision with
+   .lotus (purple = "lotus / mythic emphasis", a distinct mechanic). A prior override made
+   Stability render identically to Lotus; confirmed with the user before removing it. */
 .line-tracker.pressure .pip.is-filled,
 .line-tracker.hunger .pip.is-filled,
 .line-tracker.presentation .pip.is-filled {
@@ -1524,8 +1718,11 @@ select.is-locked {
   max-width: 980px;
   justify-self: center;
   width: 100%;
-  border-color: rgba(185,84,255,.46);
-  box-shadow: inset 0 0 28px rgba(185,84,255,.07), 0 0 24px rgba(185,84,255,.08);
+  padding: 1.1rem 1.2rem;
+  border-width: 2px;
+  border-color: rgba(185,84,255,.6);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 28px rgba(185,84,255,.07), var(--glow-accent-strong);
 }
 .operator-roll-dock .operator-roll-heading {
   display: flex;
@@ -1537,6 +1734,49 @@ select.is-locked {
 }
 .operator-roll-dock .operator-roll-heading .card-label {
   margin-bottom: 0;
+}
+.operator-roll-dock .operator-roll-heading .card-label::before {
+  content: "";
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  margin-right: .4rem;
+  vertical-align: -2px;
+  background: url("../assets/icons/signal.webp") center / contain no-repeat;
+  opacity: .85;
+}
+/* Individual die faces -- purely a display enrichment of the dice[]/dropIndex data
+   rollAction() already computes; roll totals/bonuses/kept-vs-dropped selection are
+   untouched, this only shows the same values as tiles instead of buried in text. */
+.die-face-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: .6rem 0;
+  min-height: 2.4rem;
+}
+.die-face {
+  display: grid;
+  place-items: center;
+  min-width: 2.2rem;
+  min-height: 2.2rem;
+  padding: .2rem;
+  border: 1px solid rgba(185,84,255,.5);
+  border-radius: var(--radius-sm);
+  background: rgba(185,84,255,.14);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  box-shadow: var(--glow-accent);
+}
+.die-face.is-dropped {
+  border-color: rgba(137,255,218,.2);
+  background: rgba(0,0,0,.24);
+  color: var(--muted);
+  text-decoration: line-through;
+  box-shadow: none;
+  opacity: .6;
 }
 .operator-roll-dock .roll-guide-drawer {
   flex: 1 1 12rem;
@@ -1759,6 +1999,16 @@ select.is-locked {
 .active-misfire-card .active-misfire-heading .card-label {
   margin-bottom: 0;
 }
+.active-misfire-card .active-misfire-heading .card-label::before {
+  content: "";
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  margin-right: .4rem;
+  vertical-align: -2px;
+  background: url("../assets/icons/threat.webp") center / contain no-repeat;
+  opacity: .85;
+}
 .active-misfire-card .misfire-help-drawer {
   flex: 1 1 12rem;
   max-width: 100%;
@@ -1808,6 +2058,25 @@ select.is-locked {
 }
 .misfire-severity-wrap .segmented.misfire-severity {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .45rem;
+}
+/* Bigger, escalating-color treatment for the 4 severity steps -- same control, same
+   data-value/is-active toggling, just visually distinct instead of one uniform purple
+   active state regardless of which step is selected. */
+.misfire-severity-wrap .segmented.misfire-severity button {
+  min-height: 2.6rem;
+  font-size: .64rem;
+}
+.misfire-severity-wrap .segmented.misfire-severity button[data-value="Minor"].is-active {
+  border-color: var(--caution);
+  color: var(--caution);
+  box-shadow: inset 0 0 20px rgba(255,180,84,.14), var(--glow-caution);
+}
+.misfire-severity-wrap .segmented.misfire-severity button[data-value="Major"].is-active,
+.misfire-severity-wrap .segmented.misfire-severity button[data-value="Severe"].is-active {
+  border-color: var(--danger);
+  color: var(--danger);
+  box-shadow: inset 0 0 20px rgba(255,92,138,.14), var(--glow-alert);
 }
 .misfire-presentation-load-note,
 .misfire-blood-load-note {
@@ -2952,12 +3221,27 @@ select {
   width: 100%;
   min-width: 0;
   border: 1px solid rgba(137,255,218,.22);
+  border-radius: var(--radius-sm);
   background: rgba(0,0,0,.42);
   color: var(--text);
   font: inherit;
   font-size: .84rem;
   line-height: 1.35;
-  padding: .72rem;
+  padding: .78rem .82rem;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: rgba(185,84,255,.68);
+  box-shadow: var(--glow-accent);
+}
+input:disabled,
+textarea:disabled,
+select:disabled {
+  opacity: .5;
+  cursor: not-allowed;
 }
 textarea {
   field-sizing: content;
@@ -3521,14 +3805,47 @@ body.has-reports-drawer-open .surface-tabs {
   margin-top: .32rem;
 }
 @media (max-width: 900px) {
+  /* So focusing/scrolling to a field doesn't land it under the sticky module nav or the
+     fixed bottom surface-tabs rail. */
+  html {
+    scroll-padding-top: 3.5rem;
+    scroll-padding-bottom: 3.4rem;
+  }
+  /* Let modules claim nearly the full viewport instead of the desktop shell's fixed
+     side margins, with a little extra interior padding so content still breathes. */
+  .operator-shell {
+    width: calc(100vw - 1.2rem);
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .sheet-card {
+    padding: 1.15rem 1.1rem;
+  }
   .snapshot-grid,
   .tracker-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+  /* Below 900px the fixed-column grid was forcing 2 wrapped rows and squeezing labels
+     ("BACKGROUN D") below their natural width -- switched to a single-row, horizontally
+     scrollable rail instead: every tab keeps its natural width and never wraps, the row
+     scrolls instead of stacking. Same routes, same click targets, same is-active logic. */
   .console-nav {
-    grid-template-columns: repeat(5, minmax(8.4rem, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
+    grid-template-columns: none;
     overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
     scrollbar-color: rgba(102,255,220,.45) rgba(0,0,0,.2);
+  }
+  .module-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    scroll-snap-align: start;
+  }
+  .module-tab::before {
+    flex-shrink: 0;
   }
   .console-form,
   .sheet-grid,
@@ -3551,12 +3868,15 @@ body.has-reports-drawer-open .surface-tabs {
     grid-template-columns: 1fr;
   }
   .pip-derived {
-    font-size: .6rem;
+    font-size: .66rem;
   }
   .resonance-profile {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .identity-card {
+  .identity-card,
+  .case-strip-grid,
+  .editable-case-strip,
+  .frequency-readout-grid {
     grid-template-columns: 1fr;
   }
   .skill-builder,
@@ -3591,8 +3911,41 @@ body.has-reports-drawer-open .surface-tabs {
     width: min(100vw - 1rem, 1180px);
     padding-top: .5rem;
   }
+  /* The redesigned tracker row's 3-column layout (header/pips/derived) doesn't fit its
+     desktop minimums at this width -- Stability's 10-pip track alone needs ~131px, which
+     forced the whole .sheet-grid track (and every sibling .wide card, including the
+     Identity strip) wider than the viewport. Shrink header/derived/padding here instead of
+     touching pip count/size -- pips are the one thing that must not shrink further. */
+  .line-tracker {
+    grid-template-columns: minmax(3.6rem, auto) max-content minmax(3rem, 1fr);
+    gap: .3rem .35rem;
+    padding: .5rem .5rem;
+  }
+  .pip-header {
+    grid-template-columns: 1rem minmax(0, 1fr) auto;
+    gap: .3rem;
+  }
+  .pip-header::before {
+    width: 1rem;
+    height: 1rem;
+  }
+  .pip-header strong {
+    font-size: .6rem;
+  }
+
+  /* Word-by-word title wrap fix: Orbitron is wide and "PERSONAL OPERATIONS NODE" simply
+     does not fit a giant headline at this width. Rather than keep shrinking the same
+     desktop hero treatment, drop straight to a compact wordmark size that reliably fits
+     without mid-word breaks. */
   .operator-header {
     align-items: start;
+    flex-wrap: wrap;
+    gap: .7rem;
+  }
+  .operator-header h1 {
+    font-size: 1.5rem;
+    letter-spacing: .03em;
+    line-height: 1.15;
   }
   .seal-wrap {
     width: 3.2rem;
@@ -3608,8 +3961,11 @@ body.has-reports-drawer-open .surface-tabs {
   }
   .console-nav {
     top: .25rem;
-    grid-template-columns: repeat(5, minmax(7.6rem, 1fr));
     margin-inline: -.25rem;
+  }
+  .module-tab {
+    padding: .5rem .55rem;
+    font-size: .66rem;
   }
   .module-heading {
     display: block;
@@ -3627,7 +3983,7 @@ body.has-reports-drawer-open .surface-tabs {
 }
 @media (max-width: 760px) {
   body {
-    padding-bottom: calc(4.2rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(3.4rem + env(safe-area-inset-bottom));
   }
   .authorization-import-surface {
     grid-template-columns: 1fr;
@@ -3682,13 +4038,13 @@ body.has-reports-drawer-open .surface-tabs {
     width: auto;
     height: auto;
     min-width: 0;
-    min-height: 3.05rem;
-    max-height: 3.35rem;
+    min-height: 2.5rem;
+    max-height: 2.75rem;
     border-bottom: 0;
     border-right: 1px solid rgba(137,255,218,.2);
     border-radius: .34rem .34rem 0 0;
     clip-path: none;
-    padding: .42rem .24rem;
+    padding: .32rem .24rem;
     flex-direction: column;
     justify-content: center;
     gap: .22rem;

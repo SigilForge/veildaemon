@@ -3982,7 +3982,14 @@
 
       article.append(header, pips, derived, controls);
       if (tracker.key === "harmBoxes") {
-        article.append(renderHarmTreatControl(status, value));
+        // Treat Harm is a per-round declared action resolved by the same "Next Round"
+        // click as Ground/Breathe/Connect/Leave/Name It, so it renders grouped with
+        // Recovery instead of inline in the Harm row.
+        const treatMount = document.getElementById("treat-harm-mount");
+        if (treatMount) {
+          treatMount.textContent = "";
+          treatMount.append(renderHarmTreatControl(status, value));
+        }
       }
       board.append(article);
     });
@@ -6016,6 +6023,7 @@
       const namedText = namedBonus ? ` // NAMED PRESSURE +${namedBonus}` : "";
       output.dataset.rolled = "true";
       output.textContent = `${diceText} // ${attrKey} +${attrValue} // ${skillKey || "Untrained"} +${skillValue} // MOD ${manualModifier}${surgeText}${resonantText}${secondPassText}${slipNoticeText}${daemonPushText}${feralDriveText}${borrowedForceText}${functionSurgeText}${anomalyPushText}${namedText}${loadText} = ${total}`;
+      renderDiceFaces(dice, rollMode === "STANDARD" ? -1 : keptDice.dropIndex);
 
       if (window.VeilDaemonCellSync?.publishOperatorRoll) {
         const published = window.VeilDaemonCellSync.publishOperatorRoll({
@@ -6038,6 +6046,23 @@
         syncStatus.hidden = false;
       }
     }
+  }
+
+  /** Display-only enrichment of the roll dock: shows each raw die value already computed
+   * by rollAction() above as its own face, dimming the one dropped die in Advantage/
+   * Disadvantage mode. Reads dice/dropIndex, computes nothing -- roll totals, kept/dropped
+   * selection, and every bonus stay entirely in rollAction(). */
+  function renderDiceFaces(dice, dropIndex) {
+    const wrap = document.getElementById("roll-dice-faces");
+    if (!wrap) return;
+    wrap.textContent = "";
+    dice.forEach((value, index) => {
+      const face = document.createElement("span");
+      face.className = "die-face";
+      if (index === dropIndex) face.classList.add("is-dropped");
+      face.textContent = String(value);
+      wrap.append(face);
+    });
   }
 
   function keptRollDice(dice, mode) {

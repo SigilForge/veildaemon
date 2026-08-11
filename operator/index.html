@@ -208,26 +208,27 @@
               </div>
               <label>Current emotional state<input name="emotionalState" type="text" maxlength="120" placeholder="focused, scared, hungry, numb" autocomplete="off" /></label>
               <label>Common tell<input name="commonTell" type="text" maxlength="160" autocomplete="off" /></label>
-              <div class="frequency-recovery-wrap">
-                <span class="readout-inline-label">Recovery</span>
-                <fieldset class="recovery-field compact frequency-recovery" aria-label="Recovery">
-                  <label data-recovery-label="ground"><input name="recoveryGround" type="checkbox" /> Ground</label>
-                  <label data-recovery-label="breathe"><input name="recoveryBreathe" type="checkbox" /> Breathe</label>
-                  <label data-recovery-label="connect"><input name="recoveryConnect" type="checkbox" /> Connect</label>
-                  <label data-recovery-label="leave"><input name="recoveryLeave" type="checkbox" /> Leave</label>
-                  <label data-recovery-label="name_it"><input name="recoveryNameIt" type="checkbox" /> Name It</label>
-                </fieldset>
-                <details class="recovery-legend" id="recovery-legend">
-                  <summary>What do these do?</summary>
-                  <div class="recovery-legend-body" id="recovery-legend-body"></div>
-                </details>
-              </div>
             </div>
           </article>
 
           <article class="condition-strip operator-harm-stability wide">
             <p class="card-label">Harm &amp; Stability</p>
             <div class="scene-timer-strip" id="scene-timer-strip" aria-label="Round and scene timing"></div>
+            <div class="frequency-recovery-wrap">
+              <span class="readout-inline-label">Recovery</span>
+              <fieldset class="recovery-field compact frequency-recovery" aria-label="Recovery">
+                <label data-recovery-label="ground"><input name="recoveryGround" type="checkbox" /> Ground</label>
+                <label data-recovery-label="breathe"><input name="recoveryBreathe" type="checkbox" /> Breathe</label>
+                <label data-recovery-label="connect"><input name="recoveryConnect" type="checkbox" /> Connect</label>
+                <label data-recovery-label="leave"><input name="recoveryLeave" type="checkbox" /> Leave</label>
+                <label data-recovery-label="name_it"><input name="recoveryNameIt" type="checkbox" /> Name It</label>
+              </fieldset>
+              <div id="treat-harm-mount"></div>
+              <details class="recovery-legend" id="recovery-legend">
+                <summary>What do these do?</summary>
+                <div class="recovery-legend-body" id="recovery-legend-body"></div>
+              </details>
+            </div>
             <div id="handler-update-mount" aria-label="Handler update" hidden></div>
             <div class="tracker-board" id="tracker-board"></div>
             <details class="pressure-readout-drawer" id="presentation-readout-layer" hidden>
@@ -270,6 +271,7 @@
               </fieldset>
               <button type="button" class="button primary roll-button" id="roll-action">Roll 3D6</button>
             </div>
+            <div class="die-face-row" id="roll-dice-faces" aria-hidden="true"></div>
             <div class="roll-output" id="roll-output">Awaiting action.</div>
             <div class="roll-sync-status" id="roll-sync-status" hidden><span class="sync-check">✓</span> Roll logged to Cell (Handler feed updated)</div>
             <details class="lobby-rolls-drawer" id="lobby-rolls-drawer" hidden>
@@ -277,6 +279,10 @@
               <div class="lobby-rolls-list" id="lobby-rolls-list"></div>
             </details>
           </article>
+
+          <div class="sheet-section-break wide" role="separator" aria-hidden="true">
+            <span>Operator Detail</span>
+          </div>
 
           <div class="operator-live-grid live-lower-grid wide">
             <article class="sheet-card attributes-card">

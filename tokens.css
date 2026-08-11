@@ -65,4 +65,10 @@
 
   /* --- situational accent: new, does not replace cyan/purple primacy --- */
   --gold: #ffb400;
+
+  /* --- caution: distinct from --danger (red = harm/destructive). For "elevated but not
+     yet harmful" states like Attention "NOTICED" or a misfire's Minor/Major steps --
+     added for the Operator/Handler visual redesign, additive only. --- */
+  --caution: #ffb454;
+  --glow-caution: 0 0 8px rgba(255, 180, 84, .45);
 }

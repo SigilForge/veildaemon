@@ -2044,7 +2044,7 @@ body.surface-subpage .operator-preview-panel {
 }
 @media (max-width: 760px) {
   body {
-    padding-bottom: calc(4.2rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(3.4rem + env(safe-area-inset-bottom));
   }
   .surface-tabs {
     left: 0;
@@ -2091,12 +2091,12 @@ body.surface-subpage .operator-preview-panel {
     min-width: 0;
     width: auto;
     height: auto;
-    min-height: 3.05rem;
-    max-height: 3.35rem;
+    min-height: 2.5rem;
+    max-height: 2.75rem;
     border: 1px solid rgba(216,210,189,.36);
     border-bottom: 0;
     border-radius: .34rem .34rem 0 0;
-    padding: .42rem .24rem;
+    padding: .32rem .24rem;
     clip-path: none;
     align-items: center;
     flex-direction: column;
