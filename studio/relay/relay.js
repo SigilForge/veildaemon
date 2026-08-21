@@ -19,6 +19,7 @@
     localEngineReady: false,
     remoteEngineReady: false,
     remoteBridgeStatus: "unknown",
+    operatorReady: ["127.0.0.1", "localhost"].includes(window.location.hostname),
     codeScan: { status: "not-run", formats: [], codes: [], engine: "none", detail: "No media has been inspected." },
   };
 
@@ -1049,6 +1050,54 @@
     return splitSentences(text).slice(0, 12).map((sentence) => `- ${sentence}`).join("\n");
   }
 
+  const VEILLINK_LOGIN = "https://app.veildaemon.app/login?next=/relay-access";
+
+  function hostedAuthHeaders(extra = {}) {
+    const headers = { "X-Relay-Request": "character-v1", ...extra };
+    const token = window.VeilAuth?.getSession?.()?.access_token;
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  }
+
+  async function ensureHostedOperator() {
+    const gate = $("#relay-operator-gate");
+    const status = $("#relay-operator-status");
+    if (IS_LOCAL_BRIDGE) {
+      state.operatorReady = true;
+      if (gate) gate.hidden = true;
+      return true;
+    }
+    if (window.VeilAuth?.init) await window.VeilAuth.init();
+    const token = window.VeilAuth?.getSession?.()?.access_token;
+    if (!token) {
+      state.operatorReady = false;
+      if (gate) gate.hidden = false;
+      if (status) status.textContent = "Sign in with VeilLink to use hosted RelayDaemon. Only the Knoxmortis operator account is admitted. The page stays readable; Generate will not run.";
+      return false;
+    }
+    const response = await fetch("/api/relay-remote/whoami", { cache: "no-store", headers: hostedAuthHeaders() });
+    const payload = await response.json().catch(() => ({}));
+    if (response.status === 403) {
+      state.operatorReady = false;
+      if (gate) gate.hidden = false;
+      if (status) status.textContent = "This VeilLink account is not authorized for RelayDaemon. No local GPU or OpenAI work will run.";
+      return false;
+    }
+    if (!response.ok) {
+      state.operatorReady = false;
+      if (gate) gate.hidden = false;
+      if (status) status.textContent = payload.error === "OPERATOR_AUTH_UNAVAILABLE"
+        ? "VeilLink identity is not configured on this Relay host."
+        : "VeilLink session could not be verified. Sign in again.";
+      return false;
+    }
+    const alreadyReady = state.operatorReady;
+    state.operatorReady = true;
+    if (gate) gate.hidden = true;
+    if (!alreadyReady && character.value) state.warmPromise = warmCharacterEngine();
+    return true;
+  }
+
   function localEndpoint(path = "") {
     return `${IS_LOCAL_BRIDGE ? CHARACTER_ENDPOINT : LOCAL_CHARACTER_ENDPOINT}${path}`;
   }
@@ -1067,7 +1116,7 @@
   async function probeRemoteBridge() {
     const response = await fetch("/api/relay-remote/status", {
       cache: "no-store",
-      headers: { "X-Relay-Request": "character-v1" },
+      headers: hostedAuthHeaders(),
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
@@ -1080,7 +1129,7 @@
     const requestId = newRemoteRequestId();
     const submit = await fetch("/api/relay-remote/submit", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-Relay-Request": "character-v1" },
+      headers: hostedAuthHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ messages, requestId }),
     });
     const submitted = await submit.json().catch(() => ({}));
@@ -1094,7 +1143,7 @@
       await new Promise((resolve) => window.setTimeout(resolve, 1500));
       const response = await fetch(`/api/relay-remote/result?requestId=${encodeURIComponent(requestId)}`, {
         cache: "no-store",
-        headers: { "X-Relay-Request": "character-v1" },
+        headers: hostedAuthHeaders(),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
@@ -1119,7 +1168,9 @@
       const options = {
         method: "POST",
         signal: controller.signal,
-        headers: { "Content-Type": "application/json", "X-Relay-Request": "character-v1" },
+        headers: local
+          ? { "Content-Type": "application/json", "X-Relay-Request": "character-v1" }
+          : hostedAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ messages }),
       };
       const response = await fetch(endpoint, local ? localFetchOptions(options) : options);
@@ -1142,6 +1193,10 @@
   async function characterEngineRequest(messages, stage = "generation") {
     const startedAt = performance.now();
     try {
+      if (!IS_LOCAL_BRIDGE) {
+        const admitted = state.operatorReady || await ensureHostedOperator();
+        if (!admitted) throw new Error("UNAUTHORIZED");
+      }
       if (state.localEngineReady) {
         try {
           return await requestCharacterEngine(localEndpoint(), messages, true);
@@ -1178,6 +1233,7 @@
       if (error?.message === "OLLAMA_INVALID_OUTPUT") throw new Error("Local Ollama returned an unreadable structured draft. Hosted OpenAI was not available as a recovery path.");
       if (error?.message === "HOSTED_ENGINE_NOT_CONFIGURED") throw new Error("Hosted OpenAI is not configured yet.");
       if (error?.message === "UNAUTHORIZED") throw new Error("Character generation requires an authorized RelayDaemon session.");
+      if (error?.message === "OPERATOR_FORBIDDEN") throw new Error("This VeilLink account is not authorized for RelayDaemon.");
       if (error?.message === "HOSTED_ENGINE_INCOMPLETE") throw new Error("Hosted OpenAI hit its output budget before finishing the structured draft. Retry once; if it repeats, shorten the source or wait for the local Ollama path.");
       if (error?.message === "HOSTED_ENGINE_REFUSED") throw new Error("The hosted character engine declined this transformation. Review the source and character constraints.");
       if (error?.message === "LOCAL_DAEMON_OFFLINE") throw new Error("The paired home daemon is offline. Hosted OpenAI was not available as a recovery path.");
@@ -1191,6 +1247,10 @@
 
   async function warmCharacterEngine() {
     if (!character.value) return;
+    if (!IS_LOCAL_BRIDGE && !state.operatorReady) {
+      $("#persona-engine-status").textContent = "Sign in with the Knoxmortis VeilLink account before Generate. No engine work runs until then.";
+      return;
+    }
     state.localEngineReady = false;
     state.remoteEngineReady = false;
     $("#persona-engine-status").textContent = "Checking local Ollama (default engine)…";
@@ -1885,6 +1945,13 @@
       $("#form-message").textContent = "The character engine is still working. A local cold start can take a few minutes.";
       return;
     }
+    if (!IS_LOCAL_BRIDGE && !state.operatorReady) {
+      const admitted = await ensureHostedOperator();
+      if (!admitted) {
+        $("#form-message").textContent = "Hosted RelayDaemon requires the Knoxmortis VeilLink account. No generation ran.";
+        return;
+      }
+    }
     const text = normalizeWhitespace(sourceText.value);
     if (!text) {
       $("#form-message").textContent = "Relay requires an original post or draft.";
@@ -2134,7 +2201,9 @@
   $("#regenerate").addEventListener("click", generate);
   sourceText.addEventListener("input", updateSourceCount);
   sourceText.addEventListener("focus", () => {
-    if (character.value && !state.warmPromise) state.warmPromise = warmCharacterEngine();
+    if (character.value && !state.warmPromise && (IS_LOCAL_BRIDGE || state.operatorReady)) {
+      state.warmPromise = warmCharacterEngine();
+    }
   });
   mediaFile.addEventListener("change", handleMediaFile);
   imageUrl.addEventListener("change", updateImageUrlPreview);
@@ -2173,4 +2242,20 @@
   updateSourceCount();
   populateCharacterSelect().then(() => updatePersonaEngine()).catch(() => updatePersonaEngine());
   if (localStorage.getItem(STORAGE_KEY)) $("#save-state").textContent = "Saved draft available";
+  const loginLink = $("#relay-operator-login");
+  if (loginLink) loginLink.href = VEILLINK_LOGIN;
+  $("#relay-operator-retry")?.addEventListener("click", () => {
+    ensureHostedOperator().catch((error) => {
+      console.warn("Relay operator retry failed", { name: error?.name, message: error?.message });
+    });
+  });
+  if (!IS_LOCAL_BRIDGE) {
+    window.VeilAuth?.mountAuthWidget?.($("#relay-operator-widget"));
+    window.VeilAuth?.onChange?.(() => {
+      ensureHostedOperator().catch(() => {});
+    });
+    ensureHostedOperator().catch((error) => {
+      console.warn("Relay operator gate failed", { name: error?.name, message: error?.message });
+    });
+  }
 })();

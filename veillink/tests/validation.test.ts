@@ -137,6 +137,11 @@ describe("auth redirect configuration", () => {
     );
   });
 
+  it("maps RelayDaemon returns onto the VeilLink relay-access handoff", () => {
+    expect(authReturnTarget("https://relay.veildaemon.app/")).toBe("/relay-access");
+    expect(authReturnTarget("https://relay.veildaemon.app/studio/relay/")).toBe("/relay-access");
+  });
+
   it("rejects external auth return targets outside the allowed surfaces", () => {
     expect(authReturnTarget("https://example.com/operator/")).toBe("/dashboard");
     expect(authReturnTarget("https://evil.veildaemon.app/handler/")).toBe("/dashboard");

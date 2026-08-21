@@ -804,12 +804,17 @@ test.describe("studio subtree routes", () => {
     expect(relaySource).toContain("Switching to hosted OpenAI backup for this draft only.");
     expect(relaySource).toContain("trying local Ollama first (default)");
     expect(relaySource).toContain("/api/relay-remote/submit");
+    expect(relaySource).toContain("/api/relay-remote/whoami");
+    expect(relaySource).toContain("ensureHostedOperator");
     expect(bridgeSource).toContain("https://veildaemon-relay-knoxmortis-knoxmortis-projects.vercel.app");
     expect(bridgeSource).toContain('Access-Control-Allow-Private-Network", "true"');
     expect(bridgeSource).toContain('const HOST = "127.0.0.1"');
     expect(bridgeSource).toContain("RELAY_REMOTE_URL");
     expect(prepareSource).toContain("api/relay-remote");
     expect(prepareSource).toContain("lib/relayRemoteTransport.js");
+    expect(prepareSource).toContain("lib/relayOperatorAuth.js");
+    expect(prepareSource).toContain("veildaemon-auth.js");
+    expect(prepareSource).toContain("api/auth/config.js");
   });
 
   test("hosted character endpoint rejects unauthenticated requests before model access", async () => {
@@ -818,6 +823,48 @@ test.describe("studio subtree routes", () => {
     await handler({ method: "POST", headers: {}, socket: { remoteAddress: "127.0.0.1" } }, response);
     expect(response.statusCode).toBe(401);
     expect(JSON.parse(response.body)).toEqual({ status: "error", error: "UNAUTHORIZED" });
+  });
+
+  test("hosted character endpoint rejects same-origin requests without VeilLink operator before OpenAI", async () => {
+    const handler = require(path.join(process.cwd(), "api/character.js"));
+    const originalFetch = global.fetch;
+    let calls = 0;
+    global.fetch = async () => {
+      calls += 1;
+      throw new Error("OpenAI must not be called without an operator");
+    };
+    try {
+      const request = Readable.from([Buffer.from(JSON.stringify({ messages: [{ role: "system", content: "Return JSON." }, { role: "user", content: "Write one bounded character master." }] }))]);
+      Object.assign(request, { method: "POST", headers: { host: "relay.example", origin: "https://relay.example", "sec-fetch-site": "same-origin", "x-relay-request": "character-v1" }, socket: { remoteAddress: "192.0.2.9" } });
+      const response = { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(body) { this.body = body; } };
+      await handler(request, response);
+      expect(response.statusCode).toBe(401);
+      expect(JSON.parse(response.body)).toEqual({ status: "error", error: "UNAUTHORIZED" });
+      expect(calls).toBe(0);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  test("hosted character endpoint forbids a non-Knoxmortis VeilLink user before OpenAI", async () => {
+    const handler = require(path.join(process.cwd(), "api/character.js"));
+    const originalFetch = global.fetch;
+    let calls = 0;
+    global.fetch = async () => {
+      calls += 1;
+      throw new Error("OpenAI must not be called for a forbidden operator");
+    };
+    try {
+      const request = Readable.from([Buffer.from(JSON.stringify({ messages: [{ role: "system", content: "Return JSON." }, { role: "user", content: "Write one bounded character master." }] }))]);
+      Object.assign(request, { method: "POST", headers: { host: "relay.example", origin: "https://relay.example", "sec-fetch-site": "same-origin", "x-relay-request": "character-v1" }, socket: { remoteAddress: "192.0.2.8" }, relayOperator: { email: "fan@example.com", id: "fan" } });
+      const response = { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(body) { this.body = body; } };
+      await handler(request, response);
+      expect(response.statusCode).toBe(403);
+      expect(JSON.parse(response.body)).toEqual({ status: "error", error: "OPERATOR_FORBIDDEN" });
+      expect(calls).toBe(0);
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 
   test("hosted character endpoint makes one bounded server-side Responses API call", async () => {
@@ -833,7 +880,7 @@ test.describe("studio subtree routes", () => {
     process.env.OPENAI_API_KEY = "test-only-key";
     try {
       const request = Readable.from([Buffer.from(JSON.stringify({ messages: [{ role: "system", content: "Return JSON." }, { role: "user", content: "Write one bounded character master." }] }))]);
-      Object.assign(request, { method: "POST", headers: { host: "relay.example", origin: "https://relay.example", "sec-fetch-site": "same-origin", "x-relay-request": "character-v1", "x-forwarded-for": "192.0.2.1" }, socket: { remoteAddress: "192.0.2.1" } });
+      Object.assign(request, { method: "POST", headers: { host: "relay.example", origin: "https://relay.example", "sec-fetch-site": "same-origin", "x-relay-request": "character-v1", "x-forwarded-for": "192.0.2.1" }, socket: { remoteAddress: "192.0.2.1" }, relayOperator: { email: "j.donavon.love@gmail.com", id: "knox" } });
       const response = { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(body) { this.body = body; } };
       await handler(request, response);
       expect(response.statusCode).toBe(200);
@@ -867,7 +914,7 @@ test.describe("studio subtree routes", () => {
     process.env.OPENAI_API_KEY = "test-only-key";
     try {
       const request = Readable.from([Buffer.from(JSON.stringify({ messages: [{ role: "system", content: "Return JSON." }, { role: "user", content: "Write one bounded character master." }] }))]);
-      Object.assign(request, { method: "POST", headers: { host: "relay.example", origin: "https://relay.example", "sec-fetch-site": "same-origin", "x-relay-request": "character-v1", "x-forwarded-for": "192.0.2.2" }, socket: { remoteAddress: "192.0.2.2" } });
+      Object.assign(request, { method: "POST", headers: { host: "relay.example", origin: "https://relay.example", "sec-fetch-site": "same-origin", "x-relay-request": "character-v1", "x-forwarded-for": "192.0.2.2" }, socket: { remoteAddress: "192.0.2.2" }, relayOperator: { email: "j.donavon.love@gmail.com", id: "knox" } });
       const response = { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(body) { this.body = body; } };
       await handler(request, response);
       expect(response.statusCode).toBe(502);
@@ -912,7 +959,7 @@ test.describe("studio subtree routes", () => {
     process.env.OPENAI_API_KEY = "test-only-key";
     try {
       const request = Readable.from([Buffer.from(JSON.stringify({ messages: [{ role: "system", content: "Return JSON." }, { role: "user", content: "Write one bounded character master." }] }))]);
-      Object.assign(request, { method: "POST", headers: { host: "relay.example", origin: "https://relay.example", "sec-fetch-site": "same-origin", "x-relay-request": "character-v1", "x-forwarded-for": "192.0.2.3" }, socket: { remoteAddress: "192.0.2.3" } });
+      Object.assign(request, { method: "POST", headers: { host: "relay.example", origin: "https://relay.example", "sec-fetch-site": "same-origin", "x-relay-request": "character-v1", "x-forwarded-for": "192.0.2.3" }, socket: { remoteAddress: "192.0.2.3" }, relayOperator: { email: "j.donavon.love@gmail.com", id: "knox" } });
       const response = { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(body) { this.body = body; } };
       await handler(request, response);
       expect(response.statusCode).toBe(200);

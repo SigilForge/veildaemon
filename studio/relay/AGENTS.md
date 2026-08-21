@@ -14,7 +14,8 @@ Before editing RelayDaemon:
 
 ```text
 Private Vercel review UI
-├── local loopback bridge -> Ollama (default, desktop)
+├── VeilLink operator identity (Knoxmortis only) sits above every hosted inference path
+├── local loopback bridge -> Ollama (default, desktop; ungated on 127.0.0.1)
 ├── authenticated remote transport -> paired home VeilDaemon (outbound poll)
 │     └── VeilForge remote_turn (forced remote profile) or local Ollama
 └── authenticated hosted API -> OpenAI (availability fallback)
@@ -23,12 +24,17 @@ Private Vercel review UI
 - GitHub Pages does not serve RelayDaemon.
 - The browser reaches Ollama only through the local bridge at `http://127.0.0.1:4174`; it does not call Ollama's `11434` API directly.
 - Phone and other non-loopback clients never talk to Ollama, VeilForge, or port 4174. They use `/api/relay-remote/*` on the hosted RelayDaemon. The home daemon initiates an outbound poll against that queue.
+- Hosted Generate, `/api/relay-remote/{whoami,status,submit,result}`, and `/api/character` require a Knoxmortis VeilLink session **before engine selection**. No authorized operator identity means no inference spend, local or cloud.
+- Same-origin `x-relay-request: character-v1` is CSRF protection, not identity. Device poll/complete/heartbeat/pair/revoke stay on pairing-secret/device-token credentials.
+- The static hosted page may stay readable. Generate without an authorized VeilLink session fails closed.
 - The local bridge is optional private infrastructure, not a dependency of the public VeilDaemon surface.
 - Human approval remains separate from generation and publication. Generation never authorizes publication.
 - This architecture is the current Relay contract. Remote reachability is additive; it does not replace desktop loopback or hosted OpenAI fallback.
 
 ## Sources of truth
 - UI: `studio/relay/index.html`, `studio/relay/relay.css`, `studio/relay/relay.js`
+- Hosted operator identity: `lib/relayOperatorAuth.js`, `api/auth/config.js`
+- VeilLink handoff: `veillink/app/relay-access/`, `veillink/lib/policy.ts`
 - Hosted character API: `api/character.js`
 - Hosted scanner API: `api/scan-code.js`
 - Hosted remote transport: `api/relay-remote/[action].js`, `lib/relayRemoteTransport.js`, `lib/relayRemoteStore.js`
@@ -43,6 +49,7 @@ Private Vercel review UI
 ## Generation invariants
 - Character-platform outputs must be rewritten to fit. Never mechanically clip a draft, append punctuation to a cutoff, or treat a sentence boundary as proof of semantic completeness.
 - Warm-up must be load-only. Track success-path and worst-case inference-call counts explicitly.
+- Hosted warm-up and Generate must not run until a Knoxmortis VeilLink operator is admitted. Do not add retries to recover from an auth denial.
 - Do not add retries, disable thinking, or add semantic re-review calls solely to mask insufficient context, output tokens, or time.
 - Prompt examples must be valid if copied. Do not include placeholder values such as `"..."`.
 - Log structural diagnostics without private draft content: failure class, attempt number, field, measured length, finish reason, and whether content or thinking was empty.
@@ -78,7 +85,7 @@ RELAY_REMOTE_PAIRING_SECRET=<same secret as Vercel env>
 RELAY_DEVICE_ID=home-primary
 ```
 
-On `veildaemon-relay`, set the same `RELAY_REMOTE_PAIRING_SECRET` plus the existing Upstash/Vercel KV credentials. The local bridge pairs once, then polls. Optional Forge path (VeilForge PR #23, unmerged at time of this slice):
+On `veildaemon-relay`, set the same `RELAY_REMOTE_PAIRING_SECRET` plus the existing Upstash/Vercel KV credentials, VeilLink `SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and optional `RELAY_OPERATOR_EMAILS` / `RELAY_OPERATOR_HANDLES` / `RELAY_OPERATOR_USER_IDS` (defaults: founder email and GitHub `knoxmortis`). The local bridge pairs once, then polls. Optional Forge path (VeilForge PR #23, unmerged at time of this slice):
 
 ```bash
 VEILFORGE_SOCKET=<operator daemon AF_UNIX path>

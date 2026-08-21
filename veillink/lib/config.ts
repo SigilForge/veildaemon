@@ -37,6 +37,8 @@ export type PlanId = keyof typeof plans;
 const DEFAULT_AUTH_RETURN_TARGET = "/dashboard";
 const ROOT_APP_AUTH_RETURN_ORIGIN = "https://veildaemon.app";
 const ROOT_APP_AUTH_RETURN_PATHS = ["/operator", "/handler"];
+const RELAY_AUTH_RETURN_ORIGIN = "https://relay.veildaemon.app";
+const RELAY_ACCESS_PATH = "/relay-access";
 
 function isVercelDeploymentHost(hostname: string) {
   return hostname === "vercel.app" || hostname.endsWith(".vercel.app");
@@ -101,6 +103,10 @@ export function authReturnTarget(value: string | null | undefined, appUrl = prod
     }
     if (url.origin === ROOT_APP_AUTH_RETURN_ORIGIN && pathMatchesPrefix(url.pathname, ROOT_APP_AUTH_RETURN_PATHS)) {
       return url.toString();
+    }
+    if (url.origin === RELAY_AUTH_RETURN_ORIGIN) {
+      const path = url.pathname || "/";
+      if (path === "/" || path === "" || pathMatchesPrefix(path, ["/studio/relay"])) return RELAY_ACCESS_PATH;
     }
   } catch {
     return DEFAULT_AUTH_RETURN_TARGET;

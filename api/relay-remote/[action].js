@@ -1,4 +1,5 @@
 const { createTransport, transportError, newSecretBytes } = require("../../lib/relayRemoteTransport");
+const { requireRelayOperator } = require("../../lib/relayOperatorAuth");
 
 function json(res, status, body, extraHeaders = {}) {
   res.statusCode = status;
@@ -78,6 +79,11 @@ function deviceAuth(req, body) {
   };
 }
 
+async function requireHostedOperator(req) {
+  if (!authorizedBrowser(req)) throw transportError("UNAUTHORIZED", 401);
+  return requireRelayOperator(req);
+}
+
 module.exports = async function handler(req, res) {
   const action = routeAction(req);
   const transport = req.relayTransport || createDefaultTransport();
@@ -90,9 +96,16 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    if (action === "whoami") {
+      if (req.method !== "GET") return json(res, 405, { status: "error", error: "METHOD_NOT_ALLOWED" });
+      const operator = await requireHostedOperator(req);
+      logStructural("whoami", { operator: true });
+      return json(res, 200, { status: "ok", operator: true, email: operator.email || null });
+    }
+
     if (action === "status") {
       if (req.method !== "GET") return json(res, 405, { status: "error", error: "METHOD_NOT_ALLOWED" });
-      if (!authorizedBrowser(req)) return json(res, 401, { status: "error", error: "UNAUTHORIZED" });
+      await requireHostedOperator(req);
       const snapshot = await transport.status();
       logStructural("status", { localBridge: snapshot.localBridge, durableStore: snapshot.durableStore });
       return json(res, 200, { status: "ok", ...snapshot });
@@ -131,7 +144,7 @@ module.exports = async function handler(req, res) {
 
     if (action === "submit") {
       if (req.method !== "POST") return json(res, 405, { status: "error", error: "METHOD_NOT_ALLOWED" });
-      if (!authorizedBrowser(req)) return json(res, 401, { status: "error", error: "UNAUTHORIZED" });
+      await requireHostedOperator(req);
       const body = JSON.parse((await readBody(req)) || "{}");
       const out = await transport.submit({
         messages: body.messages,
@@ -169,7 +182,7 @@ module.exports = async function handler(req, res) {
 
     if (action === "result") {
       if (req.method !== "GET") return json(res, 405, { status: "error", error: "METHOD_NOT_ALLOWED" });
-      if (!authorizedBrowser(req)) return json(res, 401, { status: "error", error: "UNAUTHORIZED" });
+      await requireHostedOperator(req);
       const url = new URL(req.url || "/", "https://relay.local");
       const requestId = (req.query && req.query.requestId) || url.searchParams.get("requestId");
       const out = await transport.result({ requestId });

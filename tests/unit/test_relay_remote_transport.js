@@ -262,6 +262,8 @@ describe("relay remote HTTP surface", () => {
     };
   }
 
+  const KNOX = { id: "knox-id", email: "j.donavon.love@gmail.com" };
+
   it("browser status/submit/result reject missing credentials before queueing", async () => {
     const transport = makeTransport();
     const response = fakeRes();
@@ -275,7 +277,7 @@ describe("relay remote HTTP surface", () => {
     const paired = await pairDevice(transport);
     const requestId = newSecretBytes(16);
     const submitReq = Readable.from([Buffer.from(JSON.stringify({ messages: sampleMessages(), requestId }))]);
-    Object.assign(submitReq, { method: "POST", url: "/api/relay-remote/submit", headers: browserHeaders(), relayTransport: transport });
+    Object.assign(submitReq, { method: "POST", url: "/api/relay-remote/submit", headers: browserHeaders(), relayTransport: transport, relayOperator: KNOX });
     const submitRes = fakeRes();
     await handler(submitReq, submitRes);
     assert.equal(submitRes.statusCode, 202);
@@ -315,6 +317,7 @@ describe("relay remote HTTP surface", () => {
       query: { requestId },
       headers: browserHeaders(),
       relayTransport: transport,
+      relayOperator: KNOX,
     }, resultRes);
     const body = JSON.parse(resultRes.body);
     assert.equal(resultRes.statusCode, 200);
@@ -332,7 +335,7 @@ describe("relay remote HTTP surface", () => {
       profile_name: "dev",
       allowed_tools: ["shell"],
     }))]);
-    Object.assign(submitReq, { method: "POST", url: "/api/relay-remote/submit", headers: browserHeaders(), relayTransport: transport });
+    Object.assign(submitReq, { method: "POST", url: "/api/relay-remote/submit", headers: browserHeaders(), relayTransport: transport, relayOperator: KNOX });
     const submitRes = fakeRes();
     await handler(submitReq, submitRes);
     assert.equal(submitRes.statusCode, 202);
@@ -341,21 +344,61 @@ describe("relay remote HTTP surface", () => {
     assert.equal(JSON.stringify(stored).includes("profile_name"), false);
   });
 
-  it("device heartbeat keeps the home daemon distinguishable from timeout", async () => {
-    const transport = makeTransport({ onlineWindowMs: 5_000 });
-    const paired = await pairDevice(transport);
-    const beatReq = Readable.from([Buffer.from(JSON.stringify({ deviceId: DEVICE }))]);
-    Object.assign(beatReq, {
+  it("same-origin without a VeilLink operator is rejected before queueing", async () => {
+    const transport = makeTransport();
+    await pairDevice(transport);
+    const requestId = newSecretBytes(16);
+    const submitReq = Readable.from([Buffer.from(JSON.stringify({ messages: sampleMessages(), requestId }))]);
+    Object.assign(submitReq, { method: "POST", url: "/api/relay-remote/submit", headers: browserHeaders(), relayTransport: transport });
+    const submitRes = fakeRes();
+    await handler(submitReq, submitRes);
+    assert.equal(submitRes.statusCode, 401);
+    assert.equal(JSON.parse(submitRes.body).error, "UNAUTHORIZED");
+  });
+
+  it("a different VeilLink user cannot submit remote jobs", async () => {
+    const transport = makeTransport();
+    await pairDevice(transport);
+    const requestId = newSecretBytes(16);
+    const submitReq = Readable.from([Buffer.from(JSON.stringify({ messages: sampleMessages(), requestId }))]);
+    Object.assign(submitReq, {
       method: "POST",
-      url: "/api/relay-remote/heartbeat",
+      url: "/api/relay-remote/submit",
+      headers: browserHeaders(),
+      relayTransport: transport,
+      relayOperator: { id: "fan", email: "fan@example.com" },
+    });
+    const submitRes = fakeRes();
+    await handler(submitReq, submitRes);
+    assert.equal(submitRes.statusCode, 403);
+    assert.equal(JSON.parse(submitRes.body).error, "OPERATOR_FORBIDDEN");
+  });
+
+  it("whoami admits Knoxmortis and device poll still works without VeilLink", async () => {
+    const transport = makeTransport();
+    const paired = await pairDevice(transport);
+    const whoRes = fakeRes();
+    await handler({
+      method: "GET",
+      url: "/api/relay-remote/whoami",
+      headers: browserHeaders(),
+      relayTransport: transport,
+      relayOperator: KNOX,
+    }, whoRes);
+    assert.equal(whoRes.statusCode, 200);
+    assert.equal(JSON.parse(whoRes.body).operator, true);
+
+    const pollReq = Readable.from([Buffer.from(JSON.stringify({ deviceId: DEVICE, pollNonce: newSecretBytes(16) }))]);
+    Object.assign(pollReq, {
+      method: "POST",
+      url: "/api/relay-remote/poll",
       headers: { authorization: `Bearer ${paired.deviceToken}`, "x-relay-device-id": DEVICE },
       relayTransport: transport,
     });
-    const beatRes = fakeRes();
-    await handler(beatReq, beatRes);
-    assert.equal(beatRes.statusCode, 200);
-    const snapshot = await transport.status({ deviceId: DEVICE });
-    assert.equal(snapshot.localBridge, "online");
+    const pollRes = fakeRes();
+    await handler(pollReq, pollRes);
+    assert.equal(pollRes.statusCode, 200);
+    assert.equal(JSON.parse(pollRes.body).empty, true);
   });
 });
 
@@ -377,6 +420,10 @@ describe("relay remote invariants", () => {
     assert.match(bridge, /RELAY_REMOTE_URL/);
     assert.match(relay, /http:\/\/127\.0\.0\.1:4174\/api\/character/);
     assert.match(relay, /\/api\/relay-remote\/submit/);
+    assert.match(relay, /hostedAuthHeaders/);
+    assert.match(relay, /app\.veildaemon\.app\/login\?next=\/relay-access/);
+    assert.match(relay, /ensureHostedOperator/);
+    assert.match(relay, /No engine work runs until then/);
     assert.doesNotMatch(bridge, /WebSocket/);
     assert.doesNotMatch(relay, /new WebSocket/);
   });
@@ -385,6 +432,18 @@ describe("relay remote invariants", () => {
     const character = fs.readFileSync(path.join(process.cwd(), "api/character.js"), "utf8");
     assert.match(character, /HOSTED_ENGINE_NOT_CONFIGURED|openai\.com\/v1\/responses/);
     assert.match(character, /x-relay-request/);
+    assert.match(character, /requireRelayOperator/);
+  });
+
+  it("hosted inference spend requires Knoxmortis VeilLink identity before engine selection", () => {
+    const relay = fs.readFileSync(path.join(process.cwd(), "studio/relay/relay.js"), "utf8");
+    const character = fs.readFileSync(path.join(process.cwd(), "api/character.js"), "utf8");
+    const api = fs.readFileSync(path.join(process.cwd(), "api/relay-remote/[action].js"), "utf8");
+    assert.match(relay, /state\.operatorReady \|\| await ensureHostedOperator/);
+    assert.match(relay, /if \(!IS_LOCAL_BRIDGE && !state\.operatorReady\)/);
+    assert.match(character, /requireRelayOperator/);
+    assert.match(api, /requireHostedOperator/);
+    assert.match(api, /action === "whoami"/);
   });
 
   it("remote requests cannot escalate Forge authority", () => {
