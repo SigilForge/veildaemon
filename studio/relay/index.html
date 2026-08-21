@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="/studio/studio.css?v=20260724-sigilforge1">
   <link rel="stylesheet" href="/studio/relay/relay.css?v=20260724-sigilforge1">
   <script defer src="/studio/relay/vendor/zxing-reader.js?v=20260724-sigilforge1"></script>
-  <script defer src="/studio/relay/relay.js?v=20260724-sigilforge1"></script>
+  <script defer src="/studio/relay/relay.js?v=20260821-remote1"></script>
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
@@ -44,7 +44,7 @@
       <div>
         <p class="eyebrow">Studio publishing utility · local-first MVP</p>
         <h1>One post enters. A coordinated swarm crawls out.</h1>
-        <p>RelayDaemon preserves the thought, then adapts its shape. Drafts, approvals, and exports stay in this browser. Character drafts use <strong>local Ollama by default</strong>. <strong>Hosted OpenAI is backup only</strong>—if the local bridge is offline or returns an unreadable structured draft.</p>
+        <p>RelayDaemon preserves the thought, then adapts its shape. Drafts, approvals, and exports stay in this browser. Character drafts use <strong>local Ollama by default</strong>. A paired home VeilDaemon can answer from a phone through authenticated remote transport. <strong>Hosted OpenAI is backup only</strong>—if the local bridge is offline, times out, or returns an unreadable structured draft.</p>
       </div>
       <aside class="relay-status" aria-label="RelayDaemon operating status">
         <span>RELAY STATUS</span>
@@ -159,7 +159,8 @@
         <div id="persona-engine" class="persona-engine" hidden>
           <p class="persona-engine-title">Character engine</p>
           <p class="persona-engine-path"><strong>1 · Local Ollama (default)</strong> — Relay bridge on this machine runs the model.</p>
-          <p class="persona-engine-path"><strong>2 · Hosted OpenAI (backup)</strong> — only when local cannot finish a valid draft.</p>
+          <p class="persona-engine-path"><strong>2 · Paired home daemon</strong> — when this browser is not the home machine, the outbound local worker answers through RelayDaemon remote transport.</p>
+          <p class="persona-engine-path"><strong>3 · Hosted OpenAI (backup)</strong> — only when local cannot finish a valid draft.</p>
           <p id="persona-engine-status" class="persona-engine-status" role="status">Select a character to check local Ollama first.</p>
           <div id="persona-primer" class="persona-primer" hidden>
             <div class="persona-primer-head">

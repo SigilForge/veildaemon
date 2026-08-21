@@ -14,21 +14,26 @@ Before editing RelayDaemon:
 
 ```text
 Private Vercel review UI
-├── local loopback bridge -> Ollama (default)
+├── local loopback bridge -> Ollama (default, desktop)
+├── authenticated remote transport -> paired home VeilDaemon (outbound poll)
+│     └── VeilForge remote_turn (forced remote profile) or local Ollama
 └── authenticated hosted API -> OpenAI (availability fallback)
 ```
 
 - GitHub Pages does not serve RelayDaemon.
 - The browser reaches Ollama only through the local bridge at `http://127.0.0.1:4174`; it does not call Ollama's `11434` API directly.
+- Phone and other non-loopback clients never talk to Ollama, VeilForge, or port 4174. They use `/api/relay-remote/*` on the hosted RelayDaemon. The home daemon initiates an outbound poll against that queue.
 - The local bridge is optional private infrastructure, not a dependency of the public VeilDaemon surface.
 - Human approval remains separate from generation and publication. Generation never authorizes publication.
-- Preserve this architecture until the user explicitly changes it. If a requested change conflicts with security, deployment constraints, or established best practice, explain the conflict and clarify before implementing.
+- This architecture is the current Relay contract. Remote reachability is additive; it does not replace desktop loopback or hosted OpenAI fallback.
 
 ## Sources of truth
 - UI: `studio/relay/index.html`, `studio/relay/relay.css`, `studio/relay/relay.js`
 - Hosted character API: `api/character.js`
 - Hosted scanner API: `api/scan-code.js`
-- Local Ollama bridge: `scripts/relay-local-bridge.mjs`
+- Hosted remote transport: `api/relay-remote/[action].js`, `lib/relayRemoteTransport.js`, `lib/relayRemoteStore.js`
+- Local Ollama bridge + outbound worker: `scripts/relay-local-bridge.mjs`
+- Isolated Forge adapter (VeilForge PR #23): `lib/veilforgeRemoteTurn.js`
 - Acceptance fixture: `tests/fixtures/relay/ca-001.json`
 - Acceptance runner: `scripts/run-relay-acceptance.mjs`
 - Vercel template: `deploy/relay-vercel/vercel.json`
@@ -62,3 +67,23 @@ Private Vercel review UI
    vercel deploy --prod --yes
    ```
 5. Confirm `knoxmortis-projects/veildaemon-relay` and the `https://relay.veildaemon.app` alias. Reject directory-named projects such as `_relay-vercel`.
+
+## Remote pairing (home daemon)
+
+Do not expose Ollama, VeilForge, or port 4174. On the home machine, set:
+
+```bash
+RELAY_REMOTE_URL=https://relay.veildaemon.app
+RELAY_REMOTE_PAIRING_SECRET=<same secret as Vercel env>
+RELAY_DEVICE_ID=home-primary
+```
+
+On `veildaemon-relay`, set the same `RELAY_REMOTE_PAIRING_SECRET` plus the existing Upstash/Vercel KV credentials. The local bridge pairs once, then polls. Optional Forge path (VeilForge PR #23, unmerged at time of this slice):
+
+```bash
+VEILFORGE_SOCKET=<operator daemon AF_UNIX path>
+VEILFORGE_REMOTE_SESSION_ID=<existing session UUID>
+VEILFORGE_AUTH_TOKEN=<optional daemon token>
+```
+
+If those are unset, remote requests still fulfill with local Ollama. Hosted OpenAI remains the availability fallback when the home daemon is offline or times out.

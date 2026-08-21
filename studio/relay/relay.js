@@ -17,6 +17,8 @@
     generating: false,
     warmPromise: null,
     localEngineReady: false,
+    remoteEngineReady: false,
+    remoteBridgeStatus: "unknown",
     codeScan: { status: "not-run", formats: [], codes: [], engine: "none", detail: "No media has been inspected." },
   };
 
@@ -1056,6 +1058,60 @@
     return { ...options, mode: "cors", targetAddressSpace: "loopback" };
   }
 
+  function newRemoteRequestId() {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return [...bytes].map((value) => value.toString(16).padStart(2, "0")).join("");
+  }
+
+  async function probeRemoteBridge() {
+    const response = await fetch("/api/relay-remote/status", {
+      cache: "no-store",
+      headers: { "X-Relay-Request": "character-v1" },
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+    state.remoteBridgeStatus = payload.localBridge || "unknown";
+    state.remoteEngineReady = payload.localBridge === "online";
+    return payload;
+  }
+
+  async function requestRemoteCharacter(messages) {
+    const requestId = newRemoteRequestId();
+    const submit = await fetch("/api/relay-remote/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Relay-Request": "character-v1" },
+      body: JSON.stringify({ messages, requestId }),
+    });
+    const submitted = await submit.json().catch(() => ({}));
+    if (!submit.ok) {
+      const error = new Error(submitted.error || `Remote transport returned HTTP ${submit.status}.`);
+      error.engine = "remote";
+      throw error;
+    }
+    const deadline = Date.now() + GENERATION_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      await new Promise((resolve) => window.setTimeout(resolve, 1500));
+      const response = await fetch(`/api/relay-remote/result?requestId=${encodeURIComponent(requestId)}`, {
+        cache: "no-store",
+        headers: { "X-Relay-Request": "character-v1" },
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const error = new Error(payload.error || `Remote result HTTP ${response.status}.`);
+        error.engine = "remote";
+        throw error;
+      }
+      if (payload.status === "complete" && payload.result) {
+        $("#persona-engine-status").textContent = "Using paired home daemon (local inference) through RelayDaemon remote transport.";
+        return payload.result;
+      }
+      if (payload.status === "timeout" || payload.error === "REMOTE_TIMEOUT") throw new Error("REMOTE_TIMEOUT");
+      if (payload.status === "error") throw new Error(payload.error || "REMOTE_FAILED");
+    }
+    throw new Error("REMOTE_TIMEOUT");
+  }
+
   async function requestCharacterEngine(endpoint, messages, local) {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
@@ -1103,6 +1159,18 @@
             : "Local Ollama offline. Switching to hosted OpenAI backup for this draft only.";
         }
       }
+      if (!IS_LOCAL_BRIDGE && state.remoteEngineReady) {
+        try {
+          return await requestRemoteCharacter(messages);
+        } catch (remoteError) {
+          const message = remoteError?.message || "";
+          const unavailable = ["LOCAL_DAEMON_OFFLINE", "REMOTE_TIMEOUT", "REMOTE_STORE_UNAVAILABLE", "QUEUE_FULL", "PAIRING_NOT_CONFIGURED"].includes(message);
+          if (!unavailable) throw remoteError;
+          state.remoteEngineReady = false;
+          console.warn("Relay paired home daemon unavailable; using hosted OpenAI backup", { name: remoteError?.name, message });
+          $("#persona-engine-status").textContent = "Paired home daemon unavailable. Switching to hosted OpenAI backup for this draft only.";
+        }
+      }
       return await requestCharacterEngine(CHARACTER_ENDPOINT, messages, false);
     } catch (error) {
       console.error("Relay character request failed", { stage, name: error?.name, message: error?.message, elapsedMs: Math.round(performance.now() - startedAt), error });
@@ -1112,6 +1180,8 @@
       if (error?.message === "UNAUTHORIZED") throw new Error("Character generation requires an authorized RelayDaemon session.");
       if (error?.message === "HOSTED_ENGINE_INCOMPLETE") throw new Error("Hosted OpenAI hit its output budget before finishing the structured draft. Retry once; if it repeats, shorten the source or wait for the local Ollama path.");
       if (error?.message === "HOSTED_ENGINE_REFUSED") throw new Error("The hosted character engine declined this transformation. Review the source and character constraints.");
+      if (error?.message === "LOCAL_DAEMON_OFFLINE") throw new Error("The paired home daemon is offline. Hosted OpenAI was not available as a recovery path.");
+      if (error?.message === "REMOTE_TIMEOUT") throw new Error("The paired home daemon did not finish before the remote timeout. Hosted OpenAI was not available as a recovery path.");
       if (error?.message === "INVALID_MODEL_OUTPUT") throw new Error("The character engine returned an unreadable structured draft. No drafts were generated.");
       if (["MALFORMED_REQUEST", "INVALID_REQUEST"].includes(error?.message)) throw new Error("RelayDaemon sent an invalid character request. Reload the page before retrying.");
       if (error?.message === "INPUT_TOO_LARGE") throw new Error("The character request exceeded the hosted input limit. Shorten the source before retrying.");
@@ -1122,6 +1192,7 @@
   async function warmCharacterEngine() {
     if (!character.value) return;
     state.localEngineReady = false;
+    state.remoteEngineReady = false;
     $("#persona-engine-status").textContent = "Checking local Ollama (default engine)…";
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
@@ -1134,6 +1205,21 @@
       $("#persona-engine-status").textContent = `Local Ollama ready (default) · ${payload.model || "configured model"}. Hosted OpenAI stays unused while local works.`;
     } catch (error) {
       console.warn("Relay local bridge warm-up failed", { endpoint: localEndpoint(), name: error?.name, message: error?.message });
+      if (!IS_LOCAL_BRIDGE) {
+        try {
+          const remote = await probeRemoteBridge();
+          if (state.remoteEngineReady) {
+            $("#persona-engine-status").textContent = "Paired home daemon online. Generate will use local inference through RelayDaemon remote transport. Hosted OpenAI stays unused while the home daemon answers.";
+            return;
+          }
+          $("#persona-engine-status").textContent = remote.localBridge === "unconfigured"
+            ? "Local Ollama (default) is offline. Paired home daemon is not configured. Generate will use hosted OpenAI backup only if you proceed."
+            : "Local Ollama (default) is offline and the paired home daemon is not reachable. Generate will use hosted OpenAI backup only if you proceed.";
+          return;
+        } catch (remoteError) {
+          console.warn("Relay remote transport status failed", { name: remoteError?.name, message: remoteError?.message });
+        }
+      }
       $("#persona-engine-status").textContent = IS_LOCAL_BRIDGE
         ? "Local Ollama (default) could not warm. Fix Ollama or the local bridge, then retry."
         : "Local Ollama (default) is offline. Generate will use hosted OpenAI backup only if you proceed.";
@@ -1648,7 +1734,7 @@
       const profile = await loadPersonaProfile(character.value);
       fillPersonaPrimer(profile);
       const status = $("#persona-engine-status");
-      if (profile?.signature && status && !/Local Ollama ready|Using local|Using hosted|Checking local/i.test(status.textContent || "")) {
+      if (profile?.signature && status && !/Local Ollama ready|Using local|Using hosted|Checking local|Paired home|paired home/i.test(status.textContent || "")) {
         status.textContent = `${profile.signature} · Select generate after source is ready. Loading engine…`;
       }
     } catch (error) {
@@ -1825,7 +1911,9 @@
         else await warmCharacterEngine();
         $("#form-message").textContent = state.localEngineReady
           ? `Generating with local Ollama (default) for ${state.analysis.voice.value}…`
-          : `Local Ollama offline. Generating with hosted OpenAI backup for ${state.analysis.voice.value}…`;
+          : state.remoteEngineReady
+            ? `Local loopback offline. Generating through the paired home daemon for ${state.analysis.voice.value}…`
+            : `Local Ollama offline. Generating with hosted OpenAI backup for ${state.analysis.voice.value}…`;
         state.persona = await createPersonaPackage(text, state.analysis, (message) => { $("#form-message").textContent = message; });
       }
       state.variants = makeVariants(text, state.analysis, state.persona);

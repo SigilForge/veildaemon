@@ -6,7 +6,8 @@ OUT="${1:-$ROOT/_relay-vercel}"
 
 rm -rf "$OUT"
 mkdir -p \
-  "$OUT/api" \
+  "$OUT/api/relay-remote" \
+  "$OUT/lib" \
   "$OUT/assets" \
   "$OUT/studio/assets/brand" \
   "$OUT/studio/relay"
@@ -15,6 +16,8 @@ cp "$ROOT/deploy/relay-vercel/vercel.json" "$OUT/vercel.json"
 cp "$ROOT/package.json" "$ROOT/package-lock.json" "$OUT/"
 cp "$ROOT/api/scan-code.js" "$OUT/api/"
 cp "$ROOT/api/character.js" "$OUT/api/"
+cp "$ROOT/api/relay-remote/[action].js" "$OUT/api/relay-remote/"
+cp "$ROOT/lib/relayRemoteStore.js" "$ROOT/lib/relayRemoteTransport.js" "$OUT/lib/"
 cp "$ROOT/assets/background.webp" "$OUT/assets/"
 cp "$ROOT/studio/studio.css" "$OUT/studio/"
 cp "$ROOT/studio/assets/brand/favicon.ico" "$OUT/studio/assets/brand/"
@@ -32,6 +35,9 @@ test -f "$OUT/studio/relay/personas/index.json"
 test -f "$OUT/studio/relay/personas/cathy-holloway.json"
 test -f "$OUT/studio/relay/vendor/zxing_reader.wasm"
 test -f "$OUT/api/character.js"
+test -f "$OUT/api/relay-remote/[action].js"
+test -f "$OUT/lib/relayRemoteTransport.js"
+test -f "$OUT/lib/relayRemoteStore.js"
 test -f "$OUT/vercel.json"
 
 echo "Prepared RelayDaemon Vercel project at $OUT"

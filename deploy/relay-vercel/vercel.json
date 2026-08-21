@@ -7,6 +7,9 @@
     },
     "api/character.js": {
       "maxDuration": 60
+    },
+    "api/relay-remote/[action].js": {
+      "maxDuration": 60
     }
   },
   "rewrites": [

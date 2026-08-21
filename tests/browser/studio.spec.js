@@ -792,17 +792,24 @@ test.describe("studio subtree routes", () => {
     expect(rootRewrite?.destination).toBe("/studio/relay/index.html");
     expect(scannerFunction?.includeFiles).toBe("node_modules/zxing-wasm/dist/reader/zxing_reader.wasm");
     expect(characterFunction?.maxDuration).toBe(60);
+    expect(config.functions["api/relay-remote/[action].js"]?.maxDuration).toBe(60);
     expect(policy).toBe("loopback-network=(self)");
     expect(robots).toBe("noindex, nofollow");
     const relaySource = fs.readFileSync(path.join(process.cwd(), "studio/relay/relay.js"), "utf8");
     const bridgeSource = fs.readFileSync(path.join(process.cwd(), "scripts/relay-local-bridge.mjs"), "utf8");
+    const prepareSource = fs.readFileSync(path.join(process.cwd(), "scripts/prepare-relay-vercel.sh"), "utf8");
     expect(relaySource).toContain('targetAddressSpace: "loopback"');
     expect(relaySource).toContain("LOCAL_CHARACTER_ENDPOINT");
     expect(relaySource).toContain('message === "OLLAMA_INVALID_OUTPUT"');
     expect(relaySource).toContain("Switching to hosted OpenAI backup for this draft only.");
     expect(relaySource).toContain("trying local Ollama first (default)");
+    expect(relaySource).toContain("/api/relay-remote/submit");
     expect(bridgeSource).toContain("https://veildaemon-relay-knoxmortis-knoxmortis-projects.vercel.app");
     expect(bridgeSource).toContain('Access-Control-Allow-Private-Network", "true"');
+    expect(bridgeSource).toContain('const HOST = "127.0.0.1"');
+    expect(bridgeSource).toContain("RELAY_REMOTE_URL");
+    expect(prepareSource).toContain("api/relay-remote");
+    expect(prepareSource).toContain("lib/relayRemoteTransport.js");
   });
 
   test("hosted character endpoint rejects unauthenticated requests before model access", async () => {
