@@ -1,6 +1,7 @@
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { createServer } from "node:http";
+import { createRequire } from "node:module";
 import { dirname, extname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -50,6 +51,10 @@ const CHARACTER_SCHEMA = {
   },
 };
 const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "application/javascript; charset=utf-8", ".wasm": "application/wasm", ".webp": "image/webp", ".ico": "image/x-icon", ".json": "application/json; charset=utf-8" };
+
+const require = createRequire(import.meta.url);
+const { submitCharacterTurn } = require("../lib/veilforgeRemoteTurn.js");
+const { newSecretBytes } = require("../lib/relayRemoteTransport.js");
 
 function json(res, status, body) {
   res.writeHead(status, { "Cache-Control": "no-store", "Content-Type": "application/json; charset=utf-8", "X-Content-Type-Options": "nosniff" });
@@ -442,4 +447,134 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`RelayDaemon local bridge: http://${HOST}:${PORT}/`);
   console.log(`Ollama model: ${OLLAMA_MODEL}`);
+  startRemoteWorker().catch((error) => {
+    console.warn("RelayDaemon remote worker failed to start", { code: error?.message || "REMOTE_WORKER_FAILED" });
+  });
 });
+
+function remoteConfig() {
+  return {
+    url: String(process.env.RELAY_REMOTE_URL || "").replace(/\/+$/, ""),
+    pairingSecret: String(process.env.RELAY_REMOTE_PAIRING_SECRET || "").trim(),
+    deviceId: String(process.env.RELAY_DEVICE_ID || "home-primary").trim().toLowerCase(),
+    deviceToken: String(process.env.RELAY_DEVICE_TOKEN || "").trim(),
+    pollMs: Math.max(1000, Number.parseInt(process.env.RELAY_REMOTE_POLL_MS || "2000", 10)),
+  };
+}
+
+async function fulfillRemoteRequest(messages, requestId, deviceId) {
+  try {
+    const forge = await submitCharacterTurn({
+      messages,
+      deviceId,
+      requestId,
+      metadata: { source: "veildaemon-relay", kind: "character_package" },
+    });
+    if (forge?.ok && forge.result) {
+      return validateResult(forge.result);
+    }
+    if (forge && forge.skipped) {
+      console.warn("RelayDaemon Forge remote_turn skipped", { reason: forge.reason || "skipped" });
+    } else if (forge && !forge.ok) {
+      console.warn("RelayDaemon Forge remote_turn failed", { code: forge.reason || "FORGE_REMOTE_TURN_FAILED" });
+    }
+  } catch (error) {
+    console.warn("RelayDaemon Forge remote_turn unavailable", { code: error?.message || "FORGE_UNAVAILABLE" });
+  }
+  return requestOllamaCharacter(messages);
+}
+
+async function startRemoteWorker() {
+  const cfg = remoteConfig();
+  if (!cfg.url || (!cfg.deviceToken && !cfg.pairingSecret)) return;
+  let token = cfg.deviceToken;
+  if (!token) {
+    const response = await fetch(`${cfg.url}/api/relay-remote/pair`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Relay-Pairing-Secret": cfg.pairingSecret },
+      body: JSON.stringify({ deviceId: cfg.deviceId, pairingSecret: cfg.pairingSecret }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      console.warn("RelayDaemon remote pair failed", { code: payload.error || response.status });
+      return;
+    }
+    token = payload.deviceToken;
+    console.warn("RelayDaemon remote device paired", { deviceId: cfg.deviceId });
+  }
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+    "X-Relay-Device-Id": cfg.deviceId,
+  };
+  const heartbeat = async () => {
+    await fetch(`${cfg.url}/api/relay-remote/heartbeat`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ deviceId: cfg.deviceId }),
+    }).catch(() => {});
+  };
+  console.warn("RelayDaemon remote worker polling", { url: cfg.url, deviceId: cfg.deviceId });
+  let busy = false;
+  const tick = async () => {
+    if (busy) {
+      await heartbeat();
+      return;
+    }
+    busy = true;
+    try {
+      const poll = await fetch(`${cfg.url}/api/relay-remote/poll`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ deviceId: cfg.deviceId, pollNonce: newSecretBytes(16) }),
+      });
+      const payload = await poll.json().catch(() => ({}));
+      if (!poll.ok) {
+        console.warn("RelayDaemon remote poll failed", { code: payload.error || poll.status });
+        return;
+      }
+      if (payload.empty || !payload.request) return;
+      const requestId = payload.request.requestId;
+      const beat = setInterval(() => {
+        heartbeat().catch(() => {});
+      }, 10_000);
+      try {
+        await heartbeat();
+        const result = await fulfillRemoteRequest(payload.request.messages, requestId, cfg.deviceId);
+        const complete = await fetch(`${cfg.url}/api/relay-remote/complete`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            deviceId: cfg.deviceId,
+            requestId,
+            result,
+            completeNonce: newSecretBytes(16),
+          }),
+        });
+        const completed = await complete.json().catch(() => ({}));
+        if (!complete.ok) console.warn("RelayDaemon remote complete failed", { code: completed.error || complete.status, requestId });
+        else console.warn("RelayDaemon remote request completed", { requestId, status: completed.status });
+      } catch (error) {
+        await fetch(`${cfg.url}/api/relay-remote/complete`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            deviceId: cfg.deviceId,
+            requestId,
+            error: error?.message || "LOCAL_INFERENCE_FAILED",
+            completeNonce: newSecretBytes(16),
+          }),
+        }).catch(() => {});
+        console.warn("RelayDaemon remote fulfill failed", { code: error?.message || "LOCAL_INFERENCE_FAILED", requestId });
+      } finally {
+        clearInterval(beat);
+      }
+    } catch (error) {
+      console.warn("RelayDaemon remote worker tick failed", { code: error?.message || "REMOTE_TICK_FAILED" });
+    } finally {
+      busy = false;
+    }
+  };
+  await tick();
+  setInterval(tick, cfg.pollMs);
+}

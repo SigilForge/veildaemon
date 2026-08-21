@@ -1,4 +1,8 @@
-const { json } = require("../../lib/alertQueue");
+function json(res, status, body) {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.end(JSON.stringify(body));
+}
 
 module.exports = function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");

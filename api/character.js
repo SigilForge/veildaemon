@@ -1,3 +1,5 @@
+const { requireRelayOperator } = require("../lib/relayOperatorAuth");
+
 const MAX_BODY_BYTES = 60_000;
 const MAX_MESSAGE_CHARS = 48_000;
 // gpt-5-mini counts reasoning + visible JSON against max_output_tokens. 2400 routinely
@@ -210,6 +212,12 @@ module.exports = async function handler(req, res) {
     return send(res, 405, { status: "error", error: "METHOD_NOT_ALLOWED" });
   }
   if (!authorizedRequest(req)) return send(res, 401, { status: "error", error: "UNAUTHORIZED" });
+  try {
+    await requireRelayOperator(req);
+  } catch (error) {
+    const status = error?.statusCode || 401;
+    return send(res, status, { status: "error", error: error?.code || "UNAUTHORIZED" });
+  }
   const rate = consumeRateLimit(req);
   const rateHeaders = { "X-RateLimit-Limit": String(RATE_LIMIT), "X-RateLimit-Remaining": String(rate.remaining), "X-RateLimit-Reset": String(Math.ceil(rate.resetAt / 1000)) };
   if (!rate.allowed) return send(res, 429, { status: "error", error: "RATE_LIMITED" }, rateHeaders);

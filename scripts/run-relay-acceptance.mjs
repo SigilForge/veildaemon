@@ -10,6 +10,8 @@ const fixtureSourceSha256 = "b82df9a696a4c10f985d6951dd57cdc078c109869bc3cfbdd1f
 const relevantFiles = [
   "studio/relay/AGENTS.md", "references/relay-architecture.md", "studio/relay/index.html",
   "studio/relay/relay.js", "scripts/relay-local-bridge.mjs", "api/character.js",
+  "api/relay-remote/[action].js", "lib/relayRemoteTransport.js", "lib/relayRemoteStore.js",
+  "lib/veilforgeRemoteTurn.js", "lib/relayOperatorAuth.js",
   "deploy/relay-vercel/vercel.json", "scripts/prepare-relay-vercel.sh",
   "tests/fixtures/relay/ca-001.json", "scripts/run-relay-acceptance.mjs"
 ];
@@ -113,14 +115,27 @@ async function staticChecks() {
   ]);
   assert(createHash("sha256").update(fixture.source).digest("hex") === fixtureSourceSha256, "CA-001 source fixture changed");
   assert(html.includes("Local Ollama (default)") && html.includes("Hosted OpenAI (backup)"), "UI engine labels drifted");
+  assert(html.includes("Paired home daemon"), "UI remote engine label drifted");
+  assert(html.includes("app.veildaemon.app/login?next=/relay-access"), "VeilLink login handoff drifted");
+  assert(html.includes("Knoxmortis VeilLink"), "operator identity copy drifted");
   assert(relay.includes("http://127.0.0.1:4174/api/character"), "browser local bridge contract drifted");
+  assert(relay.includes("/api/relay-remote/submit"), "browser remote transport contract drifted");
+  assert(relay.includes("/api/relay-remote/whoami"), "browser operator whoami contract drifted");
+  assert(relay.includes("ensureHostedOperator"), "browser operator gate drifted");
+  assert(relay.includes("No engine work runs until then"), "hosted warm-up is not operator-gated");
   assert((bridge.match(/think:/g) || []).length >= 3, "bridge attempt declaration is no longer three");
   assert(relay.includes("attempt < 2"), "browser package-attempt declaration drifted");
   assert(architecture.includes("six-inference worst case"), "worst-case inference count is unreported");
+  assert(architecture.includes("outbound poll queue") || architecture.includes("outbound poll"), "remote outbound transport is unreported");
+  assert(architecture.includes("no authorized operator identity"), "operator fail-closed invariant is unreported");
   assert(prepare.includes("deploy/relay-vercel"), "Vercel prepare source drifted");
+  assert(prepare.includes("api/relay-remote"), "Vercel prepare omits remote transport");
+  assert(prepare.includes("lib/relayOperatorAuth.js"), "Vercel prepare omits operator auth");
+  assert(prepare.includes("veildaemon-auth.js"), "Vercel prepare omits VeilAuth");
   assert(contract.includes("knoxmortis-projects/veildaemon-relay") && contract.includes("https://relay.veildaemon.app"), "production deployment target drifted");
   assert(!pagesWorkflow.includes("studio/relay"), "GitHub Pages unexpectedly includes Relay");
-  const hosted = spawnSync(process.execPath, ["node_modules/@playwright/test/cli.js", "test", "tests/browser/studio.spec.js", "-g", "RelayDaemon standalone Vercel project|hosted character endpoint makes one bounded"], { cwd: root, encoding: "utf8", timeout: 120_000 });
+  assert(!bridge.includes("WebSocket") && !relay.includes("new WebSocket"), "Relay unexpectedly depends on a persistent WebSocket");
+  const hosted = spawnSync(process.execPath, ["node_modules/@playwright/test/cli.js", "test", "tests/browser/studio.spec.js", "-g", "RelayDaemon standalone Vercel project|hosted character endpoint"], { cwd: root, encoding: "utf8", timeout: 120_000 });
   assert(hosted.status === 0, `hosted contract checks failed\n${hosted.stdout}\n${hosted.stderr}`);
   return { localDefaultLabel: true, hostedFallbackLabel: true, pagesExcluded: true, productionProject: "knoxmortis-projects/veildaemon-relay", hostedContractTests: "passed", successfulUiInferenceCalls: 1, worstCaseUiInferenceCalls: 6 };
 }

@@ -17,6 +17,9 @@
     generating: false,
     warmPromise: null,
     localEngineReady: false,
+    remoteEngineReady: false,
+    remoteBridgeStatus: "unknown",
+    operatorReady: ["127.0.0.1", "localhost"].includes(window.location.hostname),
     codeScan: { status: "not-run", formats: [], codes: [], engine: "none", detail: "No media has been inspected." },
   };
 
@@ -1047,6 +1050,54 @@
     return splitSentences(text).slice(0, 12).map((sentence) => `- ${sentence}`).join("\n");
   }
 
+  const VEILLINK_LOGIN = "https://app.veildaemon.app/login?next=/relay-access";
+
+  function hostedAuthHeaders(extra = {}) {
+    const headers = { "X-Relay-Request": "character-v1", ...extra };
+    const token = window.VeilAuth?.getSession?.()?.access_token;
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  }
+
+  async function ensureHostedOperator() {
+    const gate = $("#relay-operator-gate");
+    const status = $("#relay-operator-status");
+    if (IS_LOCAL_BRIDGE) {
+      state.operatorReady = true;
+      if (gate) gate.hidden = true;
+      return true;
+    }
+    if (window.VeilAuth?.init) await window.VeilAuth.init();
+    const token = window.VeilAuth?.getSession?.()?.access_token;
+    if (!token) {
+      state.operatorReady = false;
+      if (gate) gate.hidden = false;
+      if (status) status.textContent = "Sign in with VeilLink to use hosted RelayDaemon. Only the Knoxmortis operator account is admitted. The page stays readable; Generate will not run.";
+      return false;
+    }
+    const response = await fetch("/api/relay-remote/whoami", { cache: "no-store", headers: hostedAuthHeaders() });
+    const payload = await response.json().catch(() => ({}));
+    if (response.status === 403) {
+      state.operatorReady = false;
+      if (gate) gate.hidden = false;
+      if (status) status.textContent = "This VeilLink account is not authorized for RelayDaemon. No local GPU or OpenAI work will run.";
+      return false;
+    }
+    if (!response.ok) {
+      state.operatorReady = false;
+      if (gate) gate.hidden = false;
+      if (status) status.textContent = payload.error === "OPERATOR_AUTH_UNAVAILABLE"
+        ? "VeilLink identity is not configured on this Relay host."
+        : "VeilLink session could not be verified. Sign in again.";
+      return false;
+    }
+    const alreadyReady = state.operatorReady;
+    state.operatorReady = true;
+    if (gate) gate.hidden = true;
+    if (!alreadyReady && character.value) state.warmPromise = warmCharacterEngine();
+    return true;
+  }
+
   function localEndpoint(path = "") {
     return `${IS_LOCAL_BRIDGE ? CHARACTER_ENDPOINT : LOCAL_CHARACTER_ENDPOINT}${path}`;
   }
@@ -1056,6 +1107,60 @@
     return { ...options, mode: "cors", targetAddressSpace: "loopback" };
   }
 
+  function newRemoteRequestId() {
+    const bytes = new Uint8Array(16);
+    crypto.getRandomValues(bytes);
+    return [...bytes].map((value) => value.toString(16).padStart(2, "0")).join("");
+  }
+
+  async function probeRemoteBridge() {
+    const response = await fetch("/api/relay-remote/status", {
+      cache: "no-store",
+      headers: hostedAuthHeaders(),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+    state.remoteBridgeStatus = payload.localBridge || "unknown";
+    state.remoteEngineReady = payload.localBridge === "online";
+    return payload;
+  }
+
+  async function requestRemoteCharacter(messages) {
+    const requestId = newRemoteRequestId();
+    const submit = await fetch("/api/relay-remote/submit", {
+      method: "POST",
+      headers: hostedAuthHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ messages, requestId }),
+    });
+    const submitted = await submit.json().catch(() => ({}));
+    if (!submit.ok) {
+      const error = new Error(submitted.error || `Remote transport returned HTTP ${submit.status}.`);
+      error.engine = "remote";
+      throw error;
+    }
+    const deadline = Date.now() + GENERATION_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+      await new Promise((resolve) => window.setTimeout(resolve, 1500));
+      const response = await fetch(`/api/relay-remote/result?requestId=${encodeURIComponent(requestId)}`, {
+        cache: "no-store",
+        headers: hostedAuthHeaders(),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const error = new Error(payload.error || `Remote result HTTP ${response.status}.`);
+        error.engine = "remote";
+        throw error;
+      }
+      if (payload.status === "complete" && payload.result) {
+        $("#persona-engine-status").textContent = "Using paired home daemon (local inference) through RelayDaemon remote transport.";
+        return payload.result;
+      }
+      if (payload.status === "timeout" || payload.error === "REMOTE_TIMEOUT") throw new Error("REMOTE_TIMEOUT");
+      if (payload.status === "error") throw new Error(payload.error || "REMOTE_FAILED");
+    }
+    throw new Error("REMOTE_TIMEOUT");
+  }
+
   async function requestCharacterEngine(endpoint, messages, local) {
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
@@ -1063,7 +1168,9 @@
       const options = {
         method: "POST",
         signal: controller.signal,
-        headers: { "Content-Type": "application/json", "X-Relay-Request": "character-v1" },
+        headers: local
+          ? { "Content-Type": "application/json", "X-Relay-Request": "character-v1" }
+          : hostedAuthHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ messages }),
       };
       const response = await fetch(endpoint, local ? localFetchOptions(options) : options);
@@ -1086,6 +1193,10 @@
   async function characterEngineRequest(messages, stage = "generation") {
     const startedAt = performance.now();
     try {
+      if (!IS_LOCAL_BRIDGE) {
+        const admitted = state.operatorReady || await ensureHostedOperator();
+        if (!admitted) throw new Error("UNAUTHORIZED");
+      }
       if (state.localEngineReady) {
         try {
           return await requestCharacterEngine(localEndpoint(), messages, true);
@@ -1103,6 +1214,18 @@
             : "Local Ollama offline. Switching to hosted OpenAI backup for this draft only.";
         }
       }
+      if (!IS_LOCAL_BRIDGE && state.remoteEngineReady) {
+        try {
+          return await requestRemoteCharacter(messages);
+        } catch (remoteError) {
+          const message = remoteError?.message || "";
+          const unavailable = ["LOCAL_DAEMON_OFFLINE", "REMOTE_TIMEOUT", "REMOTE_STORE_UNAVAILABLE", "QUEUE_FULL", "PAIRING_NOT_CONFIGURED"].includes(message);
+          if (!unavailable) throw remoteError;
+          state.remoteEngineReady = false;
+          console.warn("Relay paired home daemon unavailable; using hosted OpenAI backup", { name: remoteError?.name, message });
+          $("#persona-engine-status").textContent = "Paired home daemon unavailable. Switching to hosted OpenAI backup for this draft only.";
+        }
+      }
       return await requestCharacterEngine(CHARACTER_ENDPOINT, messages, false);
     } catch (error) {
       console.error("Relay character request failed", { stage, name: error?.name, message: error?.message, elapsedMs: Math.round(performance.now() - startedAt), error });
@@ -1110,8 +1233,11 @@
       if (error?.message === "OLLAMA_INVALID_OUTPUT") throw new Error("Local Ollama returned an unreadable structured draft. Hosted OpenAI was not available as a recovery path.");
       if (error?.message === "HOSTED_ENGINE_NOT_CONFIGURED") throw new Error("Hosted OpenAI is not configured yet.");
       if (error?.message === "UNAUTHORIZED") throw new Error("Character generation requires an authorized RelayDaemon session.");
+      if (error?.message === "OPERATOR_FORBIDDEN") throw new Error("This VeilLink account is not authorized for RelayDaemon.");
       if (error?.message === "HOSTED_ENGINE_INCOMPLETE") throw new Error("Hosted OpenAI hit its output budget before finishing the structured draft. Retry once; if it repeats, shorten the source or wait for the local Ollama path.");
       if (error?.message === "HOSTED_ENGINE_REFUSED") throw new Error("The hosted character engine declined this transformation. Review the source and character constraints.");
+      if (error?.message === "LOCAL_DAEMON_OFFLINE") throw new Error("The paired home daemon is offline. Hosted OpenAI was not available as a recovery path.");
+      if (error?.message === "REMOTE_TIMEOUT") throw new Error("The paired home daemon did not finish before the remote timeout. Hosted OpenAI was not available as a recovery path.");
       if (error?.message === "INVALID_MODEL_OUTPUT") throw new Error("The character engine returned an unreadable structured draft. No drafts were generated.");
       if (["MALFORMED_REQUEST", "INVALID_REQUEST"].includes(error?.message)) throw new Error("RelayDaemon sent an invalid character request. Reload the page before retrying.");
       if (error?.message === "INPUT_TOO_LARGE") throw new Error("The character request exceeded the hosted input limit. Shorten the source before retrying.");
@@ -1121,7 +1247,12 @@
 
   async function warmCharacterEngine() {
     if (!character.value) return;
+    if (!IS_LOCAL_BRIDGE && !state.operatorReady) {
+      $("#persona-engine-status").textContent = "Sign in with the Knoxmortis VeilLink account before Generate. No engine work runs until then.";
+      return;
+    }
     state.localEngineReady = false;
+    state.remoteEngineReady = false;
     $("#persona-engine-status").textContent = "Checking local Ollama (default engine)…";
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
@@ -1134,6 +1265,21 @@
       $("#persona-engine-status").textContent = `Local Ollama ready (default) · ${payload.model || "configured model"}. Hosted OpenAI stays unused while local works.`;
     } catch (error) {
       console.warn("Relay local bridge warm-up failed", { endpoint: localEndpoint(), name: error?.name, message: error?.message });
+      if (!IS_LOCAL_BRIDGE) {
+        try {
+          const remote = await probeRemoteBridge();
+          if (state.remoteEngineReady) {
+            $("#persona-engine-status").textContent = "Paired home daemon online. Generate will use local inference through RelayDaemon remote transport. Hosted OpenAI stays unused while the home daemon answers.";
+            return;
+          }
+          $("#persona-engine-status").textContent = remote.localBridge === "unconfigured"
+            ? "Local Ollama (default) is offline. Paired home daemon is not configured. Generate will use hosted OpenAI backup only if you proceed."
+            : "Local Ollama (default) is offline and the paired home daemon is not reachable. Generate will use hosted OpenAI backup only if you proceed.";
+          return;
+        } catch (remoteError) {
+          console.warn("Relay remote transport status failed", { name: remoteError?.name, message: remoteError?.message });
+        }
+      }
       $("#persona-engine-status").textContent = IS_LOCAL_BRIDGE
         ? "Local Ollama (default) could not warm. Fix Ollama or the local bridge, then retry."
         : "Local Ollama (default) is offline. Generate will use hosted OpenAI backup only if you proceed.";
@@ -1648,7 +1794,7 @@
       const profile = await loadPersonaProfile(character.value);
       fillPersonaPrimer(profile);
       const status = $("#persona-engine-status");
-      if (profile?.signature && status && !/Local Ollama ready|Using local|Using hosted|Checking local/i.test(status.textContent || "")) {
+      if (profile?.signature && status && !/Local Ollama ready|Using local|Using hosted|Checking local|Paired home|paired home/i.test(status.textContent || "")) {
         status.textContent = `${profile.signature} · Select generate after source is ready. Loading engine…`;
       }
     } catch (error) {
@@ -1799,6 +1945,13 @@
       $("#form-message").textContent = "The character engine is still working. A local cold start can take a few minutes.";
       return;
     }
+    if (!IS_LOCAL_BRIDGE && !state.operatorReady) {
+      const admitted = await ensureHostedOperator();
+      if (!admitted) {
+        $("#form-message").textContent = "Hosted RelayDaemon requires the Knoxmortis VeilLink account. No generation ran.";
+        return;
+      }
+    }
     const text = normalizeWhitespace(sourceText.value);
     if (!text) {
       $("#form-message").textContent = "Relay requires an original post or draft.";
@@ -1825,7 +1978,9 @@
         else await warmCharacterEngine();
         $("#form-message").textContent = state.localEngineReady
           ? `Generating with local Ollama (default) for ${state.analysis.voice.value}…`
-          : `Local Ollama offline. Generating with hosted OpenAI backup for ${state.analysis.voice.value}…`;
+          : state.remoteEngineReady
+            ? `Local loopback offline. Generating through the paired home daemon for ${state.analysis.voice.value}…`
+            : `Local Ollama offline. Generating with hosted OpenAI backup for ${state.analysis.voice.value}…`;
         state.persona = await createPersonaPackage(text, state.analysis, (message) => { $("#form-message").textContent = message; });
       }
       state.variants = makeVariants(text, state.analysis, state.persona);
@@ -2046,7 +2201,9 @@
   $("#regenerate").addEventListener("click", generate);
   sourceText.addEventListener("input", updateSourceCount);
   sourceText.addEventListener("focus", () => {
-    if (character.value && !state.warmPromise) state.warmPromise = warmCharacterEngine();
+    if (character.value && !state.warmPromise && (IS_LOCAL_BRIDGE || state.operatorReady)) {
+      state.warmPromise = warmCharacterEngine();
+    }
   });
   mediaFile.addEventListener("change", handleMediaFile);
   imageUrl.addEventListener("change", updateImageUrlPreview);
@@ -2085,4 +2242,20 @@
   updateSourceCount();
   populateCharacterSelect().then(() => updatePersonaEngine()).catch(() => updatePersonaEngine());
   if (localStorage.getItem(STORAGE_KEY)) $("#save-state").textContent = "Saved draft available";
+  const loginLink = $("#relay-operator-login");
+  if (loginLink) loginLink.href = VEILLINK_LOGIN;
+  $("#relay-operator-retry")?.addEventListener("click", () => {
+    ensureHostedOperator().catch((error) => {
+      console.warn("Relay operator retry failed", { name: error?.name, message: error?.message });
+    });
+  });
+  if (!IS_LOCAL_BRIDGE) {
+    window.VeilAuth?.mountAuthWidget?.($("#relay-operator-widget"));
+    window.VeilAuth?.onChange?.(() => {
+      ensureHostedOperator().catch(() => {});
+    });
+    ensureHostedOperator().catch((error) => {
+      console.warn("Relay operator gate failed", { name: error?.name, message: error?.message });
+    });
+  }
 })();
