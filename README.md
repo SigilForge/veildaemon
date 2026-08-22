@@ -31,8 +31,7 @@ npm run browser:check
 The current Node target is declared in `package.json`.
 
 Supported runtime surfaces and optional local checks are documented in
-`Docs/SUPPORTED_ENVIRONMENTS.md`. The future Forge-facing service boundary is
-documented in `Docs/FORGE_SERVICE_INTERFACES.md`.
+`Docs/SUPPORTED_ENVIRONMENTS.md`.
 
 ## License
 

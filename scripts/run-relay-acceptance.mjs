@@ -8,7 +8,7 @@ const fixture = JSON.parse(await readFile("tests/fixtures/relay/ca-001.json", "u
 const artifactPath = "artifacts/relay-acceptance/latest.json";
 const fixtureSourceSha256 = "b82df9a696a4c10f985d6951dd57cdc078c109869bc3cfbdd1f34ff7800d18d8";
 const relevantFiles = [
-  "studio/relay/AGENTS.md", "references/relay-architecture.md", "studio/relay/index.html",
+  "studio/relay/AGENTS.md", "studio/relay/index.html",
   "studio/relay/relay.js", "scripts/relay-local-bridge.mjs", "api/character.js",
   "deploy/relay-vercel/vercel.json", "scripts/prepare-relay-vercel.sh",
   "tests/fixtures/relay/ca-001.json", "scripts/run-relay-acceptance.mjs"
@@ -106,9 +106,9 @@ async function uiRuns() {
 }
 
 async function staticChecks() {
-  const [html, relay, bridge, architecture, contract, prepare, pagesWorkflow] = await Promise.all([
+  const [html, relay, bridge, contract, prepare, pagesWorkflow] = await Promise.all([
     readFile("studio/relay/index.html", "utf8"), readFile("studio/relay/relay.js", "utf8"),
-    readFile("scripts/relay-local-bridge.mjs", "utf8"), readFile("references/relay-architecture.md", "utf8"), readFile("studio/relay/AGENTS.md", "utf8"),
+    readFile("scripts/relay-local-bridge.mjs", "utf8"), readFile("studio/relay/AGENTS.md", "utf8"),
     readFile("scripts/prepare-relay-vercel.sh", "utf8"), readFile(".github/workflows/deploy-pages.yml", "utf8").catch(() => "")
   ]);
   assert(createHash("sha256").update(fixture.source).digest("hex") === fixtureSourceSha256, "CA-001 source fixture changed");
@@ -116,7 +116,7 @@ async function staticChecks() {
   assert(relay.includes("http://127.0.0.1:4174/api/character"), "browser local bridge contract drifted");
   assert((bridge.match(/think:/g) || []).length >= 3, "bridge attempt declaration is no longer three");
   assert(relay.includes("attempt < 2"), "browser package-attempt declaration drifted");
-  assert(architecture.includes("six-inference worst case"), "worst-case inference count is unreported");
+  assert(contract.includes("six-inference worst case"), "worst-case inference count is unreported");
   assert(prepare.includes("deploy/relay-vercel"), "Vercel prepare source drifted");
   assert(contract.includes("knoxmortis-projects/veildaemon-relay") && contract.includes("https://relay.veildaemon.app"), "production deployment target drifted");
   assert(!pagesWorkflow.includes("studio/relay"), "GitHub Pages unexpectedly includes Relay");

@@ -16,7 +16,7 @@ Plus a Python package, `veildaemon/` (note: same name as the repo root, differen
 
 ### Relationship to VeilForge
 
-VeilForge is a separate, proprietary local AI runtime (automation/orchestration) that lives outside this repo (sibling checkout `../veilforge`). VeilDaemon is the hosted/public service side; product direction (`studio/FOUNDER_DECISIONS.md`) positions VeilDaemon as the source of APIs, licensing, and MCP-style services that a local runtime like VeilForge consumes. The only concrete integration today is one-directional: `lib/forgeStreamBridge.js` pushes alert/overlay events from VeilDaemon to VeilForge's `StreamBridgeHandler` over a length-prefixed-JSON AF_UNIX socket (env: `VEIL_STREAM_BRIDGE_SOCKET`, `VEIL_STREAM_BRIDGE_TOKEN`). It is fail-open (Forge being down never blocks the alert queue) and `pending_actions` it returns are proposals only, never auto-executed. See `Docs/dev-notes/forge-stream-bridge-4f2.md` for the full contract; `npm run test:forge-bridge` / `npm run smoke:forge-bridge` to exercise it.
+VeilForge is a separate, proprietary local AI runtime (automation/orchestration) that lives outside this repo (sibling checkout `../veilforge`). VeilDaemon is the hosted/public service side. The only concrete integration today is one-directional: `lib/forgeStreamBridge.js` pushes alert/overlay events from VeilDaemon to VeilForge over a local socket. It is fail-open (Forge being down never blocks the alert queue) and `pending_actions` it returns are proposals only, never auto-executed. Run `npm run test:forge-bridge` / `npm run smoke:forge-bridge` to exercise it. Integration internals are not published in this public tree.
 
 `studio/relay/` (RelayDaemon) is an internal AI-assisted content review tool with its own governing contract — read `studio/relay/AGENTS.md` before touching it.
 
@@ -76,7 +76,7 @@ Client-side JS on the GitHub Pages static host must call `https://api.veildaemon
 
 ## RelayDaemon (`studio/relay/`)
 
-Governed separately by `studio/relay/AGENTS.md` — read it, `references/relay-architecture.md`, and `tests/fixtures/relay/ca-001.json` before editing. Key points:
+Governed separately by `studio/relay/AGENTS.md` — read it and `tests/fixtures/relay/ca-001.json` before editing. Key points:
 - Architecture: private Vercel UI → local loopback bridge (`127.0.0.1:4174`) → Ollama by default, with an authenticated hosted API (OpenAI) as availability fallback. Generation never authorizes publication.
 - Before claiming anything "fixed"/"working"/"shipped", `npm run relay:acceptance` must pass with a fresh artifact at `artifacts/relay-acceptance/latest.json`.
 - `_relay-vercel/` is a generated snapshot, never edit it directly.

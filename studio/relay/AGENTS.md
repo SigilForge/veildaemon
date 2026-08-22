@@ -2,7 +2,7 @@
 
 Before editing RelayDaemon:
 
-1. Read this file, `references/relay-architecture.md`, and `tests/fixtures/relay/ca-001.json`.
+1. Read this file and `tests/fixtures/relay/ca-001.json`.
 2. Invoke `$relay-reliability` and create or update `.codex/state/relay-incident.json`.
 3. State the canonical reproduction, expected result, responsible layer, current hypothesis, falsifying evidence, and allowed file paths.
 4. Change only the responsible layer unless the ledger explains why another layer is inseparable.
@@ -33,7 +33,9 @@ Private Vercel review UI
 - Acceptance runner: `scripts/run-relay-acceptance.mjs`
 - Vercel template: `deploy/relay-vercel/vercel.json`
 - Prepare script: `scripts/prepare-relay-vercel.sh`
-- Detailed architecture: `references/relay-architecture.md`
+- Production host: `https://relay.veildaemon.app`
+- Production Vercel project: `knoxmortis-projects/veildaemon-relay`
+- Worst-case inference count: six-inference worst case
 
 ## Generation invariants
 - Character-platform outputs must be rewritten to fit. Never mechanically clip a draft, append punctuation to a cutoff, or treat a sentence boundary as proof of semantic completeness.
