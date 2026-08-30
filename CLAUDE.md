@@ -104,6 +104,10 @@ Paid file bytes never live in a browser-addressable path (no GitHub Pages, no `p
 - Supabase Auth on the browser must use `persistSession: true` and `autoRefreshToken: true`.
 - Signing in/out must never mutate or wipe local saves (Operator/Handler `localStorage` state). Operator and Handler must work fully unauthenticated; VeilLink adds optional multi-device sync on top via deliberate sync actions (Send to Cell / End Pressure Round / Sync Cell / Archive Session — see `veillink/README.md`), not polling.
 
+## Token-efficient delegation (optional)
+
+If a sibling `../veilforge` checkout with its venv active is present, prefer delegating well-scoped, token-heavy bulk work (a single scoped file edit, a multi-step task list) to it rather than generating everything directly — its `delegate-to-veil` skill offloads to VeilForge's own local Ollama-backed CLI (`veil edit` / `veil plan` / `veil tasks`); read back the cheap, local output and spend tokens judging/refining it, not producing the first draft. Skip this for anything touching this repo's safety-sensitive surfaces (auth, payments, Creator Rights delivery, RelayDaemon generation/publication boundary) or when the user wants direct reasoning. No `../veilforge` checkout present — skip entirely, this repo works fully standalone.
+
 ## Images
 
 Anything painted in a browser (`<img>`, CSS `background-image`, OG previews where supported) must be WebP. PNG/JPEG are source masters or press-kit download originals only. Convert with `npm run webp` / `node scripts/ensure-webp.mjs`; check with `npm run webp:check`.
