@@ -13,6 +13,8 @@
     "smoke:forge-bridge": "node scripts/smoke-forge-stream-bridge.mjs",
     "browser:check": "playwright test",
     "browser:server": "node scripts/playwright-static-server.mjs",
+    "stream:brb:build": "node scripts/build-brb-screen-webm.mjs",
+    "stream:brb:check": "node scripts/verify-brb-overlay.mjs",
     "brand:build": "node scripts/build-studio-brand-assets.mjs",
     "press:build": "python3 scripts/build-studio-press-kit.py",
     "qr": "node scripts/generate-veilcorp-qr.mjs",
