@@ -203,7 +203,10 @@
 
     const allRecords = registries.flatMap((registry) => registry.records || []);
     mergeCards(allRecords);
-    const records = new Map(allRecords.map((record) => [record.slug, record]));
+    const records = new Map();
+    for (const record of allRecords) {
+      if (record?.slug && !records.has(record.slug)) records.set(record.slug, record);
+    }
     index = cards.map((card) => {
       const record = records.get(card.dataset.rightsSlug);
       const terms = record ? termsForRecord(record) : [card.textContent];
