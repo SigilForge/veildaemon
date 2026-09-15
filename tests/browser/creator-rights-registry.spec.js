@@ -58,6 +58,65 @@ test("Creator Rights registry filters against structured catalog facets", async 
   await expect(page.locator("[data-rights-summary]")).toContainText('12 of 12 records match "inquiry only"');
 });
 
+test("Creator Rights registry appends live Vercel records to the public library", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__CREATOR_RIGHTS_LIVE_REGISTRY_URL__ = "https://api.veildaemon.app/api/creator-rights/registry";
+  });
+  await page.route("https://api.veildaemon.app/api/creator-rights/registry", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        schemaVersion: "1.0",
+        sourceSchemaVersion: "1.1",
+        generatedFrom: "supabase:creator_rights_records",
+        records: [{
+          slug: "neon-zine",
+          recordId: "SFR-2026-999999",
+          title: "Neon Zine",
+          status: "published",
+          work: { type: "art", category: "marketing" },
+          publisher: { type: "individual", name: "A. Creator" },
+          permissions: {
+            generalTraining: "license_required",
+            foundationModelPretraining: "license_required",
+            fineTuning: "prohibited",
+            embeddings: "allowed",
+            rag: "allowed",
+            generation: "license_required",
+            datasetRedistribution: "prohibited",
+            researchUse: "research_only",
+            commercialUse: "license_required",
+            attributionRequired: "license_required",
+            licenseRequired: "license_required",
+          },
+          licensing: {
+            availability: "paid_license",
+            commercialReadiness: "inquiry_ready",
+            contactUrl: "https://app.veildaemon.app/rights/neon-zine/license",
+          },
+          verification: { level: "artifact_verified", methods: ["sha256"], evidence: [] },
+          technicalArtifacts: { jsonAvailable: true, canonicalUrl: true, sha256Available: true },
+          description: "A public creative release.",
+          availability: "public",
+          publicRecordUrl: "https://app.veildaemon.app/rights/neon-zine",
+          jsonUrl: "https://api.veildaemon.app/api/creator-rights/registry?slug=neon-zine",
+        }],
+      }),
+    });
+  });
+
+  await page.goto("/registry/", { waitUntil: "networkidle" });
+
+  await expect(page.locator("[data-rights-summary]")).toContainText("Showing all 13 records.");
+  await expect(page.locator('[data-rights-slug="neon-zine"] h3')).toHaveText("Neon Zine");
+  await expect(page.locator('[data-rights-slug="neon-zine"]')).toContainText("Art · Marketing");
+  await expect(page.locator('[data-rights-slug="neon-zine"] a').first()).toHaveAttribute("href", "https://app.veildaemon.app/rights/neon-zine");
+
+  await page.locator('[data-rights-filter="work.type"]').selectOption("art");
+  await expect(page.locator("[data-rights-summary]")).toContainText("1 of 13 records match 1 filter");
+  await expect(page.locator("[data-rights-card]:not([hidden]) h3")).toHaveText("Neon Zine");
+});
+
 test("Creator Rights registry facet controls fit on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/registry/", { waitUntil: "networkidle" });

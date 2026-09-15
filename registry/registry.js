@@ -6,7 +6,8 @@
   const summary = library.querySelector("[data-rights-summary]");
   const facetFilters = Array.from(library.querySelectorAll("[data-rights-filter]"));
   const permissionFilter = library.querySelector("[data-rights-permission-filter]");
-  const cards = Array.from(library.querySelectorAll("[data-rights-card]"));
+  const grid = library.querySelector(".rights-record-grid");
+  let cards = Array.from(library.querySelectorAll("[data-rights-card]"));
   if (!input || !summary || cards.length === 0) return;
 
   let index = buildFallbackIndex();
@@ -38,6 +39,73 @@
 
   function valueAt(record, path) {
     return path.split(".").reduce((value, key) => value?.[key], record);
+  }
+
+  function titleCase(value) {
+    return String(value || "")
+      .replace(/[_-]+/g, " ")
+      .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+  }
+
+  function safePathOrUrl(value, fallback) {
+    const text = String(value || "");
+    if (/^https:\/\//i.test(text) || text.startsWith("/")) return text;
+    return fallback;
+  }
+
+  function statusClass(record) {
+    if (record.status === "published" || record.status === "updated") return "shipping";
+    if (record.status === "withdrawn" || record.status === "archived") return "planning";
+    if (record.availability === "scheduled") return "future";
+    return "live";
+  }
+
+  function displayAvailability(record) {
+    return titleCase(record.availability || record.licensing?.availability || "recorded");
+  }
+
+  function externalLinkAttributes(link) {
+    if (/^https:\/\//i.test(link.href) && !link.href.startsWith(`${window.location.origin}/`)) {
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+    }
+  }
+
+  function createCard(record) {
+    const card = document.createElement("article");
+    card.dataset.rightsCard = "";
+    card.dataset.rightsSlug = record.slug;
+
+    const title = document.createElement("h3");
+    title.textContent = record.title || "Untitled record";
+
+    const status = document.createElement("p");
+    const pill = document.createElement("span");
+    pill.className = `status-pill ${statusClass(record)}`;
+    pill.textContent = `${titleCase(record.status || "published")} · ${displayAvailability(record)}`;
+    status.append(pill);
+
+    const type = document.createElement("p");
+    type.className = "muted";
+    type.textContent = `${titleCase(record.work?.type || "other")} · ${titleCase(record.work?.category || "other")}`;
+
+    const description = document.createElement("p");
+    description.textContent = record.description || record.permissionsSummary || "Published Creator Rights Record.";
+
+    const links = document.createElement("p");
+    const recordLink = document.createElement("a");
+    recordLink.href = safePathOrUrl(record.publicRecordUrl, `/rights/${record.slug}/`);
+    recordLink.textContent = "View record";
+    externalLinkAttributes(recordLink);
+
+    const jsonLink = document.createElement("a");
+    jsonLink.href = safePathOrUrl(record.jsonUrl, `/rights/${record.slug}.json`);
+    jsonLink.textContent = "JSON metadata";
+    externalLinkAttributes(jsonLink);
+
+    links.append(recordLink, " · ", jsonLink);
+    card.append(title, status, type, description, links);
+    return card;
   }
 
   function buildFallbackIndex() {
@@ -97,11 +165,45 @@
     updateSummary(visible, query, filters);
   }
 
-  async function loadStructuredIndex() {
-    const response = await fetch("/registry/records.json", { cache: "no-store" });
+  function mergeCards(records) {
+    if (!grid) return;
+    const existing = new Set(cards.map((card) => card.dataset.rightsSlug));
+    for (const record of records) {
+      if (!record?.slug || existing.has(record.slug)) continue;
+      const card = createCard(record);
+      grid.append(card);
+      cards.push(card);
+      existing.add(record.slug);
+    }
+  }
+
+  function registryApiUrl() {
+    if (window.__CREATOR_RIGHTS_LIVE_REGISTRY_URL__) return window.__CREATOR_RIGHTS_LIVE_REGISTRY_URL__;
+    if (library.dataset.rightsLiveRegistry) return library.dataset.rightsLiveRegistry;
+    if (/^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) return "";
+    return "https://api.veildaemon.app/api/creator-rights/registry";
+  }
+
+  async function fetchRegistry(url) {
+    const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) throw new Error(`Registry index request failed: ${response.status}`);
-    const registry = await response.json();
-    const records = new Map((registry.records || []).map((record) => [record.slug, record]));
+    return response.json();
+  }
+
+  async function loadStructuredIndex() {
+    const registries = [await fetchRegistry("/registry/records.json")];
+    const liveUrl = registryApiUrl();
+    if (liveUrl) {
+      try {
+        registries.push(await fetchRegistry(liveUrl));
+      } catch {
+        summary.dataset.rightsLiveStatus = "unavailable";
+      }
+    }
+
+    const allRecords = registries.flatMap((registry) => registry.records || []);
+    mergeCards(allRecords);
+    const records = new Map(allRecords.map((record) => [record.slug, record]));
     index = cards.map((card) => {
       const record = records.get(card.dataset.rightsSlug);
       const terms = record ? termsForRecord(record) : [card.textContent];
