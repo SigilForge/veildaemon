@@ -1,10 +1,10 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const registry = require("../../api/creator-rights/registry.js");
+const registry = require("../../lib/creatorRightsRegistry");
 
 test("Creator Rights registry API projects public-safe live records", () => {
-  const record = registry._private.publicRecordForRow({
+  const record = registry.publicRecordForRow({
     slug: "neon-zine",
     record_id: "SFR-2026-999999",
     title: "Neon Zine",

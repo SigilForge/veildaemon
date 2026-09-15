@@ -16,6 +16,10 @@
   ],
   "rewrites": [
     {
+      "source": "/api/creator-rights/registry",
+      "destination": "/api/auth/config?resource=creator-rights-registry"
+    },
+    {
       "source": "/stream/alerts",
       "destination": "/stream/alerts/index.html"
     },
