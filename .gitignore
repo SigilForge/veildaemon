@@ -30,6 +30,9 @@ streamdaemon/**
 # Mobile/Codex upload reference nest (local-only)
 .codex-remote-attachments/**
 
+# Agent/editor-local tool state
+.cursor/
+
 # Secrets
 secrets.json
 secrets.json.enc
