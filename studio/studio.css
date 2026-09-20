@@ -5597,6 +5597,75 @@ footer.site-footer {
   line-height: 1.6;
 }
 
+/* Web-design page: keep section alternation without full-bleed light-theme flashbangs. */
+.web-design-page .section-block.paper {
+  background:
+    radial-gradient(ellipse 75% 70% at 12% 0%, rgba(181, 117, 104, 0.075), transparent 58%),
+    linear-gradient(180deg, rgba(29, 27, 26, 0.98), rgba(20, 20, 20, 0.98));
+  color: var(--text);
+  border-top-color: rgba(181, 117, 104, 0.2);
+  border-bottom: 1px solid rgba(181, 117, 104, 0.12);
+}
+
+.web-design-page .section-block.paper h2,
+.web-design-page .section-block.paper h3 {
+  color: var(--text);
+}
+
+.web-design-page .section-block.paper p,
+.web-design-page .section-block.paper li,
+.web-design-page .section-block.paper .wd-lede,
+.web-design-page .section-block.paper .wd-paper-note {
+  color: var(--text-soft);
+}
+
+.web-design-page .section-block.paper .eyebrow {
+  color: var(--rust-soft);
+}
+
+.web-design-page .wd-audience li,
+.web-design-page .wd-addons div,
+.web-design-page .wd-work-distinction p,
+.web-design-page .wd-faq details {
+  border-color: var(--line);
+  background: rgba(12, 14, 15, 0.66);
+  color: var(--text-soft);
+}
+
+.web-design-page .wd-audience li,
+.web-design-page .wd-addons span,
+.web-design-page .wd-work-distinction strong,
+.web-design-page .wd-faq summary,
+.web-design-page .wd-ethos {
+  color: var(--text);
+}
+
+.web-design-page .wd-addons strong,
+.web-design-page .wd-faq summary::after {
+  color: var(--rust-soft);
+}
+
+.web-design-page .wd-work-card {
+  border-color: var(--line);
+  background: rgba(13, 15, 16, 0.9);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.web-design-page .wd-work-body h3 {
+  color: var(--text);
+}
+
+.web-design-page .wd-work-body span,
+.web-design-page .wd-work-body b {
+  color: var(--rust-soft);
+}
+
+.web-design-page .wd-work-body p,
+.web-design-page .wd-faq details p {
+  color: var(--text-soft);
+}
+
 .wd-final-cta {
   border-top: 1px solid var(--line);
   background:
