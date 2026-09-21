@@ -2344,3 +2344,68 @@ body.play-surface .play-actions .button {
     font-size: clamp(1.45rem, 7.5vw, 2rem);
   }
 }
+
+/* First-contact refinements stay local to the intake homepage. */
+.intake-surface .latest-system-notice {
+  grid-template-columns: minmax(0, 1fr);
+  gap: .65rem;
+  padding: .85rem;
+}
+.intake-surface .latest-system-notice .notice-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem 1rem;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.intake-surface .latest-system-notice .notice-meta span,
+.intake-surface .latest-system-notice .notice-meta strong {
+  font-size: .75rem;
+}
+.intake-surface .latest-system-notice h2 {
+  font-size: clamp(1rem, 2.2vw, 1.2rem);
+}
+.intake-surface .latest-system-notice .notice-actions .button {
+  font-size: .875rem;
+  min-height: 2.75rem;
+}
+.intake-surface .surface-tabs .surface-tab {
+  font-size: .875rem;
+  letter-spacing: .04em;
+  gap: .3rem;
+  padding-inline: .3rem;
+}
+.intake-surface .surface-tabs .surface-tab strong {
+  font-size: .75rem;
+  letter-spacing: .02em;
+  color: var(--dossier-ink);
+}
+@media (max-width: 760px) {
+  .intake-surface {
+    --intake-rack-clearance: 4rem;
+    padding-bottom: calc(var(--intake-rack-clearance) + env(safe-area-inset-bottom));
+  }
+  .intake-surface .surface-tabs .surface-tab {
+    min-height: 3.4rem;
+    max-height: none;
+    line-height: 1.2;
+    overflow: visible;
+  }
+  .intake-surface .casefile-drawer,
+  .intake-surface .recovered-reports-drawer,
+  .intake-surface .operator-preview-drawer {
+    bottom: calc(var(--intake-rack-clearance) + env(safe-area-inset-bottom));
+    max-height: calc(100dvh - var(--intake-rack-clearance) - .5rem - env(safe-area-inset-bottom));
+  }
+  .intake-surface .casefile-panel,
+  .intake-surface .recovered-reports-panel,
+  .intake-surface .operator-preview-panel {
+    max-height: calc(100dvh - var(--intake-rack-clearance) - .5rem - env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 360px) {
+  .intake-surface { --intake-rack-clearance: 5rem; }
+  .intake-surface .surface-tabs .surface-tab { min-height: 4.5rem; }
+}
