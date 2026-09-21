@@ -1,8 +1,42 @@
 # VeilDaemon Architecture
 
-This repository separates runtime code (under `veildaemon/`) from meta/ops at the repo root.
+## Public web application and deployment boundaries
 
-Root is intentionally clean: docs, config, CI, hooks, tools, scripts, and tests. No real runtime code at root—only temporary shims that warn once and will be removed on schedule.
+This repository contains both the public web application and the Python runtime.
+The root is not exclusively tooling: `index.html`, `styles.css`, `script.js`, and
+`surface-nav.js` are active browser runtime files.
+
+- **GitHub Pages — `veildaemon.app`:** the root intake interface and static
+  Operator, Handler, debrief, recovery-index, updates, and Studio surfaces.
+  Pages publishes `main` from `/`; see `README_DEPLOY.md` for deployment details.
+- **Vercel — `api.veildaemon.app`:** root `api/` functions and `vercel.json`.
+  Production Pages clients resolve API requests to this host, not Pages `/api/`.
+- **VeilLink — `app.veildaemon.app`:** the separate `veillink/` application.
+- **RelayDaemon:** a separate Vercel deployment governed by
+  `studio/relay/AGENTS.md`; a Pages publish does not deploy Relay.
+- **Supabase:** authentication, server-backed records, and private delivery
+  storage. Root `supabase/migrations/` is the maintained migration source;
+  `veillink/supabase/migrations/` is a legacy duplicate.
+
+Operator and Handler are browser runtimes: Operator manages character state and
+rule-driven changes; Handler manages session state, clocks, and consequences.
+VeilLink is a separately deployed web application, not part of the Python SDK.
+Static hosting describes file delivery, not the absence of runtime behavior.
+
+Operator and Handler saves remain local-first. Authentication must not replace
+or erase local records. Transfers and public report publication use explicit
+submission and review paths. See `AGENTS.md` for the governing invariants and
+`README_DEPLOY.md` for the unified push workflow and host-specific verification.
+
+## Python runtime and historical SDK layout
+
+The following SDK map and operational notes describe the Python subsystem.
+Their root-cleanliness rules concern Python modules, not the public web files.
+The dated shim-removal plan is historical, not a current deployment instruction.
+
+The Python subsystem separates runtime code (under `veildaemon/`) from SDK tooling at the repo root.
+
+Python runtime belongs under `veildaemon/`; root web runtime, documentation, configuration, CI, hooks, tools, scripts, and tests coexist intentionally.
 
 ## Package map
 
@@ -21,7 +55,7 @@ Root is intentionally clean: docs, config, CI, hooks, tools, scripts, and tests.
 
 ## Root cleanliness charter
 
-Root is for meta and ops. Target root tree:
+Historical Python SDK target tree (not a complete map of the current repository):
 
 ```
 /
@@ -158,7 +192,7 @@ Expected: `ModuleNotFoundError` unless your private pack is on `PYTHONPATH`. Wit
 
 ## 9) What never belongs at repo root
 
-Anything runtime. Root is meta only: docs, CI, hooks, tools, scripts, tests, config, `.env.example`. If you drop a Python file at root, the root-clean test will snitch.
+New Python runtime modules belong under `veildaemon/`. The public web entry points at root are intentional and are not subject to the Python root-cleanliness rule.
 
 ---
 
