@@ -296,6 +296,62 @@ footer nav a:hover {
   background: rgba(181, 117, 104, 0.12) !important;
 }
 
+.nav-toggle-input {
+  display: none;
+}
+
+.nav-toggle {
+  display: none;
+  width: 2.35rem;
+  height: 2.35rem;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+}
+
+.nav-toggle span,
+.nav-toggle span::before,
+.nav-toggle span::after {
+  content: "";
+  display: block;
+  width: 1.1rem;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--text);
+  transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+
+.nav-toggle span {
+  position: relative;
+}
+
+.nav-toggle span::before {
+  position: absolute;
+  top: -0.35rem;
+}
+
+.nav-toggle span::after {
+  position: absolute;
+  top: 0.35rem;
+}
+
+.nav-toggle-input:checked ~ .nav-toggle span {
+  background: transparent;
+}
+
+.nav-toggle-input:checked ~ .nav-toggle span::before {
+  transform: translateY(0.35rem) rotate(45deg);
+}
+
+.nav-toggle-input:checked ~ .nav-toggle span::after {
+  transform: translateY(-0.35rem) rotate(-45deg);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Buttons                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -1582,25 +1638,44 @@ footer > p {
 @media (max-width: 720px) {
   .site-header {
     position: relative;
-    align-items: flex-start;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     padding-block: 0.65rem;
-    row-gap: 0.35rem;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
   }
 
   .site-header nav {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 0.12rem 0.05rem;
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.15rem;
+    padding: 0.65rem var(--pad) 1rem;
+    background: var(--ink);
+    border-bottom: 1px solid var(--line-strong);
+    box-shadow: var(--shadow-md);
+  }
+
+  .nav-toggle-input:checked ~ nav {
+    display: flex;
   }
 
   .site-header nav a {
-    font-size: 0.68rem;
-    padding: 0.34rem 0.4rem;
+    width: 100%;
+    font-size: 0.85rem;
+    padding: 0.65rem 0.5rem;
   }
 
-  /* keep full primary nav on small screens; wrap instead of hide */
+  .nav-cta {
+    margin-left: 0;
+  }
+
+  /* primary nav now lives behind .nav-toggle on small screens */
 
   .portal-hero-grid {
     grid-template-columns: 1fr;
@@ -4163,6 +4238,23 @@ body.digital-shelf-page .digital-hero .shelf-hero-art img {
     grid-template-columns: 1fr auto;
   }
 }
+/* Card-heavy grids read as a squeezed desktop layout, not a mobile one,
+   when forced to two columns between 721-1000px — drop to one column
+   earlier for these specifically instead of waiting for the 720px cut. */
+@media (max-width: 860px) {
+  .capability-grid,
+  .portfolio-grid,
+  .ecosystem,
+  .pathway-grid,
+  .work-row,
+  .wd-work-grid {
+    grid-template-columns: 1fr;
+  }
+  .portfolio-grid > .veilforge-card {
+    grid-column: auto;
+    width: 100%;
+  }
+}
 @media (max-width: 720px) {
   .technology-brief,
   .trust-flow,
@@ -4834,11 +4926,13 @@ footer.site-footer {
   }
   .footer-cols {
     grid-template-columns: 1fr 1fr;
+    gap: 1.75rem 1.25rem;
   }
 }
-@media (max-width: 560px) {
+@media (max-width: 380px) {
   .footer-cols {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
 }
 
