@@ -21,14 +21,17 @@ function money(cents: number) {
 
 export function AuthForm({ title, action, submit, error, sent, verified, email, reset, signup, updatePassword, next }: Props) {
   const rightsPreservation = next === "/rights/create" || next === "/account/rights";
+  const bookPurchase = next === "/book-one" && !reset && !updatePassword;
   const rightsPrice = `${money(RIGHTS_PRICE_CENTS)} ${RIGHTS_PRICE_LABEL}`;
 
   return (
     <main className="page">
       <p className="eyebrow">Account</p>
-      <h1 className="page-title">{title}</h1>
+      <h1 className="page-title">{bookPurchase ? (signup ? "Create your book account" : "Sign in for Book One") : title}</h1>
       <p className="lede">
-        {signup
+        {bookPurchase
+          ? "The Anchor and the Glitch · $9.99 digital bundle. Your free account keeps your PDF, EPUB, MOBI, and wallpapers available after purchase. Sign in or create an account to continue to checkout."
+          : signup
           ? rightsPreservation
             ? `Create a free account to preserve permanent, timestamped Registry records at the ${rightsPrice}. Authentication unlocks Creator Dossier generation, versioned evidence, and long-term record management.`
             : "Create a free account to issue short links and editable QR codes."
@@ -40,6 +43,7 @@ export function AuthForm({ title, action, submit, error, sent, verified, email, 
                 ? `Sign in to preserve a permanent, timestamped Registry record at the ${rightsPrice}, generate your Creator Dossier, and maintain versioned evidence over time. A single one-time Registry license covers the lifetime of this Creator Rights Record with no recurring subscription fees.`
                 : "Sign in to manage redirects, downloads, and billing."}
       </p>
+      {bookPurchase ? <p><Link href="https://veildaemon.app/studio/shelf/book-one/" target="_blank" rel="noopener noreferrer">View the book and included formats</Link></p> : null}
       {verified ? (
         <p className="success" role="status">
           ✓ Email address confirmed successfully! Sign in below to continue.
@@ -80,6 +84,7 @@ export function AuthForm({ title, action, submit, error, sent, verified, email, 
           ) : (
             <>
               <Link href="/reset">Reset password</Link>
+              {bookPurchase ? <> · <Link href="/signup?next=%2Fbook-one">Create a free account to buy the book</Link></> : null}
               {rightsPreservation ? (
                 <>
                   {" · "}

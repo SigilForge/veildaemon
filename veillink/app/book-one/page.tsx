@@ -25,8 +25,8 @@ export default async function BookOnePage() {
       <p className="eyebrow">Cradlepoint Studio · Published Shelf</p>
       <h1 className="page-title">Book One direct digital edition</h1>
       <p className="lede">
-        Account required. Purchase records attach to this VeilLink identity before private files are issued: the verified
-        PDF, reflowable EPUB & MOBI ebook editions, plus the Book One wallpaper pack.
+        The Anchor and the Glitch by S. Kaelen Vale. Get the DRM-free PDF, EPUB and MOBI editions,
+        plus desktop and phone wallpapers. Your account keeps your downloads together.
       </p>
 
       <section className="book-one-layout" aria-label="Book One purchase">
@@ -47,8 +47,8 @@ export default async function BookOnePage() {
           <h2>$9.99 launch sale price</h2>
           <p className="muted">Signed in as {user.email}</p>
           <p>
-            Checkout runs through Stripe. After payment, the claim route verifies the completed session, records the
-            entitlement on your account, then issues short-lived private download links for the PDF, EPUB, MOBI, and wallpaper pack.
+            Pay securely through Stripe, then download your book and wallpaper pack.
+            Your purchase stays linked to this account so you can return for updated files.
           </p>
           <ul className="book-one-includes">
             <li>Verified print-edition PDF (v47-2c) · DRM-free</li>
