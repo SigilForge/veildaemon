@@ -72,7 +72,9 @@ export function buildMetadata({
   imageHeight = 630,
 }: BuildMetaInput): Metadata {
   const url = absoluteUrl(path);
-  const fullTitle = title.includes(siteConfig.name) ? title : `${title} · ${siteConfig.name}`;
+  const fullTitle = title.includes(siteConfig.name)
+    ? `${title} · SigilForge Studios`
+    : `${title} · ${siteConfig.name} · SigilForge Studios`;
   const keywordList = [...new Set([...siteConfig.keywords, ...keywords])];
   const ogImage = image
     ? image.startsWith("http")
