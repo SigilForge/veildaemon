@@ -34,7 +34,7 @@ export const plans = {
 
 export type PlanId = keyof typeof plans;
 
-const DEFAULT_AUTH_RETURN_TARGET = "/dashboard";
+const DEFAULT_AUTH_RETURN_TARGET = "/home";
 const ROOT_APP_AUTH_RETURN_ORIGIN = "https://veildaemon.app";
 const ROOT_APP_AUTH_RETURN_PATHS = ["/operator", "/handler"];
 

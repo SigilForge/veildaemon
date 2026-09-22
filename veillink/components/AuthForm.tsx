@@ -13,37 +13,44 @@ type Props = {
   signup?: boolean;
   updatePassword?: boolean;
   next?: string;
+  /** Render as a <section> fragment (no page eyebrow/lede) for embedding beside other content, e.g. the portal page. */
+  embedded?: boolean;
 };
 
 function money(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
-export function AuthForm({ title, action, submit, error, sent, verified, email, reset, signup, updatePassword, next }: Props) {
+export function AuthForm({ title, action, submit, error, sent, verified, email, reset, signup, updatePassword, next, embedded }: Props) {
   const rightsPreservation = next === "/rights/create" || next === "/account/rights";
   const bookPurchase = next === "/book-one" && !reset && !updatePassword;
   const rightsPrice = `${money(RIGHTS_PRICE_CENTS)} ${RIGHTS_PRICE_LABEL}`;
+  const Wrapper = embedded ? "section" : "main";
 
   return (
-    <main className="page">
-      <p className="eyebrow">Account</p>
-      <h1 className="page-title">{bookPurchase ? (signup ? "Create your book account" : "Sign in for Book One") : title}</h1>
-      <p className="lede">
-        {bookPurchase
-          ? "The Anchor and the Glitch · $9.99 digital bundle. Your free account keeps your PDF, EPUB, MOBI, and wallpapers available after purchase. Sign in or create an account to continue to checkout."
-          : signup
-          ? rightsPreservation
-            ? `Create a free account to preserve permanent, timestamped Registry records at the ${rightsPrice}. Authentication unlocks Creator Dossier generation, versioned evidence, and long-term record management.`
-            : "Create a free account to issue short links and editable QR codes."
-          : reset
-            ? "We will email a reset link if the address is on file."
-            : updatePassword
-              ? "Choose a new password for this account."
-              : rightsPreservation
-                ? `Sign in to preserve a permanent, timestamped Registry record at the ${rightsPrice}, generate your Creator Dossier, and maintain versioned evidence over time. A single one-time Registry license covers the lifetime of this Creator Rights Record with no recurring subscription fees.`
-                : "Sign in to manage redirects, downloads, and billing."}
-      </p>
-      {bookPurchase ? <p><Link href="https://veildaemon.app/studio/shelf/book-one/" target="_blank" rel="noopener noreferrer">View the book and included formats</Link></p> : null}
+    <Wrapper className={embedded ? "auth-embed" : "page"}>
+      {embedded ? null : <p className="eyebrow">Account</p>}
+      <h1 className={embedded ? "auth-embed-title" : "page-title"}>
+        {bookPurchase ? (signup ? "Create your book account" : "Sign in for Book One") : title}
+      </h1>
+      {embedded ? null : (
+        <p className="lede">
+          {bookPurchase
+            ? "The Anchor and the Glitch · $9.99 digital bundle. Your free account keeps your PDF, EPUB, MOBI, and wallpapers available after purchase. Sign in or create an account to continue to checkout."
+            : signup
+            ? rightsPreservation
+              ? `Create a free account to preserve permanent, timestamped Registry records at the ${rightsPrice}. Authentication unlocks Creator Dossier generation, versioned evidence, and long-term record management.`
+              : "Create a free SigilForge account: connected play, Book One, Creator Rights, and QR & links, all on one identity."
+            : reset
+              ? "We will email a reset link if the address is on file."
+              : updatePassword
+                ? "Choose a new password for this account."
+                : rightsPreservation
+                  ? `Sign in to preserve a permanent, timestamped Registry record at the ${rightsPrice}, generate your Creator Dossier, and maintain versioned evidence over time. A single one-time Registry license covers the lifetime of this Creator Rights Record with no recurring subscription fees.`
+                  : "Sign in to your SigilForge identity: connected play, Book One, Creator Rights, QR & links, and account."}
+        </p>
+      )}
+      {!embedded && bookPurchase ? <p><Link href="https://veildaemon.app/studio/shelf/book-one/" target="_blank" rel="noopener noreferrer">View the book and included formats</Link></p> : null}
       {verified ? (
         <p className="success" role="status">
           ✓ Email address confirmed successfully! Sign in below to continue.
@@ -95,6 +102,6 @@ export function AuthForm({ title, action, submit, error, sent, verified, email, 
           )}
         </p>
       </form>
-    </main>
+    </Wrapper>
   );
 }

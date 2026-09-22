@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata: Metadata = buildMetadata({
-  title: "Dashboard",
+  title: "QR & Links",
   description: "Manage VeilLink short links, download QR codes, and review scan counts.",
   path: "/dashboard",
   noIndex: true,
@@ -29,7 +29,7 @@ export default async function DashboardPage({
   ]);
   return (
     <main className="page">
-      <h1 className="page-title">Dashboard</h1>
+      <h1 className="page-title">QR &amp; Links</h1>
       <p className="lede">Create editable links, download QR codes, and watch the boring useful numbers move.</p>
       {params?.verified === "1" ? (
         <p className="success" style={{ marginBottom: "1.5rem" }} role="status">

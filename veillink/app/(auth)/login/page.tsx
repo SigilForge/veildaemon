@@ -5,7 +5,7 @@ import { login } from "../actions";
 
 export const metadata: Metadata = buildMetadata({
   title: "Log in",
-  description: "Log in to VeilLink to manage account-backed ownership, Creator Rights records, and short links with editable QR codes.",
+  description: "Log in to your SigilForge identity: connected play, Book One, Creator Rights, and QR & Links.",
   path: "/login",
   keywords: ["VeilLink login", "QR code dashboard login"],
 });

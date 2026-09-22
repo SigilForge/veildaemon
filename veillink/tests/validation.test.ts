@@ -138,8 +138,8 @@ describe("auth redirect configuration", () => {
   });
 
   it("rejects external auth return targets outside the allowed surfaces", () => {
-    expect(authReturnTarget("https://example.com/operator/")).toBe("/dashboard");
-    expect(authReturnTarget("https://evil.veildaemon.app/handler/")).toBe("/dashboard");
-    expect(authReturnTarget("//veildaemon.app/operator/")).toBe("/dashboard");
+    expect(authReturnTarget("https://example.com/operator/")).toBe("/home");
+    expect(authReturnTarget("https://evil.veildaemon.app/handler/")).toBe("/home");
+    expect(authReturnTarget("//veildaemon.app/operator/")).toBe("/home");
   });
 });

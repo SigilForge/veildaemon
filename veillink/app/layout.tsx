@@ -118,7 +118,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </a>
         <div className="shell">
           <header className="nav">
-            <Link className="brand" href="/">
+            <Link className="brand" href={email ? "/home" : "/"}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className="brand-emblem"
@@ -144,7 +144,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <span className="nav-divider" aria-hidden="true" />
               {email ? (
                 <>
-                  <Link href="/dashboard">Dashboard</Link>
+                  <Link href="/dashboard">QR &amp; Links</Link>
                   <Link href="/billing">Billing</Link>
                   {/* Original QR / short-link product: shared Account control → /account */}
                   <ProductAccountLink product="qr" signedIn className="button secondary" />

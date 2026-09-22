@@ -4,9 +4,9 @@ import { buildMetadata } from "@/lib/seo";
 import { signUp } from "../actions";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Start Free — Create Dynamic QR Codes",
+  title: "Start Free",
   description:
-    "Create a free VeilLink account for editable short links and dynamic QR codes. Three active redirects included. Print once, change destinations later.",
+    "Create a free SigilForge account: connected play, Book One, Creator Rights, and QR & Links, all on one identity.",
   path: "/signup",
   keywords: [
     "free dynamic QR code account",
