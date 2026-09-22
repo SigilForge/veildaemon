@@ -190,7 +190,7 @@ export function websiteJsonLd() {
             price: "0",
             priceCurrency: "USD",
             description: "3 active dynamic redirects with editable destinations",
-            url: absoluteUrl("/pricing"),
+            url: absoluteUrl("/links/pricing"),
           },
           {
             "@type": "Offer",
@@ -198,7 +198,7 @@ export function websiteJsonLd() {
             price: "7",
             priceCurrency: "USD",
             description: "100 active redirects, analytics dashboard, expiration dates",
-            url: absoluteUrl("/pricing"),
+            url: absoluteUrl("/links/pricing"),
           },
           {
             "@type": "Offer",
@@ -206,7 +206,7 @@ export function websiteJsonLd() {
             price: "19",
             priceCurrency: "USD",
             description: "1,000 active redirects for multi-location and campaign use",
-            url: absoluteUrl("/pricing"),
+            url: absoluteUrl("/links/pricing"),
           },
         ],
         featureList: [
@@ -241,7 +241,7 @@ export function pricingJsonLd() {
     name: `${siteConfig.name} dynamic QR and short links`,
     description: siteConfig.description,
     brand: { "@type": "Brand", name: siteConfig.name },
-    url: absoluteUrl("/pricing"),
+    url: absoluteUrl("/links/pricing"),
     offers: {
       "@type": "AggregateOffer",
       lowPrice: "0",
@@ -254,7 +254,7 @@ export function pricingJsonLd() {
           name: "Free",
           price: "0",
           priceCurrency: "USD",
-          url: absoluteUrl("/pricing"),
+          url: absoluteUrl("/links/pricing"),
           availability: "https://schema.org/InStock",
         },
         {
@@ -268,7 +268,7 @@ export function pricingJsonLd() {
             priceCurrency: "USD",
             unitText: "MONTH",
           },
-          url: absoluteUrl("/pricing"),
+          url: absoluteUrl("/links/pricing"),
           availability: "https://schema.org/InStock",
         },
         {
@@ -282,7 +282,7 @@ export function pricingJsonLd() {
             priceCurrency: "USD",
             unitText: "MONTH",
           },
-          url: absoluteUrl("/pricing"),
+          url: absoluteUrl("/links/pricing"),
           availability: "https://schema.org/InStock",
         },
       ],
@@ -292,7 +292,7 @@ export function pricingJsonLd() {
       name: "Cradlepoint Studio",
       url: siteConfig.studioUrl,
     },
-    mainEntityOfPage: absoluteUrl("/pricing"),
+    mainEntityOfPage: absoluteUrl("/links/pricing"),
     isRelatedTo: { "@id": `${origin}/#software` },
   };
 }

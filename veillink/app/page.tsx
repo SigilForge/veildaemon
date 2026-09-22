@@ -121,7 +121,7 @@ export default async function PortalPage({
           <Link className="button" href="/signup">
             Create a free account
           </Link>
-          <Link className="button secondary" href="/pricing">
+          <Link className="button secondary" href="/links/pricing">
             See QR &amp; Links pricing
           </Link>
         </div>

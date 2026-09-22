@@ -44,7 +44,7 @@ export default function LinksPage() {
             <Link className="button" href="/signup?next=%2Fdashboard">
               Create a free link
             </Link>
-            <Link className="button secondary" href="/pricing">
+            <Link className="button secondary" href="/links/pricing">
               See pricing
             </Link>
           </div>
@@ -186,7 +186,7 @@ export default function LinksPage() {
           <Link className="button" href="/signup?next=%2Fdashboard">
             Start free
           </Link>
-          <Link className="button secondary" href="/pricing">
+          <Link className="button secondary" href="/links/pricing">
             Compare plans
           </Link>
         </div>
