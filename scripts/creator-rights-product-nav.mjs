@@ -45,7 +45,9 @@ export function rightsStaticHeaderHtml() {
     `<a class="brand" href="${registryPath}">` +
     `<img src="/studio/assets/brand/sigilforge-emblem-256.webp?v=20260724-sigilforge1" alt="SigilForge Studios">` +
     `<span><strong>SIGILFORGE</strong><small>RIGHTS</small></span></a>` +
-    `<nav aria-label="Creator Rights">` +
+    `<input type="checkbox" id="nav-toggle" class="nav-toggle-input">` +
+    `<label for="nav-toggle" class="nav-toggle" aria-label="Toggle navigation" aria-controls="primary-nav"><span></span></label>` +
+    `<nav aria-label="Creator Rights" id="primary-nav">` +
     `<a href="${registryPath}">Registry</a>` +
     `<a href="${studioOverview}">Overview</a>` +
     `<a href="${resourcesPath}">${resourcesLabel}</a>` +
@@ -98,9 +100,7 @@ function ensureStaticHeaders({ checkOnly = false } = {}) {
   for (const file of files) {
     let html = fs.readFileSync(file, "utf8");
     const hasProductHeader = html.includes('data-product="creator-rights"');
-    const hasCurrentRegisterAction = html.includes(`>${CREATOR_RIGHTS_PRODUCT_NAV.advisorLabel}</a>`);
-    const hasLegacyTopAccount = /<header class="site-header" data-product="creator-rights">[\s\S]*?https:\/\/app\.veildaemon\.app\/account\/rights[\s\S]*?<\/header>/.test(html);
-    if (hasProductHeader && hasCurrentRegisterAction && !hasLegacyTopAccount) continue;
+    if (html.includes(header)) continue;
     missing += 1;
     if (checkOnly) continue;
     if (hasProductHeader) {
@@ -158,9 +158,7 @@ function ensureRegistryHeader({ checkOnly = false } = {}) {
   let html = fs.readFileSync(file, "utf8");
   const header = rightsStaticHeaderHtml();
   const hasProductHeader = html.includes('data-product="creator-rights"');
-  const hasCurrentRegisterAction = html.includes(`>${CREATOR_RIGHTS_PRODUCT_NAV.advisorLabel}</a>`);
-  const hasLegacyTopAccount = /<header class="site-header" data-product="creator-rights">[\s\S]*?https:\/\/app\.veildaemon\.app\/account\/rights[\s\S]*?<\/header>/.test(html);
-  if (hasProductHeader && hasCurrentRegisterAction && !hasLegacyTopAccount) {
+  if (html.includes(header)) {
     return { ok: true, updated: false };
   }
   if (checkOnly) return { ok: false, updated: false };
