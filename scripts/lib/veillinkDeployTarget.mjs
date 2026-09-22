@@ -53,8 +53,14 @@ export function verifyVeillinkProjectLink(projectJson, expected = EXPECTED_VEILL
   if (projectName !== expected.projectName) {
     mismatches.push(`projectName: expected "${expected.projectName}", got "${projectName}"`);
   }
-  if (expected.orgId && orgId !== undefined && orgId !== expected.orgId) {
-    mismatches.push(`orgId (team/scope): expected "${expected.orgId}", got "${orgId}"`);
+  if (expected.orgId) {
+    if (orgId === undefined || orgId === null || orgId === "") {
+      // Fail closed: an omitted orgId is not "no opinion", it's missing
+      // evidence of which team/scope this project link actually belongs to.
+      mismatches.push(`orgId (team/scope): expected "${expected.orgId}", got none (missing from project.json)`);
+    } else if (orgId !== expected.orgId) {
+      mismatches.push(`orgId (team/scope): expected "${expected.orgId}", got "${orgId}"`);
+    }
   }
 
   if (mismatches.length === 0) {

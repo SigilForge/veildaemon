@@ -75,6 +75,17 @@ describe("verifyVeillinkProjectLink", () => {
     assert.match(result.reason, /orgId \(team\/scope\)/);
   });
 
+  it("fails closed when orgId is missing from project.json entirely, rather than treating it as acceptable", () => {
+    const result = verifyVeillinkProjectLink({
+      projectId: EXPECTED_VEILLINK_PROJECT.projectId,
+      projectName: EXPECTED_VEILLINK_PROJECT.projectName,
+      // orgId intentionally omitted
+    });
+    assert.equal(result.ok, false);
+    assert.match(result.reason, /orgId \(team\/scope\)/);
+    assert.match(result.reason, /got none/);
+  });
+
   it("never suggests or performs relinking", () => {
     const result = verifyVeillinkProjectLink(null);
     assert.doesNotMatch(result.reason, /automatically relink|will relink|relinking for you/i);
@@ -103,13 +114,48 @@ describe("readProjectJson", () => {
 });
 
 describe("parseProductionUrl", () => {
-  it("extracts the Production URL line from Vercel CLI output", () => {
-    const stdout = "Uploading...\n  Production      https://veillink-abc123-knoxmortis-projects.vercel.app\nBuilding…\n";
-    assert.equal(parseProductionUrl(stdout), "https://veillink-abc123-knoxmortis-projects.vercel.app");
+  it("accepts the CURRENT documented CLI contract: stdout is just the bare URL", () => {
+    // This is Vercel's own canonical shape -- it's what makes `URL=$(vercel deploy --prod)`
+    // work as their documented idiom. Progress/status output goes to stderr, not stdout.
+    const stdout = "https://veillink-abc123-knoxmortis-projects.vercel.app\n";
+    const stderr = "Uploading...\nBuilding…\nDeploying outputs...\n▲ Aliased https://go.veildaemon.app\n";
+    assert.equal(parseProductionUrl({ stdout, stderr }), "https://veillink-abc123-knoxmortis-projects.vercel.app");
   });
 
-  it("returns null when no Production line is present", () => {
-    assert.equal(parseProductionUrl("some unrelated output"), null);
+  it("accepts a bare URL on stdout even with no stderr at all", () => {
+    assert.equal(
+      parseProductionUrl({ stdout: "https://veillink-abc123-knoxmortis-projects.vercel.app" }),
+      "https://veillink-abc123-knoxmortis-projects.vercel.app"
+    );
+  });
+
+  it("falls back to an older/human-formatted 'Production ... https://...' line for CLI-version resilience", () => {
+    const stdout = "Uploading...\n  Production      https://veillink-abc123-knoxmortis-projects.vercel.app\nBuilding…\n";
+    assert.equal(parseProductionUrl({ stdout }), "https://veillink-abc123-knoxmortis-projects.vercel.app");
+  });
+
+  it("finds the legacy 'Production ...' line even when it landed on stderr instead of stdout", () => {
+    const stderr = "Uploading...\n  Production      https://veillink-abc123-knoxmortis-projects.vercel.app\nBuilding…\n";
+    assert.equal(parseProductionUrl({ stdout: "", stderr }), "https://veillink-abc123-knoxmortis-projects.vercel.app");
+  });
+
+  it("returns null (does not guess) when there is no URL anywhere", () => {
+    assert.equal(parseProductionUrl({ stdout: "some unrelated output", stderr: "also unrelated" }), null);
+  });
+
+  it("returns null (does not guess) when stdout has multiple lines that are not a single bare URL, and no Production line", () => {
+    assert.equal(parseProductionUrl({ stdout: "Uploading...\nBuilding…\nDone.\n" }), null);
+  });
+
+  it("returns null (rejects ambiguity) when multiple distinct Production URLs are present", () => {
+    const stdout =
+      "Production      https://veillink-one-knoxmortis-projects.vercel.app\n" +
+      "Production      https://veillink-two-knoxmortis-projects.vercel.app\n";
+    assert.equal(parseProductionUrl({ stdout }), null);
+  });
+
+  it("does not treat http:// (non-https) as a bare-URL stdout match", () => {
+    assert.equal(parseProductionUrl({ stdout: "http://insecure-example.vercel.app\n" }), null);
   });
 });
 
@@ -157,10 +203,15 @@ describe("runVeillinkDeploy (fail-closed, no live calls)", () => {
     assert.ok(result.args.includes("gitSha=deadbeefcafefeed"));
   });
 
-  it("tags the deployment with the current git sha via --meta", async () => {
+  it("tags the deployment with the current git sha via --meta, using the current bare-URL stdout CLI shape", async () => {
     const { exec, calls } = fakeExec((command, args) => {
       if (command === "vercel" && args[0] === "--prod") {
-        return { status: 0, stdout: "Production      https://veillink-x-knoxmortis-projects.vercel.app\n", stderr: "" };
+        // Current documented CLI contract: stdout is just the URL; progress goes to stderr.
+        return {
+          status: 0,
+          stdout: "https://veillink-x-knoxmortis-projects.vercel.app\n",
+          stderr: "Uploading...\nBuilding…\n",
+        };
       }
       if (command === "vercel" && args[0] === "inspect") {
         return {
@@ -185,6 +236,7 @@ describe("runVeillinkDeploy (fail-closed, no live calls)", () => {
       errorLog: () => {},
     });
     assert.equal(result.ok, true);
+    assert.equal(result.deployAttempted, true);
     const deployCall = calls.find((c) => c.command === "vercel" && c.args[0] === "--prod");
     assert.ok(deployCall, "expected a vercel --prod call");
     assert.ok(deployCall.args.includes("--meta"));
@@ -208,6 +260,65 @@ describe("runVeillinkDeploy (fail-closed, no live calls)", () => {
     assert.equal(result.stage, "deploy");
     assert.equal(calls.filter((c) => c.command === "vercel" && c.args[0] === "inspect").length, 0);
   });
+
+  it("reports a succeeded deploy with failed verification distinctly, never as trusted success", async () => {
+    const { exec } = fakeExec((command, args) => {
+      if (command === "vercel" && args[0] === "--prod") {
+        return { status: 0, stdout: "https://veillink-x-knoxmortis-projects.vercel.app\n", stderr: "" };
+      }
+      if (command === "vercel" && args[0] === "inspect") {
+        // Deployed, but to the wrong project -- verification must catch this.
+        return { status: 0, stdout: JSON.stringify({ name: "not-veillink", target: "production", alias: [] }) };
+      }
+      return { status: 0, stdout: "", stderr: "" };
+    });
+    const fetchFn = async () => ({ ok: true, status: 200 });
+    const result = await runVeillinkDeploy({
+      exec,
+      fetchFn,
+      readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
+      log: () => {},
+      errorLog: () => {},
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.stage, "verify");
+    assert.equal(result.deployAttempted, true, "the deploy command itself succeeded -- this must not look identical to a guard/deploy-stage failure where nothing ran");
+  });
+
+  it("has no --skip-verify bypass: an old-style skipVerify option is simply ignored and verification still runs", async () => {
+    const { exec, calls } = fakeExec((command, args) => {
+      if (command === "vercel" && args[0] === "--prod") {
+        return { status: 0, stdout: "https://veillink-x-knoxmortis-projects.vercel.app\n", stderr: "" };
+      }
+      if (command === "vercel" && args[0] === "inspect") {
+        return {
+          status: 0,
+          stdout: JSON.stringify({ name: EXPECTED_VEILLINK_PROJECT.projectName, target: "production", alias: VEILLINK_PRODUCTION_ALIASES }),
+        };
+      }
+      return { status: 0, stdout: "", stderr: "" };
+    });
+    const fetchFn = async () => ({ ok: true, status: 200 });
+    const result = await runVeillinkDeploy({
+      exec,
+      fetchFn,
+      readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
+      skipVerify: true, // stale caller habit; the function no longer has this parameter at all
+      log: () => {},
+      errorLog: () => {},
+    });
+    assert.equal(result.stage, "verify", "verification must run even if a caller still passes skipVerify");
+    assert.ok(
+      calls.some((c) => c.command === "vercel" && c.args[0] === "inspect"),
+      "vercel inspect must have been called -- verification was not bypassed"
+    );
+  });
+
+  it("the CLI no longer offers a --skip-verify flag", () => {
+    const source = fs.readFileSync(new URL("../../scripts/deploy-veillink.mjs", import.meta.url), "utf8");
+    assert.doesNotMatch(source, /--skip-verify/);
+    assert.doesNotMatch(source, /skipVerify/);
+  });
 });
 
 describe("verifyDeployment", () => {
@@ -227,7 +338,7 @@ describe("verifyDeployment", () => {
     });
     const fetchFn = async () => ({ ok: true, status: 200 });
     const result = await verifyDeployment({
-      stdout: "Production      https://veillink-x-knoxmortis-projects.vercel.app\n",
+      stdout: "https://veillink-x-knoxmortis-projects.vercel.app\n",
       exec,
       fetchFn,
       log: () => {},
@@ -245,7 +356,7 @@ describe("verifyDeployment", () => {
     });
     const fetchFn = async () => ({ ok: true, status: 200 });
     const result = await verifyDeployment({
-      stdout: "Production      https://veillink-x-knoxmortis-projects.vercel.app\n",
+      stdout: "https://veillink-x-knoxmortis-projects.vercel.app\n",
       exec,
       fetchFn,
       log: () => {},
@@ -264,7 +375,7 @@ describe("verifyDeployment", () => {
     });
     const fetchFn = async () => ({ ok: true, status: 200 });
     const result = await verifyDeployment({
-      stdout: "Production      https://veillink-x-knoxmortis-projects.vercel.app\n",
+      stdout: "https://veillink-x-knoxmortis-projects.vercel.app\n",
       exec,
       fetchFn,
       log: () => {},
@@ -283,7 +394,7 @@ describe("verifyDeployment", () => {
     });
     const fetchFn = async () => ({ ok: false, status: 500 });
     const result = await verifyDeployment({
-      stdout: "Production      https://veillink-x-knoxmortis-projects.vercel.app\n",
+      stdout: "https://veillink-x-knoxmortis-projects.vercel.app\n",
       exec,
       fetchFn,
       log: () => {},

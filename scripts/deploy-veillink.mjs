@@ -3,27 +3,43 @@
  * Canonical, guarded VeilLink production deploy path.
  *
  * Usage:
- *   node scripts/deploy-veillink.mjs [--dry-run] [--skip-verify]
+ *   node scripts/deploy-veillink.mjs [--dry-run]
  *   npm run veillink:deploy
  *   npm run veillink:deploy:dry-run
  *
  * Replaces the previously-undocumented `cd veillink && vercel --prod --yes`
  * that agents and humans had to remember by hand. Always deploys the
  * VeilLink production target -- there is no other target for this script.
+ * There is deliberately no way to skip post-deploy verification: this
+ * command exists specifically to make a VeilLink production deploy
+ * self-verifying, and no caller in this repo has a concrete need to bypass
+ * that. If one ever does, add the bypass then, scoped to that need.
  *
  * Before deploying, verifies that veillink/.vercel/project.json is linked to
  * the expected VeilLink Vercel project (scripts/lib/veillinkDeployTarget.mjs).
  * If it does not match, this script aborts with a clear error and makes NO
  * deployment and NO relink attempt -- fail closed, always.
  *
- * After a real (non-dry-run) deploy, performs bounded verification unless
- * --skip-verify is passed:
- *   1. Parses the production deployment URL the Vercel CLI prints to stdout.
+ * After a real (non-dry-run) deploy, performs bounded verification:
+ *   1. Parses the production deployment URL from the deploy command's
+ *      output. The current Vercel CLI's documented contract is that stdout
+ *      is *just* the deployment URL (see `vercel deploy --help`'s own
+ *      `URL=$(vercel deploy --prod)` idiom) with progress/status on stderr;
+ *      parseProductionUrl() treats a bare single-URL stdout as authoritative
+ *      and falls back to scanning stdout+stderr for an older/human-formatted
+ *      "Production      https://..." line for resilience across CLI
+ *      versions. It refuses to guess if stdout is neither shape or if
+ *      multiple distinct candidate URLs turn up.
  *   2. Runs `vercel inspect <url> --format=json` (a documented, stable CLI
  *      flag -- confirmed via `vercel inspect --help` before use) to confirm
  *      the deployment's project name, production target, and that the
  *      expected aliases are attached.
  *   3. Fetches a known public VeilLink route and checks it responds.
+ *
+ * If the deploy command itself succeeds but verification then fails, that is
+ * reported distinctly (stage "verify", with deployAttempted: true) -- it is
+ * never silently treated as a successful, trusted release. The deploy may
+ * well have gone through; what failed is confirming that.
  *
  * Documented limitation: this script deploys via the local Vercel CLI, not a
  * Git-triggered build, so there is no automatic, Vercel-verified link between
@@ -65,20 +81,50 @@ export function currentGitSha(exec = spawnSync) {
   return (result.stdout || "").trim() || "unknown";
 }
 
-export function parseProductionUrl(stdout) {
-  const match = String(stdout || "").match(/Production\s+(https?:\/\/\S+)/);
-  return match ? match[1] : null;
+/**
+ * Extract the deployment URL from a `vercel deploy --prod` invocation.
+ *
+ * Prefers the current, documented CLI contract: stdout is *just* the
+ * deployment URL, trimmed to a single line (this is what makes
+ * `URL=$(vercel deploy --prod)` work as Vercel's own canonical example).
+ * Falls back to scanning stdout+stderr for an older/human-formatted
+ * "Production      https://..." line, for resilience across CLI versions
+ * that print progress differently. Returns null rather than guessing when
+ * stdout doesn't match either shape, or when more than one distinct
+ * candidate URL turns up.
+ */
+export function parseProductionUrl({ stdout = "", stderr = "" } = {}) {
+  const stdoutLines = String(stdout || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (stdoutLines.length === 1 && /^https:\/\/\S+$/.test(stdoutLines[0])) {
+    return stdoutLines[0];
+  }
+
+  const combined = `${stdout || ""}\n${stderr || ""}`;
+  const matches = [...combined.matchAll(/Production\s+(https?:\/\/\S+)/g)];
+  const uniqueUrls = [...new Set(matches.map((m) => m[1]))];
+  if (uniqueUrls.length === 1) {
+    return uniqueUrls[0];
+  }
+
+  return null;
 }
 
 /**
  * Post-deploy verification, dependency-injected for testing. `exec` matches
  * child_process.spawnSync's signature: (command, args, options) => { status, stdout, stderr }.
  */
-export async function verifyDeployment({ stdout, exec, fetchFn, log = () => {}, errorLog = () => {} }) {
-  const productionUrl = parseProductionUrl(stdout);
+export async function verifyDeployment({ stdout, stderr, exec, fetchFn, log = () => {}, errorLog = () => {} }) {
+  const productionUrl = parseProductionUrl({ stdout, stderr });
   if (!productionUrl) {
-    errorLog("Could not find a Production deployment URL in Vercel CLI output; skipping structured verification.");
-    return { ok: false, stage: "verify", reason: "no-production-url" };
+    errorLog(
+      "Could not determine a single production deployment URL from Vercel CLI output " +
+        "(expected either a bare URL on stdout, or exactly one \"Production ... https://...\" line); " +
+        "skipping structured verification rather than guessing."
+    );
+    return { ok: false, stage: "verify", reason: "no-production-url", deployAttempted: true };
   }
 
   const inspectResult = exec("vercel", ["inspect", productionUrl, "--format=json"], { encoding: "utf8" });
@@ -121,12 +167,17 @@ export async function verifyDeployment({ stdout, exec, fetchFn, log = () => {}, 
   }
 
   if (problems.length > 0) {
-    errorLog(`Post-deploy verification found problems:\n${problems.map((p) => `  - ${p}`).join("\n")}`);
-    return { ok: false, stage: "verify", problems, deployment, liveOk };
+    errorLog(
+      `Post-deploy verification found problems:\n${problems.map((p) => `  - ${p}`).join("\n")}\n` +
+        "The deploy command itself succeeded, but this could NOT be confirmed as a correct VeilLink " +
+        "production release. Treat app.veildaemon.app's state as UNCONFIRMED, not as verified -- " +
+        "investigate with `vercel inspect` before trusting it."
+    );
+    return { ok: false, stage: "verify", problems, deployment, liveOk, deployAttempted: true };
   }
 
   log("Post-deploy verification passed: project, production target, aliases, and live route all confirmed.");
-  return { ok: true, stage: "verify", deployment, liveOk };
+  return { ok: true, stage: "verify", deployment, liveOk, deployAttempted: true };
 }
 
 /**
@@ -140,7 +191,6 @@ export async function runVeillinkDeploy({
   readProjectJsonFn = readProjectJson,
   gitShaFn = currentGitSha,
   dryRun = false,
-  skipVerify = false,
   log = console.log,
   errorLog = console.error,
 } = {}) {
@@ -165,23 +215,24 @@ export async function runVeillinkDeploy({
   if (deployResult.status !== 0) {
     errorLog(`VeilLink deploy failed (exit ${deployResult.status}).`);
     if (deployResult.stderr) errorLog(deployResult.stderr);
-    return { ok: false, stage: "deploy", status: deployResult.status };
+    return { ok: false, stage: "deploy", status: deployResult.status, deployAttempted: true };
   }
   if (deployResult.stdout) log(deployResult.stdout);
 
-  if (skipVerify) {
-    log("Skipping post-deploy verification (--skip-verify).");
-    return { ok: true, stage: "deployed", verified: false };
-  }
-
-  return verifyDeployment({ stdout: deployResult.stdout || "", exec, fetchFn, log, errorLog });
+  return verifyDeployment({
+    stdout: deployResult.stdout || "",
+    stderr: deployResult.stderr || "",
+    exec,
+    fetchFn,
+    log,
+    errorLog,
+  });
 }
 
 async function main() {
   const args = process.argv.slice(2);
   const dryRun = args.includes("--dry-run");
-  const skipVerify = args.includes("--skip-verify");
-  const result = await runVeillinkDeploy({ dryRun, skipVerify });
+  const result = await runVeillinkDeploy({ dryRun });
   if (!result.ok) process.exit(1);
 }
 
