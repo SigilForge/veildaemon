@@ -15,6 +15,7 @@ import {
   EXPECTED_VEILLINK_PROJECT,
   VEILLINK_PRODUCTION_ALIASES,
   verifyVeillinkProjectLink,
+  verifyVeillinkEnvironmentAuthority,
 } from "../../scripts/lib/veillinkDeployTarget.mjs";
 import {
   readProjectJson,
@@ -89,6 +90,43 @@ describe("verifyVeillinkProjectLink", () => {
   it("never suggests or performs relinking", () => {
     const result = verifyVeillinkProjectLink(null);
     assert.doesNotMatch(result.reason, /automatically relink|will relink|relinking for you/i);
+  });
+});
+
+describe("verifyVeillinkEnvironmentAuthority", () => {
+  // Vercel CLI's documented project-selection precedence is
+  // --project > VERCEL_PROJECT_ID/VERCEL_ORG_ID env vars > .vercel/project.json,
+  // so a correct project.json is not sufficient on its own if the environment
+  // overrides it. These tests cover that gap directly.
+
+  it("allows a clean environment with no VERCEL_PROJECT_ID/VERCEL_ORG_ID set at all", () => {
+    const result = verifyVeillinkEnvironmentAuthority({});
+    assert.equal(result.ok, true);
+  });
+
+  it("allows an environment where VERCEL_PROJECT_ID/VERCEL_ORG_ID happen to already match VeilLink", () => {
+    const result = verifyVeillinkEnvironmentAuthority({
+      VERCEL_PROJECT_ID: EXPECTED_VEILLINK_PROJECT.projectId,
+      VERCEL_ORG_ID: EXPECTED_VEILLINK_PROJECT.orgId,
+    });
+    assert.equal(result.ok, true);
+  });
+
+  it("fails closed when VERCEL_PROJECT_ID is set to a different project", () => {
+    const result = verifyVeillinkEnvironmentAuthority({ VERCEL_PROJECT_ID: "prj_7bgZ4yTaZOd5QsR6WOpXElo2pbpv" });
+    assert.equal(result.ok, false);
+    assert.match(result.reason, /VERCEL_PROJECT_ID/);
+  });
+
+  it("fails closed when VERCEL_ORG_ID is set to a different team/scope", () => {
+    const result = verifyVeillinkEnvironmentAuthority({ VERCEL_ORG_ID: "team_someoneElsesScope" });
+    assert.equal(result.ok, false);
+    assert.match(result.reason, /VERCEL_ORG_ID/);
+  });
+
+  it("never suggests unsetting or overriding the environment automatically", () => {
+    const result = verifyVeillinkEnvironmentAuthority({ VERCEL_PROJECT_ID: "prj_wrong" });
+    assert.doesNotMatch(result.reason, /will unset|automatically (unset|override|clear)/i);
   });
 });
 
@@ -192,6 +230,7 @@ describe("runVeillinkDeploy (fail-closed, no live calls)", () => {
       exec,
       readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
       gitShaFn: () => "deadbeefcafefeed",
+      env: {},
       dryRun: true,
       log: () => {},
       errorLog: () => {},
@@ -201,6 +240,95 @@ describe("runVeillinkDeploy (fail-closed, no live calls)", () => {
     assert.equal(calls.length, 0, "dry-run must not invoke exec at all");
     assert.ok(result.args.includes("--prod"));
     assert.ok(result.args.includes("gitSha=deadbeefcafefeed"));
+  });
+
+  it("the deploy args explicitly pin --project to the expected VeilLink project id", async () => {
+    const result = await runVeillinkDeploy({
+      exec: () => ({ status: 0, stdout: "", stderr: "" }),
+      readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
+      env: {},
+      dryRun: true,
+      log: () => {},
+      errorLog: () => {},
+    });
+    const projectFlagIndex = result.args.indexOf("--project");
+    assert.notEqual(projectFlagIndex, -1, "--project flag must be present");
+    assert.equal(result.args[projectFlagIndex + 1], EXPECTED_VEILLINK_PROJECT.projectId);
+  });
+
+  it("allows the deploy when the environment has no VERCEL_PROJECT_ID/VERCEL_ORG_ID at all", async () => {
+    const { exec, calls } = fakeExec();
+    const result = await runVeillinkDeploy({
+      exec,
+      readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
+      gitShaFn: () => "test-sha",
+      env: {},
+      dryRun: true,
+      log: () => {},
+      errorLog: () => {},
+    });
+    assert.equal(result.ok, true);
+    assert.equal(calls.length, 0);
+  });
+
+  it("allows the deploy when VERCEL_PROJECT_ID/VERCEL_ORG_ID happen to already match VeilLink", async () => {
+    const { exec, calls } = fakeExec();
+    const result = await runVeillinkDeploy({
+      exec,
+      readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
+      gitShaFn: () => "test-sha",
+      env: { VERCEL_PROJECT_ID: EXPECTED_VEILLINK_PROJECT.projectId, VERCEL_ORG_ID: EXPECTED_VEILLINK_PROJECT.orgId },
+      dryRun: true,
+      log: () => {},
+      errorLog: () => {},
+    });
+    assert.equal(result.ok, true);
+    assert.equal(calls.length, 0);
+  });
+
+  it("fails BEFORE any exec call when project.json is correct but VERCEL_PROJECT_ID env var points elsewhere", async () => {
+    const { exec, calls } = fakeExec();
+    const result = await runVeillinkDeploy({
+      exec,
+      readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
+      env: { VERCEL_PROJECT_ID: "prj_someOtherProject" },
+      log: () => {},
+      errorLog: () => {},
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.stage, "guard");
+    assert.match(result.reason, /VERCEL_PROJECT_ID/);
+    assert.equal(calls.length, 0, "exec must never be called when the environment overrides the project link");
+  });
+
+  it("fails BEFORE any exec call when project.json is correct but VERCEL_ORG_ID env var points elsewhere", async () => {
+    const { exec, calls } = fakeExec();
+    const result = await runVeillinkDeploy({
+      exec,
+      readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
+      env: { VERCEL_ORG_ID: "team_someOtherScope" },
+      log: () => {},
+      errorLog: () => {},
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.stage, "guard");
+    assert.match(result.reason, /VERCEL_ORG_ID/);
+    assert.equal(calls.length, 0, "exec must never be called when the environment overrides the org/scope");
+  });
+
+  it("fails BEFORE any exec call when the known root-API project id is injected via VERCEL_PROJECT_ID, not just project.json", async () => {
+    // Same incident, different vector: project.json is fine, but the environment
+    // points at the exact project that caused the original PR #17 confusion.
+    const { exec, calls } = fakeExec();
+    const result = await runVeillinkDeploy({
+      exec,
+      readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
+      env: { VERCEL_PROJECT_ID: "prj_7bgZ4yTaZOd5QsR6WOpXElo2pbpv" },
+      log: () => {},
+      errorLog: () => {},
+    });
+    assert.equal(result.ok, false);
+    assert.equal(calls.length, 0);
   });
 
   it("tags the deployment with the current git sha via --meta, using the current bare-URL stdout CLI shape", async () => {
@@ -232,6 +360,7 @@ describe("runVeillinkDeploy (fail-closed, no live calls)", () => {
       fetchFn,
       readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
       gitShaFn: () => "cafed00d",
+      env: {},
       log: () => {},
       errorLog: () => {},
     });
@@ -253,6 +382,7 @@ describe("runVeillinkDeploy (fail-closed, no live calls)", () => {
     const result = await runVeillinkDeploy({
       exec,
       readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
+      env: {},
       log: () => {},
       errorLog: () => {},
     });
@@ -277,6 +407,7 @@ describe("runVeillinkDeploy (fail-closed, no live calls)", () => {
       exec,
       fetchFn,
       readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
+      env: {},
       log: () => {},
       errorLog: () => {},
     });
@@ -303,6 +434,7 @@ describe("runVeillinkDeploy (fail-closed, no live calls)", () => {
       exec,
       fetchFn,
       readProjectJsonFn: () => ({ ...EXPECTED_VEILLINK_PROJECT }),
+      env: {},
       skipVerify: true, // stale caller habit; the function no longer has this parameter at all
       log: () => {},
       errorLog: () => {},

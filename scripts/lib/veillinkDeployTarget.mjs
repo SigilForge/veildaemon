@@ -81,3 +81,49 @@ export function verifyVeillinkProjectLink(projectJson, expected = EXPECTED_VEILL
       `(\`cd veillink && vercel link\`) and re-run.`,
   };
 }
+
+/**
+ * Pure check: does the process environment conflict with the expected
+ * VeilLink project? A correct `.vercel/project.json` is NOT sufficient on
+ * its own -- Vercel CLI's documented project-selection precedence is
+ * `--project` flag > `VERCEL_PROJECT_ID`/`VERCEL_ORG_ID` env vars >
+ * `.vercel/project.json`, so an inherited env var can silently redirect a
+ * deploy even when the link file is correct. Takes the environment object
+ * explicitly (defaults to none) so it never reaches into `process.env`
+ * itself -- callers inject `process.env` (or a test fixture).
+ *
+ * Absent env vars are fine (nothing to conflict with); only a *present and
+ * different* value fails closed. Never attempts to unset or correct the
+ * environment -- callers must fail closed and let a human fix it.
+ */
+export function verifyVeillinkEnvironmentAuthority(env = {}, expected = EXPECTED_VEILLINK_PROJECT) {
+  const envProjectId = env.VERCEL_PROJECT_ID;
+  const envOrgId = env.VERCEL_ORG_ID;
+  const mismatches = [];
+
+  if (envProjectId && envProjectId !== expected.projectId) {
+    mismatches.push(
+      `VERCEL_PROJECT_ID env var is set to "${envProjectId}", not the expected VeilLink project "${expected.projectId}"`
+    );
+  }
+  if (envOrgId && expected.orgId && envOrgId !== expected.orgId) {
+    mismatches.push(
+      `VERCEL_ORG_ID env var is set to "${envOrgId}", not the expected VeilLink org/team "${expected.orgId}"`
+    );
+  }
+
+  if (mismatches.length === 0) {
+    return { ok: true };
+  }
+
+  return {
+    ok: false,
+    reason:
+      `The environment overrides Vercel's project selection away from VeilLink. Vercel CLI's documented ` +
+      `precedence is --project > VERCEL_PROJECT_ID/VERCEL_ORG_ID > .vercel/project.json, so a correct ` +
+      `project.json is not enough on its own when one of these is set.\n` +
+      mismatches.map((m) => `  - ${m}`).join("\n") +
+      `\nRefusing to deploy. Unset the conflicting environment variable(s) yourself and re-run -- ` +
+      `this will not unset or override them for you.`,
+  };
+}

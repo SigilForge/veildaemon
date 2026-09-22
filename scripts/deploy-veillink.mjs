@@ -15,10 +15,18 @@
  * self-verifying, and no caller in this repo has a concrete need to bypass
  * that. If one ever does, add the bypass then, scoped to that need.
  *
- * Before deploying, verifies that veillink/.vercel/project.json is linked to
- * the expected VeilLink Vercel project (scripts/lib/veillinkDeployTarget.mjs).
- * If it does not match, this script aborts with a clear error and makes NO
- * deployment and NO relink attempt -- fail closed, always.
+ * Before deploying, verifies TWO independent things (scripts/lib/veillinkDeployTarget.mjs)
+ * because a correct one is not sufficient on its own:
+ *   1. veillink/.vercel/project.json is linked to the expected VeilLink project.
+ *   2. The environment does not override that link. Vercel CLI's documented
+ *      project-selection precedence is `--project` flag > `VERCEL_PROJECT_ID`/
+ *      `VERCEL_ORG_ID` env vars > `.vercel/project.json` -- so a correct link
+ *      file can still be silently overridden by an inherited env var. If
+ *      either check fails, this script aborts with a clear error and makes NO
+ *      deployment and NO relink/env-mutation attempt -- fail closed, always.
+ * The actual deploy command also pins `--project <expected id>` explicitly,
+ * since that flag is documented as the CLI's highest-precedence signal --
+ * belt and suspenders on top of the environment check above.
  *
  * After a real (non-dry-run) deploy, performs bounded verification:
  *   1. Parses the production deployment URL from the deploy command's
@@ -60,6 +68,7 @@ import {
   EXPECTED_VEILLINK_PROJECT,
   VEILLINK_PRODUCTION_ALIASES,
   verifyVeillinkProjectLink,
+  verifyVeillinkEnvironmentAuthority,
 } from "./lib/veillinkDeployTarget.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -127,6 +136,11 @@ export async function verifyDeployment({ stdout, stderr, exec, fetchFn, log = ()
     return { ok: false, stage: "verify", reason: "no-production-url", deployAttempted: true };
   }
 
+  // `vercel inspect <url>` addresses one globally-unique deployment by URL and has
+  // no documented --project flag of its own (checked via `vercel inspect --help`
+  // before writing this) -- there's nothing to pin here beyond what the caller's
+  // upstream env-authority check (verifyVeillinkEnvironmentAuthority) already
+  // guarantees before any vercel command in this script runs.
   const inspectResult = exec("vercel", ["inspect", productionUrl, "--format=json"], { encoding: "utf8" });
   let deployment = null;
   if (inspectResult.status === 0) {
@@ -190,6 +204,7 @@ export async function runVeillinkDeploy({
   fetchFn = typeof fetch === "function" ? fetch : undefined,
   readProjectJsonFn = readProjectJson,
   gitShaFn = currentGitSha,
+  env = process.env,
   dryRun = false,
   log = console.log,
   errorLog = console.error,
@@ -200,10 +215,30 @@ export async function runVeillinkDeploy({
     errorLog(`VeilLink deploy guard failed:\n${linkCheck.reason}`);
     return { ok: false, stage: "guard", reason: linkCheck.reason };
   }
+
+  // A correct project.json is not sufficient on its own -- an inherited
+  // VERCEL_PROJECT_ID/VERCEL_ORG_ID env var takes precedence over it in the
+  // Vercel CLI's own documented resolution order. Check that separately.
+  const envCheck = verifyVeillinkEnvironmentAuthority(env);
+  if (!envCheck.ok) {
+    errorLog(`VeilLink deploy guard failed:\n${envCheck.reason}`);
+    return { ok: false, stage: "guard", reason: envCheck.reason };
+  }
   log(`VeilLink Vercel link verified: ${EXPECTED_VEILLINK_PROJECT.projectName} (${EXPECTED_VEILLINK_PROJECT.projectId})`);
 
   const gitSha = gitShaFn(exec);
-  const deployArgs = ["--prod", "--yes", "--meta", `gitSha=${gitSha}`];
+  // --project pins the actual target explicitly. It's the CLI's documented
+  // highest-precedence project selector, so this holds even if some other
+  // ambient signal we haven't thought of exists -- belt and suspenders on
+  // top of the environment check above, not a replacement for it.
+  const deployArgs = [
+    "--prod",
+    "--yes",
+    "--project",
+    EXPECTED_VEILLINK_PROJECT.projectId,
+    "--meta",
+    `gitSha=${gitSha}`,
+  ];
 
   if (dryRun) {
     log(`[DRY RUN] Would run: vercel ${deployArgs.join(" ")} (cwd: ${cwd})`);
