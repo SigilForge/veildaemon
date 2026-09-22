@@ -7,7 +7,7 @@ import { buildMetadata, siteConfig } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Pricing",
-  description: `SigilForge Studios pricing across every product on one identity: Book One at $9.99, Creator Rights Records at ${(RIGHTS_PRICE_CENTS / 100).toFixed(2)} one-time, QR & Links from free, and Web Design from $250.`,
+  description: `SigilForge Studios pricing across every product on one identity: Book One at $9.99, Creator Rights Records at ${money(RIGHTS_PRICE_CENTS)} one-time, QR & Links from free, and Web Design from $250.`,
   path: "/pricing",
   keywords: [
     "SigilForge Studios pricing",
