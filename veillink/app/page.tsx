@@ -6,7 +6,7 @@ import { buildMetadata, faqJsonLd, siteConfig, websiteJsonLd } from "@/lib/seo";
 import { QrStudioPreview } from "@/components/QrStudioPreview";
 
 export const metadata: Metadata = buildMetadata({
-  title: `${siteConfig.name} · Dynamic QR Codes & Short Links`,
+  title: "Dynamic QR Codes & Short Links",
   description: siteConfig.description,
   path: "/",
   keywords: [

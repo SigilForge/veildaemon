@@ -38,8 +38,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin()),
   title: {
-    default: `${siteConfig.name} · Dynamic QR Codes & Short Links`,
-    template: `%s · ${siteConfig.name}`,
+    default: `${siteConfig.name} · SigilForge Studios`,
+    template: `%s · ${siteConfig.name} · SigilForge Studios`,
   },
   description: siteConfig.description,
   keywords: siteConfig.keywords,
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: absoluteUrl("/"),
     siteName: siteConfig.name,
-    title: `${siteConfig.name} · Dynamic QR Codes & Short Links`,
+    title: `${siteConfig.name} · SigilForge Studios`,
     description: siteConfig.description,
     images: [
       {
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} · Dynamic QR Codes & Short Links`,
+    title: `${siteConfig.name} · SigilForge Studios`,
     description: siteConfig.description,
     images: ["/twitter-image.png"],
   },
@@ -128,13 +128,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 height={40}
               />
               <span className="brand-text">
-                <span className="brand-mark">{product.name}</span>
-                <span className="brand-sub">go.veildaemon.app</span>
+                <span className="brand-mark">SigilForge</span>
+                <span className="brand-sub">{product.name}</span>
               </span>
             </Link>
             <nav className="nav-links" aria-label="Primary">
+              <a href="https://veildaemon.app/studio/" target="_blank" rel="noopener noreferrer">
+                Studio
+              </a>
+              <a href="https://veildaemon.app/" target="_blank" rel="noopener noreferrer">
+                Play
+              </a>
               <Link href="/pricing">Pricing</Link>
               <Link href={RIGHTS_PRODUCT_REGISTRY_PATH}>Creator Rights</Link>
+              <span className="nav-divider" aria-hidden="true" />
               {email ? (
                 <>
                   <Link href="/dashboard">Dashboard</Link>

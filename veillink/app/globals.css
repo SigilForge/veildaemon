@@ -262,6 +262,13 @@ h3 {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.nav-divider {
+  width: 1px;
+  height: 1.1rem;
+  background: var(--line-strong);
+  margin: 0 0.15rem;
+}
+
 .site-footer {
   margin-top: auto;
   padding: 2rem var(--pad) 1.75rem;
@@ -1920,6 +1927,10 @@ textarea {
 
   .nav-links a.button {
     grid-column: 1 / -1;
+  }
+
+  .nav-divider {
+    display: none;
   }
 
   .rights-product-chrome {
