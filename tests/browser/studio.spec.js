@@ -47,7 +47,7 @@ async function assertLocalAssets(page, routePath) {
     document.querySelectorAll("img[src], a[href], link[href], script[src]").forEach((el) => {
       const raw = el.getAttribute("src") || el.getAttribute("href");
       if (!raw) return;
-      if (raw.startsWith("mailto:") || raw.startsWith("http") || raw.startsWith("//") || raw.startsWith("#")) return;
+      if (raw.startsWith("mailto:") || raw.startsWith("tel:") || raw.startsWith("sms:") || raw.startsWith("http") || raw.startsWith("//") || raw.startsWith("#")) return;
       if (raw.startsWith("data:")) return;
       if (raw.includes("/_vercel/")) return;
       urls.add(raw);
@@ -111,7 +111,6 @@ test.describe("studio subtree routes", () => {
       "/studio/funding/"
     );
     await expect(page.locator('footer.site-footer a[href="/studio/web-design/"]')).toHaveCount(1);
-    await expect(page.locator('script[src="/_vercel/insights/script.js"]')).toHaveCount(1);
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
@@ -265,7 +264,7 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("main")).not.toContainText(/client testimonial/i);
     await expect(page.locator("main")).not.toContainText(/500% increase/i);
     await expect(page.locator("#pricing .wd-price-card")).toHaveCount(3);
-    await expect(page.locator("#pricing .wd-price-card.featured")).toContainText("Most Popular");
+    await expect(page.locator("#pricing .wd-price-card.featured")).toContainText("Recommended");
     await expect(page.locator("#pricing .wd-price-card.featured")).toContainText("Business");
     await expect(page.locator("#pricing .wd-price-card.featured")).toContainText("Starting at $500");
     await expect(page.locator("#care-plans .wd-price-card")).toHaveCount(3);
@@ -333,7 +332,7 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /technology-og\.jpg/);
     await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", /technology-og\.jpg/);
     await expect(page.locator(".technology-brief")).toContainText("Operator + Handler · VeilLink · deliberate Cell sync");
-    await expect(page.locator(".technology-brief")).toContainText("Local edit · deliberate sync · no polling · no WebSockets for table state");
+    await expect(page.locator(".technology-brief")).toContainText("Local edit · deliberate sync · no polling · no WebSockets for Cell state");
     await expect(page.locator("#trust-boundaries")).toContainText(/stay under local control/i);
     await expect(page.locator("#trust-boundaries")).toContainText(/separate Studio review/i);
     await expect(page.locator("#next-platform-work")).toContainText(/Reliability and operations/i);
@@ -467,12 +466,12 @@ test.describe("studio subtree routes", () => {
   test("positioning stays mythpunk, publishing-first, and technically bounded", async ({ page }) => {
     await page.goto("/studio/");
     await expect(page.locator(".portal-hero-copy")).toContainText(/mythpunk studio/i);
-    await expect(page.locator(".portal-hero-copy")).toContainText(/emotional-physics framework/i);
+    await expect(page.locator(".portal-hero-copy")).toContainText(/strange fiction, tabletop games, and software/i);
     await expect(page.locator(".portal-proof")).toContainText(/internally audited rules words/i);
 
     await page.goto("/studio/technology/");
     await expect(page.locator("#veildaemon-today")).toContainText(/Purpose-built browser infrastructure/i);
-    await expect(page.locator("#veildaemon-today")).toContainText(/working table software/i);
+    await expect(page.locator("#veildaemon-today")).toContainText(/working play software/i);
     await expect(page.locator("#veildaemon-today")).toContainText(/not presented as a proprietary AI framework/i);
 
     await page.goto("/studio/projects/");
