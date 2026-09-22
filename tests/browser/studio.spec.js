@@ -563,7 +563,7 @@ test.describe("studio subtree routes", () => {
     );
     expect(portalArt.length).toBeGreaterThan(3);
     for (const img of portalArt) {
-      expect(img.src, img.src).toMatch(/\?v=20260712-srcfix1|\?v=20260712-navunity1|\?v=20260723-vl1|\?v=20260727-list1|\?v=20260727-news1/);
+      expect(img.src, img.src).toMatch(/\?v=20260712-srcfix1|\?v=20260712-navunity1|\?v=20260723-vl1|\?v=20260727-list1|\?v=20260727-news1|\?v=20260922-vl2/);
       // versioned src still required for art plates
       expect(img.src.includes("?v="), img.src).toBeTruthy();
     }
