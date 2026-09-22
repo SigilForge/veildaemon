@@ -65,12 +65,14 @@ A single Vitest file: `TMPDIR=/tmp TEMP=/tmp TMP=/tmp npx vitest run path/to/fil
 
 ## Deploy surfaces (do not conflate these)
 
-| Surface | Host | Source | How it ships |
-|---|---|---|---|
-| Public static site | GitHub Pages, `veildaemon.app` | repo root static files | `git push origin main` (legacy branch build, 10–15 min; **not** GitHub Actions Pages — see `README_DEPLOY.md`) |
-| Root API | Vercel project, `api.veildaemon.app` | `api/*`, root `vercel.json` | via `npm run push` / manual Vercel deploy |
-| VeilLink | Vercel project, `app.veildaemon.app` | `veillink/` (isolated) | via `npm run push` |
-| RelayDaemon | Vercel project `veildaemon-relay`, `relay.veildaemon.app` | `studio/relay/*` | **not** included in a plain git push or `npm run push` — needs explicit `npm run relay:vercel:prepare && cd _relay-vercel && vercel deploy --prod` after `npm run relay:acceptance` passes |
+| Surface | Host | Vercel project | Source | How it ships |
+|---|---|---|---|---|
+| Public static site | GitHub Pages, `veildaemon.app` | — (not Vercel) | repo root static files | `git push origin main` (legacy branch build, 10–15 min; **not** GitHub Actions Pages — see `README_DEPLOY.md`) |
+| Root API | `api.veildaemon.app` | `veildaemon` (`prj_7bgZ4yTaZOd5QsR6WOpXElo2pbpv`) | `api/*`, root `vercel.json` | via `npm run push` / manual Vercel deploy |
+| VeilLink | `app.veildaemon.app`, `go.veildaemon.app` | **`veillink`** (`prj_yIporTovuVLyKTbvfPtxGi6uwuiQ`) — a **separate** Vercel project from the row above | `veillink/` (isolated) | `npm run veillink:deploy` (or `npm run push`, which now calls the same guarded path) — **never** a raw `cd veillink && vercel --prod --yes`; see `scripts/deploy-veillink.mjs` |
+| RelayDaemon | Vercel project `veildaemon-relay`, `relay.veildaemon.app` | `veildaemon-relay` | `studio/relay/*` | **not** included in a plain git push or `npm run push` — needs explicit `npm run relay:vercel:prepare && cd _relay-vercel && vercel deploy --prod` after `npm run relay:acceptance` passes |
+
+**A green "Vercel" check on a GitHub PR/commit for this repo is a check for the root `veildaemon` project — it is NOT proof that VeilLink has deployed.** These are two separate Vercel projects with two separate deployment histories; GitHub's integration only surfaces one of them as a commit status. VeilLink release proof requires (a) `veillink/.vercel/project.json` linked to the `veillink` project ID above, (b) a VeilLink deployment itself (`npm run veillink:deploy`), and (c) that deploy's own production verification (project name, `production` target, `app.veildaemon.app`/`go.veildaemon.app` aliases, and a live route responding) — not the root project's CI status. This exact confusion shipped PR #17's code correctly while leaving `app.veildaemon.app` on a stale build; see `scripts/deploy-veillink.mjs` for the guard that now prevents deploying VeilLink source into the wrong project, and always run `npm run veillink:deploy:dry-run` first if you are ever unsure which project is linked.
 
 Client-side JS on the GitHub Pages static host must call `https://api.veildaemon.app` for `/api/*` (not relative paths) unless `window.location.hostname` is `localhost`/`127.0.0.1`/a non-production preview. Supabase migrations live only in root `supabase/migrations/`; `veillink/supabase/migrations/` is a stale, unmaintained duplicate — never add new migrations there.
 
