@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { buildMetadata } from "@/lib/seo";
@@ -22,11 +23,25 @@ export default async function VeilLinkHomePage() {
 
   return (
     <main className="page">
-      <p className="eyebrow">Signed in as {user.email}</p>
-      <h1 className="page-title">VeilLink</h1>
-      <p className="lede">
-        Your SigilForge identity, ownership, and connection layer. Everything below runs on this one account.
-      </p>
+      <section className="hero hero-grid">
+        <div>
+          <p className="eyebrow">Signed in as {user.email}</p>
+          <h1>Same identity. Further.</h1>
+          <p className="lede">
+            Your SigilForge identity, ownership, and connection layer. Everything below runs on this one account.
+          </p>
+        </div>
+        <figure className="portal-hero-art">
+          <Image
+            src="/brand/hero-veillink-home.webp"
+            alt="A VeilLink account access card on a desk beside Book One, Creator Rights, Connected Play, and QR & Links records"
+            width={1672}
+            height={941}
+            priority
+            sizes="(max-width: 900px) 100vw, 45vw"
+          />
+        </figure>
+      </section>
       <section className="grid">
         <div className="panel">
           <h2>Connected Play</h2>
