@@ -2,58 +2,21 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { plans } from "@/lib/config";
 import { RIGHTS_PRICE_CENTS, RIGHTS_PRICE_LABEL } from "@/lib/rights/schema";
-import { buildMetadata, pricingJsonLd, siteConfig } from "@/lib/seo";
+import { RIGHTS_PRODUCT_ADVISOR_PATH, RIGHTS_PRODUCT_CREATE_PATH, RIGHTS_PRODUCT_STUDIO_OVERVIEW } from "@/lib/rights/product-nav";
+import { buildMetadata, siteConfig } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Pricing — Dynamic Redirects & SigilForge Rights (SFR)",
-  description: `${siteConfig.name} pricing: free plan with 3 active redirects, Pro at $7/mo, Business at $19/mo, plus one-time Creator Rights Records ($1.99 Founders lifetime Registry license) under the SigilForge Rights Framework (SFR).`,
+  title: "Pricing",
+  description: `SigilForge Studios pricing across every product on one identity: Book One at $9.99, Creator Rights Records at ${(RIGHTS_PRICE_CENTS / 100).toFixed(2)} one-time, QR & Links from free, and Web Design from $250.`,
   path: "/pricing",
   keywords: [
-    "dynamic QR code pricing",
-    "cheap editable QR codes",
-    "short link subscription",
-    "SigilForge Rights SFR",
+    "SigilForge Studios pricing",
+    "VeilLink pricing",
     "creator rights record CRR pricing",
-    "creator rights registry cost",
-    "lifetime rights record license",
+    "dynamic QR code pricing",
+    "web design pricing",
   ],
 });
-
-const rows = [
-  ["Dynamic redirects", "3 active", "100 active", "1,000 active"],
-  ["Editable destinations", "Yes", "Yes", "Yes"],
-  ["Analytics", "Total count", "Basic dashboard", "Basic dashboard"],
-  ["Expiration dates", "No", "Yes", "Yes"],
-  ["Path links", "Yes", "Yes", "Yes"],
-  ["Wildcard subdomain links", "No", "Yes", "Yes"],
-  ["Custom domains", "No", "No", "Planned"],
-];
-
-const planCopy = {
-  free: {
-    blurb: "Prove the workflow on a few codes before you print a crate of stickers.",
-    features: ["3 active redirects", "Editable destinations", "Total scan count", "Path links on go.veildaemon.app"],
-  },
-  pro: {
-    blurb: "The default for shops, venues, and creators who actually ship printed materials.",
-    features: [
-      "100 active redirects",
-      "Basic analytics dashboard",
-      "Expiration dates",
-      "Path + subdomain routing",
-    ],
-  },
-  business: {
-    blurb: "More headroom when you are running campaigns, locations, or a messy multi-code inventory.",
-    features: [
-      "1,000 active redirects",
-      "Basic analytics dashboard",
-      "Expiration dates",
-      "Path + subdomain routing",
-      "Custom domains planned",
-    ],
-  },
-} as const;
 
 function money(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
@@ -62,54 +25,50 @@ function money(cents: number) {
 export default function PricingPage() {
   return (
     <main className="page">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingJsonLd()) }}
-      />
       <p className="eyebrow">Pricing</p>
-      <h1 className="page-title">Clear products. No theatrical tiers.</h1>
+      <h1 className="page-title">What SigilForge Studios sells, and what it costs.</h1>
       <p className="lede">
-        Dynamic redirects for editable QR links, plus one-time Creator Rights Records for durable publication provenance.
-        Transparent pricing, zero hidden fees.
+        One SigilForge identity, several products. This page is the catalog — each product keeps its own detailed
+        pricing and checkout where it already lives; this page summarizes and routes you there.
       </p>
 
-      <section className="price-grid" aria-label="VeilLink Redirect Plans">
-        {Object.values(plans).map((plan) => {
-          const copy = planCopy[plan.id as keyof typeof planCopy];
-          const featured = plan.id === "pro";
-          return (
-            <article className={`price-card${featured ? " featured" : ""}`} key={plan.id}>
-              {featured ? <span className="price-badge">Most common</span> : null}
-              <p className="panel-kicker">{plan.label} Redirects</p>
-              <p className="amount">
-                {plan.monthlyPrice ? (
-                  <>
-                    ${plan.monthlyPrice}
-                    <span>/mo</span>
-                  </>
-                ) : (
-                  <>$0</>
-                )}
-              </p>
-              <p className="muted">
-                {plan.yearlyPrice ? `$${plan.yearlyPrice}/yr if you prefer annual` : "Start small. Upgrade later."}
-              </p>
-              <p>{copy.blurb}</p>
-              <ul>
-                {copy.features.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <Link className="button" href="/signup">
-                {plan.id === "free" ? "Start free" : `Start ${plan.label}`}
+      <section className="section" aria-labelledby="publishing-pricing-heading">
+        <div className="section-head">
+          <p className="eyebrow">Publishing</p>
+          <h2 id="publishing-pricing-heading">Book One and the wider TTRPG line.</h2>
+        </div>
+        <div className="grid">
+          <div className="panel">
+            <p className="panel-kicker">Direct digital</p>
+            <h2>Book One — $9.99 launch sale price</h2>
+            <p className="muted">
+              The Anchor and the Glitch. DRM-free PDF, EPUB, and MOBI, plus a wallpaper pack, kept in your VeilLink
+              account.
+            </p>
+            <p>
+              <Link className="button secondary" href="/book-one">
+                Get Book One
               </Link>
-            </article>
-          );
-        })}
+            </p>
+          </div>
+          <div className="panel">
+            <p className="panel-kicker">Tabletop line</p>
+            <h2>TTRPG products</h2>
+            <p className="muted">
+              Cradlepoint tabletop releases, dossiers, and Studio editions ship through the itch storefront — current
+              pricing lives there, not here.
+            </p>
+            <p>
+              <a className="button secondary" href="https://play.veildaemon.app/" target="_blank" rel="noopener noreferrer">
+                See TTRPG products
+              </a>
+            </p>
+          </div>
+        </div>
       </section>
 
-      <section className="section panel rights-pricing-section" style={{ marginTop: "2.5rem" }}>
-        <p className="eyebrow">Standalone Product · SFR</p>
+      <section className="section panel rights-pricing-section" aria-labelledby="rights-pricing-heading" style={{ marginTop: "2.5rem" }}>
+        <p className="eyebrow" id="rights-pricing-heading">Creator Rights · SFR</p>
         <h2>SigilForge Rights (SFR) — Creator Rights Records (CRR)</h2>
         <p className="lede" style={{ fontSize: "1rem", margin: "0.25rem 0 1.25rem" }}>
           A standalone, creator-declared publication record with machine-readable AI permissions, SHA-256 fingerprinting,
@@ -136,51 +95,93 @@ export default function PricingPage() {
             <li><strong>Free public Advisor</strong> available without an account to inspect files and compare SPDX licenses</li>
           </ul>
           <div className="dashboard-actions" style={{ marginTop: "1rem" }}>
-            <Link className="button" href="/rights/create">
+            <Link className="button" href={RIGHTS_PRODUCT_CREATE_PATH}>
               Preserve rights record
             </Link>
-            <Link className="button secondary" href="/rights/advisor">
+            <Link className="button secondary" href={RIGHTS_PRODUCT_ADVISOR_PATH}>
               Open public Advisor
             </Link>
-            <a className="button secondary" href="https://veildaemon.app/studio/creator-rights/" target="_blank" rel="noopener noreferrer">
+            <a className="button secondary" href={RIGHTS_PRODUCT_STUDIO_OVERVIEW} target="_blank" rel="noopener noreferrer">
               SigilForge Rights overview
             </a>
           </div>
         </article>
-        <p className="note" style={{ marginTop: "1rem", fontSize: "0.8125rem" }}>
-          Registry fees support long-term record storage, verification infrastructure, maintenance, and the continued operation of this independent creator-focused service under the SigilForge Rights Framework. Your record is portable: export a complete Creator Dossier anytime so your evidence and provenance remain under your control.
+      </section>
+
+      <section className="section" aria-labelledby="links-pricing-heading" style={{ marginTop: "2.5rem" }}>
+        <div className="section-head">
+          <p className="eyebrow">QR &amp; Links</p>
+          <h2 id="links-pricing-heading">Dynamic redirects, from free.</h2>
+        </div>
+        <div className="grid">
+          {Object.values(plans).map((plan) => (
+            <div className="panel" key={plan.id}>
+              <p className="panel-kicker">{plan.label}</p>
+              <p className="amount">
+                {plan.monthlyPrice ? (
+                  <>
+                    ${plan.monthlyPrice}
+                    <span>/mo</span>
+                  </>
+                ) : (
+                  <>$0</>
+                )}
+              </p>
+              <p className="muted">{plan.activeRedirectLimit.toLocaleString()} active redirects</p>
+            </div>
+          ))}
+        </div>
+        <p style={{ marginTop: "1rem" }}>
+          <Link className="button secondary" href="/links/pricing">
+            See full QR &amp; Links pricing &amp; feature comparison
+          </Link>
         </p>
       </section>
 
-      <section className="section panel">
-        <h2>Plain-English limits for dynamic redirects</h2>
-        <div style={{ overflowX: "auto", maxWidth: "100%" }}>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th>Free</th>
-                <th>Pro</th>
-                <th>Business</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row[0]}>
-                  {row.map((cell) => (
-                    <td key={`${row[0]}-${cell}`}>{cell}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <section className="section" aria-labelledby="client-services-heading" style={{ marginTop: "2.5rem" }}>
+        <div className="section-head">
+          <p className="eyebrow">Client Services</p>
+          <h2 id="client-services-heading">Web Design.</h2>
         </div>
-        <p className="note">
-          Exported static QR files are yours. Dynamic redirects depend on the service remaining active. Paid checkout and
-          subscription management are handled through Stripe; webhook-driven billing state supplies the signal for plan
-          changes and cancellation.
-        </p>
+        <div className="panel">
+          <p className="muted">
+            Small-business web design and monthly care plans, scoped and billed on the Studio site — the pricing below
+            is a summary; the authoritative packages, terms, and checkout live at{" "}
+            <a href="https://veildaemon.app/studio/web-design/" target="_blank" rel="noopener noreferrer">
+              /studio/web-design/
+            </a>
+            .
+          </p>
+          <div style={{ display: "grid", gap: "1.5rem", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 15rem), 1fr))", marginTop: "1rem" }}>
+            <div>
+              <p className="panel-kicker">Build</p>
+              <ul>
+                <li>Launch Page — from $250</li>
+                <li>Business — from $500</li>
+                <li>Custom — from $900</li>
+              </ul>
+            </div>
+            <div>
+              <p className="panel-kicker">Care · monthly</p>
+              <ul>
+                <li>Website Care — $40/mo</li>
+                <li>Business Care — $75/mo</li>
+                <li>Growth Partner — $150/mo</li>
+              </ul>
+            </div>
+          </div>
+          <p style={{ marginTop: "1rem" }}>
+            <a className="button secondary" href="https://veildaemon.app/studio/web-design/" target="_blank" rel="noopener noreferrer">
+              See Web Design packages &amp; book
+            </a>
+          </p>
+        </div>
       </section>
+
+      <p className="note" style={{ marginTop: "2rem" }}>
+        {siteConfig.name} is the account and identity layer across SigilForge Studios. Paid checkout and subscription
+        management for each product above are handled by that product&apos;s own surface, not this page.
+      </p>
     </main>
   );
 }
