@@ -1,193 +1,110 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { product } from "@/lib/config";
-import { buildMetadata, faqJsonLd, siteConfig, websiteJsonLd } from "@/lib/seo";
-
-import { QrStudioPreview } from "@/components/QrStudioPreview";
+import { AuthForm } from "@/components/AuthForm";
+import { buildMetadata } from "@/lib/seo";
+import { RIGHTS_PRODUCT_ADVISOR_PATH, RIGHTS_PRODUCT_REGISTRY_PATH } from "@/lib/rights/product-nav";
+import { login } from "./(auth)/actions";
 
 export const metadata: Metadata = buildMetadata({
-  title: "Dynamic QR Codes & Short Links",
-  description: siteConfig.description,
+  // The root page shares its segment with the root layout, so title.template does NOT
+  // apply here (only to nested child routes) -- write the full resolved title directly.
+  title: "VeilLink · SigilForge Studios",
+  description:
+    "VeilLink is the account, ownership, and identity layer across SigilForge Studios: connected play, Book One, Creator Rights, and QR & Links.",
   path: "/",
-  keywords: [
-    "print once change QR destination",
-    "stable QR code for menus",
-    "business QR code short link",
-    "editable destination QR",
-  ],
 });
 
-export default function HomePage() {
+export default function PortalPage() {
   return (
     <main className="page">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd()) }}
-      />
       <section className="hero hero-grid">
         <div>
-          <p className="eyebrow">Short links · dynamic QR</p>
-          <h1>
-            Editable QR codes
-            <br />
-            without the <em>ransom note</em>.
-          </h1>
+          <p className="eyebrow">VeilLink</p>
+          <h1>One account across SigilForge Studios.</h1>
           <p className="lede">
-            Print once. Change the destination whenever the business moves. Your QR stays the same file; the redirect
-            behind it updates when you do.
+            Sign in to access your purchases, Creator Rights records, connected play identity, QR &amp; links, and
+            account tools — one SigilForge identity for everything below.
           </p>
-          <div className="toolbar">
-            <Link className="button" href="/signup">
-              Create a free link
-            </Link>
-            <Link className="button secondary" href="/pricing">
-              See pricing
-            </Link>
-          </div>
-          <div className="proof-row" aria-label="Product traits">
-            <span className="proof-chip">PNG + SVG downloads</span>
-            <span className="proof-chip">Scan counts</span>
-            <span className="proof-chip">Pause + expire</span>
-            <span className="proof-chip">No fake metrics</span>
-          </div>
         </div>
-
-        <aside className="demo-plate" aria-label="How a VeilLink redirect works">
-          <a
-            className="demo-qr"
-            href="https://play.veildaemon.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Scan or open play.veildaemon.app"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/brand/demo-qr-play.webp?v=20260723-neon1"
-              alt="Colorful QR code linking to play.veildaemon.app"
-              width={688}
-              height={688}
-              decoding="async"
-            />
-          </a>
-          <div className="demo-meta">
-            <strong>One code. Moving target.</strong>
-            <span>
-              This is an <em>example</em> plate — neon styling and center mark to show how custom a QR can look while still scanning.
-              Live target:{" "}
-              <a href="https://play.veildaemon.app/" target="_blank" rel="noopener noreferrer">
-                play.veildaemon.app
-              </a>
-              .
-            </span>
-            <span className="demo-note">
-              Your VeilLink exports can use your own colors and branding; the printed code stays fixed while the destination behind it changes.
-            </span>
-          </div>
-          <div className="demo-flow" aria-hidden="true">
-            <b>Printed QR</b>
-            <em>→</em>
-            <b>play.veildaemon.app</b>
-          </div>
-          <div className="demo-flow" aria-hidden="true">
-            <b>{product.pathHost}/you</b>
-            <em>→</em>
-            <b>your live URL</b>
-          </div>
-        </aside>
+        <AuthForm embedded title="Log in" action={login} submit="Log in" next="/home" />
       </section>
 
-      <section className="section" aria-label="Interactive QR Studio Sandbox">
-        <QrStudioPreview />
-      </section>
-
-      <section className="section" aria-labelledby="how-heading">
+      <section className="section" aria-labelledby="portal-doors-heading">
         <div className="section-head">
-          <p className="eyebrow">How it works</p>
-          <h2 id="how-heading">A stable front door for destinations that change.</h2>
-        </div>
-        <div className="steps">
-          <article>
-            <div>
-              <h3>Create a short link</h3>
-              <p className="muted">
-                Pick a slug on {product.pathHost}. That URL is what the QR encodes—not your current booking page.
-              </p>
-            </div>
-          </article>
-          <article>
-            <div>
-              <h3>Print or share the QR</h3>
-              <p className="muted">
-                Download PNG or SVG. Stickers, flyers, menus, and tables can use a code that does not age out with the
-                first redesign.
-              </p>
-            </div>
-          </article>
-          <article>
-            <div>
-              <h3>Edit the destination later</h3>
-              <p className="muted">
-                Swap the landing page, pause traffic, or set an expiration—without regenerating every physical print.
-              </p>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section className="section" aria-label={`${product.name} features`}>
-        <div className="section-head">
-          <p className="eyebrow">What you get</p>
-          <h2>Useful by default. Honest about tradeoffs.</h2>
+          <p className="eyebrow">What VeilLink covers</p>
+          <h2 id="portal-doors-heading">Five products. One identity.</h2>
         </div>
         <div className="grid">
           <div className="panel">
-            <p className="panel-kicker">Dynamic redirects</p>
-            <h2>Change the target, keep the code</h2>
+            <h2>Connected Play</h2>
             <p className="muted">
-              The QR points at a VeilLink URL you control. Update the destination when the business does.
+              Your identity for Operator + Handler and Connect to Cell. Cell connection and sign-in happen inside the
+              play surface itself.
+            </p>
+            <div className="toolbar">
+              <a className="button secondary" href="https://veildaemon.app/operator/">
+                Open Operator
+              </a>
+              <a className="button secondary" href="https://veildaemon.app/handler/">
+                Open Handler
+              </a>
+            </div>
+          </div>
+          <div className="panel">
+            <h2>Book One / Library</h2>
+            <p className="muted">Purchase and recover The Anchor and the Glitch direct digital edition.</p>
+            <p>
+              <Link className="button secondary" href="/book-one">
+                Get Book One
+              </Link>
             </p>
           </div>
           <div className="panel">
-            <p className="panel-kicker">Static truth</p>
-            <h2>Static vs dynamic, plain English</h2>
-            <p className="muted">
-              Static QR files keep working as files. Dynamic redirects depend on this service staying active—we say that
-              out loud.
+            <h2>Creator Rights</h2>
+            <p className="muted">Create, manage, verify, and license permanent rights records.</p>
+            <div className="toolbar">
+              <Link className="button secondary" href={RIGHTS_PRODUCT_REGISTRY_PATH}>
+                Registry
+              </Link>
+              <Link className="button secondary" href={RIGHTS_PRODUCT_ADVISOR_PATH}>
+                Free Advisor
+              </Link>
+            </div>
+          </div>
+          <div className="panel">
+            <h2>QR &amp; Links</h2>
+            <p className="muted">Stable QR codes, editable destinations, downloads, and scan records.</p>
+            <p>
+              <Link className="button secondary" href="/links">
+                Manage QR &amp; Links
+              </Link>
             </p>
           </div>
           <div className="panel">
-            <p className="panel-kicker">Operator tools</p>
-            <h2>Counts, pause, and expiry</h2>
-            <p className="muted">
-              Scan totals, pause controls, expiration dates, and short-path or subdomain routing when your plan allows.
-            </p>
-          </div>
-          <div className="panel">
-            <p className="panel-kicker">Built for sanity</p>
-            <h2>No theatrical SaaS fog</h2>
-            <p className="muted">
-              No fake customer counts, no mystery lock-in, no pretending a redirect is more magical than it is.
+            <h2>Account &amp; Billing</h2>
+            <p className="muted">Identity, plan, purchases, and billing — sign in to manage them.</p>
+            <p>
+              <Link className="button secondary" href="/login?next=%2Faccount">
+                Account
+              </Link>
             </p>
           </div>
         </div>
       </section>
 
       <section className="closing" aria-labelledby="closing-heading">
-        <p className="eyebrow">Start small</p>
-        <h2 id="closing-heading">Three free active redirects. Upgrade when the wall of stickers gets real.</h2>
+        <p className="eyebrow">New here</p>
+        <h2 id="closing-heading">Create a free account to start on any of the above.</h2>
         <p className="lede">
-          Free is enough to prove the workflow. Pro and Business add capacity when you are past the experiment stage.
+          One account, one SigilForge identity. Start from whichever product brought you here — the rest stay one
+          sign-in away.
         </p>
         <div className="toolbar">
           <Link className="button" href="/signup">
-            Start free
+            Create a free account
           </Link>
           <Link className="button secondary" href="/pricing">
-            Compare plans
+            See QR &amp; Links pricing
           </Link>
         </div>
       </section>

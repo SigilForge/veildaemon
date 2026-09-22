@@ -2776,10 +2776,7 @@ footer > p {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: .5rem;
 }
-.portfolio-card .card-actions-triple {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-.portfolio-card .card-actions-triple .action-wide {
+.portfolio-card .card-actions .action-wide {
   grid-column: 1 / -1;
   justify-content: center;
 }
