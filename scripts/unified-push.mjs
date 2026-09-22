@@ -174,11 +174,15 @@ async function main() {
   } else {
     logStep("Phase 5: Vercel Deployments");
 
-    // 5a. VeilLink App (app.veildaemon.app)
+    // 5a. VeilLink App (app.veildaemon.app) -- via the guarded deploy path
+    // (scripts/deploy-veillink.mjs), never a raw `vercel --prod --yes`. That
+    // script verifies veillink/.vercel/project.json targets the correct,
+    // separate VeilLink Vercel project before deploying anything -- see
+    // AGENTS.md "Deploy Surfaces" for why that distinction matters.
     logStep("5a. Deploying VeilLink (app.veildaemon.app)...");
     const veillinkDir = resolve(root, "veillink");
     if (existsSync(veillinkDir)) {
-      run("vercel", ["--prod", "--yes"], { cwd: veillinkDir });
+      run("node", ["scripts/deploy-veillink.mjs"], { cwd: root });
       logOk("VeilLink production build deployed to app.veildaemon.app");
     }
 
