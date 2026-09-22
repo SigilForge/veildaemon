@@ -13,6 +13,7 @@
     "test:rights-registry-api": "node --test tests/unit/test_creator_rights_registry_api.js",
     "smoke:forge-bridge": "node scripts/smoke-forge-stream-bridge.mjs",
     "browser:check": "playwright test",
+    "browser:veillink": "playwright test tests/browser/veillink-routing.spec.js tests/browser/studio.spec.js --grep VeilLink --workers=1",
     "browser:server": "node scripts/playwright-static-server.mjs",
     "stream:brb:build": "node scripts/build-brb-screen-webm.mjs",
     "stream:brb:check": "node scripts/verify-brb-overlay.mjs",

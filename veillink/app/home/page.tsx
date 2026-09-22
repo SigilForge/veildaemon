@@ -15,7 +15,7 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function VeilLinkHomePage() {
-  const { user, profile } = await requireUser().catch(() => redirect("/login?next=/home"));
+  const { user, profile } = await requireUser().catch(() => redirect("/"));
   const [usage, rightsRecords] = await Promise.all([
     getUsage(user.id, profile.plan).catch(() => null),
     listOwnedRightsRecords(user.id).catch(() => null),

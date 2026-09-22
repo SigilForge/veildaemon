@@ -36,7 +36,10 @@ export async function login(formData: FormData) {
     email: field(formData, "email"),
     password: field(formData, "password"),
   });
-  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+  if (error) {
+    const loginPath = next === "/home" ? "/" : "/login";
+    redirect(`${loginPath}?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+  }
   redirect(next);
 }
 

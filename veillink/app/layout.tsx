@@ -153,7 +153,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <>
                   {/* Always expose Account on QR product chrome (login with return). */}
                   <ProductAccountLink product="qr" signedIn={false} />
-                  <Link href="/login">Log in</Link>
+                  <Link href="/">Log in</Link>
                   <Link className="button" href="/signup">
                     Start free
                   </Link>

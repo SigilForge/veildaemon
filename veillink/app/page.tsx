@@ -15,7 +15,12 @@ export const metadata: Metadata = buildMetadata({
   path: "/",
 });
 
-export default function PortalPage() {
+export default async function PortalPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
   return (
     <main className="page">
       <section className="hero hero-grid">
@@ -101,7 +106,7 @@ export default function PortalPage() {
               </p>
             </div>
           </div>
-          <AuthForm embedded title="Log in" action={login} submit="Log in" next="/home" />
+          <AuthForm embedded title="Log in" action={login} submit="Log in" next="/home" error={params.error} />
         </div>
       </section>
 

@@ -87,7 +87,7 @@ export function AuthForm({ title, action, submit, error, sent, verified, email, 
         <button type="submit">{submit}</button>
         <p className="muted">
           {signup ? (
-            <Link href={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}>Already have an account?</Link>
+            <Link href={next && next !== "/home" ? `/login?next=${encodeURIComponent(next)}` : "/"}>Already have an account?</Link>
           ) : (
             <>
               <Link href="/reset">Reset password</Link>

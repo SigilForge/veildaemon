@@ -21,7 +21,7 @@ export default async function DashboardPage({
   searchParams?: Promise<{ verified?: string }>;
 }) {
   const params = await searchParams;
-  const { user, profile } = await requireUser().catch(() => redirect("/login"));
+  const { user, profile } = await requireUser().catch(() => redirect("/login?next=%2Fdashboard"));
   const [redirects, usage, analytics] = await Promise.all([
     listUserRedirects(user.id),
     getUsage(user.id, profile.plan),

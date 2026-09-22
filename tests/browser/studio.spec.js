@@ -65,6 +65,25 @@ async function assertLocalAssets(page, routePath) {
 }
 
 test.describe("studio subtree routes", () => {
+  test("VeilLink card separates the account portal from QR & Links", async ({ page }) => {
+    await page.goto("/studio/projects/");
+    const card = page.locator("article.portfolio-card").filter({
+      has: page.getByRole("heading", { name: "VeilLink", exact: true }),
+    });
+    await expect(card.locator(".card-actions a")).toHaveCount(2);
+    const portal = card.getByRole("link", { name: "Open VeilLink" });
+    const qr = card.getByRole("link", { name: "QR & Links" });
+    await expect(portal).toHaveAttribute("href", "https://app.veildaemon.app/");
+    await expect(qr).toHaveAttribute("href", "https://app.veildaemon.app/links");
+    for (const link of [portal, qr]) {
+      await expect(link).toBeVisible();
+      await expect(link).toHaveAttribute("target", "_blank");
+      await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    }
+    await expect(card).toContainText("Connected Play");
+    await expect(card).toContainText("short links");
+  });
+
   test("desktop route matrix, screenshots, and local assets", async ({ page }) => {
     test.setTimeout(120_000);
     ensureReviewDir();

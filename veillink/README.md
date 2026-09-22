@@ -56,7 +56,10 @@ The service role key is server-only. Never expose it to browser code.
 
 ## Routing
 
-- `/veillink` is not used inside this isolated app. The app root serves the VeilLink landing page.
+- `/veillink` is not used inside this isolated app. `/` is the public VeilLink portal with embedded sign-in and all five product areas; generic VeilLink links belong here.
+- `/home` is the authenticated umbrella hub and the default generic login destination.
+- `/links` is the public QR & Links product. `/dashboard` is its authenticated management surface.
+- Product-specific authentication uses `/login?next=...` and preserves the selected product, including Book One, Creator Rights, and Operator/Handler returns.
 - `go.veildaemon.app/<slug>` is the production path redirect host.
 - `<slug>.veildaemon.app` is the production wildcard subdomain redirect form.
 - Local fallback is `localhost:3000/r/<slug>` or `<slug>.localhost:3000` if your browser/dev setup resolves it.
@@ -147,6 +150,14 @@ VeilLink pins Stripe API calls to `2026-06-24.dahlia` and tags Checkout Sessions
 See `docs/deployment-checklist.md` for the launch checklist and the live-vs-test Price ID split.
 
 ## Validation
+
+After starting the built VeilLink app (`npm run build` then `npm run start -- --hostname 127.0.0.1 --port 3100` in `veillink/`), run from the repository root:
+
+```bash
+TMPDIR=/tmp TEMP=/tmp TMP=/tmp VEILLINK_TEST_URL=http://127.0.0.1:3100 npm run browser:veillink -- --output=/tmp/veillink-routing-results
+```
+
+This checks the Studio card's two distinct destinations, the portal, QR product navigation, and product-specific login returns. Set `RIGHTS_SMOKE_EMAIL` and `RIGHTS_SMOKE_PASSWORD` for an existing test account to also verify real login and signed-in brand navigation. Without them, that check is explicitly skipped. Use `--repeat-each=5` for repeated routing verification. `VEILLINK_TEST_URL=https://app.veildaemon.app` checks the hosted app; the Studio card test still uses the local static server, so verify the published Studio click separately after release.
 
 ```bash
 npm run lint
