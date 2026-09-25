@@ -54,6 +54,10 @@ replaceInFile("api/book-one/claim.js", [
     pattern: /const DEFAULT_MOBI_PATH = "book-one\/[^"]+";/,
     replacement: `const DEFAULT_MOBI_PATH = "${manifest.mobi_path}";`,
   },
+  {
+    pattern: /const DEFAULT_WALLPAPER_PATH = "book-one\/[^"]+";/,
+    replacement: `const DEFAULT_WALLPAPER_PATH = "${manifest.wallpaper_path}";`,
+  },
 ]);
 
 // 2. studio/shelf/book-one/index.html

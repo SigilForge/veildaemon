@@ -6,7 +6,7 @@
  * Paid bytes only ever go to the private `paid-downloads` bucket; nothing here touches public paths.
  *
  *   node scripts/publish-book-one-release.mjs stage --source <dir>
- *       Upload the manifest's PDF/EPUB/MOBI from <dir> (matched by manifest `*_source` names) next to
+ *       Upload the manifest's PDF/EPUB/MOBI/wallpaper ZIP from <dir> (matched by manifest `*_source` names) next to
  *       whatever is already in the bucket. Never overwrites: an existing object with the same path
  *       must hash-match or the run fails. Every object is then read back through a signed URL and
  *       hash-checked against the manifest.
@@ -24,7 +24,8 @@
  *   node scripts/publish-book-one-release.mjs switch [--dry-run]
  *       Point production delivery at the manifest: set the Vercel BOOK_ONE_SUPABASE_PATH override
  *       (Production + Preview) to the manifest PDF path and rename the Stripe product to the manifest
- *       title. Code/page changes ship through the normal `npm run push`.
+ *       title, and mirror the rights record's newest version into Supabase (new version row + live row
+ *       title/edition/fingerprint). Code/page changes ship through the normal `npm run push`.
  *
  * Credentials come from the environment, falling back to veillink/.env: STRIPE_SECRET_KEY,
  * SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL). The Vercel CLI must be
@@ -77,12 +78,18 @@ const sha256 = (buf) => createHash("sha256").update(buf).digest("hex");
 
 function manifest() {
   const m = JSON.parse(readFileSync(manifestPath, "utf8"));
-  const files = ["pdf", "epub", "mobi"].map((kind) => ({
+  const files = ["pdf", "epub", "mobi", "wallpaper"].map((kind) => ({
     kind,
     objectPath: m[`${kind}_path`],
     source: m[`${kind}_source`],
     sha256: m[`${kind}_sha256`],
-    contentType: { pdf: "application/pdf", epub: "application/epub+zip", mobi: "application/x-mobipocket-ebook" }[kind],
+    // MIME types as reported by `file --mime-type` on the release artifacts; the bucket allows exactly these.
+    contentType: {
+      pdf: "application/pdf",
+      epub: "application/epub+zip",
+      mobi: "application/x-mobipocket-ebook",
+      wallpaper: "application/zip",
+    }[kind],
   }));
   for (const f of files) {
     if (!f.objectPath || !f.sha256) fail(`manifest is missing ${f.kind}_path or ${f.kind}_sha256`);
@@ -242,6 +249,46 @@ async function verifyClaim() {
   ok(`real claim verified end to end for ${sessionId.slice(0, 16)}… ${flags["base-url"] ? `via ${flags["base-url"]}` : "(local handler)"}`);
 }
 
+// Mirror the static record's newest versionHistory entry into Supabase: insert that version's snapshot
+// (never touching earlier versions) and update the live row's title/edition/fingerprint to match.
+// Idempotent: an existing version with the same number is left as is.
+async function recordRightsVersion(dry) {
+  const record = JSON.parse(readFileSync(path.join(root, "rights/the-anchor-and-the-glitch.json"), "utf8"));
+  const latest = [...(record.versionHistory || [])].sort((a, b) => b.version - a.version)[0];
+  if (!latest) fail("rights record has no versionHistory");
+  const base = need("SUPABASE_URL").replace(/\/+$/, "");
+  const headers = storageHeaders({ "Content-Type": "application/json" });
+  const [row] = await (await fetch(`${base}/rest/v1/creator_rights_records?select=id&slug=eq.the-anchor-and-the-glitch`, { headers })).json();
+  if (!row) fail("live Creator Rights record not found");
+  const existing = await (await fetch(`${base}/rest/v1/creator_rights_record_versions?select=version_number&record_id=eq.${row.id}&version_number=eq.${latest.version}`, { headers })).json();
+  console.log(`${dry ? "[dry-run] " : ""}Creator Rights version ${latest.version} (${latest.title}) ${existing.length ? "already recorded" : "to record"}`);
+  if (dry) return;
+  if (!existing.length) {
+    const ins = await fetch(`${base}/rest/v1/creator_rights_record_versions`, {
+      method: "POST",
+      headers: { ...headers, Prefer: "return=minimal" },
+      body: JSON.stringify({ record_id: row.id, version_number: latest.version, snapshot_json: record, change_summary: latest.summary }),
+    });
+    if (!ins.ok) fail(`insert rights version: ${ins.status} ${await ins.text()}`);
+  }
+  const fp = record.fileFingerprint;
+  const upd = await fetch(`${base}/rest/v1/creator_rights_records?id=eq.${row.id}`, {
+    method: "PATCH",
+    headers: { ...headers, Prefer: "return=minimal" },
+    body: JSON.stringify({
+      title: record.title,
+      edition: record.workVersion,
+      filename: fp.filename,
+      file_size: fp.fileSize,
+      mime_type: fp.mimeType,
+      sha256_hash: fp.value,
+      hash_created_at: fp.createdAt,
+    }),
+  });
+  if (!upd.ok) fail(`update rights record: ${upd.status} ${await upd.text()}`);
+  ok(`Creator Rights version ${latest.version} recorded; live record now "${record.title}"`);
+}
+
 async function switchDelivery() {
   const m = manifest();
   const dry = Boolean(flags["dry-run"]);
@@ -253,6 +300,7 @@ async function switchDelivery() {
     if (add.status !== 0) fail(`vercel env add (${env}) failed: ${add.stderr}`);
     ok(`BOOK_ONE_SUPABASE_PATH (${env}) set`);
   }
+  await recordRightsVersion(dry);
   const price = await stripe(`/prices/${PRICE_ID}`);
   const name = m.stripe_product_name || m.title;
   console.log(`${dry ? "[dry-run] " : ""}Stripe product ${price.product} name -> ${name}`);

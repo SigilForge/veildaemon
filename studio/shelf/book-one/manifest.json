@@ -14,15 +14,18 @@
   "mobi_filename": "cradlepoint-veilsight-v48.mobi",
   "mobi_source": "CRADLEPOINT_VEILSIGHT_v48_RELEASE.mobi",
   "mobi_sha256": "d84c15a91399654d2bfb0a55dad1bd1c6059bb3b297904ec17f6a440361cb797",
-  "wallpaper_path": "book-one/book-one-wallpaper-pack.zip",
-  "wallpaper_filename": "book-one-wallpaper-pack.zip",
+  "wallpaper_path": "book-one/cradlepoint-veilsight-wallpaper-pack-v48.zip",
+  "wallpaper_filename": "cradlepoint-veilsight-wallpaper-pack-v48.zip",
+  "wallpaper_source": "../../Marketing/Cradlepoint Art/Desktop Backgrounds/Book-One/cradlepoint-veilsight-wallpaper-pack-v48.zip",
+  "wallpaper_sha256": "6fb4d1915d2541f2b47020eaa752a4c55fb4391e16d1f57ca44ae3a9a200c406",
   "wallpaper_count": 10,
   "price": "$9.99",
   "stripe_product_name": "Cradlepoint: VeilSight — Book One (digital edition)",
   "retired_paths": [
     "book-one/the-cradlepoint-archive-book-one-v47-2c-print-edition-verified.pdf",
     "book-one/the-cradlepoint-archive-book-one-v47-2c.epub",
-    "book-one/the-cradlepoint-archive-book-one-v47-2c.mobi"
+    "book-one/the-cradlepoint-archive-book-one-v47-2c.mobi",
+    "book-one/book-one-wallpaper-pack.zip"
   ],
   "retired_paths_note": "v47-2c objects stay in the bucket through the grace period; do not delete until it ends."
 }

@@ -24,46 +24,118 @@
     "disclaimer"
   ],
   "properties": {
-    "recordType": { "const": "CreatorRightsRecord" },
-    "schemaVersion": { "const": "1.1" },
-    "recordId": { "type": ["string", "null"] },
+    "recordType": {
+      "const": "CreatorRightsRecord"
+    },
+    "schemaVersion": {
+      "const": "1.1"
+    },
+    "recordId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "status": {
       "type": "string",
-      "enum": ["draft", "pending_payment", "paid", "published", "updated", "transferred", "disputed", "under_review", "withdrawn", "archived"]
+      "enum": [
+        "draft",
+        "pending_payment",
+        "paid",
+        "published",
+        "updated",
+        "transferred",
+        "disputed",
+        "under_review",
+        "withdrawn",
+        "archived"
+      ]
     },
-    "workType": { "type": "string" },
-    "category": { "type": "string" },
-    "availability": { "type": "string" },
+    "workType": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "availability": {
+      "type": "string"
+    },
     "work": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "category"],
+      "required": [
+        "type",
+        "category"
+      ],
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["book", "software", "game", "dataset", "music", "art", "video", "website", "model", "other"]
+          "enum": [
+            "book",
+            "software",
+            "game",
+            "dataset",
+            "music",
+            "art",
+            "video",
+            "website",
+            "model",
+            "other"
+          ]
         },
         "category": {
           "type": "string",
-          "enum": ["fiction", "tabletop", "publishing", "technical", "software", "legal", "research", "marketing", "reference", "canon", "internal", "other"]
+          "enum": [
+            "fiction",
+            "tabletop",
+            "publishing",
+            "technical",
+            "software",
+            "legal",
+            "research",
+            "marketing",
+            "reference",
+            "canon",
+            "internal",
+            "other"
+          ]
         }
       }
     },
     "publisher": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type"],
+      "required": [
+        "type"
+      ],
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["individual", "studio", "company", "university", "nonprofit", "government", "other"]
+          "enum": [
+            "individual",
+            "studio",
+            "company",
+            "university",
+            "nonprofit",
+            "government",
+            "other"
+          ]
         }
       }
     },
     "copyrightLicense": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "shortName", "spdxId", "category", "url", "summary", "requiresNotice"],
+      "required": [
+        "id",
+        "name",
+        "shortName",
+        "spdxId",
+        "category",
+        "url",
+        "summary",
+        "requiresNotice"
+      ],
       "properties": {
         "id": {
           "type": "string",
@@ -84,10 +156,17 @@
             "custom"
           ]
         },
-        "name": { "type": "string" },
-        "shortName": { "type": "string" },
+        "name": {
+          "type": "string"
+        },
+        "shortName": {
+          "type": "string"
+        },
         "spdxId": {
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "enum": [
             "MIT",
             "Apache-2.0",
@@ -106,24 +185,62 @@
         },
         "category": {
           "type": "string",
-          "enum": ["open_source", "open_content", "public_domain", "proprietary", "custom"]
+          "enum": [
+            "open_source",
+            "open_content",
+            "public_domain",
+            "proprietary",
+            "custom"
+          ]
         },
-        "url": { "type": "string" },
-        "summary": { "type": "string" },
-        "requiresNotice": { "type": "boolean" }
+        "url": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "requiresNotice": {
+          "type": "boolean"
+        }
       }
     },
     "registryFramework": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "shortName", "version", "url", "summary", "supplementalNotice"],
+      "required": [
+        "id",
+        "name",
+        "shortName",
+        "version",
+        "url",
+        "summary",
+        "supplementalNotice"
+      ],
       "properties": {
-        "id": { "type": "string", "enum": ["sfr"] },
-        "name": { "const": "SigilForge Rights Framework" },
-        "shortName": { "const": "SFR" },
-        "version": { "type": "string", "enum": ["1.0"] },
-        "url": { "type": "string" },
-        "summary": { "type": "string" },
+        "id": {
+          "type": "string",
+          "enum": [
+            "sfr"
+          ]
+        },
+        "name": {
+          "const": "SigilForge Rights Framework"
+        },
+        "shortName": {
+          "const": "SFR"
+        },
+        "version": {
+          "type": "string",
+          "enum": [
+            "1.0"
+          ]
+        },
+        "url": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
         "supplementalNotice": {
           "type": "string",
           "description": "SFR supplements the selected copyright license. It does not replace or modify that license."
@@ -147,30 +264,63 @@
         "licenseRequired"
       ],
       "properties": {
-        "generalTraining": { "$ref": "#/$defs/permissionValue" },
-        "foundationModelPretraining": { "$ref": "#/$defs/permissionValue" },
-        "fineTuning": { "$ref": "#/$defs/permissionValue" },
-        "embeddings": { "$ref": "#/$defs/permissionValue" },
-        "rag": { "$ref": "#/$defs/permissionValue" },
-        "generation": { "$ref": "#/$defs/permissionValue" },
-        "datasetRedistribution": { "$ref": "#/$defs/permissionValue" },
-        "researchUse": { "$ref": "#/$defs/permissionValue" },
-        "commercialUse": { "$ref": "#/$defs/permissionValue" },
-        "attributionRequired": { "$ref": "#/$defs/permissionValue" },
-        "licenseRequired": { "$ref": "#/$defs/permissionValue" }
+        "generalTraining": {
+          "$ref": "#/$defs/permissionValue"
+        },
+        "foundationModelPretraining": {
+          "$ref": "#/$defs/permissionValue"
+        },
+        "fineTuning": {
+          "$ref": "#/$defs/permissionValue"
+        },
+        "embeddings": {
+          "$ref": "#/$defs/permissionValue"
+        },
+        "rag": {
+          "$ref": "#/$defs/permissionValue"
+        },
+        "generation": {
+          "$ref": "#/$defs/permissionValue"
+        },
+        "datasetRedistribution": {
+          "$ref": "#/$defs/permissionValue"
+        },
+        "researchUse": {
+          "$ref": "#/$defs/permissionValue"
+        },
+        "commercialUse": {
+          "$ref": "#/$defs/permissionValue"
+        },
+        "attributionRequired": {
+          "$ref": "#/$defs/permissionValue"
+        },
+        "licenseRequired": {
+          "$ref": "#/$defs/permissionValue"
+        }
       }
     },
     "aiPolicy": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["effectiveFrom", "appliesTo"],
+      "required": [
+        "effectiveFrom",
+        "appliesTo"
+      ],
       "properties": {
-        "effectiveFrom": { "type": "string" },
+        "effectiveFrom": {
+          "type": "string"
+        },
         "appliesTo": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["model_training", "fine_tuning", "retrieval", "generation", "commercial_output"]
+            "enum": [
+              "model_training",
+              "fine_tuning",
+              "retrieval",
+              "generation",
+              "commercial_output"
+            ]
           },
           "uniqueItems": true
         }
@@ -179,39 +329,80 @@
     "licensing": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["availability", "commercialReadiness", "contactUrl"],
+      "required": [
+        "availability",
+        "commercialReadiness",
+        "contactUrl"
+      ],
       "properties": {
         "availability": {
           "type": "string",
-          "enum": ["unavailable", "contact", "open", "paid_license", "enterprise", "exclusive"]
+          "enum": [
+            "unavailable",
+            "contact",
+            "open",
+            "paid_license",
+            "enterprise",
+            "exclusive"
+          ]
         },
         "commercialReadiness": {
           "type": "string",
-          "enum": ["inquiry_only", "template_available", "checkout_available", "enterprise_review_required"]
+          "enum": [
+            "inquiry_only",
+            "template_available",
+            "checkout_available",
+            "enterprise_review_required"
+          ]
         },
-        "contactUrl": { "type": "string" }
+        "contactUrl": {
+          "type": "string"
+        }
       }
     },
     "verification": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["level", "methods", "evidence"],
+      "required": [
+        "level",
+        "methods",
+        "evidence"
+      ],
       "properties": {
         "level": {
           "description": "declared means the account published the claim. surface_verified means the account demonstrated control of a referenced publication surface. artifact_verified means the supplied artifact matches the recorded fingerprint. signed means the record or artifact was cryptographically signed. None independently proves legal ownership.",
           "type": "string",
-          "enum": ["declared", "surface_verified", "artifact_verified", "signed"]
+          "enum": [
+            "declared",
+            "surface_verified",
+            "artifact_verified",
+            "signed"
+          ]
         },
         "claim": {
           "type": "string",
-          "enum": ["declared", "surface_control", "artifact_fingerprint", "signed_release"]
+          "enum": [
+            "declared",
+            "surface_control",
+            "artifact_fingerprint",
+            "signed_release"
+          ]
         },
-        "statement": { "type": "string" },
+        "statement": {
+          "type": "string"
+        },
         "methods": {
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["domain", "github", "publisher_profile", "package_registry", "signed_release", "sha256"]
+            "enum": [
+              "domain",
+              "github",
+              "publisher_profile",
+              "package_registry",
+              "signed_release",
+              "sha256"
+            ]
           },
           "uniqueItems": true
         },
@@ -220,24 +411,64 @@
           "items": {
             "type": "object",
             "additionalProperties": true,
-            "required": ["method", "status", "claim"],
+            "required": [
+              "method",
+              "status",
+              "claim"
+            ],
             "properties": {
               "method": {
                 "type": "string",
-                "enum": ["domain", "github", "publisher_profile", "package_registry", "signed_release", "sha256", "isbn"]
+                "enum": [
+                  "domain",
+                  "github",
+                  "publisher_profile",
+                  "package_registry",
+                  "signed_release",
+                  "sha256",
+                  "isbn"
+                ]
               },
               "status": {
                 "type": "string",
-                "enum": ["pending", "passed", "failed", "expired", "revoked", "attached"]
+                "enum": [
+                  "pending",
+                  "passed",
+                  "failed",
+                  "expired",
+                  "revoked",
+                  "attached"
+                ]
               },
               "claim": {
                 "type": "string",
-                "enum": ["surface_control", "linked_publication_evidence", "artifact_fingerprint"]
+                "enum": [
+                  "surface_control",
+                  "linked_publication_evidence",
+                  "artifact_fingerprint"
+                ]
               },
-              "target": { "type": ["string", "null"] },
-              "verifiedAt": { "type": ["string", "null"] },
-              "revokedAt": { "type": ["string", "null"] },
-              "proof": { "type": "object" }
+              "target": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "verifiedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "revokedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "proof": {
+                "type": "object"
+              }
             }
           }
         }
@@ -246,42 +477,187 @@
     "technicalArtifacts": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["jsonAvailable", "canonicalUrl", "sha256Available", "signatureAvailable", "versionHistoryAvailable"],
+      "required": [
+        "jsonAvailable",
+        "canonicalUrl",
+        "sha256Available",
+        "signatureAvailable",
+        "versionHistoryAvailable"
+      ],
       "properties": {
-        "jsonAvailable": { "type": "boolean" },
-        "canonicalUrl": { "type": "boolean" },
-        "sha256Available": { "type": "boolean" },
-        "signatureAvailable": { "type": "boolean" },
-        "versionHistoryAvailable": { "type": "boolean" }
+        "jsonAvailable": {
+          "type": "boolean"
+        },
+        "canonicalUrl": {
+          "type": "boolean"
+        },
+        "sha256Available": {
+          "type": "boolean"
+        },
+        "signatureAvailable": {
+          "type": "boolean"
+        },
+        "versionHistoryAvailable": {
+          "type": "boolean"
+        }
       }
     },
-    "title": { "type": "string" },
-    "creator": { "type": "string" },
-    "rightsHolder": { "type": "string" },
-    "recordedAt": { "type": "string" },
-    "publicationDate": { "type": ["string", "null"] },
-    "workVersion": { "type": ["string", "null"] },
-    "copyrightNotice": { "type": ["string", "null"] },
-    "permissionsSummary": { "type": "string" },
-    "licenseContact": { "type": "string" },
-    "publicRecordUrl": { "type": "string" },
+    "title": {
+      "type": "string"
+    },
+    "creator": {
+      "type": "string"
+    },
+    "rightsHolder": {
+      "type": "string"
+    },
+    "recordedAt": {
+      "type": "string"
+    },
+    "publicationDate": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "workVersion": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "copyrightNotice": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "permissionsSummary": {
+      "type": "string"
+    },
+    "licenseContact": {
+      "type": "string"
+    },
+    "publicRecordUrl": {
+      "type": "string"
+    },
     "fileFingerprint": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "properties": {
-        "algorithm": { "const": "SHA-256" },
-        "value": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
-        "filename": { "type": ["string", "null"] },
-        "fileSize": { "type": ["number", "null"] },
-        "mimeType": { "type": ["string", "null"] },
-        "createdAt": { "type": ["string", "null"] }
+        "algorithm": {
+          "const": "SHA-256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "filename": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fileSize": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "mimeType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "createdAt": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
       }
     },
-    "disclaimer": { "type": "string" }
+    "disclaimer": {
+      "type": "string"
+    },
+    "versionHistory": {
+      "description": "Immutable version snapshots, oldest first. The record's top-level fields describe the latest version; earlier versions are never rewritten, and the public record URL is permanent across versions.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version",
+          "recordedAt",
+          "title",
+          "summary"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "title": {
+            "type": "string"
+          },
+          "workVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          },
+          "fileFingerprint": {
+            "type": "object",
+            "properties": {
+              "algorithm": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "filename": {
+                "type": "string"
+              },
+              "fileSize": {
+                "type": "integer"
+              },
+              "mimeType": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "algorithm",
+              "value"
+            ]
+          }
+        }
+      }
+    }
   },
   "$defs": {
     "permissionValue": {
       "type": "string",
-      "enum": ["allowed", "prohibited", "license_required", "research_only", "case_by_case", "custom_terms", "not_specified"]
+      "enum": [
+        "allowed",
+        "prohibited",
+        "license_required",
+        "research_only",
+        "case_by_case",
+        "custom_terms",
+        "not_specified"
+      ]
     }
   }
 }

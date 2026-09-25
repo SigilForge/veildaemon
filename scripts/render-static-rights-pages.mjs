@@ -71,6 +71,34 @@ function displayDate(value) {
   return date.toLocaleDateString("en-US", { timeZone: "UTC", year: "numeric", month: "long", day: "numeric" });
 }
 
+function versionHistory(record) {
+  return Array.isArray(record.versionHistory) && record.versionHistory.length
+    ? [...record.versionHistory].sort((a, b) => b.version - a.version)
+    : null;
+}
+
+function revisionPanel(record, publicationDate) {
+  const history = versionHistory(record);
+  if (!history) {
+    return `<article class="panel">
+          <p class="panel-kicker">Revision history</p>
+          <h2>Version 1</h2>
+          <p class="muted">Published ${escapeHtml(publicationDate)}. Initial immutable snapshot; updates create a new version rather than rewriting this one.</p>
+        </article>`;
+  }
+  const items = history
+    .map((entry) => `
+            <li><strong>Version ${escapeHtml(entry.version)}</strong> · ${escapeHtml(displayDate(entry.recordedAt))} · <em>${escapeHtml(entry.title)}</em>${entry.workVersion ? ` · ${escapeHtml(entry.workVersion)}` : ""}<br>${escapeHtml(entry.summary)}${entry.fileFingerprint?.value ? `<br><small>SHA-256 ${escapeHtml(entry.fileFingerprint.value)}</small>` : ""}</li>`)
+    .join("");
+  return `<article class="panel">
+          <p class="panel-kicker">Revision history</p>
+          <h2>Version ${escapeHtml(history[0].version)}</h2>
+          <p class="muted">Each version is an immutable snapshot; a change adds a version rather than rewriting an earlier one. This URL stays the permanent record for every version.</p>
+          <ol class="muted revision-history" reversed>${items}
+          </ol>
+        </article>`;
+}
+
 function compactDate(value) {
   if (!value) return "Not specified";
   const date = new Date(`${value}T00:00:00.000Z`);
@@ -282,7 +310,7 @@ async function recordBody(record, { licenseRoute = false } = {}) {
             <div><dt>Record ID</dt><dd>${sentence(record.recordId)}</dd></div>
             <div><dt>Published</dt><dd>${escapeHtml(compactPublication)}</dd></div>
             <div><dt>Verification</dt><dd>${verificationLabel(record.verification?.level)}</dd></div>
-            <div><dt>Version</dt><dd>1</dd></div>
+            <div><dt>Version</dt><dd>${escapeHtml(versionHistory(record)?.[0]?.version ?? 1)}</dd></div>
           </dl>
           <div class="proof-row">
             <span class="proof-chip status-chip">Active Record</span>
@@ -338,11 +366,7 @@ async function recordBody(record, { licenseRoute = false } = {}) {
 
       <section class="section-block grid rights-support-grid">
         ${verificationPanel(record)}
-        <article class="panel">
-          <p class="panel-kicker">Revision history</p>
-          <h2>Version 1</h2>
-          <p class="muted">Published ${escapeHtml(publicationDate)}. Initial immutable snapshot; updates create a new version rather than rewriting this one.</p>
-        </article>
+        ${revisionPanel(record, publicationDate)}
         <article class="panel">
           <p class="panel-kicker">Fingerprint</p>
           <h2>${fingerprint ? "File hash recorded" : "No file hash on this record"}</h2>

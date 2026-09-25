@@ -16,12 +16,12 @@
   "publisher": {
     "type": "studio"
   },
-  "title": "The Anchor and the Glitch",
+  "title": "Cradlepoint: VeilSight",
   "creator": "S. KAELËN VALE",
   "rightsHolder": "SigilForge Studios",
   "recordedAt": "2026-07-27T00:00:00.000Z",
   "publicationDate": "2026-07-23",
-  "workVersion": "Book One digital release",
+  "workVersion": "Book One, second digital edition (v48)",
   "copyrightNotice": "© 2024-2026 J. Donavon Love, under the SigilForge Studios name",
   "permissions": {
     "generalTraining": "license_required",
@@ -62,11 +62,11 @@
   "publicRecordUrl": "https://veildaemon.app/rights/the-anchor-and-the-glitch",
   "fileFingerprint": {
     "algorithm": "SHA-256",
-    "value": "93d59c8ff4cdc3f49c5e970fd4732aedc07966f5ff99cb74bc8b59832a3c8378",
-    "filename": "THE_CRADLEPOINT_ARCHIVE_BOOK_ONE_v47_2C_RELEASE.epub",
-    "fileSize": 3701715,
+    "value": "9ab094f4e4b18cc3f54bcc4865cb21c79b44966ecbea1947cd3f071e26df66e9",
+    "filename": "CRADLEPOINT_VEILSIGHT_v48_RELEASE.epub",
+    "fileSize": 2811586,
     "mimeType": "application/epub+zip",
-    "createdAt": "2026-07-29T00:00:00.000Z"
+    "createdAt": "2026-09-25T00:00:00.000Z"
   },
   "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.",
   "aiPolicy": {
@@ -97,5 +97,35 @@
     "url": "https://veildaemon.app/rights/",
     "summary": "Defines the Creator Rights Record behavior: provenance metadata, verification state, AI permissions, evidence package semantics, artifact status, and machine-readable rights information.",
     "supplementalNotice": "This framework supplements the selected copyright license. It does not replace or modify that license."
-  }
+  },
+  "versionHistory": [
+    {
+      "version": 1,
+      "recordedAt": "2026-07-27",
+      "title": "The Anchor and the Glitch",
+      "workVersion": "Book One digital release",
+      "summary": "Initial published record for the Book One digital release (v47_2C).",
+      "fileFingerprint": {
+        "algorithm": "SHA-256",
+        "value": "93d59c8ff4cdc3f49c5e970fd4732aedc07966f5ff99cb74bc8b59832a3c8378",
+        "filename": "THE_CRADLEPOINT_ARCHIVE_BOOK_ONE_v47_2C_RELEASE.epub",
+        "fileSize": 3701715,
+        "mimeType": "application/epub+zip"
+      }
+    },
+    {
+      "version": 2,
+      "recordedAt": "2026-09-25",
+      "title": "Cradlepoint: VeilSight",
+      "workVersion": "Book One, second digital edition (v48)",
+      "summary": "Retitled from The Anchor and the Glitch for the v48 second edition; new cover and title matter. Rights holder, permissions, AI policy, and licensing are unchanged.",
+      "fileFingerprint": {
+        "algorithm": "SHA-256",
+        "value": "9ab094f4e4b18cc3f54bcc4865cb21c79b44966ecbea1947cd3f071e26df66e9",
+        "filename": "CRADLEPOINT_VEILSIGHT_v48_RELEASE.epub",
+        "fileSize": 2811586,
+        "mimeType": "application/epub+zip"
+      }
+    }
+  ]
 }

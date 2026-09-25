@@ -3,7 +3,7 @@ const DEFAULT_BUCKET = "paid-downloads";
 const DEFAULT_PDF_PATH = "book-one/cradlepoint-veilsight-v48-print-edition.pdf";
 const DEFAULT_EPUB_PATH = "book-one/cradlepoint-veilsight-v48.epub";
 const DEFAULT_MOBI_PATH = "book-one/cradlepoint-veilsight-v48.mobi";
-const DEFAULT_WALLPAPER_PATH = "book-one/book-one-wallpaper-pack.zip";
+const DEFAULT_WALLPAPER_PATH = "book-one/cradlepoint-veilsight-wallpaper-pack-v48.zip";
 const DEFAULT_TTL_SECONDS = 900;
 
 function sendHtml(res, statusCode, title, message) {
