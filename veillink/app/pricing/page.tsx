@@ -42,7 +42,7 @@ export default function PricingPage() {
             <p className="panel-kicker">Direct digital</p>
             <h2>Book One — $9.99 launch sale price</h2>
             <p className="muted">
-              The Anchor and the Glitch. DRM-free PDF, EPUB, and MOBI, plus a wallpaper pack, kept in your VeilLink
+              Cradlepoint: VeilSight. DRM-free PDF, EPUB, and MOBI, plus a wallpaper pack, kept in your VeilLink
               account.
             </p>
             <p>

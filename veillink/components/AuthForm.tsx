@@ -36,7 +36,7 @@ export function AuthForm({ title, action, submit, error, sent, verified, email, 
       {embedded ? null : (
         <p className="lede">
           {bookPurchase
-            ? "The Anchor and the Glitch · $9.99 digital bundle. Your free account keeps your PDF, EPUB, MOBI, and wallpapers available after purchase. Sign in or create an account to continue to checkout."
+            ? "Cradlepoint: VeilSight · $9.99 digital bundle. Your free account keeps your PDF, EPUB, MOBI, and wallpapers available after purchase. Sign in or create an account to continue to checkout."
             : signup
             ? rightsPreservation
               ? `Create a free account to preserve permanent, timestamped Registry records at the ${rightsPrice}. Authentication unlocks Creator Dossier generation, versioned evidence, and long-term record management.`

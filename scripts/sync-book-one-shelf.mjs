@@ -83,15 +83,15 @@ replaceInFile("veillink/app/book-one/page.tsx", [
 // 4. studio/downloads/book-one/README.md
 replaceInFile("studio/downloads/book-one/README.md", [
   {
-    pattern: /- `book-one\/the-cradlepoint-archive-book-one-[^`]+` \(Verified print PDF\)/,
+    pattern: /- `book-one\/[^`]+` \(Verified print PDF\)/,
     replacement: `- \`${manifest.pdf_path}\` (Verified print PDF)`,
   },
   {
-    pattern: /- `book-one\/the-cradlepoint-archive-book-one-[^`]+` \(Refreshed reflowable EPUB ebook\)/,
+    pattern: /- `book-one\/[^`]+` \(Refreshed reflowable EPUB ebook\)/,
     replacement: `- \`${manifest.epub_path}\` (Refreshed reflowable EPUB ebook)`,
   },
   {
-    pattern: /- `book-one\/the-cradlepoint-archive-book-one-[^`]+` \(Kindle MOBI ebook\)/,
+    pattern: /- `book-one\/[^`]+` \(Kindle MOBI ebook\)/,
     replacement: `- \`${manifest.mobi_path}\` (Kindle MOBI ebook)`,
   },
 ]);

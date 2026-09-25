@@ -68,7 +68,7 @@ export default async function PortalPage({
             </div>
             <div className="panel">
               <h2>Book One / Library</h2>
-              <p className="muted">Purchase and recover The Anchor and the Glitch direct digital edition.</p>
+              <p className="muted">Purchase and recover the Cradlepoint: VeilSight direct digital edition.</p>
               <p>
                 <Link className="button secondary" href="/book-one">
                   Get Book One

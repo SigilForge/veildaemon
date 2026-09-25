@@ -61,7 +61,7 @@ export default async function VeilLinkHomePage() {
         <div className="panel">
           <h2>Book One</h2>
           <p className="muted">
-            The Anchor and the Glitch, direct digital edition. Purchase or open your existing downloads.
+            Cradlepoint: VeilSight, direct digital edition. Purchase or open your existing downloads.
           </p>
           <p>
             <Link className="button secondary" href="/book-one">
