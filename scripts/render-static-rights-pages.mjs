@@ -1,28 +1,20 @@
-// WARNING (2026-09-24): the committed rights/**/index.html pages have drifted AHEAD of this renderer.
-// They carry a github.io redirect script, a newer studio.css version, and a SigilForge footer that this
-// template does not produce. Running `npm run rights:render` now would silently revert those. Reconcile
-// the template with the committed pages before re-rendering. (The SigilForge icon links were added both
-// here and directly in the committed pages.)
+// Renders rights/<slug>/index.html, rights/<slug>/license/index.html and record-qr.webp from rights/*.json
+// (the authority; pages are consumers). Reconciled 2026-09-24 with the committed pages: github.io redirect
+// script, current studio.css version, SigilForge favicon routing, and the footer/header from
+// creator-rights-product-nav.mjs. Use --out=<dir> to render into a scratch location and diff before writing.
 import fs from "node:fs/promises";
 import path from "node:path";
 import QRCode from "qrcode";
 import sharp from "sharp";
 import { rightsStaticFooterHtml, rightsStaticHeaderHtml } from "./creator-rights-product-nav.mjs";
 
-// FAIL CLOSED until the template is reconciled with the committed rights/**/index.html pages (see WARNING
-// above). Remove this guard in the same change that reconciles the template, after diffing a render into a
-// scratch copy against the committed pages. There is deliberately no bypass flag.
-console.error(
-  "rights:render is disabled: the committed rights pages have drifted ahead of this renderer, and rendering " +
-    "would revert them (redirect script, studio.css version, SigilForge footer). Reconcile the template first; " +
-    "see the guard in scripts/render-static-rights-pages.mjs. Creator Rights releases are partially blocked / " +
-    "manual until then (Docs/dev-notes/creator-rights-verification-projection-ops.md).",
-);
-process.exit(1);
-
 const root = process.cwd();
 const rightsDir = path.join(root, "rights");
-const styleVersion = "20260729-rights-wrap1";
+// --out=<dir>: write rendered pages under <dir>/<slug>/ instead of rights/ (inputs are always read from rights/).
+const outArg = process.argv.slice(2).find((arg) => arg.startsWith("--out="));
+const outDir = outArg ? path.resolve(outArg.slice("--out=".length)) : rightsDir;
+
+const styleVersion = "20260922-mobilenav1";
 const qrAssetVersion = "20260728-qr-webp1";
 const publicOrigin = "https://veildaemon.app";
 const appOrigin = "https://app.veildaemon.app";
@@ -385,6 +377,7 @@ function pageShell({ title, description, canonical, noindex = false, body }) {
   return `<!doctype html>
 <html lang="en">
 <head>
+  <script>(function(){if(location.hostname==="sigilforge.github.io"){location.replace("https://veildaemon.app"+location.pathname.replace(/^\\/veildaemon/,"")+location.search+location.hash);}})();</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${escapeHtml(title)}</title>
@@ -428,7 +421,7 @@ const files = (await fs.readdir(rightsDir))
 for (const file of files) {
   const record = JSON.parse(await fs.readFile(path.join(rightsDir, file), "utf8"));
   const slug = file.replace(/\.json$/, "");
-  const dir = path.join(rightsDir, slug);
+  const dir = path.join(outDir, slug);
   const licenseDir = path.join(dir, "license");
   await fs.mkdir(licenseDir, { recursive: true });
   const canonical = `${publicOrigin}${recordPath(slug)}`;

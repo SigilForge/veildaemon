@@ -1,16 +1,5 @@
 # Creator Rights Verification Projection Ops
 
-> **Status (2026-09-24): Creator Rights releases are PARTIALLY BLOCKED / MANUAL.**
-> The `rights/*.json -> static rights pages` link below is broken on purpose.
-> `npm run rights:render` fails closed, because the committed `rights/**`
-> pages have drifted ahead of the renderer template and rendering would revert
-> them. The pipeline is **not** end-to-end until the template is reconciled:
-> - record-page changes must be applied by hand to the committed pages;
-> - every other step (export, index, validate, release-check) still runs.
->
-> Clear this banner in the change that reconciles the template and removes the
-> guard in `scripts/render-static-rights-pages.mjs`.
-
 The public static registry does not read Supabase at request time. Current
 verification state must be exported through a trusted server/build step.
 
@@ -20,24 +9,23 @@ Authority flow:
 creator_rights_verification_evidence
   -> rights/verification-projection.json
   -> rights/*.json
-  -> static rights pages        [BLOCKED: renderer fails closed; edit pages by hand]
+  -> static rights pages
   -> registry/records.json
 ```
 
 The browser and generated HTML are consumers, not authorities.
 
-## Live Export (partially manual while the renderer is blocked)
+## Normal Live Export
 
 1. Apply all VeilLink migrations, including
    `veillink/supabase/migrations/20260728193000_creator_rights_verification.sql`.
 2. Confirm Supabase REST can see `creator_rights_verification_evidence`.
 3. Run `npm run rights:verification:export`.
 4. Run `npm run rights:verification:release-check`.
-5. **Skip for now: `npm run rights:render` is disabled (fails closed).** The committed
-   `rights/**` pages have drifted ahead of the renderer template, so rendering would
-   revert them. Until the template is reconciled (see the guard at the top of
-   `scripts/render-static-rights-pages.mjs`), apply record-page changes directly to the
-   committed pages.
+5. Run `npm run rights:render`. To review first, render into a scratch location with
+   `node scripts/render-static-rights-pages.mjs --out=<dir>` and diff against `rights/`.
+   The renderer is the only writer of record pages: don't hand-edit `rights/<slug>/`
+   pages, because the next render will overwrite them. Change `rights/*.json` or the template.
 6. Run `npm run rights:index`.
 7. Run `npm run rights:validate`.
 8. Run `npm run rights:index:check`.

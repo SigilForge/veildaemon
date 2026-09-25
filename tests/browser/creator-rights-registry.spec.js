@@ -121,8 +121,11 @@ test("Creator Rights registry facet controls fit on mobile", async ({ page }) =>
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto("/registry/", { waitUntil: "networkidle" });
 
-  await expect(page.locator('header.site-header a[href="https://app.veildaemon.app/rights/create"]')).toHaveText("Preserve record");
-  await expect(page.locator('header.site-header a[href="https://app.veildaemon.app/account/rights"]')).toHaveCount(0);
+  // Header/footer chrome comes from scripts/creator-rights-product-nav.mjs: advisor CTA and Account in the
+  // header (since #14), "Preserve record" in the footer.
+  await expect(page.locator('header.site-header a.nav-cta[href="https://app.veildaemon.app/rights/advisor"]')).toHaveText("Try Free Advisor");
+  await expect(page.locator('header.site-header a[href="https://app.veildaemon.app/account/rights"]')).toHaveText("Account");
+  await expect(page.locator('footer.site-footer a[href="https://app.veildaemon.app/rights/create"]')).toHaveText("Preserve record");
   await expect(page.locator('footer.site-footer a[href="https://app.veildaemon.app/account/rights"]')).toHaveText("Account");
   await expect(page.locator("#rights-work-filter")).toBeVisible();
   await expect(page.locator("#rights-license-filter")).toBeVisible();
@@ -200,7 +203,8 @@ test("Creator Rights record keeps the rich record panels on desktop and mobile",
   for (const [name, viewport] of viewports) {
     await page.setViewportSize(viewport);
     await page.goto(route, { waitUntil: "networkidle" });
-    await expect(page.locator('header.site-header a[href="https://app.veildaemon.app/rights/create"]')).toHaveText("Preserve record");
+    await expect(page.locator('header.site-header a.nav-cta[href="https://app.veildaemon.app/rights/advisor"]')).toHaveText("Try Free Advisor");
+    await expect(page.locator('footer.site-footer a[href="https://app.veildaemon.app/rights/create"]')).toHaveText("Preserve record");
     await expect(page.locator(".rights-record-grid")).toBeVisible();
     await expect(page.locator(".rights-support-grid")).toBeVisible();
     await expect(page.locator("main")).toContainText("Verification");
