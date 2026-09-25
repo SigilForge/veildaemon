@@ -22,7 +22,11 @@ The browser and generated HTML are consumers, not authorities.
 2. Confirm Supabase REST can see `creator_rights_verification_evidence`.
 3. Run `npm run rights:verification:export`.
 4. Run `npm run rights:verification:release-check`.
-5. Run `npm run rights:render`.
+5. **Skip for now: `npm run rights:render` is disabled (fails closed).** The committed
+   `rights/**` pages have drifted ahead of the renderer template, so rendering would
+   revert them. Until the template is reconciled (see the guard at the top of
+   `scripts/render-static-rights-pages.mjs`), apply record-page changes directly to the
+   committed pages.
 6. Run `npm run rights:index`.
 7. Run `npm run rights:validate`.
 8. Run `npm run rights:index:check`.

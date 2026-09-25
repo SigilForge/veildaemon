@@ -9,6 +9,16 @@ import QRCode from "qrcode";
 import sharp from "sharp";
 import { rightsStaticFooterHtml, rightsStaticHeaderHtml } from "./creator-rights-product-nav.mjs";
 
+// FAIL CLOSED until the template is reconciled with the committed rights/**/index.html pages (see WARNING
+// above). Remove this guard in the same change that reconciles the template, after diffing a render into a
+// scratch copy against the committed pages. There is deliberately no bypass flag.
+console.error(
+  "rights:render is disabled: the committed rights pages have drifted ahead of this renderer, and rendering " +
+    "would revert them (redirect script, studio.css version, SigilForge footer). Reconcile the template first; " +
+    "see the guard in scripts/render-static-rights-pages.mjs.",
+);
+process.exit(1);
+
 const root = process.cwd();
 const rightsDir = path.join(root, "rights");
 const styleVersion = "20260729-rights-wrap1";

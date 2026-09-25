@@ -411,14 +411,14 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/press/");
     const kitLink = page.getByRole("link", { name: /Download complete press kit/i });
     await expect(kitLink).toBeVisible();
-    await expect(kitLink).toHaveAttribute("href", "downloads/sigilforge-studios-press-kit-july-2026.zip");
+    await expect(kitLink).toHaveAttribute("href", "downloads/sigilforge-studios-press-kit.zip");
     await expect(page.locator(".press-copy-grid .long-copy")).toContainText(/SigilForge Studios is an independent creative technology studio/i);
     await expect(page.locator(".press-copy-grid").first()).not.toContainText("See full text in download");
     await expect(page.locator(".press-copy-grid")).toContainText(/SigilForge Studios is an independent founder-operated studio/i);
     for (const id of ["studio-assets", "veildaemon-assets", "veilcorp-assets"]) {
       await expect(page.locator("#" + id)).toHaveCount(1);
     }
-    await expect(page.locator("#veildaemon-assets").locator("xpath=following-sibling::*[1]")).toContainText(/Technology social graphic/i);
+    await expect(page.locator("#veildaemon-assets").locator("xpath=following-sibling::*[1]")).toContainText(/VeilLink product plate/i);
     await expect(page.locator(".asset-caption").first()).toContainText(/Approved caption/i);
     await expect(page.locator(".metric-board")).toContainText(/Jul 10 2026/i);
     await expect(page.locator(".metric-board")).toContainText(/Automated browser test suite/i);

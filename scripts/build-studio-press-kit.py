@@ -6,7 +6,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "studio/press/downloads/sigilforge-studios-press-kit-july-2026.zip"
+OUTPUT = ROOT / "studio/press/downloads/sigilforge-studios-press-kit.zip"  # date-neutral, stable URL
 
 FILES = {
     "studio/press/copy/press-kit-readme.txt": "README.txt",
