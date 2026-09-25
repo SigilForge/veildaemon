@@ -15,7 +15,8 @@ import { rightsStaticFooterHtml, rightsStaticHeaderHtml } from "./creator-rights
 console.error(
   "rights:render is disabled: the committed rights pages have drifted ahead of this renderer, and rendering " +
     "would revert them (redirect script, studio.css version, SigilForge footer). Reconcile the template first; " +
-    "see the guard in scripts/render-static-rights-pages.mjs.",
+    "see the guard in scripts/render-static-rights-pages.mjs. Creator Rights releases are partially blocked / " +
+    "manual until then (Docs/dev-notes/creator-rights-verification-projection-ops.md).",
 );
 process.exit(1);
 

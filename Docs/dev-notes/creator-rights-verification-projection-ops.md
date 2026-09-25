@@ -1,5 +1,16 @@
 # Creator Rights Verification Projection Ops
 
+> **Status (2026-09-24): Creator Rights releases are PARTIALLY BLOCKED / MANUAL.**
+> The `rights/*.json -> static rights pages` link below is broken on purpose.
+> `npm run rights:render` fails closed, because the committed `rights/**`
+> pages have drifted ahead of the renderer template and rendering would revert
+> them. The pipeline is **not** end-to-end until the template is reconciled:
+> - record-page changes must be applied by hand to the committed pages;
+> - every other step (export, index, validate, release-check) still runs.
+>
+> Clear this banner in the change that reconciles the template and removes the
+> guard in `scripts/render-static-rights-pages.mjs`.
+
 The public static registry does not read Supabase at request time. Current
 verification state must be exported through a trusted server/build step.
 
@@ -9,13 +20,13 @@ Authority flow:
 creator_rights_verification_evidence
   -> rights/verification-projection.json
   -> rights/*.json
-  -> static rights pages
+  -> static rights pages        [BLOCKED: renderer fails closed; edit pages by hand]
   -> registry/records.json
 ```
 
 The browser and generated HTML are consumers, not authorities.
 
-## Normal Live Export
+## Live Export (partially manual while the renderer is blocked)
 
 1. Apply all VeilLink migrations, including
    `veillink/supabase/migrations/20260728193000_creator_rights_verification.sql`.
