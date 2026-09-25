@@ -1,6 +1,6 @@
 # VeilLink
 
-VeilLink is Cradlepoint Studio’s authenticated identity and utility application.
+VeilLink is SigilForge Studios’ authenticated identity and utility application.
 
 It provides account-backed ownership and delivery for Studio releases, and editable short links with stable downloadable QR targets.
 

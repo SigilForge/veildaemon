@@ -22,7 +22,7 @@ export default async function BookOnePage() {
 
   return (
     <main className="page book-one-page">
-      <p className="eyebrow">Cradlepoint Studio · Published Shelf</p>
+      <p className="eyebrow">SigilForge Studios · Published Shelf</p>
       <h1 className="page-title">Book One direct digital edition</h1>
       <p className="lede">
         The Anchor and the Glitch by S. Kaelen Vale. Get the DRM-free PDF, EPUB and MOBI editions,

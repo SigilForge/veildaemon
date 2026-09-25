@@ -1,3 +1,8 @@
+// WARNING (2026-09-24): the committed rights/**/index.html pages have drifted AHEAD of this renderer.
+// They carry a github.io redirect script, a newer studio.css version, and a SigilForge footer that this
+// template does not produce. Running `npm run rights:render` now would silently revert those. Reconcile
+// the template with the committed pages before re-rendering. (The SigilForge icon links were added both
+// here and directly in the committed pages.)
 import fs from "node:fs/promises";
 import path from "node:path";
 import QRCode from "qrcode";
@@ -386,6 +391,9 @@ function pageShell({ title, description, canonical, noindex = false, body }) {
   <meta name="twitter:description" content="${escapeHtml(description)}">
   <meta name="twitter:image" content="${escapeHtml(ogImage)}">
   <meta name="theme-color" content="#070a0b">
+  <link rel="icon" href="/studio/assets/brand/favicon.ico?v=20260924-sigilforge1" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/studio/assets/brand/favicon-32x32.png?v=20260924-sigilforge1">
+  <link rel="apple-touch-icon" href="/studio/assets/brand/apple-touch-icon.png?v=20260924-sigilforge1">
   <link rel="stylesheet" href="/studio/studio.css?v=${styleVersion}">
   <script src="https://analytics.ahrefs.com/analytics.js" data-key="S+lLE7cqoR0zD/Mvx39AJg" async></script>
 </head>

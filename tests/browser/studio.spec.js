@@ -139,7 +139,7 @@ test.describe("studio subtree routes", () => {
     expect(portalLd).toMatch(/small business web design/i);
     expect(portalLd).toMatch(/VeilDaemon/);
     await page.screenshot({
-      path: path.join(reviewDir, "cradlepoint-studio-desktop.png"),
+      path: path.join(reviewDir, "sigilforge-studio-desktop.png"),
       fullPage: true,
     });
 
@@ -348,8 +348,8 @@ test.describe("studio subtree routes", () => {
   test("technology page leads with live tools and bounded partner work", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("/studio/technology/");
-    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /technology-og\.jpg/);
-    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", /technology-og\.jpg/);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /sigilforge-hero-plate-16x9-alt\.webp/);
+    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", /sigilforge-hero-plate-16x9-alt\.webp/);
     await expect(page.locator(".technology-brief")).toContainText("Operator + Handler · VeilLink · deliberate Cell sync");
     await expect(page.locator(".technology-brief")).toContainText("Local edit · deliberate sync · no polling · no WebSockets for Cell state");
     await expect(page.locator("#trust-boundaries")).toContainText(/stay under local control/i);
@@ -586,7 +586,7 @@ test.describe("studio subtree routes", () => {
       expect(img.src.includes("?v="), img.src).toBeTruthy();
     }
     // Brand mark is SigilForge Studios, not only VeilCorp
-    expect(imgReport.some((i) => (i.src || "").includes("sigilforge-emblem") || (i.src || "").includes("cradlepoint-studio-wordmark"))).toBeTruthy();
+    expect(imgReport.some((i) => (i.src || "").includes("sigilforge-emblem"))).toBeTruthy();
 
     // Build marker present
     await expect(page.locator('meta[name="build-version"]')).toHaveAttribute(
@@ -662,7 +662,7 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/");
     await expect(page.locator(".pathway")).toHaveCount(4);
     await page.screenshot({
-      path: path.join(reviewDir, "cradlepoint-studio-mobile.png"),
+      path: path.join(reviewDir, "sigilforge-studio-mobile.png"),
       fullPage: true,
     });
   });

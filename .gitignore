@@ -214,7 +214,7 @@ pip-wheel-metadata/
 *.spec
 *.zip
 !studio/press/downloads/
-!studio/press/downloads/cradlepoint-studio-press-kit-july-2026.zip
+!studio/press/downloads/sigilforge-studios-press-kit-july-2026.zip
 !studio/downloads/book-one/book-one-studio-edition-digital-extras.zip
 *.7z
 *.tar

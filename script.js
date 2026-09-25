@@ -217,7 +217,7 @@ const commandRewards = {
   INTAKE_NODE: {
     id: "witness-key",
     title: "WITNESS KEY",
-    file: "assets/rewards/witness-key.png?v=20260623-deepscan1",
+    file: "assets/rewards/witness-key.png?v=20260924-witness2",
     text: "Witness key recovered."
   },
   PLAZA_DRIFT: {

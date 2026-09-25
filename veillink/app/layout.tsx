@@ -44,9 +44,9 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   keywords: siteConfig.keywords,
   applicationName: siteConfig.name,
-  authors: [{ name: "Cradlepoint Studio", url: siteConfig.studioUrl }],
-  creator: "Cradlepoint Studio",
-  publisher: "Cradlepoint Studio",
+  authors: [{ name: "SigilForge Studios", url: siteConfig.studioUrl }],
+  creator: "SigilForge Studios",
+  publisher: "SigilForge Studios",
   category: "technology",
   alternates: {
     canonical: absoluteUrl("/"),
