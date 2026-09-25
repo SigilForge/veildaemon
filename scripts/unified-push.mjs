@@ -115,6 +115,7 @@ async function main() {
     logStep("Phase 1: Pre-flight Checks & Validation");
     run("npm", ["run", "check"]);
     run("npm", ["run", "rights:validate"]);
+    run("npm", ["run", "rights:render:check"]);
     run("npm", ["run", "rights:verification:check"]);
     run("npm", ["run", "test"], { cwd: resolve(root, "veillink") });
     run("npm", ["run", "typecheck"], { cwd: resolve(root, "veillink") });

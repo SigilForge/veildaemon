@@ -26,6 +26,10 @@ The browser and generated HTML are consumers, not authorities.
    `node scripts/render-static-rights-pages.mjs --out=<dir>` and diff against `rights/`.
    The renderer is the only writer of record pages: don't hand-edit `rights/<slug>/`
    pages, because the next render will overwrite them. Change `rights/*.json` or the template.
+   Then run `npm run rights:render:check`. It re-renders into a temp directory and
+   fails on any byte difference, missing file or orphan under `rights/<slug>/`. CI
+   (`ci_smoke.yml`, `rights` scope) and the `npm run push` preflight run it too, so hand
+   edits or a stale template can't accumulate silently.
 6. Run `npm run rights:index`.
 7. Run `npm run rights:validate`.
 8. Run `npm run rights:index:check`.

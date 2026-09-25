@@ -30,10 +30,16 @@ jobs:
 
           run_app=0
           run_python=0
+          run_rights=0
           for file in "${changed[@]}"; do
             case "$file" in
               .github/workflows/ci_smoke.yml|admin/**|after-action-report/**|api/**|assets/**|catalogs.js|debrief/**|handler/**|index.html|lib/**|operator/**|package-lock.json|package.json|play/**|playwright.config.js|public/**|recovered-operator-reports/**|script.js|stream/**|styles.css|surface-nav.js|vercel.json)
                 run_app=1
+                ;;
+            esac
+            case "$file" in
+              .github/workflows/ci_smoke.yml|package-lock.json|package.json|rights/**|scripts/render-static-rights-pages.mjs|scripts/check-static-rights-pages.mjs|scripts/creator-rights-product-nav.mjs)
+                run_rights=1
                 ;;
             esac
             case "$file" in
@@ -45,21 +51,28 @@ jobs:
 
           echo "app=$run_app" >> "$GITHUB_OUTPUT"
           echo "python=$run_python" >> "$GITHUB_OUTPUT"
+          echo "rights=$run_rights" >> "$GITHUB_OUTPUT"
 
-          if [[ $run_app -eq 0 && $run_python -eq 0 ]]; then
+          if [[ $run_app -eq 0 && $run_python -eq 0 && $run_rights -eq 0 ]]; then
             echo "No public app or Python package smoke surface changed."
           fi
       - uses: actions/setup-node@v4
-        if: steps.scope.outputs.app == '1'
+        if: steps.scope.outputs.app == '1' || steps.scope.outputs.rights == '1'
         with:
           node-version: '20'
           cache: npm
       - name: Install public app deps
-        if: steps.scope.outputs.app == '1'
+        if: steps.scope.outputs.app == '1' || steps.scope.outputs.rights == '1'
         run: npm ci
       - name: Run public app syntax smoke
         if: steps.scope.outputs.app == '1'
         run: npm run check
+      - name: Creator Rights records and render drift (fail closed)
+        if: steps.scope.outputs.rights == '1'
+        run: |
+          npm run rights:validate
+          npm run rights:render:check
+          npm run rights:index:check
       - uses: actions/setup-python@v5
         if: steps.scope.outputs.python == '1'
         with:
