@@ -9,7 +9,7 @@
   </url>
   <url>
     <loc>https://veildaemon.app/updates/</loc>
-    <lastmod>2026-07-28</lastmod>
+    <lastmod>2026-09-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
@@ -238,8 +238,23 @@
     <priority>0.3</priority>
   </url>
 
-  <!-- relay-news:start -->
-  <url><loc>https://veildaemon.app/studio/news/</loc><lastmod>2026-07-23</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
+    <url><loc>https://veildaemon.app/studio/news/brand-state-locked-2026-09-25/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/storefront-and-veillink-reorganized-2026-09-22/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/archive-notes-cadence-2026-09-16/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/cell-live-link-networking-2026-08-03/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/sigilforge-rights-framework-1-0-2026-07-31/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/creator-rights-registry-live-2026-07-29/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/creator-rights-records-phase-one-2026-07-27/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/book-one-enters-production-2026-07-18/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/studio-front-door-2026-07-12/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/commercial-release-2026-07-10/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/live-handler-runtime-2026-07-01/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/veildaemon-operator-system-2026-06-24/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/intake-terminal-2026-06-05/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/before-the-archive-opened/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://veildaemon.app/studio/news/from-resonance-of-the-void-to-cradlepoint/</loc><lastmod>2026-09-25</lastmod><changefreq>yearly</changefreq><priority>0.5</priority></url>
+<!-- relay-news:start -->
+  <url><loc>https://veildaemon.app/studio/news/</loc><lastmod>2026-09-25</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://veildaemon.app/studio/news/archive-lattice-revision-2026-07-23/</loc><lastmod>2026-07-23</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>
   <url><loc>https://veildaemon.app/studio/news/book-one-digital-release-infrastructure/</loc><lastmod>2026-07-23</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>
   <url><loc>https://veildaemon.app/studio/news/why-veillink-exists/</loc><lastmod>2026-07-23</lastmod><changefreq>monthly</changefreq><priority>0.55</priority></url>

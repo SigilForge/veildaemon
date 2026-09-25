@@ -5,7 +5,79 @@
     <link>https://veildaemon.app/studio/news/</link>
     <description>Development logs, release notices, recovered transmissions, and changes to the Archive.</description>
     <language>en-us</language>
-    <lastBuildDate>Thu, 23 Jul 2026 18:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 25 Sep 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Brand state locked in</title>
+      <link>https://veildaemon.app/studio/news/brand-state-locked-2026-09-25/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/brand-state-locked-2026-09-25/</guid>
+      <pubDate>Thu, 24 Sep 2026 12:00:00 GMT</pubDate>
+      <description>Every surface now wears the mark that owns it. SigilForge Studios on the Studio pages, the registry, Creator Rights, and VeilLink. VeilCorp on the VeilDaemon terminal. Cradlepoint only where a page is explicitly about Cradlepoint. The last "Cradlepoint Studio" remnants were removed, the press kit was rebuilt from the real masters, and the Witness Key's WE WITNESS ring was corrected.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Storefront and VeilLink reorganized</title>
+      <link>https://veildaemon.app/studio/news/storefront-and-veillink-reorganized-2026-09-22/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/storefront-and-veillink-reorganized-2026-09-22/</guid>
+      <pubDate>Sun, 20 Sep 2026 12:00:00 GMT</pubDate>
+      <description>VeilLink became an umbrella portal, with /home as the signed-in hub instead of a page pretending to be a single product. The SigilForge storefront got clear paths for Book One, the TTRPG, Operator and Handler, VeilLink, and VeilDaemon. Web design became a real offer, with fixed packages, direct checkout, and a text-message contact route for people who do not want another form.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Daily commentary finds its shape</title>
+      <link>https://veildaemon.app/studio/news/#record-2026-09-19</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/#record-2026-09-19</guid>
+      <pubDate>Sat, 19 Sep 2026 12:00:00 GMT</pubDate>
+      <description>After the first Dispatch, a daily rhythm settled in. Each piece gives one character, speaking through one Frequency, a reaction to something happening in the real world: KIRA // VOID, KAELYN // BECOMING, ALEX // SILENCE, WEDNESDAY // BECOMING.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Archive Notes become a publishing cadence</title>
+      <link>https://veildaemon.app/studio/news/archive-notes-cadence-2026-09-16/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/archive-notes-cadence-2026-09-16/</guid>
+      <pubDate>Sat, 12 Sep 2026 12:00:00 GMT</pubDate>
+      <description>Father Samiel on the 12th, Alex on the 13th, Diana on the 14th, the first weekly Dispatch on the 15th, and Wednesday on the 16th. Each note started as something small enough to pass through a social feed and then followed it into the Archive. This is the point where characters speaking through the Archive became a recognizable public format instead of a one-off. Every note opens free.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Cell / Live-Link networking goes live</title>
+      <link>https://veildaemon.app/studio/news/cell-live-link-networking-2026-08-03/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/cell-live-link-networking-2026-08-03/</guid>
+      <pubDate>Fri, 31 Jul 2026 12:00:00 GMT</pubDate>
+      <description>The Operator and Handler apps started talking to each other across devices. Handler mechanical authority now reaches the Operator live, a real remote transport replaced the old export-and-import ferry, rolls report across devices, a lobby-wide roll feed runs in real time, and the Handler holds authority over the round. A table no longer has to share a screen to share a session.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>SigilForge Rights Framework 1.0</title>
+      <link>https://veildaemon.app/studio/news/sigilforge-rights-framework-1-0-2026-07-31/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/sigilforge-rights-framework-1-0-2026-07-31/</guid>
+      <pubDate>Fri, 31 Jul 2026 12:00:00 GMT</pubDate>
+      <description>The SigilForge Rights Framework and the guided Creator Rights Record workflow became publicly usable, which put Creator Rights in its public-launch state. The same day the licensing split around VeilDaemon and VeilForge was corrected. VeilForge's record now reads proprietary, not MPL-2.0.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Creator Rights Registry publicly live</title>
+      <link>https://veildaemon.app/studio/news/creator-rights-registry-live-2026-07-29/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/creator-rights-registry-live-2026-07-29/</guid>
+      <pubDate>Wed, 29 Jul 2026 12:00:00 GMT</pubDate>
+      <description>The registry opened with 12 records. It has searchable filtering, permanent /rights/&lt;slug&gt;/ pages, JSON metadata, QR destinations, declared AI-use permissions, and version history.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Creator Rights Records, phase one</title>
+      <link>https://veildaemon.app/studio/news/creator-rights-records-phase-one-2026-07-27/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/creator-rights-records-phase-one-2026-07-27/</guid>
+      <pubDate>Mon, 27 Jul 2026 12:00:00 GMT</pubDate>
+      <description>The registry, the public Studio page, JSON records, VeilLink APIs, the database schema with row-level security, and QR export all merged. It was built that day, not launched. The public opening came two days later.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>SigilForge Studios</title>
+      <link>https://veildaemon.app/studio/news/forging-the-sigil/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/forging-the-sigil/</guid>
+      <pubDate>Fri, 24 Jul 2026 12:00:00 GMT</pubDate>
+      <description>The studio stopped calling itself Cradlepoint Studio. SigilForge Studios became the umbrella over Cradlepoint, VeilDaemon, VeilLink, and VeilForge, while VeilCorp stayed where it belongs, on the terminal. The emblem took 147 attempts.</description>
+      <category>Development Record</category>
+    </item>
     <item>
       <title>Archive Lattice Revision</title>
       <link>https://veildaemon.app/studio/news/archive-lattice-revision-2026-07-23/</link>
@@ -45,6 +117,126 @@
       <pubDate>Thu, 23 Jul 2026 16:00:00 GMT</pubDate>
       <description>Books, TTRPG, VeilDaemon, VeilLink, print, audio, and the Archive client — one connected universe.</description>
       <category>Studio Dispatch</category>
+    </item>
+    <item>
+      <title>Book One enters production</title>
+      <link>https://veildaemon.app/studio/news/book-one-enters-production-2026-07-18/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/book-one-enters-production-2026-07-18/</guid>
+      <pubDate>Thu, 16 Jul 2026 12:00:00 GMT</pubDate>
+      <description>The complete Book One manuscript and its character artwork were consolidated into the production repository, and the editing sources were collapsed into a single v26 line. The v0.4 build was documented on the 17th, and the paid launch packs were refreshed on the 18th.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>The Studio gets a front door</title>
+      <link>https://veildaemon.app/studio/news/studio-front-door-2026-07-12/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/studio-front-door-2026-07-12/</guid>
+      <pubDate>Sat, 11 Jul 2026 12:00:00 GMT</pubDate>
+      <description>The Studio pages went up: projects, publishing, funding, a public data room, privacy and terms. A day later came the press room, the technology page, the founder story, and VeilForge. This is where the site started behaving like the front door of a studio rather than a strange terminal someone found in a ditch. It launched under the Cradlepoint Studio name, which lasted thirteen days.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Commercial release</title>
+      <link>https://veildaemon.app/studio/news/commercial-release-2026-07-10/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/commercial-release-2026-07-10/</guid>
+      <pubDate>Thu, 09 Jul 2026 12:00:00 GMT</pubDate>
+      <description>The Handler Core release pack was built and launched. The storefront went live with Operator Core ($15) and Handler Core ($20) beside the free Needlepoint on-ramp. Counts at launch: 25 final PDFs, 132 wiki articles, 47 VeilDaemon surfaces, 85 automated tests, 8 core manuscripts, 2 free Needlepoints, 2 paid release lanes.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>The live Handler runtime takes shape</title>
+      <link>https://veildaemon.app/studio/news/live-handler-runtime-2026-07-01/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/live-handler-runtime-2026-07-01/</guid>
+      <pubDate>Fri, 26 Jun 2026 12:00:00 GMT</pubDate>
+      <description>Over six days the Handler side gained an attention system, Needlepoint templates, NPC and entity handling, Operator trackers, Collapse and Rewrite staging, anchors, and Clue Integrity. Then came the Presentation Pressure framework and a universal Load architecture across the presentations, with Sanguine the first to load against it. By July 1, the runtime at the table was substantially the one in use now.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>VeilDaemon becomes an Operator system</title>
+      <link>https://veildaemon.app/studio/news/veildaemon-operator-system-2026-06-24/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/veildaemon-operator-system-2026-06-24/</guid>
+      <pubDate>Sat, 20 Jun 2026 12:00:00 GMT</pubDate>
+      <description>Intake gating came first, followed by Operator files that can be exported, imported, and equipped. Active Misfire and Lotus expression arrived, along with provenance, debrief intake with redaction review, and the recovered-reports index. The Handler Dashboard landed on June 24. Saves stay local by default.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Release-candidate stabilization</title>
+      <link>https://veildaemon.app/studio/news/#record-2026-06-16</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/#record-2026-06-16</guid>
+      <pubDate>Tue, 16 Jun 2026 12:00:00 GMT</pubDate>
+      <description>The public digest set the bar for everything shipped so far: downloadable, printable, runnable. What followed was cleanup, with no new surface area.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Viridian House is table-ready</title>
+      <link>https://veildaemon.app/studio/news/#record-2026-06-10</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/#record-2026-06-10</guid>
+      <pubDate>Wed, 10 Jun 2026 12:00:00 GMT</pubDate>
+      <description>The free Cradlepoint pack was updated with handouts and Handler tools for Viridian House. VeilDaemon is named in it as the public intake and routing interface, alongside the wiki and the free download.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>The intake terminal</title>
+      <link>https://veildaemon.app/studio/news/intake-terminal-2026-06-05/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/intake-terminal-2026-06-05/</guid>
+      <pubDate>Fri, 05 Jun 2026 12:00:00 GMT</pubDate>
+      <description>The VeilDaemon site went up with an interactive intake console in place of a form. Observer routing starts here.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>VeilCorp Training_404</title>
+      <link>https://veildaemon.app/studio/news/#record-2026-05-31</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/#record-2026-05-31</guid>
+      <pubDate>Sun, 31 May 2026 12:00:00 GMT</pubDate>
+      <description>VeilCorp Training_404 went out. By this point the public framing was explicit: a myth-tech horror TTRPG.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Entity File: Sanguine</title>
+      <link>https://veildaemon.app/studio/news/#record-2026-05-30</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/#record-2026-05-30</guid>
+      <pubDate>Sat, 30 May 2026 12:00:00 GMT</pubDate>
+      <description>Sanguine was transmitted as a public Archive release. The free first-contact materials were already being pointed to from the Archive.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>The Cradlepoint wiki</title>
+      <link>https://veildaemon.app/studio/news/#record-2026-05-29</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/#record-2026-05-29</guid>
+      <pubDate>Fri, 29 May 2026 12:00:00 GMT</pubDate>
+      <description>The Cradlepoint Archives wiki was approved and created.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Needlepoint becomes playable by outside tables</title>
+      <link>https://veildaemon.app/studio/news/#record-2026-05-23</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/#record-2026-05-23</guid>
+      <pubDate>Sat, 23 May 2026 12:00:00 GMT</pubDate>
+      <description>Polished case files went live on itch.io: Player Quickshot, GM Quickshot, the case file, handouts, the GM toolbox, and release notes. This was the line between something the author could run and something any table could pick up and playtest. Office Transmission_003 went public around the same time.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Office Broadcast 002</title>
+      <link>https://veildaemon.app/studio/news/#record-2026-05-17</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/#record-2026-05-17</guid>
+      <pubDate>Sun, 17 May 2026 12:00:00 GMT</pubDate>
+      <description>The Partial Recovery and Full Recovery transmissions were published, and NEEDLEPOINT was presented as the first public quickstart.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>The Cradlepoint Archives opens</title>
+      <link>https://veildaemon.app/studio/news/#record-2026-05-16</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/#record-2026-05-16</guid>
+      <pubDate>Sat, 16 May 2026 12:00:00 GMT</pubDate>
+      <description>The Archive opened publicly on Patreon, with Needlepoint and Devlog 01 already part of the presentation. This is the earliest point with a continuous public record, so this record starts here.</description>
+      <category>Development Record</category>
+    </item>
+    <item>
+      <title>Before the Archive Opened</title>
+      <link>https://veildaemon.app/studio/news/before-the-archive-opened/</link>
+      <guid isPermaLink="true">https://veildaemon.app/studio/news/before-the-archive-opened/</guid>
+      <pubDate>Fri, 15 May 2026 12:00:00 GMT</pubDate>
+      <description>Two years before the public record: project inception, Resonance of the Void becoming Book One, the VeilDaemon repository, VeilForge, and the TTRPG corpus.</description>
+      <category>Development Record</category>
     </item>
   </channel>
 </rss>

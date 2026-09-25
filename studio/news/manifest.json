@@ -1,5 +1,68 @@
 [
   {
+    "slug": "brand-state-locked-2026-09-25",
+    "title": "Brand State Locked In",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-09-25T14:22:00.000Z",
+    "canonicalUrl": "/studio/news/brand-state-locked-2026-09-25/",
+    "summary": "SigilForge, VeilCorp, and Cradlepoint marks routed to the surfaces that own them, and a Creator Rights renderer that can no longer drift quietly."
+  },
+  {
+    "slug": "storefront-and-veillink-reorganized-2026-09-22",
+    "title": "Storefront and VeilLink Reorganized",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-09-22T15:10:00.000Z",
+    "canonicalUrl": "/studio/news/storefront-and-veillink-reorganized-2026-09-22/",
+    "summary": "Web design packages with direct checkout, clearer Studio offers, Book One signup to checkout, and VeilLink rebuilt as a product-neutral portal."
+  },
+  {
+    "slug": "archive-notes-cadence-2026-09-16",
+    "title": "Archive Notes Become a Publishing Cadence",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-09-16T17:00:00.000Z",
+    "canonicalUrl": "/studio/news/archive-notes-cadence-2026-09-16/",
+    "summary": "Samiel, Alex, Diana, the first weekly Dispatch, and Wednesday: five days that turned characters speaking through the Archive into a format."
+  },
+  {
+    "slug": "cell-live-link-networking-2026-08-03",
+    "title": "Cell / Live-Link Networking Goes Live",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-08-03T18:00:00.000Z",
+    "canonicalUrl": "/studio/news/cell-live-link-networking-2026-08-03/",
+    "summary": "The Operator and Handler apps connect live across devices: Handler authority, a real remote transport, cross-device rolls, and a real-time roll feed."
+  },
+  {
+    "slug": "sigilforge-rights-framework-1-0-2026-07-31",
+    "title": "SigilForge Rights Framework 1.0",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-07-31T15:00:00.000Z",
+    "canonicalUrl": "/studio/news/sigilforge-rights-framework-1-0-2026-07-31/",
+    "summary": "The SigilForge Rights Framework and guided Creator Rights workflow reach public use, and the VeilDaemon / VeilForge licensing split is corrected."
+  },
+  {
+    "slug": "creator-rights-registry-live-2026-07-29",
+    "title": "Creator Rights Registry Publicly Live",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-07-29T17:00:00.000Z",
+    "canonicalUrl": "/studio/news/creator-rights-registry-live-2026-07-29/",
+    "summary": "The public registry opens with 12 records, permanent rights pages, JSON metadata, QR destinations, AI-use permissions, and version history."
+  },
+  {
+    "slug": "creator-rights-records-phase-one-2026-07-27",
+    "title": "Creator Rights Records, Phase One",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-07-27T21:00:00.000Z",
+    "canonicalUrl": "/studio/news/creator-rights-records-phase-one-2026-07-27/",
+    "summary": "Registry, Studio page, JSON records, VeilLink APIs, schema with row-level security, and QR export merge in a day. Built, not yet launched."
+  },
+  {
     "slug": "archive-lattice-revision-2026-07-23",
     "title": "Archive Lattice Revision",
     "voice": "Shade",
@@ -43,5 +106,77 @@
     "publishedAt": "2026-07-23T16:00:00.000Z",
     "canonicalUrl": "/studio/news/current-cradlepoint-studio-roadmap/",
     "summary": "Books, TTRPG, VeilDaemon, VeilLink, print, audio, and the Archive client."
+  },
+  {
+    "slug": "book-one-enters-production-2026-07-18",
+    "title": "Book One Enters Production",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-07-18T19:37:00.000Z",
+    "canonicalUrl": "/studio/news/book-one-enters-production-2026-07-18/",
+    "summary": "The complete manuscript and character artwork move into the production repository, editing collapses to v26, and the paid launch packs are refreshed."
+  },
+  {
+    "slug": "studio-front-door-2026-07-12",
+    "title": "The Studio Gets a Front Door",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-07-12T20:00:00.000Z",
+    "canonicalUrl": "/studio/news/studio-front-door-2026-07-12/",
+    "summary": "Studio pages, press room, technology, publishing, funding, the founder story, and VeilForge: VeilDaemon starts behaving like a studio's front door."
+  },
+  {
+    "slug": "commercial-release-2026-07-10",
+    "title": "Commercial Release",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-07-10T21:00:00.000Z",
+    "canonicalUrl": "/studio/news/commercial-release-2026-07-10/",
+    "summary": "Operator Core ($15) and Handler Core ($20) launch beside the free Needlepoint on-ramp. 25 final PDFs, 132 wiki articles, 47 VeilDaemon surfaces, 85 automated tests."
+  },
+  {
+    "slug": "live-handler-runtime-2026-07-01",
+    "title": "The Live Handler Runtime Takes Shape",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-07-01T23:00:00.000Z",
+    "canonicalUrl": "/studio/news/live-handler-runtime-2026-07-01/",
+    "summary": "Attention, Needlepoint templates, NPC and entity handling, Collapse and Rewrite staging, anchors, Clue Integrity, then Presentation Pressure and universal Load."
+  },
+  {
+    "slug": "veildaemon-operator-system-2026-06-24",
+    "title": "VeilDaemon Becomes an Operator System",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-06-24T21:00:00.000Z",
+    "canonicalUrl": "/studio/news/veildaemon-operator-system-2026-06-24/",
+    "summary": "Debrief intake and recovered reports, a full local Operator console, active Misfire and Lotus expression, provenance, Operator files, and the Handler Dashboard."
+  },
+  {
+    "slug": "intake-terminal-2026-06-05",
+    "title": "The Intake Terminal",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-06-05T19:10:00.000Z",
+    "canonicalUrl": "/studio/news/intake-terminal-2026-06-05/",
+    "summary": "The VeilDaemon site goes up with an interactive intake console in place of a form."
+  },
+  {
+    "slug": "before-the-archive-opened",
+    "title": "Before the Archive Opened",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2026-05-15T12:00:00.000Z",
+    "canonicalUrl": "/studio/news/before-the-archive-opened/",
+    "summary": "The private year before the public record: the Archives workspace, the VeilDaemon repository, Resonance of the Void becoming Book One, VeilForge, and the TTRPG corpus."
+  },
+  {
+    "slug": "from-resonance-of-the-void-to-cradlepoint",
+    "title": "From Resonance of the Void to Cradlepoint",
+    "voice": "Studio",
+    "category": "Development Record",
+    "publishedAt": "2025-07-02T17:00:00.000Z",
+    "canonicalUrl": "/studio/news/from-resonance-of-the-void-to-cradlepoint/",
+    "summary": "Book One began as Resonance of the Void. In the last week of June 2025 it became The Cradlepoint Archives: The Anchor and the Glitch."
   }
 ]

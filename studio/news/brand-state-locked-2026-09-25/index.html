@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script>(function(){if(location.hostname==="sigilforge.github.io"){location.replace("https://veildaemon.app"+location.pathname.replace(/^\/veildaemon/,"")+location.search+location.hash);}})();</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Brand State Locked In | SigilForge Studios News</title>
+  <meta name="description" content="SigilForge, VeilCorp, and Cradlepoint marks routed to the surfaces that own them, and a Creator Rights renderer that can no longer drift quietly.">
+  <meta name="robots" content="index, follow, max-snippet:180">
+  <link rel="canonical" href="https://veildaemon.app/studio/news/brand-state-locked-2026-09-25/">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="SigilForge Studios">
+  <meta property="og:title" content="Brand State Locked In">
+  <meta property="og:description" content="SigilForge, VeilCorp, and Cradlepoint marks routed to the surfaces that own them, and a Creator Rights renderer that can no longer drift quietly.">
+  <meta property="og:url" content="https://veildaemon.app/studio/news/brand-state-locked-2026-09-25/">
+  <meta property="og:image" content="https://veildaemon.app/studio/assets/social/studio-news-radio-station-og.png?v=20260723-name1">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Archive radio station location art for Studio news">
+  <meta property="article:published_time" content="2026-09-25T14:22:00.000Z">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://veildaemon.app/studio/assets/social/studio-news-radio-station-og.png?v=20260723-name1">
+  <meta name="theme-color" content="#070a0b">
+  <link rel="icon" href="/studio/assets/brand/favicon.ico?v=20260924-sigilforge1" sizes="any">
+  <link rel="stylesheet" href="/studio/studio.css?v=20260925-newsrecord1">
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="S+lLE7cqoR0zD/Mvx39AJg" async></script>
+</head>
+<body class="subpage page-shell">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="/studio/">
+      <img src="/studio/assets/brand/sigilforge-emblem-256.webp?v=20260724-sigilforge1" alt="SigilForge Studios">
+      <span><strong>SIGILFORGE</strong><small>STUDIOS</small></span>
+    </a>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle-input"><label for="nav-toggle" class="nav-toggle" aria-label="Toggle navigation" aria-controls="primary-nav"><span></span></label><nav aria-label="Primary navigation" id="primary-nav">
+      <a href="/studio/projects/">Projects</a>
+      <a href="/studio/shelf/">Shelf</a>
+      <a href="/studio/web-design/">Web design</a>
+      <a href="/studio/publishing/">Publishing</a>
+      <a href="/studio/technology/">Technology</a>
+      <a href="/studio/news/" aria-current="page">News</a>
+      <a href="/studio/funding/">Funding</a>
+      <a class="nav-cta" href="mailto:J.Donavon.Love@gmail.com?subject=SigilForge%20Studios%20Inquiry">Contact</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <article class="sub-hero text-only">
+      <div>
+        <p class="eyebrow">Studio Dispatch · Development record</p>
+        <h1>Brand State Locked In</h1>
+        <p><time datetime="2026-09-25">September 24–25, 2026</time> · Brand · Creator Rights · Infrastructure</p>
+        <p><a href="/studio/news/#record-2026-09-24">← Development record</a></p>
+      </div>
+    </article>
+
+    <section class="section-block">
+      <div class="news-article-body">
+<p>For about two months the platform had three identities fighting over the same favicons.</p>
+<p>SigilForge Studios is the studio. VeilCorp is the organization that runs the VeilDaemon terminal. Cradlepoint is the universe and the TTRPG. Those rulings were settled in the Cradlepoint repository first. On September 24 they were applied here, page by page.</p>
+<h2>What changed</h2>
+<ul>
+  <li><strong>Surface routing.</strong> The root terminal, admin, and stream surfaces carry VeilCorp. The Studio pages, the Creator Rights registry, rights records, and VeilLink carry SigilForge. The release index carries Cradlepoint. 101 pages were rerouted and cache-busted.</li>
+  <li><strong>No substitutes.</strong> Each favicon set is a byte copy of its canonical master. The build now verifies the sets and fails instead of deriving icons from the wrong emblem.</li>
+  <li><strong>The Witness Key.</strong> The terminal reward card got the corrected WE WITNESS ring back. The stream alert watermark had been showing the withdrawn Void Key geometry under the Witness Key name, and now shows the right badge.</li>
+  <li><strong>Press room.</strong> The kit was rebuilt from the SigilForge lockup master, the shield emblem, and the corrected badge. Broken entries were dropped. The linked download had been quietly 404ing because the file was gitignored, and it now ships.</li>
+  <li><strong>Residue.</strong> The last "Cradlepoint Studio" files and copy were removed, along with a Pale Mother glyph that had been living under the wrong filename.</li>
+</ul>
+<h2>The rights pages</h2>
+<p>While doing this, it turned out the committed Creator Rights pages had drifted ahead of the template that renders them. Regenerating them would have quietly reverted real content.</p>
+<p>The renderer was reconciled with the pages the next morning, and the end-to-end pipeline was restored. A new check, <code>rights:render:check</code>, fails closed if a public rights page no longer matches what its record would render. A rights record that silently diverges from its page is worse than no record, so that failure mode is now a build failure instead of a surprise.</p>
+<h2>Why it matters</h2>
+<p>A browser tab should tell you whose door you walked through. Now it does.</p>
+      </div>
+      <p style="margin-top:1.5rem">
+        <a class="button primary" href="/studio/press/">Open press room</a>
+        <a class="button secondary" href="/registry/">Creator Rights registry</a>
+      </p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="/studio/assets/brand/sigilforge-emblem-256.webp?v=20260724-sigilforge1" alt="SigilForge Studios">
+        <span>
+          <strong>SIGILFORGE STUDIOS</strong>
+          <small>Founder-operated studio. Real-world identity; VeilCorp is not the legal operator of this Studio.</small>
+        </span>
+      </div>
+      <div class="footer-cols">
+        <nav aria-label="Explore Studio">
+          <strong>Explore</strong>
+          <a href="/studio/">Studio home</a>
+          <a href="/studio/shelf/">Shelf</a>
+          <a href="/studio/news/">News</a>
+          <a href="/studio/technology/">Technology</a>
+        </nav>
+      </div>
+    </div>
+    <p class="footer-copy">© 2024–2026 J. Donavon Love, under the SigilForge Studios name</p>
+  </footer>
+</body>
+</html>
