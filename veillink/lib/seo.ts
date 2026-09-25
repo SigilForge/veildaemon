@@ -13,7 +13,7 @@ export const siteConfig = {
   shortName: product.name,
   tagline: "Editable QR codes without the ransom note",
   description:
-    "Create dynamic QR codes and short links that keep working when your destination changes. Print once, update later. PNG/SVG downloads, scan counts, pause controls, and honest pricing from Cradlepoint Studio.",
+    "Create dynamic QR codes and short links that keep working when your destination changes. Print once, update later. PNG/SVG downloads, scan counts, pause controls, and honest pricing from SigilForge Studios.",
   keywords: [
     "dynamic QR code",
     "editable QR code",
@@ -31,7 +31,7 @@ export const siteConfig = {
     "local business QR code",
     "VeilLink",
     "go.veildaemon.app",
-    "Cradlepoint Studio",
+    "SigilForge Studios",
   ],
   pathHost: product.pathHost,
   baseDomain: product.baseDomain,
@@ -89,9 +89,9 @@ export function buildMetadata({
     description,
     keywords: keywordList,
     applicationName: siteConfig.name,
-    authors: [{ name: "Cradlepoint Studio", url: siteConfig.studioUrl }],
-    creator: "Cradlepoint Studio",
-    publisher: "Cradlepoint Studio",
+    authors: [{ name: "SigilForge Studios", url: siteConfig.studioUrl }],
+    creator: "SigilForge Studios",
+    publisher: "SigilForge Studios",
     category: "technology",
     alternates: {
       canonical: url,
@@ -163,7 +163,7 @@ export function websiteJsonLd() {
       {
         "@type": "Organization",
         "@id": `${origin}/#organization`,
-        name: "Cradlepoint Studio",
+        name: "SigilForge Studios",
         url: siteConfig.studioUrl,
         brand: {
           "@type": "Brand",
@@ -289,7 +289,7 @@ export function pricingJsonLd() {
     },
     provider: {
       "@type": "Organization",
-      name: "Cradlepoint Studio",
+      name: "SigilForge Studios",
       url: siteConfig.studioUrl,
     },
     mainEntityOfPage: absoluteUrl("/links/pricing"),

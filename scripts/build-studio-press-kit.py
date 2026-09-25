@@ -6,7 +6,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "studio/press/downloads/sigilforge-studios-press-kit-july-2026.zip"
+OUTPUT = ROOT / "studio/press/downloads/sigilforge-studios-press-kit.zip"  # date-neutral, stable URL
 
 FILES = {
     "studio/press/copy/press-kit-readme.txt": "README.txt",
@@ -16,10 +16,11 @@ FILES = {
     "studio/press/copy/founder-bio-short.txt": "Founder/founder-bio-short.txt",
     "studio/press/copy/founder-bio-long.txt": "Founder/founder-bio-long.txt",
     "studio/press/media/founder.png": "Founder/founder-portrait.png",
-    "studio/assets/brand/sigilforge-studios-wordmark-color.png": "SigilForge-Studios/sigilforge-studios-wordmark-color.png",
-    "studio/assets/brand/sigilforge-studios-wordmark-color.webp": "SigilForge-Studios/sigilforge-studios-wordmark-color.webp",
+    # Primary horizontal lockup (PNG master from the canonical SigilForge shelf + web derivative).
+    "studio/assets/brand/sigilforge-banner-lockup-wide.png": "SigilForge-Studios/sigilforge-lockup-wide.png",
+    "studio/assets/brand/sigilforge-banner-lockup-wide.webp": "SigilForge-Studios/sigilforge-lockup-wide.webp",
+    "studio/assets/brand/sigilforge-emblem.png": "SigilForge-Studios/sigilforge-shield-emblem.png",
     "studio/assets/brand/sigilforge-banner-primary.webp": "SigilForge-Studios/sigilforge-banner-primary.webp",
-    "studio/assets/brand/sigilforge-studios-wordmark-monochrome.png": "SigilForge-Studios/sigilforge-studios-wordmark-monochrome.png",
     "studio/assets/brand/sigilforge-studios-emblem-transparent.png": "SigilForge-Studios/sigilforge-studios-emblem-transparent.png",
     "studio/assets/brand/sigilforge-studios-emblem-transparent.webp": "SigilForge-Studios/sigilforge-studios-emblem-transparent.webp",
     "studio/assets/brand/sigilforge-studios-emblem.png": "SigilForge-Studios/Sources/sigilforge-studios-emblem-source.png",
@@ -33,6 +34,12 @@ FILES = {
     "studio/press/media/product-viridian.webp": "Products/needlepoint-viridian-house.webp",
     "studio/assets/site-hd/studio-hero-cathedral-hd.webp": "Studio-Plates/studio-hero-cathedral.webp",
     "studio/assets/site-hd/studio-publishing-hero-hd.webp": "Studio-Plates/publishing-line.webp",
+    # Canonical SigilForge favicon set (Marketing/SigilForge Art/Favicon/ in the Cradlepoint repo).
+    **{f"studio/assets/brand/{name}": f"SigilForge-Studios/Favicons/{name}" for name in (
+        "favicon.ico", "favicon-16x16.png", "favicon-32x32.png", "favicon-48x48.png",
+        "apple-touch-icon.png", "sigilforge-mark-192.png", "sigilforge-mark-512.png",
+    )},
+    "studio/press/media/witness-key-badge.png": "VeilCorp-In-Universe/witness-key-badge.png",
     "studio/press/media/logo-primary.png": "VeilCorp-In-Universe/veilcorp-primary.png",
     "studio/press/media/logo-simple.png": "VeilCorp-In-Universe/veilcorp-simple.png",
     "studio/press/media/avatar.png": "VeilCorp-In-Universe/veilcorp-avatar.png",
@@ -42,6 +49,10 @@ FILES = {
 
 
 def main() -> None:
+    destinations = list(FILES.values())
+    duplicates = sorted({d for d in destinations if destinations.count(d) > 1})
+    if duplicates:
+        raise SystemExit("Duplicate press-kit destinations: " + ", ".join(duplicates))
     missing = [source for source in FILES if not (ROOT / source).is_file()]
     if missing:
         raise SystemExit("Missing press-kit sources: " + ", ".join(missing))

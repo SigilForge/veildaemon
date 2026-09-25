@@ -1,3 +1,7 @@
+// Renders rights/<slug>/index.html, rights/<slug>/license/index.html and record-qr.webp from rights/*.json
+// (the authority; pages are consumers). Reconciled 2026-09-24 with the committed pages: github.io redirect
+// script, current studio.css version, SigilForge favicon routing, and the footer/header from
+// creator-rights-product-nav.mjs. Use --out=<dir> to render into a scratch location and diff before writing.
 import fs from "node:fs/promises";
 import path from "node:path";
 import QRCode from "qrcode";
@@ -6,7 +10,11 @@ import { rightsStaticFooterHtml, rightsStaticHeaderHtml } from "./creator-rights
 
 const root = process.cwd();
 const rightsDir = path.join(root, "rights");
-const styleVersion = "20260729-rights-wrap1";
+// --out=<dir>: write rendered pages under <dir>/<slug>/ instead of rights/ (inputs are always read from rights/).
+const outArg = process.argv.slice(2).find((arg) => arg.startsWith("--out="));
+const outDir = outArg ? path.resolve(outArg.slice("--out=".length)) : rightsDir;
+
+const styleVersion = "20260922-mobilenav1";
 const qrAssetVersion = "20260728-qr-webp1";
 const publicOrigin = "https://veildaemon.app";
 const appOrigin = "https://app.veildaemon.app";
@@ -369,6 +377,7 @@ function pageShell({ title, description, canonical, noindex = false, body }) {
   return `<!doctype html>
 <html lang="en">
 <head>
+  <script>(function(){if(location.hostname==="sigilforge.github.io"){location.replace("https://veildaemon.app"+location.pathname.replace(/^\\/veildaemon/,"")+location.search+location.hash);}})();</script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${escapeHtml(title)}</title>
@@ -386,6 +395,9 @@ function pageShell({ title, description, canonical, noindex = false, body }) {
   <meta name="twitter:description" content="${escapeHtml(description)}">
   <meta name="twitter:image" content="${escapeHtml(ogImage)}">
   <meta name="theme-color" content="#070a0b">
+  <link rel="icon" href="/studio/assets/brand/favicon.ico?v=20260924-sigilforge1" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/studio/assets/brand/favicon-32x32.png?v=20260924-sigilforge1">
+  <link rel="apple-touch-icon" href="/studio/assets/brand/apple-touch-icon.png?v=20260924-sigilforge1">
   <link rel="stylesheet" href="/studio/studio.css?v=${styleVersion}">
   <script src="https://analytics.ahrefs.com/analytics.js" data-key="S+lLE7cqoR0zD/Mvx39AJg" async></script>
 </head>
@@ -409,7 +421,7 @@ const files = (await fs.readdir(rightsDir))
 for (const file of files) {
   const record = JSON.parse(await fs.readFile(path.join(rightsDir, file), "utf8"));
   const slug = file.replace(/\.json$/, "");
-  const dir = path.join(rightsDir, slug);
+  const dir = path.join(outDir, slug);
   const licenseDir = path.join(dir, "license");
   await fs.mkdir(licenseDir, { recursive: true });
   const canonical = `${publicOrigin}${recordPath(slug)}`;

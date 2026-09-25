@@ -139,7 +139,7 @@ test.describe("studio subtree routes", () => {
     expect(portalLd).toMatch(/small business web design/i);
     expect(portalLd).toMatch(/VeilDaemon/);
     await page.screenshot({
-      path: path.join(reviewDir, "cradlepoint-studio-desktop.png"),
+      path: path.join(reviewDir, "sigilforge-studio-desktop.png"),
       fullPage: true,
     });
 
@@ -348,8 +348,8 @@ test.describe("studio subtree routes", () => {
   test("technology page leads with live tools and bounded partner work", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto("/studio/technology/");
-    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /technology-og\.jpg/);
-    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", /technology-og\.jpg/);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /sigilforge-hero-plate-16x9-alt\.webp/);
+    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", /sigilforge-hero-plate-16x9-alt\.webp/);
     await expect(page.locator(".technology-brief")).toContainText("Operator + Handler · VeilLink · deliberate Cell sync");
     await expect(page.locator(".technology-brief")).toContainText("Local edit · deliberate sync · no polling · no WebSockets for Cell state");
     await expect(page.locator("#trust-boundaries")).toContainText(/stay under local control/i);
@@ -411,14 +411,14 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/press/");
     const kitLink = page.getByRole("link", { name: /Download complete press kit/i });
     await expect(kitLink).toBeVisible();
-    await expect(kitLink).toHaveAttribute("href", "downloads/sigilforge-studios-press-kit-july-2026.zip");
+    await expect(kitLink).toHaveAttribute("href", "downloads/sigilforge-studios-press-kit.zip");
     await expect(page.locator(".press-copy-grid .long-copy")).toContainText(/SigilForge Studios is an independent creative technology studio/i);
     await expect(page.locator(".press-copy-grid").first()).not.toContainText("See full text in download");
     await expect(page.locator(".press-copy-grid")).toContainText(/SigilForge Studios is an independent founder-operated studio/i);
     for (const id of ["studio-assets", "veildaemon-assets", "veilcorp-assets"]) {
       await expect(page.locator("#" + id)).toHaveCount(1);
     }
-    await expect(page.locator("#veildaemon-assets").locator("xpath=following-sibling::*[1]")).toContainText(/Technology social graphic/i);
+    await expect(page.locator("#veildaemon-assets").locator("xpath=following-sibling::*[1]")).toContainText(/VeilLink product plate/i);
     await expect(page.locator(".asset-caption").first()).toContainText(/Approved caption/i);
     await expect(page.locator(".metric-board")).toContainText(/Jul 10 2026/i);
     await expect(page.locator(".metric-board")).toContainText(/Automated browser test suite/i);
@@ -586,7 +586,7 @@ test.describe("studio subtree routes", () => {
       expect(img.src.includes("?v="), img.src).toBeTruthy();
     }
     // Brand mark is SigilForge Studios, not only VeilCorp
-    expect(imgReport.some((i) => (i.src || "").includes("sigilforge-emblem") || (i.src || "").includes("cradlepoint-studio-wordmark"))).toBeTruthy();
+    expect(imgReport.some((i) => (i.src || "").includes("sigilforge-emblem"))).toBeTruthy();
 
     // Build marker present
     await expect(page.locator('meta[name="build-version"]')).toHaveAttribute(
@@ -662,7 +662,7 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/");
     await expect(page.locator(".pathway")).toHaveCount(4);
     await page.screenshot({
-      path: path.join(reviewDir, "cradlepoint-studio-mobile.png"),
+      path: path.join(reviewDir, "sigilforge-studio-mobile.png"),
       fullPage: true,
     });
   });

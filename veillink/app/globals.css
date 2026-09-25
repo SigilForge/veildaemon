@@ -40,7 +40,7 @@
 
 /*
   Scene lives on html so body tints never wipe the photo plate.
-  Same approach as Cradlepoint Studio public surfaces.
+  Same approach as SigilForge Studios public surfaces.
 */
 html {
   scroll-behavior: smooth;

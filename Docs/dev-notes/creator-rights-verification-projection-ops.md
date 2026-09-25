@@ -22,7 +22,10 @@ The browser and generated HTML are consumers, not authorities.
 2. Confirm Supabase REST can see `creator_rights_verification_evidence`.
 3. Run `npm run rights:verification:export`.
 4. Run `npm run rights:verification:release-check`.
-5. Run `npm run rights:render`.
+5. Run `npm run rights:render`. To review first, render into a scratch location with
+   `node scripts/render-static-rights-pages.mjs --out=<dir>` and diff against `rights/`.
+   The renderer is the only writer of record pages: don't hand-edit `rights/<slug>/`
+   pages, because the next render will overwrite them. Change `rights/*.json` or the template.
 6. Run `npm run rights:index`.
 7. Run `npm run rights:validate`.
 8. Run `npm run rights:index:check`.

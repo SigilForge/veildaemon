@@ -44,9 +44,9 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   keywords: siteConfig.keywords,
   applicationName: siteConfig.name,
-  authors: [{ name: "Cradlepoint Studio", url: siteConfig.studioUrl }],
-  creator: "Cradlepoint Studio",
-  publisher: "Cradlepoint Studio",
+  authors: [{ name: "SigilForge Studios", url: siteConfig.studioUrl }],
+  creator: "SigilForge Studios",
+  publisher: "SigilForge Studios",
   category: "technology",
   alternates: {
     canonical: absoluteUrl("/"),
@@ -165,7 +165,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <footer className="site-footer">
             <div className="footer-inner">
               <p className="footer-copy">
-                {product.name} hosts dynamic QR links and Creator Rights records for SigilForge Studio. Printed QR
+                {product.name} hosts dynamic QR links and Creator Rights records for SigilForge Studios. Printed QR
                 files stay yours. Public rights records stay readable.
               </p>
               <nav className="footer-links" aria-label="Footer">
@@ -174,7 +174,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <Link href={RIGHTS_PRODUCT_CREATE_PATH}>{RIGHTS_PRODUCT_CREATE_LABEL}</Link>
                 <Link href="/report">Report abuse</Link>
                 <a href="https://veildaemon.app/studio/" target="_blank" rel="noopener noreferrer">
-                  SigilForge Studio
+                  SigilForge Studios
                 </a>
                 <a href="https://veildaemon.app/" target="_blank" rel="noopener noreferrer">
                   VeilDaemon
