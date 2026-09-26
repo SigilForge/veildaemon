@@ -54,6 +54,7 @@ let bridgePort;
 let writerScript = [];
 let editorScript = [];
 let calls = [];
+let events = []; // ordered model traffic, including residency releases
 let bridgeLog = "";
 const key = (anchor, groundedKey) => ({ anchor, groundedKey });
 
@@ -70,9 +71,15 @@ before(async () => {
     for await (const chunk of req) body += chunk;
     res.setHeader("Content-Type", "application/json");
     if (req.url === "/api/show") return res.end(JSON.stringify({ capabilities: ["completion", "tools"] }));
+    if (req.url === "/api/generate") {
+      const request = JSON.parse(body);
+      events.push(`release:${request.model === EDITOR ? "editor" : "writer"}:${request.keep_alive}`);
+      return res.end(JSON.stringify({ done: true }));
+    }
     if (req.url === "/api/chat") {
       const request = JSON.parse(body);
       calls.push(request);
+      events.push(`chat:${request.model === EDITOR ? (isFidelity(request) ? "verify" : "edit") : "writer"}`);
       const queue = request.model === EDITOR ? editorScript : writerScript;
       const content = queue.length > 1 ? queue.shift() : queue[0];
       return res.end(JSON.stringify({ message: { content }, done_reason: "stop" }));
@@ -123,6 +130,7 @@ const byModel = (model) => calls.filter((c) => c.model === model);
 
 test("an over-limit lane goes to the editor with a runtime word budget, then the fidelity gate; returned verbatim", async () => {
   calls = [];
+  events = [];
   const overLimit = prose(POLICY.bluesky.max + 60, "Overlong");
   const edited = prose(POLICY.bluesky.max - 15, "Edited");
   writerScript = [modelJson({ bluesky: overLimit })];
@@ -166,6 +174,7 @@ test("an over-limit lane goes to the editor with a runtime word budget, then the
 
 test("canonical case: a legal-length \"quarantine yourself\" rewrite fails on verifier evidence and is retried", async () => {
   calls = [];
+  events = [];
   // Fits the Bluesky limit and ends cleanly; the ruler alone cannot see that the target of the quarantine moved.
   const drifted = "Containment is the only answer now. Quarantine yourself before the signal reaches you, and trust no one who says the host is safe.";
   const restored = prose(POLICY.bluesky.max - 15, "Restored");
@@ -191,6 +200,7 @@ test("canonical case: a legal-length \"quarantine yourself\" rewrite fails on ve
 
 test("editing is not mutation: ungrounded verifier claims are dismissed by the runtime", async () => {
   calls = [];
+  events = [];
   const edited = "VeilCorp analysts classify this as False Steward Syndrome. Containment protocol: quarantine the host before the signal spreads.";
   writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
   editorScript = [
@@ -217,6 +227,7 @@ test("editing is not mutation: ungrounded verifier claims are dismissed by the r
 
 test("invented claims are judged clause by clause: a real invention inside a long faithful quote is admitted", async () => {
   calls = [];
+  events = [];
   const edited = "VeilCorp analysts classify this as False Steward Syndrome, and the board has already fled to Geneva with the servers.";
   const restored = "VeilCorp analysts classify this as False Steward Syndrome. Containment protocol: quarantine the host before the signal spreads.";
   writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
@@ -236,6 +247,7 @@ test("invented claims are judged clause by clause: a real invention inside a lon
 
 test("candidates: the runtime keeps the longest candidate that passes both the ruler and grounded evidence", async () => {
   calls = [];
+  events = [];
   const tooLong = prose(POLICY.bluesky.max + 30, "Toolong");
   const mutated = "Quarantine yourself now. VeilCorp analysts classify this as False Steward Syndrome, and the signal spreads.";
   const clean = "VeilCorp analysts classify this as False Steward Syndrome. Containment protocol: quarantine the host before the signal spreads.";
@@ -257,6 +269,7 @@ test("candidates: the runtime keeps the longest candidate that passes both the r
 
 test("the policy floor rejects an implausibly short post (live 2026-09-26: a 53-character Bluesky)", async () => {
   calls = [];
+  events = [];
   const stub = "Host compromised by extraction. Ownership is gone now.";
   const full = prose(POLICY.bluesky.floor + 40, "Fuller");
   writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
@@ -270,6 +283,7 @@ test("the policy floor rejects an implausibly short post (live 2026-09-26: a 53-
 
 test("round 1 edits all failing lanes in one call; later rounds give each failing lane its own call", async () => {
   calls = [];
+  events = [];
   writerScript = [modelJson({ threads: prose(POLICY.threads.max + 80, "Toolong"), bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
   const good = { threads: prose(POLICY.threads.max - 30, "Threadsfix"), bluesky: prose(POLICY.bluesky.max - 30, "Blueskyfix") };
   editorScript = [
@@ -298,6 +312,7 @@ const caPackage = (lanes) => JSON.stringify({
 
 test("CA-001 concept groups: an ownership-only lane fails for lacking whyItMatters; one anchor from each group passes", async () => {
   calls = [];
+  events = [];
   const both = (tag, n) => `${prose(n, tag)} Ownership is gone, and trust goes with it.`;
   const ownershipOnly = `${prose(POLICY.bluesky.max - 90, "Bluesky")} Ownership became a revocable license.`;
   const concise = "The host replaced ownership with revocable licenses, one quiet update at a time. What erodes now is trust.";
@@ -320,6 +335,7 @@ test("CA-001 concept groups: an ownership-only lane fails for lacking whyItMatte
 
 test("a lane that keeps dropping a group fails with missingGroups recorded in the 502", async () => {
   calls = [];
+  events = [];
   const ownershipOnly = `${prose(POLICY.bluesky.max - 90, "Bluesky")} Ownership became a revocable license.`;
   writerScript = [caPackage({ threads: `${prose(250, "Threads")} Ownership and trust.`, bluesky: ownershipOnly, mastodon: `${prose(250, "Mastodon")} Ownership and trust.` })];
   editorScript = [JSON.stringify({ bluesky: [ownershipOnly] })];
@@ -330,6 +346,7 @@ test("a lane that keeps dropping a group fails with missingGroups recorded in th
 
 test("anchors are grounded by the runtime; a group with no grounded anchor is a writer failure, retried by the writer", async () => {
   calls = [];
+  events = [];
   const ungrounded = JSON.stringify({ ...JSON.parse(caPackage({})), whyItMatters: ["sovereign cloud"] });
   const grounded = JSON.stringify({ ...JSON.parse(caPackage({
     threads: `${prose(250, "Threads")} Ownership and trust.`,
@@ -349,6 +366,7 @@ test("anchors are grounded by the runtime; a group with no grounded anchor is a 
 
 test("groundedKey: the head when grounded, else the nearest grounded word; lanes are checked on that same key", async () => {
   calls = [];
+  events = [];
   // The master has "trust" and "control" but never "erosion"; "loss of control" keeps its head, control.
   writerScript = [JSON.stringify({ ...JSON.parse(caPackage({
     threads: `${prose(250, "Threads")} Ownership goes, and trust goes with it.`,
@@ -366,6 +384,7 @@ test("groundedKey: the head when grounded, else the nearest grounded word; lanes
 
 test("disjoint halves: a key declared in both groups satisfies neither", async () => {
   calls = [];
+  events = [];
   const both = (tag, n) => `${prose(n, tag)} Revocable licenses replace ownership, and trust erodes.`;
   writerScript = [JSON.stringify({ ...JSON.parse(caPackage({ threads: both("Threads", 250), bluesky: both("Bluesky", 60), mastodon: both("Mastodon", 250) })),
     whatChanges: ["ownership", "revocable licenses"], whyItMatters: ["ownership", "trust"] })];
@@ -377,6 +396,7 @@ test("disjoint halves: a key declared in both groups satisfies neither", async (
 
   // With ownership as the only anchor in one group, that group is empty: a writer failure, retried by the writer.
   calls = [];
+  events = [];
   writerScript = [
     JSON.stringify({ ...JSON.parse(caPackage({})), whatChanges: ["ownership"], whyItMatters: ["ownership", "trust"] }),
     JSON.stringify({ ...JSON.parse(caPackage({ threads: both("Threads", 250), bluesky: both("Bluesky", 60), mastodon: both("Mastodon", 250) })), whatChanges: ["revocable licenses"], whyItMatters: ["trust"] }),
@@ -388,6 +408,7 @@ test("disjoint halves: a key declared in both groups satisfies neither", async (
 
 test("final round only: the requested word ceiling is 70% of the normal budget", async () => {
   calls = [];
+  events = [];
   const still = prose(POLICY.threads.max + 40, "Still");
   writerScript = [modelJson({ threads: prose(POLICY.threads.max + 80, "Toolong") })];
   editorScript = [JSON.stringify({ threads: [still] })];
@@ -403,6 +424,7 @@ test("final round only: the requested word ceiling is 70% of the normal budget",
 
 test("an anchor phrase is satisfied by its head noun", async () => {
   calls = [];
+  events = [];
   writerScript = [caPackage({
     threads: `${prose(250, "Threads")} The licenses remain, and the extraction continues.`,
     bluesky: `${prose(120, "Bluesky")} The licenses remain; the extraction continues.`,
@@ -416,6 +438,7 @@ test("an anchor phrase is satisfied by its head noun", async () => {
 
 test("a surface fix that rewrites the lane is rejected as edit_scope_exceeded (X stays long-form)", async () => {
   calls = [];
+  events = [];
   // Punctuation is deterministic code now, so the surface problem the editor still owns is an unfinished ending.
   const longX = `${prose(2_000, "Longform")} The transmission stopped at the.`;
   const compressed = prose(450, "Squeezed");
@@ -434,6 +457,7 @@ test("a surface fix that rewrites the lane is rejected as edit_scope_exceeded (X
 
 test("the runtime fails closed when verifier evidence is missing or malformed", async () => {
   calls = [];
+  events = [];
   writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
   const edit = JSON.stringify({ bluesky: prose(POLICY.bluesky.max - 15, "Edited") });
   editorScript = [edit, JSON.stringify({ bluesky: { differences: [{ code: "looks_fine", rewriteQuote: "", sourceQuote: "" }] } }), edit, JSON.stringify({}), edit, "{}"];
@@ -445,6 +469,7 @@ test("the runtime fails closed when verifier evidence is missing or malformed", 
 
 test("persistent over-limit output fails after bounded editor rounds, never clipped", async () => {
   calls = [];
+  events = [];
   writerScript = [modelJson({ threads: prose(POLICY.threads.max + 80, "Toolong") })];
   editorScript = [JSON.stringify({ threads: prose(POLICY.threads.max + 40, "Stilllong") })];
   const { status, body } = await generate();
@@ -460,6 +485,7 @@ test("persistent over-limit output fails after bounded editor rounds, never clip
 
 test("an unfinished ending is an editor fix, even on X", async () => {
   calls = [];
+  events = [];
   const unfinished = `${prose(900, "Longform")} He waited for the.`;
   const fixed = `${prose(900, "Longform")} He waited for the signal.`;
   writerScript = [modelJson({ x: unfinished })];
@@ -471,6 +497,7 @@ test("an unfinished ending is an editor fix, even on X", async () => {
 
 test("quoted elisions are repaired deterministically, word for word, without an editor call", async () => {
   calls = [];
+  events = [];
   const quoted = `${prose(900, "Longform")} The doctrine: "Ownership is deprecated... Access is sufficient..." He waited... and every copy ends "...go suck an egg."`;
   writerScript = [modelJson({ x: quoted })];
   editorScript = ["{}"];
@@ -482,6 +509,7 @@ test("quoted elisions are repaired deterministically, word for word, without an 
 
 test("long-form X (X Premium) is accepted in full without editing", async () => {
   calls = [];
+  events = [];
   const longX = prose(3_000, "Longform");
   writerScript = [modelJson({ x: longX })];
   editorScript = ["{}"];
@@ -495,6 +523,7 @@ test("long-form X (X Premium) is accepted in full without editing", async () => 
 
 test("master-draft problems still use the writer's own retry ladder", async () => {
   calls = [];
+  events = [];
   writerScript = [JSON.stringify({ ...JSON.parse(modelJson()), masterDraft: "" }), modelJson()];
   editorScript = ["{}"];
   const { status } = await generate();
@@ -555,4 +584,23 @@ test("the local bridge serves /studio/relay/ (directory index), so acceptance's 
   assert.equal((await fetch(`http://127.0.0.1:${bridgePort}/studio/relay/platform-policy.js`)).status, 200);
   assert.equal((await fetch(`http://127.0.0.1:${bridgePort}/studio/`)).status, 200);
   assert.equal((await fetch(`http://127.0.0.1:${bridgePort}/scripts/`)).status, 404, "a directory without an index is still not served");
+});
+
+test("residency: the writer is released before the editor loads, and the editor is released when it is done", async () => {
+  calls = [];
+  events = [];
+  writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
+  editorScript = [JSON.stringify({ bluesky: [prose(POLICY.bluesky.max - 30, "Edited")] }), evidence(["bluesky"])];
+  const { status } = await generate();
+  assert.equal(status, 200);
+  assert.deepEqual(events, ["chat:writer", "release:writer:0", "chat:edit", "chat:verify", "release:editor:0"]);
+
+  // The editor is put down even when the editor stage fails.
+  events = [];
+  writerScript = [modelJson({ threads: prose(POLICY.threads.max + 80, "Toolong") })];
+  editorScript = [JSON.stringify({ threads: [prose(POLICY.threads.max + 40, "Stilllong")] })];
+  const failed = await generate();
+  assert.equal(failed.status, 502);
+  assert.equal(events.at(-1), "release:editor:0");
+  assert.equal(events.filter((e) => e === "release:writer:0").length, 1, "the writer is released once, after its ladder");
 });

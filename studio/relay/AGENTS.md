@@ -45,6 +45,7 @@ Private Vercel review UI
 - The bridge's static server is confined to `studio/` (resolved and realpath-checked; traversal, encoded traversal, and symlinks out of the tree are 404). Never widen it: the repo root holds local secrets such as `.env.stripe-test.local`.
 - Editor: `qwen3.5:9b` (`RELAY_EDITOR_MODEL`), VeilForge's medium agent, called with `think: false` and a constant `num_ctx` of 8192 so it loads once. The bridge refuses to start if it is missing. Acceptance asserts it.
 - Residency: `RELAY_OLLAMA_KEEP_ALIVE` (default `5m`) applies to both preload (`?warm=1`) and generation, so the model does not hold memory long after Relay is idle.
+- Stage residency (`RELAY_MODEL_RESIDENCY`, default `release`), following VeilForge's heavy-role pattern: PaintedFantasy is released (best-effort `keep_alive: 0`) once its package is accepted, before the editor loads, and the editor is released when its stage ends. Relay's two heavy models never compete with each other or with a running VeilForge (whose lightweight router stays pinned) for VRAM. The cost is a cold writer load per request; `keep` restores both-resident behaviour when the GPU is Relay's alone.
 
 ## Platform policy
 - `studio/relay/platform-policy.js` is the single source of truth for character-package limits. The bridge enforces it in structured-output validation and adds it as an authoritative prompt; the browser prompt's platform lines are generated from it; the hosted fallback takes X's limit from it. Never hardcode platform limits elsewhere.

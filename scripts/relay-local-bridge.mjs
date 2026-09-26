@@ -24,6 +24,15 @@ const OLLAMA_MODEL = process.env.RELAY_OLLAMA_MODEL || "hf.co/zerofata/MS3.2-Pai
 // How long Ollama keeps the model resident after a Relay request or preload. Short by default so a
 // 24B model does not hold GPU/host memory for half an hour after Relay goes idle.
 const OLLAMA_KEEP_ALIVE = String(process.env.RELAY_OLLAMA_KEEP_ALIVE || "5m").trim();
+// Model residency, following VeilForge's heavy-role pattern (load on demand, release when the stage is done;
+// only a lightweight front door stays pinned). "release": the writer is put down once its package is accepted,
+// before the editor loads, and the editor is put down when the editor stage ends, so Relay's two heavy models
+// never compete with each other or with a running VeilForge for VRAM. "keep": both stay resident (keep_alive).
+const MODEL_RESIDENCY = String(process.env.RELAY_MODEL_RESIDENCY || "release").trim();
+if (!["release", "keep"].includes(MODEL_RESIDENCY)) {
+  console.error(`RELAY_MODEL_RESIDENCY must be release or keep, not "${MODEL_RESIDENCY}".`);
+  process.exit(1);
+}
 if (!/^(-1|0|\d+(\.\d+)?(ms|s|m|h)?)$/.test(OLLAMA_KEEP_ALIVE)) {
   console.error(`RELAY_OLLAMA_KEEP_ALIVE must be an Ollama duration such as 5m, 90s, 0, or -1 (got "${OLLAMA_KEEP_ALIVE}")`);
   process.exit(1);
@@ -789,11 +798,36 @@ async function requestOllamaCharacter(messages) {
       turnMessages = error?.violations && error.previousContent ? rewriteTurn(baseMessages, error) : baseMessages;
     }
   }
-  if (!written) throw lastError || invalidOutput("exhausted_retries");
+  if (!written) {
+    await releaseModel(OLLAMA_MODEL, "writer_failed");
+    throw lastError || invalidOutput("exhausted_retries");
+  }
   console.warn("RelayDaemon writer package", { concepts: CONCEPT_GROUPS.map((g) => `${g}: ${written.concepts[g].map(({ anchor, groundedKey }) => `${anchor}->${groundedKey}`).join(", ")}`).join(" | "), rejectedAnchors: written.rejectedAnchors, laneViolations: written.laneViolations.map((v) => `${v.field}:${v.problem}@${v.length}`).join(" ") || "none" });
+  // The writer's stage is over: put it down before the editor needs the VRAM.
+  await releaseModel(OLLAMA_MODEL, "writer_done");
   if (!written.laneViolations.length) return { result: written.result, editor: { model: EDITOR_MODEL, rounds: 0, calls: 0, dismissedEvidence: 0, concepts: written.concepts, lanesEdited: [] } };
   // Outside the writer's ladder: lane failures never rerun the writer; editor exhaustion is final.
-  return editLanes(written.result, written.laneViolations, written.concepts);
+  try {
+    return await editLanes(written.result, written.laneViolations, written.concepts);
+  } finally {
+    await releaseModel(EDITOR_MODEL, "editor_done");
+  }
+}
+
+/** Best-effort unload (keep_alive: 0), as VeilForge's model_manager.unload_model does. Never blocks a result. */
+async function releaseModel(model, reason) {
+  if (MODEL_RESIDENCY !== "release") return;
+  try {
+    const response = await fetch(new URL("/api/generate", new URL(OLLAMA_CHAT_URL)), {
+      method: "POST",
+      signal: AbortSignal.timeout(30_000),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model, prompt: "", stream: false, keep_alive: 0 }),
+    });
+    console.warn("RelayDaemon released model", { model, reason, ok: response.ok });
+  } catch (error) {
+    console.warn("RelayDaemon could not release model", { model, reason, error: error?.name || "error" });
+  }
 }
 
 function authorizedOrigin(req) {
@@ -939,6 +973,6 @@ async function checkModelCapabilities() {
 const capabilities = await checkModelCapabilities();
 server.listen(PORT, HOST, () => {
   console.log(`RelayDaemon local bridge: http://${HOST}:${PORT}/`);
-  console.log(`Editor model: ${EDITOR_MODEL} (thinking: off; rounds: ${EDITOR_ROUNDS})`);
+  console.log(`Editor model: ${EDITOR_MODEL} (thinking: off; rounds: ${EDITOR_ROUNDS}; residency: ${MODEL_RESIDENCY})`);
   console.log(`Ollama model: ${OLLAMA_MODEL} (thinking: ${OLLAMA_THINKING}; keep_alive: ${OLLAMA_KEEP_ALIVE}${capabilities ? `; capabilities: ${capabilities.join(", ")}` : ""})`);
 });
