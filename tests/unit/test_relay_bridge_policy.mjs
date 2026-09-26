@@ -4,7 +4,8 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
-import { symlink, unlink } from "node:fs/promises";
+import { mkdtemp, symlink, unlink, writeFile } from "node:fs/promises";
+import os from "node:os";
 import http from "node:http";
 import path from "node:path";
 import { after, before, test } from "node:test";
@@ -54,7 +55,12 @@ let bridgePort;
 let writerScript = [];
 let editorScript = [];
 let calls = [];
-let events = []; // ordered model traffic, including residency releases
+let events = []; // ordered model traffic, including residency releases and warms
+let resident = []; // what the fake Ollama reports in /api/ps (can include a foreign model)
+let warmDelayMs = 0;
+let vramFile; // RELAY_VRAM_PROBE=file:<vramFile>: free MB the bridge observes
+const setFreeVram = (mb) => writeFile(vramFile, String(mb));
+const settle = (ms = 150) => new Promise((r) => setTimeout(r, ms)); // let the post-response rewarm run
 let bridgeLog = "";
 const key = (anchor, groundedKey) => ({ anchor, groundedKey });
 
@@ -71,10 +77,21 @@ before(async () => {
     for await (const chunk of req) body += chunk;
     res.setHeader("Content-Type", "application/json");
     if (req.url === "/api/show") return res.end(JSON.stringify({ capabilities: ["completion", "tools"] }));
+    if (req.url === "/api/ps") return res.end(JSON.stringify({ models: resident.map((name) => ({ name, model: name })) }));
     if (req.url === "/api/generate") {
       const request = JSON.parse(body);
-      events.push(`release:${request.model === EDITOR ? "editor" : "writer"}:${request.keep_alive}`);
-      return res.end(JSON.stringify({ done: true }));
+      const who = request.model === EDITOR ? "editor" : request.model === WRITER ? "writer" : `foreign:${request.model}`;
+      if (request.keep_alive === 0) {
+        events.push(`release:${who}:0`);
+        resident = resident.filter((name) => name !== request.model);
+        return res.end(JSON.stringify({ done: true }));
+      }
+      // Load-only warm request.
+      events.push(`warm-start:${who}:${request.keep_alive}`);
+      await new Promise((r) => setTimeout(r, warmDelayMs));
+      if (!resident.includes(request.model)) resident.push(request.model);
+      events.push(`warm-end:${who}`);
+      return res.end(JSON.stringify({ done: true, load_duration: 5_000_000 }));
     }
     if (req.url === "/api/chat") {
       const request = JSON.parse(body);
@@ -82,7 +99,9 @@ before(async () => {
       events.push(`chat:${request.model === EDITOR ? (isFidelity(request) ? "verify" : "edit") : "writer"}`);
       const queue = request.model === EDITOR ? editorScript : writerScript;
       const content = queue.length > 1 ? queue.shift() : queue[0];
-      return res.end(JSON.stringify({ message: { content }, done_reason: "stop" }));
+      if (!resident.includes(request.model)) resident.push(request.model);
+      // Ollama-shaped durations (nanoseconds) so the bridge's telemetry has something to record.
+      return res.end(JSON.stringify({ message: { content }, done_reason: "stop", load_duration: 2_000_000, prompt_eval_duration: 3_000_000, eval_duration: 4_000_000 }));
     }
     res.statusCode = 404;
     res.end("{}");
@@ -96,8 +115,10 @@ before(async () => {
   bridgePort = probe.address().port;
   probe.close();
 
+  vramFile = path.join(await mkdtemp(path.join(os.tmpdir(), "relay-vram-")), "free-mb");
+  await setFreeVram(1_000); // default: no headroom (writer released before the editor; no rewarm)
   bridge = spawn(process.execPath, [path.join(root, "scripts/relay-local-bridge.mjs")], {
-    env: { ...process.env, RELAY_PORT: String(bridgePort), RELAY_OLLAMA_URL: `http://127.0.0.1:${fakePort}/api/chat`, RELAY_OLLAMA_MODEL: WRITER, RELAY_EDITOR_MODEL: EDITOR, RELAY_OLLAMA_THINKING: "off" },
+    env: { ...process.env, RELAY_PORT: String(bridgePort), RELAY_OLLAMA_URL: `http://127.0.0.1:${fakePort}/api/chat`, RELAY_OLLAMA_MODEL: WRITER, RELAY_EDITOR_MODEL: EDITOR, RELAY_OLLAMA_THINKING: "off", RELAY_MODEL_RESIDENCY: "adaptive", RELAY_VRAM_PROBE: `file:${vramFile}` },
     stdio: ["ignore", "pipe", "pipe"],
   });
   bridge.stderr.on("data", (chunk) => { bridgeLog += chunk; });
@@ -591,6 +612,7 @@ test("the local bridge serves /studio/relay/ (directory index), so acceptance's 
 });
 
 test("residency: the writer is released before the editor loads, and the editor is released when it is done", async () => {
+  await settle(); // let the previous test's post-response rewarm finish before observing
   calls = [];
   events = [];
   writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
@@ -678,4 +700,93 @@ test("stage-local recovery keeps lanes accepted in the first cycle; only failing
   assert.equal(body.result.platformDrafts.threads, threads);
   assert.deepEqual(Object.keys(calls[5].format.properties), ["threads"], "the recovery cycle edits only the failing lane");
   assert.equal(body.editor.cycles, 2);
+});
+
+test("adaptive: with headroom the writer stays resident through editing, and is rewarmed (TTL refresh) after the response", async () => {
+  await settle(); // let the previous test's post-response rewarm finish before observing
+  calls = [];
+  events = [];
+  resident = [];
+  await setFreeVram(40_000);
+  writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
+  editorScript = [JSON.stringify({ bluesky: [prose(POLICY.bluesky.max - 30, "Edited")] }), evidence(["bluesky"])];
+  const { status } = await generate();
+  assert.equal(status, 200);
+  await settle();
+  assert.deepEqual(events, ["chat:writer", "chat:edit", "chat:verify", "release:editor:0", "warm-start:writer:10m", "warm-end:writer"]);
+  await setFreeVram(1_000);
+});
+
+test("adaptive: a cold writer is rewarmed only when headroom is safe, and never forces room", async () => {
+  await settle(); // let the previous test's post-response rewarm finish before observing
+  events = [];
+  resident = [];
+  await setFreeVram(1_000);
+  writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
+  editorScript = [JSON.stringify({ bluesky: [prose(POLICY.bluesky.max - 30, "Edited")] }), evidence(["bluesky"])];
+  await generate();
+  await settle();
+  assert.ok(events.includes("release:writer:0"), "no room for the editor: the writer is released first");
+  assert.ok(!events.some((e) => e.startsWith("warm-start")), "no headroom: no rewarm");
+  assert.match(bridgeLog, /writer rewarm skipped/);
+
+  events = [];
+  resident = [];
+  await setFreeVram(40_000);
+  writerScript = [modelJson()]; // clean package: no editor
+  editorScript = ["{}"];
+  await generate();
+  await settle();
+  assert.ok(events.includes("warm-start:writer:10m"), "headroom and not resident: rewarm with the bounded TTL");
+  await setFreeVram(1_000);
+});
+
+test("a new request joins an in-flight rewarm instead of starting a duplicate load", async () => {
+  await settle(); // let the previous test's post-response rewarm finish before observing
+  events = [];
+  resident = [];
+  await setFreeVram(40_000);
+  warmDelayMs = 400;
+  writerScript = [modelJson()];
+  editorScript = ["{}"];
+  await generate(); // triggers a slow background rewarm
+  await settle(50); // the rewarm is now in flight
+  writerScript = [modelJson()];
+  await generate(); // must wait for the rewarm, then use the warm writer
+  await settle(600);
+  const firstWarmEnd = events.indexOf("warm-end:writer");
+  const secondWriter = events.lastIndexOf("chat:writer");
+  assert.ok(firstWarmEnd >= 0 && firstWarmEnd < secondWriter, "the second writer call waited for the in-flight warm");
+  assert.equal(events.filter((e) => e === "warm-start:writer:10m").length, 2, "one warm per completed request, never two at once");
+  assert.ok(events.indexOf("warm-start:writer:10m") < firstWarmEnd && events.lastIndexOf("warm-start:writer:10m") > firstWarmEnd, "no overlapping warms");
+  warmDelayMs = 0;
+  await setFreeVram(1_000);
+});
+
+test("Relay never evicts a foreign model; it only observes one", async () => {
+  await settle(); // let the previous test's post-response rewarm finish before observing
+  events = [];
+  resident = ["granite4:7b-a1b-h"];
+  await setFreeVram(1_000);
+  writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
+  editorScript = [JSON.stringify({ bluesky: [prose(POLICY.bluesky.max - 30, "Edited")] }), evidence(["bluesky"])];
+  await generate();
+  await settle();
+  assert.ok(!events.some((e) => e.includes("foreign:")), "no release or warm is ever issued for a model Relay does not own");
+  assert.ok(resident.includes("granite4:7b-a1b-h"));
+});
+
+test("per-call Ollama timings are recorded (numbers only)", async () => {
+  calls = [];
+  writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
+  editorScript = [JSON.stringify({ bluesky: [prose(POLICY.bluesky.max - 30, "Edited")] }), evidence(["bluesky"])];
+  const { body } = await generate();
+  assert.deepEqual(body.timings.map((t) => t.stage), ["writer", "edit", "verify"]);
+  for (const t of body.timings) {
+    assert.equal(t.loadMs, 2);
+    assert.equal(t.promptEvalMs, 3);
+    assert.equal(t.evalMs, 4);
+    assert.equal(typeof t.wallMs, "number");
+  }
+  await settle();
 });

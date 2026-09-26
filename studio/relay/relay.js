@@ -3,7 +3,8 @@
 
   const STORAGE_KEY = "relaydaemon.draft.v1";
   const MAX_SOURCE = 40000;
-  const GENERATION_TIMEOUT_MS = 240000;
+  // A cold start (writer loaded from disk, then editor) is a supported state: observed ceiling 282 s, plus margin.
+  const GENERATION_TIMEOUT_MS = 360000;
   const CHARACTER_ENDPOINT = "/api/character";
   const LOCAL_CHARACTER_ENDPOINT = "http://127.0.0.1:4174/api/character";
   const IS_LOCAL_BRIDGE = ["127.0.0.1", "localhost"].includes(window.location.hostname);
@@ -1107,7 +1108,7 @@
       return await requestCharacterEngine(CHARACTER_ENDPOINT, messages, false);
     } catch (error) {
       console.error("Relay character request failed", { stage, name: error?.name, message: error?.message, elapsedMs: Math.round(performance.now() - startedAt), error });
-      if (error instanceof DOMException && error.name === "AbortError") throw new Error("Character generation exceeded 120 seconds.");
+      if (error instanceof DOMException && error.name === "AbortError") throw new Error(`Character generation exceeded ${Math.round(GENERATION_TIMEOUT_MS / 1000)} seconds.`);
       if (error?.message === "OLLAMA_INVALID_OUTPUT") throw new Error("Local Ollama returned an unreadable structured draft. Hosted OpenAI was not available as a recovery path.");
       if (error?.message === "HOSTED_ENGINE_NOT_CONFIGURED") throw new Error("Hosted OpenAI is not configured yet.");
       if (error?.message === "UNAUTHORIZED") throw new Error("Character generation requires an authorized RelayDaemon session.");

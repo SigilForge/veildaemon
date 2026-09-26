@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
+import http from "node:http";
 import { chromium } from "@playwright/test";
 import { missingSemanticGroups, validateSemanticGroups } from "./lib/relay-fixture-semantics.mjs";
 
@@ -71,19 +72,36 @@ function messages() {
   ];
 }
 
+// Direct client with an explicit timeout: Node's fetch drops a request after ~300 s without response headers,
+// shorter than a legitimate cold start. 420 s covers the page's 360 s budget plus margin.
+function postCharacter(body) {
+  return new Promise((resolvePost, rejectPost) => {
+    const req = http.request({ host: "127.0.0.1", port: 4174, path: "/api/character", method: "POST", timeout: 420_000,
+      headers: { "Content-Type": "application/json", "X-Relay-Request": "character-v1", Origin: "http://127.0.0.1:4174", "Content-Length": Buffer.byteLength(body) } }, (res) => {
+      let data = "";
+      res.setEncoding("utf8");
+      res.on("data", (chunk) => { data += chunk; });
+      res.on("end", () => {
+        let payload = {};
+        try { payload = JSON.parse(data); } catch (_error) { /* non-JSON error body */ }
+        resolvePost({ ok: res.statusCode >= 200 && res.statusCode < 300, status: res.statusCode, payload });
+      });
+    });
+    req.on("timeout", () => req.destroy(new Error("direct request exceeded 420 s")));
+    req.on("error", rejectPost);
+    req.end(body);
+  });
+}
+
 // Results are appended as each run finishes, so a failing suite still records the runs before it.
 async function directRuns(results = []) {
   for (let index = 1; index <= 5; index += 1) {
     const started = Date.now();
-    const response = await fetch("http://127.0.0.1:4174/api/character", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Relay-Request": "character-v1", Origin: "http://127.0.0.1:4174" },
-      body: JSON.stringify({ messages: messages() })
-    });
-    const payload = await response.json().catch(() => ({}));
-    results.push({ run: index, elapsedMs: Date.now() - started, status: response.status, editor: payload?.editor || null, pending: true });
+    const response = await postCharacter(JSON.stringify({ messages: messages() }));
+    const payload = response.payload;
+    results.push({ run: index, elapsedMs: Date.now() - started, status: response.status, editor: payload?.editor || null, timings: payload?.timings || null, pending: true });
     assert(response.ok, `direct ${index}: HTTP ${response.status} ${payload?.error || ""}`);
-    results[results.length - 1] = { run: index, elapsedMs: Date.now() - started, ...validateResult(payload, `direct ${index}`) };
+    results[results.length - 1] = { run: index, elapsedMs: Date.now() - started, timings: payload?.timings || null, ...validateResult(payload, `direct ${index}`) };
     console.log(`direct ${index}/5 passed`);
   }
   return results;
@@ -102,13 +120,13 @@ async function uiRuns(results = []) {
       page.on("response", async (response) => {
         if (!response.url().startsWith("http://127.0.0.1:4174/api/character") || response.request().method() !== "POST") return;
         const payload = await response.json().catch(() => ({}));
-        bridgeResponses.push({ status: response.status(), error: payload?.error || null, editor: payload?.editor || null });
+        bridgeResponses.push({ status: response.status(), error: payload?.error || null, editor: payload?.editor || null, timings: payload?.timings || null });
       });
       await page.goto("http://127.0.0.1:4174/studio/relay/", { waitUntil: "domcontentloaded" });
       await page.locator("#source-text").fill(fixture.source);
       await page.locator("#character").selectOption(fixture.persona);
       await page.getByRole("button", { name: "Generate social package" }).click();
-      await page.locator('[data-platform="x"] .variant-copy').waitFor({ state: "visible", timeout: 360_000 });
+      await page.locator('[data-platform="x"] .variant-copy').waitFor({ state: "visible", timeout: 420_000 }); // above the page's own 360 s budget
       const platforms = {};
       for (const platform of Object.keys(fixture.platformLimits)) {
         const value = await page.locator(`[data-platform="${platform}"] .variant-copy`).inputValue();

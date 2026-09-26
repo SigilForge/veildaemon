@@ -1,5 +1,7 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+import { execFile } from "node:child_process";
 import { createReadStream } from "node:fs";
-import { realpath, stat } from "node:fs/promises";
+import { readFile, realpath, stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,15 +26,25 @@ const OLLAMA_MODEL = process.env.RELAY_OLLAMA_MODEL || "hf.co/zerofata/MS3.2-Pai
 // How long Ollama keeps the model resident after a Relay request or preload. Short by default so a
 // 24B model does not hold GPU/host memory for half an hour after Relay goes idle.
 const OLLAMA_KEEP_ALIVE = String(process.env.RELAY_OLLAMA_KEEP_ALIVE || "5m").trim();
-// Model residency, following VeilForge's heavy-role pattern (load on demand, release when the stage is done;
-// only a lightweight front door stays pinned). "release": the writer is put down once its package is accepted,
-// before the editor loads, and the editor is put down when the editor stage ends, so Relay's two heavy models
-// never compete with each other or with a running VeilForge for VRAM. "keep": both stay resident (keep_alive).
-const MODEL_RESIDENCY = String(process.env.RELAY_MODEL_RESIDENCY || "release").trim();
-if (!["release", "keep"].includes(MODEL_RESIDENCY)) {
-  console.error(`RELAY_MODEL_RESIDENCY must be release or keep, not "${MODEL_RESIDENCY}".`);
+// Model residency. Relay owns exactly two models (writer, editor) and never unloads or manipulates any other
+// process's model; it may observe foreign residency (free VRAM, /api/ps) only to make its own scheduling decisions
+// (VeilForge heartbeat principle: residency is not ownership).
+// - "adaptive" (default): the writer is released before the editor only when the editor would not fit; the editor
+//   is released when its stage ends; after the response is sent the writer is rewarmed in the background with a
+//   bounded idle TTL, only when it is not resident and headroom is safe. A new request joins an in-flight rewarm.
+// - "release": both models are put down after their stages (always cold writer).
+// - "keep": both stay resident on the ordinary keep_alive.
+const MODEL_RESIDENCY = String(process.env.RELAY_MODEL_RESIDENCY || "adaptive").trim();
+if (!["adaptive", "release", "keep"].includes(MODEL_RESIDENCY)) {
+  console.error(`RELAY_MODEL_RESIDENCY must be adaptive, release, or keep, not "${MODEL_RESIDENCY}".`);
   process.exit(1);
 }
+const WRITER_WARM_TTL = String(process.env.RELAY_WRITER_WARM_TTL || "10m").trim();
+const EDITOR_VRAM_MB = Number(process.env.RELAY_EDITOR_VRAM_MB || 7_000); // qwen3.5:9b @ 8k ctx measured 5.9 GB + margin
+const WRITER_VRAM_MB = Number(process.env.RELAY_WRITER_VRAM_MB || 21_000); // PaintedFantasy @ 16k ctx measured 19 GB + margin
+// Free-VRAM probe: "nvidia-smi" (default), "file:<path>" (a number of free MB; tests), or "none" (unknown).
+const VRAM_PROBE = String(process.env.RELAY_VRAM_PROBE || "nvidia-smi").trim();
+const requestTelemetry = new AsyncLocalStorage();
 if (!/^(-1|0|\d+(\.\d+)?(ms|s|m|h)?)$/.test(OLLAMA_KEEP_ALIVE)) {
   console.error(`RELAY_OLLAMA_KEEP_ALIVE must be an Ollama duration such as 5m, 90s, 0, or -1 (got "${OLLAMA_KEEP_ALIVE}")`);
   process.exit(1);
@@ -373,6 +385,7 @@ function thinkField(attemptThink) {
 
 async function requestOllamaOnce(messages, attempt) {
   const { think, temperature, num_ctx, num_predict } = attempt;
+  const writerStartedAt = Date.now();
   const response = await fetch(OLLAMA_CHAT_URL, {
     method: "POST",
     signal: AbortSignal.timeout(240_000),
@@ -389,6 +402,7 @@ async function requestOllamaOnce(messages, attempt) {
   });
   if (!response.ok) throw Object.assign(new Error("OLLAMA_FAILED"), { status: response.status });
   const payload = await response.json();
+  recordTiming("writer", payload, writerStartedAt);
   const content = String(payload.message?.content || "");
   const thinking = String(payload.message?.thinking || "");
   const parsed = extractJsonObject(content) || extractJsonObject(thinking);
@@ -515,7 +529,64 @@ function parseFailure(error) {
   throw error;
 }
 
+/** Per-call Ollama timings (numbers only) for the current request: where the seconds actually go. */
+function recordTiming(stage, payload, startedAt) {
+  const ms = (value) => (typeof value === "number" ? Math.round(value / 1e6) : null);
+  requestTelemetry.getStore()?.push({ stage, loadMs: ms(payload?.load_duration), promptEvalMs: ms(payload?.prompt_eval_duration), evalMs: ms(payload?.eval_duration), wallMs: Date.now() - startedAt });
+}
+
+/** Free VRAM in MB, or null when unknown (unknown is treated as "no room"). Observation only. */
+async function freeVramMb() {
+  try {
+    if (VRAM_PROBE === "none") return null;
+    if (VRAM_PROBE.startsWith("file:")) {
+      const value = Number((await readFile(VRAM_PROBE.slice(5), "utf8")).trim());
+      return Number.isFinite(value) ? value : null;
+    }
+    const stdout = await new Promise((resolveProbe, rejectProbe) => execFile("nvidia-smi", ["--query-gpu=memory.total,memory.used", "--format=csv,noheader,nounits"], { timeout: 3_000 }, (error, out) => (error ? rejectProbe(error) : resolveProbe(out))));
+    const [total, used] = stdout.split("\n")[0].split(",").map((v) => Number(v.trim()));
+    return Number.isFinite(total) && Number.isFinite(used) ? total - used : null;
+  } catch (_error) {
+    return null;
+  }
+}
+
+/** Whether the writer model is currently resident in Ollama (observation of /api/ps; never an action). */
+async function writerResident() {
+  try {
+    const response = await fetch(new URL("/api/ps", new URL(OLLAMA_CHAT_URL)), { signal: AbortSignal.timeout(5_000) });
+    const models = (await response.json())?.models || [];
+    return models.some((m) => m?.name === OLLAMA_MODEL || m?.model === OLLAMA_MODEL);
+  } catch (_error) {
+    return null;
+  }
+}
+
+let writerWarm = null; // in-flight background rewarm; a new request joins it instead of starting a duplicate load
+/** Adaptive only: after a response, load-only rewarm of the writer with a bounded idle TTL, if safe. */
+function scheduleWriterRewarm() {
+  if (MODEL_RESIDENCY !== "adaptive" || writerWarm) return;
+  writerWarm = (async () => {
+    const resident = await writerResident();
+    const free = resident ? null : await freeVramMb();
+    if (resident !== true && (free === null || free < WRITER_VRAM_MB)) {
+      console.warn("RelayDaemon writer rewarm skipped", { resident, freeMb: free, needMb: WRITER_VRAM_MB });
+      return;
+    }
+    const startedAt = Date.now();
+    const response = await fetch(new URL("/api/generate", new URL(OLLAMA_CHAT_URL)), {
+      method: "POST",
+      signal: AbortSignal.timeout(300_000),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ model: OLLAMA_MODEL, prompt: "", stream: false, keep_alive: WRITER_WARM_TTL, options: { num_ctx: 16_384 } }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    console.warn("RelayDaemon writer rewarmed", { ok: response.ok, alreadyResident: resident === true, ttl: WRITER_WARM_TTL, loadMs: typeof payload?.load_duration === "number" ? Math.round(payload.load_duration / 1e6) : null, wallMs: Date.now() - startedAt });
+  })().catch((error) => console.warn("RelayDaemon writer rewarm failed", { error: error?.name || "error" })).finally(() => { writerWarm = null; });
+}
+
 async function editorChat(messages, schema, numPredict, temperature = 0.3) {
+  const startedAt = Date.now();
   const response = await fetch(OLLAMA_CHAT_URL, {
     method: "POST",
     signal: AbortSignal.timeout(120_000),
@@ -523,7 +594,9 @@ async function editorChat(messages, schema, numPredict, temperature = 0.3) {
     body: JSON.stringify({ model: EDITOR_MODEL, stream: false, think: false, format: schema, keep_alive: OLLAMA_KEEP_ALIVE, messages, options: { temperature, num_ctx: EDITOR_NUM_CTX, num_predict: numPredict } }),
   });
   if (!response.ok) throw Object.assign(new Error("OLLAMA_FAILED"), { status: response.status, detail: "editor" });
-  const parsed = extractJsonObject((await response.json()).message?.content || "");
+  const payload = await response.json();
+  recordTiming(schema?.properties && Object.values(schema.properties)[0]?.type === "object" ? "verify" : "edit", payload, startedAt);
+  const parsed = extractJsonObject(payload.message?.content || "");
   if (!parsed) throw invalidOutput("editor_invalid_json");
   return parsed;
 }
@@ -790,6 +863,8 @@ async function editLanes(result, initialViolations, concepts) {
 }
 
 async function requestOllamaCharacter(messages) {
+  // Join an in-flight background rewarm rather than racing it with a duplicate load of the same model.
+  if (writerWarm) await writerWarm;
   const baseMessages = withPolicy(messages);
   let turnMessages = baseMessages;
   let lastError = null;
@@ -825,24 +900,36 @@ async function requestOllamaCharacter(messages) {
     }
   }
   if (!written) {
-    await releaseModel(OLLAMA_MODEL, "writer_failed");
+    if (MODEL_RESIDENCY === "release") await releaseModel(OLLAMA_MODEL, "writer_failed");
     throw lastError || invalidOutput("exhausted_retries");
   }
   console.warn("RelayDaemon writer package", { concepts: CONCEPT_GROUPS.map((g) => `${g}: ${written.concepts[g].map(({ anchor, groundedKey }) => `${anchor}->${groundedKey}`).join(", ")}`).join(" | "), rejectedAnchors: written.rejectedAnchors, laneViolations: written.laneViolations.map((v) => `${v.field}:${v.problem}@${v.length}`).join(" ") || "none" });
-  // The writer's stage is over: put it down before the editor needs the VRAM.
-  await releaseModel(OLLAMA_MODEL, "writer_done");
-  if (!written.laneViolations.length) return { result: written.result, editor: { model: EDITOR_MODEL, rounds: 0, calls: 0, dismissedEvidence: 0, concepts: written.concepts, lanesEdited: [] } };
+  if (!written.laneViolations.length) {
+    if (MODEL_RESIDENCY === "release") await releaseModel(OLLAMA_MODEL, "writer_done");
+    return { result: written.result, editor: { model: EDITOR_MODEL, rounds: 0, calls: 0, dismissedEvidence: 0, concepts: written.concepts, lanesEdited: [] } };
+  }
+  // The writer's stage is over. Release it before the editor only when needed: always in "release" mode; in
+  // "adaptive" mode only when the editor would not fit in free VRAM (unknown counts as not fitting).
+  if (MODEL_RESIDENCY === "release") await releaseModel(OLLAMA_MODEL, "writer_done");
+  else if (MODEL_RESIDENCY === "adaptive") {
+    const free = await freeVramMb();
+    if (free === null || free < EDITOR_VRAM_MB) await releaseModel(OLLAMA_MODEL, "editor_needs_room");
+    else console.warn("RelayDaemon writer kept resident", { freeMb: free, editorNeedMb: EDITOR_VRAM_MB });
+  }
   // Outside the writer's ladder: lane failures never rerun the writer; editor exhaustion is final.
   try {
     return await editLanes(written.result, written.laneViolations, written.concepts);
   } finally {
-    await releaseModel(EDITOR_MODEL, "editor_done");
+    if (MODEL_RESIDENCY !== "keep") await releaseModel(EDITOR_MODEL, "editor_done");
   }
 }
 
-/** Best-effort unload (keep_alive: 0), as VeilForge's model_manager.unload_model does. Never blocks a result. */
+/**
+ * Best-effort unload (keep_alive: 0), as VeilForge's model_manager.unload_model does. Never blocks a result.
+ * Only ever called with Relay's own two models; Relay never evicts a model it does not own.
+ */
 async function releaseModel(model, reason) {
-  if (MODEL_RESIDENCY !== "release") return;
+  if (model !== OLLAMA_MODEL && model !== EDITOR_MODEL) throw new Error("Relay only releases its own models");
   try {
     const response = await fetch(new URL("/api/generate", new URL(OLLAMA_CHAT_URL)), {
       method: "POST",
@@ -900,11 +987,15 @@ async function character(req, res, warm = false) {
   if (req.method === "GET") return ollamaStatus(res, warm);
   if (req.method !== "POST") return json(res, 405, { status: "error", error: "METHOD_NOT_ALLOWED" });
   if (!authorizedOrigin(req)) return json(res, 401, { status: "error", error: "UNAUTHORIZED" });
+  const timings = [];
   try {
     const body = JSON.parse((await readBody(req)) || "{}");
     const messages = validateMessages(body.messages);
-    const { result, editor } = await requestOllamaCharacter(messages);
-    return json(res, 200, { status: "ok", engine: "ollama", model: OLLAMA_MODEL, thinking: OLLAMA_THINKING, editor, result });
+    const { result, editor } = await requestTelemetry.run(timings, () => requestOllamaCharacter(messages));
+    console.warn("RelayDaemon request timings", { timings: summarizeTimings(timings) });
+    json(res, 200, { status: "ok", engine: "ollama", model: OLLAMA_MODEL, thinking: OLLAMA_THINKING, editor, timings, result });
+    scheduleWriterRewarm(); // after the response is on its way
+    return undefined;
   } catch (error) {
     const code = error?.name === "TimeoutError" ? "OLLAMA_TIMEOUT" : ["INPUT_TOO_LARGE", "INVALID_REQUEST", "OLLAMA_FAILED"].includes(error?.message) ? error.message : "OLLAMA_INVALID_OUTPUT";
     console.warn("RelayDaemon Ollama character request failed", {
@@ -918,9 +1009,14 @@ async function character(req, res, warm = false) {
       doneReason: error?.doneReason || null,
       hasThinking: error?.hasThinking || false,
     });
-    return json(res, code === "INPUT_TOO_LARGE" ? 413 : code === "INVALID_REQUEST" ? 400 : 502, { status: "error", error: code, ...(error?.editor && { editor: error.editor }) });
+    console.warn("RelayDaemon request timings", { timings: summarizeTimings(timings) });
+    json(res, code === "INPUT_TOO_LARGE" ? 413 : code === "INVALID_REQUEST" ? 400 : 502, { status: "error", error: code, ...(error?.editor && { editor: error.editor }), ...(timings.length && { timings }) });
+    if (timings.length) scheduleWriterRewarm();
+    return undefined;
   }
 }
+
+const summarizeTimings = (timings) => timings.map((t) => `${t.stage}: load ${t.loadMs ?? "-"}ms, prompt ${t.promptEvalMs ?? "-"}ms, eval ${t.evalMs ?? "-"}ms, wall ${t.wallMs}ms`).join(" | ") || "none";
 
 // The bridge serves only the public Studio tree. Everything else in the repo (local env files, scripts,
 // artifacts) is unreachable, however the path is spelled or encoded.
@@ -999,6 +1095,6 @@ async function checkModelCapabilities() {
 const capabilities = await checkModelCapabilities();
 server.listen(PORT, HOST, () => {
   console.log(`RelayDaemon local bridge: http://${HOST}:${PORT}/`);
-  console.log(`Editor model: ${EDITOR_MODEL} (thinking: off; rounds: ${EDITOR_ROUNDS}; residency: ${MODEL_RESIDENCY})`);
+  console.log(`Editor model: ${EDITOR_MODEL} (thinking: off; rounds: ${EDITOR_ROUNDS}; residency: ${MODEL_RESIDENCY}${MODEL_RESIDENCY === "adaptive" ? `, writer warm TTL ${WRITER_WARM_TTL}` : ""})`);
   console.log(`Ollama model: ${OLLAMA_MODEL} (thinking: ${OLLAMA_THINKING}; keep_alive: ${OLLAMA_KEEP_ALIVE}${capabilities ? `; capabilities: ${capabilities.join(", ")}` : ""})`);
 });
