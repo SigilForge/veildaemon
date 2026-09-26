@@ -61,4 +61,28 @@ if (missing.length) {
   for (const item of missing) console.error(`  - ${item}`);
   process.exit(1);
 }
-console.log(`brand icon sets verified: ${Object.keys(SETS).join(", ")}`);
+// Served copies must stay byte-identical to their canonical set. Vercel hosts serve these files
+// directly (VeilLink public/, the root API project's public/), so a stale copy silently shows an
+// old brand there even when the canonical sets are right.
+const MIRRORS = [
+  ["veillink/public/brand/favicon.ico", "studio/assets/brand/favicon.ico"],
+  ["veillink/public/brand/favicon-16x16.png", "studio/assets/brand/favicon-16x16.png"],
+  ["veillink/public/brand/favicon-32x32.png", "studio/assets/brand/favicon-32x32.png"],
+  ["veillink/public/brand/apple-touch-icon.png", "studio/assets/brand/apple-touch-icon.png"],
+  ["veillink/public/favicon.ico", "studio/assets/brand/favicon.ico"], // app./go.veildaemon.app/favicon.ico
+  ["veillink/public/icon-512.png", "studio/assets/brand/sigilforge-mark-512.png"],
+  ["public/favicon.ico", "studio/assets/brand/favicon.ico"], // api.veildaemon.app/favicon.ico (Book One claim pages)
+  ["favicon.ico", "assets/icons/veilcorp/favicon.ico"], // veildaemon.app root (VeilCorp)
+];
+const drifted = [];
+for (const [copy, canonical] of MIRRORS) {
+  const [a, b] = await Promise.all([fs.readFile(path.join(root, copy)).catch(() => null), fs.readFile(path.join(root, canonical))]);
+  if (!a || !a.equals(b)) drifted.push(`${copy} != ${canonical}`);
+}
+if (drifted.length) {
+  console.error("Served brand icons drifted from their canonical sets (fail closed):");
+  for (const item of drifted) console.error(`  - ${item}`);
+  process.exit(1);
+}
+
+console.log(`brand icon sets verified: ${Object.keys(SETS).join(", ")}; ${MIRRORS.length} served copies byte-identical`);

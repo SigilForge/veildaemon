@@ -15,6 +15,9 @@ function sendHtml(res, statusCode, title, message) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="https://veildaemon.app/studio/assets/brand/favicon.ico?v=20260924-sigilforge1" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://veildaemon.app/studio/assets/brand/favicon-32x32.png?v=20260924-sigilforge1">
+  <link rel="apple-touch-icon" href="https://veildaemon.app/studio/assets/brand/apple-touch-icon.png?v=20260924-sigilforge1">
   <title>${escapeHtml(title)} | SigilForge Studios</title>
   <style>
     :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #070a0b; color: #f3eee5; }
@@ -65,6 +68,9 @@ function sendClaimPage(res, downloads) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="https://veildaemon.app/studio/assets/brand/favicon.ico?v=20260924-sigilforge1" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://veildaemon.app/studio/assets/brand/favicon-32x32.png?v=20260924-sigilforge1">
+  <link rel="apple-touch-icon" href="https://veildaemon.app/studio/assets/brand/apple-touch-icon.png?v=20260924-sigilforge1">
   <title>Book One downloads | SigilForge Studios</title>
   <style>
     :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #070a0b; color: #f3eee5; }

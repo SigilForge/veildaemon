@@ -114,6 +114,7 @@ async function main() {
   } else {
     logStep("Phase 1: Pre-flight Checks & Validation");
     run("npm", ["run", "check"]);
+    run("npm", ["run", "brand:build"]); // served favicon copies must match their canonical brand sets
     run("npm", ["run", "rights:validate"]);
     run("npm", ["run", "rights:render:check"]);
     run("npm", ["run", "rights:verification:check"]);

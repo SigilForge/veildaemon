@@ -53,11 +53,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/brand/favicon.ico", sizes: "any" },
-      { url: "/brand/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/brand/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/brand/favicon.ico?v=20260924-sigilforge1", sizes: "any" },
+      { url: "/brand/favicon-32x32.png?v=20260924-sigilforge1", sizes: "32x32", type: "image/png" },
+      { url: "/brand/favicon-16x16.png?v=20260924-sigilforge1", sizes: "16x16", type: "image/png" },
     ],
-    apple: [{ url: "/brand/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: "/brand/apple-touch-icon.png?v=20260924-sigilforge1", sizes: "180x180", type: "image/png" }],
   },
   robots: {
     index: true,
