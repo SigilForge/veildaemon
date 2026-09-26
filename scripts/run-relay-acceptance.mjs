@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { chromium } from "@playwright/test";
+import { missingSemanticGroups, validateSemanticGroups } from "./lib/relay-fixture-semantics.mjs";
 
 const root = process.cwd();
 const fixture = JSON.parse(await readFile("tests/fixtures/relay/ca-001.json", "utf8"));
@@ -11,7 +12,8 @@ const relevantFiles = [
   "studio/relay/AGENTS.md", "studio/relay/index.html",
   "studio/relay/relay.js", "studio/relay/platform-policy.js", "scripts/relay-local-bridge.mjs", "api/character.js",
   "deploy/relay-vercel/vercel.json", "scripts/prepare-relay-vercel.sh",
-  "tests/fixtures/relay/ca-001.json", "scripts/run-relay-acceptance.mjs", "tests/unit/test_relay_bridge_policy.mjs"
+  "tests/fixtures/relay/ca-001.json", "scripts/run-relay-acceptance.mjs", "tests/unit/test_relay_bridge_policy.mjs",
+  "scripts/lib/relay-fixture-semantics.mjs", "tests/unit/test_relay_fixture_semantics.mjs"
 ];
 
 async function fingerprint() {
@@ -38,11 +40,12 @@ function complete(text, platform, label = platform) {
   assert(!value.includes("…") && !/(^|[^.])\.\.\./.test(value), `${label}: ellipsis/cutoff marker`);
   assert(!fixture.knownBadEndings.some((ending) => value.endsWith(ending)), `${label}: known fragment ending`);
   assert(/[.!?][\”\"']?$/.test(value), `${label}: unresolved ending`);
-  const lower = value.toLowerCase();
-  for (const [claim, terms] of Object.entries(fixture.requiredConcepts)) {
-    assert(terms.some((term) => lower.includes(term)), `${label}: missing ${claim} portion of central thought`);
+  // Fixture-owned meaning: CA-001 declares what its source means; the runtime never sees these groups, and the
+  // writer's own declared groups play no part in this check.
+  for (const group of missingSemanticGroups(value, fixture.semanticGroups)) {
+    assert(false, `${label}: missing ${group} half of the central thought (${fixture.semanticGroups[group].meaning})`);
   }
-  return { characters: value.length, ownershipAndTrust: true, ending: value.slice(-48) };
+  return { characters: value.length, semanticGroups: Object.keys(fixture.semanticGroups), ending: value.slice(-48) };
 }
 
 function validateResult(payload, label) {
@@ -155,6 +158,10 @@ async function staticChecks() {
   // Bridge regression: over-limit output is rewritten through the existing ladder, never clipped.
   const bridgePolicy = spawnSync(process.execPath, ["--test", "tests/unit/test_relay_bridge_policy.mjs"], { cwd: root, encoding: "utf8", timeout: 120_000 });
   assert(bridgePolicy.status === 0, `bridge policy regression failed\n${bridgePolicy.stdout}\n${bridgePolicy.stderr}`);
+  // Fixture meaning: halves declared, non-empty, disjoint; matcher regression tests pass.
+  assert(!validateSemanticGroups(fixture.semanticGroups), `CA-001 semanticGroups invalid: ${validateSemanticGroups(fixture.semanticGroups)}`);
+  const fixtureSemantics = spawnSync(process.execPath, ["--test", "tests/unit/test_relay_fixture_semantics.mjs"], { cwd: root, encoding: "utf8", timeout: 60_000 });
+  assert(fixtureSemantics.status === 0, `fixture semantics regression failed\n${fixtureSemantics.stdout}\n${fixtureSemantics.stderr}`);
   const hosted = spawnSync(process.execPath, ["node_modules/@playwright/test/cli.js", "test", "tests/browser/studio.spec.js", "-g", "RelayDaemon standalone Vercel project|hosted character endpoint makes one bounded"], { cwd: root, encoding: "utf8", timeout: 120_000 });
   assert(hosted.status === 0, `hosted contract checks failed\n${hosted.stdout}\n${hosted.stderr}`);
   return { localDefaultLabel: true, hostedFallbackLabel: true, pagesExcluded: true, productionProject: "knoxmortis-projects/veildaemon-relay", hostedContractTests: "passed", platformPolicy: Object.fromEntries(Object.entries(policy).map(([k, v]) => [k, v.max])), successfulUiInferenceCalls: 1, worstCaseUiInferenceCalls: 54 };

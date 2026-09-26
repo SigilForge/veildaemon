@@ -70,6 +70,8 @@ Private Vercel review UI
 ## CA-001 contract history
 - 2026-09-26: X ceiling 600 -> 25,000 and a new X long-form minimum (601), because the product requirement changed (X Premium long posts), not to relax the gate. The source text, the other platform ceilings, required concepts, bad endings, and voice/fidelity thresholds are unchanged; short-form-compressed X now fails. Details are recorded in the fixture's `contractHistory`.
 
+- Knowledge boundary: a fixture may declare what its own source means (CA-001 `semanticGroups`); the production bridge must stay generic and never see fixture vocabulary. The writer's declared `whatChanges` / `whyItMatters` groups play no part in the acceptance check, so they cannot make CA-001 pass (see the contract history entry).
+
 ## Generation invariants
 - Character-platform outputs must be rewritten to fit. Never mechanically clip a draft, append punctuation to a cutoff, or treat a sentence boundary as proof of semantic completeness.
 - Warm-up must be load-only. Track success-path and worst-case inference-call counts explicitly.
@@ -80,7 +82,7 @@ Private Vercel review UI
 
 ## Acceptance and completion
 - `npm run relay:acceptance` must run the unchanged CA-001 fixture five times against the direct engine and five times through the actual local UI path.
-- The command must reject malformed output, known fragment endings, missing central ownership/trust claims, weak character validation, wrong engine labels, stale deployment contracts, and unreported model-call limits.
+- The command must reject malformed output, known fragment endings, lanes missing either fixture-owned half of the central thought (CA-001 `semanticGroups`, matched as explicit whole words by `scripts/lib/relay-fixture-semantics.mjs`), weak character validation, wrong engine labels, stale deployment contracts, and unreported model-call limits.
 - A fresh successful artifact must exist at `artifacts/relay-acceptance/latest.json` and match the current Relay-relevant file fingerprint.
 - Passing mocks, isolated endpoints, service restarts, HTTP 200 responses, or successful deployments are only subsystem evidence.
 - `fixed`, `working`, `live`, `shipped`, and `done` are prohibited until the exact reproduction passes and the artifact is current.
