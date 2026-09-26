@@ -21,6 +21,10 @@
  *       --base-url (e.g. https://api.veildaemon.app) it checks the live endpoint (the post-switch
  *       check). Note: a claim is recorded against that purchase each run, as it would be for a buyer.
  *
+ *   node scripts/publish-book-one-release.mjs cleanup-test-purchases --stripe-mode test [--session cs_test_...]
+ *       Delete ledger rows left by test-mode claims (cs_test_ session + recorded test price only).
+ *       The test gate runs this for its own session after every verification, pass or fail.
+ *
  *   node scripts/publish-book-one-release.mjs switch [--dry-run]
  *       Point production delivery at the manifest: set the Vercel BOOK_ONE_SUPABASE_PATH override
  *       (Production + Preview) to the manifest PDF path and rename the Stripe product to the manifest
@@ -376,9 +380,31 @@ async function testSetup() {
   ok(`test product ${product.id} / price ${price.id} recorded in ${path.relative(root, TEST_IDS_FILE)}`);
 }
 
+// Remove ledger rows created by test-mode claims. The claim endpoint records every verified claim in
+// book_one_purchases (the production ledger), so each test-gate run would otherwise leave a ghost
+// purchase and a test-backed library entitlement behind. Only rows matching all of: a cs_test_
+// session id, the recorded test price, and test mode are eligible; --session narrows to one session.
+async function cleanupTestPurchases() {
+  if (MODE !== "test") fail("cleanup-test-purchases only runs with --stripe-mode test");
+  if (!PRICE_ID.startsWith("price_")) fail("no test price recorded");
+  const session = flags.session ? String(flags.session) : "";
+  if (session && !session.startsWith("cs_test_")) fail("cleanup only accepts cs_test_ sessions");
+  const base = need("SUPABASE_URL").replace(/\/+$/, "");
+  const filter = `stripe_checkout_session_id=${session ? `eq.${encodeURIComponent(session)}` : "like.cs_test_*"}&price_id=eq.${encodeURIComponent(PRICE_ID)}`;
+  const res = await fetch(`${base}/rest/v1/book_one_purchases?${filter}&select=id,stripe_checkout_session_id`, {
+    method: "DELETE",
+    headers: storageHeaders({ Prefer: "return=representation" }),
+  });
+  if (!res.ok) fail(`cleanup failed: ${res.status} ${await res.text()}`);
+  const removed = await res.json();
+  for (const row of removed) ok(`removed test ledger row ${row.id.slice(0, 8)}… (${row.stripe_checkout_session_id.slice(0, 16)}…)`);
+  if (!removed.length) ok("no test ledger rows to remove");
+}
+
 loadEnv();
 applyStripeMode();
 const commands = {
-  "test-setup": testSetup, stage, "wait-for-purchase": waitForPurchase, "verify-claim": verifyClaim, switch: switchDelivery };
+  "test-setup": testSetup,
+  "cleanup-test-purchases": cleanupTestPurchases, stage, "wait-for-purchase": waitForPurchase, "verify-claim": verifyClaim, switch: switchDelivery };
 if (!commands[command]) fail(`usage: publish-book-one-release.mjs <${Object.keys(commands).join("|")}> [flags]`);
 commands[command]().catch((error) => fail(error.message));

@@ -12,7 +12,8 @@
  *      (no email is sent) and stores the session in the @supabase/ssr cookie format.
  *   4. Completes Stripe-hosted test Checkout with the 4242 test card, lands on the local claim,
  *      then runs `publish-book-one-release.mjs verify-claim --stripe-mode test` for that cs_test_
- *      session, which hash-checks every delivered file against the manifest.
+ *      session, which hash-checks every delivered file against the manifest, then deletes that
+ *      session's row from the purchase ledger (pass or fail) so validation leaves no ghost purchase.
  *
  * Nothing here touches a deployed endpoint, the live Stripe account, or production env vars.
  * Prerequisites: .env.stripe-test.local with STRIPE_TEST_SECRET_KEY=sk_test_..., then
@@ -174,5 +175,9 @@ await browser.close();
 cleanup();
 
 // 5. Verify the claim for that session: all four files, hash-checked against the manifest.
-const verify = spawnSync("node", [path.join(root, "scripts/publish-book-one-release.mjs"), "verify-claim", "--stripe-mode", "test", "--session", sessionId], { cwd: root, stdio: "inherit" });
-process.exit(verify.status ?? 1);
+const publish = path.join(root, "scripts/publish-book-one-release.mjs");
+const verify = spawnSync("node", [publish, "verify-claim", "--stripe-mode", "test", "--session", sessionId], { cwd: root, stdio: "inherit" });
+// 6. Always remove this run's ledger row (the claim records test purchases in the production ledger).
+const cleaned = spawnSync("node", [publish, "cleanup-test-purchases", "--stripe-mode", "test", "--session", sessionId], { cwd: root, stdio: "inherit" });
+if (cleaned.status !== 0) console.error(`cleanup failed; run: node scripts/publish-book-one-release.mjs cleanup-test-purchases --stripe-mode test --session ${sessionId}`);
+process.exit(verify.status || cleaned.status || 0);
