@@ -1,0 +1,7 @@
+{
+  "note": "Stripe TEST-mode mirror of the live Book One product/price. Test IDs only; no keys.",
+  "testProductId": "prod_VKRQyCOqGbCrVd",
+  "testPriceId": "price_1UJmXoFz1opp9LXEsWDp1Ywm",
+  "mirrorOfLiveProduct": "prod_Uw6DGVcPF1s1Kt",
+  "mirrorOfLivePrice": "price_1TwE0oFht6uPr4mz4thEHLpN"
+}

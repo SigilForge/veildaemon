@@ -139,11 +139,21 @@ await page.goto(`${APP}/book-one`);
 await Promise.all([page.waitForURL(/checkout\.stripe\.com/, { timeout: 60_000 }), page.locator('form[action="/api/book-one/checkout"] button, form[action="/api/book-one/checkout"] [type=submit]').first().click()]);
 ok("VeilLink checkout route issued a Stripe test Checkout session");
 const fillIf = async (sel, val) => { const el = page.locator(sel).first(); if (await el.count() && await el.isEditable().catch(() => false)) await el.fill(val); };
-await page.locator("#cardNumber").waitFor({ timeout: 60_000 }).catch(async () => {
-  const cardTab = page.locator('[data-testid="card-accordion-item-button"], button:has-text("Card")').first();
-  if (await cardTab.count()) await cardTab.click();
-  await page.locator("#cardNumber").waitFor({ timeout: 30_000 });
-});
+await page.waitForLoadState("networkidle").catch(() => {});
+if (process.env.GATE_DEBUG) {
+  await page.screenshot({ path: "/tmp/book-one-test-gate-debug.png", fullPage: true });
+  const inputs = await page.$$eval("input, button", (els) => els.map((e) => `${e.tagName}#${e.id}[name=${e.getAttribute("name")}] visible=${!!e.offsetParent} ${e.getAttribute("aria-label") || e.textContent?.trim().slice(0, 30) || ""}`));
+  console.log(inputs.join("\n"));
+  console.log("frames:", page.frames().map((f) => f.url().slice(0, 80)).join(" | "));
+  process.exit(3);
+}
+// Checkout shows a payment-method accordion; select Card, then wait for the card fields.
+const cardRadio = page.locator("#payment-method-accordion-item-title-card");
+if (await cardRadio.count()) await cardRadio.check({ force: true });
+await page.locator("#cardNumber").waitFor({ timeout: 60_000 });
+// Do not opt into Link (it adds a required phone field).
+const linkOptIn = page.locator("#enableStripePass");
+if (await linkOptIn.count() && await linkOptIn.isChecked().catch(() => false)) await linkOptIn.uncheck({ force: true });
 await fillIf("#email", email);
 await fillIf("#cardNumber", "4242 4242 4242 4242");
 await fillIf("#cardExpiry", "12 / 34");
