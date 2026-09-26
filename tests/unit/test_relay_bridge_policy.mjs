@@ -143,7 +143,7 @@ test("an over-limit lane goes to the editor with a runtime word budget, then the
   assert.equal(body.result.platformDrafts.bluesky, edited, "edited draft returned verbatim");
   assert.ok(!JSON.stringify(body).includes("Overlong"), "over-limit draft never reaches the output");
   const { candidates, ...editor } = body.editor;
-  assert.deepEqual(editor, { model: EDITOR, rounds: 1, calls: 2, dismissedEvidence: 0, concepts: {
+  assert.deepEqual(editor, { model: EDITOR, cycles: 1, rounds: 1, calls: 2, dismissedEvidence: 0, concepts: {
     whatChanges: [key("line", "line"), key("host", "host"), key("analysts", "analyst")],
     whyItMatters: [key("whole", "whole"), key("signal", "signal"), key("syndrome", "syndrome")],
   }, lanesEdited: ["bluesky"] });
@@ -151,7 +151,7 @@ test("an over-limit lane goes to the editor with a runtime word budget, then the
   const words = overLimit.trim().split(/\s+/).length;
   const askedMax = Math.max(8, Math.floor(words * (POLICY.bluesky.editTarget / overLimit.length) * 0.9));
   assert.deepEqual(candidates, [{
-    round: 1, lane: "bluesky",
+    cycle: 1, round: 1, lane: "bluesky",
     requestedWords: `${Math.max(6, Math.floor(askedMax * 0.8))}-${askedMax}`,
     returnedWords: edited.trim().split(/\s+/).length,
     targetChars: Math.round(POLICY.bluesky.editTarget * 0.9),
@@ -460,11 +460,13 @@ test("the runtime fails closed when verifier evidence is missing or malformed", 
   events = [];
   writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
   const edit = JSON.stringify({ bluesky: prose(POLICY.bluesky.max - 15, "Edited") });
-  editorScript = [edit, JSON.stringify({ bluesky: { differences: [{ code: "looks_fine", rewriteQuote: "", sourceQuote: "" }] } }), edit, JSON.stringify({}), edit, "{}"];
+  const cycle = [edit, JSON.stringify({ bluesky: { differences: [{ code: "looks_fine", rewriteQuote: "", sourceQuote: "" }] } }), edit, JSON.stringify({}), edit, "{}"];
+  editorScript = [...cycle, ...cycle]; // both bounded cycles get malformed evidence
   const { status, body } = await generate();
   assert.equal(status, 502);
   assert.equal(body.result, undefined);
-  assert.equal(byModel(EDITOR).length, 6, "three rounds of edit + verify, then stop");
+  assert.equal(byModel(EDITOR).length, 12, "two bounded cycles of three rounds of edit + verify, then stop");
+  assert.equal(byModel(WRITER).length, 1);
 });
 
 test("persistent over-limit output fails after bounded editor rounds, never clipped", async () => {
@@ -476,9 +478,11 @@ test("persistent over-limit output fails after bounded editor rounds, never clip
   assert.equal(status, 502);
   assert.equal(body.error, "OLLAMA_INVALID_OUTPUT");
   assert.equal(byModel(WRITER).length, 1, "lane failures do not rerun the writer");
-  assert.equal(byModel(EDITOR).length, 3, "three edit rounds; no fidelity call for a lane still over");
+  assert.equal(byModel(EDITOR).length, 6, "two cycles of three edit rounds; no fidelity call for a lane still over");
+  assert.equal(body.editor.cycles, 2);
+  assert.equal(body.editor.rounds, 6);
   assert.equal(body.result, undefined, "no clipped fallback draft");
-  assert.equal(body.editor.rounds, 3, "a failed response still carries the editor's evidence");
+  assert.ok(Array.isArray(body.editor.failures), "a failed response still carries the editor's evidence");
   assert.deepEqual(body.editor.failures.map((f) => f.problem), ["over_limit"]);
   assert.ok(!JSON.stringify(body.editor).includes("Stilllong"), "evidence is structural, never draft text");
 });
@@ -633,4 +637,45 @@ test("the long-form rule is relative, not a fixture floor: a short master may ha
   assert.equal(byModel(WRITER).length, 1);
   assert.equal(body.result.platformDrafts.x, x);
   assert.ok(x.length < 601 && x.length >= Math.ceil(master.length * POLICY.x.minMasterRatio));
+});
+
+test("stage-local recovery: editor exhaustion gets one fresh editor cycle, never another writer call", async () => {
+  calls = [];
+  events = [];
+  const good = prose(POLICY.threads.max - 30, "Recovered");
+  const still = JSON.stringify({ threads: [prose(POLICY.threads.max + 40, "Still")] });
+  writerScript = [modelJson({ threads: prose(POLICY.threads.max + 80, "Toolong") })];
+  // Cycle 1: three rounds all over the limit. Cycle 2, round 1: a legal candidate, verified clean.
+  editorScript = [still, still, still, JSON.stringify({ threads: [good] }), evidence(["threads"])];
+  const { status, body } = await generate();
+  assert.equal(status, 200);
+  assert.equal(body.result.platformDrafts.threads, good);
+  assert.equal(byModel(WRITER).length, 1, "the accepted writer package is immutable; PaintedFantasy is not called again");
+  assert.equal(body.editor.cycles, 2, "cycles are recorded separately from rounds");
+  assert.equal(body.editor.rounds, 4);
+  // The recovery cycle starts fresh from the writer's draft: no rejection history from cycle 1.
+  const recoveryBrief = calls[4].messages.at(-1).content;
+  assert.ok(recoveryBrief.includes(prose(POLICY.threads.max + 80, "Toolong")), "rewrites the writer's original lane");
+  assert.ok(!recoveryBrief.includes("Earlier candidates were rejected"), "round state resets between cycles");
+  assert.ok(body.editor.candidates.some((c) => c.cycle === 2 && c.round === 1));
+  assert.deepEqual(events.filter((e) => e.startsWith("release")), ["release:writer:0", "release:editor:0"], "the editor stays loaded across cycles");
+});
+
+test("stage-local recovery keeps lanes accepted in the first cycle; only failing lanes get the fresh cycle", async () => {
+  calls = [];
+  const bluesky = prose(POLICY.bluesky.max - 30, "Blueskyfix");
+  const threads = prose(POLICY.threads.max - 30, "Threadsfix");
+  writerScript = [modelJson({ threads: prose(POLICY.threads.max + 80, "Toolong"), bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
+  editorScript = [
+    JSON.stringify({ threads: [prose(POLICY.threads.max + 40, "Still")], bluesky: [bluesky] }), evidence(["bluesky"]),
+    JSON.stringify({ threads: [prose(POLICY.threads.max + 40, "Still")] }),
+    JSON.stringify({ threads: [prose(POLICY.threads.max + 40, "Still")] }),
+    JSON.stringify({ threads: [threads] }), evidence(["threads"]),
+  ];
+  const { status, body } = await generate();
+  assert.equal(status, 200);
+  assert.equal(body.result.platformDrafts.bluesky, bluesky, "accepted in cycle 1 and kept");
+  assert.equal(body.result.platformDrafts.threads, threads);
+  assert.deepEqual(Object.keys(calls[5].format.properties), ["threads"], "the recovery cycle edits only the failing lane");
+  assert.equal(body.editor.cycles, 2);
 });

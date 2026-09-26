@@ -470,6 +470,7 @@ function wordRange(rule, text, safety = EDITOR_SAFETY) {
 }
 
 const EDITOR_CANDIDATES = 3;
+const EDITOR_CYCLES = 2; // one stage-local recovery cycle after editor exhaustion; never a writer rerun
 const FINAL_ROUND_FACTOR = 0.7;
 function finalRoundBudget(budget) {
   const max = Math.max(8, Math.floor(budget.max * FINAL_ROUND_FACTOR));
@@ -652,12 +653,14 @@ function admitEvidence(differences, rewrite, master) {
  */
 async function editLanes(result, initialViolations, concepts) {
   const platformDrafts = { ...result.platformDrafts };
-  const lanes = {};
-  for (const v of initialViolations) {
-    const lane = (lanes[v.field] ||= { base: result.platformDrafts[v.field] || "", initial: [], history: [], last: [] });
-    lane.initial.push(v);
-  }
-  for (const [k, lane] of Object.entries(lanes)) {
+  // Fresh round state for the given lanes, always from the writer's original drafts (never from failed edits).
+  const initLanes = (keys) => {
+    const lanes = {};
+    for (const v of initialViolations.filter((violation) => keys.includes(violation.field))) {
+      const lane = (lanes[v.field] ||= { base: result.platformDrafts[v.field] || "", initial: [], history: [], last: [] });
+      lane.initial.push(v);
+    }
+    for (const [k, lane] of Object.entries(lanes)) {
     const rule = POLICY.platforms[k];
     lane.surfaceOnly = Boolean(lane.base) && lane.initial.every((v) => SURFACE_PROBLEMS.has(v.problem));
     lane.count = lane.surfaceOnly ? 1 : EDITOR_CANDIDATES;
@@ -665,12 +668,24 @@ async function editLanes(result, initialViolations, concepts) {
     // not compressed by reflex; an under-filled draft scales up toward the target the same way.
     lane.budget = lane.base && !rule.longForm ? wordRange(rule, lane.base) : null;
     lane.last = lane.initial;
-  }
+    }
+    return lanes;
+  };
+  const allLanes = [...new Set(initialViolations.map((v) => v.field))];
   // candidates: per-candidate budget evidence (requested words vs. returned words and characters), no draft text.
-  const meta = { model: EDITOR_MODEL, rounds: 0, calls: 0, dismissedEvidence: 0, concepts, lanesEdited: Object.keys(lanes), candidates: [] };
-  let pending = Object.keys(lanes);
+  // rounds counts every round across cycles; cycles > 1 means the stage-local recovery path was used.
+  const meta = { model: EDITOR_MODEL, cycles: 0, rounds: 0, calls: 0, dismissedEvidence: 0, concepts, lanesEdited: allLanes, candidates: [] };
+  let pending = allLanes;
+  let lanes = {};
+  // Stage-local recovery (VeilForge pattern: retry at the stage that failed, never restart successful cognition):
+  // if the editor exhausts its rounds, one fresh editor cycle runs against the same immutable writer package, for
+  // the still-failing lanes only. The writer is never called again. Deterministic requirements (concept groups)
+  // carry over; round state (budgets, rejection history) resets.
+  for (let cycle = 1; cycle <= EDITOR_CYCLES && pending.length; cycle += 1) {
+  meta.cycles = cycle;
+  lanes = initLanes(pending);
   for (let round = 1; round <= EDITOR_ROUNDS && pending.length; round += 1) {
-    meta.rounds = round;
+    meta.rounds += 1;
     // The final round has no retry after it: steer to 70% of the normal word ceiling (the editor has returned up
     // to 1.4x its requested words). Hard limits and floors are unchanged; this is steering only.
     for (const k of pending) lanes[k].requested = lanes[k].budget && round === EDITOR_ROUNDS ? finalRoundBudget(lanes[k].budget) : lanes[k].budget;
@@ -696,7 +711,7 @@ async function editLanes(result, initialViolations, concepts) {
       for (const raw of candidates) {
         const words = wordCount(normalizeDraft(raw));
         meta.candidates.push({
-          round, lane: k,
+          cycle, round, lane: k,
           requestedWords: requested ? `${requested.min}-${requested.max}` : null,
           returnedWords: words,
           targetChars: requested?.targetChars ?? null,
@@ -763,7 +778,8 @@ async function editLanes(result, initialViolations, concepts) {
     }
     pending = pending.filter((k) => !accepted.has(k));
     console.warn("RelayDaemon editor candidates", { round, budget: meta.candidates.filter((c) => c.round === round).map((c) => `${c.lane}: asked ${c.requestedWords ?? "-"}w/${c.targetChars ?? "-"}c got ${c.returnedWords}w/${c.returnedChars}c x${c.wordRatio ?? "-"}`).join(" | ") });
-    console.warn("RelayDaemon editor round", { round, accepted: [...accepted], dismissedEvidence: meta.dismissedEvidence, remaining: pending.map((k) => `${k}: ${lanes[k].last.map(({ problem, codes, missingGroups: missing, length }) => `${problem}${codes ? `(${codes.join(",")})` : ""}${missing ? `[${missing.join(",")}]` : ""}@${length}`).join(" ")}`).join(" | ") || "none" });
+    console.warn("RelayDaemon editor round", { cycle: meta.cycles, round, accepted: [...accepted], dismissedEvidence: meta.dismissedEvidence, remaining: pending.map((k) => `${k}: ${lanes[k].last.map(({ problem, codes, missingGroups: missing, length }) => `${problem}${codes ? `(${codes.join(",")})` : ""}${missing ? `[${missing.join(",")}]` : ""}@${length}`).join(" ")}`).join(" | ") || "none" });
+  }
   }
   if (pending.length) {
     const failures = pending.flatMap((k) => lanes[k].last.length ? lanes[k].last : lanes[k].initial);

@@ -136,7 +136,7 @@ async function staticChecks() {
   assert(relay.includes("http://127.0.0.1:4174/api/character"), "browser local bridge contract drifted");
   assert((bridge.match(/think:/g) || []).length >= 3, "bridge attempt declaration is no longer three");
   assert(relay.includes("attempt < 2"), "browser package-attempt declaration drifted");
-  assert(contract.includes("thirty-inference worst case"), "worst-case inference count is unreported");
+  assert(contract.includes("fifty-four-inference worst case"), "worst-case inference count is unreported");
   // Platform policy: one map feeds both the bridge's enforcement and the UI prompt, and it may never
   // exceed CA-001's independent ceilings (the fixture, not the policy, is the acceptance authority).
   assert(bridge.includes('import "../studio/relay/platform-policy.js"'), "bridge no longer enforces the shared platform policy");
@@ -157,7 +157,7 @@ async function staticChecks() {
   assert(bridgePolicy.status === 0, `bridge policy regression failed\n${bridgePolicy.stdout}\n${bridgePolicy.stderr}`);
   const hosted = spawnSync(process.execPath, ["node_modules/@playwright/test/cli.js", "test", "tests/browser/studio.spec.js", "-g", "RelayDaemon standalone Vercel project|hosted character endpoint makes one bounded"], { cwd: root, encoding: "utf8", timeout: 120_000 });
   assert(hosted.status === 0, `hosted contract checks failed\n${hosted.stdout}\n${hosted.stderr}`);
-  return { localDefaultLabel: true, hostedFallbackLabel: true, pagesExcluded: true, productionProject: "knoxmortis-projects/veildaemon-relay", hostedContractTests: "passed", platformPolicy: Object.fromEntries(Object.entries(policy).map(([k, v]) => [k, v.max])), successfulUiInferenceCalls: 1, worstCaseUiInferenceCalls: 30 };
+  return { localDefaultLabel: true, hostedFallbackLabel: true, pagesExcluded: true, productionProject: "knoxmortis-projects/veildaemon-relay", hostedContractTests: "passed", platformPolicy: Object.fromEntries(Object.entries(policy).map(([k, v]) => [k, v.max])), successfulUiInferenceCalls: 1, worstCaseUiInferenceCalls: 54 };
 }
 
 const currentFingerprint = await fingerprint();
