@@ -439,3 +439,13 @@ test("master-draft problems still use the writer's own retry ladder", async () =
   assert.equal(byModel(WRITER).length, 2);
   assert.equal(byModel(EDITOR).length, 0);
 });
+
+test("the local bridge serves /studio/relay/ (directory index), so acceptance's UI stage can load the page", async () => {
+  const dir = await fetch(`http://127.0.0.1:${bridgePort}/studio/relay/`);
+  assert.equal(dir.status, 200);
+  const html = await dir.text();
+  assert.ok(html.includes('id="source-text"') && html.includes("platform-policy.js"), "the Relay page itself, with its relative assets");
+  assert.equal((await fetch(`http://127.0.0.1:${bridgePort}/studio/relay/platform-policy.js`)).status, 200);
+  assert.equal((await fetch(`http://127.0.0.1:${bridgePort}/studio/`)).status, 200);
+  assert.equal((await fetch(`http://127.0.0.1:${bridgePort}/scripts/`)).status, 404, "a directory without an index is still not served");
+});

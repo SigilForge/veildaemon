@@ -1,7 +1,7 @@
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { createServer } from "node:http";
-import { dirname, extname, resolve, sep } from "node:path";
+import { dirname, extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import "../studio/relay/platform-policy.js";
 
@@ -835,10 +835,15 @@ function staticPath(pathname) {
 }
 
 async function serveStatic(pathname, res) {
-  const path = staticPath(pathname);
+  let path = staticPath(pathname);
   if (!path) return json(res, 404, { status: "error", error: "NOT_FOUND" });
   try {
-    const info = await stat(path);
+    let info = await stat(path);
+    // A directory URL (e.g. /studio/relay/) serves its index.html, so the page's relative assets resolve.
+    if (info.isDirectory()) {
+      path = join(path, "index.html");
+      info = await stat(path);
+    }
     if (!info.isFile()) throw new Error("NOT_FILE");
     res.writeHead(200, { "Cache-Control": "no-store", "Content-Type": MIME[extname(path).toLowerCase()] || "application/octet-stream", "X-Robots-Tag": "noindex, nofollow" });
     createReadStream(path).pipe(res);
