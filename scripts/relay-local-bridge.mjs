@@ -1,5 +1,5 @@
 import { createReadStream } from "node:fs";
-import { stat } from "node:fs/promises";
+import { realpath, stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { dirname, extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -52,10 +52,11 @@ const MAX_BODY_BYTES = 60_000;
 const CHARACTER_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["masterDraft", "centralConcepts", "platformDrafts", "validation"],
+  required: ["masterDraft", "whatChanges", "whyItMatters", "platformDrafts", "validation"],
   properties: {
     masterDraft: { type: "string" },
-    centralConcepts: { type: "array", items: { type: "string" } },
+    whatChanges: { type: "array", items: { type: "string" } },
+    whyItMatters: { type: "array", items: { type: "string" } },
     platformDrafts: {
       type: "object",
       additionalProperties: false,
@@ -304,12 +305,15 @@ function validateResult(value) {
     lanes.push(...laneViolations(key, rule, clean));
     normalizedPlatforms[key] = typeof clean === "string" ? clean : "";
   }
-  // The writer declares the central thought; the runtime grounds it and enforces it on every constrained lane.
-  const concepts = requiredConcepts(masterDraft, normalizedPlatforms, value.centralConcepts);
+  // The writer declares both halves of the central thought; the runtime grounds each group in the master (an
+  // empty group is a writer failure, retried by the writer's own ladder) and enforces them on every lane.
+  const concepts = conceptGroups(masterDraft, value);
+  const ungrounded = Object.keys(concepts).filter((group) => !concepts[group].length);
+  if (ungrounded.length) throw invalidOutput("concept_groups_ungrounded", { groups: ungrounded });
   for (const [key, rule] of Object.entries(POLICY.platforms)) {
     if (rule.longForm || lanes.some((v) => v.field === key)) continue;
-    const missing = missingConcepts(normalizedPlatforms[key], concepts);
-    if (missing.length) lanes.push({ field: key, label: rule.label, problem: "concept_dropped", missingConcepts: missing, length: countGraphemes(normalizedPlatforms[key]), max: rule.max });
+    const missing = missingGroups(normalizedPlatforms[key], concepts);
+    if (missing.length) lanes.push({ field: key, label: rule.label, problem: "concept_dropped", missingGroups: missing, length: countGraphemes(normalizedPlatforms[key]), max: rule.max });
   }
   // Master problems go back to the writer; lane problems go to the editor (returned, not thrown).
   if (violations.length) throw policyViolation([...violations, ...lanes]);
@@ -398,7 +402,10 @@ function withPolicy(messages) {
       "A platform draft over its hard max is rejected and must be rewritten shorter as a complete thought.",
       "Never truncate, never stop mid-sentence, never end with an ellipsis or dash.",
       "Use no ellipses anywhere in platform drafts, including inside quotations.",
-      "centralConcepts: the 2-4 words (or two-word phrases) that carry the SOURCE's central thought, each copied from your masterDraft. Cover every half of the thought (for example what is lost and what it costs), not just its subject. Every Threads, Bluesky, and Mastodon draft must contain each of them.",
+      "The central thought has two halves; declare short anchors (a word or two-word phrase) for each, copied from your masterDraft:",
+      "- whatChanges: 1-3 anchors for what is happening or being lost.",
+      "- whyItMatters: 1-3 anchors for why it matters or what it costs.",
+      "Every Threads, Bluesky, and Mastodon draft must contain at least one anchor from each group.",
     ].join("\n"),
   };
   const firstUser = messages.findIndex((message) => message.role !== "system");
@@ -452,24 +459,26 @@ function rejectionReason(v) {
   if (v.problem === "unfinished_ending") return "ended on an unfinished sentence";
   if (v.problem === "ellipsis") return "contained an ellipsis";
   if (v.problem === "missing") return "was empty";
-  if (v.problem === "concept_dropped") return `dropped required concepts (${v.missingConcepts.join(", ")})`;
+  if (v.problem === "concept_dropped") return `dropped the ${v.missingGroups.map(groupLabel).join(" and the ")} half of the central thought`;
   if (v.problem === "edit_scope_exceeded") return `rewrote the post instead of fixing punctuation (${v.previous} -> ${v.length} characters)`;
   if (v.problem === "meaning_changed") return `changed the meaning: ${v.issue}`;
   return v.problem;
 }
+
+const groupLabel = (group) => (group === "whatChanges" ? "what-changes" : "why-it-matters");
 
 function editorInstruction(key, rule, lane, concepts) {
   const lines = [`${rule.label} (key "${key}"): return ${lane.count} candidate${lane.count > 1 ? "s" : ""}, each a complete rewrite of the WRITER'S DRAFT below.`];
   if (lane.surfaceOnly) {
     lines.push(`- Fix only this: ${[...new Set(lane.initial.map(rejectionReason))].join("; ")}. Keep every other word; use complete punctuation instead of an ellipsis.`);
   } else {
-    if (concepts.length) lines.push(`- Preserve these required concepts (keep each word or its form): ${concepts.join(", ")}.`);
+    if (concepts) lines.push(`- Keep both halves of the central thought: at least one of (${concepts.whatChanges.join(", ")}) for what changes, and at least one of (${concepts.whyItMatters.join(", ")}) for why it matters.`);
     if (lane.budget) lines.push(`- Each candidate: ${lane.budget.min}–${lane.budget.max} words${rule.maxSentences ? `, at most ${rule.maxSentences} sentences` : ""}. The runtime counts characters; the hard limit is ${rule.max}.`);
     else lines.push(`- Each candidate must stay under the hard limit of ${rule.max} characters${lane.initial.some((v) => v.problem === "too_short") ? `, and be longer than ${rule.floor ?? 40} characters` : ""}.`);
     if (lane.initial.some((v) => SURFACE_PROBLEMS.has(v.problem))) lines.push("- End on a complete sentence; no ellipses.");
   }
-  const omitted = [...new Set(lane.last.filter((v) => v.problem === "concept_dropped").flatMap((v) => v.missingConcepts))];
-  if (omitted.length) lines.push(`- The previous version omitted the required concept${omitted.length > 1 ? "s" : ""} ${omitted.join(", ")}. Preserve all required concepts, especially ${omitted.join(", ")}. Keep the accepted meaning and stay under ${rule.max} characters.`);
+  const omitted = [...new Set(lane.last.filter((v) => v.problem === "concept_dropped").flatMap((v) => v.missingGroups))];
+  for (const group of omitted) lines.push(`- The previous version omitted the ${groupLabel(group)} half. Keep at least one of: ${concepts[group].join(", ")}. Keep the accepted meaning and stay under ${rule.max} characters.`);
   if (lane.history.length) lines.push(`- Earlier candidates were rejected because they: ${lane.history.join("; ")}. Do not repeat those mistakes.`);
   lines.push(lane.base ? `WRITER'S DRAFT:\n${lane.base}` : "WRITER'S DRAFT: (none; write it from the master draft)");
   return lines.join("\n");
@@ -541,31 +550,19 @@ function coverage(quote, text) {
 }
 
 /**
- * Runtime-selected required concepts: content words the writer put in every platform lane and in the master
- * (its own consensus on what is central), ranked by how often the master uses them. Generic, never fixture-read.
+ * The two halves of the central thought, as declared by the writer. An anchor is kept only when grounded (every
+ * content word appears in the master); at most three per group. Never read from a fixture.
  */
-function requiredConcepts(master, drafts, declared) {
-  // Writer judgment first: declared concepts, kept only when grounded (every content word is in the master).
-  const grounded = [...new Set((Array.isArray(declared) ? declared : [])
-    .filter((c) => typeof c === "string")
-    .map((c) => normText(c))
-    .filter((c) => c && c.split(" ").length <= 3 && contentWords(c).length && coverage(c, master) === 1))].slice(0, 3);
-  // Then writer consensus: content words it put in every lane and the master, ranked by master frequency.
-  const lanes = Object.keys(POLICY.platforms).map((k) => new Set(contentWords(drafts[k])));
-  const counts = new Map();
-  const surface = new Map();
-  for (const word of normText(master).split(" ")) {
-    const stemmed = stem(word);
-    if (word.length < 4 || STOPWORDS.has(word) || !lanes.every((set) => set.has(stemmed))) continue;
-    counts.set(stemmed, (counts.get(stemmed) || 0) + 1);
-    if (!surface.has(stemmed)) surface.set(stemmed, word);
-  }
-  const covered = new Set(grounded.flatMap(contentWords));
-  const consensus = [...counts.entries()].filter(([stemmed, n]) => n >= 2 && !covered.has(stemmed)).sort((a, b) => b[1] - a[1]).map(([stemmed]) => surface.get(stemmed));
-  return [...grounded, ...consensus].slice(0, 4);
+const CONCEPT_GROUPS = ["whatChanges", "whyItMatters"];
+function conceptGroups(master, value) {
+  return Object.fromEntries(CONCEPT_GROUPS.map((group) => [group, [...new Set((Array.isArray(value?.[group]) ? value[group] : [])
+    .filter((anchor) => typeof anchor === "string")
+    .map((anchor) => normText(anchor))
+    .filter((anchor) => anchor && anchor.split(" ").length <= 3 && contentWords(anchor).length && coverage(anchor, master) === 1))].slice(0, 3)]));
 }
-/** A concept is present when its head (last content word: "false steward" -> steward) is. */
-const missingConcepts = (text, concepts) => { const words = new Set(contentWords(text)); return concepts.filter((c) => !words.has(contentWords(c).at(-1))); };
+/** An anchor is present when its head (last content word: "false steward" -> steward) is; a group is kept when any anchor is. */
+const hasAnchor = (words, anchor) => words.has(contentWords(anchor).at(-1));
+const missingGroups = (text, groups) => { const words = new Set(contentWords(text)); return CONCEPT_GROUPS.filter((group) => !groups[group].some((anchor) => hasAnchor(words, anchor))); };
 
 /** Clauses the runtime judges independently (sentence, semicolon, colon, dash, and comma boundaries). */
 const clauses = (value) => String(value || "").split(/[.;:!?,—–]+|\s-\s/).map((c) => c.trim()).filter((c) => contentWords(c).length >= 3);
@@ -628,7 +625,7 @@ async function editLanes(result, initialViolations, concepts) {
       const numPredict = Math.min(4_096, 400 + group.reduce((sum, k) => sum + (POLICY.platforms[k].longForm ? Math.ceil(countGraphemes(lanes[k].base) / 2.5) : 150 * lanes[k].count), 0));
       Object.assign(edited, await editorChat([
         { role: "system", content: EDITOR_SYSTEM },
-        { role: "user", content: `MASTER DRAFT (meaning authority):\n${result.masterDraft}\n\nREWRITE ${group.length > 1 ? "THESE POSTS" : "THIS POST"}:\n\n${group.map((k) => editorInstruction(k, POLICY.platforms[k], lanes[k], POLICY.platforms[k].longForm ? [] : concepts)).join("\n\n")}\n\nReturn JSON with only ${group.length > 1 ? "these keys" : "this key"} (${group.join(", ")}), each an array of candidate strings.` },
+        { role: "user", content: `MASTER DRAFT (meaning authority):\n${result.masterDraft}\n\nREWRITE ${group.length > 1 ? "THESE POSTS" : "THIS POST"}:\n\n${group.map((k) => editorInstruction(k, POLICY.platforms[k], lanes[k], POLICY.platforms[k].longForm ? null : concepts)).join("\n\n")}\n\nReturn JSON with only ${group.length > 1 ? "these keys" : "this key"} (${group.join(", ")}), each an array of candidate strings.` },
       ], { type: "object", additionalProperties: false, required: group, properties: Object.fromEntries(group.map((k) => [k, { type: "array", items: { type: "string" } }])) }, numPredict).catch(parseFailure));
       meta.calls += 1;
     }
@@ -658,8 +655,8 @@ async function editLanes(result, initialViolations, concepts) {
         if (!problems.length && lane.surfaceOnly && Math.abs(countGraphemes(text) - countGraphemes(lane.base)) > countGraphemes(lane.base) * 0.15) {
           problems.push({ field: k, label: rule.label, problem: "edit_scope_exceeded", length: countGraphemes(text), max: rule.max, previous: countGraphemes(lane.base) });
         }
-        if (!problems.length && !rule.longForm && missingConcepts(text, concepts).length) {
-          problems.push({ field: k, label: rule.label, problem: "concept_dropped", missingConcepts: missingConcepts(text, concepts), length: countGraphemes(text), max: rule.max });
+        if (!problems.length && !rule.longForm && missingGroups(text, concepts).length) {
+          problems.push({ field: k, label: rule.label, problem: "concept_dropped", missingGroups: missingGroups(text, concepts), length: countGraphemes(text), max: rule.max });
         }
         if (problems.length) rejected.push(...problems);
         else valid.push({ k, id: `${k}_${index + 1}`, text });
@@ -710,12 +707,12 @@ async function editLanes(result, initialViolations, concepts) {
     }
     pending = pending.filter((k) => !accepted.has(k));
     console.warn("RelayDaemon editor candidates", { round, budget: meta.candidates.filter((c) => c.round === round).map((c) => `${c.lane}: asked ${c.requestedWords ?? "-"}w/${c.targetChars ?? "-"}c got ${c.returnedWords}w/${c.returnedChars}c x${c.wordRatio ?? "-"}`).join(" | ") });
-    console.warn("RelayDaemon editor round", { round, accepted: [...accepted], dismissedEvidence: meta.dismissedEvidence, remaining: pending.map((k) => `${k}: ${lanes[k].last.map(({ problem, codes, missingConcepts: missing, length }) => `${problem}${codes ? `(${codes.join(",")})` : ""}${missing ? `[${missing.join(",")}]` : ""}@${length}`).join(" ")}`).join(" | ") || "none" });
+    console.warn("RelayDaemon editor round", { round, accepted: [...accepted], dismissedEvidence: meta.dismissedEvidence, remaining: pending.map((k) => `${k}: ${lanes[k].last.map(({ problem, codes, missingGroups: missing, length }) => `${problem}${codes ? `(${codes.join(",")})` : ""}${missing ? `[${missing.join(",")}]` : ""}@${length}`).join(" ")}`).join(" | ") || "none" });
   }
   if (pending.length) {
     const failures = pending.flatMap((k) => lanes[k].last.length ? lanes[k].last : lanes[k].initial);
     // Structural evidence only (never draft text): the failed response still says what the editor did and why.
-    throw Object.assign(policyViolation(failures), { editor: { ...meta, failures: failures.map(({ field, problem, length, max, codes, missingConcepts: missing }) => ({ field, problem, length, max, ...(codes && { codes }), ...(missing && { missingConcepts: missing }) })) } });
+    throw Object.assign(policyViolation(failures), { editor: { ...meta, failures: failures.map(({ field, problem, length, max, codes, missingGroups: missing }) => ({ field, problem, length, max, ...(codes && { codes }), ...(missing && { missingGroups: missing }) })) } });
   }
   return { result: { ...result, platformDrafts }, editor: meta };
 }
@@ -755,7 +752,7 @@ async function requestOllamaCharacter(messages) {
     }
   }
   if (!written) throw lastError || invalidOutput("exhausted_retries");
-  console.warn("RelayDaemon writer package", { concepts: written.concepts.join(", "), laneViolations: written.laneViolations.map((v) => `${v.field}:${v.problem}@${v.length}`).join(" ") || "none" });
+  console.warn("RelayDaemon writer package", { concepts: `whatChanges: ${written.concepts.whatChanges.join(", ")} | whyItMatters: ${written.concepts.whyItMatters.join(", ")}`, laneViolations: written.laneViolations.map((v) => `${v.field}:${v.problem}@${v.length}`).join(" ") || "none" });
   if (!written.laneViolations.length) return { result: written.result, editor: { model: EDITOR_MODEL, rounds: 0, calls: 0, dismissedEvidence: 0, concepts: written.concepts, lanesEdited: [] } };
   // Outside the writer's ladder: lane failures never rerun the writer; editor exhaustion is final.
   return editLanes(written.result, written.laneViolations, written.concepts);
@@ -827,11 +824,22 @@ async function character(req, res, warm = false) {
   }
 }
 
+// The bridge serves only the public Studio tree. Everything else in the repo (local env files, scripts,
+// artifacts) is unreachable, however the path is spelled or encoded.
+const STATIC_ROOT = resolve(ROOT, "studio");
+const insideStaticRoot = (path, root = STATIC_ROOT) => path === root || path.startsWith(`${root}${sep}`);
+
 function staticPath(pathname) {
-  if (pathname === "/") return resolve(ROOT, "studio/relay/index.html");
-  const decoded = decodeURIComponent(pathname).replace(/^\/+/, "");
-  const path = resolve(ROOT, decoded);
-  return path === ROOT || path.startsWith(`${ROOT}${sep}`) ? path : null;
+  if (pathname === "/") return resolve(STATIC_ROOT, "relay/index.html");
+  let decoded;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch (_error) {
+    return null; // malformed percent-encoding
+  }
+  if (decoded.includes("\0")) return null;
+  const path = resolve(ROOT, decoded.replace(/^[/\\]+/, ""));
+  return insideStaticRoot(path) ? path : null;
 }
 
 async function serveStatic(pathname, res) {
@@ -845,6 +853,8 @@ async function serveStatic(pathname, res) {
       info = await stat(path);
     }
     if (!info.isFile()) throw new Error("NOT_FILE");
+    // Symlinks must not lead out of the Studio tree either.
+    if (!insideStaticRoot(await realpath(path), await realpath(STATIC_ROOT))) throw new Error("OUTSIDE_ROOT");
     res.writeHead(200, { "Cache-Control": "no-store", "Content-Type": MIME[extname(path).toLowerCase()] || "application/octet-stream", "X-Robots-Tag": "noindex, nofollow" });
     createReadStream(path).pipe(res);
   } catch (_error) {

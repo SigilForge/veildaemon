@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
+import { symlink, unlink } from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
 import { after, before, test } from "node:test";
@@ -23,11 +24,15 @@ function prose(length, tag) {
 
 // The master quarantines the host (not the reader) and names a syndrome, so tests can ground evidence in it.
 // Master filler shares no words with the lane filler, so no accidental "required concepts" appear.
-const MASTER = `${Array.from({ length: 40 }, (_, i) => `Record ${i + 1} holds firm.`).join(" ")} VeilCorp analysts classify this as False Steward Syndrome. Containment protocol: quarantine the host before the signal spreads.`;
+// Default concept groups (one anchor per group suffices): filler lanes say "line ... whole"; the custom texts
+// below name the host, the signal, the analysts, or the syndrome. The master grounds all of them.
+const MASTER = `${Array.from({ length: 40 }, (_, i) => `Record ${i + 1} holds firm.`).join(" ")} Every line stays whole. VeilCorp analysts classify this as False Steward Syndrome. Containment protocol: quarantine the host before the signal spreads.`;
 
 function modelJson(overrides = {}) {
   return JSON.stringify({
     masterDraft: MASTER,
+    whatChanges: ["line", "host", "analysts"],
+    whyItMatters: ["whole", "signal", "syndrome"],
     platformDrafts: {
       x: prose(1_200, "Xpost"),
       threads: prose(POLICY.threads.max - 20, "Threads"),
@@ -128,7 +133,7 @@ test("an over-limit lane goes to the editor with a runtime word budget, then the
   assert.equal(body.result.platformDrafts.bluesky, edited, "edited draft returned verbatim");
   assert.ok(!JSON.stringify(body).includes("Overlong"), "over-limit draft never reaches the output");
   const { candidates, ...editor } = body.editor;
-  assert.deepEqual(editor, { model: EDITOR, rounds: 1, calls: 2, dismissedEvidence: 0, concepts: [], lanesEdited: ["bluesky"] });
+  assert.deepEqual(editor, { model: EDITOR, rounds: 1, calls: 2, dismissedEvidence: 0, concepts: { whatChanges: ["line", "host", "analysts"], whyItMatters: ["whole", "signal", "syndrome"] }, lanesEdited: ["bluesky"] });
   // Budget evidence per candidate: what the brief asked for vs. what came back (no draft text).
   const words = overLimit.trim().split(/\s+/).length;
   const askedMax = Math.max(8, Math.floor(words * (POLICY.bluesky.editTarget / overLimit.length) * 0.9));
@@ -224,30 +229,6 @@ test("invented claims are judged clause by clause: a real invention inside a lon
   assert.equal(body.editor.dismissedEvidence, 1);
 });
 
-test("runtime-selected concepts: a legal rewrite that drops a concept the writer kept everywhere is retried", async () => {
-  calls = [];
-  const tail = " Ownership is the point.";
-  const master = `${MASTER} Ownership is being replaced. Ownership was never theirs.`;
-  const dropped = prose(POLICY.bluesky.max - 30, "Edited");
-  const kept = `${prose(POLICY.bluesky.max - 60, "Edited")} Ownership is gone.`;
-  writerScript = [JSON.stringify({ ...JSON.parse(modelJson({
-    x: prose(1_200, "Xpost") + tail,
-    threads: prose(POLICY.threads.max - 40, "Threads") + tail,
-    bluesky: prose(POLICY.bluesky.max + 60, "Overlong") + tail,
-    mastodon: prose(POLICY.mastodon.max - 40, "Mastodon") + tail,
-  })), masterDraft: master })];
-  editorScript = [JSON.stringify({ bluesky: dropped }), JSON.stringify({ bluesky: kept }), evidence(["bluesky"])];
-  const { status, body } = await generate();
-  assert.equal(status, 200);
-  assert.deepEqual(body.editor.concepts, ["ownership"]);
-  assert.equal(body.result.platformDrafts.bluesky, kept);
-  assert.equal(body.editor.rounds, 2);
-  assert.match(calls[1].messages.at(-1).content, /Preserve these required concepts \(keep each word or its form\): ownership/);
-  assert.match(calls[2].messages.at(-1).content, /dropped required concepts \(ownership\)/);
-  assert.match(calls[2].messages.at(-1).content, /The previous version omitted the required concept ownership\. Preserve all required concepts, especially ownership\. Keep the accepted meaning and stay under 200 characters\./);
-  assert.ok(!isFidelity(calls[2]), "a concept drop is caught by the runtime before any verifier call");
-});
-
 test("candidates: the runtime keeps the longest candidate that passes both the ruler and grounded evidence", async () => {
   calls = [];
   const tooLong = prose(POLICY.bluesky.max + 30, "Toolong");
@@ -282,41 +263,6 @@ test("the policy floor rejects an implausibly short post (live 2026-09-26: a 53-
   assert.match(calls[2].messages.at(-1).content, new RegExp(`too short \\(${stub.length} characters; the minimum is ${POLICY.bluesky.floor}\\)`));
 });
 
-test("writer-declared central concepts are grounded by the runtime and enforced on every constrained lane", async () => {
-  calls = [];
-  const master = `${MASTER} Ownership is being replaced. Trust erodes through indifference.`;
-  const withBoth = (tag, length) => `${prose(length, tag)} Ownership is gone and trust erodes.`;
-  const kept = withBoth("Edited", POLICY.bluesky.max - 80);
-  writerScript = [JSON.stringify({ ...JSON.parse(modelJson({
-    threads: withBoth("Threads", POLICY.threads.max - 80),
-    bluesky: prose(POLICY.bluesky.max - 60, "Bluesky") + " Ownership is gone.", // legal length, but the trust half is missing
-    mastodon: withBoth("Mastodon", POLICY.mastodon.max - 80),
-  })), masterDraft: master, centralConcepts: ["ownership", "trust", "sovereign cloud"] })];
-  editorScript = [JSON.stringify({ bluesky: [kept] }), evidence(["bluesky"])];
-  const { status, body } = await generate();
-  assert.equal(status, 200);
-  assert.deepEqual(body.editor.concepts, ["ownership", "trust"], "a declared concept absent from the master is not grounded");
-  assert.deepEqual(body.editor.lanesEdited, ["bluesky"], "only the lane missing a concept is edited");
-  assert.equal(body.result.platformDrafts.bluesky, kept);
-  assert.match(calls[1].messages.at(-1).content, /Preserve these required concepts \(keep each word or its form\): ownership, trust/);
-  assert.ok(calls[0].format.required.includes("centralConcepts"), "the writer schema asks for the central concepts");
-  assert.match(calls[1].messages.at(-1).content, /Each candidate: \d+–\d+ words/, "a lane sent in for a concept still gets a word range, so it is not compressed by reflex");
-});
-
-test("a concept phrase is satisfied by its head noun", async () => {
-  calls = [];
-  const master = `${MASTER} Legal resource extraction continues.`;
-  writerScript = [JSON.stringify({ ...JSON.parse(modelJson({
-    threads: `${prose(POLICY.threads.max - 80, "Threads")} The extraction continues.`,
-    bluesky: `${prose(POLICY.bluesky.max - 80, "Bluesky")} The extraction continues.`,
-    mastodon: `${prose(POLICY.mastodon.max - 80, "Mastodon")} The extraction continues.`,
-  })), masterDraft: master, centralConcepts: ["legal resource extraction"] })];
-  editorScript = ["{}"];
-  const { status, body } = await generate();
-  assert.equal(status, 200);
-  assert.equal(byModel(EDITOR).length, 0, "no lane is sent to the editor for lacking the phrase's modifiers");
-});
-
 test("round 1 edits all failing lanes in one call; later rounds give each failing lane its own call", async () => {
   calls = [];
   writerScript = [modelJson({ threads: prose(POLICY.threads.max + 80, "Toolong"), bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
@@ -334,6 +280,74 @@ test("round 1 edits all failing lanes in one call; later rounds give each failin
   assert.deepEqual(Object.keys(calls[3].format.properties), ["bluesky"], "round 2: bluesky alone");
   assert.equal(body.editor.calls, 4, "round 1 edit (no verify: nothing legal) + two lane edits + one combined verify");
   assert.deepEqual(body.result.platformDrafts.threads, good.threads);
+});
+
+// CA-001 shape: the central thought is loss of ownership (what changes) and eroding trust (why it matters).
+const CA_MASTER = `${MASTER} Ownership has been replaced with revocable licenses; physical media is being phased out. Executive functions optimize for resource extraction over long-term trust.`;
+const caPackage = (lanes) => JSON.stringify({
+  ...JSON.parse(modelJson(lanes)),
+  masterDraft: CA_MASTER,
+  whatChanges: ["ownership", "revocable licenses", "physical media"],
+  whyItMatters: ["trust", "resource extraction"],
+});
+
+test("CA-001 concept groups: an ownership-only lane fails for lacking whyItMatters; one anchor from each group passes", async () => {
+  calls = [];
+  const both = (tag, n) => `${prose(n, tag)} Ownership is gone, and trust goes with it.`;
+  const ownershipOnly = `${prose(POLICY.bluesky.max - 90, "Bluesky")} Ownership became a revocable license.`;
+  const concise = "The host replaced ownership with revocable licenses, one quiet update at a time. What erodes now is trust.";
+  assert.ok(concise.length >= POLICY.bluesky.floor && concise.length <= POLICY.bluesky.max);
+  writerScript = [caPackage({ threads: both("Threads", 250), bluesky: ownershipOnly, mastodon: both("Mastodon", 250) })];
+  editorScript = [JSON.stringify({ bluesky: [concise] }), evidence(["bluesky"])];
+  const { status, body } = await generate();
+  assert.equal(status, 200);
+  assert.deepEqual(body.editor.concepts, { whatChanges: ["ownership", "revocable licenses", "physical media"], whyItMatters: ["trust", "resource extraction"] });
+  assert.deepEqual(body.editor.lanesEdited, ["bluesky"], "lanes carrying one anchor from each group pass untouched");
+  assert.equal(body.result.platformDrafts.bluesky, concise, "a concise lane with one anchor per group passes; all five are not required");
+  const brief = calls[1].messages.at(-1).content;
+  assert.match(brief, /Keep both halves of the central thought: at least one of \(ownership, revocable licenses, physical media\) for what changes, and at least one of \(trust, resource extraction\) for why it matters\./);
+  assert.match(brief, /The previous version omitted the why-it-matters half\. Keep at least one of: trust, resource extraction\./);
+  assert.ok(calls[0].format.required.includes("whatChanges") && calls[0].format.required.includes("whyItMatters"));
+});
+
+test("a lane that keeps dropping a group fails with missingGroups recorded in the 502", async () => {
+  calls = [];
+  const ownershipOnly = `${prose(POLICY.bluesky.max - 90, "Bluesky")} Ownership became a revocable license.`;
+  writerScript = [caPackage({ threads: `${prose(250, "Threads")} Ownership and trust.`, bluesky: ownershipOnly, mastodon: `${prose(250, "Mastodon")} Ownership and trust.` })];
+  editorScript = [JSON.stringify({ bluesky: [ownershipOnly] })];
+  const { status, body } = await generate();
+  assert.equal(status, 502);
+  assert.deepEqual(body.editor.failures, [{ field: "bluesky", problem: "concept_dropped", length: ownershipOnly.length, max: POLICY.bluesky.max, missingGroups: ["whyItMatters"] }]);
+});
+
+test("anchors are grounded by the runtime; a group with no grounded anchor is a writer failure, retried by the writer", async () => {
+  calls = [];
+  const ungrounded = JSON.stringify({ ...JSON.parse(caPackage({})), whyItMatters: ["sovereign cloud"] });
+  const grounded = JSON.stringify({ ...JSON.parse(caPackage({
+    threads: `${prose(250, "Threads")} Ownership and trust.`,
+    bluesky: `${prose(120, "Bluesky")} Ownership and trust.`,
+    mastodon: `${prose(250, "Mastodon")} Ownership and trust.`,
+  })), whyItMatters: ["trust", "sovereign cloud"] });
+  writerScript = [ungrounded, grounded];
+  editorScript = ["{}"];
+  const { status, body } = await generate();
+  assert.equal(status, 200);
+  assert.equal(byModel(WRITER).length, 2, "an empty group goes back through the writer's own ladder");
+  assert.equal(byModel(EDITOR).length, 0);
+  assert.deepEqual(body.editor.concepts.whyItMatters, ["trust"], "an anchor absent from the master is dropped");
+});
+
+test("an anchor phrase is satisfied by its head noun", async () => {
+  calls = [];
+  writerScript = [caPackage({
+    threads: `${prose(250, "Threads")} The licenses remain, and the extraction continues.`,
+    bluesky: `${prose(120, "Bluesky")} The licenses remain; the extraction continues.`,
+    mastodon: `${prose(250, "Mastodon")} The licenses remain, and the extraction continues.`,
+  })];
+  editorScript = ["{}"];
+  const { status } = await generate();
+  assert.equal(status, 200);
+  assert.equal(byModel(EDITOR).length, 0, "\"revocable licenses\" and \"resource extraction\" match on licenses / extraction");
 });
 
 test("a surface fix that rewrites the lane is rejected as edit_scope_exceeded (X stays long-form)", async () => {
@@ -380,21 +394,6 @@ test("persistent over-limit output fails after bounded editor rounds, never clip
   assert.ok(!JSON.stringify(body.editor).includes("Stilllong"), "evidence is structural, never draft text");
 });
 
-test("a lane that keeps dropping a concept fails with missingConcepts recorded in the 502", async () => {
-  calls = [];
-  const tail = " Ownership is the point.";
-  writerScript = [JSON.stringify({ ...JSON.parse(modelJson({
-    x: prose(1_200, "Xpost") + tail,
-    threads: prose(POLICY.threads.max - 40, "Threads") + tail,
-    bluesky: prose(POLICY.bluesky.max + 60, "Overlong") + tail,
-    mastodon: prose(POLICY.mastodon.max - 40, "Mastodon") + tail,
-  })), masterDraft: `${MASTER} Ownership is being replaced. Ownership was never theirs.` })];
-  editorScript = [JSON.stringify({ bluesky: [prose(POLICY.bluesky.max - 30, "Edited")] })];
-  const { status, body } = await generate();
-  assert.equal(status, 502);
-  assert.deepEqual(body.editor.failures, [{ field: "bluesky", problem: "concept_dropped", length: body.editor.failures[0].length, max: POLICY.bluesky.max, missingConcepts: ["ownership"] }]);
-});
-
 test("an unfinished ending is an editor fix, even on X", async () => {
   calls = [];
   const unfinished = `${prose(900, "Longform")} He waited for the.`;
@@ -438,6 +437,50 @@ test("master-draft problems still use the writer's own retry ladder", async () =
   assert.equal(status, 200);
   assert.equal(byModel(WRITER).length, 2);
   assert.equal(byModel(EDITOR).length, 0);
+});
+
+// Raw request path: fetch() would normalize "../" client-side, so traversal tests must send the bytes as-is.
+function rawGet(rawPath) {
+  return new Promise((resolve, reject) => {
+    const req = http.request({ host: "127.0.0.1", port: bridgePort, path: rawPath, method: "GET" }, (res) => {
+      res.resume();
+      res.on("end", () => resolve(res.statusCode));
+    });
+    req.on("error", reject);
+    req.end();
+  });
+}
+
+test("static serving is confined to studio/: secrets, repo files, and traversal are 404", async () => {
+  assert.equal(await rawGet("/studio/relay/"), 200);
+  assert.equal(await rawGet("/studio/relay/relay.css"), 200, "a normal Studio asset");
+  for (const path of [
+    "/.env.stripe-test.local",
+    "/package.json",
+    "/scripts/relay-local-bridge.mjs",
+    "/artifacts/relay-acceptance/latest.json",
+    "/../.env.stripe-test.local",
+    "/studio/../package.json",
+    "/studio/relay/../../.env.stripe-test.local",
+    "/studio/%2e%2e/package.json",
+    "/studio/%2E%2E/.env.stripe-test.local",
+    "/studio/..%2fpackage.json",
+    "/studio/%2e%2e%2f.env.stripe-test.local",
+    "/studio/..%5cpackage.json",
+    "/%2e%2e/%2e%2e/etc/passwd",
+    "/studio/%00/relay/index.html",
+    "/studio/%E0%A4%A",
+  ]) assert.equal(await rawGet(path), 404, path);
+});
+
+test("a symlink inside studio/ cannot lead out of it", async () => {
+  const link = path.join(root, "studio", "__relay_test_link.json");
+  await symlink(path.join(root, "package.json"), link);
+  try {
+    assert.equal(await rawGet("/studio/__relay_test_link.json"), 404);
+  } finally {
+    await unlink(link);
+  }
 });
 
 test("the local bridge serves /studio/relay/ (directory index), so acceptance's UI stage can load the page", async () => {
