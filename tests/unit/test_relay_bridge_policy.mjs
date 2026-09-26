@@ -54,6 +54,8 @@ let bridgePort;
 let writerScript = [];
 let editorScript = [];
 let calls = [];
+let bridgeLog = "";
+const key = (anchor, groundedKey) => ({ anchor, groundedKey });
 
 const isFidelity = (request) => request.messages[0].content.startsWith("You are a verifier.");
 // Verifier evidence: coded differences only, no verdict.
@@ -91,7 +93,7 @@ before(async () => {
     env: { ...process.env, RELAY_PORT: String(bridgePort), RELAY_OLLAMA_URL: `http://127.0.0.1:${fakePort}/api/chat`, RELAY_OLLAMA_MODEL: WRITER, RELAY_EDITOR_MODEL: EDITOR, RELAY_OLLAMA_THINKING: "off" },
     stdio: ["ignore", "pipe", "pipe"],
   });
-  bridge.stderr.resume();
+  bridge.stderr.on("data", (chunk) => { bridgeLog += chunk; });
   await new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("bridge did not start")), 10_000);
     bridge.stdout.on("data", (chunk) => {
@@ -133,7 +135,10 @@ test("an over-limit lane goes to the editor with a runtime word budget, then the
   assert.equal(body.result.platformDrafts.bluesky, edited, "edited draft returned verbatim");
   assert.ok(!JSON.stringify(body).includes("Overlong"), "over-limit draft never reaches the output");
   const { candidates, ...editor } = body.editor;
-  assert.deepEqual(editor, { model: EDITOR, rounds: 1, calls: 2, dismissedEvidence: 0, concepts: { whatChanges: ["line", "host", "analysts"], whyItMatters: ["whole", "signal", "syndrome"] }, lanesEdited: ["bluesky"] });
+  assert.deepEqual(editor, { model: EDITOR, rounds: 1, calls: 2, dismissedEvidence: 0, concepts: {
+    whatChanges: [key("line", "line"), key("host", "host"), key("analysts", "analyst")],
+    whyItMatters: [key("whole", "whole"), key("signal", "signal"), key("syndrome", "syndrome")],
+  }, lanesEdited: ["bluesky"] });
   // Budget evidence per candidate: what the brief asked for vs. what came back (no draft text).
   const words = overLimit.trim().split(/\s+/).length;
   const askedMax = Math.max(8, Math.floor(words * (POLICY.bluesky.editTarget / overLimit.length) * 0.9));
@@ -301,7 +306,10 @@ test("CA-001 concept groups: an ownership-only lane fails for lacking whyItMatte
   editorScript = [JSON.stringify({ bluesky: [concise] }), evidence(["bluesky"])];
   const { status, body } = await generate();
   assert.equal(status, 200);
-  assert.deepEqual(body.editor.concepts, { whatChanges: ["ownership", "revocable licenses", "physical media"], whyItMatters: ["trust", "resource extraction"] });
+  assert.deepEqual(body.editor.concepts, {
+    whatChanges: [key("ownership", "ownership"), key("revocable licenses", "licens"), key("physical media", "media")],
+    whyItMatters: [key("trust", "trust"), key("resource extraction", "extraction")],
+  });
   assert.deepEqual(body.editor.lanesEdited, ["bluesky"], "lanes carrying one anchor from each group pass untouched");
   assert.equal(body.result.platformDrafts.bluesky, concise, "a concise lane with one anchor per group passes; all five are not required");
   const brief = calls[1].messages.at(-1).content;
@@ -334,7 +342,26 @@ test("anchors are grounded by the runtime; a group with no grounded anchor is a 
   assert.equal(status, 200);
   assert.equal(byModel(WRITER).length, 2, "an empty group goes back through the writer's own ladder");
   assert.equal(byModel(EDITOR).length, 0);
-  assert.deepEqual(body.editor.concepts.whyItMatters, ["trust"], "an anchor absent from the master is dropped");
+  assert.deepEqual(body.editor.concepts.whyItMatters, [key("trust", "trust")], "an anchor with no grounded word is dropped");
+  assert.match(bridgeLog, /ungroundedGroups: 'whyItMatters'/);
+  assert.match(bridgeLog, /rejectedAnchors: 'whyItMatters: sovereign cloud'/, "rejected anchors are logged by group");
+});
+
+test("groundedKey: the head when grounded, else the nearest grounded word; lanes are checked on that same key", async () => {
+  calls = [];
+  // The master has "trust" and "control" but never "erosion"; "loss of control" keeps its head, control.
+  writerScript = [JSON.stringify({ ...JSON.parse(caPackage({
+    threads: `${prose(250, "Threads")} Ownership goes, and trust goes with it.`,
+    bluesky: `${prose(POLICY.bluesky.max - 90, "Bluesky")} Ownership erodes; the erosion is total.`, // "erosion" is not the key
+    mastodon: `${prose(250, "Mastodon")} Ownership goes, and with it control.`,
+  })), masterDraft: `${CA_MASTER} Owners lose control.`, whatChanges: ["ownership"], whyItMatters: ["trust erosion", "loss of control"] })];
+  const fixed = `${prose(POLICY.bluesky.max - 90, "Bluesky")} Ownership goes, and trust with it.`;
+  editorScript = [JSON.stringify({ bluesky: [fixed] }), evidence(["bluesky"])];
+  const { status, body } = await generate();
+  assert.equal(status, 200);
+  assert.deepEqual(body.editor.concepts.whyItMatters, [key("trust erosion", "trust"), key("loss of control", "control")]);
+  assert.deepEqual(body.editor.lanesEdited, ["bluesky"], "a lane saying only \"erosion\" lacks the groundedKey trust; \"control\" satisfies Mastodon");
+  assert.equal(body.result.platformDrafts.bluesky, fixed);
 });
 
 test("an anchor phrase is satisfied by its head noun", async () => {

@@ -307,9 +307,10 @@ function validateResult(value) {
   }
   // The writer declares both halves of the central thought; the runtime grounds each group in the master (an
   // empty group is a writer failure, retried by the writer's own ladder) and enforces them on every lane.
-  const concepts = conceptGroups(masterDraft, value);
-  const ungrounded = Object.keys(concepts).filter((group) => !concepts[group].length);
-  if (ungrounded.length) throw invalidOutput("concept_groups_ungrounded", { groups: ungrounded });
+  const { groups: concepts, rejected } = conceptGroups(masterDraft, value);
+  const ungrounded = CONCEPT_GROUPS.filter((group) => !concepts[group].length);
+  // Rejected anchors are short concept words, not draft text; they are logged so a grounding failure is readable.
+  if (ungrounded.length) throw invalidOutput("concept_groups_ungrounded", { groups: ungrounded, rejectedAnchors: describeRejected(rejected) });
   for (const [key, rule] of Object.entries(POLICY.platforms)) {
     if (rule.longForm || lanes.some((v) => v.field === key)) continue;
     const missing = missingGroups(normalizedPlatforms[key], concepts);
@@ -334,7 +335,7 @@ function validateResult(value) {
     if (list.some((item) => typeof item !== "string")) throw invalidOutput(`validation_array_${key}`);
     normalizedValidation[key] = list;
   }
-  return { result: { masterDraft, platformDrafts: normalizedPlatforms, validation: normalizedValidation }, laneViolations: lanes, concepts };
+  return { result: { masterDraft, platformDrafts: normalizedPlatforms, validation: normalizedValidation }, laneViolations: lanes, concepts, rejectedAnchors: describeRejected(rejected) };
 }
 
 const OLLAMA_ATTEMPTS = [
@@ -472,13 +473,13 @@ function editorInstruction(key, rule, lane, concepts) {
   if (lane.surfaceOnly) {
     lines.push(`- Fix only this: ${[...new Set(lane.initial.map(rejectionReason))].join("; ")}. Keep every other word; use complete punctuation instead of an ellipsis.`);
   } else {
-    if (concepts) lines.push(`- Keep both halves of the central thought: at least one of (${concepts.whatChanges.join(", ")}) for what changes, and at least one of (${concepts.whyItMatters.join(", ")}) for why it matters.`);
+    if (concepts) lines.push(`- Keep both halves of the central thought: at least one of (${anchorList(concepts.whatChanges)}) for what changes, and at least one of (${anchorList(concepts.whyItMatters)}) for why it matters.`);
     if (lane.budget) lines.push(`- Each candidate: ${lane.budget.min}–${lane.budget.max} words${rule.maxSentences ? `, at most ${rule.maxSentences} sentences` : ""}. The runtime counts characters; the hard limit is ${rule.max}.`);
     else lines.push(`- Each candidate must stay under the hard limit of ${rule.max} characters${lane.initial.some((v) => v.problem === "too_short") ? `, and be longer than ${rule.floor ?? 40} characters` : ""}.`);
     if (lane.initial.some((v) => SURFACE_PROBLEMS.has(v.problem))) lines.push("- End on a complete sentence; no ellipses.");
   }
   const omitted = [...new Set(lane.last.filter((v) => v.problem === "concept_dropped").flatMap((v) => v.missingGroups))];
-  for (const group of omitted) lines.push(`- The previous version omitted the ${groupLabel(group)} half. Keep at least one of: ${concepts[group].join(", ")}. Keep the accepted meaning and stay under ${rule.max} characters.`);
+  for (const group of omitted) lines.push(`- The previous version omitted the ${groupLabel(group)} half. Keep at least one of: ${anchorList(concepts[group])}. Keep the accepted meaning and stay under ${rule.max} characters.`);
   if (lane.history.length) lines.push(`- Earlier candidates were rejected because they: ${lane.history.join("; ")}. Do not repeat those mistakes.`);
   lines.push(lane.base ? `WRITER'S DRAFT:\n${lane.base}` : "WRITER'S DRAFT: (none; write it from the master draft)");
   return lines.join("\n");
@@ -550,19 +551,41 @@ function coverage(quote, text) {
 }
 
 /**
- * The two halves of the central thought, as declared by the writer. An anchor is kept only when grounded (every
- * content word appears in the master); at most three per group. Never read from a fixture.
+ * The two halves of the central thought, as declared by the writer. Each anchor is resolved once against the
+ * master to a groundedKey: its grammatical head (last content word) when the master contains it, otherwise the
+ * nearest grounded content word working back from the head ("trust erosion" -> trust when only trust is in the
+ * master). An anchor with no grounded content word is rejected. The same key is used for lane enforcement and
+ * retry reporting. At most three anchors per group. Never read from a fixture.
  */
 const CONCEPT_GROUPS = ["whatChanges", "whyItMatters"];
-function conceptGroups(master, value) {
-  return Object.fromEntries(CONCEPT_GROUPS.map((group) => [group, [...new Set((Array.isArray(value?.[group]) ? value[group] : [])
-    .filter((anchor) => typeof anchor === "string")
-    .map((anchor) => normText(anchor))
-    .filter((anchor) => anchor && anchor.split(" ").length <= 3 && contentWords(anchor).length && coverage(anchor, master) === 1))].slice(0, 3)]));
+function resolveAnchor(anchor, masterWords) {
+  const words = contentWords(anchor);
+  for (let index = words.length - 1; index >= 0; index -= 1) if (masterWords.has(words[index])) return words[index];
+  return null;
 }
-/** An anchor is present when its head (last content word: "false steward" -> steward) is; a group is kept when any anchor is. */
-const hasAnchor = (words, anchor) => words.has(contentWords(anchor).at(-1));
-const missingGroups = (text, groups) => { const words = new Set(contentWords(text)); return CONCEPT_GROUPS.filter((group) => !groups[group].some((anchor) => hasAnchor(words, anchor))); };
+function conceptGroups(master, value) {
+  const masterWords = new Set(contentWords(master));
+  const groups = {};
+  const rejected = {};
+  for (const group of CONCEPT_GROUPS) {
+    groups[group] = [];
+    rejected[group] = [];
+    const seen = new Set();
+    for (const raw of Array.isArray(value?.[group]) ? value[group] : []) {
+      const anchor = typeof raw === "string" ? normText(raw) : "";
+      if (!anchor || seen.has(anchor)) continue;
+      seen.add(anchor);
+      const groundedKey = anchor.split(" ").length <= 3 ? resolveAnchor(anchor, masterWords) : null;
+      if (groundedKey && groups[group].length < 3) groups[group].push({ anchor, groundedKey });
+      else if (!groundedKey) rejected[group].push(anchor);
+    }
+  }
+  return { groups, rejected };
+}
+/** A group is kept when the text contains the groundedKey of any of its anchors. */
+const missingGroups = (text, groups) => { const words = new Set(contentWords(text)); return CONCEPT_GROUPS.filter((group) => !groups[group].some(({ groundedKey }) => words.has(groundedKey))); };
+const anchorList = (entries) => entries.map(({ anchor }) => anchor).join(", ");
+const describeRejected = (rejected) => CONCEPT_GROUPS.filter((g) => rejected[g].length).map((g) => `${g}: ${rejected[g].join(", ")}`).join(" | ") || "none";
 
 /** Clauses the runtime judges independently (sentence, semicolon, colon, dash, and comma boundaries). */
 const clauses = (value) => String(value || "").split(/[.;:!?,—–]+|\s-\s/).map((c) => c.trim()).filter((c) => contentWords(c).length >= 3);
@@ -744,6 +767,7 @@ async function requestOllamaCharacter(messages) {
         hasThinking: error?.hasThinking || false,
         // Structural only (field, problem, length, max); never draft content.
         violations: error?.violations?.map(({ field, problem, length, max }) => ({ field, problem, length, max })) || null,
+        ...(error?.rejectedAnchors && { ungroundedGroups: error.groups.join(","), rejectedAnchors: error.rejectedAnchors }),
         retrying: retryable && index < OLLAMA_ATTEMPTS.length - 1,
       });
       if (!retryable || index >= OLLAMA_ATTEMPTS.length - 1) break;
@@ -752,7 +776,7 @@ async function requestOllamaCharacter(messages) {
     }
   }
   if (!written) throw lastError || invalidOutput("exhausted_retries");
-  console.warn("RelayDaemon writer package", { concepts: `whatChanges: ${written.concepts.whatChanges.join(", ")} | whyItMatters: ${written.concepts.whyItMatters.join(", ")}`, laneViolations: written.laneViolations.map((v) => `${v.field}:${v.problem}@${v.length}`).join(" ") || "none" });
+  console.warn("RelayDaemon writer package", { concepts: CONCEPT_GROUPS.map((g) => `${g}: ${written.concepts[g].map(({ anchor, groundedKey }) => `${anchor}->${groundedKey}`).join(", ")}`).join(" | "), rejectedAnchors: written.rejectedAnchors, laneViolations: written.laneViolations.map((v) => `${v.field}:${v.problem}@${v.length}`).join(" ") || "none" });
   if (!written.laneViolations.length) return { result: written.result, editor: { model: EDITOR_MODEL, rounds: 0, calls: 0, dismissedEvidence: 0, concepts: written.concepts, lanesEdited: [] } };
   // Outside the writer's ladder: lane failures never rerun the writer; editor exhaustion is final.
   return editLanes(written.result, written.laneViolations, written.concepts);
