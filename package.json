@@ -11,6 +11,7 @@
     "veillink:deploy": "node scripts/deploy-veillink.mjs",
     "veillink:deploy:dry-run": "node scripts/deploy-veillink.mjs --dry-run",
     "test:veillink-deploy-guard": "node --test tests/unit/test_veillink_deploy_guard.mjs",
+    "test:relay-bridge": "node --test tests/unit/test_relay_bridge_policy.mjs",
     "test:forge-bridge": "node --test tests/unit/test_forge_stream_bridge.js",
     "test:rights-verification-projection": "node --test tests/unit/test_creator_rights_verification_projection.js",
     "test:rights-registry-api": "node --test tests/unit/test_creator_rights_registry_api.js",

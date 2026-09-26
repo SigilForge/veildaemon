@@ -7,7 +7,7 @@ Before editing RelayDaemon:
 3. State the canonical reproduction, expected result, responsible layer, current hypothesis, falsifying evidence, and allowed file paths.
 4. Change only the responsible layer unless the ledger explains why another layer is inseparable.
 5. Run the exact reproduction after the change.
-6. Do not commit, push, deploy, or claim completion until `npm run relay:acceptance` passes during the current task.
+6. Acceptance gates promotion, not version control. Feature-branch commits and a draft PR for review are allowed before acceptance; the PR must be marked **acceptance pending / do not merge**. Merge, deploy, release, or any promotion to `main` is forbidden until `npm run relay:acceptance` passes during the current task, and the passing artifact must be for the exact head being promoted (`gitHead` and file fingerprint in `artifacts/relay-acceptance/latest.json`). If review changes the code, rerun acceptance on the new head before merge or deploy. Never claim completion before that.
 7. Report the acceptance artifact path, timestamp, retry count, first-attempt failures, and worst-case model-call count.
 
 ## Governing architecture
@@ -35,12 +35,39 @@ Private Vercel review UI
 - Prepare script: `scripts/prepare-relay-vercel.sh`
 - Production host: `https://relay.veildaemon.app`
 - Production Vercel project: `knoxmortis-projects/veildaemon-relay`
-- Worst-case inference count: six-inference worst case
+- Worst-case inference count: thirty-inference worst case (per bridge request: 3 writer + editor round 1 (1 combined edit + 1 verify) + rounds 2-3 (up to 4 per-lane edits + 1 verify each) = 15; the browser makes a second bridge request only when it rejects a successful master draft). Ordinary path: 1 writer + 1 edit + 1 verify = 3.
+
+## Local engine
+- Model: `hf.co/zerofata/MS3.2-PaintedFantasy-v4.1-24B-GGUF:Q5_K_M`, VeilForge's heavy prose/RP model (its `xlarge_model_id` slot) and the role match for character-voice generation. `hermes4:14b` is retired.
+- Thinking is explicit (`RELAY_OLLAMA_THINKING`): `off` for PaintedFantasy, whose Ollama capabilities are `completion` and `tools` only (Ollama rejects a thinking request for it); `low`/`medium`/`high` only for a future model whose capabilities include `thinking`; `auto` (omit the field, take Ollama/model defaults) only when deliberately chosen. The bridge reads the model's capabilities at startup and refuses to start on a mismatch or a missing model. `off` here reflects the model's capability; it is not a way around the generation invariant below.
+- Acceptance asserts the exact model tag and `thinking: "off"`. Changing the engine means changing those assertions deliberately and rerunning the unchanged CA-001 suite. Never substitute another installed model to make acceptance pass; install the intended one.
+- The bridge runs as the user service `relaydaemon-local` (no model environment overrides in the unit).
+- Editor: `qwen3.5:9b` (`RELAY_EDITOR_MODEL`), VeilForge's medium agent, called with `think: false` and a constant `num_ctx` of 8192 so it loads once. The bridge refuses to start if it is missing. Acceptance asserts it.
+- Residency: `RELAY_OLLAMA_KEEP_ALIVE` (default `5m`) applies to both preload (`?warm=1`) and generation, so the model does not hold memory long after Relay is idle.
+
+## Platform policy
+- `studio/relay/platform-policy.js` is the single source of truth for character-package limits. The bridge enforces it in structured-output validation and adds it as an authoritative prompt; the browser prompt's platform lines are generated from it; the hosted fallback takes X's limit from it. Never hardcode platform limits elsewhere.
+- X is a long-form lane (X Premium, 25,000 characters; the first 280 show before "Show more"). Standing rule: cradlepoint-ttrpg `Marketing/Social/PUBLISHING_CONSTRAINTS.md`. X gets the full long copy when appropriate; there is no short-form X target.
+- Constrained lanes keep hashtag-buffered generation maxima: Threads 400, Bluesky 200, Mastodon 400.
+- Constrained lanes also have hard floors as stub protection only (Threads 120, Bluesky 100, Mastodon 120), not fill targets. Filling toward the target is polish, not correctness.
+- Never clip or truncate generated prose to fit.
+- Writer -> editor -> ruler. The story model writes; the editor model reshapes without changing meaning; the runtime judges. No model is trusted to count characters or to grade its own work.
+  - Writer (PaintedFantasy) owns the master draft, X, and voice. Structural or master-draft failures use its three-attempt ladder.
+  - Platform lanes that fail the runtime's mechanical checks (over limit, too short, missing, unfinished ending, any ellipsis) go to the editor in one combined call per round, with a schema of only the failing lanes. The editor brief is: preserve required concepts; preserve actor/object relationships and causal claims exactly; invent no new actions, conclusions, or imperatives; aim for N-M words. The word range is a runtime steering heuristic (`words x editTarget / chars x 0.9`); the measured character count is the only authority.
+  - Required concepts: the writer declares the central thought (`centralConcepts`, 2-4 words covering every half of it); the runtime keeps up to three declared concepts whose words all appear in the master, then tops up to five with the writer's consensus (words it put in every lane and the master, ranked by master frequency). Never read from a fixture. A concept phrase is satisfied by its head noun ("false steward" -> steward). The runtime enforces them on every constrained lane, the writer's own included: a lane missing one goes to the editor as `concept_dropped`, and every editor brief lists them.
+  - Punctuation is deterministic code, not an editor job: quoted elisions ("deprecated... Access") become periods and a pause between words becomes an em dash, word for word (only a trailing ellipsis remains, as an unfinished ending); a lane sent to the editor only for punctuation must keep its length within 15% (`edit_scope_exceeded`), so a long-form X is never compressed to fix three dots.
+  - Character legality and meaning fidelity are separate gates. Lanes that pass mechanically go to a distinct verifier role (its own prompt and schema, temperature 0) that returns coded evidence only (`actor_changed`, `object_changed`, `causal_claim_changed`, `invented_action`, `invented_conclusion`, `new_imperative`, each with a quote), never a verdict. The runtime owns pass/fail: any coded difference fails the lane, and missing or malformed evidence fails closed. Admission is the runtime's: each quote must appear in the rewrite; a "changed" claim needs a source quote that appears in the master and structured `{subject, relation, object}` claims on both sides that differ in subject or object; an "invented" claim is judged clause by clause and dismissed when every clause is already in the master. Canonical case (regression-tested, synthetic source): a legal-length "quarantine yourself" where the source quarantines the host. Failed lanes are retried with the evidence.
+  - Every editor round rewrites from the writer's draft, never from a failed edit; rejection reasons accumulate in the brief instead, so rounds do not oscillate. The editor proposes three candidates per failing lane in its one call (one for a punctuation-only fix); the runtime measures each, the verifier reports evidence on every ruler-legal candidate in its one call, and the runtime keeps the longest clean candidate.
+  - Round 1 edits every failing lane in one combined call; rounds 2-3 give each still-failing lane its own focused call (a combined call trades one lane's length against another's concepts). Only failing lanes are retried, for at most three rounds. Exhaustion is a 502 `OLLAMA_INVALID_OUTPUT` and never reruns the writer.
+- CA-001 keeps independent acceptance ceilings; acceptance fails if any policy maximum exceeds them.
+
+## CA-001 contract history
+- 2026-09-26: X ceiling 600 -> 25,000 and a new X long-form minimum (601), because the product requirement changed (X Premium long posts), not to relax the gate. The source text, the other platform ceilings, required concepts, bad endings, and voice/fidelity thresholds are unchanged; short-form-compressed X now fails. Details are recorded in the fixture's `contractHistory`.
 
 ## Generation invariants
 - Character-platform outputs must be rewritten to fit. Never mechanically clip a draft, append punctuation to a cutoff, or treat a sentence boundary as proof of semantic completeness.
 - Warm-up must be load-only. Track success-path and worst-case inference-call counts explicitly.
-- Do not add retries, disable thinking, or add semantic re-review calls solely to mask insufficient context, output tokens, or time.
+- Do not add retries, disable thinking, or add semantic re-review calls solely to mask insufficient context, output tokens, or time. (The editor fidelity gate exists because legal length and faithful meaning are different properties, not to cover for resources.)
 - Prompt examples must be valid if copied. Do not include placeholder values such as `"..."`.
 - Log structural diagnostics without private draft content: failure class, attempt number, field, measured length, finish reason, and whether content or thinking was empty.
 - Test local and hosted paths separately. Hosted fallback does not prove the local default works.

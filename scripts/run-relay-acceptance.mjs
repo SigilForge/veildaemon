@@ -9,9 +9,9 @@ const artifactPath = "artifacts/relay-acceptance/latest.json";
 const fixtureSourceSha256 = "b82df9a696a4c10f985d6951dd57cdc078c109869bc3cfbdd1f34ff7800d18d8";
 const relevantFiles = [
   "studio/relay/AGENTS.md", "studio/relay/index.html",
-  "studio/relay/relay.js", "scripts/relay-local-bridge.mjs", "api/character.js",
+  "studio/relay/relay.js", "studio/relay/platform-policy.js", "scripts/relay-local-bridge.mjs", "api/character.js",
   "deploy/relay-vercel/vercel.json", "scripts/prepare-relay-vercel.sh",
-  "tests/fixtures/relay/ca-001.json", "scripts/run-relay-acceptance.mjs"
+  "tests/fixtures/relay/ca-001.json", "scripts/run-relay-acceptance.mjs", "tests/unit/test_relay_bridge_policy.mjs"
 ];
 
 async function fingerprint() {
@@ -24,16 +24,23 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function complete(text, platform) {
+// `platform` is the fixture key (x, threads, ...); `label` only prefixes messages. Until 2026-09-25 the
+// label was passed as the key, so every limit lookup was undefined and no run could pass.
+function complete(text, platform, label = platform) {
+  const limit = fixture.platformLimits[platform];
+  assert(Number.isInteger(limit), `${label}: no character limit for platform "${platform}" in CA-001`);
   const value = String(text || "").trim();
-  assert(value.length >= 70, `${platform}: implausibly short draft (${value.length})`);
-  assert(value.length <= fixture.platformLimits[platform], `${platform}: ${value.length}/${fixture.platformLimits[platform]} characters`);
-  assert(!value.includes("…") && !/(^|[^.])\.\.\./.test(value), `${platform}: ellipsis/cutoff marker`);
-  assert(!fixture.knownBadEndings.some((ending) => value.endsWith(ending)), `${platform}: known fragment ending`);
-  assert(/[.!?][\”\"']?$/.test(value), `${platform}: unresolved ending`);
+  assert(value.length >= 70, `${label}: implausibly short draft (${value.length})`);
+  assert(value.length <= limit, `${label}: ${value.length}/${limit} characters`);
+  // Long-form lanes (X Premium) must carry the full copy, not the retired short-form compression.
+  const floor = fixture.longFormMinimums?.[platform];
+  if (floor) assert(value.length >= floor, `${label}: ${value.length} characters is short-form compression (long-form minimum ${floor})`);
+  assert(!value.includes("…") && !/(^|[^.])\.\.\./.test(value), `${label}: ellipsis/cutoff marker`);
+  assert(!fixture.knownBadEndings.some((ending) => value.endsWith(ending)), `${label}: known fragment ending`);
+  assert(/[.!?][\”\"']?$/.test(value), `${label}: unresolved ending`);
   const lower = value.toLowerCase();
   for (const [claim, terms] of Object.entries(fixture.requiredConcepts)) {
-    assert(terms.some((term) => lower.includes(term)), `${platform}: missing ${claim} portion of central thought`);
+    assert(terms.some((term) => lower.includes(term)), `${label}: missing ${claim} portion of central thought`);
   }
   return { characters: value.length, ownershipAndTrust: true, ending: value.slice(-48) };
 }
@@ -41,26 +48,28 @@ function complete(text, platform) {
 function validateResult(payload, label) {
   assert(payload?.status === "ok", `${label}: status was not ok`);
   assert(payload?.engine === "ollama", `${label}: wrong engine ${payload?.engine}`);
-  assert(payload?.model === "hermes4:14b", `${label}: wrong model ${payload?.model}`);
+  assert(payload?.model === "hf.co/zerofata/MS3.2-PaintedFantasy-v4.1-24B-GGUF:Q5_K_M", `${label}: wrong model ${payload?.model}`);
+  assert(payload?.thinking === "off", `${label}: wrong thinking mode ${payload?.thinking}`);
+  assert(payload?.editor?.model === "qwen3.5:9b", `${label}: wrong editor model ${payload?.editor?.model}`);
   const result = payload.result;
   assert(result && typeof result.masterDraft === "string", `${label}: missing structured result`);
   assert(result.validation?.voiceMatch >= fixture.minimumVoiceMatch, `${label}: weak voice match`);
   assert(result.validation?.sourceFidelity >= fixture.minimumSourceFidelity, `${label}: weak source fidelity`);
   assert(Array.isArray(result.validation?.warnings) && result.validation.warnings.length === 0, `${label}: validation warnings`);
   const platforms = {};
-  for (const platform of Object.keys(fixture.platformLimits)) platforms[platform] = complete(result.platformDrafts?.[platform], `${label}/${platform}`);
-  return { engine: payload.engine, model: payload.model, validation: result.validation, platforms };
+  for (const platform of Object.keys(fixture.platformLimits)) platforms[platform] = complete(result.platformDrafts?.[platform], platform, `${label}/${platform}`);
+  return { engine: payload.engine, model: payload.model, editor: payload.editor, validation: result.validation, platforms };
 }
 
 function messages() {
   return [
     { role: "system", content: "You are Shade, a dry procedural emergency-response intelligence. Return only the required JSON. Preserve the complete source claim in every platform draft; rewrite to fit and never truncate." },
-    { role: "user", content: `SOURCE\n${fixture.source}\n\nWrite a complete in-character master plus X <=500 chars, Threads <=420, Bluesky <=240, and Mastodon <=440. Every platform output must resolve both parts of the central thought: loss of ownership/control through licenses and physical-media removal, and legal resource extraction eroding trust. No hashtags, links, placeholders, ellipses, invented facts, or clipped endings. Internally reject and rewrite any incomplete output before returning the schema.` }
+    { role: "user", content: `SOURCE\n${fixture.source}\n\nWrite a complete in-character master plus X as full long copy (X Premium long post: the complete argument, not a short post), Threads <=420, Bluesky <=240, and Mastodon <=440. Every platform output must resolve both parts of the central thought: loss of ownership/control through licenses and physical-media removal, and legal resource extraction eroding trust. No hashtags, links, placeholders, ellipses, invented facts, or clipped endings. Internally reject and rewrite any incomplete output before returning the schema.` }
   ];
 }
 
-async function directRuns() {
-  const results = [];
+// Results are appended as each run finishes, so a failing suite still records the runs before it.
+async function directRuns(results = []) {
   for (let index = 1; index <= 5; index += 1) {
     const started = Date.now();
     const response = await fetch("http://127.0.0.1:4174/api/character", {
@@ -69,8 +78,9 @@ async function directRuns() {
       body: JSON.stringify({ messages: messages() })
     });
     const payload = await response.json().catch(() => ({}));
+    results.push({ run: index, elapsedMs: Date.now() - started, status: response.status, editor: payload?.editor || null, pending: true });
     assert(response.ok, `direct ${index}: HTTP ${response.status} ${payload?.error || ""}`);
-    results.push({ run: index, elapsedMs: Date.now() - started, ...validateResult(payload, `direct ${index}`) });
+    results[results.length - 1] = { run: index, elapsedMs: Date.now() - started, ...validateResult(payload, `direct ${index}`) };
     console.log(`direct ${index}/5 passed`);
   }
   return results;
@@ -91,8 +101,10 @@ async function uiRuns() {
       const platforms = {};
       for (const platform of Object.keys(fixture.platformLimits)) {
         const value = await page.locator(`[data-platform="${platform}"] .variant-copy`).inputValue();
-        platforms[platform] = complete(value, `ui ${index}/${platform}`);
+        platforms[platform] = complete(value, platform, `ui ${index}/${platform}`);
       }
+      const engineStatus = (await page.locator("#persona-engine-status").textContent().catch(() => "")) || "";
+      assert(engineStatus.includes("Using local Ollama (default) · hf.co/zerofata/MS3.2-PaintedFantasy-v4.1-24B-GGUF:Q5_K_M"), `ui ${index}: not generated by the local engine: ${engineStatus}`);
       const status = await page.locator("#persona-validation-score").textContent().catch(() => "");
       assert(!/weak|failed|warning/i.test(status || ""), `ui ${index}: weak character validation: ${status}`);
       results.push({ run: index, elapsedMs: Date.now() - started, engine: "ollama", platforms, validationSummary: status?.trim() });
@@ -116,13 +128,28 @@ async function staticChecks() {
   assert(relay.includes("http://127.0.0.1:4174/api/character"), "browser local bridge contract drifted");
   assert((bridge.match(/think:/g) || []).length >= 3, "bridge attempt declaration is no longer three");
   assert(relay.includes("attempt < 2"), "browser package-attempt declaration drifted");
-  assert(contract.includes("six-inference worst case"), "worst-case inference count is unreported");
+  assert(contract.includes("thirty-inference worst case"), "worst-case inference count is unreported");
+  // Platform policy: one map feeds both the bridge's enforcement and the UI prompt, and it may never
+  // exceed CA-001's independent ceilings (the fixture, not the policy, is the acceptance authority).
+  assert(bridge.includes('import "../studio/relay/platform-policy.js"'), "bridge no longer enforces the shared platform policy");
+  assert(!/clampDraft|ensureCompleteEnding/.test(bridge), "bridge reintroduced draft clipping");
+  assert(relay.includes("relayPolicyPromptLines()") && !/hard max \d{3}\)/.test(relay), "UI prompt limits are no longer generated from the platform policy");
+  assert(html.indexOf("platform-policy.js") > -1 && html.indexOf("platform-policy.js") < html.indexOf("relay.js?"), "UI does not load the platform policy before relay.js");
+  await import(new URL("../studio/relay/platform-policy.js", import.meta.url));
+  const policy = globalThis.RelayPlatformPolicy?.platforms || {};
+  for (const [platform, ceiling] of Object.entries(fixture.platformLimits)) {
+    assert(Number.isInteger(policy[platform]?.max), `platform policy has no limit for ${platform}`);
+    assert(policy[platform].max <= ceiling, `platform policy ${platform} max ${policy[platform].max} exceeds CA-001 ceiling ${ceiling}`);
+  }
   assert(prepare.includes("deploy/relay-vercel"), "Vercel prepare source drifted");
   assert(contract.includes("knoxmortis-projects/veildaemon-relay") && contract.includes("https://relay.veildaemon.app"), "production deployment target drifted");
   assert(!pagesWorkflow.includes("studio/relay"), "GitHub Pages unexpectedly includes Relay");
+  // Bridge regression: over-limit output is rewritten through the existing ladder, never clipped.
+  const bridgePolicy = spawnSync(process.execPath, ["--test", "tests/unit/test_relay_bridge_policy.mjs"], { cwd: root, encoding: "utf8", timeout: 120_000 });
+  assert(bridgePolicy.status === 0, `bridge policy regression failed\n${bridgePolicy.stdout}\n${bridgePolicy.stderr}`);
   const hosted = spawnSync(process.execPath, ["node_modules/@playwright/test/cli.js", "test", "tests/browser/studio.spec.js", "-g", "RelayDaemon standalone Vercel project|hosted character endpoint makes one bounded"], { cwd: root, encoding: "utf8", timeout: 120_000 });
   assert(hosted.status === 0, `hosted contract checks failed\n${hosted.stdout}\n${hosted.stderr}`);
-  return { localDefaultLabel: true, hostedFallbackLabel: true, pagesExcluded: true, productionProject: "knoxmortis-projects/veildaemon-relay", hostedContractTests: "passed", successfulUiInferenceCalls: 1, worstCaseUiInferenceCalls: 6 };
+  return { localDefaultLabel: true, hostedFallbackLabel: true, pagesExcluded: true, productionProject: "knoxmortis-projects/veildaemon-relay", hostedContractTests: "passed", platformPolicy: Object.fromEntries(Object.entries(policy).map(([k, v]) => [k, v.max])), successfulUiInferenceCalls: 1, worstCaseUiInferenceCalls: 30 };
 }
 
 const currentFingerprint = await fingerprint();
@@ -137,7 +164,7 @@ if (process.argv.includes("--verify-artifact")) {
 const artifact = { schemaVersion: 1, fixture: fixture.id, timestamp: new Date().toISOString(), success: false, fingerprint: currentFingerprint, gitHead: spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).stdout.trim(), directRuns: [], uiRuns: [] };
 try {
   artifact.staticChecks = await staticChecks();
-  artifact.directRuns = await directRuns();
+  await directRuns(artifact.directRuns);
   artifact.uiRuns = await uiRuns();
   artifact.success = true;
 } catch (error) {
