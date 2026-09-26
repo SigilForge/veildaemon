@@ -16,12 +16,12 @@
   "publisher": {
     "type": "studio"
   },
-  "title": "Cradlepoint: VeilSight",
+  "title": "CradlePoint: VeilSight",
   "creator": "S. KAELËN VALE",
   "rightsHolder": "SigilForge Studios",
   "recordedAt": "2026-07-27T00:00:00.000Z",
   "publicationDate": "2026-07-23",
-  "workVersion": "Book One, second digital edition (v48)",
+  "workVersion": "Book One, second digital edition (v48.1)",
   "copyrightNotice": "© 2024-2026 J. Donavon Love, under the SigilForge Studios name",
   "permissions": {
     "generalTraining": "license_required",
@@ -62,9 +62,9 @@
   "publicRecordUrl": "https://veildaemon.app/rights/the-anchor-and-the-glitch",
   "fileFingerprint": {
     "algorithm": "SHA-256",
-    "value": "9ab094f4e4b18cc3f54bcc4865cb21c79b44966ecbea1947cd3f071e26df66e9",
-    "filename": "CRADLEPOINT_VEILSIGHT_v48_RELEASE.epub",
-    "fileSize": 2811586,
+    "value": "90c1ce49391f0fcb5024cdccd37df8d7f900c27fec6ab91854123f8ca69c4b18",
+    "filename": "CRADLEPOINT_VEILSIGHT_v48_1_RELEASE.epub",
+    "fileSize": 2811595,
     "mimeType": "application/epub+zip",
     "createdAt": "2026-09-25T00:00:00.000Z"
   },
@@ -124,6 +124,20 @@
         "value": "9ab094f4e4b18cc3f54bcc4865cb21c79b44966ecbea1947cd3f071e26df66e9",
         "filename": "CRADLEPOINT_VEILSIGHT_v48_RELEASE.epub",
         "fileSize": 2811586,
+        "mimeType": "application/epub+zip"
+      }
+    },
+    {
+      "version": 3,
+      "recordedAt": "2026-09-25",
+      "title": "CradlePoint: VeilSight",
+      "workVersion": "Book One, second digital edition (v48.1)",
+      "summary": "Brand casing locked as CradlePoint / CradlePoint Universe; v48.1 updates title metadata and back matter only. Prose, rights holder, permissions, AI policy, and licensing are unchanged.",
+      "fileFingerprint": {
+        "algorithm": "SHA-256",
+        "value": "90c1ce49391f0fcb5024cdccd37df8d7f900c27fec6ab91854123f8ca69c4b18",
+        "filename": "CRADLEPOINT_VEILSIGHT_v48_1_RELEASE.epub",
+        "fileSize": 2811595,
         "mimeType": "application/epub+zip"
       }
     }

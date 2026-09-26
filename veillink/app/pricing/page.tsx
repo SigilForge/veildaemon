@@ -42,7 +42,7 @@ export default function PricingPage() {
             <p className="panel-kicker">Direct digital</p>
             <h2>Book One — $9.99 launch sale price</h2>
             <p className="muted">
-              Cradlepoint: VeilSight. DRM-free PDF, EPUB, and MOBI, plus a wallpaper pack, kept in your VeilLink
+              CradlePoint: VeilSight. DRM-free PDF, EPUB, and MOBI, plus a wallpaper pack, kept in your VeilLink
               account.
             </p>
             <p>
@@ -55,7 +55,7 @@ export default function PricingPage() {
             <p className="panel-kicker">Tabletop line</p>
             <h2>TTRPG products</h2>
             <p className="muted">
-              Cradlepoint tabletop releases, dossiers, and Studio editions ship through the itch storefront — current
+              CradlePoint tabletop releases, dossiers, and Studio editions ship through the itch storefront — current
               pricing lives there, not here.
             </p>
             <p>

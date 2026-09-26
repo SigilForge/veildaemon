@@ -1,6 +1,6 @@
 # VeilDaemon
 
-VeilDaemon is the public Operator interface for the CradlePoint universe: intake, local character records, Needlepoint play support, anomaly reporting, debrief collection, and archive-facing tools for VeilCorp continuity operations.
+VeilDaemon is the public Operator interface for the CradlePoint Universe: intake, local character records, Needlepoint play support, anomaly reporting, debrief collection, and archive-facing tools for VeilCorp continuity operations.
 
 The public surface is a static VeilCorp intake node with local-first Operator tooling and Vercel-backed review channels where server-side routing is required.
 

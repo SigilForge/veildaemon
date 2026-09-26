@@ -8,9 +8,9 @@ const cradlepointRoot = "/home/nox/projects/cradlepoint-ttrpg";
 const generatedAt = "2026-07-29T00:00:00.000Z";
 
 const artifactBySlug = {
-  // v2 of this record (2026-09-25): v48 retitle. v1 fingerprinted THE_CRADLEPOINT_ARCHIVE_BOOK_ONE_v47_2C_RELEASE.epub
+  // v3 of this record (2026-09-25): v48.1 (v2 was the v48 retitle). v1 fingerprinted THE_CRADLEPOINT_ARCHIVE_BOOK_ONE_v47_2C_RELEASE.epub
   // and is preserved in the record's versionHistory.
-  "the-anchor-and-the-glitch": "Fiction/Book 1 - Complete Editing/CRADLEPOINT_VEILSIGHT_v48_RELEASE.epub",
+  "the-anchor-and-the-glitch": "Fiction/Book 1 - Complete Editing/CRADLEPOINT_VEILSIGHT_v48_1_RELEASE.epub",
   "sanguine-sacrament": "Fiction/Book 2 - In Development/THE_CRADLEPOINT_ARCHIVE_BOOK_TWO_SANGUINE_SACRAMENT_WORKING_9_EDITED.md",
   "cradlepoint-operator-core": "Published/Paid/Operator Core/CRADLEPOINT_OPERATOR_CORE_RELEASE_PACK.zip",
   "cradlepoint-handler-core": "Published/Paid/Handler Core/CRADLEPOINT_HANDLER_CORE_RELEASE_PACK.zip",

@@ -61,7 +61,7 @@ export default async function VeilLinkHomePage() {
         <div className="panel">
           <h2>Book One</h2>
           <p className="muted">
-            Cradlepoint: VeilSight, direct digital edition. Purchase or open your existing downloads.
+            CradlePoint: VeilSight, direct digital edition. Purchase or open your existing downloads.
           </p>
           <p>
             <Link className="button secondary" href="/book-one">

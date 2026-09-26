@@ -18,7 +18,7 @@ VeilCorp is a fictional in-universe organization, not a contracting party or rea
 STUDIO MARKS
 Use the primary horizontal lockup for wide identity placements, the shield emblem for compact placements, and the official branded round seal for editorial or ceremonial use.
 SigilForge-Studios/Favicons/ holds the canonical browser and device icon set, derived from the primary shield emblem.
-"Cradlepoint Studio(s)" is legacy studio naming; Cradlepoint names the setting and product line. Do not use earlier Cradlepoint Studio marks as the studio identity.
+"Cradlepoint Studio(s)" is legacy studio naming. The setting is the CradlePoint Universe and the product line is CradlePoint (capital P); Book One is CradlePoint: VeilSight. Do not use earlier Cradlepoint Studio marks as the studio identity.
 
 CURRENT STATUS
 SigilForge Studios has shipping tabletop products and live VeilDaemon browser software. Fiction remains in development. Mobile AR and Ritual Sites remain separately scoped future directions.

@@ -7,14 +7,14 @@ import { requireUser } from "@/lib/store";
 export const metadata: Metadata = buildMetadata({
   title: "Book One",
   description:
-    "Purchase Cradlepoint: VeilSight (Book One), the direct digital edition through a VeilLink account. PDF, EPUB, MOBI, and wallpaper pack after verified checkout.",
+    "Purchase CradlePoint: VeilSight (Book One), the direct digital edition through a VeilLink account. PDF, EPUB, MOBI, and wallpaper pack after verified checkout.",
   path: "/book-one",
   noIndex: true,
   image: "/brand/book-one-og.webp",
   imageWidth: 1200,
   imageHeight: 630,
-  imageAlt: "Cradlepoint: VeilSight cover",
-  keywords: ["Book One", "Cradlepoint: VeilSight", "VeilSight", "Cradlepoint", "direct digital"],
+  imageAlt: "CradlePoint: VeilSight cover",
+  keywords: ["Book One", "CradlePoint: VeilSight", "VeilSight", "CradlePoint", "direct digital"],
 });
 
 export default async function BookOnePage() {
@@ -25,7 +25,7 @@ export default async function BookOnePage() {
       <p className="eyebrow">SigilForge Studios · Published Shelf</p>
       <h1 className="page-title">Book One direct digital edition</h1>
       <p className="lede">
-        Cradlepoint: VeilSight by S. Kaelen Vale. Get the DRM-free PDF, EPUB and MOBI editions,
+        CradlePoint: VeilSight by S. Kaelen Vale. Get the DRM-free PDF, EPUB and MOBI editions,
         plus desktop and phone wallpapers. Your account keeps your downloads together.
       </p>
 
@@ -33,13 +33,13 @@ export default async function BookOnePage() {
         <figure className="book-one-cover">
           <Image
             src="/brand/book-one-cover.webp"
-            alt="Cradlepoint: VeilSight cover"
+            alt="CradlePoint: VeilSight cover"
             width={933}
             height={1400}
             priority
             sizes="(max-width: 720px) min(70vw, 18rem), 16rem"
           />
-          <figcaption>Cradlepoint: VeilSight · Book One</figcaption>
+          <figcaption>CradlePoint: VeilSight · Book One</figcaption>
         </figure>
 
         <div className="panel book-one-panel">
@@ -51,7 +51,7 @@ export default async function BookOnePage() {
             Your purchase stays linked to this account so you can return for updated files.
           </p>
           <ul className="book-one-includes">
-            <li>Verified print-edition PDF (v48) · DRM-free</li>
+            <li>Verified print-edition PDF (v48.1) · DRM-free</li>
             <li>Reflowable EPUB & MOBI ebook editions</li>
             <li>Wallpaper pack · desktop clean/title + phone plates</li>
             <li>Direct buyers keep access when shelf files update</li>
