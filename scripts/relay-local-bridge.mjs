@@ -539,25 +539,8 @@ const FIDELITY_SYSTEM = [
   "Point at one claim per entry: rewriteQuote is the single clause that carries the mutation (at most 15 words), never a whole post or paragraph.",
   "For each mutation give rewriteQuote (copied exactly from the rewrite) and sourceQuote (copied exactly from the source passage it mutates, or empty for an invented item).",
   "For actor_changed, object_changed, and causal_claim_changed also give the claim as structure on both sides: rewriteClaim and sourceClaim, each {subject, relation, object} (for a causal claim, subject is the cause and object is the effect).",
-  "Report an empty list when there are none.",
-  "Separately, for each post report where it carries the two halves of the source's central thought, as halves: change = what is happening or being lost; impact = why it matters, the consequence or cost.",
-  "For each half give sourceQuote (copied exactly from the source sentence that states it) and rewriteQuote (copied exactly from the rewrite clause that still carries it), or an empty rewriteQuote if the rewrite no longer carries it.",
-  "You do not decide whether a post passes. Return only the required JSON.",
+  "Report an empty list when there are none. You do not decide whether a post passes. Return only the required JSON.",
 ].join(" ");
-const HALF_SCHEMA = { type: "object", additionalProperties: false, required: ["sourceQuote", "rewriteQuote"], properties: { sourceQuote: { type: "string" }, rewriteQuote: { type: "string" } } };
-const HALVES = { change: "what changes", impact: "why it matters" };
-/**
- * Runtime check of the verifier's positive evidence for the two halves: a half is preserved only when its
- * source quote is in the master and its rewrite quote is in the candidate. Missing or ungrounded evidence fails
- * closed. Independent of the writer's own group labels.
- */
-function missingHalves(halves, rewrite, master) {
-  return Object.keys(HALVES).filter((half) => {
-    const evidence = halves?.[half];
-    return !(evidence && normText(evidence.rewriteQuote) && coverage(evidence.rewriteQuote, rewrite) >= 0.8 && normText(evidence.sourceQuote) && coverage(evidence.sourceQuote, master) >= 0.8);
-  });
-}
-
 const STOPWORDS = new Set("the a an and or but of to in on at by for with from as is are was were be been it its this that these those than then there their they them he his she her you your we our not no into over only just all any".split(" "));
 const normText = (value) => String(value || "").toLowerCase().replace(/[^\p{L}\p{N}%]+/gu, " ").trim();
 const stem = (word) => (word.length > 4 ? word.replace(/(?:ing|ed|es|s|ly)$/, "") : word);
@@ -733,22 +716,14 @@ async function editLanes(result, initialViolations, concepts) {
       const ids = valid.map((c) => c.id);
       const evidence = await editorChat([
         { role: "system", content: FIDELITY_SYSTEM },
-        { role: "user", content: `SOURCE (master draft):\n${result.masterDraft}\n\n${valid.map((c) => `${POLICY.platforms[c.k].label} (key "${c.id}") REWRITE:\n${c.text}`).join("\n\n")}\n\nFor each key, list the semantic mutations in the REWRITE relative to the SOURCE, and where it carries the two halves. Return JSON: {key: {differences: [{code, rewriteQuote, sourceQuote, rewriteClaim?, sourceClaim?}], halves: {change: {sourceQuote, rewriteQuote}, impact: {sourceQuote, rewriteQuote}}}}.` },
-      ], { type: "object", additionalProperties: false, required: ids, properties: Object.fromEntries(ids.map((id) => [id, { type: "object", additionalProperties: false, required: ["differences", "halves"], properties: { halves: { type: "object", additionalProperties: false, required: ["change", "impact"], properties: { change: HALF_SCHEMA, impact: HALF_SCHEMA } }, differences: { type: "array", items: { type: "object", additionalProperties: false, required: ["code", "rewriteQuote", "sourceQuote"], properties: { code: { type: "string", enum: Object.keys(FIDELITY_CODES) }, rewriteQuote: { type: "string" }, sourceQuote: { type: "string" }, rewriteClaim: CLAIM_SCHEMA, sourceClaim: CLAIM_SCHEMA } } } } }])) }, Math.min(4_096, 400 * ids.length), 0).catch(parseFailure);
+        { role: "user", content: `SOURCE (master draft):\n${result.masterDraft}\n\n${valid.map((c) => `${POLICY.platforms[c.k].label} (key "${c.id}") REWRITE:\n${c.text}`).join("\n\n")}\n\nFor each key, list the semantic mutations in the REWRITE relative to the SOURCE. Return JSON: {key: {differences: [{code, rewriteQuote, sourceQuote, rewriteClaim?, sourceClaim?}]}}.` },
+      ], { type: "object", additionalProperties: false, required: ids, properties: Object.fromEntries(ids.map((id) => [id, { type: "object", additionalProperties: false, required: ["differences"], properties: { differences: { type: "array", items: { type: "object", additionalProperties: false, required: ["code", "rewriteQuote", "sourceQuote"], properties: { code: { type: "string", enum: Object.keys(FIDELITY_CODES) }, rewriteQuote: { type: "string" }, sourceQuote: { type: "string" }, rewriteClaim: CLAIM_SCHEMA, sourceClaim: CLAIM_SCHEMA } } } } }])) }, Math.min(4_096, 400 * ids.length), 0).catch(parseFailure);
       meta.calls += 1;
       // Any admitted (grounded) mutation rejects the candidate; ungrounded claims are dismissed and counted;
       // missing or malformed evidence rejects it (fail closed).
       for (const c of valid) {
         const verdict = admitEvidence(evidence?.[c.id]?.differences, c.text, result.masterDraft);
         if (verdict) meta.dismissedEvidence += verdict.dismissed;
-        // Both halves of the central thought must be evidenced in the candidate (change and impact), whatever
-        // groups the writer declared.
-        const halvesMissing = missingHalves(evidence?.[c.id]?.halves, c.text, result.masterDraft);
-        if (verdict && halvesMissing.length) {
-          const sourceOf = (half) => String(evidence?.[c.id]?.halves?.[half]?.sourceQuote || "").slice(0, 120);
-          lanes[c.k].last.push({ field: c.k, label: POLICY.platforms[c.k].label, problem: "meaning_changed", codes: halvesMissing.map((half) => `${half}_missing`), issue: halvesMissing.map((half) => `the rewrite no longer carries ${HALVES[half]}${sourceOf(half) ? ` (source: "${sourceOf(half)}")` : ""}`).join("; "), length: countGraphemes(c.text), max: POLICY.platforms[c.k].max });
-          continue;
-        }
         if (verdict && !verdict.admitted.length) {
           // Several clean candidates: keep the one that uses the lane best (longest legal text).
           if (!accepted.has(c.k) || countGraphemes(c.text) > countGraphemes(platformDrafts[c.k])) platformDrafts[c.k] = c.text;

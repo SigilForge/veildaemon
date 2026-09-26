@@ -58,22 +58,6 @@ let bridgeLog = "";
 const key = (anchor, groundedKey) => ({ anchor, groundedKey });
 
 const isFidelity = (request) => request.messages[0].content.startsWith("You are a verifier.");
-// Verifier responses that do not script `halves` get grounded ones quoted from the actual request (the opening
-// words of the source and of each candidate), so every test still passes through the runtime's halves check.
-const opening = (text) => text.trim().split(/\s+/).slice(0, 6).join(" ");
-function withAutoHalves(request, content) {
-  let parsed;
-  try { parsed = JSON.parse(content); } catch { return content; }
-  const prompt = request.messages.at(-1).content;
-  const source = prompt.slice("SOURCE (master draft):\n".length).split("\n\n")[0];
-  for (const [id, entry] of Object.entries(parsed)) {
-    if (!entry || typeof entry !== "object" || entry.halves) continue;
-    const rewrite = (prompt.match(new RegExp(`\\(key "${id}"\\) REWRITE:\\n([\\s\\S]*?)(?:\\n\\n|$)`)) || [])[1] || "";
-    const half = { sourceQuote: opening(source), rewriteQuote: opening(rewrite) };
-    entry.halves = { change: half, impact: half };
-  }
-  return JSON.stringify(parsed);
-}
 // Verifier evidence: coded differences only, no verdict.
 // Keys are candidate ids (lane_1, lane_2, ...); a bare lane name means its first candidate.
 const cid = (k) => (/_\d+$/.test(k) ? k : `${k}_1`);
@@ -90,8 +74,7 @@ before(async () => {
       const request = JSON.parse(body);
       calls.push(request);
       const queue = request.model === EDITOR ? editorScript : writerScript;
-      let content = queue.length > 1 ? queue.shift() : queue[0];
-      if (request.model === EDITOR && isFidelity(request)) content = withAutoHalves(request, content);
+      const content = queue.length > 1 ? queue.shift() : queue[0];
       return res.end(JSON.stringify({ message: { content }, done_reason: "stop" }));
     }
     res.statusCode = 404;
@@ -401,47 +384,6 @@ test("disjoint halves: a key declared in both groups satisfies neither", async (
   const retried = await generate();
   assert.equal(retried.status, 200);
   assert.equal(byModel(WRITER).length, 2);
-});
-
-test("a misfiled group cannot pass: the verifier's halves evidence decides, not the writer's labels", async () => {
-  calls = [];
-  // The writer files "indifference" under whatChanges. A lane can satisfy both declared groups ("indifference",
-  // "trust") while saying nothing about ownership changing. The verifier's halves evidence exposes it.
-  const master = `${CA_MASTER} There is no hostility, only indifference.`;
-  const misfiled = `${prose(POLICY.bluesky.max - 110, "Bluesky")} Indifference rules, and trust erodes.`;
-  // The declared groups are still enforced alongside the halves: the fix keeps "indifference" and adds the change.
-  const fixed = `${prose(POLICY.bluesky.max - 140, "Bluesky")} Indifference turned ownership into licenses; trust erodes.`;
-  const other = (tag) => `${prose(250, tag)} Indifference replaced ownership with licenses, and trust erodes.`;
-  writerScript = [JSON.stringify({ ...JSON.parse(caPackage({ threads: other("Threads"), mastodon: other("Mastodon"), bluesky: prose(POLICY.bluesky.max + 60, "Overlong") + " Indifference and trust." })),
-    masterDraft: master, whatChanges: ["indifference"], whyItMatters: ["trust"] })];
-  editorScript = [
-    JSON.stringify({ bluesky: [misfiled] }),
-    JSON.stringify({ bluesky_1: { differences: [], halves: {
-      change: { sourceQuote: "Ownership has been replaced with revocable licenses", rewriteQuote: "" },
-      impact: { sourceQuote: "resource extraction over long-term trust", rewriteQuote: "trust erodes" },
-    } } }),
-    JSON.stringify({ bluesky: [fixed] }),
-    evidence(["bluesky"]),
-  ];
-  const { status, body } = await generate();
-  assert.equal(status, 200);
-  assert.equal(body.result.platformDrafts.bluesky, fixed);
-  assert.equal(body.editor.rounds, 2);
-  assert.match(calls[3].messages.at(-1).content, /change_missing|no longer carries what changes \(source: "Ownership has been replaced with revocable licenses"\)/);
-});
-
-test("halves evidence fails closed: an ungrounded quote does not count as preserved", async () => {
-  calls = [];
-  const edited = prose(POLICY.bluesky.max - 30, "Edited");
-  writerScript = [modelJson({ bluesky: prose(POLICY.bluesky.max + 60, "Overlong") })];
-  const ungrounded = JSON.stringify({ bluesky_1: { differences: [], halves: {
-    change: { sourceQuote: "a sentence the master never said", rewriteQuote: "Edited line 1 stays whole" },
-    impact: { sourceQuote: "Every line stays whole", rewriteQuote: "Edited line 1 stays whole" },
-  } } });
-  editorScript = [JSON.stringify({ bluesky: [edited] }), ungrounded, JSON.stringify({ bluesky: [edited] }), ungrounded, JSON.stringify({ bluesky: [edited] }), ungrounded];
-  const { status, body } = await generate();
-  assert.equal(status, 502);
-  assert.deepEqual(body.editor.failures.map((f) => f.codes), [["change_missing"]]);
 });
 
 test("final round only: the requested word ceiling is 70% of the normal budget", async () => {
