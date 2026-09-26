@@ -25,7 +25,9 @@
  */
 (function (root) {
   const platforms = Object.freeze({
-    x: Object.freeze({ label: "X", longForm: true, max: 25_000, timelinePreview: 280 }),
+    // minMasterRatio: long-form X must not be compressed below this share of the writer's own master (relative,
+    // never an absolute floor; a short master may have a short X). Writer-owned; enforced by the writer's ladder.
+    x: Object.freeze({ label: "X", longForm: true, max: 25_000, timelinePreview: 280, minMasterRatio: 0.6 }),
     // floor is stub protection only (a runtime hard minimum), not a fill target; using the lane well is polish.
     // editTarget / maxSentences steer the editor model's word budget; `max` stays the runtime's authority.
     threads: Object.freeze({ label: "Threads", targetMin: 380, floor: 120, max: 400, editTarget: 380, maxSentences: 4 }),

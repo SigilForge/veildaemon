@@ -314,6 +314,15 @@ function validateResult(value) {
     lanes.push(...laneViolations(key, rule, clean));
     normalizedPlatforms[key] = typeof clean === "string" ? clean : "";
   }
+  // Long-form lanes belong to the writer: a long-form draft must not be accidentally compressed relative to the
+  // master it performs (standing rule: carry the complete argument, as long as the master when appropriate).
+  // Relative to the master, never an absolute platform floor; a violation goes back through the writer's ladder.
+  for (const [key, rule] of Object.entries(POLICY.platforms)) {
+    if (!rule.longForm || lanes.some((v) => v.field === key)) continue;
+    const minLength = Math.ceil(countGraphemes(masterDraft) * rule.minMasterRatio);
+    const length = countGraphemes(normalizedPlatforms[key]);
+    if (length < minLength) violations.push({ field: key, label: rule.label, problem: "compressed", length, minLength, masterLength: countGraphemes(masterDraft), max: rule.max });
+  }
   // The writer declares both halves of the central thought; the runtime grounds each group in the master (an
   // empty group is a writer failure, retried by the writer's own ladder) and enforces them on every lane.
   const { groups: concepts, rejected } = conceptGroups(masterDraft, value);
@@ -429,6 +438,7 @@ function describeViolation(v) {
   if (v.problem === "too_short") return `${name}: ${v.length} characters; too short. Rewrite it to ~${v.targetMin}–${v.max} characters.`;
   if (v.problem === "too_long") return `${name}: ${v.length} characters; maximum ${v.max}. Rewrite it shorter.`;
   if (v.problem === "missing") return `${name}: missing. Write it (hard max ${v.max}).`;
+  if (v.problem === "compressed") return `${name}: ${v.length} characters from a ${v.masterLength}-character master; it was compressed. ${name} is long-form: carry the complete argument, at least ${v.minLength} characters.`;
   return `${name}: does not end on a complete thought. Rewrite the ending as a finished sentence.`;
 }
 

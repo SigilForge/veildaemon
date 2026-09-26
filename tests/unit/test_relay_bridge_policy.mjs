@@ -604,3 +604,33 @@ test("residency: the writer is released before the editor loads, and the editor 
   assert.equal(events.at(-1), "release:editor:0");
   assert.equal(events.filter((e) => e === "release:writer:0").length, 1, "the writer is released once, after its ladder");
 });
+
+test("X is writer-owned long-form: compressed relative to the master goes back to the writer, never the editor", async () => {
+  calls = [];
+  events = [];
+  const shortX = prose(Math.floor(MASTER.length * 0.4), "Xshort");
+  writerScript = [modelJson({ x: shortX }), modelJson()];
+  editorScript = ["{}"];
+  const { status, body } = await generate();
+  assert.equal(status, 200);
+  assert.equal(byModel(WRITER).length, 2, "the writer's own ladder retries");
+  assert.equal(byModel(EDITOR).length, 0, "X never goes to the editor");
+  const retry = calls[1].messages.at(-1).content;
+  assert.match(retry, new RegExp(`X: ${shortX.length} characters from a \\d+-character master; it was compressed\\. X is long-form: carry the complete argument, at least \\d+ characters\\.`));
+  assert.equal(calls[1].messages.at(-2).role, "assistant", "the rejected package is fed back for rewriting");
+  assert.notEqual(body.result.platformDrafts.x, shortX);
+});
+
+test("the long-form rule is relative, not a fixture floor: a short master may have a short X", async () => {
+  calls = [];
+  // A 600-character master with a good 450-character X passes; no absolute minimum (CA-001's 601 is the fixture's).
+  const master = `${prose(560, "Short")} Every line stays whole.`;
+  const x = prose(450, "Xpost");
+  writerScript = [JSON.stringify({ ...JSON.parse(modelJson({ x })), masterDraft: master })];
+  editorScript = ["{}"];
+  const { status, body } = await generate();
+  assert.equal(status, 200);
+  assert.equal(byModel(WRITER).length, 1);
+  assert.equal(body.result.platformDrafts.x, x);
+  assert.ok(x.length < 601 && x.length >= Math.ceil(master.length * POLICY.x.minMasterRatio));
+});

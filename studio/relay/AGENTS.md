@@ -50,6 +50,7 @@ Private Vercel review UI
 ## Platform policy
 - `studio/relay/platform-policy.js` is the single source of truth for character-package limits. The bridge enforces it in structured-output validation and adds it as an authoritative prompt; the browser prompt's platform lines are generated from it; the hosted fallback takes X's limit from it. Never hardcode platform limits elsewhere.
 - X is a long-form lane (X Premium, 25,000 characters; the first 280 show before "Show more"). Standing rule: cradlepoint-ttrpg `Marketing/Social/PUBLISHING_CONSTRAINTS.md`. X gets the full long copy when appropriate; there is no short-form X target.
+- X is writer-owned: it must not be accidentally compressed relative to the master it performs (under `minMasterRatio` 0.6 of the master's length is a writer violation, retried through the writer's own ladder with the measured reason; never an editor job). The rule is relative, never an absolute platform floor: a short master may have a short X. CA-001's `longFormMinimums.x` (601) is that fixture's assertion only and must not become a platform minimum.
 - Constrained lanes keep hashtag-buffered generation maxima: Threads 400, Bluesky 200, Mastodon 400.
 - Constrained lanes also have hard floors as stub protection only (Threads 120, Bluesky 100, Mastodon 120), not fill targets. Filling toward the target is polish, not correctness.
 - Never clip or truncate generated prose to fit.
