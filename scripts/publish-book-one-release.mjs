@@ -42,7 +42,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
 const manifestPath = path.join(root, "studio/shelf/book-one/manifest.json");
 const BUCKET = "paid-downloads";
-const PRICE_ID = "price_1TwE0oFht6uPr4mz4thEHLpN";
+const LIVE_PRICE_ID = "price_1TwE0oFht6uPr4mz4thEHLpN";
+const TEST_IDS_FILE = path.join(root, "scripts/book-one-stripe-test.json");
+const TEST_KEY_FILE = path.join(root, ".env.stripe-test.local"); // gitignored (.env.*)
 
 const [command, ...rest] = process.argv.slice(2);
 const flags = {};
@@ -50,6 +52,32 @@ for (let i = 0; i < rest.length; i++) {
   if (!rest[i].startsWith("--")) continue;
   const key = rest[i].slice(2);
   flags[key] = rest[i + 1] && !rest[i + 1].startsWith("--") ? rest[++i] : true;
+}
+
+// Stripe mode. live (default): STRIPE_SECRET_KEY from veillink/.env, must be sk_live_, live price,
+// cs_live_ sessions. test (--stripe-mode test): STRIPE_TEST_SECRET_KEY from .env.stripe-test.local,
+// must be sk_test_, the test price from scripts/book-one-stripe-test.json, cs_test_ sessions only.
+// A test-mode run never reads the live key, never talks to a deployed claim endpoint, never switches.
+const MODE = flags["stripe-mode"] === "test" ? "test" : "live";
+let PRICE_ID = LIVE_PRICE_ID;
+
+function applyStripeMode() {
+  if (MODE === "live") {
+    if (!String(process.env.STRIPE_SECRET_KEY || "").startsWith("sk_live_")) fail("live mode requires an sk_live_ STRIPE_SECRET_KEY");
+    return;
+  }
+  const line = existsSync(TEST_KEY_FILE) && readFileSync(TEST_KEY_FILE, "utf8").match(/^STRIPE_TEST_SECRET_KEY=(\S+)$/m);
+  const key = line && line[1].replace(/^["']|["']$/g, "");
+  if (!key || !key.startsWith("sk_test_")) fail(`test mode needs STRIPE_TEST_SECRET_KEY=sk_test_... in ${path.basename(TEST_KEY_FILE)}`);
+  process.env.STRIPE_SECRET_KEY = key; // replaces the live key for this process only
+  const ids = existsSync(TEST_IDS_FILE) ? JSON.parse(readFileSync(TEST_IDS_FILE, "utf8")) : {};
+  PRICE_ID = ids.testPriceId || "";
+  process.env.BOOK_ONE_STRIPE_PRICE_ID = PRICE_ID;
+}
+
+function checkSessionMode(sessionId) {
+  const want = MODE === "test" ? "cs_test_" : "cs_live_";
+  if (!sessionId.startsWith(want)) fail(`${MODE} mode only verifies ${want} sessions (got ${sessionId.slice(0, 8)}…)`);
 }
 
 function loadEnv() {
@@ -221,11 +249,14 @@ async function claimHtmlLocal(sessionId, m) {
 async function verifyClaim() {
   const m = manifest();
   let sessionId = String(flags.session || "");
+  if (!PRICE_ID) fail("no test price recorded; run test-setup --stripe-mode test first");
   if (!sessionId || sessionId === "latest") {
     const [latest] = await paidSessions(0);
     if (!latest) fail("no paid Book One checkout exists yet; run wait-for-purchase after buying once");
     sessionId = latest.id;
   }
+  checkSessionMode(sessionId);
+  if (MODE === "test" && flags["base-url"]) fail("test-mode sessions are only verified against the local handler, never a deployed endpoint");
   let status;
   let html;
   if (flags["base-url"]) {
@@ -246,7 +277,7 @@ async function verifyClaim() {
     if (got !== f.sha256) fail(`delivered ${f.kind} hash ${got} does not match manifest`);
     ok(`claim delivered ${f.objectPath} (sha256 matches)`);
   }
-  ok(`real claim verified end to end for ${sessionId.slice(0, 16)}… ${flags["base-url"] ? `via ${flags["base-url"]}` : "(local handler)"}`);
+  ok(`${MODE}-mode claim verified end to end for ${sessionId.slice(0, 16)}… ${flags["base-url"] ? `via ${flags["base-url"]}` : "(local handler)"}`);
 }
 
 // Mirror the static record's newest versionHistory entry into Supabase: insert that version's snapshot
@@ -290,6 +321,7 @@ async function recordRightsVersion(dry) {
 }
 
 async function switchDelivery() {
+  if (MODE !== "live") fail("switch only runs in live mode");
   const m = manifest();
   const dry = Boolean(flags["dry-run"]);
   for (const env of ["production", "preview"]) {
@@ -314,7 +346,39 @@ async function switchDelivery() {
   }
 }
 
+async function testSetup() {
+  if (MODE !== "test") fail("test-setup requires --stripe-mode test");
+  const m = manifest();
+  const liveProductId = "prod_Uw6DGVcPF1s1Kt";
+  const found = await stripe(`/products/search?query=${encodeURIComponent(`metadata['mirror_of']:'${liveProductId}'`)}`);
+  let product = found.data[0];
+  if (!product) {
+    product = await stripe("/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ name: m.stripe_product_name || m.title, "metadata[mirror_of]": liveProductId }),
+    });
+    ok(`created test product ${product.id}`);
+  }
+  const prices = await stripe(`/prices?product=${product.id}&active=true&limit=10`);
+  let price = prices.data.find((p) => p.unit_amount === 999 && p.currency === "usd" && !p.recurring);
+  if (!price) {
+    price = await stripe("/prices", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ product: product.id, unit_amount: "999", currency: "usd", "metadata[mirror_of]": LIVE_PRICE_ID }),
+    });
+    ok(`created test price ${price.id}`);
+  }
+  if (!price.id || price.livemode) fail("refusing a price that is not test mode");
+  const { writeFileSync } = await import("node:fs");
+  writeFileSync(TEST_IDS_FILE, `${JSON.stringify({ note: "Stripe TEST-mode mirror of the live Book One product/price. Test IDs only; no keys.", testProductId: product.id, testPriceId: price.id, mirrorOfLiveProduct: liveProductId, mirrorOfLivePrice: LIVE_PRICE_ID }, null, 2)}\n`);
+  ok(`test product ${product.id} / price ${price.id} recorded in ${path.relative(root, TEST_IDS_FILE)}`);
+}
+
 loadEnv();
-const commands = { stage, "wait-for-purchase": waitForPurchase, "verify-claim": verifyClaim, switch: switchDelivery };
+applyStripeMode();
+const commands = {
+  "test-setup": testSetup, stage, "wait-for-purchase": waitForPurchase, "verify-claim": verifyClaim, switch: switchDelivery };
 if (!commands[command]) fail(`usage: publish-book-one-release.mjs <${Object.keys(commands).join("|")}> [flags]`);
 commands[command]().catch((error) => fail(error.message));
