@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { buildMetadata } from "@/lib/seo";
 import { RIGHTS_PRODUCT_ADVISOR_PATH, RIGHTS_PRODUCT_REGISTRY_PATH } from "@/lib/rights/product-nav";
 import { listOwnedRightsRecords } from "@/lib/rights/records";
+import { formatRedirectUsage } from "@/lib/policy";
 import { getUsage, requireUser } from "@/lib/store";
 
 export const metadata: Metadata = buildMetadata({
@@ -17,7 +18,7 @@ export const metadata: Metadata = buildMetadata({
 export default async function VeilLinkHomePage() {
   const { user, profile } = await requireUser().catch(() => redirect("/"));
   const [usage, rightsRecords] = await Promise.all([
-    getUsage(user.id, profile.plan).catch(() => null),
+    getUsage(user.id, profile.plan, { role: profile.role, email: profile.email || user.email }).catch(() => null),
     listOwnedRightsRecords(user.id).catch(() => null),
   ]);
 
@@ -89,7 +90,7 @@ export default async function VeilLinkHomePage() {
           <h2>QR &amp; Links</h2>
           <p className="muted">
             {usage
-              ? `${usage.activeRedirects} of ${usage.limit} active redirects.`
+              ? `${formatRedirectUsage(usage.activeRedirects, usage.limit)}.`
               : "Dynamic QR codes and short links: create, edit destinations, download, and track scans."}
           </p>
           <p>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { logout } from "@/app/(auth)/actions";
 import { buildMetadata } from "@/lib/seo";
+import { formatRedirectUsage } from "@/lib/policy";
 import { getUsage, listUserRedirects, requireUser } from "@/lib/store";
 
 export const metadata: Metadata = buildMetadata({
@@ -19,7 +20,10 @@ function toCsv(rows: Awaited<ReturnType<typeof listUserRedirects>>) {
 
 export default async function AccountPage() {
   const { user, profile } = await requireUser().catch(() => redirect("/login"));
-  const [redirects, usage] = await Promise.all([listUserRedirects(user.id), getUsage(user.id, profile.plan)]);
+  const [redirects, usage] = await Promise.all([
+    listUserRedirects(user.id),
+    getUsage(user.id, profile.plan, { role: profile.role, email: profile.email || user.email }),
+  ]);
   const jsonExport = JSON.stringify(redirects, null, 2);
   const csvExport = toCsv(redirects);
   return (
@@ -29,7 +33,7 @@ export default async function AccountPage() {
         <div className="panel">
           <h2>{user.email}</h2>
           <p className="muted">Plan: {profile.plan}</p>
-          <p className="muted">Active redirects: {usage.activeRedirects} / {usage.limit}</p>
+          <p className="muted">{formatRedirectUsage(usage.activeRedirects, usage.limit)}</p>
           <form action={logout}><button className="secondary" type="submit">Log out</button></form>
         </div>
         <div className="panel">

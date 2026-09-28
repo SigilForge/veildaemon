@@ -20,7 +20,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const { user, profile } = await requireUser();
-    const redirect = await createRedirect(user.id, profile.plan, await request.json());
+    const redirect = await createRedirect(user.id, profile.plan, await request.json(), {
+      role: profile.role,
+      email: profile.email || user.email,
+    });
     return NextResponse.json({ ok: true, redirect }, { status: 201 });
   } catch (error) {
     return jsonError(error);

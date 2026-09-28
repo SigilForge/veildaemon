@@ -22,7 +22,10 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
   try {
     const { user, profile } = await requireUser();
     const { id } = await context.params;
-    const redirect = await updateRedirect(user.id, profile.plan, id, await request.json());
+    const redirect = await updateRedirect(user.id, profile.plan, id, await request.json(), {
+      role: profile.role,
+      email: profile.email || user.email,
+    });
     return NextResponse.json({ ok: true, redirect });
   } catch (error) {
     return jsonError(error);

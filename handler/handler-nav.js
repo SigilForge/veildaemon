@@ -9,7 +9,7 @@
 (function loadVeilAuth() {
   if (window.VeilAuth || document.querySelector('script[src*="veildaemon-auth.js"]')) return;
   const script = document.createElement("script");
-  script.src = "/veildaemon-auth.js?v=20260802-auth3";
+  script.src = "/veildaemon-auth.js?v=20260928-auth4";
   document.head.append(script);
 }());
 

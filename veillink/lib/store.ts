@@ -8,7 +8,7 @@ import {
   validateHexColor,
   validateSlug,
 } from "@/lib/validation";
-import { canCreateActiveRedirect, requireAdminRole } from "@/lib/policy";
+import { canCreateActiveRedirect, hasUncappedRedirects, requireAdminRole } from "@/lib/policy";
 import type { Json } from "@/lib/database.types";
 
 export function publicError(message: string, status = 400) {
@@ -56,7 +56,7 @@ export async function listUserRedirects(userId: string) {
   return (data || []) as RedirectRecord[];
 }
 
-export async function getUsage(userId: string, plan: PlanId) {
+export async function getUsage(userId: string, plan: PlanId, actor: { role?: string; email?: string | null } = {}) {
   const admin = getSupabaseAdminClient();
   const { count, error } = await admin
     .from("redirects")
@@ -65,9 +65,11 @@ export async function getUsage(userId: string, plan: PlanId) {
     .eq("active", true)
     .is("suspended_at", null);
   if (error) throw error;
+  const allowlist = process.env.VEILLINK_ADMIN_EMAILS || "";
+  const uncapped = hasUncappedRedirects(actor.role || "user", actor.email, allowlist);
   return {
     activeRedirects: count || 0,
-    limit: plans[plan].activeRedirectLimit,
+    limit: uncapped ? null : plans[plan].activeRedirectLimit,
   };
 }
 
@@ -113,12 +115,17 @@ export function normalizeRedirectInput(input: unknown) {
   };
 }
 
-export async function createRedirect(userId: string, plan: PlanId, input: RedirectInput) {
+export async function createRedirect(
+  userId: string,
+  plan: PlanId,
+  input: RedirectInput,
+  actor: { role?: string; email?: string | null } = {}
+) {
   const admin = getSupabaseAdminClient();
   const record = normalizeRedirectInput(input);
   if (record.active) {
-    const usage = await getUsage(userId, plan);
-    if (!canCreateActiveRedirect(plan, usage.activeRedirects)) {
+    const usage = await getUsage(userId, plan, actor);
+    if (!canCreateActiveRedirect(plan, usage.activeRedirects, actor, process.env.VEILLINK_ADMIN_EMAILS || "")) {
       throw publicError(`Your ${plans[plan].label} plan allows ${usage.limit} active redirects.`, 403);
     }
   }
@@ -137,13 +144,19 @@ export async function createRedirect(userId: string, plan: PlanId, input: Redire
   return data as RedirectRecord;
 }
 
-export async function updateRedirect(userId: string, plan: PlanId, id: string, input: RedirectInput) {
+export async function updateRedirect(
+  userId: string,
+  plan: PlanId,
+  id: string,
+  input: RedirectInput,
+  actor: { role?: string; email?: string | null } = {}
+) {
   const admin = getSupabaseAdminClient();
   const current = await getOwnedRedirect(userId, id);
   const record = normalizeRedirectInput(input);
   if (!current.active && record.active) {
-    const usage = await getUsage(userId, plan);
-    if (!canCreateActiveRedirect(plan, usage.activeRedirects)) {
+    const usage = await getUsage(userId, plan, actor);
+    if (!canCreateActiveRedirect(plan, usage.activeRedirects, actor, process.env.VEILLINK_ADMIN_EMAILS || "")) {
       throw publicError(`Your ${plans[plan].label} plan allows ${usage.limit} active redirects.`, 403);
     }
   }
