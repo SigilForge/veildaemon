@@ -77,12 +77,19 @@ export function AuthForm({ title, action, submit, error, sent, verified, email, 
           </label>
         ) : null}
         {signup ? (
-          <label>
-            <span>
-              <input name="terms" type="checkbox" required /> I agree not to use VeilLink for phishing, malware,
-              impersonation, spam, or illegal content.
-            </span>
-          </label>
+          <>
+            <label>
+              <span>
+                <input name="terms" type="checkbox" required /> I agree not to use VeilLink for phishing, malware,
+                impersonation, spam, or illegal content.
+              </span>
+            </label>
+            <label>
+              <span>
+                <input name="email_list" type="checkbox" /> Add me to the SigilForge email list.
+              </span>
+            </label>
+          </>
         ) : null}
         <button type="submit">{submit}</button>
         <p className="muted">

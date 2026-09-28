@@ -73,9 +73,16 @@ describe("authorization and plan policy", () => {
     expect(canCreateActiveRedirect("free", 3)).toBe(false);
   });
 
+  it("gives the studio admin and admin role an uncapped redirect count", () => {
+    expect(canCreateActiveRedirect("free", 1000, { role: "user", email: "Knoxmortis@gmail.com" })).toBe(true);
+    expect(canCreateActiveRedirect("free", 1000, { role: "admin", email: "other@example.com" })).toBe(true);
+    expect(canCreateActiveRedirect("free", 3, { role: "user", email: "other@example.com" })).toBe(false);
+  });
+
   it("separates admin and non-admin access", () => {
     expect(requireAdminRole("admin", "a@example.com", "")).toBe(true);
     expect(requireAdminRole("user", "owner@example.com", "owner@example.com")).toBe(true);
+    expect(requireAdminRole("user", "Knoxmortis@gmail.com", "")).toBe(true);
     expect(requireAdminRole("user", "nope@example.com", "owner@example.com")).toBe(false);
   });
 });

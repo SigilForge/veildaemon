@@ -15,11 +15,13 @@ export async function signUp(formData: FormData) {
   const next = authReturnTarget(field(formData, "next"));
   const accepted = formData.get("terms") === "on";
   if (!accepted) redirect(`/signup?error=terms&next=${encodeURIComponent(next)}`);
+  const emailListOptIn = formData.get("email_list") === "on";
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: authRedirectUrl("/auth/confirm", { next }),
+      data: { email_list_opt_in: emailListOptIn },
     },
   });
   if (error) redirect(`/signup?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);

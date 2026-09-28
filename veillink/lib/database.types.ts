@@ -23,6 +23,21 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["profiles"]["Row"]>;
         Relationships: [];
       };
+      email_list_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          email: string;
+          source: string;
+          opted_in_at: string;
+          unsubscribed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["email_list_subscriptions"]["Row"]> & { email: string };
+        Update: Partial<Database["public"]["Tables"]["email_list_subscriptions"]["Row"]>;
+        Relationships: [];
+      };
       redirects: {
         Row: {
           id: string;

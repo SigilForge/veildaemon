@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { publicPathUrl, publicSubdomainUrl } from "@/lib/config";
+import { formatRedirectUsage } from "@/lib/policy";
 import type { QrArtOption, QrFrameStyleOption, RedirectRecord, RoutingMode } from "@/lib/types";
 import { generateArtisticQrSvg } from "@/lib/qr-generator";
 
@@ -57,7 +58,7 @@ const emptyForm: FormState = {
 
 type Props = {
   initialRedirects: RedirectRecord[];
-  usage: { activeRedirects: number; limit: number };
+  usage: { activeRedirects: number; limit: number | null };
   analytics: {
     total: number;
     today: number;
@@ -295,7 +296,7 @@ export function DashboardClient({ initialRedirects, usage, analytics }: Props) {
     <div className="grid">
       <section className="panel" style={{ gridColumn: "1 / -1" }}>
         <h2>{form.id ? "Edit redirect & Artistic QR Studio" : "Create redirect & Artistic QR Code"}</h2>
-        <p className="muted">Active redirects: {activeCount} / {usage.limit}</p>
+        <p className="muted">{formatRedirectUsage(activeCount, usage.limit)}</p>
         {message ? <p className="error" role="alert">{message}</p> : null}
 
         <div className="qr-maker-layout" style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: "2rem", alignItems: "start" }}>

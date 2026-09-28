@@ -80,7 +80,8 @@ Production DNS/TLS must be configured outside this repository:
 3. Enable email auth.
 4. Configure password reset redirect URL to `https://app.veildaemon.app/update-password` or the final VeilLink app URL.
 5. Add one or more admin emails to `VEILLINK_ADMIN_EMAILS`.
-6. If preferred, promote admin users by setting `profiles.role = 'admin'`.
+6. `knoxmortis@gmail.com` is the built-in studio admin: the profile trigger sets `profiles.role = 'admin'`, and that role has no active-redirect cap. Other admins can still be promoted with `profiles.role = 'admin'`.
+7. Signup opt-in is stored in `email_list_subscriptions` by `create_profile_for_auth_user()` when `raw_user_meta_data.email_list_opt_in` is true. Apply `supabase/migrations/20260928170000_studio_admin_and_email_list.sql` before expecting that table.
 
 The migration enables RLS:
 

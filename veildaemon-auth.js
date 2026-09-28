@@ -188,10 +188,14 @@
     return data;
   }
 
-  async function signUp(email, password) {
+  async function signUp(email, password, emailListOptIn) {
     const client = await init();
     if (!client) throw new Error(lastInitError || "Auth system unavailable. Could not connect to Supabase Auth service.");
-    const { data, error } = await client.auth.signUp({ email, password });
+    const { data, error } = await client.auth.signUp({
+      email,
+      password,
+      options: { data: { email_list_opt_in: Boolean(emailListOptIn) } },
+    });
     if (error) throw error;
     return data;
   }
@@ -237,6 +241,10 @@
             <label>Password
               <input type="password" id="veil-auth-password" required minlength="8" placeholder="••••••••" autocomplete="current-password" />
             </label>
+            <label class="veil-auth-optin">
+              <input type="checkbox" id="veil-auth-email-list" />
+              <span>Add me to the email list when I create an account.</span>
+            </label>
             <div class="veil-auth-actions">
               <button class="button primary" type="submit" id="veil-auth-submit">Log In</button>
               <button class="button" type="button" id="veil-auth-signup">Create Account</button>
@@ -260,6 +268,7 @@
     const passEl = document.getElementById("veil-auth-password");
     const noticeEl = document.getElementById("veil-auth-notice");
     const signupBtn = document.getElementById("veil-auth-signup");
+    const emailListEl = document.getElementById("veil-auth-email-list");
 
     closeBtn.addEventListener("click", () => {
       modal.hidden = true;
@@ -295,7 +304,7 @@
       noticeEl.textContent = "Creating account...";
       noticeEl.style.color = "var(--text-soft, #a0aec0)";
       try {
-        await signUp(emailEl.value, passEl.value);
+        await signUp(emailEl.value, passEl.value, emailListEl && emailListEl.checked);
         noticeEl.textContent = "Account created! Check email if confirmation is required.";
         noticeEl.style.color = "#48bb78";
       } catch (err) {
@@ -472,6 +481,17 @@
         color: #fff;
         font-family: inherit;
         box-sizing: border-box;
+      }
+      .veil-auth-modal-form label.veil-auth-optin {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.55rem;
+        margin-bottom: 0.25rem;
+      }
+      .veil-auth-modal-form label.veil-auth-optin input {
+        width: auto;
+        margin-top: 0.15rem;
+        flex: none;
       }
       .veil-auth-modal-form input:focus {
         outline: none;
