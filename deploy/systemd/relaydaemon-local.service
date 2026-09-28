@@ -4,8 +4,8 @@ After=network.target ollama.service
 
 [Service]
 Type=simple
-WorkingDirectory=/home/nox/projects/veildaemon
-ExecStart=/usr/bin/node /home/nox/projects/veildaemon/scripts/relay-local-bridge.mjs
+WorkingDirectory=/home/nox/projects/cradlepoint-ttrpg/Veildaemon
+ExecStart=/usr/bin/node /home/nox/projects/cradlepoint-ttrpg/Veildaemon/scripts/relay-local-bridge.mjs
 Restart=on-failure
 RestartSec=3
 

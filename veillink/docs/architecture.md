@@ -52,10 +52,12 @@ Implemented for the first milestone:
 - Scan event storage with non-invasive user-agent breakdown.
 - Pricing page, billing shell, abuse report endpoint, admin suspension controls, audit logs.
 
-Not claimed as live until configured and verified:
+Production verification status (2026-09-27):
 
-- Stripe subscription billing.
-- Production wildcard DNS/TLS.
-- Custom domains.
-- Account deletion workflow.
-- Team accounts, bulk CSV, public API, A/B routing, geolocation routing, device routing.
+- Stripe subscription billing: **LIVE / VERIFIED**. A signed-in production probe reached a live Stripe Checkout session for VeilLink Pro at $7/month; no payment was submitted.
+- Custom-domain QR generation: **WORKING / VERIFIED IN APP**. A production probe generated a QR for a custom domain end-to-end. DNS-level resolution for a configured custom domain has not been independently verified.
+- Production wildcard DNS/TLS: **UNVERIFIED here**. Do not infer failure from the absence of a probe.
+- Account deletion workflow: **NOT CLAIMED LIVE**.
+- Team accounts, bulk CSV, public API, A/B routing, geolocation routing, device routing: **NOT CLAIMED LIVE**.
+
+Status discipline: configuration instructions and fail-closed code paths describe deployment requirements; they do not prove that production is unconfigured. Use `UNVERIFIED` when live state has not been checked, and reserve `NOT LIVE` for an actual negative verification or an explicit current product boundary.
