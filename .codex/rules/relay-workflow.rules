@@ -5,5 +5,5 @@ prefix_rule(pattern = ["vercel", "link"], decision = "prompt", justification = "
 prefix_rule(pattern = ["systemctl", "--user"], decision = "prompt", justification = "Changing a user service requires explicit user approval.", match = ["systemctl --user restart relaydaemon-local"])
 prefix_rule(pattern = ["sudo"], decision = "prompt", justification = "Elevated changes require explicit user approval.", match = ["sudo systemctl restart ollama"])
 prefix_rule(pattern = ["npm", "install"], decision = "prompt", justification = "Dependency installation requires explicit user approval.", match = ["npm install", "npm install example"])
-prefix_rule(pattern = ["ollama", "pull"], decision = "prompt", justification = "Model downloads require explicit user approval.", match = ["ollama pull hermes4:14b"])
+prefix_rule(pattern = ["ollama", "pull"], decision = "prompt", justification = "Model downloads require explicit user approval.", match = ["ollama pull hf.co/zerofata/MS3.2-PaintedFantasy-v4.1-24B-GGUF:Q5_K_M"])
 
