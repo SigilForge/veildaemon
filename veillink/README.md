@@ -91,7 +91,7 @@ The migration enables RLS:
 
 ## Stripe Setup
 
-Billing is Stripe-ready but not live until configured. The live Stripe catalog was created on 2026-07-22:
+Stripe subscription billing is live and production-verified as of 2026-09-27. A signed-in VeilLink account reached a live Stripe Checkout session for VeilLink Pro at $7/month without submitting payment. The live Stripe catalog was created on 2026-07-22:
 
 - `VeilLink Pro` (`prod_UvzVuwkV4LOkEQ`)
   - Monthly: `$7/month` (`price_1Tw7WwFht6uPr4mz8XUCExEX`)
@@ -146,6 +146,8 @@ Creator Rights publication additionally validates stable Stripe metadata only:
 Titles, slugs, creator names, and pricing are not trusted from Stripe metadata. Those values come from the database and configured Price ID.
 
 VeilLink pins Stripe API calls to `2026-06-24.dahlia` and tags Checkout Sessions with a stable integration identifier for Dashboard tracking. Do not enable Stripe Tax until tax registrations are configured in Stripe; enabling tax without registrations can make the integration look tax-ready while collecting nothing.
+
+The configuration steps above remain the deployment contract for new environments; they are not evidence that production is unconfigured. Production checkout was verified live on 2026-09-27.
 
 See `docs/deployment-checklist.md` for the launch checklist and the live-vs-test Price ID split.
 
