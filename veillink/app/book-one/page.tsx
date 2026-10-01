@@ -51,7 +51,7 @@ export default async function BookOnePage() {
             Your purchase stays linked to this account so you can return for updated files.
           </p>
           <ul className="book-one-includes">
-            <li>Verified print-edition PDF (v48.1) · DRM-free</li>
+            <li>Verified print-edition PDF (v49) · DRM-free</li>
             <li>Reflowable EPUB & MOBI ebook editions</li>
             <li>Wallpaper pack · desktop clean/title + phone plates</li>
             <li>Direct buyers keep access when shelf files update</li>

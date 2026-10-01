@@ -64,7 +64,7 @@ const anonKey = veillinkEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const serviceKey = veillinkEnv.SUPABASE_SERVICE_ROLE_KEY;
 const manifest = JSON.parse(readFileSync(path.join(root, "studio/shelf/book-one/manifest.json"), "utf8"));
 
-// 1. Local claim server: test key + test price only; staged v48 object paths.
+// 1. Local claim server: test key + test price only; staged (not yet live) object paths from the manifest.
 Object.assign(process.env, {
   STRIPE_SECRET_KEY: testKey,
   BOOK_ONE_STRIPE_PRICE_ID: ids.testPriceId,

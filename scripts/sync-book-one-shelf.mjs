@@ -98,6 +98,10 @@ replaceInFile("studio/downloads/book-one/README.md", [
     pattern: /- `book-one\/[^`]+` \(Kindle MOBI ebook\)/,
     replacement: `- \`${manifest.mobi_path}\` (Kindle MOBI ebook)`,
   },
+  {
+    pattern: /- `book-one\/[^`]+` \(10 clean\/title wallpaper plates\)/,
+    replacement: `- \`${manifest.wallpaper_path}\` (10 clean/title wallpaper plates)`,
+  },
 ]);
 
 // 5. .env.example

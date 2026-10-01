@@ -21,7 +21,7 @@
   "rightsHolder": "SigilForge Studios",
   "recordedAt": "2026-07-27T00:00:00.000Z",
   "publicationDate": "2026-07-23",
-  "workVersion": "Book One, second digital edition (v48.1)",
+  "workVersion": "Book One, second digital edition, revised (v49)",
   "copyrightNotice": "© 2024-2026 J. Donavon Love, under the SigilForge Studios name",
   "permissions": {
     "generalTraining": "license_required",
@@ -62,11 +62,11 @@
   "publicRecordUrl": "https://veildaemon.app/rights/the-anchor-and-the-glitch",
   "fileFingerprint": {
     "algorithm": "SHA-256",
-    "value": "90c1ce49391f0fcb5024cdccd37df8d7f900c27fec6ab91854123f8ca69c4b18",
-    "filename": "CRADLEPOINT_VEILSIGHT_v48_1_RELEASE.epub",
-    "fileSize": 2811595,
+    "value": "259fb0a51ff35f3e1f17d708ca28681e88e55bba04d06afb8db2ab749022af04",
+    "filename": "CRADLEPOINT_VEILSIGHT_v49_RELEASE.epub",
+    "fileSize": 2813837,
     "mimeType": "application/epub+zip",
-    "createdAt": "2026-09-25T00:00:00.000Z"
+    "createdAt": "2026-10-01T00:00:00.000Z"
   },
   "disclaimer": "This record documents the creator's declared ownership, rights position, and licensing preferences. It does not replace government copyright registration or independently prove legal ownership.",
   "aiPolicy": {
@@ -138,6 +138,20 @@
         "value": "90c1ce49391f0fcb5024cdccd37df8d7f900c27fec6ab91854123f8ca69c4b18",
         "filename": "CRADLEPOINT_VEILSIGHT_v48_1_RELEASE.epub",
         "fileSize": 2811595,
+        "mimeType": "application/epub+zip"
+      }
+    },
+    {
+      "version": 4,
+      "recordedAt": "2026-10-01",
+      "title": "CradlePoint: VeilSight",
+      "workVersion": "Book One, second digital edition, revised (v49)",
+      "summary": "Revised edition: prose polish and continuity repairs (the road home, Mira's first glamour, the Kira/Diana payoff, Veil epistemics), rebuilt end to end from the canon manuscript. Title, rights holder, permissions, AI policy, and licensing are unchanged.",
+      "fileFingerprint": {
+        "algorithm": "SHA-256",
+        "value": "259fb0a51ff35f3e1f17d708ca28681e88e55bba04d06afb8db2ab749022af04",
+        "filename": "CRADLEPOINT_VEILSIGHT_v49_RELEASE.epub",
+        "fileSize": 2813837,
         "mimeType": "application/epub+zip"
       }
     }
