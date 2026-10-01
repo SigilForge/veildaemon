@@ -11,6 +11,9 @@
  *       must hash-match or the run fails. Every object is then read back through a signed URL and
  *       hash-checked against the manifest.
  *
+ *   node scripts/publish-book-one-release.mjs has-purchase
+ *       Exit 0 if a paid Book One checkout exists, 3 if none (the line then uses the test-mode gate).
+ *
  *   node scripts/publish-book-one-release.mjs wait-for-purchase [--since <ISO>] [--timeout-min 60]
  *       Poll Stripe until a paid Checkout Session containing the Book One price appears; print its id.
  *
@@ -401,9 +404,18 @@ async function cleanupTestPurchases() {
   if (!removed.length) ok("no test ledger rows to remove");
 }
 
+// Exit 0 when at least one paid Book One checkout exists (in this Stripe mode), 3 when none, so the
+// publishing line can choose a real-purchase claim check or the test-mode gate without guessing.
+async function hasPurchase() {
+  const [latest] = await paidSessions(0);
+  if (!latest) { console.log(`no paid Book One checkout in ${MODE} mode`); process.exit(3); }
+  ok(`paid Book One checkout exists in ${MODE} mode (${latest.id.slice(0, 12)}…)`);
+}
+
 loadEnv();
 applyStripeMode();
 const commands = {
+  "has-purchase": hasPurchase,
   "test-setup": testSetup,
   "cleanup-test-purchases": cleanupTestPurchases, stage, "wait-for-purchase": waitForPurchase, "verify-claim": verifyClaim, switch: switchDelivery };
 if (!commands[command]) fail(`usage: publish-book-one-release.mjs <${Object.keys(commands).join("|")}> [flags]`);

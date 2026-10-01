@@ -148,10 +148,23 @@ if (process.env.GATE_DEBUG) {
   console.log("frames:", page.frames().map((f) => f.url().slice(0, 80)).join(" | "));
   process.exit(3);
 }
-// Checkout shows a payment-method accordion; select Card, then wait for the card fields.
-const cardRadio = page.locator("#payment-method-accordion-item-title-card");
-if (await cardRadio.count()) await cardRadio.check({ force: true });
-await page.locator("#cardNumber").waitFor({ timeout: 60_000 });
+// Reveal the card fields. Stripe's hosted Checkout has shipped two layouts: a "Pay with card"
+// button (current), and a payment-method accordion whose Card radio may be a real input or a
+// decorative span (click the accordion item then).
+const cardNumber = page.locator("#cardNumber");
+if (!(await cardNumber.isVisible().catch(() => false))) {
+  const payWithCard = page.getByRole("button", { name: /pay with card/i });
+  const cardRadioInput = page.locator('input[type="radio"][value="card"], input#payment-method-accordion-item-title-card');
+  const cardAccordion = page.locator("#payment-method-accordion-item-title-card, [data-testid='card-accordion-item-button']");
+  // A zero-size overlay button outside the viewport, so click it in the DOM rather than by pointer.
+  if (await payWithCard.count()) await payWithCard.first().evaluate((el) => el.click());
+  else if (await cardRadioInput.count()) await cardRadioInput.first().check({ force: true });
+  else if (await cardAccordion.count()) await cardAccordion.first().click({ force: true });
+}
+await cardNumber.waitFor({ timeout: 60_000 }).catch(async (e) => {
+  await page.screenshot({ path: path.join("/tmp", "book-one-test-gate-card.png"), fullPage: true });
+  fail(`card fields never appeared (screenshot /tmp/book-one-test-gate-card.png): ${e.message.split("\n")[0]}`);
+});
 // Do not opt into Link (it adds a required phone field).
 const linkOptIn = page.locator("#enableStripePass");
 if (await linkOptIn.count() && await linkOptIn.isChecked().catch(() => false)) await linkOptIn.uncheck({ force: true });
