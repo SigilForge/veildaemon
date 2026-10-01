@@ -2,10 +2,10 @@
   "schemaVersion": "1.0",
   "artifactType": "creator_rights_verification_projection",
   "exporterVersion": "1.1",
-  "projectionMode": "local_bootstrap",
-  "source": "static",
-  "sourceProject": null,
-  "generatedAt": "2026-10-01T23:08:52.089Z",
+  "projectionMode": "live",
+  "source": "creator_rights_verification_evidence",
+  "sourceProject": "iaeykfeyctujqsqyenqt.supabase.co",
+  "generatedAt": "2026-10-01T23:28:59.456Z",
   "recordCount": 12,
   "records": {
     "cradlepoint-field-dossier": {
@@ -182,5 +182,5 @@
       }
     }
   },
-  "payloadSha256": "8b36657f77fc631c8bcb8784592bd4d52738e48f6fe166f99fb1e4cda7e9f105"
+  "payloadSha256": "72efc9f0ce528acd6bfaba25402a6ccf1a27e11f049761ac9641e80da0bbb8a6"
 }
