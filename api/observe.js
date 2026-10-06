@@ -1,4 +1,5 @@
-const { json } = require("../lib/alertQueue");
+const { recordIntakeCompletion } = require("../lib/intakeStatsStore");
+const { json } = require("../lib/reportsStore");
 
 const allowedEvents = new Set([
   "intake_opened",
@@ -50,6 +51,12 @@ function cleanPayload(input) {
     accessLevel: safeText(body.accessLevel, 40),
     filesReviewed: Math.max(0, Math.min(Number(body.filesReviewed) || 0, 99)),
     commandLayerClearance: safeText(body.commandLayerClearance, 40),
+    utmSource: safeText(body.utmSource, 60),
+    utmMedium: safeText(body.utmMedium, 60),
+    utmCampaign: safeText(body.utmCampaign, 60),
+    utmContent: safeText(body.utmContent, 60),
+    intakeRoute: safeText(body.intakeRoute, 20),
+    reclassified: body.reclassified === true,
   };
 }
 
@@ -74,6 +81,16 @@ module.exports = async function handler(req, res) {
     };
 
     console.log(JSON.stringify(entry));
+
+    if (payload.event === "intake_completed") {
+      try {
+        await recordIntakeCompletion(payload, new Date(entry.receivedAt));
+      } catch (error) {
+        // The client never waits on the counter; a store outage only loses the count.
+        console.error(JSON.stringify({ marker: "VEILDAEMON_INTAKE_STATS_ERROR", error: error.message }));
+      }
+    }
+
     return json(res, 200, { ok: true });
   } catch (error) {
     return json(res, 400, { ok: false, error: error.message });

@@ -26,7 +26,8 @@ const legacyGenericDiscordRoutes = new Set([
   "https://discord.gg/Bn6attnYN6",
   "https://discord.gg/KRbckpfTQk"
 ]);
-const observerLogEndpoint = "/api/observe";
+const observerLogPath = "/api/observe";
+const attributionStorageKey = "veildaemon.attribution.v1";
 const threadbreakerRoute = "https://discord.gg/Bn6attnYN6";
 const currentDiscordRoutes = new Set([
   ...Object.values(frequencyDiscordRoutes),
@@ -47,9 +48,51 @@ function observerReferrerHost() {
   }
 }
 
+// GitHub Pages cannot serve /api/*; production calls the root API host instead.
+function observerApiBase() {
+  const host = window.location.hostname;
+  return host === "veildaemon.app" || host === "www.veildaemon.app" ? "https://api.veildaemon.app" : "";
+}
+
+function attributionHelpers() {
+  return window.VeilAttribution || null;
+}
+
+// Last explicit utm_source in this tab wins; untagged navigation keeps it.
+function captureLandingAttribution() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("utm_source")) return;
+
+    const helpers = attributionHelpers();
+    const clean = (value) => (helpers ? helpers.cleanUtmTag(value || "") : "");
+    window.sessionStorage.setItem(attributionStorageKey, JSON.stringify({
+      source: helpers ? helpers.normalizeUtmSource(params.get("utm_source")) : "site",
+      medium: clean(params.get("utm_medium")),
+      campaign: clean(params.get("utm_campaign")),
+      content: clean(params.get("utm_content")),
+      capturedAt: new Date().toISOString()
+    }));
+  } catch (error) {
+    // Attribution is optional; storage may be blocked.
+  }
+}
+
+function readLandingAttribution() {
+  try {
+    const stored = JSON.parse(window.sessionStorage.getItem(attributionStorageKey) || "null");
+    if (stored && typeof stored.source === "string") return stored;
+  } catch (error) {
+    // Fall through to the untagged default.
+  }
+
+  return { source: "site", medium: "", campaign: "", content: "" };
+}
+
 function observerLogPayload(event, details = {}) {
   const record = details.record || intakeState.record || readOperatorRecord();
   const commandState = readCommandLayerState();
+  const attribution = readLandingAttribution();
 
   return {
     event,
@@ -61,7 +104,13 @@ function observerLogPayload(event, details = {}) {
     attentionStatus: record ? record.attentionStatus : "",
     accessLevel: record ? record.accessLevel : "",
     filesReviewed: record ? record.filesReviewed : 0,
-    commandLayerClearance: commandState ? commandState.clearance : ""
+    commandLayerClearance: commandState ? commandState.clearance : "",
+    utmSource: attribution.source || "site",
+    utmMedium: attribution.medium || "",
+    utmCampaign: attribution.campaign || "",
+    utmContent: attribution.content || "",
+    intakeRoute: details.intakeRoute || "",
+    reclassified: details.reclassified === true
   };
 }
 
@@ -71,15 +120,18 @@ function recordObserverEvent(event, details = {}) {
   }
 
   const body = JSON.stringify(observerLogPayload(event, details));
+  const endpoint = `${observerApiBase()}${observerLogPath}`;
+  // text/plain is CORS-safelisted, so the cross-origin beacon needs no preflight.
+  const contentType = "text/plain;charset=UTF-8";
 
   if (navigator.sendBeacon) {
-    const sent = navigator.sendBeacon(observerLogEndpoint, new Blob([body], { type: "application/json" }));
+    const sent = navigator.sendBeacon(endpoint, new Blob([body], { type: contentType }));
     if (sent) return;
   }
 
-  fetch(observerLogEndpoint, {
+  fetch(endpoint, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": contentType },
     body,
     keepalive: true
   }).catch(() => {});
@@ -1746,7 +1798,11 @@ function showIntakeResult(reaction = "") {
 
   intakeState.record = record;
   writeOperatorRecord(record);
-  recordObserverEvent("intake_completed", { record });
+  recordObserverEvent("intake_completed", {
+    record,
+    intakeRoute: result.routeRequiresReview ? "triage" : "operator",
+    reclassified: Boolean(existingRecord)
+  });
   renderReturningOperator(null);
   renderOperatorRecord(record);
   pulseCasefileDrawer();
@@ -2479,6 +2535,7 @@ function toggleTransmissionViewer() {
   }
 }
 
+captureLandingAttribution();
 intakeState.record = readOperatorRecord();
 renderObserverAdvisory();
 renderSystemState(intakeState.record);
