@@ -20,6 +20,10 @@
       "destination": "/api/auth/config?resource=creator-rights-registry"
     },
     {
+      "source": "/api/intake-stats",
+      "destination": "/api/observe?resource=intake-stats"
+    },
+    {
       "source": "/stream/alerts",
       "destination": "/stream/alerts/index.html"
     },
