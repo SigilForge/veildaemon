@@ -1,3 +1,4 @@
+const { handleIntakeStats, readQuery } = require("../lib/intakeStatsApi");
 const { recordIntakeCompletion } = require("../lib/intakeStatsStore");
 const { json } = require("../lib/reportsStore");
 
@@ -61,6 +62,10 @@ function cleanPayload(input) {
 }
 
 module.exports = async function handler(req, res) {
+  if (readQuery(req).resource === "intake-stats") {
+    return handleIntakeStats(req, res);
+  }
+
   if (req.method === "OPTIONS") {
     res.setHeader("Allow", "POST, OPTIONS");
     return json(res, 204, {});

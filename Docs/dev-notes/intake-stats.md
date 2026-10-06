@@ -28,6 +28,10 @@ assigns the week from its receive time; client clocks are ignored.
 
 ## Endpoint
 
+`/api/intake-stats` is a `vercel.json` rewrite onto `api/observe.js?resource=intake-stats`
+(handler in `lib/intakeStatsApi.js`), because the Vercel Hobby plan rejects deployments with more
+than 12 serverless functions and `api/` is already at 12.
+
 ```
 GET https://api.veildaemon.app/api/intake-stats?week=2026-W41
 Authorization: Bearer $INTAKE_STATS_TOKEN
