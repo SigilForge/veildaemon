@@ -6123,3 +6123,250 @@ footer.site-footer {
     grid-template-columns: 1fr;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Contact, support, and footer help strip                                    */
+/* -------------------------------------------------------------------------- */
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.contact-routes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.contact-route {
+  padding: 1.25rem 1.35rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--rust);
+  background: rgba(17, 19, 20, 0.88);
+}
+
+.contact-route .eyebrow {
+  margin: 0 0 0.45rem;
+}
+
+.contact-route h3 {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.contact-route h3 a {
+  color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(181, 117, 104, 0.45);
+}
+
+.contact-route h3 a:hover {
+  border-bottom-color: var(--rust-soft);
+}
+
+.contact-route p:not(.eyebrow) {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.contact-route p a,
+.contact-lede a {
+  color: var(--rust-soft);
+}
+
+.contact-lede {
+  max-width: 44rem;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.contact-form .contact-detail[hidden] {
+  display: none;
+}
+
+.contact-route-note {
+  margin: 1rem 0 0;
+  color: var(--text-faint);
+  font-size: 0.88rem;
+}
+
+.contact-route-note strong {
+  color: var(--sage);
+  font-weight: 600;
+}
+
+.contact-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+}
+
+.contact-card h2 {
+  margin: 0.2rem 0 0.35rem;
+}
+
+.contact-card-title {
+  margin: 0 0 1rem;
+}
+
+.contact-card-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.contact-card-list div {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.contact-card-list dt {
+  color: var(--rust-deep);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding-top: 0.2rem;
+}
+
+.contact-card-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.contact-card-list a {
+  color: var(--ink-text);
+}
+
+.support-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.4rem;
+}
+
+.support-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  max-width: var(--max);
+  margin: 0 auto 1.25rem;
+  padding: 0 var(--pad);
+}
+
+.support-jump a {
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-strong);
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+
+.support-jump a:hover {
+  color: var(--text);
+  border-color: rgba(181, 117, 104, 0.5);
+}
+
+.support-topic {
+  scroll-margin-top: 6rem;
+}
+
+.support-faq {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.support-faq details {
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(22, 24, 23, 0.12);
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.support-faq summary {
+  cursor: pointer;
+  padding: 0.9rem 1.1rem;
+  color: var(--ink-text);
+  font-weight: 600;
+  list-style-position: inside;
+}
+
+.support-faq summary:focus-visible {
+  outline: 2px solid var(--sage-deep);
+  outline-offset: 2px;
+}
+
+.support-faq details p {
+  margin: 0;
+  padding: 0 1.1rem 1rem;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+.support-faq a {
+  color: var(--rust-deep);
+}
+
+.footer-help {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem 1.5rem;
+  max-width: var(--max);
+  margin: 1.5rem auto 0;
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.footer-help p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.footer-help p strong {
+  color: var(--text);
+}
+
+.footer-help-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.footer-help-actions .button {
+  min-height: 2.5rem;
+  padding: 0.55rem 1rem;
+}
+
+@media (max-width: 720px) {
+  .contact-routes {
+    grid-template-columns: 1fr;
+  }
+  .footer-help-actions {
+    width: 100%;
+  }
+  .footer-help-actions .button {
+    flex: 1 1 auto;
+  }
+}

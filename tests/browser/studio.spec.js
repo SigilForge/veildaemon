@@ -19,6 +19,8 @@ const studioRoutes = [
   { path: "/studio/privacy/", name: "privacy", title: /Privacy/, h1: /Privacy notice/ },
   { path: "/studio/copyright/", name: "copyright", title: /Copyright/, h1: /Copyright and intellectual property/ },
   { path: "/studio/media-usage/", name: "media-usage", title: /Media Usage/, h1: /Media usage guidance/ },
+  { path: "/studio/contact/", name: "contact", title: /Contact/, h1: /Talk to the studio/ },
+  { path: "/studio/support/", name: "support", title: /Support/, h1: /How can we help/ },
 ];
 
 const summaryRoutes = [
@@ -496,6 +498,71 @@ test.describe("studio subtree routes", () => {
     await page.goto("/studio/projects/");
     await expect(page.locator(".ecosystem")).toContainText(/Audience & world validation/i);
     await expect(page.locator(".ecosystem")).toContainText(/Operator \+ Handler/i);
+  });
+
+  test("contact hub routes each topic to the right inbox", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto("/studio/contact/");
+    const form = page.locator("#contact-form");
+    await expect(form).toHaveAttribute("data-route", "hello@veildaemon.app");
+    const expected = {
+      general: "hello@veildaemon.app",
+      feedback: "hello@veildaemon.app",
+      press: "hello@veildaemon.app",
+      support: "support@veildaemon.app",
+      bug: "support@veildaemon.app",
+      accessibility: "support@veildaemon.app",
+      privacy: "support@veildaemon.app",
+      partnership: "founder@veildaemon.app",
+      licensing: "founder@veildaemon.app",
+      "web-design": "founder@veildaemon.app",
+    };
+    await expect(page.locator("#contact-topic option")).toHaveCount(Object.keys(expected).length);
+    for (const [topic, inbox] of Object.entries(expected)) {
+      await page.selectOption("#contact-topic", topic);
+      await expect(form).toHaveAttribute("data-route", inbox);
+      await expect(page.locator("#contact-route-note")).toContainText(inbox);
+    }
+    // Product/area and page fields only appear when they matter
+    await page.selectOption("#contact-topic", "general");
+    await expect(page.locator('[name="area"]')).toBeHidden();
+    await page.selectOption("#contact-topic", "bug");
+    await expect(page.locator('[name="area"]')).toBeVisible();
+    await expect(page.locator('[name="where"]')).toBeVisible();
+
+    // Deep links preselect the topic
+    await page.goto("/studio/contact/?topic=feedback#message-form");
+    await expect(page.locator("#contact-topic")).toHaveValue("feedback");
+    await page.goto("/studio/contact/?topic=not-a-topic");
+    await expect(page.locator("#contact-topic")).toHaveValue("general");
+
+    // Validation speaks up instead of opening an empty email
+    await page.getByRole("button", { name: /Open in my email app/i }).click();
+    await expect(page.locator("#contact-status")).toContainText(/Add your name/);
+
+    await expect(page.locator('a[href="tel:+14175674445"]').first()).toBeVisible();
+    const vcf = await page.request.get("/studio/contact/sigilforge-studios.vcf");
+    expect(vcf.ok()).toBeTruthy();
+    expect(await vcf.text()).toContain("TEL;TYPE=WORK,VOICE,CELL:+1-417-567-4445");
+    const ld = JSON.parse(await page.locator('script[type="application/ld+json"]').first().textContent());
+    expect(ld["@graph"].map((n) => n["@type"])).toContain("ContactPage");
+    await noHorizontalOverflow(page);
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/studio/contact/");
+    await noHorizontalOverflow(page);
+  });
+
+  test("every studio page offers support, feedback, and contact", async ({ page }) => {
+    // RelayDaemon chrome is governed by studio/relay/AGENTS.md and ships separately.
+    for (const route of studioRoutes.filter((r) => r.name !== "relay")) {
+      await page.goto(route.path);
+      const help = page.locator("footer .footer-help");
+      await expect(help, route.path).toHaveCount(1);
+      await expect(help.locator('a[href="/studio/support/"]'), route.path).toHaveCount(1);
+      await expect(help.locator('a[href="/studio/contact/?topic=feedback#message-form"]'), route.path).toHaveCount(1);
+      await expect(page.locator('a[href^="mailto:J.Donavon.Love"]'), route.path).toHaveCount(0);
+    }
   });
 
   test("unique titles, JSON-LD validity, fragments, and focus", async ({ page }) => {

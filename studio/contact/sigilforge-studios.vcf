@@ -1,0 +1,15 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Love;James;Donavon;;
+FN:James Donavon Love
+NICKNAME:J. Donavon Love
+ORG:SigilForge Studios
+TITLE:Creative Director & Systems Architect
+TEL;TYPE=WORK,VOICE,CELL:+1-417-567-4445
+EMAIL;TYPE=WORK,PREF:founder@veildaemon.app
+EMAIL;TYPE=WORK:hello@veildaemon.app
+EMAIL;TYPE=WORK:support@veildaemon.app
+URL:https://veildaemon.app
+URL;TYPE=WORK:https://veildaemon.app/studio/
+NOTE:Web design: https://veildaemon.app/studio/web-design/
+END:VCARD

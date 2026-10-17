@@ -226,6 +226,18 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://veildaemon.app/studio/contact/</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://veildaemon.app/studio/support/</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
     <loc>https://veildaemon.app/studio/copyright/</loc>
     <lastmod>2026-07-15</lastmod>
     <changefreq>yearly</changefreq>

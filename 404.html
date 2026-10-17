@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Route not indexed // VeilDaemon</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#050709">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+      background: #050709;
+      color: #e6f1f0;
+      font: 16px/1.6 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    }
+    .panel { width: min(40rem, 100%); }
+    .kicker { margin: 0 0 .5rem; color: #6fd3cf; font-size: .75rem; letter-spacing: .18em; }
+    h1 { margin: 0 0 1rem; font-size: clamp(1.6rem, 6vw, 2.4rem); letter-spacing: .06em; }
+    p { margin: .35rem 0; color: #a9b9b8; }
+    .prompt { color: #9b7cff; }
+    .actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.6rem; }
+    .actions a {
+      display: inline-flex; align-items: center; min-height: 2.75rem; padding: .6rem 1.1rem;
+      border: 1px solid rgba(111, 211, 207, .35); border-radius: .4rem;
+      color: #e6f1f0; text-decoration: none; font-size: .85rem;
+    }
+    .actions a:first-child { background: #6fd3cf; color: #050709; border-color: #6fd3cf; }
+    .actions a:hover { border-color: #6fd3cf; }
+    a:focus-visible { outline: 2px solid #9b7cff; outline-offset: 3px; }
+
+    /* Studio variant */
+    body.studio {
+      background: #090b0c;
+      color: #f3f0ea;
+      font: 16px/1.6 "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    body.studio .kicker { color: #b57568; font-weight: 600; }
+    body.studio h1 { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; letter-spacing: 0; font-size: clamp(2rem, 7vw, 3rem); }
+    body.studio p { color: #c4c0b8; }
+    body.studio .actions a { border-radius: 999px; border-color: rgba(243, 240, 234, .14); }
+    body.studio .actions a:first-child { background: #efebe4; color: #161817; border-color: #efebe4; }
+    body.studio .actions a:hover { border-color: #b57568; }
+    body.studio a:focus-visible { outline-color: #7eb8a8; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="panel" id="veil-404" aria-label="Route not indexed">
+    <p class="kicker">VEILCORP // INTAKE NODE</p>
+    <h1>ROUTE NOT INDEXED</h1>
+    <p><span class="prompt">&gt;</span> Requested path has no registered destination.</p>
+    <p><span class="prompt">&gt;</span> Observation logged. Classification not required.</p>
+    <p><span class="prompt">&gt;</span> Return to a known route to continue.</p>
+    <nav class="actions" aria-label="Known routes">
+      <a href="/">Return to Intake</a>
+      <a href="https://wiki.veildaemon.app/" target="_blank" rel="noopener noreferrer">Read the Archive</a>
+      <a href="https://play.veildaemon.app/" target="_blank" rel="noopener noreferrer">Browse Case Files</a>
+    </nav>
+  </main>
+
+  <main class="panel" id="studio-404" aria-label="Page not found" hidden>
+    <p class="kicker">SIGILFORGE STUDIOS · 404</p>
+    <h1>That page isn't here.</h1>
+    <p>It may have moved, or the link may have a typo. These will get you back on track.</p>
+    <nav class="actions" aria-label="Studio routes">
+      <a href="/studio/">Studio home</a>
+      <a href="/studio/support/">Support</a>
+      <a href="/studio/contact/?topic=bug#message-form">Report a broken link</a>
+    </nav>
+  </main>
+  <script>
+    (function () {
+      if (!/^\/studio(\/|$)/.test(location.pathname)) return;
+      document.body.classList.add("studio");
+      document.title = "Page not found // SigilForge Studios";
+      document.getElementById("veil-404").hidden = true;
+      document.getElementById("studio-404").hidden = false;
+    })();
+  </script>
+</body>
+</html>
