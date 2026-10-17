@@ -12,4 +12,4 @@ Storefront: https://play.veildaemon.app/
 Platform: https://veildaemon.app/
 Studio portal: https://veildaemon.app/studio/
 Archive wiki: https://wiki.veildaemon.app/
-Contact: J.Donavon.Love@gmail.com
+Contact: hello@veildaemon.app

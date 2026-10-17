@@ -387,7 +387,7 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#technology-review")).toContainText(/live local-first software/i);
     await expect(page.locator("#private-diligence")).toContainText(/Access is scoped to the conversation/i);
     await expect(page.locator("#private-diligence")).toContainText(/In development/i);
-    const accessLinks = page.locator('a[href^="mailto:J.Donavon.Love@gmail.com?subject=SigilForge%20Studios%20Data%20Room%20Request"]');
+    const accessLinks = page.locator('a[href^="mailto:founder@veildaemon.app?subject=SigilForge%20Studios%20Data%20Room%20Request"]');
     await expect(accessLinks).toHaveCount(2);
     const privateFileLinks = page.locator('main a[href*="/private/"], main a[href$=".xlsx"], main a[href$=".docx"], main a[href$=".zip"]');
     await expect(privateFileLinks).toHaveCount(0);

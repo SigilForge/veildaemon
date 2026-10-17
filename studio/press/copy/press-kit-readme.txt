@@ -25,5 +25,5 @@ SigilForge Studios has shipping tabletop products and live VeilDaemon browser so
 
 CONTACT
 J. Donavon Love
-J.Donavon.Love@gmail.com
+hello@veildaemon.app
 https://veildaemon.app/studio/press/

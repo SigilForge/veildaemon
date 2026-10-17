@@ -35,4 +35,4 @@ A tech-enabled mythpunk studio using one governed story-and-rules framework to p
 
 Guided case: https://veildaemon.app/studio/funding/
 Creator Rights registry: https://veildaemon.app/registry/
-Contact: J.Donavon.Love@gmail.com
+Contact: founder@veildaemon.app
