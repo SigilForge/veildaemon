@@ -1,5 +1,5 @@
 SIGILFORGE STUDIOS PRESS KIT
-Public package · updated September 2026
+Public package · updated October 2026
 
 START HERE
 1. Use Boilerplate/ for approved external descriptions.
@@ -15,13 +15,16 @@ SigilForge Studios is the real-world founder-operated studio identity.
 VeilDaemon is the public software product/platform.
 VeilCorp is a fictional in-universe organization, not a contracting party or real-world endorser.
 
+ENTITY STATUS
+SigilForge Studios is the brand name under which founder J. Donavon Love operates. A limited liability company for the studio is planned but not yet formed. Do not describe SigilForge Studios as an LLC, corporation, or other registered entity, and do not describe its names or logos as registered trademarks.
+
 STUDIO MARKS
 Use the primary horizontal lockup for wide identity placements, the shield emblem for compact placements, and the official branded round seal for editorial or ceremonial use.
 SigilForge-Studios/Favicons/ holds the canonical browser and device icon set, derived from the primary shield emblem.
 "Cradlepoint Studio(s)" is legacy studio naming. The setting is the CradlePoint Universe and the product line is CradlePoint (capital P); Book One is CradlePoint: VeilSight. Do not use earlier Cradlepoint Studio marks as the studio identity.
 
 CURRENT STATUS
-SigilForge Studios has shipping tabletop products and live VeilDaemon browser software. Fiction remains in development. Mobile AR and Ritual Sites remain separately scoped future directions.
+SigilForge Studios has shipping tabletop products, Book One (CradlePoint: VeilSight) in direct digital release, and live VeilDaemon browser software. Book Two is in development. Mobile AR and Ritual Sites remain separately scoped future directions.
 
 CONTACT
 J. Donavon Love

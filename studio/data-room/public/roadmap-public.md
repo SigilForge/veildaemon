@@ -3,7 +3,7 @@
 > **Open-web summary only.** Not the private SigilForge archive. Full diligence materials are shared by request, not linked here.
 
 **Studio:** SigilForge Studios
-**Version:** Public summary · July 2026
+**Version:** Public summary · July 2026 · updated October 18, 2026
 **Access:** Public
 
 ## Sequencing principle
@@ -17,11 +17,22 @@ Already shipping or live:
 - Operator Core and Handler Core (paid)
 - Free Needlepoint onboarding funnel
 - Operator/Handler play surfaces (deliberate Cell sync)
-- VeilLink identity, ownership, and Table Live-Link
-- Book One direct digital + wallpaper pack
+- VeilLink identity, ownership, and Live-Link sign-in
+- Book One (CradlePoint: VeilSight) direct digital — PDF, EPUB, MOBI + wallpaper pack
 - Digital shelf previews
 - Public archive / wiki
 - Fiction line and canon library
+
+## Commercial launch sequence
+
+Products already sell direct (itch storefront, Book One checkout). The expanded line launches in this order:
+
+1. **Entity formation** — a limited liability company for SigilForge Studios (planned; not yet formed)
+2. **EIN and payment readiness** — EIN, business banking, and storefront/payment accounts under the entity
+3. **Coordinated commercial launch** — direct digital, print-on-demand editions, and storefront listings together
+4. **Convention announcement** — targeted for February 2027 (a target, not a commitment)
+
+Crowdfunding is not a step in this sequence; it remains a separate, optional financing or promotional decision.
 
 ## Layer 2 — Funded publishing growth (12–24 months)
 
@@ -29,7 +40,7 @@ Funding accelerates:
 
 - Weekly production cadence with monthly public release target (not a claim of one complete commercial module every week)
 - Professional finish of flagship materials
-- Storefront, print stock, conventions, creator media
+- Storefront, print-on-demand editions, conventions, creator media
 - Structured progression-year releases
 
 ## Layer 3 — ARG + long-term AR / Ritual Sites (2–5 years)

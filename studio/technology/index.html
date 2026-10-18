@@ -58,7 +58,7 @@
           <span class="status-pill live">Live · implemented</span>
           <h2 style="margin:.55rem 0 1rem">VeilDaemon today</h2>
           <p>Purpose-built browser infrastructure for public intake, Operator and Handler consoles, reporting, and live play. <strong>VeilDaemon provides the Operator and Handler play surfaces.</strong> Each role keeps local control of their tools, then uses deliberate Cell synchronization so Harm, Stability, and other whitelisted session fields move at procedural boundaries.</p>
-          <p>Same-origin play uses the Cell bus on the Operator and Handler surfaces. Multi-device play uses <strong>VeilLink accounts and Live-Link</strong>—without background polling or continuous state transfer. State moves only through <strong>Send to Cell</strong>, <strong>End Pressure Round</strong>, <strong>Sync Cell</strong>, and <strong>Archive Operation</strong>.</p>
+          <p>Same-origin play uses the Cell bus on the Operator and Handler surfaces. Multi-device play uses <strong>VeilLink accounts and Live-Link</strong>—without background polling or continuous state transfer. State moves only through <strong>Send to Cell</strong>, <strong>End Pressure Round</strong>, <strong>Sync Cell</strong>, and <strong>Archive Session</strong>.</p>
           <p>The product and production claims stay separate: this is working play software, while the studio’s content workflow is AI-assisted and governed by human review. VeilDaemon is not presented as a proprietary AI framework.</p>
           <div class="proof-chips">
             <span>Operator surface</span>
@@ -83,7 +83,7 @@
           <p class="tech-intro" style="margin-top:0"><strong>VeilLink provides the authenticated identity, ownership, lobby, and multi-device connection layer.</strong> Accounts hold purchased recoveries and Book One delivery; Live-Link connects Operators and a Handler across devices; dynamic QR / short links keep printed targets stable when destinations change. Supabase Auth/Postgres, Stripe billing, Creator Rights publication records, redirect ownership enforcement, QR downloads, scan storage, and server-side free-plan limits are in place.</p>
           <div class="capability-grid">
             <article><h3>Accounts &amp; ownership</h3><p>Authentication, purchased recoveries, Book One checkout claim, and future identity-linked releases.</p></article>
-            <article><h3>Live-Link</h3><p>Authenticated multi-device sessions with Operator Send to Cell and Handler controls for End Pressure Round, Sync Cell, and Archive Operation.</p></article>
+            <article><h3>Live-Link</h3><p>Authenticated multi-device sessions with Operator Send to Cell and Handler controls for End Pressure Round, Sync Cell, and Archive Session.</p></article>
             <article><h3>Creator Rights</h3><p>Payment-governed publication records expose stable public URLs, JSON metadata, AI permission declarations, license-request paths, and QR-linked publication verification. <a href="/studio/creator-rights/">View Creator Rights Records</a>.</p></article>
             <article><h3>Dynamic links &amp; QR</h3><p>Editable destinations, stable printed QR targets via <code>go.veildaemon.app</code>, downloads, and scan records.</p></article>
             <article><h3>Operational status</h3><p><span class="status-pill live">Live MVP</span> at <a href="https://app.veildaemon.app/" target="_blank" rel="noopener noreferrer">app.veildaemon.app ↗</a>.</p></article>
@@ -102,7 +102,7 @@
       </div>
       <div class="capability-grid">
         <article><h3>Operator</h3><p>Intake, sheet-facing tools, local records, pressure/harm surfaces, and Send to Cell during Live-Link.</p></article>
-        <article><h3>Handler</h3><p>Case, clock, clue, Live dashboard, and deliberate Cell controls: End Pressure Round, Sync Cell, and Archive Operation.</p></article>
+        <article><h3>Handler</h3><p>Case, clock, clue, Live dashboard, and deliberate Cell controls: End Pressure Round, Sync Cell, and Archive Session.</p></article>
         <article><h3>Connected Cell</h3><p>Operators and the Handler share one active mission while retaining local drafts between deliberate synchronization points—not a solitary notepad, not continuous background transfer.</p></article>
         <article><h3>Continuity</h3><p>Reporting and debrief paths so operations do not evaporate after the Cell closes. Lotus cultivation and advancement remain between operations.</p></article>
         <article><h3>Verification</h3><p>Browser test suite and production discipline around public surfaces.</p></article>
@@ -118,7 +118,7 @@
       <p class="tech-intro">VeilLink does not continuously monitor or mirror participant sheets. It transfers a restricted set of fields at explicit procedural boundaries. Sheet and Handler records stay under local control until a deliberate action moves them—Cell sync for Cell state, or a report/debrief submission to the Studio API. Public archive publication requires approval of the displayed redacted draft and a separate Studio review. Multi-device Live-Link requires a VeilLink login.</p>
       <div class="trust-flow" aria-label="Session and report information flow">
         <article><span>01 · Local edit</span><h3>Console control</h3><p>Operators and Handlers edit their own surfaces first; authority rules apply when Cell sync runs.</p></article>
-        <article><span>02 · Deliberate sync</span><h3>Operation state</h3><p>Send to Cell, End Pressure Round, Sync Cell, and Archive Operation move whitelisted fields (same-origin Cell bus or VeilLink Live-Link).</p></article>
+        <article><span>02 · Deliberate sync</span><h3>Operation state</h3><p>Send to Cell, End Pressure Round, Sync Cell, and Archive Session move whitelisted fields (same-origin Cell bus or VeilLink Live-Link).</p></article>
         <article><span>03 · Optional report</span><h3>Debrief / archive</h3><p>A separate deliberate action may send a report for private Studio review; only approved material may become public.</p></article>
       </div>
     </section>
@@ -253,7 +253,7 @@
         <article><span class="status-pill future">Hypothetical</span><h3>Event passes</h3><p>Time-bounded live or hybrid access.</p></article>
         <article><span class="status-pill future">Hypothetical</span><h3>Venue activations</h3><p>Commissioned site experiences.</p></article>
         <article><span class="status-pill future">Hypothetical</span><h3>Privacy-preserving location use</h3><p>Test location activation without unnecessary background tracking or behavioral profiling.</p></article>
-        <article><span class="status-pill planning">Sequence</span><h3>Near-term engine</h3><p>Tabletop + Needlepoints + crowdfunding/print remain the near-term commercial engine.</p></article>
+        <article><span class="status-pill planning">Sequence</span><h3>Near-term engine</h3><p>Tabletop + Needlepoints + print-on-demand editions remain the near-term commercial engine; crowdfunding is optional.</p></article>
       </div>
     </section>
 

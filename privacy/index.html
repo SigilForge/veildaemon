@@ -26,13 +26,14 @@
       <header class="topline">
         <div><p class="kicker">VEILDAEMON // TRUST SURFACE</p><h1>PRIVACY</h1><p class="subhead">Local records and volunteered transfers are different systems.</p></div>
       </header>
-      <section class="readout"><p><span class="prompt">&gt;</span> Effective July 12, 2026.</p><p><span class="prompt">&gt;</span> VeilDaemon does not sell personal data.</p></section>
+      <section class="readout"><p><span class="prompt">&gt;</span> Effective July 12, 2026. Updated October 18, 2026.</p><p><span class="prompt">&gt;</span> VeilDaemon does not sell personal data.</p></section>
       <section class="legal-copy">
         <h2>Local browser records</h2>
         <p>Operator intake, local Operator records, console state, case notes, and related local tools use browser storage on the device you are using. They are not transferred merely because you create or edit them. Browser clearing, private-browsing behavior, device loss, software changes, or the local purge controls can remove them. “Purge Local Record” removes the identified local browser record; Operator-console purge controls remove that console’s local state. These controls do not delete reports you separately volunteered to the report service.</p>
 
         <h2>Analytics</h2>
-        <p>Public VeilDaemon pages use Ahrefs Analytics to understand aggregate traffic and page use. VeilDaemon does not intentionally install advertising-network trackers or sell analytics data.</p>
+        <p>Public VeilDaemon pages use Ahrefs Analytics to understand aggregate traffic and page use. The intake page also loads Umami Analytics. The Operator and Handler consoles request Vercel Web Analytics, which reports only where those consoles are served from a Vercel host. VeilDaemon does not intentionally install advertising-network trackers or sell analytics data.</p>
+        <p>The intake terminal also sends short observation events to api.veildaemon.app when intake opens, completes, or routes you onward. An event can include the page path, the referring site’s host name, campaign tags from the link you arrived on (utm_source, utm_medium, utm_campaign, utm_content), and the intake result: primary Frequency, classification, attention status, access level, files reviewed, clearance, and route. Completed intakes are added to weekly counts kept for up to about 400 days. The counter does not store your designation, IP address, user agent, or Discord ID. Hosting providers may keep standard request logs under their own policies.</p>
 
         <h2>Debrief submissions</h2>
         <p>When you submit a debrief, VeilDaemon transmits the selected role, Needlepoint, Operator count, best moment, confusing rule or scene, requested improvements, full feedback, and any optional handle or email to <code>api.veildaemon.app</code>. The information is used for product feedback, review, redaction, and—only when separately approved—possible publication of the reviewed public version.</p>
