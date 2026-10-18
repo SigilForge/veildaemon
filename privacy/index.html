@@ -41,6 +41,10 @@
         <h2>Volunteered anomaly reports</h2>
         <p>Local anomaly logs remain local unless you choose “Log + Volunteer Copy.” A volunteered copy transmits Operator name and designation, primary Frequency, classification, active Needlepoint, scene, impossible detail, severity, tags, and notes. Do not volunteer sensitive information.</p>
 
+        <h2>Optional sign-in and Live-Link</h2>
+        <p>Operator and Handler consoles work without signing in. Signing in with a VeilLink account is optional. It does not change or remove local browser records.</p>
+        <p>When you join or run a Live-Link Cell, the service stores what the session needs. That includes the account’s email for sign-in, the Operator name and designation you choose, the session join code and status, the fields sent at each sync action (Send to Cell, End Pressure Round, Sync Cell, Archive Session), a history of those field changes, roll results, and session events. The Handler and the Operators in that Cell can see that session’s shared state.</p>
+        <p>Retention periods for Live-Link session data and VeilLink accounts have not yet been published, and there is no self-service deletion yet. Send deletion requests to support@veildaemon.app.</p>
         <h2>Storage, access, and retention</h2>
         <p>Submitted debriefs and volunteered anomaly reports are stored through the report service. Production storage uses Upstash Redis when configured; an in-memory fallback may be used in other environments. Access to full submissions is restricted to administrators with the report-review credential. The service retains up to 500 debriefs and 500 anomaly reports; older records may be displaced by that collection limit, and administrators may delete records during review. No fixed time-based deletion schedule is currently established.</p>
 

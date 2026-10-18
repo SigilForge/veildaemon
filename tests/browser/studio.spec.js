@@ -213,7 +213,8 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#capital h2")).toHaveText("What changes within twelve months?");
     await expect(page.locator("#founder h2")).toHaveText("Why this founder can execute");
     await expect(page.locator("#structure")).toContainText(/separate publishing budget covers title-specific editorial production/i);
-    await expect(page.locator("#structure")).toContainText(/Re-scope pending/);
+    await expect(page.locator("#structure")).toContainText(/Pending founder approval/);
+    await expect(page.locator("#structure")).toContainText(/No replacement use has been set/);
     await expect(page.locator("#structure")).toContainText("$7,500");
     await expect(page.locator("#launch-sequence")).toContainText(/Planned; not yet formed/);
     await expect(page.locator("#launch-sequence")).toContainText(/February 2027/);
