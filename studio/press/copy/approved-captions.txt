@@ -1,5 +1,5 @@
 SigilForge Studios — Approved Press Captions
-Updated: September 2026
+Updated: October 2026
 
 FOUNDER
 J. Donavon Love, founder, systems designer, creative director, and canon authority behind SigilForge Studios.
@@ -19,7 +19,7 @@ VEILDAEMON
 VeilDaemon live browser platform showing Operator and Handler play surfaces.
 
 VEILLINK
-VeilLink — SigilForge Studios’s account, ownership, Table Live-Link, and dynamic link layer.
+VeilLink — SigilForge Studios’s account, ownership, Live-Link, and dynamic link layer.
 
 PLANNED TECHNOLOGY
 VeilDaemon Mobile AR concept image. Mobile AR is a separately scoped proposed direction, not a currently shipping product.

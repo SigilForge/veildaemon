@@ -75,3 +75,32 @@ test("public pages avoid false entity and all-data-local claims", async () => {
   expect(text).not.toMatch(/SigilForge Studios (?:LLC|Inc\.|Corporation)/i);
   expect(text).not.toMatch(/registered trademark/i);
 });
+
+test("copyright page matches the dual-layer LICENSE and entity status", async () => {
+  const page = fs.readFileSync(path.join(root, "studio/copyright/index.html"), "utf8");
+  expect(page).toMatch(/VeilDaemon Core source code is licensed under the <a[^>]*>Apache License, Version 2\.0<\/a>/);
+  expect(page).toMatch(/SigilForge Rights Framework \(SFR\)/);
+  expect(page).not.toMatch(/proprietary commercial software/i);
+  expect(page).not.toMatch(/Proprietary; All Rights Reserved/);
+  expect(page).toMatch(/not yet a separately formed legal entity/i);
+  expect(page).toMatch(/does not claim government copyright or trademark registration/i);
+  expect(page).toMatch(/does not narrow, revoke, or add to any grant the LICENSE already makes/i);
+  expect(page).not.toMatch(/treated as SFR/i);
+});
+
+test("press kit copy keeps entity status and routes contact through studio addresses", async () => {
+  const copyDir = path.join(root, "studio/press/copy");
+  const text = fs.readdirSync(copyDir).map((file) => fs.readFileSync(path.join(copyDir, file), "utf8")).join("\n");
+  expect(text).not.toMatch(/@gmail\.com/i);
+  expect(text).toMatch(/limited liability company for the studio is planned but not yet formed/i);
+  expect(text).not.toMatch(/SigilForge Studios (?:LLC|Inc\.|Corporation)/i);
+});
+
+test("privacy notices disclose account and purchase data without promising unpublished retention", async () => {
+  const studio = fs.readFileSync(path.join(root, "studio/privacy/index.html"), "utf8");
+  const veil = fs.readFileSync(path.join(root, "privacy/index.html"), "utf8");
+  expect(studio).not.toMatch(/Studio pages use <strong>Vercel Web Analytics/);
+  expect(studio).toMatch(/Not yet published:<\/strong> retention periods/);
+  expect(veil).toMatch(/Umami Analytics/);
+  expect(veil).toMatch(/Retention periods for Live-Link session data and VeilLink accounts have not yet been published/);
+});

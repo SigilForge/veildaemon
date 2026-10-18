@@ -3,7 +3,7 @@
 > **Open-web summary only.** Not the private SigilForge archive. Full diligence materials are shared by request, not linked here.
 
 **Studio:** SigilForge Studios
-**As-of:** July 10, 2026 (public rounded figures)  
+**As-of:** July 10, 2026 (public rounded figures) · release status updated October 18, 2026<br>
 **Access:** Public
 
 ## Production proof
@@ -16,6 +16,12 @@
 | Software verification | Automated browser test suite; repository evidence linked below |
 | Marketing image library | Nearly 1K |
 
+## Shipped since the snapshot (status checked October 18, 2026)
+
+- Book One, CradlePoint: VeilSight — direct digital live (PDF, EPUB, MOBI + wallpaper pack); revised edition v49 published October 1, 2026
+- Creator Rights Registry — publicly live since July 29, 2026 with 12 public records; SigilForge Rights Framework 1.0 on July 31, 2026
+- Cell / Live-Link — Operator and Handler apps connected live across devices with VeilLink sign-in, August 3, 2026
+
 ## Market evidence
 
 - Storefront: 100+ views and 10+ free downloads; itch.io analytics; latest tracked month; organic; reach + action
@@ -23,6 +29,8 @@
 - Facebook: ~1.1K views; platform insights; 28 days; organic; reach
 - X: ~2.2K impressions; platform analytics; three months; organic; reach
 - Paid acquisition spend: $0 through the July 10, 2026 snapshot
+
+Platform figures have not been re-captured since July 10, 2026; they will be replaced only from new dated platform exports.
 
 ## Measurement next
 

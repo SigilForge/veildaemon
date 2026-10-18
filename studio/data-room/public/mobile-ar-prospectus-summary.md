@@ -22,7 +22,7 @@ Mobile AR is a proposed location-based narrative encounter layer connected to Cr
 
 ## Near-term commercial engine
 
-Not AR. Tabletop + Needlepoints + crowdfunding/print first; AR rides an audience and IP pipeline.
+Not AR. Tabletop + Needlepoints + print-on-demand editions first; AR rides an audience and IP pipeline.
 
 ## Validation (high level)
 

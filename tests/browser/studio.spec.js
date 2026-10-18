@@ -213,6 +213,12 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#capital h2")).toHaveText("What changes within twelve months?");
     await expect(page.locator("#founder h2")).toHaveText("Why this founder can execute");
     await expect(page.locator("#structure")).toContainText(/separate publishing budget covers title-specific editorial production/i);
+    await expect(page.locator("#structure")).toContainText(/Pending founder approval/);
+    await expect(page.locator("#structure")).toContainText(/No replacement use has been set/);
+    await expect(page.locator("#structure")).toContainText("$7,500");
+    await expect(page.locator("#launch-sequence")).toContainText(/Planned; not yet formed/);
+    await expect(page.locator("#launch-sequence")).toContainText(/February 2027/);
+    await expect(page.locator("#launch-sequence")).toContainText(/Crowdfunding is not a step in this sequence/);
     await expect(page.locator("#structure")).toContainText(/does not include a full Mobile AR product budget/i);
     await expect(page.locator("#structure")).toContainText("Illustrative contribution: up to $20K");
     await expect(page.locator("#structure")).toContainText(/separate from the \$67K studio-growth request/i);
@@ -333,7 +339,7 @@ test.describe("studio subtree routes", () => {
   test("publishing page leads with the existing commercial opportunity", async ({ page }) => {
     await page.goto("/studio/publishing/");
     await expect(page.locator("h1")).toHaveText("A publishing line already in market.");
-    await expect(page.locator(".publishing-brief")).toContainText("Book One (PDF + wallpapers) · tabletop · digital assets · future Studio editions");
+    await expect(page.locator(".publishing-brief")).toContainText("Book One (PDF, EPUB, MOBI + wallpapers) · tabletop · digital assets · future Studio editions");
     await expect(page.locator(".publishing-brief")).toContainText("Direct digital · Full Core Set · VeilLink checkout");
     await expect(page.locator(".publishing-brief")).toContainText("Professional production, print, distribution, and audience growth");
     await expect(page.locator(".release-inventory > a")).toHaveCount(4);
@@ -343,6 +349,8 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator('a[href="https://play.veildaemon.app/"]')).toHaveCount(3);
     await expect(page.locator('a[href="https://itch.io/s/195935/the-cradlepoint-archive-full-core-set"]')).toHaveCount(1);
     await expect(page.locator("#partner-frame")).toContainText(/rights, exclusivity, marketing obligations/i);
+    await expect(page.locator(".route-compare")).toContainText(/no default bulk inventory, warehousing, or self-fulfillment/i);
+    await expect(page.locator(".route-compare")).toContainText(/not a prerequisite for selling print-on-demand books/i);
     await expect(page.getByRole("heading", { name: "Choose the route around an existing catalog" })).toBeVisible();
     await noHorizontalOverflow(page);
   });
