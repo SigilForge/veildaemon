@@ -30,9 +30,9 @@ Products already sell direct (itch storefront, Book One checkout). The expanded 
 1. **Entity formation** — a limited liability company for SigilForge Studios (planned; not yet formed)
 2. **EIN and payment readiness** — EIN, business banking, and storefront/payment accounts under the entity
 3. **Coordinated commercial launch** — direct digital, print-on-demand editions, and storefront listings together
-4. **Convention announcement** — targeted for February 2027 (a target, not a commitment)
+4. **Convention announcement and Kickstarter** — the CradlePoint Starter is announced and its Kickstarter launches, if the campaign is production-ready; targeted for February 2027 (a target, not a commitment)
 
-Crowdfunding is not a step in this sequence; it remains a separate, optional financing or promotional decision.
+Preparation before February runs on existing resources and any separately confirmed funding. It does not assume Kickstarter proceeds or the $67,000 budget. Print-on-demand sales do not depend on the campaign.
 
 ## Layer 2 — Funded publishing growth (12–24 months)
 
@@ -50,8 +50,8 @@ Persistent Mobile AR and Ritual Sites remain long-term platform vision and bound
 
 ## Capital separation
 
-- **$67K / 12 months** — studio growth envelope
-- **Publishing production** — separate after route choice
+- **$67K / 12 months** — first-year operating and production budget, including the CradlePoint Starter and first-year publishing program
+- **Funding channels** — investors, grants, and a planned Kickstarter fund the same plan; never counted twice
 - **Mobile AR MVP** — separate after technical quotes
 - **≤$20K PoC** — optional bounded barrier, not studio valuation
 

@@ -16,7 +16,7 @@ Free Needlepoint → Operator or Handler Pack → Core / campaign material → V
 ## Routes
 
 1. **Direct independent (default)** — digital and print-on-demand; control and learning speed. No default bulk inventory, warehousing, or self-fulfillment
-2. **Crowdfunded print (optional)** — a separate financing or promotional decision; funds production and identifies a launch cohort. Not required to sell POD editions
+2. **Kickstarter (planned for the CradlePoint Starter)** — launches with the February 2027 convention announcement if production-ready; a channel toward the first-year budget. Not required to sell POD editions
 3. **Publishing partnership** — advance or contribution vs margin and rights tradeoffs  
 
 ## Print model
@@ -25,11 +25,11 @@ Print-on-demand first: physical editions are printed per order. Offset runs, war
 
 ## Near-term revenue engine
 
-Tabletop core products + recurring Needlepoints + print-on-demand editions. Crowdfunding is optional.<br>
+Tabletop core products + recurring Needlepoints + print-on-demand editions, with a CradlePoint Starter Kickstarter planned.<br>
 Premium VeilDaemon content and events follow. Mobile AR is later upside.
 
 ## Decision gates
 
-Professional digital scope and quotes · crowdfunding prelaunch threshold (only if a campaign is chosen) · partnership rights floor · scale only with margin and cadence evidence.
+Professional digital scope and quotes · Kickstarter readiness gates (production-ready Starter, costed rewards, prelaunch threshold) · partnership rights floor · scale only with margin and cadence evidence.
 
 Full prospectus, financial scenarios, and assumptions: request data-room access.
