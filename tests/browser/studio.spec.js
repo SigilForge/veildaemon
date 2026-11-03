@@ -2,12 +2,20 @@ const { test, expect } = require("@playwright/test");
 const path = require("path");
 const fs = require("fs");
 const { Readable } = require("stream");
+const { execFileSync } = require("child_process");
+
+// The Web Design brochure is commercial, so it is served from Cloudflare Pages
+// (design.veildaemon.app), not GitHub Pages; /studio/web-design/ forwards there.
+// Its tests run against the Cloudflare build output, generated here.
+const WEB_DESIGN_BUILD = "/deploy/web-design-pages/public/";
+function buildWebDesign() {
+  execFileSync("node", [path.join(__dirname, "../../scripts/prepare-web-design-pages.mjs")], { stdio: "ignore" });
+}
 
 const reviewDir = "/tmp/studio-review";
 const studioRoutes = [
   { path: "/studio/", name: "portal", title: /SigilForge Studios.*TTRPG|TTRPG.*SigilForge Studios|SigilForge Studios/, h1: /One universe/ },
   { path: "/studio/about/", name: "about", title: /About SigilForge Studios/, h1: /Translation before mythology/ },
-  { path: "/studio/web-design/", name: "web-design", title: /Small Business Web Design/, h1: /Get Online Without|Websites Built/ },
   { path: "/studio/projects/", name: "projects", title: /Projects/, h1: /One system/ },
   { path: "/studio/publishing/", name: "publishing", title: /Publishing/, h1: /publishing line already in market/ },
   { path: "/studio/technology/", name: "technology", title: /Technology/, h1: /Shipping infrastructure first/ },
@@ -264,9 +272,18 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("main")).toContainText(/Fiction Book One/i);
   });
 
-  test("web design service page scope, pricing, and inquiry form", async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 1000 });
+  test("old web design path forwards to design.veildaemon.app", async ({ page }) => {
+    await page.route("https://design.veildaemon.app/**", (route) =>
+      route.fulfill({ status: 200, contentType: "text/html", body: "<title>design</title>" })
+    );
     await page.goto("/studio/web-design/");
+    await expect(page).toHaveURL("https://design.veildaemon.app/");
+  });
+
+  test("web design service page scope, pricing, and inquiry form", async ({ page }) => {
+    buildWebDesign();
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(WEB_DESIGN_BUILD);
     await expect(page).toHaveTitle(/Small Business Web Design/);
     await expect(page.locator('meta[name="description"]')).toHaveAttribute(
       "content",
@@ -275,7 +292,7 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /index,\s*follow/i);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
-      "https://veildaemon.app/studio/web-design/"
+      "https://design.veildaemon.app/"
     );
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
     const webDesignLd = await page.locator('script[type="application/ld+json"]').first().innerHTML();
@@ -303,7 +320,7 @@ test.describe("studio subtree routes", () => {
     await expect(page.locator("#care-plans .wd-x li")).toHaveCount(6);
     await expect(page.locator("#why-affordable")).toContainText(/work directly with the person designing/i);
     await expect(page.locator("#existing-work a[href='https://veildaemon.app']")).toHaveCount(1);
-    await expect(page.locator("#existing-work a[href='/studio/']")).toHaveCount(1);
+    await expect(page.locator("#existing-work a[href='https://veildaemon.app/studio/']")).toHaveCount(1);
     await expect(page.locator("#existing-work .wd-work-media")).toHaveCount(2);
     await expect(page.locator("#existing-work .wd-work-body")).toHaveCount(2);
     const workMetrics = await page.locator("#existing-work .wd-work-card").evaluateAll((cards) =>
@@ -331,7 +348,7 @@ test.describe("studio subtree routes", () => {
     await noHorizontalOverflow(page);
 
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/studio/web-design/");
+    await page.goto(WEB_DESIGN_BUILD);
     await noHorizontalOverflow(page);
     await expect(page.locator("#project-review-form")).toBeVisible();
   });

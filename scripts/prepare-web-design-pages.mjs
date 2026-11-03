@@ -8,7 +8,9 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const out = resolve(root, "deploy/web-design-pages/public");
-const original = readFileSync(resolve(root, "studio/web-design/index.html"), "utf8");
+// Source lives outside .html paths: GitHub Pages (.nojekyll) publishes every
+// repo file, and a sales page there is what this split removes.
+const original = readFileSync(resolve(root, "deploy/web-design-pages/brochure.src"), "utf8");
 const css = readFileSync(resolve(root, "studio/studio.css"), "utf8");
 
 function assetPaths(content, baseUrl) {

@@ -176,16 +176,15 @@ async function main() {
   } else {
     logStep("Phase 5: Vercel Deployments");
 
-    // 5a. VeilLink App (app.veildaemon.app) -- via the guarded deploy path
-    // (scripts/deploy-veillink.mjs), never a raw `vercel --prod --yes`. That
-    // script verifies veillink/.vercel/project.json targets the correct,
-    // separate VeilLink Vercel project before deploying anything -- see
-    // AGENTS.md "Deploy Surfaces" for why that distinction matters.
-    logStep("5a. Deploying VeilLink (app.veildaemon.app)...");
+    // 5a. VeilLink App (app.veildaemon.app) now runs on Cloudflare, not
+    // Vercel (commercial use is not permitted on Hobby). The canonical path is
+    // scripts/deploy-veillink-cloudflare.mjs: raster Worker, app Worker, then
+    // the Pages front that owns the domain and serves the Book One claim.
+    logStep("5a. Deploying VeilLink to Cloudflare (app.veildaemon.app)...");
     const veillinkDir = resolve(root, "veillink");
     if (existsSync(veillinkDir)) {
-      run("node", ["scripts/deploy-veillink.mjs"], { cwd: root });
-      logOk("VeilLink production build deployed to app.veildaemon.app");
+      run("node", ["scripts/deploy-veillink-cloudflare.mjs"], { cwd: root });
+      logOk("VeilLink production build deployed to app.veildaemon.app (Cloudflare)");
     }
 
     // 5b. RelayDaemon (relay.veildaemon.app) - run if Relay files changed or requested

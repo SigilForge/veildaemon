@@ -21,7 +21,7 @@
  *       Run the real claim for a real paid session and hash-check every delivered file against the
  *       manifest. Without --base-url it invokes api/book-one/claim.js locally with the manifest's
  *       object paths (the pre-switch check: same code, same Stripe, same bucket, same ledger). With
- *       --base-url (e.g. https://api.veildaemon.app) it checks the live endpoint (the post-switch
+ *       --base-url (e.g. https://app.veildaemon.app) it checks the live endpoint (the post-switch
  *       check). Note: a claim is recorded against that purchase each run, as it would be for a buyer.
  *
  *   node scripts/publish-book-one-release.mjs cleanup-test-purchases --stripe-mode test [--session cs_test_...]
@@ -29,14 +29,15 @@
  *       The test gate runs this for its own session after every verification, pass or fail.
  *
  *   node scripts/publish-book-one-release.mjs switch [--dry-run]
- *       Point production delivery at the manifest: set the Vercel BOOK_ONE_SUPABASE_PATH override
- *       (Production + Preview) to the manifest PDF path and rename the Stripe product to the manifest
+ *       Point production delivery at the manifest: set BOOK_ONE_SUPABASE_PATH to the manifest PDF path
+ *       on the Cloudflare claim front (veillink-app-front, which serves the live claim) and on the
+ *       legacy Vercel claim (Production + Preview), and rename the Stripe product to the manifest
  *       title, and mirror the rights record's newest version into Supabase (new version row + live row
  *       title/edition/fingerprint). Code/page changes ship through the normal `npm run push`.
  *
  * Credentials come from the environment, falling back to veillink/.env: STRIPE_SECRET_KEY,
- * SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL). The Vercel CLI must be
- * logged in for `switch`.
+ * SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL). Wrangler and the Vercel
+ * CLI must be logged in for `switch`; the front picks up the new path on its next deploy (`npm run push`).
  */
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
@@ -331,6 +332,16 @@ async function switchDelivery() {
   if (MODE !== "live") fail("switch only runs in live mode");
   const m = manifest();
   const dry = Boolean(flags["dry-run"]);
+  console.log(`${dry ? "[dry-run] " : ""}Cloudflare veillink-app-front BOOK_ONE_SUPABASE_PATH -> ${m.pdf_path}`);
+  if (!dry) {
+    const put = spawnSync(
+      "npx",
+      ["wrangler", "pages", "secret", "put", "BOOK_ONE_SUPABASE_PATH", "--project-name", "veillink-app-front"],
+      { cwd: root, input: m.pdf_path, encoding: "utf8", env: { ...process.env, CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID || "907f5498d002a7a9c94ddfc5fb9a7f92" } }
+    );
+    if (put.status !== 0) fail(`wrangler pages secret put failed: ${put.stderr}`);
+    ok("BOOK_ONE_SUPABASE_PATH (Cloudflare claim front) set");
+  }
   for (const env of ["production", "preview"]) {
     console.log(`${dry ? "[dry-run] " : ""}vercel env BOOK_ONE_SUPABASE_PATH (${env}) -> ${m.pdf_path}`);
     if (dry) continue;

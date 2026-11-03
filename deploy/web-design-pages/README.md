@@ -1,6 +1,9 @@
 # Commercial Web Design brochure on Cloudflare Pages Free
 
-This is a standalone copy of `studio/web-design/index.html`, not a new checkout
+The page source is `deploy/web-design-pages/brochure.src` (moved out of
+`studio/web-design/index.html`, which is now a forwarding page to
+`design.veildaemon.app`). The `.src` extension keeps GitHub Pages from
+serving it as a page. This is not a new checkout
 system. Payment is handled directly by existing Stripe Payment Links and the
 review form currently composes an email. The copy preserves both.
 
