@@ -4,6 +4,7 @@
 [build]
   command = "node scripts/prepare-relay-netlify.mjs"
   publish = "deploy/relay-netlify/public"
+  ignore = 'test -n "$CACHED_COMMIT_REF" && git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- deploy/relay-netlify studio/relay studio/studio.css studio/assets/brand assets/background.webp scripts/sync-relay-personas.mjs scripts/prepare-relay-netlify.mjs api/character.js api/scan-code.js netlify/functions/api.mjs lib/alertQueue.js package.json package-lock.json'
 
 [build.environment]
   NODE_VERSION = "22"
