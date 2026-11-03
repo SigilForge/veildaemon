@@ -7,6 +7,7 @@
 [build]
   command = "npm ci --prefix veillink --no-audit --no-fund && npm run build --prefix veillink"
   publish = "veillink/.next"
+  ignore = 'test -n "$CACHED_COMMIT_REF" && git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- veillink'
 
 [build.environment]
   NODE_VERSION = "22"
