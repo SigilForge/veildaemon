@@ -3,6 +3,9 @@
 [build]
   command = "npm run check"
   publish = "netlify/api-public"
+  # On this shared monorepo, only redeploy when API dependencies change.
+  # No cached ref (first build) must return exit 1, meaning DO build.
+  ignore = 'test -n "$CACHED_COMMIT_REF" && git diff --quiet "$CACHED_COMMIT_REF" "$COMMIT_REF" -- api lib netlify netlify.toml package.json package-lock.json'
 
 [build.environment]
   NODE_VERSION = "22"
@@ -12,8 +15,6 @@
   node_bundler = "esbuild"
   # Keep the WASM reader as a real package so require.resolve() can locate it.
   external_node_modules = ["zxing-wasm"]
-  # api/scan-code.js loads this file at startup using require.resolve().
-  # Esbuild cannot infer a runtime fs.readFileSync dependency on its own.
   included_files = ["node_modules/zxing-wasm/dist/reader/zxing_reader.wasm"]
 
 # The /api/* path is attached to netlify/functions/api.mjs through its
