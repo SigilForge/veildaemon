@@ -1,0 +1,15 @@
+# Netlify site 3: relay.veildaemon.app.
+# Repository: SigilForge/veildaemon
+# Package directory: deploy/relay-netlify; Base directory: leave empty.
+[build]
+  command = "node scripts/prepare-relay-netlify.mjs"
+  publish = "deploy/relay-netlify/public"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "deploy/relay-netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["zxing-wasm"]
+  included_files = ["node_modules/zxing-wasm/dist/reader/zxing_reader.wasm"]
