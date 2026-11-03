@@ -43,6 +43,7 @@ for (const pathname of assetSet) {
 let html = original
   // Keep unrelated site navigation on the original public game/wiki site.
   .replaceAll('href="/studio/web-design/"', 'href="./"')
+  .replaceAll('href="/"', 'href="https://veildaemon.app/"')
   .replace(/href="\/(studio\/|operator\/|handler\/|$)/g, 'href="https://veildaemon.app/$1')
   .replaceAll('https://veildaemon.app/studio/web-design/', 'https://design.veildaemon.app/')
   .replaceAll('<meta property="og:url" content="https://veildaemon.app/studio/web-design/" />', '<meta property="og:url" content="https://design.veildaemon.app/" />');
