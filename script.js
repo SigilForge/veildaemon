@@ -6,38 +6,97 @@ const commandLayerStorageKey = "veildaemon.commandLayer.v1";
 const rewardStorageKey = "veildaemon.artifactCache.v1";
 const archiveUrl = "https://wiki.veildaemon.app/";
 const caseFileUrl = "https://play.veildaemon.app/";
+// Routes resolve only on activation; the public client stores keys, never invites.
+const FUNCTION_URL = "https://iaeykfeyctujqsqyenqt.supabase.co/functions/v1/discord-route";
 const frequencyDiscordRoutes = {
-  Dream: "https://discord.gg/3C6nXeWkjs",
-  Silence: "https://discord.gg/guB7VRgA8R",
-  Hunger: "https://discord.gg/Q8rRwetUhF",
-  Stillness: "https://discord.gg/ryrAX48e67",
-  Empyrean: "https://discord.gg/eHHyEupuHy",
-  Becoming: "https://discord.gg/3RCK9BGkZ5"
+  Dream: "operator-dream",
+  Silence: "operator-silence",
+  Hunger: "operator-hunger",
+  Stillness: "operator-stillness",
+  Empyrean: "operator-empyrean",
+  Becoming: "operator-becoming"
 };
 const unstableFrequencyDiscordRoutes = {
-  Dream: "https://discord.gg/db2QBYMMBa",
-  Silence: "https://discord.gg/xwsc8EbPeH",
-  Hunger: "https://discord.gg/NjZVEwMBMS",
-  Stillness: "https://discord.gg/jMBdvcSXAe",
-  Empyrean: "https://discord.gg/yWMwM7h6yF",
-  Becoming: "https://discord.gg/tGqacRrTqx"
+  Dream: "triage-dream",
+  Silence: "triage-silence",
+  Hunger: "triage-hunger",
+  Stillness: "triage-stillness",
+  Empyrean: "triage-empyrean",
+  Becoming: "triage-becoming"
 };
-const legacyGenericDiscordRoutes = new Set([
-  "https://discord.gg/Bn6attnYN6",
-  "https://discord.gg/KRbckpfTQk"
-]);
-const observerLogPath = "/api/observe";
-const attributionStorageKey = "veildaemon.attribution.v1";
-const threadbreakerRoute = "https://discord.gg/Bn6attnYN6";
+const threadbreakerRoute = "threadbreaker";
 const currentDiscordRoutes = new Set([
   ...Object.values(frequencyDiscordRoutes),
   ...Object.values(unstableFrequencyDiscordRoutes),
   threadbreakerRoute
 ]);
+const observerLogPath = "/api/observe";
+const attributionStorageKey = "veildaemon.attribution.v1";
 
 function getDiscordRoute(frequency, unstable = false) {
   const routeMap = unstable ? unstableFrequencyDiscordRoutes : frequencyDiscordRoutes;
   return routeMap[frequency] || frequencyDiscordRoutes.Dream;
+}
+
+async function resolveDiscordRoute(routeKey) {
+  if (!currentDiscordRoutes.has(routeKey)) {
+    throw new Error("Unknown Discord route.");
+  }
+
+  const response = await fetch(`${FUNCTION_URL}?key=${encodeURIComponent(routeKey)}`, {
+    method: "GET",
+    cache: "no-store",
+    mode: "cors"
+  });
+  if (!response.ok) {
+    throw new Error("Discord route unavailable.");
+  }
+
+  const payload = await response.json();
+  if (!payload || typeof payload.url !== "string" ||
+      !/^https:\/\/discord\.gg\/[a-z0-9-]+$/i.test(payload.url)) {
+    throw new Error("Invalid Discord route target.");
+  }
+
+  return payload.url;
+}
+
+// A new window must be opened synchronously with the click, before fetch,
+// or popup blockers may prevent the resolved Discord invite from opening.
+async function openDiscordRoute(routeKey, onOpened = null, onUnavailable = null) {
+  const popup = window.open("about:blank", "_blank");
+  if (popup) {
+    popup.opener = null;
+  }
+
+  try {
+    const target = await resolveDiscordRoute(routeKey);
+    if (popup && !popup.closed) {
+      popup.location.replace(target);
+    } else if (!popup) {
+      // Browser denied the popup; use the existing tab instead.
+      window.location.assign(target);
+    } else {
+      return; // Visitor closed the pending tab.
+    }
+
+    if (onOpened) onOpened();
+  } catch (error) {
+    if (popup && !popup.closed) popup.close();
+    if (onUnavailable) onUnavailable();
+  }
+}
+
+function showDiscordRouteUnavailable(anchor) {
+  if (!anchor || !anchor.parentElement) return;
+  let notice = anchor.parentElement.querySelector(".discord-route-unavailable");
+  if (!notice) {
+    notice = document.createElement("p");
+    notice.className = "discord-route-unavailable risk";
+    notice.setAttribute("role", "status");
+    anchor.insertAdjacentElement("afterend", notice);
+  }
+  notice.textContent = "Route currently unavailable. Retry or return to Operator Intake.";
 }
 
 function observerReferrerHost() {
@@ -685,8 +744,8 @@ function normalizeOperatorRecord(record) {
   const stabilityState = record.stabilityState || record.stability || "NOMINAL";
   const attentionStatus = record.attentionStatus || record.attention || "LOW";
   const accessLevel = record.accessLevel || record.access || "PROVISIONAL";
-  const unstableRoute = attentionStatus === "DO NOT SUSTAIN EYE CONTACT" || stabilityState === "TRIAGE RECOMMENDED" || accessLevel === "REDACTED";
-  const storedDiscordRoute = currentDiscordRoutes.has(record.discordRoute) && !legacyGenericDiscordRoutes.has(record.discordRoute) ? record.discordRoute : null;
+  const unstableRoute = record.observerClassification === "CLAIMED" || record.observerClassification === "MISROUTED ASSET" || attentionStatus === "DO NOT SUSTAIN EYE CONTACT" || stabilityState === "TRIAGE RECOMMENDED" || accessLevel === "REDACTED";
+  const storedDiscordRoute = currentDiscordRoutes.has(record.discordRoute) ? record.discordRoute : null;
   const discordRoute = storedDiscordRoute || getDiscordRoute(primaryFrequency, unstableRoute);
 
   return {
@@ -723,7 +782,14 @@ function normalizeOperatorRecord(record) {
 function readOperatorRecord() {
   try {
     const storedRecord = window.localStorage.getItem(recordStorageKey) || window.localStorage.getItem(legacyRecordStorageKey);
-    return storedRecord ? normalizeOperatorRecord(JSON.parse(storedRecord)) : null;
+    if (!storedRecord) return null;
+    const parsed = JSON.parse(storedRecord);
+    const normalized = normalizeOperatorRecord(parsed);
+    // One-time cleanup of older browser records containing raw invite URLs.
+    if (normalized && parsed.discordRoute !== normalized.discordRoute) {
+      window.localStorage.setItem(recordStorageKey, JSON.stringify(normalized));
+    }
+    return normalized;
   } catch (error) {
     return null;
   }
@@ -1856,11 +1922,17 @@ function typeResultLines(lines, claimed, record) {
 
     routeWrap.className = "route-actions";
     operatorRoute.className = `button ${claimed ? "ghost" : "primary"} discord-route`;
-    operatorRoute.href = record.discordRoute;
-    operatorRoute.target = "_blank";
-    operatorRoute.rel = "noopener noreferrer";
+    operatorRoute.href = "#";
     operatorRoute.textContent = getOperatorRouteLabel(record);
-    operatorRoute.addEventListener("click", () => recordArchiveInteraction(claimed ? "triageChannel" : "operatorChannel"));
+    operatorRoute.addEventListener("click", (event) => {
+      event.preventDefault();
+      openDiscordRoute(record.discordRoute,
+        () => {
+          routeWrap.querySelector(".discord-route-unavailable")?.remove();
+          recordArchiveInteraction(claimed ? "triageChannel" : "operatorChannel");
+        },
+        () => showDiscordRouteUnavailable(operatorRoute));
+    });
 
     restartButton.className = "button ghost route-restart";
     restartButton.type = "button";
@@ -2067,7 +2139,7 @@ function appendCommandLine(text, className = "") {
   return line;
 }
 
-function appendCommandRoute(label, href, interactionType = "") {
+function appendCommandRoute(label, href, interactionType = "", discordRouteKey = null) {
   const output = document.getElementById("command-output");
 
   if (!output) {
@@ -2076,14 +2148,23 @@ function appendCommandRoute(label, href, interactionType = "") {
 
   const route = document.createElement("a");
   route.className = "button command-route";
-  route.href = href;
-  if (/^https?:\/\//i.test(href)) {
+  route.href = discordRouteKey ? "#" : href;
+  if (!discordRouteKey && /^https?:\/\//i.test(href)) {
     route.target = "_blank";
     route.rel = "noopener noreferrer";
   }
   route.textContent = label;
 
-  if (interactionType) {
+  if (discordRouteKey) {
+    route.addEventListener("click", (event) => {
+      event.preventDefault();
+      openDiscordRoute(discordRouteKey,
+        () => {
+          if (interactionType) recordArchiveInteraction(interactionType);
+        },
+        () => appendCommandLine("ROUTE UNAVAILABLE // Return to intake or retry."));
+    });
+  } else if (interactionType) {
     route.addEventListener("click", () => recordArchiveInteraction(interactionType));
   }
 
@@ -2348,7 +2429,7 @@ function executeCommand(rawCommand) {
   if (command === "threadbreaker" || command === "thread breaker") {
     appendCommandLine("Unlisted route acknowledged.");
     appendCommandLine("Misrouting can be useful when the thread was already broken.");
-    appendCommandRoute("Open Threadbreaker Route", threadbreakerRoute, "threadbreaker");
+    appendCommandRoute("Open Threadbreaker Route", "#", "threadbreaker", threadbreakerRoute);
     return;
   }
 
@@ -2491,7 +2572,7 @@ function renderOperatorTasking(record) {
   badge.textContent = record.attentionStatus || "NOTED";
   archiveRoute.href = record.archiveRoute || archiveUrl;
   caseFileRoute.href = caseFileUrl;
-  discordRoute.href = record.discordRoute || getDiscordRoute(record.primaryFrequency, claimed);
+  discordRoute.href = "#";
   discordRoute.target = "_blank";
   discordRoute.rel = "noopener noreferrer";
   discordRoute.classList.toggle("primary", !claimed);
@@ -2580,11 +2661,18 @@ document.getElementById("archive-route").addEventListener("click", () => recordA
 document.getElementById("case-file-route").addEventListener("click", () => recordArchiveInteraction("caseFile"));
 document.getElementById("task-archive-route").addEventListener("click", () => recordArchiveInteraction("archive"));
 document.getElementById("task-case-file-route").addEventListener("click", () => recordArchiveInteraction("caseFile"));
-document.getElementById("task-discord-route").addEventListener("click", () => {
+document.getElementById("task-discord-route").addEventListener("click", (event) => {
+  event.preventDefault();
   const record = intakeState.record || readOperatorRecord();
+  if (!record) return;
   const claimed = requiresReviewRoute(record);
-
-  recordArchiveInteraction(claimed ? "triageChannel" : "operatorChannel");
+  const route = event.currentTarget;
+  openDiscordRoute(record.discordRoute || getDiscordRoute(record.primaryFrequency, claimed),
+    () => {
+      route.parentElement?.querySelector(".discord-route-unavailable")?.remove();
+      recordArchiveInteraction(claimed ? "triageChannel" : "operatorChannel");
+    },
+    () => showDiscordRouteUnavailable(route));
 });
 document.getElementById("command-form").addEventListener("submit", submitCommand);
 syncRewardsFromCommandState();
