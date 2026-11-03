@@ -119,6 +119,10 @@ removing Vercel.
   including a signed Twitch challenge and forged signature rejection.
 - `node scripts/prepare-relay-netlify.mjs` — produced public assets and
   the scanner WASM; the output directory is gitignored.
+- `npm run typecheck --prefix veillink` — passed.
+- `npm run build --prefix veillink` — passed; Next.js dynamic routes and
+  proxy middleware built locally (this is not a Netlify OpenNext build).
+- `npm run test --prefix veillink` — 116 tests passed across 11 suites.
 
 These local tests **do not** establish Netlify platform compatibility or
 successful production deploys. At least one real Netlify preview and the above
