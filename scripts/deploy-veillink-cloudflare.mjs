@@ -25,9 +25,9 @@
  * values. After a real deploy it verifies the production hosts; a failed
  * verification is reported as such, never as a trusted release.
  *
- * Rollback while Vercel is still provisioned: point the Porkbun "app" CNAME
- * back at Vercel (see Docs/COMMERCIAL_HOSTING_SPLIT.md). The previous Vercel
- * deploy path remains available as `npm run veillink:deploy:vercel`.
+ * Rollback: redeploy an earlier version from Cloudflare deployment history
+ * (`npx wrangler rollback` for the Workers, Pages deployment history for the
+ * front). The old Vercel veillink project was deleted on 2026-11-03.
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";

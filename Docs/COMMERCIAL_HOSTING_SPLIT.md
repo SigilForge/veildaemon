@@ -19,14 +19,12 @@ Stripe: restricted key "VeilLink Cloudflare" (Checkout Sessions + Customer
 Portal write); live webhook endpoints were created fresh at cutover (none
 existed before; no live sale had gone through these flows).
 
-**Rollback** (while the Vercel projects still exist): point the Porkbun `app`
-and/or `go` CNAME back to `1ae0b94dbd121cf0.vercel-dns-017.com`; remove the
-`design` CNAME and revert the `/studio/web-design/` forwarding commit. The
-Stripe webhook endpoints point at `app.veildaemon.app`, so they follow `app`.
-
-**Still to retire after a quiet soak:** the Vercel `veillink` project (no
-domains route to it, but its `*.vercel.app` deployment still exists) and the
-Vercel-hosted copy of `api/book-one/claim.js` on `api.veildaemon.app`.
+**Retired (2026-11-03, soak waived by Knox):** the Vercel `veillink` project
+is deleted; `.vercelignore` keeps `api/book-one/` out of the Hobby root API
+deploy (the source stays as the single copy the Cloudflare front bundles); the
+Stripe and Book One variables are removed from the root Vercel project. There
+is no Vercel rollback for VeilLink any more: roll back by redeploying an
+earlier Cloudflare version (`wrangler rollback` / Pages deployment history).
 
 
 **No DNS or production client changes are included in this branch.**
