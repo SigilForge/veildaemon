@@ -38,14 +38,31 @@ The standalone Web Design site builder also passed locally and generated a
 2.5 MB publication directory including all 16 directly referenced assets.
 Its Cloudflare Pages custom domain and live preview remain pending.
 
+**Proxy secret and counter fix (2026-11-03):** `veillink-resolve` now rejects
+any request without the `x-veillink-proxy-secret` header matching the Edge
+Function secret `VEILLINK_PROXY_SECRET` (HTTP 401; HTTP 503 if the secret is
+unset), so the public function URL can no longer be called directly to forge
+analytics headers or inflate counts. Live checks: no secret 401, wrong secret
+401, valid secret + unknown slug 404, valid secret + `card` 302.
+`redirects.total_scans` had drifted from `scan_events` (`card`: 5 counted, 8
+logged) because the scan insert and the `increment_redirect_scans` RPC were
+independent writes. Migration `20261103053511_scan_counter_from_events` adds a
+`scan_events` insert trigger that increments the counter in the same
+transaction, turns the RPC into a no-op (so not-yet-redeployed resolvers cannot
+double count), and re-derived every counter from the scan log. Both resolvers
+now perform a single insert. The post-fix smoke scan of `card` (user agent
+`veillink-smoke-test`) moved counter and log together to 9/9; `card` now holds
+six synthetic test scans (five `curl/8.5.0`, one `veillink-smoke-test`).
+
 
 This branch implements:
 
 1. `supabase/functions/veillink-resolve/index.ts` — Edge Function that
    resolves a path slug against existing `redirects`, applies the exact active
    / expired / suspended rules, validates the target URL, issues a 302, and
-   records scan analytics using existing `scan_events` and
-   `increment_redirect_scans` in the background.
+   records the scan in `scan_events` in the background (a trigger keeps
+   `redirects.total_scans` in step). Requests must carry the shared
+   `x-veillink-proxy-secret`.
 2. `deploy/veillink-go-pages/functions/[slug].js` — tiny Cloudflare Pages
    handler on `go.veildaemon.app/<slug>`; forwards to the Supabase function
    without exposing service keys, and returns only verified HTTP(S) targets.
@@ -83,7 +100,11 @@ https://developers.cloudflare.com/pages/configuration/custom-domains/
   `deploy/veillink-go-pages` and build output directory `public`. Pages
   automatically finds the project's `functions/[slug].js`. Configure public environment value
   `VEILLINK_RESOLVER_URL` to the deployed Edge Function URL. It is an endpoint,
-  **not a secret**. No service-role key is stored in Cloudflare.
+  **not a secret**. Configure `VEILLINK_PROXY_SECRET` as an **encrypted** Pages
+  secret with the same value as the Edge Function secret of that name (kept
+  locally in `~/.veillink-proxy-secret`, never committed). Without it the
+  Pages function fails closed with 503. No service-role key is stored in
+  Cloudflare.
 - In Cloudflare Pages, add `go.veildaemon.app` under Custom Domains first;
   then change only Porkbun `go` CNAME to the Pages-provided `*.pages.dev`
   value. No unrelated DNS changes. Preserve original target for rollback.

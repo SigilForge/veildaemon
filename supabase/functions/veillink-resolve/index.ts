@@ -1,10 +1,12 @@
 // Public VeilLink redirect resolver. Deployed to the EXISTING Supabase project.
 // Only the path-mode QR redirects (go.veildaemon.app/<slug>) are handled here.
-// No authentication is required to follow a public link. Privileged Supabase
-// credentials never leave this function's server environment.
+// No user authentication is required to follow a public link, but requests must
+// come through the go.veildaemon.app proxy, which proves itself with the shared
+// VEILLINK_PROXY_SECRET. Privileged Supabase credentials never leave this
+// function's server environment.
 import {
   validSlug, stateForRedirect, statusForState, safeDestination,
-  deviceCategory, browserFamily, operatingSystem,
+  deviceCategory, browserFamily, operatingSystem, proxyAuthorized,
 } from "./logic.mjs";
 
 function adminKey(): string {
@@ -34,8 +36,10 @@ async function recordScan(baseUrl: string, key: string, id: string, request: Req
     "Authorization": `Bearer ${key}`,
     "Content-Type": "application/json",
   };
-  const writes = await Promise.allSettled([
-    fetch(`${baseUrl}/rest/v1/scan_events`, {
+  // One insert: the scan_events trigger increments redirects.total_scans in
+  // the same transaction, so the counter can never drift from the scan log.
+  try {
+    const result = await fetch(`${baseUrl}/rest/v1/scan_events`, {
       method: "POST",
       headers: { ...authHeaders, "Prefer": "return=minimal" },
       body: JSON.stringify({
@@ -47,24 +51,22 @@ async function recordScan(baseUrl: string, key: string, id: string, request: Req
         operating_system: operatingSystem(agent),
         country,
       }),
-    }),
-    fetch(`${baseUrl}/rest/v1/rpc/increment_redirect_scans`, {
-      method: "POST",
-      headers: authHeaders,
-      body: JSON.stringify({ redirect_id_input: id }),
-    }),
-  ]);
-  // Analytics failures must not break a legitimate printed QR link.
-  for (const result of writes) {
-    if (result.status !== "fulfilled" || !result.value.ok) {
-      console.error("VeilLink scan analytics write failed");
-    }
+    });
+    if (!result.ok) console.error("VeilLink scan analytics write failed", result.status);
+  } catch {
+    // Analytics failures must not break a legitimate printed QR link.
+    console.error("VeilLink scan analytics write failed");
   }
 }
 
 Deno.serve(async (request: Request) => {
   if (request.method !== "GET") {
     return response(405, "Method not allowed.");
+  }
+  const proxySecret = Deno.env.get("VEILLINK_PROXY_SECRET") || "";
+  if (!proxySecret) return response(503, "Resolver unavailable.");
+  if (!proxyAuthorized(request.headers.get("x-veillink-proxy-secret"), proxySecret)) {
+    return response(401, "Unauthorized.");
   }
   const url = new URL(request.url);
   const slug = (url.searchParams.get("slug") || "").toLowerCase();

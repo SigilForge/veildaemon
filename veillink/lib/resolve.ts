@@ -30,16 +30,15 @@ export async function recordScan(redirect: RedirectRecord, request: Request) {
   const referrer = request.headers.get("referer") || null;
   const country = trustedCountry(request.headers);
 
-  await Promise.all([
-    admin.from("scan_events").insert({
-      redirect_id: redirect.id,
-      referrer,
-      user_agent: userAgent.slice(0, 500),
-      device_category: deviceCategory(userAgent),
-      browser_family: browserFamily(userAgent),
-      operating_system: operatingSystem(userAgent),
-      country,
-    }),
-    admin.rpc("increment_redirect_scans", { redirect_id_input: redirect.id }),
-  ]);
+  // The scan_events trigger increments redirects.total_scans in the same
+  // transaction, so the counter can never drift from the scan log.
+  await admin.from("scan_events").insert({
+    redirect_id: redirect.id,
+    referrer,
+    user_agent: userAgent.slice(0, 500),
+    device_category: deviceCategory(userAgent),
+    browser_family: browserFamily(userAgent),
+    operating_system: operatingSystem(userAgent),
+    country,
+  });
 }

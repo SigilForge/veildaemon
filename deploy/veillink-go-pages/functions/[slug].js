@@ -2,13 +2,17 @@
 // DNS remains in Porkbun: CNAME "go" -> this site's *.pages.dev address.
 // This contains no Supabase service keys. The lookup and analytics live
 // in the EXISTING Supabase project via veillink-resolve Edge Function.
+// VEILLINK_PROXY_SECRET (an encrypted Pages secret, the same value as the
+// Edge Function secret) proves to the resolver that requests come from here.
 export async function onRequestGet({ request, params, env }) {
   const slug = String(params.slug || "").toLowerCase();
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length < 3 || slug.length > 63) {
     return new Response("Link not found.", { status: 404, headers: { "Cache-Control": "no-store" } });
   }
   const endpoint = env.VEILLINK_RESOLVER_URL;
-  if (typeof endpoint !== "string" || !endpoint.startsWith("https://")) {
+  const secret = env.VEILLINK_PROXY_SECRET;
+  if (typeof endpoint !== "string" || !endpoint.startsWith("https://") ||
+      typeof secret !== "string" || secret.length < 32) {
     return new Response("Link unavailable.", { status: 503 });
   }
   try {
@@ -18,6 +22,7 @@ export async function onRequestGet({ request, params, env }) {
     const upstream = await fetch(url, {
       redirect: "manual",
       headers: {
+        "x-veillink-proxy-secret": secret,
         "x-original-user-agent": request.headers.get("user-agent") || "",
         "x-original-referer": request.headers.get("referer") || "",
         "x-original-country": request.headers.get("cf-ipcountry") || "",

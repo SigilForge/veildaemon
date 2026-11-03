@@ -53,3 +53,17 @@ export function operatingSystem(userAgent) {
   if (ua.includes("linux")) return "Linux";
   return "Other";
 }
+
+// The resolver is only reachable through the go.veildaemon.app proxy, which
+// sends this shared secret. Without it, anyone could call the public function
+// URL directly, forge the forwarded analytics headers and inflate scan counts.
+// Compares in constant time; an unset expected secret always fails closed.
+export function proxyAuthorized(provided, expected) {
+  if (typeof expected !== "string" || expected.length < 32) return false;
+  if (typeof provided !== "string") return false;
+  const a = new TextEncoder().encode(provided);
+  const b = new TextEncoder().encode(expected);
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < b.length; i++) diff |= (a[i] ?? 0) ^ b[i];
+  return diff === 0;
+}

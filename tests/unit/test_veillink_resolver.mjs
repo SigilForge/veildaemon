@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { validSlug, stateForRedirect, statusForState, safeDestination, deviceCategory, browserFamily, operatingSystem } from "../../supabase/functions/veillink-resolve/logic.mjs";
+import { validSlug, stateForRedirect, statusForState, safeDestination, deviceCategory, browserFamily, operatingSystem, proxyAuthorized } from "../../supabase/functions/veillink-resolve/logic.mjs";
 import { onRequestGet } from "../../deploy/veillink-go-pages/functions/[slug].js";
 
 test("matches VeilLink slug creation validation", () => {
@@ -35,6 +35,7 @@ test("analytics categories preserve existing classification", () => {
   assert.equal(operatingSystem("Mozilla Android"), "Android");
 });
 
+const SECRET = "s".repeat(48);
 const originalFetch = globalThis.fetch;
 test.after(() => { globalThis.fetch = originalFetch; });
 
@@ -47,7 +48,7 @@ test("Cloudflare edge forwards a slug to Supabase and returns the established re
     return new Response(null, { status: 302, headers: { Location: "https://example.com/path" } });
   };
   const request = new Request("https://go.veildaemon.app/needlepoint", { headers: { "User-Agent": "Test Browser", Referer: "https://veildaemon.app" } });
-  const result = await onRequestGet({ request, params: { slug: "needlepoint" }, env: { VEILLINK_RESOLVER_URL: "https://example.supabase.co/functions/v1/veillink-resolve" } });
+  const result = await onRequestGet({ request, params: { slug: "needlepoint" }, env: { VEILLINK_RESOLVER_URL: "https://example.supabase.co/functions/v1/veillink-resolve", VEILLINK_PROXY_SECRET: SECRET } });
   assert.equal(result.status, 302);
   assert.equal(result.headers.get("location"), "https://example.com/path");
   assert.equal(result.headers.get("cache-control"), "no-store");
@@ -71,7 +72,7 @@ test("Cloudflare edge does not leak invalid upstream redirect targets", async ()
   const result = await onRequestGet({
     request: new Request("https://go.veildaemon.app/needlepoint"),
     params: { slug: "needlepoint" },
-    env: { VEILLINK_RESOLVER_URL: "https://example.supabase.co/functions/v1/veillink-resolve" },
+    env: { VEILLINK_RESOLVER_URL: "https://example.supabase.co/functions/v1/veillink-resolve", VEILLINK_PROXY_SECRET: SECRET },
   });
   assert.equal(result.status, 502);
 });
@@ -80,6 +81,42 @@ test("Cloudflare edge fails closed when the resolver is unconfigured", async () 
   const result = await onRequestGet({
     request: new Request("https://go.veildaemon.app/needlepoint"),
     params: { slug: "needlepoint" }, env: {},
+  });
+  assert.equal(result.status, 503);
+});
+
+
+test("proxy secret check is exact and fails closed", () => {
+  assert.equal(proxyAuthorized(SECRET, SECRET), true);
+  assert.equal(proxyAuthorized(SECRET.slice(0, -1) + "t", SECRET), false);
+  assert.equal(proxyAuthorized(SECRET + "s", SECRET), false);
+  assert.equal(proxyAuthorized(SECRET.slice(1), SECRET), false);
+  assert.equal(proxyAuthorized(null, SECRET), false);
+  assert.equal(proxyAuthorized("", ""), false);
+  assert.equal(proxyAuthorized("short", "short"), false);
+});
+
+test("Cloudflare edge sends the proxy secret to the resolver", async () => {
+  let capturedOptions;
+  globalThis.fetch = async (url, options) => {
+    capturedOptions = options;
+    return new Response(null, { status: 404 });
+  };
+  const result = await onRequestGet({
+    request: new Request("https://go.veildaemon.app/needlepoint"),
+    params: { slug: "needlepoint" },
+    env: { VEILLINK_RESOLVER_URL: "https://example.supabase.co/functions/v1/veillink-resolve", VEILLINK_PROXY_SECRET: SECRET },
+  });
+  assert.equal(result.status, 404);
+  assert.equal(capturedOptions.headers["x-veillink-proxy-secret"], SECRET);
+});
+
+test("Cloudflare edge fails closed without the proxy secret", async () => {
+  globalThis.fetch = async () => { throw new Error("Should not fetch"); };
+  const result = await onRequestGet({
+    request: new Request("https://go.veildaemon.app/needlepoint"),
+    params: { slug: "needlepoint" },
+    env: { VEILLINK_RESOLVER_URL: "https://example.supabase.co/functions/v1/veillink-resolve" },
   });
   assert.equal(result.status, 503);
 });
