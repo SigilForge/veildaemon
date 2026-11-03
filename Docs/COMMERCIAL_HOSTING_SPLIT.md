@@ -24,7 +24,22 @@
 
 ## First isolated slice: QR redirect hot path
 
-This branch prepares:
+**Deployment verification (2026-11-02, late evening CT):** The `veillink-resolve`
+Edge Function was deployed to the existing Supabase project `iaeykfeyctujqsqyenqt`
+(version 1, `verify_jwt=false`). A public GET for a nonexistent slug returned HTTP
+404; a public GET for an existing active path-mode slug returned HTTP 302,
+without following the destination. Existing `card` scan count changed from
+3 to 5 during two live smoke calls; those **two entries are synthetic testing**
+(not customer traffic). 8/8 pure and Cloudflare-wrapper unit tests passed.
+**The production `go.veildaemon.app` DNS is unchanged.** Cloudflare is still
+unconnected, so the Pages deployment has not run yet.
+
+The standalone Web Design site builder also passed locally and generated a
+2.5 MB publication directory including all 16 directly referenced assets.
+Its Cloudflare Pages custom domain and live preview remain pending.
+
+
+This branch implements:
 
 1. `supabase/functions/veillink-resolve/index.ts` — Edge Function that
    resolves a path slug against existing `redirects`, applies the exact active
