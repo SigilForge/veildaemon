@@ -46,8 +46,7 @@
     "relay:acceptance": "node scripts/run-relay-acceptance.mjs",
     "relay:vercel:prepare": "bash scripts/prepare-relay-vercel.sh",
     "relay:publish-news": "node scripts/relay-publish-news.mjs",
-    "relay:personas": "node scripts/sync-relay-personas.mjs",
-    "veillink:deploy:vercel": "node scripts/deploy-veillink.mjs"
+    "relay:personas": "node scripts/sync-relay-personas.mjs"
   },
   "engines": {
     "node": ">=20"
