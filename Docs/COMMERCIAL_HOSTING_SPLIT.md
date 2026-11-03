@@ -1,5 +1,34 @@
 # Commercial services — preserve free gameplay, remove only paid workloads
 
+## Current state (2026-11-03): cut over
+
+| Host | Serves | Runs on | DNS (Porkbun) |
+|---|---|---|---|
+| `app.veildaemon.app` | VeilLink app, Stripe webhooks, paid Book One claim | Pages `veillink-app-front` → Worker `veillink-app` (+ `veillink-raster` via service binding) | CNAME `veillink-app-front.pages.dev` |
+| `go.veildaemon.app` | QR redirects | Pages `veillink-go-pages` → Supabase `veillink-resolve` | CNAME `veillink-go-pages.pages.dev` |
+| `design.veildaemon.app` | Web Design brochure | Pages `veildaemon-web-design` | CNAME `veildaemon-web-design.pages.dev` |
+
+Unchanged: `veildaemon.app` (GitHub Pages; `/studio/web-design/` now forwards to
+`design`), `api.veildaemon.app` gameplay API (Vercel `veildaemon`),
+`relay.veildaemon.app` (Vercel, non-commercial). Cost: $0/month (Cloudflare
+Free, existing Supabase Free project, existing Stripe and Porkbun).
+
+Deploy VeilLink with `npm run veillink:deploy`; Worker and Pages secrets are
+set with `wrangler secret put` / `wrangler pages secret put`, never committed.
+Stripe: restricted key "VeilLink Cloudflare" (Checkout Sessions + Customer
+Portal write); live webhook endpoints were created fresh at cutover (none
+existed before; no live sale had gone through these flows).
+
+**Rollback** (while the Vercel projects still exist): point the Porkbun `app`
+and/or `go` CNAME back to `1ae0b94dbd121cf0.vercel-dns-017.com`; remove the
+`design` CNAME and revert the `/studio/web-design/` forwarding commit. The
+Stripe webhook endpoints point at `app.veildaemon.app`, so they follow `app`.
+
+**Still to retire after a quiet soak:** the Vercel `veillink` project (no
+domains route to it, but its `*.vercel.app` deployment still exists) and the
+Vercel-hosted copy of `api/book-one/claim.js` on `api.veildaemon.app`.
+
+
 **No DNS or production client changes are included in this branch.**
 
 ## Verified architecture
