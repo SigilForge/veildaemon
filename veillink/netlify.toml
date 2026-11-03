@@ -1,12 +1,15 @@
 # Netlify site 2: app.veildaemon.app and go.veildaemon.app.
-# Connect this same repository as a second site with Base directory "veillink".
-# Netlify's maintained OpenNext adapter handles Next.js App Router API routes.
+# In Netlify connect SigilForge/veildaemon with:
+#   Package directory: veillink
+#   Base directory: (leave empty / repository root)
+# This makes the site-specific configuration win over root netlify.toml.
+# Netlify's OpenNext adapter handles Next.js App Router API routes.
 [build]
-  command = "npm run build"
-  publish = ".next"
+  command = "npm ci --prefix veillink --no-audit --no-fund && npm run build --prefix veillink"
+  publish = "veillink/.next"
 
 [build.environment]
   NODE_VERSION = "22"
 
-# Keep Next.js redirects and headers in next.config.ts (the source of truth).
-# Preserve Stripe webhooks, auth callbacks and QR redirect behavior on preview.
+# Keep Next.js redirects and headers in next.config.ts (source of truth).
+# Never store payment or Supabase service secrets in this committed file.
