@@ -64,9 +64,9 @@ https://developers.cloudflare.com/pages/configuration/custom-domains/
 - Verify there are no subdomain-mode links before moving `go`. Any newly
   created subdomain-mode QR requires a separate routing plan (wildcard DNS and
   certificate) before moving away from VeilLink.
-- Connect this same GitHub repo to Cloudflare Pages with build output
-  `deploy/veillink-go-pages/public` and Functions directory
-  `deploy/veillink-go-pages/functions`. Configure public environment value
+- Connect this same GitHub repo to Cloudflare Pages with **root directory**
+  `deploy/veillink-go-pages` and build output directory `public`. Pages
+  automatically finds the project's `functions/[slug].js`. Configure public environment value
   `VEILLINK_RESOLVER_URL` to the deployed Edge Function URL. It is an endpoint,
   **not a secret**. No service-role key is stored in Cloudflare.
 - In Cloudflare Pages, add `go.veildaemon.app` under Custom Domains first;
