@@ -30,14 +30,14 @@
  *
  *   node scripts/publish-book-one-release.mjs switch [--dry-run]
  *       Point production delivery at the manifest: set BOOK_ONE_SUPABASE_PATH to the manifest PDF path
- *       on the Cloudflare claim front (veillink-app-front, which serves the live claim) and on the
- *       legacy Vercel claim (Production + Preview), and rename the Stripe product to the manifest
+ *       on the Cloudflare claim front (veillink-app-front, which serves the live claim; the Vercel
+ *       root API no longer deploys api/book-one), and rename the Stripe product to the manifest
  *       title, and mirror the rights record's newest version into Supabase (new version row + live row
  *       title/edition/fingerprint). Code/page changes ship through the normal `npm run push`.
  *
  * Credentials come from the environment, falling back to veillink/.env: STRIPE_SECRET_KEY,
- * SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL). Wrangler and the Vercel
- * CLI must be logged in for `switch`; the front picks up the new path on its next deploy (`npm run push`).
+ * SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL). Wrangler must be logged in
+ * for `switch`; the front picks up the new path on its next deploy (`npm run push`).
  */
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
@@ -341,14 +341,6 @@ async function switchDelivery() {
     );
     if (put.status !== 0) fail(`wrangler pages secret put failed: ${put.stderr}`);
     ok("BOOK_ONE_SUPABASE_PATH (Cloudflare claim front) set");
-  }
-  for (const env of ["production", "preview"]) {
-    console.log(`${dry ? "[dry-run] " : ""}vercel env BOOK_ONE_SUPABASE_PATH (${env}) -> ${m.pdf_path}`);
-    if (dry) continue;
-    spawnSync("vercel", ["env", "rm", "BOOK_ONE_SUPABASE_PATH", env, "--yes"], { cwd: root, stdio: "ignore" });
-    const add = spawnSync("vercel", ["env", "add", "BOOK_ONE_SUPABASE_PATH", env], { cwd: root, input: m.pdf_path, encoding: "utf8" });
-    if (add.status !== 0) fail(`vercel env add (${env}) failed: ${add.stderr}`);
-    ok(`BOOK_ONE_SUPABASE_PATH (${env}) set`);
   }
   await recordRightsVersion(dry);
   const price = await stripe(`/prices/${PRICE_ID}`);
