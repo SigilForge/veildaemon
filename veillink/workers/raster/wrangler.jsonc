@@ -1,0 +1,11 @@
+// Raster helper for veillink-app; reached only via the app's RASTER service
+// binding. Deploy: npx wrangler deploy -c workers/raster/wrangler.jsonc
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "veillink-raster",
+  "main": "index.ts",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "rules": [{ "type": "Data", "globs": ["**/*.ttf"], "fallthrough": false }]
+}
