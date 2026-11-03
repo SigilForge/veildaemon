@@ -1,6 +1,4 @@
 import crypto from "node:crypto";
-import { promises as dns } from "node:dns";
-import net from "node:net";
 import { z } from "zod";
 export {
   ARTIFACT_CLAIM,
@@ -216,12 +214,27 @@ function isBlockedHostname(hostname: string) {
   );
 }
 
+/**
+ * IPv4 literal check with the same semantics as node:net.isIPv4 (which is
+ * unavailable in Cloudflare Workers): four decimal octets 0-255, no leading
+ * zeros except the single digit "0".
+ */
+function isIPv4(address: string) {
+  const parts = address.split(".");
+  if (parts.length !== 4) return false;
+  return parts.every((part) => {
+    if (!/^\d{1,3}$/.test(part)) return false;
+    if (part.length > 1 && part.startsWith("0")) return false;
+    return Number(part) <= 255;
+  });
+}
+
 export function isBlockedIp(address: string) {
   if (address === "::1" || address === "0:0:0:0:0:0:0:1") return true;
   if (address.toLowerCase().startsWith("fe80:")) return true;
   if (address.toLowerCase().startsWith("fc") || address.toLowerCase().startsWith("fd")) return true;
   if (address.toLowerCase().startsWith("::ffff:")) return isBlockedIp(address.slice(7));
-  if (net.isIPv4(address)) {
+  if (isIPv4(address)) {
     const parts = address.split(".").map(Number);
     const [a, b] = parts;
     return (
@@ -240,6 +253,30 @@ export function isBlockedIp(address: string) {
   return false;
 }
 
+/**
+ * Default hostname resolution. Workers have no node:dns, so lookups go over
+ * DNS-over-HTTPS (Cloudflare's public resolver, JSON API), querying A and
+ * AAAA in parallel and returning the same { address, family } shape
+ * dns.lookup(hostname, { all: true }) produced. Fails closed: a non-OK
+ * response throws, and a name with no A/AAAA records yields an empty list,
+ * which assertSafeHttpsUrl rejects as a disallowed target.
+ */
+async function resolveHostnameViaDoh(hostname: string): Promise<Array<{ address: string; family: number }>> {
+  const query = async (type: "A" | "AAAA", recordType: number, family: number) => {
+    const url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=${type}`;
+    const response = await fetch(url, { headers: { accept: "application/dns-json" } });
+    if (!response.ok) {
+      throw new Error(`DNS-over-HTTPS lookup failed for ${hostname} (${response.status}).`);
+    }
+    const payload = (await response.json()) as { Answer?: Array<{ type: number; data: string }> };
+    return (payload.Answer || [])
+      .filter((answer) => answer.type === recordType)
+      .map((answer) => ({ address: answer.data, family }));
+  };
+  const [ipv4, ipv6] = await Promise.all([query("A", 1, 4), query("AAAA", 28, 6)]);
+  return [...ipv4, ...ipv6];
+}
+
 export async function assertSafeHttpsUrl(input: string, deps: VerificationDeps = {}) {
   let url: URL;
   try {
@@ -253,7 +290,7 @@ export async function assertSafeHttpsUrl(input: string, deps: VerificationDeps =
   if (isBlockedHostname(url.hostname) || isBlockedIp(url.hostname)) {
     throw Object.assign(new Error("That verification target is not allowed."), { status: 400, code: "unsafe_url" });
   }
-  const resolve = deps.resolve || ((hostname: string) => dns.lookup(hostname, { all: true }));
+  const resolve = deps.resolve || resolveHostnameViaDoh;
   const addresses = await resolve(url.hostname);
   if (!addresses.length || addresses.some((entry) => isBlockedIp(entry.address))) {
     throw Object.assign(new Error("That verification target resolves to a disallowed address."), { status: 400, code: "unsafe_url" });

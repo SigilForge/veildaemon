@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import { rasterizeSvgToPng } from "@/lib/svg-raster";
 import { NextRequest, NextResponse } from "next/server";
 import { publicPathUrl, publicSubdomainUrl } from "@/lib/config";
 import { getOwnedRedirect, requireUser } from "@/lib/store";
@@ -51,9 +51,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
   });
 
   if (format === "png") {
-    const pngBuffer = await sharp(Buffer.from(finalSvg))
-      .png()
-      .toBuffer();
+    const pngBuffer = await rasterizeSvgToPng(finalSvg);
 
     return new NextResponse(new Uint8Array(pngBuffer), {
       headers: {

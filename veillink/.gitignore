@@ -5,3 +5,8 @@ npm-debug.log*
 .env
 .env*.local
 .vercel
+
+# Cloudflare / OpenNext build output and local preview state
+.open-next/
+.wrangler/
+.dev.vars*

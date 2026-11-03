@@ -1,0 +1,14 @@
+Inter-Bold.ttf — Inter typeface, Bold weight (700).
+
+Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter).
+Designed by Rasmus Andersson. Licensed under the SIL Open Font License,
+Version 1.1 — full license text in OFL.txt in this directory.
+
+Why this file exists: @resvg/resvg-wasm (used by lib/svg-raster.ts to
+rasterize QR frame SVGs to PNG) ships no system fonts, so SVG <text>
+elements rendered nothing under Cloudflare Workers. The framed QR styles
+in lib/qr-generator.ts request "Inter, system-ui, sans-serif" for titles
+(openly licensed, so bundled verbatim) and "Consolas, monospace" for
+labels; lib/svg-raster.ts registers this face as the sans-serif,
+monospace, and default family, so both stacks resolve to it. Served as a
+static asset only — never bundled into the Worker script.

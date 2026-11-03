@@ -68,8 +68,9 @@ The service role key is server-only. Never expose it to browser code.
 
 Production DNS/TLS must be configured outside this repository:
 
-- Point `go.veildaemon.app` at the VeilLink Vercel project.
-- Point `*.veildaemon.app` at the VeilLink Vercel project if wildcard subdomains are enabled.
+- `app.veildaemon.app` is a Porkbun CNAME to the Cloudflare Pages front `veillink-app-front` (deploy with `npm run veillink:deploy` from the repo root).
+- `go.veildaemon.app` is a Porkbun CNAME to Cloudflare Pages `veillink-go-pages`, which forwards to the Supabase `veillink-resolve` Edge Function.
+- Subdomain-mode links (`*.veildaemon.app`) are not routed; they would need their own plan before use.
 - Confirm the hosting platform provisions TLS for both the explicit host and wildcard host.
 - Keep `veildaemon.app` GitHub Pages routing separate from the VeilLink Vercel project.
 

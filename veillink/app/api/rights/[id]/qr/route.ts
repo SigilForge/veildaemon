@@ -1,4 +1,4 @@
-import sharp from "sharp";
+import { rasterizeSvgToPng } from "@/lib/svg-raster";
 import { NextRequest, NextResponse } from "next/server";
 import { generateArtisticQrSvg } from "@/lib/qr-generator";
 import { getSupabaseAdminClient } from "@/lib/supabase";
@@ -99,7 +99,7 @@ async function renderRightsQr(record: CreatorRightsRecord, preferences: RightsQr
   const svg = await generateArtisticQrSvg(toGeneratorOptions(preferences, durableUrl));
 
   if (format === "png") {
-    const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
+    const pngBuffer = await rasterizeSvgToPng(svg);
     return new NextResponse(new Uint8Array(pngBuffer), {
       headers: {
         "content-type": "image/png",

@@ -1,0 +1,15 @@
+# Deploy: npx wrangler pages deploy (from this directory)
+# Secrets (Book One claim): STRIPE_SECRET_KEY, SUPABASE_URL,
+# SUPABASE_SERVICE_ROLE_KEY, BOOK_ONE_STRIPE_PRICE_ID,
+# BOOK_ONE_SIGNED_URL_TTL_SECONDS. File paths come from claim.js defaults.
+# DNS: Porkbun CNAME "app" -> veillink-app-front.pages.dev, only after the
+# pages.dev preview passes. Rollback: point "app" back at Vercel.
+name = "veillink-app-front"
+pages_build_output_dir = "public"
+compatibility_date = "2026-10-01"
+# process.env for the Book One claim handler (api/book-one/claim.js)
+compatibility_flags = ["nodejs_compat"]
+
+[[services]]
+binding = "APP"
+service = "veillink-app"

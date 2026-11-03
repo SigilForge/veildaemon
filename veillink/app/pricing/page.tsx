@@ -147,8 +147,8 @@ export default function PricingPage() {
           <p className="muted">
             Small-business web design and monthly care plans, scoped and billed on the Studio site — the pricing below
             is a summary; the authoritative packages, terms, and checkout live at{" "}
-            <a href="https://veildaemon.app/studio/web-design/" target="_blank" rel="noopener noreferrer">
-              /studio/web-design/
+            <a href="https://design.veildaemon.app/" target="_blank" rel="noopener noreferrer">
+              design.veildaemon.app
             </a>
             .
           </p>

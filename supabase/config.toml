@@ -415,3 +415,8 @@ enabled = true
 
 [functions.discord-route]
 verify_jwt = false
+
+# Public QR resolver: anonymous browser scans need no user JWT.
+# The handler itself can only read matching public redirect state and record scans.
+[functions.veillink-resolve]
+verify_jwt = false

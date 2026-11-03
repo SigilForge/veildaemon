@@ -12,9 +12,12 @@
     "typecheck": "tsc --noEmit",
     "test": "TMPDIR=/tmp TEMP=/tmp TMP=/tmp vitest run",
     "rights:check": "node scripts/rights-slice-check.mjs",
-    "rights:smoke:create": "node scripts/rights-create-smoke.mjs"
+    "rights:smoke:create": "node scripts/rights-create-smoke.mjs",
+    "build:cf": "opennextjs-cloudflare build",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview"
   },
   "dependencies": {
+    "@resvg/resvg-wasm": "^2.6.2",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.80.0",
     "jsqr": "^1.4.0",
@@ -22,19 +25,21 @@
     "qrcode": "^1.5.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "sharp": "^0.34.2",
     "stripe": "^22.3.2",
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.20.15",
     "@types/node": "^24.0.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.0.0",
+    "sharp": "^0.34.5",
     "typescript": "^5.9.0",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "wrangler": "^4.157.0"
   },
   "overrides": {
     "postcss": "^8.5.22"
