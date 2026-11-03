@@ -10,6 +10,9 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
+  # api/scan-code.js loads this file at startup using require.resolve().
+  # Esbuild cannot infer a runtime fs.readFileSync dependency on its own.
+  included_files = ["node_modules/zxing-wasm/dist/reader/zxing_reader.wasm"]
 
 # The /api/* path is attached to netlify/functions/api.mjs through its
-# exported config. Do not add a broad redirect that bypasses that function.
+# exported config. Do not add a broad redirect that bypasses the function.
