@@ -1,0 +1,15 @@
+# Netlify site 1: root API only. Keep GitHub Pages serving the public site
+# until an independently verified static-host migration is scheduled.
+[build]
+  command = "npm run check"
+  publish = "netlify/api-public"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# The /api/* path is attached to netlify/functions/api.mjs through its
+# exported config. Do not add a broad redirect that bypasses that function.
