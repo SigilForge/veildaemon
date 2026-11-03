@@ -96,3 +96,35 @@ test("missing route shows an error without a fallback invite", async ({ page, co
   expect(seen).toEqual(["operator-silence"]);
   expect(await btn.getAttribute("href")).toBe("#");
 });
+
+async function finishIntake(page, thirdIndex) {
+  await page.goto("/#intake-node");
+  const panel = page.locator("#answer-panel");
+  await panel.locator("[data-continue-intake]").first().click();
+  for (const index of [0, 0, thirdIndex]) {
+    await panel.locator('.answer-choice[data-index="' + index + '"]').click();
+  }
+  await expect(page.locator("#intake-result")).toContainText("INTAKE STATUS:", { timeout: 60_000 });
+  const button = page.locator("#intake-result .discord-route");
+  await expect(button).toBeVisible({ timeout: 60_000 });
+  return button;
+}
+for (const scenario of [
+  { label: "PASS", index: 0, route: "operator-dream", text: "Open Dream Channel" },
+  { label: "CLAIMED", index: 3, route: "triage-dream", text: "Open Triage Channel" },
+]) {
+  test("fresh " + scenario.label + " intake opens the correct Discord route", async ({ page, context }) => {
+    test.setTimeout(90_000);
+    const seen = [];
+    await mockDiscord(page, context, seen);
+    const btn = await finishIntake(page, scenario.index);
+    await expect(btn).toHaveText(scenario.text);
+    await expect(btn).toHaveAttribute("href", "#");
+    const record = await page.evaluate(() => JSON.parse(window.localStorage.getItem("veildaemon.operatorRecord.v2")));
+    expect(record.discordRoute).toBe(scenario.route);
+    const [popup] = await Promise.all([context.waitForEvent("page"), btn.click()]);
+    await popup.waitForURL("https://discord.gg/test-" + scenario.route);
+    expect(seen).toEqual([scenario.route]);
+    await popup.close();
+  });
+}
