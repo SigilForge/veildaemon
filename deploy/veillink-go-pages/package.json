@@ -1,0 +1,8 @@
+{
+  "name": "veillink-go-pages",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test ../../tests/unit/test_veillink_resolver.mjs"
+  }
+}
