@@ -1,0 +1,5 @@
+# The paid Book One claim is served from Cloudflare (deploy/veillink-app-pages),
+# not the Hobby root API: Vercel Hobby does not permit commercial use. The
+# source stays here as the single copy the Cloudflare front bundles and the
+# Book One release scripts edit and verify.
+/api/book-one
