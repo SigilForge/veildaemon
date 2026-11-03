@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parseRedirectRequest } from "@/lib/host";
 
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const match = parseRedirectRequest(request.headers.get("host") || "", request.nextUrl.pathname);
   if (match.type === "none") return NextResponse.next();
 

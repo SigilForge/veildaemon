@@ -73,9 +73,49 @@ const STOCK_BRAND_FILES: Partial<Record<QrArtOption, string>> = {
 };
 
 /**
+ * Read a file from public/brand. Node runtimes read it from disk; Cloudflare
+ * Workers have no filesystem, so the bytes come from the ASSETS binding
+ * (the same files, deployed as static assets). Returns null when neither
+ * source is available.
+ */
+async function readPublicBrandBytes(file: string): Promise<Uint8Array | null> {
+  try {
+    const { readFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    return new Uint8Array(await readFile(join(process.cwd(), "public", "brand", file)));
+  } catch {
+    // No filesystem in this runtime — fall through to the ASSETS binding.
+  }
+  try {
+    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+    const { env } = getCloudflareContext() as unknown as {
+      env: { ASSETS?: { fetch: (request: Request) => Promise<Response> } };
+    };
+    if (env.ASSETS) {
+      const response = await env.ASSETS.fetch(new Request(`https://assets.local/brand/${file}`));
+      if (response.ok) {
+        return new Uint8Array(await response.arrayBuffer());
+      }
+    }
+  } catch {
+    // Not running under OpenNext — no asset binding available.
+  }
+  return null;
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + chunkSize));
+  }
+  return btoa(binary);
+}
+
+/**
  * Resolve center-mark image source.
  * - Browser: site-relative /brand/... paths work in live SVG previews.
- * - Server (PNG via sharp): relative paths do not load — embed stock brand files
+ * - Server (PNG export): relative paths do not load — embed stock brand files
  *   as PNG data URIs so raster export keeps the center art.
  */
 async function resolveArtImageSrc(art: QrArtOption, customArtUrl?: string) {
@@ -92,13 +132,15 @@ async function resolveArtImageSrc(art: QrArtOption, customArtUrl?: string) {
   }
 
   try {
-    const { readFile } = await import("node:fs/promises");
-    const { join } = await import("node:path");
-    const bytes = await readFile(join(process.cwd(), "public", "brand", file));
-    // Convert webp → PNG so librsvg/sharp can paint the <image> during SVG rasterize.
-    const sharp = (await import("sharp")).default;
-    const png = await sharp(bytes).png().toBuffer();
-    return `data:image/png;base64,${png.toString("base64")}`;
+    // Embed the PNG sibling of the stock brand file: rasterizers used for PNG
+    // export cannot decode WebP (resvg has no WebP decoder), so public/brand
+    // ships a lossless PNG conversion next to each stock WebP and that PNG is
+    // embedded instead of converting at runtime. The generated SVG and PNG
+    // output are unchanged — acceptance tests require the PNG data URI form.
+    const pngFile = file.replace(/\.webp$/i, ".png");
+    const pngBytes = await readPublicBrandBytes(pngFile);
+    if (!pngBytes) return publicPath;
+    return `data:image/png;base64,${bytesToBase64(pngBytes)}`;
   } catch {
     return publicPath;
   }

@@ -1,5 +1,5 @@
 import jsQR from "jsqr";
-import sharp from "sharp";
+import { rasterizeSvgToContainedRaw } from "../svg-raster";
 
 function normalizePayload(value: string) {
   return value.trim().replace(/\/+$/, "");
@@ -10,13 +10,9 @@ function normalizePayload(value: string) {
  * is unreadable or does not match the durable public record URL.
  */
 export async function verifyQrDecodesToUrl(svg: string, expectedUrl: string) {
-  const raster = await sharp(Buffer.from(svg))
-    .resize({ width: 900, height: 900, fit: "contain", background: { r: 15, g: 15, b: 21, alpha: 1 } })
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
+  const raster = await rasterizeSvgToContainedRaw(svg, 900, { r: 15, g: 15, b: 21 });
 
-  const code = jsQR(new Uint8ClampedArray(raster.data), raster.info.width, raster.info.height, {
+  const code = jsQR(new Uint8ClampedArray(raster.data), raster.width, raster.height, {
     inversionAttempts: "attemptBoth",
   });
 
@@ -33,5 +29,5 @@ export async function verifyQrDecodesToUrl(svg: string, expectedUrl: string) {
     );
   }
 
-  return { decoded: code.data, width: raster.info.width, height: raster.info.height };
+  return { decoded: code.data, width: raster.width, height: raster.height };
 }
