@@ -38,6 +38,42 @@ function sendHtml(res, statusCode, title, message) {
 </html>`);
 }
 
+// Files are delivered only to purchases bound to a VeilLink account, so buyers can
+// always re-download from /book-one. A paid session with no account (e.g. a Stripe
+// payment link) is recorded under its email and binds when that email signs in.
+function sendAccountRequired(res, email) {
+  const signup = "https://app.veildaemon.app/signup?next=%2Fbook-one";
+  const login = "https://app.veildaemon.app/login?next=%2Fbook-one";
+  const who = email ? ` for ${escapeHtml(email)}` : "";
+  res.statusCode = 200;
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.end(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="https://veildaemon.app/studio/assets/brand/favicon.ico?v=20260924-sigilforge1" sizes="any">
+  <title>Book One purchase saved | SigilForge Studios</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #070a0b; color: #f3eee5; }
+    body { min-height: 100vh; display: grid; place-items: center; margin: 0; padding: 24px; }
+    main { max-width: 560px; border: 1px solid rgba(243,238,229,.22); padding: 28px; background: rgba(17,24,23,.92); }
+    h1 { margin: 0 0 12px; font-size: 1.5rem; line-height: 1.15; }
+    p { margin: 0 0 18px; color: rgba(243,238,229,.78); line-height: 1.55; }
+    a { color: #f4c56f; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Payment verified${who}</h1>
+    <p>Your Book One purchase is saved to that email address. Sign in, or create a free VeilLink account with the same email, and your downloads appear on the Book One page. They stay on your account for future editions.</p>
+    <p><a href="${signup}">Create account</a> · <a href="${login}">Sign in</a></p>
+  </main>
+</body>
+</html>`);
+}
+
 function sendClaimPage(res, downloads) {
   const items = downloads.map((item) => {
     const note = item.note ? `<small>${escapeHtml(item.note)}</small>` : "";
@@ -308,6 +344,22 @@ async function upsertPurchaseEntitlement(session) {
   return callSupabaseRpc("upsert_book_one_purchase_entitlement", payload);
 }
 
+async function purchaseAccountId(purchaseId) {
+  const supabaseUrl = (process.env.SUPABASE_URL || "").replace(/\/+$/, "");
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  const response = await fetch(
+    `${supabaseUrl}/rest/v1/book_one_purchases?id=eq.${encodeURIComponent(purchaseId)}&select=auth_user_id`,
+    { headers: { Authorization: `Bearer ${serviceRoleKey}`, apikey: serviceRoleKey } }
+  );
+  if (!response.ok) {
+    const error = new Error("Purchase ledger could not be read.");
+    error.statusCode = response.status;
+    throw error;
+  }
+  const rows = await response.json().catch(() => []);
+  return Array.isArray(rows) && rows[0] ? rows[0].auth_user_id || null : null;
+}
+
 async function recordPurchaseClaim(purchaseId) {
   await callSupabaseRpc("record_book_one_purchase_claim", {
     purchase_id_input: purchaseId,
@@ -346,6 +398,12 @@ module.exports = async function handler(req, res) {
     }
 
     const purchaseId = await upsertPurchaseEntitlement(session);
+    if (!(await purchaseAccountId(purchaseId))) {
+      const email = session.customer_details && session.customer_details.email
+        ? session.customer_details.email
+        : session.customer_email || "";
+      return sendAccountRequired(res, email);
+    }
 
     const pdfPath = pdfObjectPath();
     const epubPath = epubObjectPath();

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { buildMetadata } from "@/lib/seo";
+import { bookOneClaimPath, listBookOnePurchases } from "@/lib/book-one";
 import { requireUser } from "@/lib/store";
 
 export const metadata: Metadata = buildMetadata({
@@ -18,7 +19,8 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default async function BookOnePage() {
-  const { user } = await requireUser().catch(() => redirect("/login?next=/book-one"));
+  const { user, supabase } = await requireUser().catch(() => redirect("/login?next=/book-one"));
+  const purchases = await listBookOnePurchases(supabase);
 
   return (
     <main className="page book-one-page">
@@ -56,12 +58,35 @@ export default async function BookOnePage() {
             <li>Wallpaper pack · desktop clean/title + phone plates</li>
             <li>Direct buyers keep access when shelf files update</li>
           </ul>
+          {purchases.length ? (
+            <div className="book-one-owned">
+              <h3>Your Book One downloads</h3>
+              <p className="muted">
+                Each visit issues fresh private links to the current edition files. Links expire shortly after you open
+                them; come back here any time.
+              </p>
+              <ul>
+                {purchases.map((purchase) => (
+                  <li key={purchase.stripe_checkout_session_id}>
+                    <a className="button" href={bookOneClaimPath(purchase.stripe_checkout_session_id)}>
+                      Download your files
+                    </a>
+                    {purchase.purchased_at ? (
+                      <span className="muted"> Purchased {new Date(purchase.purchased_at).toLocaleDateString("en-US")}</span>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           <div className="toolbar">
-            <form action="/api/book-one/checkout" method="post">
-              <button name="edition" value="pdf" type="submit">
-                Continue to secure checkout
-              </button>
-            </form>
+            {purchases.length ? null : (
+              <form action="/api/book-one/checkout" method="post">
+                <button name="edition" value="pdf" type="submit">
+                  Continue to secure checkout
+                </button>
+              </form>
+            )}
             <a
               className="button secondary"
               href="https://veildaemon.app/studio/shelf/book-one/"
