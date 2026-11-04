@@ -17,13 +17,17 @@
  *      the APP binding; it also serves the paid Book One claim from the
  *      canonical api/book-one/claim.js.
  * Runtime secrets live on the Worker / Pages project (wrangler secret), never
- * in this repo. NEXT_PUBLIC_* values are inlined at build time from
- * veillink/.env, which Next.js loads automatically.
+ * in this repo. NEXT_PUBLIC_* values are inlined at build time: the public
+ * production config comes from the committed veillink/.env.production and is
+ * passed to the build as process env, so it beats any local .env/.env.local
+ * (often pointed at localhost). The Supabase anon key comes from the
+ * environment or veillink/.env.
  *
  * Preconditions (fail closed, nothing deployed): wrangler is authenticated
- * for the SigilForge account, and veillink/.env provides the public build
- * values. After a real deploy it verifies the production hosts; a failed
- * verification is reported as such, never as a trusted release.
+ * for the SigilForge account, every public build value is present, and the
+ * app URL is the https production host. After a real deploy it verifies the
+ * production hosts; a failed verification is reported as such, never as a
+ * trusted release.
  *
  * Rollback: redeploy an earlier version from Cloudflare deployment history
  * (`npx wrangler rollback` for the Workers, Pages deployment history for the
@@ -48,7 +52,26 @@ const REQUIRED_PUBLIC_ENV = [
 ];
 
 const dryRun = process.argv.includes("--dry-run");
-const env = { ...process.env, CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID || ACCOUNT_ID };
+
+function readDotenv(file) {
+  const values = {};
+  if (!existsSync(file)) return values;
+  for (const line of readFileSync(file, "utf8").split("\n")) {
+    const match = line.match(/^([A-Z0-9_]+)=(.*)$/);
+    if (match) values[match[1]] = match[2].trim().replace(/^["']|["']$/g, "");
+  }
+  return values;
+}
+
+const productionPublic = readDotenv(resolve(veillinkDir, ".env.production"));
+const localEnv = readDotenv(resolve(veillinkDir, ".env"));
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || localEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const env = {
+  ...process.env,
+  ...productionPublic,
+  ...(anonKey ? { NEXT_PUBLIC_SUPABASE_ANON_KEY: anonKey } : {}),
+  CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID || ACCOUNT_ID,
+};
 
 function fail(stage, message) {
   console.error(`\x1b[31m✗ [${stage}] ${message}\x1b[0m`);
@@ -75,13 +98,12 @@ const whoami = spawnSync("npx", ["wrangler", "whoami"], { cwd: veillinkDir, env,
 if (whoami.status !== 0 || !whoami.stdout.includes(ACCOUNT_ID)) {
   fail("preflight", "wrangler is not authenticated for the SigilForge Cloudflare account (run `npx wrangler login`).");
 }
-const envFile = resolve(veillinkDir, ".env");
-const publicEnv = existsSync(envFile) ? readFileSync(envFile, "utf8") : "";
-const missing = REQUIRED_PUBLIC_ENV.filter(
-  (key) => !process.env[key] && !new RegExp(`^${key}=.+`, "m").test(publicEnv)
-);
+const missing = REQUIRED_PUBLIC_ENV.filter((key) => !env[key]);
 if (missing.length) fail("preflight", `missing public build values: ${missing.join(", ")}`);
-ok("preflight: wrangler authenticated, public build values present");
+if (env.NEXT_PUBLIC_VEILLINK_APP_URL !== APP_HOST) {
+  fail("preflight", `NEXT_PUBLIC_VEILLINK_APP_URL must be ${APP_HOST} for a production build`);
+}
+ok("preflight: wrangler authenticated, production public build values present");
 
 // Build and deploy in dependency order.
 run("build", "npm", ["run", "build:cf"], veillinkDir);
