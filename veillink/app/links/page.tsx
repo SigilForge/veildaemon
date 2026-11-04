@@ -41,9 +41,9 @@ export default function LinksPage() {
             behind it updates when you do.
           </p>
           <div className="toolbar">
-            <Link className="button" href="/signup?next=%2Fdashboard">
+            <a className="button" href="/start?plan=free">
               Create a free link
-            </Link>
+            </a>
             <Link className="button secondary" href="/links/pricing">
               See pricing
             </Link>
@@ -183,9 +183,9 @@ export default function LinksPage() {
           Free is enough to prove the workflow. Pro and Business add capacity when you are past the experiment stage.
         </p>
         <div className="toolbar">
-          <Link className="button" href="/signup?next=%2Fdashboard">
+          <a className="button" href="/start?plan=free">
             Start free
-          </Link>
+          </a>
           <Link className="button secondary" href="/links/pricing">
             Compare plans
           </Link>
