@@ -64,7 +64,36 @@ describe("pricing namespace: umbrella vs product-specific", () => {
     expect(readSource("app/book-one/page.tsx")).toMatch(/\/api\/book-one\/checkout/);
     // Creator Rights create flow is still the authoritative path.
     expect(readSource("app/pricing/page.tsx")).toMatch(/RIGHTS_PRODUCT_CREATE_PATH/);
-    // QR signup CTAs still land users on their own dashboard, not the umbrella hub.
-    expect(readSource("app/links/page.tsx")).toMatch(/next=%2Fdashboard/);
+    // QR "start free" CTAs still land users on their own dashboard, not the umbrella hub
+    // (via the session-aware /start handoff; see planHandoffTarget below).
+    expect(readSource("app/links/page.tsx")).toMatch(/\/start\?plan=free/);
+  });
+});
+
+describe("plan CTAs carry purchase intent through the session-aware /start handoff", () => {
+  it("signed-in visitors go straight to the chosen plan's checkout step or the dashboard", async () => {
+    const { planHandoffTarget } = await import("@/lib/plan-handoff");
+    expect(planHandoffTarget("pro-monthly", true)).toBe("/billing?plan=pro-monthly");
+    expect(planHandoffTarget("business-monthly", true)).toBe("/billing?plan=business-monthly");
+    expect(planHandoffTarget("free", true)).toBe("/dashboard");
+  });
+
+  it("signed-out visitors sign up first, with the plan kept in next", async () => {
+    const { planHandoffTarget } = await import("@/lib/plan-handoff");
+    expect(planHandoffTarget("pro-monthly", false)).toBe("/signup?next=%2Fbilling%3Fplan%3Dpro-monthly");
+    expect(planHandoffTarget("free", false)).toBe("/signup?next=%2Fdashboard");
+  });
+
+  it("unknown plans fall back to the dashboard instead of an arbitrary target", async () => {
+    const { planHandoffTarget } = await import("@/lib/plan-handoff");
+    expect(planHandoffTarget("https://evil.example", true)).toBe("/dashboard");
+    expect(planHandoffTarget(null, false)).toBe("/signup?next=%2Fdashboard");
+  });
+
+  it("no QR plan CTA hard-codes a signup link any more", () => {
+    for (const file of ["app/links/pricing/page.tsx", "app/links/page.tsx"]) {
+      expect(readSource(file)).not.toMatch(/signup\?next=%2Fdashboard/);
+      expect(readSource(file)).toMatch(/\/start\?plan=/);
+    }
   });
 });

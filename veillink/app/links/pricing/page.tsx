@@ -94,9 +94,10 @@ export default function LinksPricingPage() {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-              <Link className="button" href="/signup?next=%2Fdashboard">
+              {/* /start routes by session: signed in -> dashboard or this plan's checkout; signed out -> signup that keeps the plan. */}
+              <a className="button" href={plan.id === "free" ? "/start?plan=free" : `/start?plan=${plan.id}-monthly`}>
                 {plan.id === "free" ? "Start free" : `Start ${plan.label}`}
-              </Link>
+              </a>
             </article>
           );
         })}
