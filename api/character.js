@@ -1,3 +1,8 @@
+// Shared Relay platform policy (sets globalThis.RelayPlatformPolicy). X is a long-form lane (X Premium);
+// the hosted fallback takes X's limit from the policy so it never rejects the full long copy the prompt
+// asks for. Other lanes keep this endpoint's existing 1,500 cap (the browser fits them to platform limits).
+require("../studio/relay/platform-policy.js");
+const X_MAX = globalThis.RelayPlatformPolicy.platforms.x.max;
 const MAX_BODY_BYTES = 60_000;
 const MAX_MESSAGE_CHARS = 48_000;
 // gpt-5-mini counts reasoning + visible JSON against max_output_tokens. 2400 routinely
@@ -21,7 +26,7 @@ const CHARACTER_SCHEMA = {
       additionalProperties: false,
       required: ["x", "threads", "bluesky", "mastodon"],
       properties: {
-        x: { type: "string", minLength: 40, maxLength: 1_500 },
+        x: { type: "string", minLength: 40, maxLength: X_MAX },
         threads: { type: "string", minLength: 40, maxLength: 1_500 },
         bluesky: { type: "string", minLength: 40, maxLength: 1_500 },
         mastodon: { type: "string", minLength: 40, maxLength: 1_500 },
@@ -184,7 +189,7 @@ function parseStructuredResult(payload, response) {
 function validateResult(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("INVALID_MODEL_OUTPUT");
   if (typeof value.masterDraft !== "string" || value.masterDraft.trim().length < 40 || value.masterDraft.length > 8_000) throw new Error("INVALID_MODEL_OUTPUT");
-  const limits = { x: 1_500, threads: 1_500, bluesky: 1_500, mastodon: 1_500 };
+  const limits = { x: X_MAX, threads: 1_500, bluesky: 1_500, mastodon: 1_500 };
   const platformDrafts = value.platformDrafts;
   if (!platformDrafts || typeof platformDrafts !== "object" || Array.isArray(platformDrafts)) throw new Error("INVALID_MODEL_OUTPUT");
   for (const [key, limit] of Object.entries(limits)) {

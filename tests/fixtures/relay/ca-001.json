@@ -2,12 +2,93 @@
   "id": "CA-001",
   "persona": "shade",
   "source": "VEILCORP ARCHIVES // CORPORATE ANOMALY REPORT // CA-001\n\nClassification: False Steward\nThreat Level: Escalating\n\nINITIAL BEHAVIOR\n\nThe host was once considered resistant to predatory digital phenomena. It distributed quality games, respected physical ownership, and treated subscriptions as optional benefits rather than mandatory life support.\n\nOperators regarded the host as trustworthy.\n\nOBSERVED SYMPTOMS\n\n• Ownership replaced with revocable licenses.\n• Progressive elimination of physical media.\n• Customer loyalty reclassified as recurring revenue.\n• Subscription dependence spreading through executive functions.\n\nOBSERVED PROGRESSION\n\n• July 1: Announces the end of physical media for future PlayStation releases.\n• July 3: CEO sells roughly 56% of his reported holdings in that share class. (Legally disclosed.)\n\nOBSERVER NOTE\n\nNo evidence of unlawful activity has been established.\n\nThe anomaly instead manifests as perfectly legal decisions that progressively erode reality.\n\nOBSERVER ADDENDUM\n\nThe entity exhibits no observable hostility toward consumers.\n\nOnly indifference.\n\nThis classification is considered significantly more dangerous.\n\nESCALATION ASSESSMENT\n\nThe host asks operators to accept a future without physical ownership while simultaneously pricing premium hardware at nearly $900.\n\nContainment integrity has collapsed.\n\nOperators report an unexpected migration pattern.\n\nSubjects no longer compare the host to competing consoles.\n\nThey compare it to personal computers.\n\nUpgradeable.\n\nRepairable.\n\nExpandable.\n\nUnbound to a single storefront.\n\nCapable of functioning as workstation, gaming platform, and mobile command node without replacing the entire system.\n\nThe host appears unaware that it is no longer competing with Xbox.\n\nIt is competing against ownership itself.\n\nWORKING THEORY\n\nVeilCorp analysts classify the observed behavioral pattern as a False Steward event.\n\nExecutive functions exhibit behavior consistent with False Steward Syndrome.\n\nDecision-making no longer optimizes for long-term trust.\n\nResource extraction has become the dominant behavioral pattern.\n\nINTERCEPTED TRANSMISSION\n\n\"Ownership is a deprecated behavior.\"\n\n\"...Access is sufficient.\"\n\n\"...You never owned it.\"\n\n\"...You were merely borrowing our permission.\"\n\nCONTAINMENT PROCEDURE\n\nAcquire physical media while available.\n\nArchive what you legally can.\n\nSupport developers—not gatekeepers.\n\nTrust your own shelves more than remote servers.\n\nIf the original Sony is still inside the host...\n\nBlink twice.\n\nIf not...\n\nVeilCorp recommends immediate quarantine.\n\nFurther exposure is not considered immediately lethal.\n\nLong-term exposure may result in normalization.\n\n────────────────────────\n\nSTATUS\n\nHOST COMPROMISED\n\nSTEWARDSHIP........... TERMINATED\n\nCONTAINMENT........... FAILED\n\n────────────────────────\n\nARCHIVE NOTE\n\nObserver commentary was removed from the official record.\n\nDespite removal, all surviving copies terminate with the same unauthorized transmission.\n\nObserved Community Resonance\n\n\"...go suck an egg.\"\n\nOrigin: Undetermined.\nPersistence: High.\nRationale: The phrase now exhibits self-propagating memetic persistence.\n\n────────────────────────\n\nARCHIVE METADATA\n\nARCHIVE HASH........... VERIFIED\nREPORT INTEGRITY....... 99.97%\nMEMETIC CONTAMINATION.. LOW\nCIVILIAN DISTRIBUTION.. AUTHORIZED\n\nEnd of Report.\n\n#VeilCorp #FalseSteward #Cradlepoint #PhysicalMedia #SonyGlitch #PlayStationArchives #PreserveTheArtifact #Mythpunk #ObserverLog #EndOfOwnership #PS5 #Gaming #LimitedRunGames",
-  "platformLimits": { "x": 600, "threads": 500, "bluesky": 300, "mastodon": 500 },
-  "requiredConcepts": {
-    "ownership": ["ownership", "own", "license", "physical media", "shelves", "permission"],
-    "trust": ["trust", "steward", "extraction", "indifference", "control", "gatekeeper"]
+  "platformLimits": {
+    "x": 25000,
+    "threads": 500,
+    "bluesky": 300,
+    "mastodon": 500
   },
-  "knownBadEndings": ["I.", "They used.", "changing the.", "sounds like.", "perfectly legal."],
+  "longFormMinimums": {
+    "x": 601
+  },
+  "semanticGroups": {
+    "whatChanges": {
+      "meaning": "Ownership is being lost or changed: owned games and physical media give way to revocable licenses and permission.",
+      "expressions": [
+        "ownership",
+        "own",
+        "owned",
+        "owner",
+        "owners",
+        "owning",
+        "license",
+        "licenses",
+        "licensed",
+        "licensing",
+        "revocable",
+        "physical media",
+        "physical copy",
+        "physical copies",
+        "physical release",
+        "physical releases",
+        "disc",
+        "discs",
+        "shelf",
+        "shelves",
+        "permission",
+        "permissions",
+        "borrow",
+        "borrowed",
+        "borrowing"
+      ]
+    },
+    "whyItMatters": {
+      "meaning": "It costs trust and control: stewardship becomes resource extraction, indifference, and gatekeeping.",
+      "expressions": [
+        "trust",
+        "trusted",
+        "trustworthy",
+        "distrust",
+        "entrusted",
+        "steward",
+        "stewards",
+        "stewardship",
+        "extraction",
+        "extractive",
+        "extract",
+        "extracting",
+        "indifference",
+        "indifferent",
+        "control",
+        "controls",
+        "controlled",
+        "gatekeeper",
+        "gatekeepers",
+        "gatekeeping"
+      ]
+    }
+  },
+  "knownBadEndings": [
+    "I.",
+    "They used.",
+    "changing the.",
+    "sounds like.",
+    "perfectly legal."
+  ],
   "minimumVoiceMatch": 0.75,
-  "minimumSourceFidelity": 0.7
+  "minimumSourceFidelity": 0.7,
+  "contractHistory": [
+    {
+      "date": "2026-09-26",
+      "change": "platformLimits.x 600 -> 25000; added longFormMinimums.x = 601; direct-run prompt asks for X as full long copy instead of X <=500.",
+      "reason": "Product requirement changed, not a relaxation of the gate. The account is on X Premium (standing rule: cradlepoint-ttrpg Marketing/Social/PUBLISHING_CONSTRAINTS.md) and Premium longer posts allow 25,000 characters (help.x.com, 'About different types of Posts'). The 500/600 X numbers were a stale free-tier assumption. X now gets the full long copy when appropriate.",
+      "strictness": "Unchanged for threads (500), bluesky (300), mastodon (500), requiredConcepts, knownBadEndings, minimumVoiceMatch, minimumSourceFidelity, and the source text (hash-checked). New: X drafts compressed to the retired short-form cap (<= 600) now fail, which the old contract could not detect."
+    },
+    {
+      "date": "2026-09-26",
+      "change": "requiredConcepts (substring term lists) -> semanticGroups (fixture-owned halves whatChanges / whyItMatters, explicit whole-word expressions, groups disjoint). Matched by scripts/lib/relay-fixture-semantics.mjs.",
+      "reason": "CA-001 may define what its own source means; the production bridge must not. The old check used raw substrings, which were brittle both ways: 'own' matched 'down'/'known'/'shown' (false passes), while natural equivalents of the same concept were not recognized. Every constrained lane must still carry both halves.",
+      "strictness": "Tighter: whole words only (no substring false passes), and the halves are disjoint so no word satisfies both. Kept: every original term (ownership, own, license, physical media, shelves, permission / trust, steward, extraction, indifference, control, gatekeeper). Added: inflections the old substrings already matched (licenses, stewardship, controlled, gatekeepers, distrust, ...) plus explicitly approved equivalents (revocable, owned/owner, physical copies/releases, discs, borrow/borrowed, extract/extractive, gatekeeping). Unchanged: source text (hash-checked), limits, long-form minimum, bad endings, voice and fidelity thresholds."
+    }
+  ]
 }
