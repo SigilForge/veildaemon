@@ -51,4 +51,5 @@ let html = original
   .replaceAll('<meta property="og:url" content="https://veildaemon.app/studio/web-design/" />', '<meta property="og:url" content="https://design.veildaemon.app/" />');
 
 writeFileSync(resolve(out, "index.html"), html);
+writeFileSync(resolve(out, "robots.txt"), "User-agent: *\nAllow: /\n");
 console.log(`Prepared Web Design commercial brochure with ${assetSet.size} assets.`);
