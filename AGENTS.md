@@ -136,3 +136,11 @@
   - `game`
   - `leaked`
   - `hacker`
+
+## Cross-Repository Context (Optional)
+
+If the `veil` command-line tool is installed locally, `veil brain where` and `veil brain query "<question>"` return source-backed context about how this project relates to the rest of the SigilForge ecosystem.
+
+- It is read-only and optional. Nothing in this repository depends on it and CI does not use it.
+- This repository's `AGENTS.md`, `ARCHITECTURE.md` and `SECURITY.md` remain the authority here.
+- This repository is public. Do not copy private or unpublished material returned by the tool into it.
