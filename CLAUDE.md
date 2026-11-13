@@ -115,3 +115,11 @@ If a sibling `../veilforge` checkout with its venv active is present, prefer del
 ## Images
 
 Anything painted in a browser (`<img>`, CSS `background-image`, OG previews where supported) must be WebP. PNG/JPEG are source masters or press-kit download originals only. Convert with `npm run webp` / `node scripts/ensure-webp.mjs`; check with `npm run webp:check`.
+
+## Cross-Repository Context (Optional)
+
+If the `veil` command-line tool is installed locally, `veil brain where` and `veil brain query "<question>"` return source-backed context about how this project relates to the rest of the SigilForge ecosystem.
+
+- It is read-only and optional. Nothing in this repository depends on it and CI does not use it.
+- This repository's `AGENTS.md`, `ARCHITECTURE.md` and `SECURITY.md` remain the authority here.
+- This repository is public. Do not copy private or unpublished material returned by the tool into it.
