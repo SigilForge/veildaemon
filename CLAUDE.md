@@ -116,10 +116,12 @@ If a sibling `../veilforge` checkout with its venv active is present, prefer del
 
 Anything painted in a browser (`<img>`, CSS `background-image`, OG previews where supported) must be WebP. PNG/JPEG are source masters or press-kit download originals only. Convert with `npm run webp` / `node scripts/ensure-webp.mjs`; check with `npm run webp:check`.
 
-## Cross-Repository Context (Optional)
+## Shared Agent Contract (Maintainers)
 
-If the `veil` command-line tool is installed locally, `veil brain where` and `veil brain query "<question>"` return source-backed context about how this project relates to the rest of the SigilForge ecosystem.
+Maintainers' coding agents share one set of working rules across this project's repositories, kept in a local Agent Brain. If the `veil` command-line tool is installed:
 
-- It is read-only and optional. Nothing in this repository depends on it and CI does not use it.
-- This repository's `AGENTS.md`, `ARCHITECTURE.md` and `SECURITY.md` remain the authority here.
-- This repository is public. Do not copy private or unpublished material returned by the tool into it.
+1. **Before changing anything:** run `veil brain where`, then `veil brain query "<what the task touches>"`, and read the shared contract and the files it cites.
+2. **After changing something the brain describes:** update its notes and run `veil brain index`.
+
+- Contributors without `veil` follow this file alone; nothing in this repository depends on it and CI does not use it.
+- This repository's `AGENTS.md`, `ARCHITECTURE.md` and `SECURITY.md` remain the authority here, and nothing private belongs in this public repository.
