@@ -139,10 +139,9 @@
 
 ## Shared Agent Contract (Maintainers)
 
-Maintainers' coding agents share one set of working rules across this project's repositories, kept in a local Agent Brain. If the `veil` command-line tool is installed:
+The shared SigilForge Agent Brain contract is `docs/agent-brain/AGENT_CONTRACT.md` **in the separate VeilForge repository**; it is not a file in this public checkout.
 
-1. **Before changing anything:** run `veil brain where`, then `veil brain query "<what the task touches>"`, and read the shared contract and the files it cites.
-2. **After changing something the brain describes:** update its notes and run `veil brain index`.
+1. **Before changing anything:** if `veil` is installed, run `veil brain where`, read that shared contract, run `veil brain query "<what the task touches>"`, and open the cited sources. Otherwise, follow this repository's tracked instructions directly.
+2. **After changing anything described by the Brain:** update the corresponding note and sources/decision records in VeilForge as needed, then run `veil brain index`. In a separate repository, report that follow-up explicitly.
 
-- Contributors without `veil` follow this file alone; nothing in this repository depends on it and CI does not use it.
-- This repository's `AGENTS.md`, `ARCHITECTURE.md` and `SECURITY.md` remain the authority here, and nothing private belongs in this public repository.
+This repository's `AGENTS.md`, `ARCHITECTURE.md`, and `SECURITY.md` remain authoritative for its code and public content. The Brain does not supersede them. Do not copy private VeilForge data or machine-specific paths into this public repository.
