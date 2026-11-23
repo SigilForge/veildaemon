@@ -146,18 +146,34 @@ test("adding a published Wednesday episode to episodes.json activates her player
   await expect(page.locator("#featured-video iframe")).toHaveAttribute("src", /youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/);
 });
 
-test("The People copy preserves kayfabe and avoids out-of-world framing terms", async () => {
+test("The People copy preserves kayfabe and avoids out-of-world framing terms or internal dossier metrics", async () => {
   const htmlFiles = [
     "people/index.html",
     "people/cathy/index.html",
     "people/wednesday/index.html"
   ];
-  const forbidden = /\b(?:in-world|ARG|fiction|lore|canon|continuity|game|leaked|hacker|novel|table-ready|tabletop|TTRPG)\b/i;
+  const forbidden = /\b(?:in-world|ARG|fiction|lore|canon|continuity|game|leaked|hacker|novel|table-ready|tabletop|TTRPG|50\s*kg|B\s*cup|underbust|VANTA-1)\b/i;
   for (const rel of htmlFiles) {
     const content = fs.readFileSync(path.join(root, rel), "utf8");
     const match = content.match(forbidden);
-    expect(match, `${rel} contains out-of-world framing term: ${match ? match[0] : ""}`).toBeNull();
+    expect(match, `${rel} contains forbidden framing or private dossier term: ${match ? match[0] : ""}`).toBeNull();
   }
+});
+
+test("character profiles include expandable A Little About Me sections", async ({ page }) => {
+  await page.goto("/people/cathy/", { waitUntil: "domcontentloaded" });
+  const cathyAbout = page.locator("details#about-cathy");
+  await expect(cathyAbout).toBeVisible();
+  await cathyAbout.locator("summary").click();
+  await expect(cathyAbout).toContainText("165 cm");
+  await expect(cathyAbout).toContainText("Gymnastics and medicine");
+
+  await page.goto("/people/wednesday/", { waitUntil: "domcontentloaded" });
+  const wedAbout = page.locator("details#about-wednesday");
+  await expect(wedAbout).toBeVisible();
+  await wedAbout.locator("summary").click();
+  await expect(wedAbout).toContainText("depends on the size of your monitor");
+  await expect(wedAbout).toContainText("Not applicable");
 });
 
 test("visitors can move directly between Cathy and Wednesday and reach /people/ from homepage", async ({ page }) => {
