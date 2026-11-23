@@ -24,7 +24,7 @@
   <link rel="icon" href="/favicon.ico?v=20260924-veilcorp1" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/veilcorp/favicon-32x32.png?v=20260924-veilcorp1" />
   <link rel="apple-touch-icon" href="/assets/icons/veilcorp/apple-touch-icon.png?v=20260924-veilcorp1" />
-  <link rel="stylesheet" href="/people/assets/people.css?v=20261123-1" />
+  <link rel="stylesheet" href="/people/assets/people.css?v=20261123-2" />
   <script defer src="https://cloud.umami.is/script.js" data-website-id="ca8212dd-59fd-44f8-8af9-8004763b73f4"></script>
 </head>
 <body data-page="people-hub">
@@ -119,10 +119,10 @@
               <li>Questionable coping</li>
               <li>Unexpectedly sincere</li>
             </ul>
-            <div class="panel-episode-box">
-              <span class="panel-episode-label">Featured episode · 0:35</span>
-              <p class="panel-episode-title">Two Different Things</p>
-              <p class="panel-episode-desc">Turns out being hungry and needing somebody around aren’t always the same thing.</p>
+            <div class="panel-episode-box" data-panel-featured="cathy">
+              <span class="panel-episode-label" data-panel-ep-label>Featured episode · 0:35</span>
+              <p class="panel-episode-title" data-panel-ep-title>Two Different Things</p>
+              <p class="panel-episode-desc" data-panel-ep-desc>Turns out being hungry and needing somebody around aren’t always the same thing.</p>
             </div>
             <div class="panel-actions">
               <a class="btn btn-porch" href="/people/cathy/" data-track="people_character_select" data-track-character="cathy" data-track-target="panel-primary">Spend Time with Cathy</a>
@@ -142,10 +142,10 @@
               <li>Dry commentary</li>
               <li>Paying attention</li>
             </ul>
-            <div class="panel-episode-box">
-              <span class="panel-episode-label">Her side of the conversation</span>
-              <p class="panel-episode-title">First transmission opens soon</p>
-              <p class="panel-episode-desc">Wednesday is preparing her response. Her video activates here and on her page as soon as it’s live.</p>
+            <div class="panel-episode-box" data-panel-featured="wednesday">
+              <span class="panel-episode-label" data-panel-ep-label>Her side of the conversation</span>
+              <p class="panel-episode-title" data-panel-ep-title>First transmission opens soon</p>
+              <p class="panel-episode-desc" data-panel-ep-desc>Wednesday is preparing her response. Her video activates here and on her page as soon as it’s live.</p>
             </div>
             <div class="panel-actions">
               <a class="btn btn-iface" href="/people/wednesday/" data-track="people_character_select" data-track-character="wednesday" data-track-target="panel-primary">Hear Wednesday’s Opinion</a>
@@ -224,8 +224,14 @@
             </div>
           </article>
 
-          <article class="episode-card iface" id="watch-wednesday" aria-labelledby="ep-wednesday-title">
-            <div class="upcoming-stage">
+          <article
+            class="episode-card iface"
+            id="watch-wednesday"
+            aria-labelledby="ep-wednesday-title"
+            data-character-featured="wednesday"
+            data-badge-prefix="Wednesday · The Interface"
+          >
+            <div class="upcoming-stage" data-featured-stage-slot>
               <img
                 src="/people/assets/portraits/wednesday-contact.webp?v=20261123-1"
                 alt="Wednesday reaching toward a glowing cyan and violet interface ring, cropped dark hair, freckles, layered black techwear."
@@ -241,9 +247,10 @@
 
             <div class="episode-body">
               <p class="step-kicker">Part 2 · W3DN35D47 (Wednesday)</p>
-              <h3 id="ep-wednesday-title">Wednesday’s Side of It</h3>
-              <p>She heard Cathy’s take and has her own thoughts on advice, qualifications, and people who ignore both. Her player opens here upon release.</p>
+              <h3 id="ep-wednesday-title" data-featured-title>Wednesday’s Side of It</h3>
+              <p data-featured-desc>She heard Cathy’s take and has her own thoughts on advice, qualifications, and people who ignore both. Her player opens here upon release.</p>
               <div class="episode-actions">
+                <a class="btn btn-iface-ghost" href="#" data-featured-native-link hidden>Watch on YouTube</a>
                 <a
                   class="btn btn-iface-ghost"
                   href="/people/wednesday/"
@@ -275,14 +282,23 @@
           <p>New episodes, arguments, and late-night thoughts land on the main channels first.</p>
         </div>
 
-        <div class="social-links" aria-label="Verified social channels">
+        <div class="social-links" aria-label="Primary social channels">
           <a class="social-pill" href="https://www.youtube.com/@CradlepointArchive/shorts" target="_blank" rel="noopener noreferrer" data-track="people_social_click" data-track-target="youtube-shorts">YouTube Shorts</a>
           <a class="social-pill" href="https://www.youtube.com/@CradlepointArchive" target="_blank" rel="noopener noreferrer" data-track="people_social_click" data-track-target="youtube">YouTube</a>
           <a class="social-pill" href="https://www.instagram.com/veilborn.archive/" target="_blank" rel="noopener noreferrer" data-track="people_social_click" data-track-target="instagram">Instagram</a>
           <a class="social-pill" href="https://www.threads.com/@cradlepoint.archive" target="_blank" rel="noopener noreferrer" data-track="people_social_click" data-track-target="threads">Threads</a>
           <a class="social-pill" href="https://bsky.app/profile/cradlepointarchive.bsky.social" target="_blank" rel="noopener noreferrer" data-track="people_social_click" data-track-target="bluesky">Bluesky</a>
-          <a class="social-pill" href="https://www.twitch.tv/veilcorpnode" target="_blank" rel="noopener noreferrer" data-track="people_social_click" data-track-target="twitch">Twitch</a>
         </div>
+
+        <details class="more-platforms">
+          <summary>More places to find us</summary>
+          <div class="social-links" aria-label="Additional social channels">
+            <a class="social-pill" href="https://www.facebook.com/profile.php?id=61577239185104" target="_blank" rel="noopener noreferrer" data-track="people_social_click" data-track-target="facebook">Facebook</a>
+            <a class="social-pill" href="https://x.com/VeilCorpArchive" target="_blank" rel="noopener noreferrer" data-track="people_social_click" data-track-target="x">X</a>
+            <a class="social-pill" href="https://social.veildaemon.app/" target="_blank" rel="noopener noreferrer" data-track="people_social_click" data-track-target="mastodon">Mastodon</a>
+            <a class="social-pill" href="https://www.twitch.tv/veilcorpnode" target="_blank" rel="noopener noreferrer" data-track="people_social_click" data-track-target="twitch">Twitch</a>
+          </div>
+        </details>
       </div>
     </section>
 
@@ -302,15 +318,15 @@
           </a>
 
           <a class="deeper-card" href="/studio/shelf/book-one/" data-track="people_world_click" data-track-target="veilsight">
-            <span>Book One</span>
+            <span>VeilSight</span>
             <h3>CradlePoint: VeilSight</h3>
-            <p>The novel where these paths cross — direct digital edition.</p>
+            <p>Follow where their paths cross.</p>
           </a>
 
           <a class="deeper-card" href="https://play.veildaemon.app/" target="_blank" rel="noopener noreferrer" data-track="people_world_click" data-track-target="needlepoint">
-            <span>Free Introduction</span>
-            <h3>Needlepoint Starter</h3>
-            <p>Step into the table-ready first case without needing an account.</p>
+            <span>First Contact</span>
+            <h3>Needlepoint</h3>
+            <p>Enter the first case without needing an account.</p>
           </a>
         </div>
       </div>
@@ -329,6 +345,6 @@
     </div>
   </footer>
 
-  <script src="/people/assets/people.js?v=20261123-1" defer></script>
+  <script src="/people/assets/people.js?v=20261123-2" defer></script>
 </body>
 </html>
