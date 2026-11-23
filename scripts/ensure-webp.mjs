@@ -38,7 +38,7 @@ function walk(dir, acc = []) {
 
 function checkDisplayRefs() {
   const bad = [];
-  const roots = ["studio", "index.html", "styles.css", "operator", "handler", "debrief", "stream"];
+  const roots = ["studio", "people", "index.html", "styles.css", "operator", "handler", "debrief", "stream"];
   const files = [];
   for (const r of roots) {
     if (!fs.existsSync(r)) continue;

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-23",
+  "episodes": [
+    {
+      "id": "cathy-two-different-things",
+      "episodeNumber": 1,
+      "title": "Two Different Things",
+      "characterId": "cathy",
+      "characterName": "Cathy Holloway",
+      "environment": "The Porch",
+      "description": "Turns out being hungry and needing somebody around aren't always the same thing.",
+      "runtime": "0:35",
+      "runtimeSeconds": 35,
+      "publishedAt": "2026-11-22",
+      "aspect": "9:16",
+      "thumbnail": "/people/assets/thumbnails/cathy-two-different-things.webp",
+      "thumbnailAlt": "Cathy Holloway sitting on a warm-lit wooden porch in an oversized black hoodie holding a steaming mug.",
+      "youtubeId": "jO3uMKsvORI",
+      "nativeUrls": {
+        "youtube": "https://www.youtube.com/shorts/jO3uMKsvORI"
+      },
+      "topics": ["Life", "Strange Things"],
+      "relatedEpisodeIds": [],
+      "visibility": "public",
+      "status": "published",
+      "sourceVersion": "fr-2026-11-19-two-different-things"
+    }
+  ]
+}
