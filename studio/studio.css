@@ -6262,66 +6262,219 @@ footer.site-footer {
   margin-top: 1.4rem;
 }
 
-.support-jump {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  max-width: var(--max);
-  margin: 0 auto 1.25rem;
-  padding: 0 var(--pad);
+/* Support desk — one paper sheet: sticky topic index + compact FAQ groups */
+.support-desk {
+  padding-top: clamp(2.5rem, 5vw, 4rem);
+  padding-bottom: clamp(2.5rem, 5vw, 4rem);
 }
 
-.support-jump a {
-  padding: 0.45rem 0.9rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--line-strong);
-  color: var(--text-soft);
-  font-size: 0.82rem;
+.support-desk-inner {
+  display: grid;
+  grid-template-columns: minmax(12rem, 15rem) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: start;
+}
+
+.support-index {
+  position: sticky;
+  top: 6rem;
+  display: grid;
+  gap: 0.15rem;
+  padding-left: 1rem;
+  border-left: 1px solid rgba(22, 24, 23, 0.14);
+}
+
+.support-index .eyebrow {
+  margin: 0 0 0.6rem;
+}
+
+.support-index a {
+  padding: 0.4rem 0;
+  color: var(--ink-muted);
+  font-size: 0.92rem;
   text-decoration: none;
+  transition: color 0.2s var(--ease);
 }
 
-.support-jump a:hover {
-  color: var(--text);
-  border-color: rgba(181, 117, 104, 0.5);
+.support-index a:hover,
+.support-index a:focus-visible {
+  color: var(--rust-deep);
+}
+
+.support-groups {
+  display: grid;
+  gap: clamp(2.25rem, 4vw, 3.25rem);
+  max-width: 48rem;
 }
 
 .support-topic {
   scroll-margin-top: 6rem;
 }
 
+.support-topic header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid rgba(22, 24, 23, 0.14);
+}
+
+.support-topic header .eyebrow {
+  order: 2;
+  margin: 0;
+}
+
+.support-topic header h2 {
+  margin: 0;
+  font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+  line-height: 1.15;
+}
+
 .support-faq {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .support-faq details {
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(22, 24, 23, 0.12);
-  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(22, 24, 23, 0.1);
+  background: rgba(255, 255, 255, 0.5);
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+
+.support-faq details:hover,
+.support-faq details[open] {
+  background: var(--paper-3);
+  border-color: rgba(138, 74, 66, 0.28);
 }
 
 .support-faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   cursor: pointer;
-  padding: 0.9rem 1.1rem;
+  list-style: none;
+  padding: 0.95rem 1.15rem;
   color: var(--ink-text);
   font-weight: 600;
-  list-style-position: inside;
+  font-size: 0.98rem;
+  line-height: 1.4;
+}
+
+.support-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.support-faq summary::after {
+  content: "+";
+  flex: none;
+  color: var(--rust-deep);
+  font-weight: 400;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.support-faq details[open] summary::after {
+  content: "\2212";
 }
 
 .support-faq summary:focus-visible {
   outline: 2px solid var(--sage-deep);
   outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .support-faq details p {
   margin: 0;
-  padding: 0 1.1rem 1rem;
+  padding: 0 1.15rem 1.1rem;
+  max-width: 62ch;
   color: var(--ink-muted);
-  line-height: 1.6;
+  font-size: 0.94rem;
+  line-height: 1.65;
 }
 
 .support-faq a {
   color: var(--rust-deep);
+}
+
+.support-card p a {
+  color: var(--rust-soft);
+}
+
+/* Accessibility + privacy: one dark band, two cards */
+.support-more {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding-top: clamp(2.5rem, 5vw, 4rem);
+  padding-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.support-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: clamp(1.4rem, 3vw, 2rem);
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  background: var(--ink-elevated);
+}
+
+.support-card .eyebrow,
+.support-card h2,
+.support-card p {
+  margin: 0;
+}
+
+.support-card h2 {
+  font-size: clamp(1.45rem, 2.4vw, 1.85rem);
+  line-height: 1.15;
+}
+
+.support-card p {
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.support-card .button {
+  margin-top: auto;
+}
+
+@media (max-width: 860px) {
+  .support-desk-inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+
+  .support-index {
+    position: static;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .support-index .eyebrow {
+    flex-basis: 100%;
+    margin-bottom: 0.15rem;
+  }
+
+  .support-index a {
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(22, 24, 23, 0.16);
+    font-size: 0.84rem;
+  }
+
+  .support-more {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .footer-help {
